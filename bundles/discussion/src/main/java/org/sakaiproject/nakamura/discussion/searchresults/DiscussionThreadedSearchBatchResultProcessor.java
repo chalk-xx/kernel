@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.discussion.searchresults;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
@@ -26,6 +27,7 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.Post;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
@@ -64,6 +66,9 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
 
   @Property(value = "DiscussionThreaded")
   static final String SEARCH_BATCHPROCESSOR = "sakai.search.batchprocessor";
+  
+  @Reference
+  protected transient PresenceService presenceService;
 
   public void writeNodes(SlingHttpServletRequest request, JSONWriter writer,
       Aggregator aggregator, RowIterator iterator) throws JSONException,
@@ -99,7 +104,7 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
     // The posts are sorted, now return them as json.
 
     for (Post p : basePosts) {
-      p.outputPostAsJSON(writer);
+      p.outputPostAsJSON(writer, presenceService);
     }
   }
 

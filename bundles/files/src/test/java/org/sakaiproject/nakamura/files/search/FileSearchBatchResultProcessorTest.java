@@ -123,8 +123,8 @@ public class FileSearchBatchResultProcessorTest {
     w.flush();
     String s = baos.toString("UTF-8");
     JSONObject o = new JSONObject(s);
-    assertEquals("file.doc", o.getString("name"));
-    assertEquals("/path/to/file.doc", o.getString("path"));
+    assertEquals("file.doc", o.getString("jcr:name"));
+    assertEquals("/path/to/file.doc", o.getString("jcr:path"));
   }
 
   @Test
@@ -148,8 +148,8 @@ public class FileSearchBatchResultProcessorTest {
     String s = baos.toString("UTF-8");
     JSONObject o = new JSONObject(s);
     boolean hasFile = o.has("file");
-    assertEquals("file.doc", o.getString("name"));
-    assertEquals("/path/to/link/file.doc", o.getString("path"));
+    assertEquals("file.doc", o.getString("jcr:name"));
+    assertEquals("/path/to/link/file.doc", o.getString("jcr:path"));
     assertEquals(true, hasFile);
   }
 

@@ -89,4 +89,12 @@ public class ISO8601DateTest {
       Assert.assertEquals(g.toString(), g2.toString());
     }
   }
+  
+  @Test
+  public void testDate() {
+    ISO8601Date g = new ISO8601Date();
+    g.set(2010, 11, 24);
+    g.setDate(true);
+    Assert.assertEquals("2010-12-24", g.toString());
+  }
 }

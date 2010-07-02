@@ -15,13 +15,13 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.7-SNAPSHOT</version>
   </parent>
   <artifactId>javax.xml.bind.jaxb</artifactId>
    <description>Provides javax.xml.bind JAXB </description>
   <packaging>bundle</packaging>
   <version>2.1</version>
-  <name>Jaxb Bundle</name>
+  <name>Sakai Nakamura :: Jaxb Bundle</name>
   <build>
     <plugins>
       <plugin>

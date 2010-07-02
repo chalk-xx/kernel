@@ -85,6 +85,9 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Map<String, List<Group>> membership = getSiteService().getMembership(session, u);
 
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
       ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
       output.array();
       for (Entry<String, List<Group>> site : membership.entrySet()) {

@@ -81,6 +81,12 @@ public class EmailMessageHandler implements MessageTransport {
     if (recipients != null) {
       Properties props = new Properties();
       try {
+        if ( event != null ) {
+          for( String propName : event.getPropertyNames()) {
+            Object propValue = event.getProperty(propName);
+            props.put(propName, propValue);
+          }
+        }
         // make the message deliver to one listener.
         props.put(EventDeliveryConstants.DELIVERY_MODE, EventDeliveryMode.P2P);
         // make the message persistent to survive restarts.

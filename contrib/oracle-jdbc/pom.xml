@@ -4,13 +4,13 @@
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>0.5-SNAPSHOT</version>
+      <version>0.7-SNAPSHOT</version>
     </parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.7-SNAPSHOT</version>
     <packaging>bundle</packaging>
-    <name>oracle jdbc bundle</name>
+    <name>Sakai Nakamura :: oracle jdbc bundle</name>
     <description>
         This bundle simply wraps ojdbc14.jar.
     </description>

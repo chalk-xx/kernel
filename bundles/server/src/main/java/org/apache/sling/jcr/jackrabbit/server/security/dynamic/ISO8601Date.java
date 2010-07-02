@@ -130,7 +130,7 @@ public class ISO8601Date extends GregorianCalendar {
     }
     setTimeZone(z);
     set(MILLISECOND,0);
-    set(year, month, day, hour, min, sec);
+    set(year, month-1, day, hour, min, sec);
   }
 
   public boolean before(long when) {
@@ -148,25 +148,35 @@ public class ISO8601Date extends GregorianCalendar {
   public String toString() {
     Formatter formatter = new Formatter();
     int year = get(YEAR);
-    int month = get(MONTH);
+    int month = get(MONTH)+1;
     int day = get(DAY_OF_MONTH);
     int hour = get(HOUR_OF_DAY);
     int min = get(MINUTE);
     int second = get(SECOND);
-    long offset = getTimeZone().getOffset(getTimeInMillis()) / (60000L);
-    int hoffset = (int) (offset / 60L);
-    int minoffset = (int) (offset % 60L);
-
-    if (offset == 0) {
-      formatter.format("%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, min,
-          second);
-    } else if ( offset < 0 ) {
-      formatter.format("%04d-%02d-%02dT%02d:%02d:%02d-%02d:%02d", year, month, day, hour,
-          min, second, -hoffset, -minoffset);
+    if (date) {
+      formatter.format("%04d-%02d-%02d", year, month, day);
     } else {
-      formatter.format("%04d-%02d-%02dT%02d:%02d:%02d+%02d:%02d", year, month, day, hour,
-          min, second, hoffset, minoffset);
+      long offset = getTimeZone().getOffset(getTimeInMillis()) / (60000L);
+      int hoffset = (int) (offset / 60L);
+      int minoffset = (int) (offset % 60L);
+      if (offset == 0) {
+        formatter.format("%04d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, hour, min,
+            second);
+      } else if (offset < 0) {
+        formatter.format("%04d-%02d-%02dT%02d:%02d:%02d-%02d:%02d", year, month, day,
+            hour, min, second, -hoffset, -minoffset);
+      } else {
+        formatter.format("%04d-%02d-%02dT%02d:%02d:%02d+%02d:%02d", year, month, day,
+            hour, min, second, hoffset, minoffset);
+      }
     }
     return formatter.toString();
+  }
+
+  /**
+   * @param b
+   */
+  public void setDate(boolean b) {
+    date = b;
   }
 }

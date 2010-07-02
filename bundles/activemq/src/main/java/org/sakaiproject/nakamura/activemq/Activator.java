@@ -18,43 +18,55 @@
 package org.sakaiproject.nakamura.activemq;
 
 import org.apache.activemq.broker.BrokerService;
+import org.apache.activemq.network.NetworkConnector;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-
 
 public class Activator implements BundleActivator {
   private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
 
   private BrokerService broker;
 
-  public void start(BundleContext arg0) throws Exception {
-    String brokerUrl = System.getProperty("activemq.broker.url");
+  public void start(BundleContext bundleContext) throws Exception {
+    
+    String brokerUrl = bundleContext.getProperty("activemq.broker.url");
     if (brokerUrl == null) {
-      String brokerProtocol = System.getProperty("activemq.broker.protocol", "tcp");
-      String brokerHost = System.getProperty("activemq.broker.host", "localhost");
-      String brokerPort = System.getProperty("activemq.broker.port", "61616");
+      String brokerProtocol = bundleContext.getProperty("activemq.broker.protocol");
+      String brokerHost = bundleContext.getProperty("activemq.broker.host");
+      String brokerPort = bundleContext.getProperty("activemq.broker.port");
+      if ( brokerProtocol == null ) {
+        brokerProtocol = "tcp";
+      }
+      if ( brokerHost == null ) {
+        brokerHost = "localhost";
+      }
+      if ( brokerPort == null ) {
+        brokerPort = "61616";
+      }
       brokerUrl = brokerProtocol + "://" + brokerHost + ":" + brokerPort;
     }
-    
-    
+
     broker = new BrokerService();
-    
+
     // generate a full path
-    File ddir = broker.getDataDirectoryFile();
-    String dpath = ddir.getAbsolutePath();
-    
-    String basePath = dpath.substring(0, dpath.length()-"/activemq-data".length());
-    String dataPath = basePath+"/sling/activemq-data";
-    LOG.info("Setting Data Path to  [{}] [{}] ",new Object[]{dpath,basePath,dataPath});
+    String slingHome = bundleContext.getProperty("sling.home");
+    String dataPath = slingHome + "/activemq-data";
+    LOG.info("Setting Data Path to  [{}] [{}] ", new Object[] { slingHome, dataPath });
     broker.setDataDirectory(dataPath);
+
+    String federatedBrokerUrl = bundleContext.getProperty("activemq.federated.broker.url");
     
+    if ( federatedBrokerUrl != null ) {
+      NetworkConnector connector = broker.addNetworkConnector(federatedBrokerUrl); 
+      connector.setDuplex(true);
+    }
+
     // configure the broker
     LOG.info("Adding ActiveMQ connector [" + brokerUrl + "]");
     broker.addConnector(brokerUrl);
+    
 
     broker.start();
   }
@@ -64,5 +76,4 @@ public class Activator implements BundleActivator {
       broker.stop();
     }
   }
-
 }

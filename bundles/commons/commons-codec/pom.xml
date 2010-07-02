@@ -22,13 +22,13 @@
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>0.5-SNAPSHOT</version>
+      <version>0.7-SNAPSHOT</version>
     </parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>org.sakaiproject.nakamura.commons.commons-codec</artifactId>
-    <version>1.4-0.5-SNAPSHOT</version>
+    <version>1.4-0.7-SNAPSHOT</version>
     <packaging>bundle</packaging>
-    <name>commons-codec bundle</name>
+    <name>Sakai Nakamura :: Apache Commons Codec bundle</name>
     <description>
         This bundle simply wraps commons-codec-1.4.jar.
     </description>

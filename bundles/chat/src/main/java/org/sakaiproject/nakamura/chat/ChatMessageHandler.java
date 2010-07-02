@@ -114,7 +114,7 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
               MessageConstants.STATE_NOTIFIED);
           n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
               MessageConstants.SAKAI_MESSAGE_RT);
-          n.save();
+          session.save();
 
           long time = System.currentTimeMillis();
           Calendar cal = originalMessage.getProperty(MessageConstants.PROP_SAKAI_CREATED)

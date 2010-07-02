@@ -41,7 +41,7 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     AuthorizablePostProcessService authorizablePostProcessService = createMock(AuthorizablePostProcessService.class);
     
     expect(authorizable.isGroup()).andReturn(true).times(2);
-    expect(authorizable.getID()).andReturn("g-foo").times(2);
+    expect(authorizable.getID()).andReturn("g-foo").times(3);
 
     Resource resource = createMock(Resource.class);
     expect(resource.adaptTo(Authorizable.class)).andReturn(authorizable);

@@ -34,6 +34,7 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.MergedRowIterator;
+import org.sakaiproject.nakamura.api.search.SakaiSearchRowIterator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
@@ -101,7 +102,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
     try {
       // Perform the query
       QueryResult qr = query.execute();
-      RowIterator iterator = qr.getRows();
+      RowIterator iterator = new SakaiSearchRowIterator(qr.getRows());
 
       // Do another query to get the files.
       Session session = request.getResourceResolver().adaptTo(Session.class);

@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.RowIteratorImpl;
+import org.sakaiproject.nakamura.api.search.SakaiSearchRowIterator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
@@ -102,7 +103,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
           SearchConstants.DEFAULT_PAGED_ITEMS);
 
       // Do the paging on the iterator.
-      RowIterator iterator = rs.getRows();
+      SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(rs.getRows());
       long start = SearchUtil.getPaging(request, hits);
       iterator.skip(start);
 

@@ -41,6 +41,8 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -50,6 +52,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.site.SiteAuthz;
@@ -63,6 +66,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Set;
 
 import javax.jcr.Node;
@@ -93,10 +97,10 @@ import javax.servlet.http.HttpServletResponse;
         selectors=@ServiceSelector(name="createsite", description="Create Site"),
         extensions=@ServiceExtension(name="html", description="A standard HTML response for creating a node.")),
     methods=@ServiceMethod(name="POST",
-        description={"Creates a site, with a name specified in " + PARAM_SITE_PATH + " from an optional template. In the process the servlet" +
+        description={"Creates a site, with a name specified in " + PARAM_SITE_PATH + " from an optional template. In the process the servlet " +
         		"will also create all related structures (message stores etc) and set up any groups associated with the site. " +
-        		"Create permissions may be controlled by the sakai:sitegroupcreate property, containing a list of principals allowed" +
-        		"to create sites under that node. If the current user is not allowed to create a site in the chosen location, then" +
+        		"Create permissions may be controlled by the sakai:sitegroupcreate property, containing a list of principals allowed " +
+        		"to create sites under that node. If the current user is not allowed to create a site in the chosen location, then " +
         		"a 403 is returned. " +
         		"Any parameters other than " + PARAM_SITE_PATH + " will be stored as properties on the new site node.",
             "Example<br>" +
@@ -142,6 +146,9 @@ public class CreateSiteServlet extends AbstractSiteServlet {
   @Reference
   private transient AuthorizablePostProcessService postProcessService;
 
+  @Reference
+  private transient EventAdmin eventAdmin;
+
   /**
    * {@inheritDoc}
    *
@@ -169,7 +176,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         return;
       }
       LOGGER.debug("The sitePath is: {}", sitePath);
-     
+
       // If we base this site on a template, make sure it exists.
       RequestParameter siteTemplateParam = request
           .getRequestParameter(SAKAI_SITE_TEMPLATE);
@@ -226,18 +233,18 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         // it.
         createSession = adminSession;
       } else {
-        
+
         adminSession.logout();
         adminSession = null;
       }
-      
+
       // Get the optional site type
       String sakaiSiteType = null;
       if ( request.getRequestParameter(SiteService.SAKAI_SITE_TYPE) != null )
         sakaiSiteType = request.getRequestParameter(SiteService.SAKAI_SITE_TYPE).getString();
 
       LOGGER.info("Creating Site {} for user {} with session {}",new Object[] { sitePath, currentUser.getID(), session.getUserID()});
-      	
+
 
       // Perform the actual creation or move.
       try {
@@ -251,7 +258,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         } else {
           siteNode = createSiteWithoutTemplate(createSession, sitePath, currentUser, sakaiSiteType);
         }
-        
+
         if (LOGGER.isDebugEnabled()) {
           try {
             JcrUtils.logItem(LOGGER, siteNode);
@@ -259,6 +266,14 @@ public class CreateSiteServlet extends AbstractSiteServlet {
             LOGGER.warn(e.getMessage(), e);
           }
         }
+
+        // site creation notification
+        Hashtable<String, String> eventProps = new Hashtable<String, String>();
+        eventProps.put(SiteEvent.SITE, sitePath);
+        eventProps.put(SiteEvent.USER, currentUser.getID());
+        eventAdmin.postEvent(new Event(SiteService.SiteEvent.created.getTopic(),
+            eventProps));
+
       } finally {
         if (adminSession != null) {
           adminSession.logout();
@@ -363,7 +378,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
    */
   private Node createSiteFromTemplate(Session session, String templatePath, String sitePath, Authorizable creator, String sakaiSiteType) throws RepositoryException {
     ensureParent(session, sitePath);
-    
+
     // Copy the template files in the new folder.
     LOGGER.debug("Copying template ({}) to new dir ({})", templatePath,
         sitePath);
@@ -386,7 +401,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     LOGGER.debug("Finished copying");
     return siteNode;
   }
-  
+
   private Node createSiteWithoutTemplate(Session session, String sitePath, Authorizable creator, String sakaiSiteType) throws RepositoryException {
     Node siteNode = JcrUtils.deepGetOrCreateNode(session, sitePath);
     session.save();
@@ -400,10 +415,10 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     LOGGER.debug("Finished copying");
     return siteNode;
   }
-  
+
   private Node copySite(Session session, String fromPath, String sitePath, Authorizable creator) throws RepositoryException {
     ensureParent(session, sitePath);
-    
+
     // Copy the template files in the new folder.
     LOGGER.debug("Copying site ({}) to new dir ({})", fromPath,
         sitePath);
@@ -420,10 +435,10 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     LOGGER.debug("Finished copying");
     return siteNode;
   }
-  
+
   private Node moveSite(Session session, String fromPath, String sitePath, Authorizable creator) throws RepositoryException {
     ensureParent(session, sitePath);
-    
+
     // Copy the template files in the new folder.
     LOGGER.debug("Moving site ({}) to new dir ({})", fromPath,
         sitePath);
@@ -444,7 +459,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
    * Workspace copy/move needs the destination's parent to exist and be saved.
    * @param session
    * @param sitePath
-   * @throws RepositoryException 
+   * @throws RepositoryException
    */
   private void ensureParent(Session session, String sitePath) throws RepositoryException {
     String parentPath = PathUtils.getParentReference(sitePath);
@@ -453,7 +468,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       session.save();
     }
   }
-  
+
   private void initializeAccess(Session session, Node site, Authorizable creator) throws RepositoryException {
     // Give the creator full rights on the site tree.
     AccessControlUtil.replaceAccessControlEntry(session, site.getPath(), creator.getPrincipal(),
@@ -463,27 +478,27 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     SiteAuthz authzHelper = new SiteAuthz(site, postProcessService);
     authzHelper.initAccess(creator.getID());
   }
-  
+
   private void initializeNewSite(Session session, Node site, String sakaiSiteType) throws RepositoryException {
     site.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         SiteService.SITE_RESOURCE_TYPE);
 
     if ( sakaiSiteType != null )
         site.setProperty(SiteService.SAKAI_SITE_TYPE, sakaiSiteType );
-       
+
     // Add a message store to this site.
     // TODO Is there any reason this can't be handled by site templates?
     Node storeNode = site.addNode("store");
     storeNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         "sakai/messagestore");
   }
-  
+
   /**
    * Parse the request to get the destination of the new or moved site.
    * @param request
    * @param response
    * @return null if an error needs to be returned to the user
-   * @throws IOException 
+   * @throws IOException
    */
   private String getSitePath(SlingHttpServletRequest request, SlingHttpServletResponse response) throws IOException {
     String resourceType = request.getResource().getResourceType();

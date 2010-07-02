@@ -12,7 +12,6 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.Property;

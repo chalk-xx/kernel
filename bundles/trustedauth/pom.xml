@@ -19,12 +19,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.7-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
   <packaging>bundle</packaging>
-  <version>0.5-SNAPSHOT</version>
-  <name>Sakai Nakamura Trusted Authentication Bundle</name>
+  <version>0.7-SNAPSHOT</version>
+  <name>Sakai Nakamura :: Trusted Authentication Bundle</name>
   <build>
     <plugins>
       <plugin>
@@ -39,7 +39,7 @@
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
             <Export-Package>org.sakaiproject.nakamura.api.auth.trusted</Export-Package>
-            <Private-Package>org.sakaiproject.nakamura.auth.trusted</Private-Package>
+            <Private-Package>org.sakaiproject.nakamura.auth.trusted.*</Private-Package>
             <Import-Package>*</Import-Package>
           </instructions>
         </configuration>
@@ -75,29 +75,34 @@
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.engine</artifactId>
-      <version>2.0.7-20100524</version>
+      <version>2.0.7-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.commons.auth</artifactId>
-      <version>0.9.0-20100524</version>
+      <version>0.9.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.0.7-20100524</version>
+      <version>2.0.7-SNAPSHOT</version>
     </dependency>
     
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
-      <version>0.5-SNAPSHOT</version>
+      <version>0.7-SNAPSHOT</version>
     </dependency>
     
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
-      <version>0.5-SNAPSHOT</version>
+      <version>0.7-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
+      <version>0.7-SNAPSHOT</version>
     </dependency>
     
     <dependency>

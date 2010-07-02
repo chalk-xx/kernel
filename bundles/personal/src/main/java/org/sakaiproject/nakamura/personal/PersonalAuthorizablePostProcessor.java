@@ -485,7 +485,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
             LOGGER.debug("Ignoring unknown modification type: " + change.getType());
             break;
           case MODIFY:
-            eventAdmin.postEvent(AuthorizableEventUtil.newGroupEvent(change));
+            eventAdmin.postEvent(AuthorizableEventUtil.newGroupEvent(user, change));
             break;
           }
         } else if (path.endsWith(principalName)) {

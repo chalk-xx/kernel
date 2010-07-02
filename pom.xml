@@ -3,15 +3,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>base</artifactId>
-  <version>0.5-SNAPSHOT</version>
+  <version>0.7-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Sakai Nakamura Project OSGi Experiments</name>
-  <description> Nakamura Experiments to evaluate approaches and generate Proof of Concept
-    implementations. </description>
+  <name>Sakai Nakamura Project</name>
+  <description> Sakai Nakamura is an OSGi server built ontop of Apache Sling, supporting Sakai 3. </description>
   <url>http://groups.google.com/group/sakai-kernel</url>
   <inceptionYear>2008</inceptionYear>
   <prerequisites>
-    <maven>2.0.7</maven>
+    <maven>2.2.0</maven>
   </prerequisites>
   <scm>
     <connection>scm:git:git://github.com/ieb/open-experiments.git</connection>
@@ -84,15 +83,16 @@
         <module>bundles/google-collections</module>
         <module>bundles/woodstox</module>
         <module>bundles/calendar</module>
-        <module>bundles/antixss</module>
         <module>bundles/authz</module>
+        <module>bundles/basiclti</module>
+        <module>bundles/profile</module>
+        <module>bundles/tika</module>
       </modules>
     </profile>
     <profile>
        <id>withContrib</id>
        <modules>
         <module>contrib/import</module>
-        <module>contrib/basiclti</module>
         <module>contrib/filters</module>
         <module>contrib/mailman</module>
         <module>contrib/persondirectory</module>
@@ -109,6 +109,9 @@
         <module>sandbox/scriptrunner</module>
         <module>sandbox/sessiontest</module>
         <module>sandbox/sitetemplates</module>
+        <module>sandbox/imap</module>
+        <module>sandbox/drools/drools-repository</module>
+        <module>sandbox/drools/drools-engine</module>
        </modules>
     </profile>
     <profile>
@@ -769,7 +772,7 @@
       <dependency>
          <groupId>org.apache.sling</groupId>
          <artifactId>org.apache.sling.commons.testing</artifactId>
-         <version>2.0.5-20100524</version>
+         <version>2.0.5-SNAPSHOT</version>
          <scope>test</scope>
      </dependency>
 
@@ -823,7 +826,7 @@
         <groupId>javax.jcr</groupId>
         <artifactId>jcr</artifactId>
         <version>2.0</version>
-        <scope>provided</scope>
+        <scope>compile</scope> 
       </dependency>
 
 <!-- Jetty, for utilities -->

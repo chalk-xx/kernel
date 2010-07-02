@@ -3,7 +3,7 @@
   "sakai:query-template" : "/{_userMessagePath}//element(*)MetaData[@sling:resourceType='sakai/message' and @sakai:type='internal'] order by @{sortOn|jcr:created} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "Message",
-  "sakai:resultprocessor": "InternalMessage",
+  "sakai:resultprocessor": "Message",
   "sakai:title": "Messaging - User - Internal - All.",
   "sakai:shortDescription": "Get all the internal messages in your message store sorted in some way.",
   "sakai:parameters" : [

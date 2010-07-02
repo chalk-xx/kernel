@@ -7,6 +7,7 @@ require 'curb'
 require 'yaml'
 require 'sling/users'
 require 'sling/sites'
+require 'logger'
 
 class String
   def base64_decode
@@ -63,26 +64,24 @@ module SlingInterface
   
   class Sling
     
-    attr_accessor :debug
-    attr_accessor :log
-    attr_accessor :trustedauth
+    attr_accessor :log, :trustedauth
     
-    def initialize(server="http://localhost:8080/", debug=false, trustedauth=false)
+    def initialize(server="http://localhost:8080/", trustedauth=false)
       @server = server
-      @debug = debug
-      @log = false
       @user = SlingUsers::User.admin_user()
       @trustedauth = trustedauth
       @trustedcookie == nil
+      @log = Logger.new(STDOUT)
+      @log.level = Logger::WARN
     end
     
     def dump_response(response)
-      puts "Response: #{response.code} #{response.message}"
-      puts "#{response.body}" if @debug
+      @log.info "Response: #{response.code} #{response.message}"
+      @log.debug "#{response.body}"
     end
     
     def switch_user(user)
-      puts "Switched user to #{user}"
+      @log.info "Switched user to #{user}"
       @user = user
       if ( @trustedauth ) 
          @trustedcookie = nil
@@ -146,8 +145,8 @@ module SlingInterface
     end
     
     def execute_put_file(path, data)
-      puts "URL: #{path}" if @debug
-      write_log("PUTFILE: #{path} (as '#{@user.name}')")
+      @log.debug "URL: #{path}"
+      @log.debug("PUTFILE: #{path} (as '#{@user.name}')")
       uri = URI.parse(path)
       req = Net::HTTP::Put.new(uri.path)
       if ( @trustedauth ) 
@@ -169,7 +168,7 @@ module SlingInterface
       if ( post_params["_charset_"] == nil)
         post_params["_charset_"] = "utf-8"
       end
-      write_log("POST: #{path} (as '#{@user.name}')\n\tparams: #{post_params.dump}")
+      @log.debug("POST: #{path} (as '#{@user.name}')\n\tparams: #{post_params.dump}")
       uri = URI.parse(path)
       req = Net::HTTP::Post.new(uri.path)
       if ( @trustedauth ) 
@@ -203,11 +202,11 @@ module SlingInterface
         }.join("&")
         path = "#{path}?#{param_string}" 
       end
-      puts "URL: #{path}" if @debug
+      @log.debug "URL: #{path}"
       uri = URI.parse(path)
       path = uri.path
       path = path + "?" + uri.query if uri.query
-      write_log("GET: #{path} (as '#{@user.name}')")
+      @log.debug("GET: #{path} (as '#{@user.name}')")
       req = Net::HTTP::Get.new(path)
       if ( @trustedauth ) 
         if ( @trustedcookie == nil ) 
@@ -231,18 +230,10 @@ module SlingInterface
       res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req) }
       if ( res.code == "200" ) 
         @trustedcookie = res["Set-Cookie"]
-	    puts("Login Ok, cookie was  ["+@trustedcookie+"]") 
+	    @log.info("Login Ok, cookie was  ["+@trustedcookie+"]")
       else
-	    puts("Failed to perform login, got "+res.code+" response code") 
+	    @log.info("Failed to perform login, got "+res.code+" response code")
 	  end
-    end
-    
-    def write_log(s)
-      if (@log)
-        f = File.open("/tmp/sling-ruby.log","a")
-        f.write(s + "\n")
-        f.close
-      end
     end
     
     def execute_get_with_follow(url)
@@ -262,7 +253,7 @@ module SlingInterface
           res = Net::HTTP.start(host, port) {|http|  http.request(req) }
         end
         if res.header['location']
-          puts "Got Redirect: #{res.header['location']}"
+          @log.info "Got Redirect: #{res.header['location']}"
           uri = URI.parse(res.header['location']) 
         else
           found = true
@@ -300,12 +291,12 @@ module SlingInterface
     end
     
     def get_node_props_json(path)
-      puts "Getting props for path: #{path}" if @debug
+      @log.debug "Getting props for path: #{path}"
       result = execute_get(url_for("#{path}.json"))
       if ( result.code == "200" ) 
         return result.body
       end 
-      puts("Failed to get properties for "+path+" cause "+result.code+"\n"+result.body)
+      @log.info("Failed to get properties for "+path+" cause "+result.code+"\n"+result.body)
       return "{}"
     end
     
@@ -320,13 +311,21 @@ module SlingInterface
     def get_node_acl_json(path)
       return execute_get(url_for("#{path}.acl.json")).body
     end
+
+    def get_node_ruleacl_json(path)
+      return execute_get(url_for("#{path}.ruleacl.json")).body
+    end
     
     def get_node_acl(path)
       return JSON.parse(get_node_acl_json(path))
     end
+ 
+    def get_node_ruleacl(path)
+      return JSON.parse(get_node_ruleacl_json(path))
+    end
     
     def set_node_acl_entries(path, principal, privs)
-      puts "Setting node acl for: #{principal} to #{privs.dump}"
+      @log.info "Setting node acl for: #{principal} to #{privs.dump}"
       res = execute_post(url_for("#{path}.modifyAce.html"), 
       { "principalId" => principal.name }.update(
                                                  privs.keys.inject(Hash.new) do |n,k| 
@@ -334,6 +333,17 @@ module SlingInterface
         end))
         return res
       end
+
+    def set_node_acl_rule_entries(path, principal, privs, props)
+      @log.info "Setting node acl for: #{principal} to #{privs.dump}"
+      props["principalId"] = principal.name
+      res = execute_post(url_for("#{path}.modifyRuleAce.html"), 
+        props.update(
+          privs.keys.inject(Hash.new) do |n,k| 
+            n.update("privilege@#{k}" => privs[k])
+          end))
+      return res
+    end
       
       def delete_node_acl_entries(path, principal)
         res = execute_post(url_for("#{path}.deleteAce.html"), {
@@ -367,15 +377,15 @@ module SlingInterface
   end
   
   if __FILE__ == $0
-    puts "Sling test"  
+    @log.info "Sling test"
     s = SlingInterface::Sling.new("http://localhost:8080/", false)
     um = SlingUsers::UserManager.new(s)
     um.create_group(10)
     user = um.create_test_user(10)
     s.create_node("fish", { "foo" => "bar", "baz" => "jim" })
-    puts s.get_node_props_json("fish")
-    puts s.get_node_acl_json("fish")
+    @log.info s.get_node_props_json("fish")
+    @log.info s.get_node_acl_json("fish")
     
     s.set_node_acl_entries("fish", user, { "jcr:write" => "granted" })
-    puts s.get_node_acl_json("fish")
+    @log.info s.get_node_acl_json("fish")
   end

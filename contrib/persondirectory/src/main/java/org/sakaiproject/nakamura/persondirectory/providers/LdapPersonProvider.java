@@ -9,11 +9,11 @@ import com.novell.ldap.LDAPSearchResults;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.ConfigurationPolicy;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.osgi.framework.Constants;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProvider;
@@ -32,23 +32,21 @@ import javax.jcr.RepositoryException;
 /**
  * Person provider implementation that gets its information from an LDAP store.
  */
-@Component(metatype = true)
-@Service(serviceFactory = true)
+@Component(metatype = true, configurationFactory = true, policy = ConfigurationPolicy.REQUIRE)
+@Service
 public class LdapPersonProvider implements PersonProvider {
   private static final Logger LOG = LoggerFactory.getLogger(LdapPersonProvider.class);
+
+  /** Constant for the sling resource type property name */
   static final String SLING_RESOURCE_TYPE = "sling:resourceType";
-  static final String REP_USER_ID = "rep:userId";
+
+  /** Constant for the sakai user profile resource type value */
   static final String SAKAI_USER_PROFILE = "sakai/user-profile";
 
-  public static final String SEPARATOR = "=>";
+  /** Constant for the user id property */
+  static final String REP_USER_ID = "rep:userId";
 
-  public static final String DEFAULT_SERVICE_PID = "org.sakaiproject.nakamura.persondirectory.providers.LdapPersonProvider";
-  @Property(value = DEFAULT_SERVICE_PID, propertyPrivate = true)
-  protected static final String SERVICE_PID = Constants.SERVICE_PID;
-  
-  public static final String DEFAULT_SERVICE_FACTORY_PID = DEFAULT_SERVICE_PID + "-factory";
-  @Property(value = DEFAULT_SERVICE_FACTORY_PID, propertyPrivate = true)
-  protected static final String SERVICE_FACTORY_PID = "serviceFactory.pid";
+  public static final String SEPARATOR = "=>";
 
   @Property(value = "o=sakai")
   protected static final String BASE_DN = "sakai.pd.ldap.baseDn.pattern";
@@ -124,7 +122,7 @@ public class LdapPersonProvider implements PersonProvider {
 
       // get the user ID
       String uid = findUserId(parameters);
-      
+
       // set the properties
       String filter = filterPattern.replace("{}", uid);
 
@@ -168,7 +166,7 @@ public class LdapPersonProvider implements PersonProvider {
       throw new PersonProviderException(e.getMessage(), e);
     }
   }
-  
+
   private String findUserId(Node node) throws RepositoryException {
     if (node.hasProperty(SLING_RESOURCE_TYPE)
         && SAKAI_USER_PROFILE.equals(node.getProperty(SLING_RESOURCE_TYPE).toString())

@@ -35,7 +35,7 @@ class TC_Kern759Test < Test::Unit::TestCase
 	contactsgroup.update_properties(@s, { "rep:group-managers" => [ manager.name ], "rep:group-viewers" => [ viewer.name ] } )
     res = @s.execute_get(@s.url_for(Group.url_for(contactsgroup.name) + ".json"))
 	assert_equal("200",res.code)
-	puts(res.body)
+	@log.debug(res.body)
 	
 	
 	@s.switch_user(other)
@@ -46,9 +46,9 @@ class TC_Kern759Test < Test::Unit::TestCase
 	assert_equal("500",res.code, res.body)
 	
 	@s.switch_user(viewer)
-	@s.debug = true
+	#@s.debug = true
     res = @s.execute_get(@s.url_for(Group.url_for(contactsgroup.name) + ".json"))
-	@s.debug = false
+	#@s.debug = false
 	assert_equal("200",res.code, res.body)
 	res = contactsgroup.update_properties(@s, { "testing" => "Should Fail to Update" } ) 
 	assert_equal("500",res.code, res.body)

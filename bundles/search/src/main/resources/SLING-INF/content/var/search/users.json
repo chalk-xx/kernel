@@ -1,12 +1,14 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "//*[@sling:resourceType=\"sakai/user-profile\" and jcr:contains(.,'{username}')]",
+  "sakai:query-template": "//*[@sling:resourceType=\"sakai/user-profile\" and jcr:contains(.,'{q}')] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
-  "sakai:resultprocessor": "Node",
+  "sakai:resultprocessor": "User",
   "sakai:title": "Users",
   "sakai:shortDescription": "Get profile nodes out of the repository.",
   "sakai:parameters" : [
-      "{\"name\" : \"username\", \"description\" : \"The term you want to match against. This will match any property on the user profile\"}"
+      "{\"name\" : \"q\", \"description\" : \"The term you want to match against. This will match any property on the user profile\"}",
+      "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. The default is jcr:score\"}",
+      "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'ascending' or 'descending'.\"}"
       ],
   "sakai:description": [
                         "Get user profile nodes out of the repository filtered by a username.",

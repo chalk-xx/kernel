@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.doc;
 
+import static org.junit.Assert.assertTrue;
+
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -24,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.commons.testing.jcr.MockNodeIterator;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -53,19 +56,26 @@ public class DocumentationWriterTest {
   private String parameter = "{name: \"parName\", description: \"parDescription\"}";
   // Things that should not be shown in the doc.
   private String query = "//-_-query";
+  private DocumentationWriter writer;
+  private ByteArrayOutputStream baos;
+  private PrintWriter printWriter;
+
+  @Before
+  public void setUp() {
+    baos = new ByteArrayOutputStream();
+    printWriter = new PrintWriter(baos);
+    writer = new DocumentationWriter("Search nodes", printWriter);
+  }
 
   @Test
   public void testNode() throws RepositoryException, UnsupportedEncodingException {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintWriter writer = new PrintWriter(baos);
-
     Node node = createNode(path, title, description, response, shortDesc, parameter,
         query);
     Session session = mock(Session.class);
     when(session.getItem(path)).thenReturn(node);
 
-    DocumentationWriter.writeSearchInfo(path, session, writer);
-    writer.flush();
+    writer.writeSearchInfo(path, session);
+    printWriter.flush();
     String s = baos.toString("UTF-8");
 
     assertEquals(true, s.contains(path));
@@ -110,14 +120,11 @@ public class DocumentationWriterTest {
     when(q.execute()).thenReturn(result);
     when(result.getNodes()).thenReturn(nodeIterator);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintWriter writer = new PrintWriter(baos);
-
-    DocumentationWriter.writeNodes(session, writer, queryString, "/system/doc/proxy");
-    writer.flush();
+    writer.writeNodes(session, queryString, "/system/doc/proxy");
+    printWriter.flush();
     String s = baos.toString("UTF-8");
 
-    assertEquals(true, s.contains(path));
+    assertTrue(s.contains(path));
   }
 
 }

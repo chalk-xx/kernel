@@ -22,13 +22,13 @@
 	<parent>
 		<groupId>org.sakaiproject.nakamura</groupId>
 		<artifactId>base</artifactId>
-		<version>0.5-SNAPSHOT</version>
+		<version>0.7-SNAPSHOT</version>
 	</parent>
 	<groupId>org.sakaiproject.nakamura</groupId>
 	<artifactId>org.sakaiproject.nakamura.woodstox</artifactId>
-	<version>4.0.7-0.5-SNAPSHOT</version>
+	<version>4.0.7-0.7-SNAPSHOT</version>
 	<packaging>bundle</packaging>
-	<name>Woodstox/StAX</name>
+	<name>Sakai Nakamura :: Woodstox/StAX</name>
 	<description>
         This bundle simply wraps the Woodstox API (i.e. stax) and Implementation.
   </description>

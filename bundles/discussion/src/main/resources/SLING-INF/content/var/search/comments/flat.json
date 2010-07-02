@@ -8,7 +8,7 @@
   "sakai:parameters" : [
       "{\"name\" : \"path\", \"description\" : \"The path to look under. It's recommended to use a messagestore\"}",
       "{\"name\" : \"marker\", \"description\" : \"The uniquer marker that identifies a conversation.\"}",
-      "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. Default is sakai:filename\"}",
+      "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. Default is sakai:created\"}",
       "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'ascending' or 'descending'.\"}"      
       ],
   "sakai:description": "This will look for comments part of a conversation under a certain path.",

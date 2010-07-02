@@ -1,0 +1,545 @@
+[INFO] Scanning for projects...
+[WARNING] 
+	Profile with id: 'local-offline-deactivated' has not been activated.
+
+[INFO] Reactor build order: 
+[INFO]   Sakai Nakamura Project
+[INFO]   Sakai Nakamura :: Sakai Import Bundle
+[INFO]   Sakai Nakamura :: Filters Bundle
+[INFO]   Sakai Nakamura :: Mailman Support
+[INFO]   Sakai Nakamura :: LDAP Connection Bundle
+[INFO]   Sakai Nakamura :: Person Directory Bundle
+[INFO]   Sakai Nakamura :: CAS Auth Bundle
+[INFO]   Sakai Nakamura :: LDAP Authentication Bundle
+[INFO]   Sakai Nakamura :: URL Document Proxy
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Sakai Nakamura Project
+[INFO]    task-segment: [clean, install]
+[INFO] ------------------------------------------------------------------------
+[INFO] [clean:clean {execution: default-clean}]
+[INFO] [site:attach-descriptor {execution: default-attach-descriptor}]
+[INFO] Preparing source:jar
+[WARNING] Removing: jar from forked lifecycle, to prevent recursive invocation.
+[INFO] No goals needed for project - skipping
+[INFO] [source:jar {execution: attach-sources}]
+[INFO] [ianal:verify-legal-files {execution: default}]
+[INFO] [install:install {execution: default-install}]
+[INFO] Installing /Users/ieb/timefields/open-experiments/pom.xml to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/base/0.6-SNAPSHOT/base-0.6-SNAPSHOT.pom
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Sakai Nakamura :: Sakai Import Bundle
+[INFO]    task-segment: [clean, install]
+[INFO] ------------------------------------------------------------------------
+[INFO] [clean:clean {execution: default-clean}]
+[INFO] Deleting directory /Users/ieb/timefields/open-experiments/contrib/import/target
+[INFO] [resources:resources {execution: default-resources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+Downloading: http://repo1.maven.org/maven2//org/apache/sling/org.apache.sling.jcr.api/2.0.7-20100524/org.apache.sling.jcr.api-2.0.7-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.api:pom:2.0.7-20100524' in repository maven repo (http://repo1.maven.org/maven2/)
+Downloading: https://source.sakaiproject.org/maven2//org/apache/sling/org.apache.sling.jcr.api/2.0.7-20100524/org.apache.sling.jcr.api-2.0.7-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.api:pom:2.0.7-20100524' in repository sakai-releases (https://source.sakaiproject.org/maven2/)
+Downloading: http://repo1.maven.org/maven2/org/apache/sling/org.apache.sling.jcr.api/2.0.7-20100524/org.apache.sling.jcr.api-2.0.7-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.api:pom:2.0.7-20100524' in repository central (http://repo1.maven.org/maven2)
+Downloading: http://repo1.maven.org/maven2//org/apache/sling/org.apache.sling.jcr.base/2.0.7-20100524/org.apache.sling.jcr.base-2.0.7-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.base:pom:2.0.7-20100524' in repository maven repo (http://repo1.maven.org/maven2/)
+Downloading: https://source.sakaiproject.org/maven2//org/apache/sling/org.apache.sling.jcr.base/2.0.7-20100524/org.apache.sling.jcr.base-2.0.7-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.base:pom:2.0.7-20100524' in repository sakai-releases (https://source.sakaiproject.org/maven2/)
+Downloading: http://repo1.maven.org/maven2/org/apache/sling/org.apache.sling.jcr.base/2.0.7-20100524/org.apache.sling.jcr.base-2.0.7-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.base:pom:2.0.7-20100524' in repository central (http://repo1.maven.org/maven2)
+Downloading: http://repo1.maven.org/maven2//org/apache/sling/org.apache.sling.jcr.resource/2.0.7-20100524/org.apache.sling.jcr.resource-2.0.7-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.resource:pom:2.0.7-20100524' in repository maven repo (http://repo1.maven.org/maven2/)
+Downloading: https://source.sakaiproject.org/maven2//org/apache/sling/org.apache.sling.jcr.resource/2.0.7-20100524/org.apache.sling.jcr.resource-2.0.7-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.resource:pom:2.0.7-20100524' in repository sakai-releases (https://source.sakaiproject.org/maven2/)
+Downloading: http://repo1.maven.org/maven2/org/apache/sling/org.apache.sling.jcr.resource/2.0.7-20100524/org.apache.sling.jcr.resource-2.0.7-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.resource:pom:2.0.7-20100524' in repository central (http://repo1.maven.org/maven2)
+Downloading: http://repo1.maven.org/maven2//org/apache/sling/org.apache.sling.servlets.post/2.0.5-20100524/org.apache.sling.servlets.post-2.0.5-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.servlets.post:pom:2.0.5-20100524' in repository maven repo (http://repo1.maven.org/maven2/)
+Downloading: https://source.sakaiproject.org/maven2//org/apache/sling/org.apache.sling.servlets.post/2.0.5-20100524/org.apache.sling.servlets.post-2.0.5-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.servlets.post:pom:2.0.5-20100524' in repository sakai-releases (https://source.sakaiproject.org/maven2/)
+Downloading: http://repo1.maven.org/maven2/org/apache/sling/org.apache.sling.servlets.post/2.0.5-20100524/org.apache.sling.servlets.post-2.0.5-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.servlets.post:pom:2.0.5-20100524' in repository central (http://repo1.maven.org/maven2)
+Downloading: http://repo1.maven.org/maven2//org/apache/sling/org.apache.sling.jcr.jackrabbit.usermanager/2.0.5-20100524/org.apache.sling.jcr.jackrabbit.usermanager-2.0.5-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.jackrabbit.usermanager:pom:2.0.5-20100524' in repository maven repo (http://repo1.maven.org/maven2/)
+Downloading: https://source.sakaiproject.org/maven2//org/apache/sling/org.apache.sling.jcr.jackrabbit.usermanager/2.0.5-20100524/org.apache.sling.jcr.jackrabbit.usermanager-2.0.5-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.jackrabbit.usermanager:pom:2.0.5-20100524' in repository sakai-releases (https://source.sakaiproject.org/maven2/)
+Downloading: http://source.sakaiproject.org/maven2/org/apache/sling/org.apache.sling.jcr.jackrabbit.usermanager/2.0.5-20100524/org.apache.sling.jcr.jackrabbit.usermanager-2.0.5-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.jackrabbit.usermanager:pom:2.0.5-20100524' in repository sakai-maven (http://source.sakaiproject.org/maven2)
+Downloading: http://repo1.maven.org/maven2/org/apache/sling/org.apache.sling.jcr.jackrabbit.usermanager/2.0.5-20100524/org.apache.sling.jcr.jackrabbit.usermanager-2.0.5-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.jackrabbit.usermanager:pom:2.0.5-20100524' in repository central (http://repo1.maven.org/maven2)
+[WARNING] POM for 'opensymphony:quartz:pom:1.6.0:provided' is invalid.
+
+Its dependencies (if any) will NOT be available to the current build.
+[INFO] [compiler:compile {execution: default-compile}]
+[INFO] Compiling 1 source file to /Users/ieb/timefields/open-experiments/contrib/import/target/classes
+[INFO] [scr:scr {execution: generate-scr-scrdescriptor}]
+[INFO] Generating 2 MetaType Descriptors to /Users/ieb/timefields/open-experiments/contrib/import/target/scr-plugin-generated/OSGI-INF/metatype/metatype.xml
+[INFO] Writing abstract service descriptor /Users/ieb/timefields/open-experiments/contrib/import/target/scr-plugin-generated/OSGI-INF/scr-plugin/scrinfo.xml with 1 entries.
+[INFO] Generating 1 Service Component Descriptors to /Users/ieb/timefields/open-experiments/contrib/import/target/scr-plugin-generated/OSGI-INF/serviceComponents.xml
+[INFO] [resources:testResources {execution: default-testResources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /Users/ieb/timefields/open-experiments/contrib/import/src/test/resources
+[INFO] [compiler:testCompile {execution: default-testCompile}]
+[INFO] Compiling 1 source file to /Users/ieb/timefields/open-experiments/contrib/import/target/test-classes
+[INFO] [surefire:test {execution: default-test}]
+[INFO] Surefire report directory: /Users/ieb/timefields/open-experiments/contrib/import/target/surefire-reports
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running org.sakaiproject.nakamura.importer.ImportSiteArchiveServletTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.398 sec
+
+Results :
+
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] [bundle:bundle {execution: default-bundle}]
+[WARNING] Warning building bundle org.sakaiproject.nakamura:org.sakaiproject.nakamura.import:bundle:0.6-SNAPSHOT : Instructions in Export-Package that are never used: org\.sakaiproject\.nakamura\.api\.importer
+[WARNING] Warning building bundle org.sakaiproject.nakamura:org.sakaiproject.nakamura.import:bundle:0.6-SNAPSHOT : Superfluous export-package instructions: [org.sakaiproject.nakamura.api.importer]
+[WARNING] Warning building bundle org.sakaiproject.nakamura:org.sakaiproject.nakamura.import:bundle:0.6-SNAPSHOT : Did not find matching referal for org.codehaus.stax2.*
+[WARNING] Warning building bundle org.sakaiproject.nakamura:org.sakaiproject.nakamura.import:bundle:0.6-SNAPSHOT : Did not find matching referal for org.relaxng.datatype.*
+[INFO] Preparing source:jar
+[WARNING] Removing: jar from forked lifecycle, to prevent recursive invocation.
+[INFO] No goals needed for project - skipping
+[INFO] [source:jar {execution: attach-sources}]
+[INFO] Building jar: /Users/ieb/timefields/open-experiments/contrib/import/target/org.sakaiproject.nakamura.import-0.6-SNAPSHOT-sources.jar
+[INFO] [ianal:verify-legal-files {execution: default}]
+[INFO] Checking legal files in: org.sakaiproject.nakamura.import-0.6-SNAPSHOT.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.import-0.6-SNAPSHOT.jar
+[INFO] Checking legal files in: org.sakaiproject.nakamura.import-0.6-SNAPSHOT-sources.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.import-0.6-SNAPSHOT-sources.jar
+[INFO] [install:install {execution: default-install}]
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/import/target/org.sakaiproject.nakamura.import-0.6-SNAPSHOT.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.import/0.6-SNAPSHOT/org.sakaiproject.nakamura.import-0.6-SNAPSHOT.jar
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/import/target/org.sakaiproject.nakamura.import-0.6-SNAPSHOT-sources.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.import/0.6-SNAPSHOT/org.sakaiproject.nakamura.import-0.6-SNAPSHOT-sources.jar
+[INFO] [bundle:install {execution: default-install}]
+[INFO] Parsing file:/Users/ieb/.m2/repository/repository.xml
+[INFO] Installing org/sakaiproject/nakamura/org.sakaiproject.nakamura.import/0.6-SNAPSHOT/org.sakaiproject.nakamura.import-0.6-SNAPSHOT.jar
+[INFO] Writing OBR metadata
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Sakai Nakamura :: Filters Bundle
+[INFO]    task-segment: [clean, install]
+[INFO] ------------------------------------------------------------------------
+[INFO] [clean:clean {execution: default-clean}]
+[INFO] Deleting directory /Users/ieb/timefields/open-experiments/contrib/filters/target
+[INFO] [resources:resources {execution: default-resources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /Users/ieb/timefields/open-experiments/contrib/filters/src/main/resources
+[INFO] [compiler:compile {execution: default-compile}]
+[INFO] Compiling 1 source file to /Users/ieb/timefields/open-experiments/contrib/filters/target/classes
+[INFO] [scr:scr {execution: generate-scr-scrdescriptor}]
+[INFO] Writing abstract service descriptor /Users/ieb/timefields/open-experiments/contrib/filters/target/scr-plugin-generated/OSGI-INF/scr-plugin/scrinfo.xml with 1 entries.
+[INFO] Generating 1 Service Component Descriptors to /Users/ieb/timefields/open-experiments/contrib/filters/target/scr-plugin-generated/OSGI-INF/serviceComponents.xml
+[INFO] [resources:testResources {execution: default-testResources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /Users/ieb/timefields/open-experiments/contrib/filters/src/test/resources
+[INFO] [compiler:testCompile {execution: default-testCompile}]
+[INFO] No sources to compile
+[INFO] [surefire:test {execution: default-test}]
+[INFO] No tests to run.
+[INFO] [bundle:bundle {execution: default-bundle}]
+[INFO] Preparing source:jar
+[WARNING] Removing: jar from forked lifecycle, to prevent recursive invocation.
+[INFO] No goals needed for project - skipping
+[INFO] [source:jar {execution: attach-sources}]
+[INFO] Building jar: /Users/ieb/timefields/open-experiments/contrib/filters/target/org.sakaiproject.nakamura.filters-0.6-SNAPSHOT-sources.jar
+[INFO] [ianal:verify-legal-files {execution: default}]
+[INFO] Checking legal files in: org.sakaiproject.nakamura.filters-0.6-SNAPSHOT.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.filters-0.6-SNAPSHOT.jar
+[INFO] Checking legal files in: org.sakaiproject.nakamura.filters-0.6-SNAPSHOT-sources.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.filters-0.6-SNAPSHOT-sources.jar
+[INFO] [install:install {execution: default-install}]
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/filters/target/org.sakaiproject.nakamura.filters-0.6-SNAPSHOT.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.filters/0.6-SNAPSHOT/org.sakaiproject.nakamura.filters-0.6-SNAPSHOT.jar
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/filters/target/org.sakaiproject.nakamura.filters-0.6-SNAPSHOT-sources.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.filters/0.6-SNAPSHOT/org.sakaiproject.nakamura.filters-0.6-SNAPSHOT-sources.jar
+[INFO] [bundle:install {execution: default-install}]
+[INFO] Parsing file:/Users/ieb/.m2/repository/repository.xml
+[INFO] Installing org/sakaiproject/nakamura/org.sakaiproject.nakamura.filters/0.6-SNAPSHOT/org.sakaiproject.nakamura.filters-0.6-SNAPSHOT.jar
+[INFO] Writing OBR metadata
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Sakai Nakamura :: Mailman Support
+[INFO]    task-segment: [clean, install]
+[INFO] ------------------------------------------------------------------------
+[INFO] [clean:clean {execution: default-clean}]
+[INFO] Deleting directory /Users/ieb/timefields/open-experiments/contrib/mailman/target
+[WARNING] While downloading xml-apis:xml-apis:2.0.2
+  This artifact has been relocated to xml-apis:xml-apis:1.0.b2.
+
+
+[INFO] [dependency:copy-dependencies {execution: embed-dependencies}]
+[INFO] Copying nekohtml-1.9.12.jar to /Users/ieb/timefields/open-experiments/contrib/mailman/target/classes/nekohtml-1.9.12.jar
+[INFO] Copying xercesImpl-2.9.1.jar to /Users/ieb/timefields/open-experiments/contrib/mailman/target/classes/xercesImpl-2.9.1.jar
+[INFO] Copying xml-apis-1.0.b2.jar to /Users/ieb/timefields/open-experiments/contrib/mailman/target/classes/xml-apis-1.0.b2.jar
+[INFO] Copying xml-resolver-1.2.jar to /Users/ieb/timefields/open-experiments/contrib/mailman/target/classes/xml-resolver-1.2.jar
+[INFO] [resources:resources {execution: default-resources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO] [compiler:compile {execution: default-compile}]
+[INFO] Compiling 6 source files to /Users/ieb/timefields/open-experiments/contrib/mailman/target/classes
+[INFO] [scr:scr {execution: generate-scr-scrdescriptor}]
+[INFO] Generating 4 MetaType Descriptors to /Users/ieb/timefields/open-experiments/contrib/mailman/target/scr-plugin-generated/OSGI-INF/metatype/metatype.xml
+[INFO] Writing abstract service descriptor /Users/ieb/timefields/open-experiments/contrib/mailman/target/scr-plugin-generated/OSGI-INF/scr-plugin/scrinfo.xml with 3 entries.
+[INFO] Generating 3 Service Component Descriptors to /Users/ieb/timefields/open-experiments/contrib/mailman/target/scr-plugin-generated/OSGI-INF/serviceComponents.xml
+[INFO] [resources:testResources {execution: default-testResources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 8 resources
+[INFO] [compiler:testCompile {execution: default-testCompile}]
+[INFO] Compiling 2 source files to /Users/ieb/timefields/open-experiments/contrib/mailman/target/test-classes
+[INFO] [surefire:test {execution: default-test}]
+[INFO] Surefire report directory: /Users/ieb/timefields/open-experiments/contrib/mailman/target/surefire-reports
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running org.sakaiproject.nakamura.mailman.impl.MailmanInterfaceTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.208 sec
+Running org.sakaiproject.nakamura.mailman.impl.MailmanGroupManagerTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.189 sec
+
+Results :
+
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] [bundle:bundle {execution: default-bundle}]
+[INFO] Preparing source:jar
+[WARNING] Removing: jar from forked lifecycle, to prevent recursive invocation.
+[INFO] No goals needed for project - skipping
+[INFO] [source:jar {execution: attach-sources}]
+[INFO] Building jar: /Users/ieb/timefields/open-experiments/contrib/mailman/target/org.sakaiproject.nakamura.mailman-0.6-SNAPSHOT-sources.jar
+[INFO] [ianal:verify-legal-files {execution: default}]
+[INFO] Checking legal files in: org.sakaiproject.nakamura.mailman-0.6-SNAPSHOT.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.mailman-0.6-SNAPSHOT.jar
+[INFO] Checking legal files in: org.sakaiproject.nakamura.mailman-0.6-SNAPSHOT-sources.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.mailman-0.6-SNAPSHOT-sources.jar
+[INFO] [install:install {execution: default-install}]
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/mailman/target/org.sakaiproject.nakamura.mailman-0.6-SNAPSHOT.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.mailman/0.6-SNAPSHOT/org.sakaiproject.nakamura.mailman-0.6-SNAPSHOT.jar
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/mailman/target/org.sakaiproject.nakamura.mailman-0.6-SNAPSHOT-sources.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.mailman/0.6-SNAPSHOT/org.sakaiproject.nakamura.mailman-0.6-SNAPSHOT-sources.jar
+[INFO] [bundle:install {execution: default-install}]
+[INFO] Parsing file:/Users/ieb/.m2/repository/repository.xml
+[INFO] Installing org/sakaiproject/nakamura/org.sakaiproject.nakamura.mailman/0.6-SNAPSHOT/org.sakaiproject.nakamura.mailman-0.6-SNAPSHOT.jar
+[INFO] Writing OBR metadata
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Sakai Nakamura :: LDAP Connection Bundle
+[INFO]    task-segment: [clean, install]
+[INFO] ------------------------------------------------------------------------
+[INFO] [clean:clean {execution: default-clean}]
+[INFO] Deleting directory /Users/ieb/timefields/open-experiments/contrib/ldap/target
+[INFO] [resources:resources {execution: default-resources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO] [compiler:compile {execution: default-compile}]
+[INFO] Compiling 13 source files to /Users/ieb/timefields/open-experiments/contrib/ldap/target/classes
+[INFO] [scr:scr {execution: generate-scr-scrdescriptor}]
+[INFO] Generating 2 MetaType Descriptors to /Users/ieb/timefields/open-experiments/contrib/ldap/target/scr-plugin-generated/OSGI-INF/metatype/metatype.xml
+[INFO] Writing abstract service descriptor /Users/ieb/timefields/open-experiments/contrib/ldap/target/scr-plugin-generated/OSGI-INF/scr-plugin/scrinfo.xml with 4 entries.
+[INFO] Generating 4 Service Component Descriptors to /Users/ieb/timefields/open-experiments/contrib/ldap/target/scr-plugin-generated/OSGI-INF/serviceComponents.xml
+[INFO] [resources:testResources {execution: default-testResources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO] [compiler:testCompile {execution: default-testCompile}]
+[INFO] Compiling 10 source files to /Users/ieb/timefields/open-experiments/contrib/ldap/target/test-classes
+[INFO] [surefire:test {execution: default-test}]
+[INFO] Surefire report directory: /Users/ieb/timefields/open-experiments/contrib/ldap/target/surefire-reports
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running org.sakaiproject.nakamura.ldap.PooledLDAPConnectionTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.19 sec
+Running org.sakaiproject.nakamura.ldap.liveness.SearchExecutingLdapConnectionLivenessValidatorInitializationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.221 sec
+Running org.sakaiproject.nakamura.ldap.PooledLDAPConnectionFactoryTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.145 sec
+Running org.sakaiproject.nakamura.ldap.SimpleLdapConnectionManagerTest
+Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.12 sec
+Running org.sakaiproject.nakamura.ldap.liveness.MaxLifetimeLdapConnectionLivenessValidatorTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 sec
+Running org.sakaiproject.nakamura.ldap.GenericObjectPoolTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 sec
+Running org.sakaiproject.nakamura.ldap.liveness.SearchExecutingLdapConnectionLivenessValidatorTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.052 sec
+Running org.sakaiproject.nakamura.ldap.PoolingLdapConnectionManagerTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 sec
+Running org.sakaiproject.nakamura.ldap.liveness.NativeLdapConnectionLivenessValidatorTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 sec
+Running org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfigTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.01 sec
+
+Results :
+
+Tests run: 60, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] [bundle:bundle {execution: default-bundle}]
+[INFO] Preparing source:jar
+[WARNING] Removing: jar from forked lifecycle, to prevent recursive invocation.
+[INFO] No goals needed for project - skipping
+[INFO] [source:jar {execution: attach-sources}]
+[INFO] Building jar: /Users/ieb/timefields/open-experiments/contrib/ldap/target/org.sakaiproject.nakamura.ldap-0.6-SNAPSHOT-sources.jar
+[INFO] [ianal:verify-legal-files {execution: default}]
+[INFO] Checking legal files in: org.sakaiproject.nakamura.ldap-0.6-SNAPSHOT.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.ldap-0.6-SNAPSHOT.jar
+[INFO] Checking legal files in: org.sakaiproject.nakamura.ldap-0.6-SNAPSHOT-sources.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.ldap-0.6-SNAPSHOT-sources.jar
+[INFO] [install:install {execution: default-install}]
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/ldap/target/org.sakaiproject.nakamura.ldap-0.6-SNAPSHOT.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.ldap/0.6-SNAPSHOT/org.sakaiproject.nakamura.ldap-0.6-SNAPSHOT.jar
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/ldap/target/org.sakaiproject.nakamura.ldap-0.6-SNAPSHOT-sources.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.ldap/0.6-SNAPSHOT/org.sakaiproject.nakamura.ldap-0.6-SNAPSHOT-sources.jar
+[INFO] [bundle:install {execution: default-install}]
+[INFO] Parsing file:/Users/ieb/.m2/repository/repository.xml
+[INFO] Installing org/sakaiproject/nakamura/org.sakaiproject.nakamura.ldap/0.6-SNAPSHOT/org.sakaiproject.nakamura.ldap-0.6-SNAPSHOT.jar
+[INFO] Writing OBR metadata
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Sakai Nakamura :: Person Directory Bundle
+[INFO]    task-segment: [clean, install]
+[INFO] ------------------------------------------------------------------------
+[INFO] [clean:clean {execution: default-clean}]
+[INFO] Deleting directory /Users/ieb/timefields/open-experiments/contrib/persondirectory/target
+[INFO] [resources:resources {execution: default-resources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /Users/ieb/timefields/open-experiments/contrib/persondirectory/src/main/resources
+[INFO] [compiler:compile {execution: default-compile}]
+[INFO] Compiling 4 source files to /Users/ieb/timefields/open-experiments/contrib/persondirectory/target/classes
+[INFO] [scr:scr {execution: generate-scr-scrdescriptor}]
+[INFO] Generating 2 MetaType Descriptors to /Users/ieb/timefields/open-experiments/contrib/persondirectory/target/scr-plugin-generated/OSGI-INF/metatype/metatype.xml
+[INFO] Writing abstract service descriptor /Users/ieb/timefields/open-experiments/contrib/persondirectory/target/scr-plugin-generated/OSGI-INF/scr-plugin/scrinfo.xml with 2 entries.
+[INFO] Generating 2 Service Component Descriptors to /Users/ieb/timefields/open-experiments/contrib/persondirectory/target/scr-plugin-generated/OSGI-INF/serviceComponents.xml
+[INFO] [resources:testResources {execution: default-testResources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /Users/ieb/timefields/open-experiments/contrib/persondirectory/src/test/resources
+[INFO] [compiler:testCompile {execution: default-testCompile}]
+[INFO] Compiling 3 source files to /Users/ieb/timefields/open-experiments/contrib/persondirectory/target/test-classes
+[INFO] [surefire:test {execution: default-test}]
+[INFO] Surefire report directory: /Users/ieb/timefields/open-experiments/contrib/persondirectory/target/surefire-reports
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running org.sakaiproject.nakamura.persondirectory.providers.PersonProfileProviderAdapterTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.241 sec
+Running org.sakaiproject.nakamura.api.persondirectory.PersonProviderExceptionTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 sec
+Running org.sakaiproject.nakamura.persondirectory.providers.LdapPersonProviderTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.287 sec
+
+Results :
+
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] [bundle:bundle {execution: default-bundle}]
+[INFO] Preparing source:jar
+[WARNING] Removing: jar from forked lifecycle, to prevent recursive invocation.
+[INFO] No goals needed for project - skipping
+[INFO] [source:jar {execution: attach-sources}]
+[INFO] Building jar: /Users/ieb/timefields/open-experiments/contrib/persondirectory/target/org.sakaiproject.nakamura.persondirectory-0.6-SNAPSHOT-sources.jar
+[INFO] [ianal:verify-legal-files {execution: default}]
+[INFO] Checking legal files in: org.sakaiproject.nakamura.persondirectory-0.6-SNAPSHOT.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.persondirectory-0.6-SNAPSHOT.jar
+[INFO] Checking legal files in: org.sakaiproject.nakamura.persondirectory-0.6-SNAPSHOT-sources.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.persondirectory-0.6-SNAPSHOT-sources.jar
+[INFO] [install:install {execution: default-install}]
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/persondirectory/target/org.sakaiproject.nakamura.persondirectory-0.6-SNAPSHOT.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.persondirectory/0.6-SNAPSHOT/org.sakaiproject.nakamura.persondirectory-0.6-SNAPSHOT.jar
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/persondirectory/target/org.sakaiproject.nakamura.persondirectory-0.6-SNAPSHOT-sources.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.persondirectory/0.6-SNAPSHOT/org.sakaiproject.nakamura.persondirectory-0.6-SNAPSHOT-sources.jar
+[INFO] [bundle:install {execution: default-install}]
+[INFO] Parsing file:/Users/ieb/.m2/repository/repository.xml
+[INFO] Installing org/sakaiproject/nakamura/org.sakaiproject.nakamura.persondirectory/0.6-SNAPSHOT/org.sakaiproject.nakamura.persondirectory-0.6-SNAPSHOT.jar
+[INFO] Writing OBR metadata
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Sakai Nakamura :: CAS Auth Bundle
+[INFO]    task-segment: [clean, install]
+[INFO] ------------------------------------------------------------------------
+[INFO] [clean:clean {execution: default-clean}]
+[INFO] Deleting directory /Users/ieb/timefields/open-experiments/contrib/casauth/target
+[INFO] [resources:resources {execution: default-resources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+Downloading: http://repo1.maven.org/maven2//org/apache/sling/org.apache.sling.commons.auth/0.9.0-20100524/org.apache.sling.commons.auth-0.9.0-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.commons.auth:pom:0.9.0-20100524' in repository maven repo (http://repo1.maven.org/maven2/)
+Downloading: https://source.sakaiproject.org/maven2//org/apache/sling/org.apache.sling.commons.auth/0.9.0-20100524/org.apache.sling.commons.auth-0.9.0-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.commons.auth:pom:0.9.0-20100524' in repository sakai-releases (https://source.sakaiproject.org/maven2/)
+Downloading: http://repo1.maven.org/maven2/org/apache/sling/org.apache.sling.commons.auth/0.9.0-20100524/org.apache.sling.commons.auth-0.9.0-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.commons.auth:pom:0.9.0-20100524' in repository central (http://repo1.maven.org/maven2)
+Downloading: http://repo1.maven.org/maven2//org/apache/sling/org.apache.sling.jcr.jackrabbit.server/2.0.7-20100524/org.apache.sling.jcr.jackrabbit.server-2.0.7-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.jackrabbit.server:pom:2.0.7-20100524' in repository maven repo (http://repo1.maven.org/maven2/)
+Downloading: https://source.sakaiproject.org/maven2//org/apache/sling/org.apache.sling.jcr.jackrabbit.server/2.0.7-20100524/org.apache.sling.jcr.jackrabbit.server-2.0.7-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.jackrabbit.server:pom:2.0.7-20100524' in repository sakai-releases (https://source.sakaiproject.org/maven2/)
+Downloading: http://repo1.maven.org/maven2/org/apache/sling/org.apache.sling.jcr.jackrabbit.server/2.0.7-20100524/org.apache.sling.jcr.jackrabbit.server-2.0.7-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.jcr.jackrabbit.server:pom:2.0.7-20100524' in repository central (http://repo1.maven.org/maven2)
+[INFO] [compiler:compile {execution: default-compile}]
+[INFO] Compiling 2 source files to /Users/ieb/timefields/open-experiments/contrib/casauth/target/classes
+[INFO] [scr:scr {execution: generate-scr-scrdescriptor}]
+[INFO] Generating 2 MetaType Descriptors to /Users/ieb/timefields/open-experiments/contrib/casauth/target/scr-plugin-generated/OSGI-INF/metatype/metatype.xml
+[INFO] Writing abstract service descriptor /Users/ieb/timefields/open-experiments/contrib/casauth/target/scr-plugin-generated/OSGI-INF/scr-plugin/scrinfo.xml with 1 entries.
+[INFO] Generating 1 Service Component Descriptors to /Users/ieb/timefields/open-experiments/contrib/casauth/target/scr-plugin-generated/OSGI-INF/serviceComponents.xml
+[INFO] [resources:testResources {execution: default-testResources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /Users/ieb/timefields/open-experiments/contrib/casauth/src/test/resources
+[INFO] [compiler:testCompile {execution: default-testCompile}]
+[INFO] Compiling 2 source files to /Users/ieb/timefields/open-experiments/contrib/casauth/target/test-classes
+[INFO] [surefire:test {execution: default-test}]
+[INFO] Surefire report directory: /Users/ieb/timefields/open-experiments/contrib/casauth/target/surefire-reports
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running org.sakaiproject.nakamura.casauth.CasAuthenticationHandlerTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.129 sec
+Running org.sakaiproject.nakamura.casauth.CasLoginModulePluginTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.346 sec
+
+Results :
+
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] [bundle:bundle {execution: default-bundle}]
+[WARNING] Warning building bundle org.sakaiproject.nakamura:org.sakaiproject.nakamura.casauth:bundle:0.6-SNAPSHOT : Did not find matching referal for !org.jasig.cas.client.*
+[INFO] Preparing source:jar
+[WARNING] Removing: jar from forked lifecycle, to prevent recursive invocation.
+[INFO] No goals needed for project - skipping
+[INFO] [source:jar {execution: attach-sources}]
+[INFO] Building jar: /Users/ieb/timefields/open-experiments/contrib/casauth/target/org.sakaiproject.nakamura.casauth-0.6-SNAPSHOT-sources.jar
+[INFO] [ianal:verify-legal-files {execution: default}]
+[INFO] Checking legal files in: org.sakaiproject.nakamura.casauth-0.6-SNAPSHOT.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.casauth-0.6-SNAPSHOT.jar
+[INFO] Checking legal files in: org.sakaiproject.nakamura.casauth-0.6-SNAPSHOT-sources.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.casauth-0.6-SNAPSHOT-sources.jar
+[INFO] [install:install {execution: default-install}]
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/casauth/target/org.sakaiproject.nakamura.casauth-0.6-SNAPSHOT.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.casauth/0.6-SNAPSHOT/org.sakaiproject.nakamura.casauth-0.6-SNAPSHOT.jar
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/casauth/target/org.sakaiproject.nakamura.casauth-0.6-SNAPSHOT-sources.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.casauth/0.6-SNAPSHOT/org.sakaiproject.nakamura.casauth-0.6-SNAPSHOT-sources.jar
+[INFO] [bundle:install {execution: default-install}]
+[INFO] Parsing file:/Users/ieb/.m2/repository/repository.xml
+[INFO] Installing org/sakaiproject/nakamura/org.sakaiproject.nakamura.casauth/0.6-SNAPSHOT/org.sakaiproject.nakamura.casauth-0.6-SNAPSHOT.jar
+[INFO] Writing OBR metadata
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Sakai Nakamura :: LDAP Authentication Bundle
+[INFO]    task-segment: [clean, install]
+[INFO] ------------------------------------------------------------------------
+[INFO] [clean:clean {execution: default-clean}]
+[INFO] Deleting directory /Users/ieb/timefields/open-experiments/contrib/ldapauth/target
+[INFO] [resources:resources {execution: default-resources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+Downloading: http://repo1.maven.org/maven2//org/apache/sling/org.apache.sling.commons.testing/2.0.5-20100524/org.apache.sling.commons.testing-2.0.5-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.commons.testing:pom:2.0.5-20100524' in repository maven repo (http://repo1.maven.org/maven2/)
+Downloading: https://source.sakaiproject.org/maven2//org/apache/sling/org.apache.sling.commons.testing/2.0.5-20100524/org.apache.sling.commons.testing-2.0.5-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.commons.testing:pom:2.0.5-20100524' in repository sakai-releases (https://source.sakaiproject.org/maven2/)
+Downloading: http://repo1.maven.org/maven2/org/apache/sling/org.apache.sling.commons.testing/2.0.5-20100524/org.apache.sling.commons.testing-2.0.5-20100524.pom
+[INFO] Unable to find resource 'org.apache.sling:org.apache.sling.commons.testing:pom:2.0.5-20100524' in repository central (http://repo1.maven.org/maven2)
+[INFO] [compiler:compile {execution: default-compile}]
+[INFO] Compiling 2 source files to /Users/ieb/timefields/open-experiments/contrib/ldapauth/target/classes
+[INFO] [scr:scr {execution: generate-scr-scrdescriptor}]
+[INFO] Generating 2 MetaType Descriptors to /Users/ieb/timefields/open-experiments/contrib/ldapauth/target/scr-plugin-generated/OSGI-INF/metatype/metatype.xml
+[INFO] Writing abstract service descriptor /Users/ieb/timefields/open-experiments/contrib/ldapauth/target/scr-plugin-generated/OSGI-INF/scr-plugin/scrinfo.xml with 2 entries.
+[INFO] Generating 2 Service Component Descriptors to /Users/ieb/timefields/open-experiments/contrib/ldapauth/target/scr-plugin-generated/OSGI-INF/serviceComponents.xml
+[INFO] [resources:testResources {execution: default-testResources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /Users/ieb/timefields/open-experiments/contrib/ldapauth/src/test/resources
+[INFO] [compiler:testCompile {execution: default-testCompile}]
+[INFO] Compiling 2 source files to /Users/ieb/timefields/open-experiments/contrib/ldapauth/target/test-classes
+[INFO] [surefire:test {execution: default-test}]
+[INFO] Surefire report directory: /Users/ieb/timefields/open-experiments/contrib/ldapauth/target/surefire-reports
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running org.sakaiproject.nakamura.auth.ldap.LdapAuthenticationPluginTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.55 sec
+Running org.sakaiproject.nakamura.auth.ldap.LdapLoginModulePluginTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.157 sec
+
+Results :
+
+Tests run: 20, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] [bundle:bundle {execution: default-bundle}]
+[INFO] Preparing source:jar
+[WARNING] Removing: jar from forked lifecycle, to prevent recursive invocation.
+[INFO] No goals needed for project - skipping
+[INFO] [source:jar {execution: attach-sources}]
+[INFO] Building jar: /Users/ieb/timefields/open-experiments/contrib/ldapauth/target/org.sakaiproject.nakamura.auth.ldap-0.6-SNAPSHOT-sources.jar
+[INFO] [ianal:verify-legal-files {execution: default}]
+[INFO] Checking legal files in: org.sakaiproject.nakamura.auth.ldap-0.6-SNAPSHOT.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.auth.ldap-0.6-SNAPSHOT.jar
+[INFO] Checking legal files in: org.sakaiproject.nakamura.auth.ldap-0.6-SNAPSHOT-sources.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.auth.ldap-0.6-SNAPSHOT-sources.jar
+[INFO] [install:install {execution: default-install}]
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/ldapauth/target/org.sakaiproject.nakamura.auth.ldap-0.6-SNAPSHOT.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.auth.ldap/0.6-SNAPSHOT/org.sakaiproject.nakamura.auth.ldap-0.6-SNAPSHOT.jar
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/ldapauth/target/org.sakaiproject.nakamura.auth.ldap-0.6-SNAPSHOT-sources.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.auth.ldap/0.6-SNAPSHOT/org.sakaiproject.nakamura.auth.ldap-0.6-SNAPSHOT-sources.jar
+[INFO] [bundle:install {execution: default-install}]
+[INFO] Parsing file:/Users/ieb/.m2/repository/repository.xml
+[INFO] Installing org/sakaiproject/nakamura/org.sakaiproject.nakamura.auth.ldap/0.6-SNAPSHOT/org.sakaiproject.nakamura.auth.ldap-0.6-SNAPSHOT.jar
+[INFO] Writing OBR metadata
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Sakai Nakamura :: URL Document Proxy
+[INFO]    task-segment: [clean, install]
+[INFO] ------------------------------------------------------------------------
+[INFO] [clean:clean {execution: default-clean}]
+[INFO] Deleting directory /Users/ieb/timefields/open-experiments/contrib/urldocproxy/target
+[INFO] [resources:resources {execution: default-resources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 2 resources
+[INFO] [compiler:compile {execution: default-compile}]
+[INFO] Compiling 3 source files to /Users/ieb/timefields/open-experiments/contrib/urldocproxy/target/classes
+[WARNING] /Users/ieb/timefields/open-experiments/contrib/urldocproxy/src/main/java/org/sakaiproject/nakamura/docproxy/url/UrlRepositoryProcessor.java:[379,53] [unchecked] unchecked conversion
+found   : java.util.Iterator
+required: java.util.Iterator<javax.xml.stream.events.Attribute>
+
+[INFO] [scr:scr {execution: generate-scr-scrdescriptor}]
+[INFO] [resources:testResources {execution: default-testResources}]
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 2 resources
+[INFO] [compiler:testCompile {execution: default-testCompile}]
+[INFO] Compiling 8 source files to /Users/ieb/timefields/open-experiments/contrib/urldocproxy/target/test-classes
+[INFO] [surefire:test {execution: default-test}]
+[INFO] Surefire report directory: /Users/ieb/timefields/open-experiments/contrib/urldocproxy/target/surefire-reports
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running org.sakaiproject.nakamura.docproxy.url.UrlRepositoryProcessorTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.287 sec
+Running org.sakaiproject.nakamura.docproxy.url.HttpAnyMethodTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 sec
+Running org.sakaiproject.nakamura.docproxy.url.UrlDocumentResultTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.083 sec
+
+Results :
+
+Tests run: 17, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] [bundle:bundle {execution: default-bundle}]
+[INFO] Preparing source:jar
+[WARNING] Removing: jar from forked lifecycle, to prevent recursive invocation.
+[INFO] No goals needed for project - skipping
+[INFO] [source:jar {execution: attach-sources}]
+[INFO] Building jar: /Users/ieb/timefields/open-experiments/contrib/urldocproxy/target/org.sakaiproject.nakamura.docproxy.url-0.1-sources.jar
+[INFO] [ianal:verify-legal-files {execution: default}]
+[INFO] Checking legal files in: org.sakaiproject.nakamura.docproxy.url-0.1.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.docproxy.url-0.1.jar
+[INFO] Checking legal files in: org.sakaiproject.nakamura.docproxy.url-0.1-sources.jar
+[WARNING] Artifact does not contain any legal files: org.sakaiproject.nakamura.docproxy.url-0.1-sources.jar
+[INFO] [install:install {execution: default-install}]
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/urldocproxy/target/org.sakaiproject.nakamura.docproxy.url-0.1.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.docproxy.url/0.1/org.sakaiproject.nakamura.docproxy.url-0.1.jar
+[INFO] Installing /Users/ieb/timefields/open-experiments/contrib/urldocproxy/target/org.sakaiproject.nakamura.docproxy.url-0.1-sources.jar to /Users/ieb/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.docproxy.url/0.1/org.sakaiproject.nakamura.docproxy.url-0.1-sources.jar
+[INFO] [bundle:install {execution: default-install}]
+[INFO] Parsing file:/Users/ieb/.m2/repository/repository.xml
+[INFO] Installing org/sakaiproject/nakamura/org.sakaiproject.nakamura.docproxy.url/0.1/org.sakaiproject.nakamura.docproxy.url-0.1.jar
+[INFO] Writing OBR metadata
+[INFO] 
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] ------------------------------------------------------------------------
+[INFO] Sakai Nakamura Project ................................ SUCCESS [2.919s]
+[INFO] Sakai Nakamura :: Sakai Import Bundle ................. SUCCESS [16.982s]
+[INFO] Sakai Nakamura :: Filters Bundle ...................... SUCCESS [2.797s]
+[INFO] Sakai Nakamura :: Mailman Support ..................... SUCCESS [10.279s]
+[INFO] Sakai Nakamura :: LDAP Connection Bundle .............. SUCCESS [7.212s]
+[INFO] Sakai Nakamura :: Person Directory Bundle ............. SUCCESS [5.572s]
+[INFO] Sakai Nakamura :: CAS Auth Bundle ..................... SUCCESS [7.492s]
+[INFO] Sakai Nakamura :: LDAP Authentication Bundle .......... SUCCESS [6.840s]
+[INFO] Sakai Nakamura :: URL Document Proxy .................. SUCCESS [13.687s]
+[INFO] ------------------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESSFUL
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 1 minute 15 seconds
+[INFO] Finished at: Wed Jun 23 10:43:56 BST 2010
+[INFO] Final Memory: 80M/312M
+[INFO] ------------------------------------------------------------------------
