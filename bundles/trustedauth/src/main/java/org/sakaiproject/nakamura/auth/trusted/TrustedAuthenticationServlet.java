@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.ops4j.pax.web.service.WebContainer;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
@@ -48,8 +49,9 @@ import javax.servlet.http.HttpServletResponse;
  * session for use by the authentication handler on subsequent calls.
  * </p>
  */
-@Component(immediate = true, metatype = true)
-@Service
+//@Component(immediate = true, metatype = true)
+//@Service
+@SlingServlet(paths={"/trusted"},methods={"GET"})
 public final class TrustedAuthenticationServlet extends HttpServlet {
   /**
    * 
@@ -77,6 +79,8 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
   @Property(value = "/dev")
   static final String DEFAULT_DESTINATION = "sakai.auth.trusted.destination.default";
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(TrustedAuthenticationServlet.class);
+
   /** Reference to web container to register this servlet. */
   @Reference
   protected transient WebContainer webContainer;
@@ -96,7 +100,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
     Dictionary props = context.getProperties();
     registrationPath = (String) props.get(REGISTRATION_PATH);
     defaultDestination = (String) props.get(DEFAULT_DESTINATION);
-
+/*
     try {
       webContainer.registerServlet(registrationPath, this, null, null);
     } catch (NamespaceException e) {
@@ -106,6 +110,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
       LOG.error(e.getMessage(), e);
       throw new ComponentException(e.getMessage(), e);
     }
+    */
   }
 
   /**
@@ -120,7 +125,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
     
     if (trustedTokenService instanceof TrustedTokenServiceImpl) {
       ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req, resp);
-
+      LOGGER.debug(" Injected token ");
       String destination = req.getParameter(PARAM_DESTINATION);
 
       if (destination == null) {
@@ -128,6 +133,8 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
       }
       // ensure that the redirect is safe and not susceptible to
       resp.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
+    } else {
+      LOGGER.debug("No Token present at servlet end point ");
     }
   }
 

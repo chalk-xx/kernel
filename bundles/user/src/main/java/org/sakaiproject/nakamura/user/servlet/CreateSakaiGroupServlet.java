@@ -274,21 +274,22 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                     "A principal already exists with the requested name: "
                         + principalName);
             } else {
-                Map<String, RequestProperty> reqProperties = collectContent(
-                    request, response);
-
+              
                 Group group = userManager.createGroup(new Principal() {
-                    public String getName() {
-                        return principalName;
-                    }
+                  public String getName() {
+                    return principalName;
+                  }
                 });
+                String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+                   + group.getID();
+                Map<String, RequestProperty> reqProperties = collectContent(
+                    request, response, groupPath);
+
                 ItemBasedPrincipal p = (ItemBasedPrincipal) group.getPrincipal();
                 ValueFactory vf = session.getValueFactory();
                 group.setProperty("path", vf.createValue(p.getPath().substring(UserConstants.GROUP_REPO_LOCATION.length())));
                 LOGGER.info("Group {} created at {} ",p.getName(), p.getPath());
 
-                String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
-                    + group.getID();
                 response.setPath(groupPath);
                 response.setLocation(externalizePath(request, groupPath));
                 response.setParentLocation(externalizePath(request,

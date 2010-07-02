@@ -95,7 +95,7 @@ public class BatchServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -107,7 +107,7 @@ public class BatchServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -119,7 +119,7 @@ public class BatchServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doDelete(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -131,7 +131,7 @@ public class BatchServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPut(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -143,7 +143,7 @@ public class BatchServlet extends SlingAllMethodsServlet {
 
   /**
    * Takes the original request and starts the batching.
-   * 
+   *
    * @param request
    * @param response
    * @throws IOException
@@ -223,7 +223,7 @@ public class BatchServlet extends SlingAllMethodsServlet {
       write.object();
       write.key("url");
       write.value(requestData.getUrl());
-      write.key("succes");
+      write.key("success");
       write.value(true);
       write.key("body");
       write.value(body);
@@ -250,7 +250,7 @@ public class BatchServlet extends SlingAllMethodsServlet {
     write.object();
     write.key("url");
     write.value(requestData.getUrl());
-    write.key("succes");
+    write.key("success");
     write.value(false);
     write.endObject();
   }

@@ -392,8 +392,6 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
 
             UserManager userManager = AccessControlUtil.getUserManager(selfRegSession);
 
-                Map<String, RequestProperty> reqProperties = collectContent(
-                    request, response);
 
                 User user = userManager.createUser(principalName,
                     digestPassword(pwd));
@@ -404,6 +402,8 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
 
                 String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
                     + user.getID();
+                Map<String, RequestProperty> reqProperties = collectContent(
+                    request, response, userPath);
 
                 response.setPath(userPath);
                 response.setLocation(userPath);

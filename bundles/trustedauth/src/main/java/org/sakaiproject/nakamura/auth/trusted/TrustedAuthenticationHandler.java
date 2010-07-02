@@ -24,6 +24,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.auth.spi.AuthenticationHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -68,6 +70,8 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
 
   @Property(value = "The Sakai Foundation")
   static final String VENDOR_PROPERTY = "service.vendor";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(TrustedAuthenticationHandler.class);
   
   @Reference
   protected TrustedTokenService trustedTokenService;
@@ -83,6 +87,8 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
    */
   public AuthenticationInfo extractCredentials(HttpServletRequest request,
       HttpServletResponse response) {
+    
+    LOGGER.debug("Calling TrustedAuthenticationHandler extractCredentials ");
     // check for existing authentication information in the request
     Object auth = request.getAttribute(RA_AUTHENTICATION_TRUST);
     if ( auth instanceof TrustedAuthentication ) {
@@ -93,11 +99,21 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
           AuthenticationInfo authenticationInfo = (AuthenticationInfo) authInfo;
           Credentials credentials = (Credentials)authenticationInfo.get(AuthenticationInfo.CREDENTIALS);
           if ( credentials instanceof SimpleCredentials ) {
+            LOGGER.debug("Got AuthInfo {} credentials {} ",authInfo, credentials);
             return authenticationInfo;
+          } else {
+            LOGGER.debug("Creadentials not SimpleCredentials :{} ",credentials);
           }
+        } else {
+          LOGGER.debug("Authentication Info not AuthenticationInfo :{} ",authInfo);
+          
         }
+      } else {
+        LOGGER.debug("Authentication not trusted {} ", auth);
       }
-    } 
+    } else {
+      LOGGER.debug("No Authentication, found {} ", auth);
+    }
     // create a new authentication in the request.
     TrustedAuthentication trustedAuthentication = new TrustedAuthentication(request, response);
     if (trustedAuthentication.isValid()) {
@@ -107,8 +123,10 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
       AuthenticationInfo authInfo = new AuthenticationInfo(TRUSTED_AUTH);
       authInfo.put(AuthenticationInfo.CREDENTIALS, trustedAuthentication.getCredentials());
       request.setAttribute(RA_AUTHENTICATION_INFO, authInfo);
+      LOGGER.debug("Trusted Authentication is valid {} ",trustedAuthentication);
       return authInfo;
     } else {
+      LOGGER.debug("Trusted Authentication is not valid {} ",trustedAuthentication);
       // no valid credentials found in the request.
       return null;
     }

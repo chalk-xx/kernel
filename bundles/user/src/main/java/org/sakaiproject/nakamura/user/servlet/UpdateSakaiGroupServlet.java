@@ -164,8 +164,10 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
       throw new RepositoryException("JCR Session not found");
     }
     try {
+      String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+      + authorizable.getID();
 
-      Map<String, RequestProperty> reqProperties = collectContent(request, htmlResponse);
+      Map<String, RequestProperty> reqProperties = collectContent(request, htmlResponse, groupPath);
       try {
         // cleanup any old content (@Delete parameters)
         processDeletes(authorizable, reqProperties, changes);
