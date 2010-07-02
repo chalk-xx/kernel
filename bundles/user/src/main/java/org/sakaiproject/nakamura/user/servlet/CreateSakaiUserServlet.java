@@ -339,21 +339,28 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
             log.warn("Failed to determin if the user is an admin, assuming not. Cause: "+ex.getMessage());
             administrator = false;
           }
-        boolean trustedRequest = false;
-        String trustMechanism = request.getParameter(":create-auth");
-        if ( trustMechanism != null ) {
-          RequestTrustValidator validator = requestTrustValidatorService.getValidator(trustMechanism);
-          if ( validator != null && validator.getLevel() >= RequestTrustValidator.CREATE_USER && validator.isTrusted(request) ) {
-            trustedRequest = true;
+          if (!administrator) {
+            if (!selfRegistrationEnabled) {
+              throw new RepositoryException(
+                  "Sorry, registration of new users is not currently enabled. Please try again later.");
+            }
+
+            boolean trustedRequest = false;
+            String trustMechanism = request.getParameter(":create-auth");
+            if (trustMechanism != null) {
+              RequestTrustValidator validator = requestTrustValidatorService
+                  .getValidator(trustMechanism);
+              if (validator != null
+                  && validator.getLevel() >= RequestTrustValidator.CREATE_USER
+                  && validator.isTrusted(request)) {
+                trustedRequest = true;
+              }
+            }
+
+            if (selfRegistrationEnabled && !trustedRequest) {
+              throw new RepositoryException("Untrusted request.");
+            }
           }
-        }
-
-
-        // make sure user self-registration is enabled
-        if (!administrator && !(selfRegistrationEnabled || trustedRequest)) {
-            throw new RepositoryException(
-                "Sorry, registration of new users is not currently enabled.  Please try again later.");
-        }
 
         Session session = request.getResourceResolver().adaptTo(Session.class);
         if (session == null) {
