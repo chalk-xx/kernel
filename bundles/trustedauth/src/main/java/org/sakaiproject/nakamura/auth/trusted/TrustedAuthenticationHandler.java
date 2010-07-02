@@ -112,7 +112,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
         LOGGER.debug("Authentication not trusted {} ", auth);
       }
     } else {
-      LOGGER.debug("No Authentication, found {} ", auth);
+      LOGGER.debug("No Existing TrustedAuthentication in request attributes, found {} ", auth);
     }
     // create a new authentication in the request.
     TrustedAuthentication trustedAuthentication = new TrustedAuthentication(request, response);
@@ -175,8 +175,11 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
       // web container as Sling and so sharing a session.
       if ( trustedTokenService instanceof TrustedTokenServiceImpl ) {
         cred = ((TrustedTokenServiceImpl) trustedTokenService).getCredentials(req, response);
+        LOGGER.debug("Got Credentials from the trusted token service as {} ", cred);
       } else {
         cred = null;
+        LOGGER.error("TrustedTokenService is not the expected implementation, " +
+        		"there is a rogue implementation in the OSGi container, all creadentials will be null");
       }
 
     }

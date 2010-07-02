@@ -48,10 +48,13 @@ import javax.servlet.http.HttpServletResponse;
  * the request from the authentication authority. This information is then stored in the
  * session for use by the authentication handler on subsequent calls.
  * </p>
+ * <p>
+ * This servlet is mounted outside sling. In essence we Trust the external authentication and 
+ * simply store the trusted user in a a trusted token in the form of a cookie.
+ * </p>
  */
-//@Component(immediate = true, metatype = true)
-//@Service
-@SlingServlet(paths={"/trusted"},methods={"GET"})
+@Component(immediate = true, metatype = true)
+@Service
 public final class TrustedAuthenticationServlet extends HttpServlet {
   /**
    * 
@@ -100,7 +103,9 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
     Dictionary props = context.getProperties();
     registrationPath = (String) props.get(REGISTRATION_PATH);
     defaultDestination = (String) props.get(DEFAULT_DESTINATION);
-/*
+
+    // we MUST register this servlet and not let it be picked up by Sling since we want to bypass
+    // the normal security and simply trust the remote user value in the request.
     try {
       webContainer.registerServlet(registrationPath, this, null, null);
     } catch (NamespaceException e) {
@@ -110,7 +115,6 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
       LOG.error(e.getMessage(), e);
       throw new ComponentException(e.getMessage(), e);
     }
-    */
   }
 
   /**

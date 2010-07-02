@@ -279,6 +279,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
               String cookieValue = c.getValue();
               userId = decodeCookie(c.getValue());
               if (userId != null) {
+                LOG.debug("Token is valid and decoded to {} ",userId);
                 cred = createCredentials(userId);
                 refreshToken(response, c.getValue(), userId);
                 break;
@@ -293,6 +294,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     if (userId != null) {
       LOG.debug("Trusted Authentication for {} with credentials {}  ", userId, cred);
     }
+    
     return cred;
   }
 
