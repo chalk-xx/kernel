@@ -169,7 +169,6 @@ public abstract class AbstractSiteServletTest extends AbstractSiteTest {
 
   public JSONArray makeGetRequestReturningJSON() throws Exception, JSONException {
     String jsonString = new String(makeGetRequestReturningBytes());
-    System.err.println(jsonString);
     return new JSONArray(jsonString);
   }
 }
