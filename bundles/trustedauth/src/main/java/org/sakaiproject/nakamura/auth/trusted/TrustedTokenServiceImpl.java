@@ -336,9 +336,15 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     Principal p = request.getUserPrincipal();
     if (p != null) {
       userId = p.getName();
+      if ( userId != null ) {
+        LOG.info("Injecting Trusted Token from request: User Principal indicated user was [{}] ", userId);
+      }
     }
     if (userId == null) {
       userId = request.getRemoteUser();
+      if ( userId != null ) {
+        LOG.info("Injecting Trusted Token from request: Remote User indicated user was [{}] ", userId);
+      }
     }
     if (userId != null) {
       if (usingSession) {

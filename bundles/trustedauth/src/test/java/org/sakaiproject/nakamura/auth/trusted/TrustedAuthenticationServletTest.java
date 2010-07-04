@@ -91,7 +91,7 @@ public class TrustedAuthenticationServletTest {
     WebContainer webContainer = createMock(WebContainer.class);
     
     TrustedAuthenticationServlet trustedAuthenticationServlet = new TrustedAuthenticationServlet();
-    webContainer.registerServlet(null, trustedAuthenticationServlet, null, null);
+    webContainer.registerServlet(null, trustedAuthenticationServlet, null, trustedAuthenticationServlet);
     EasyMock.expectLastCall();
     
     EasyMock.expect(request.getUserPrincipal()).andReturn(null);

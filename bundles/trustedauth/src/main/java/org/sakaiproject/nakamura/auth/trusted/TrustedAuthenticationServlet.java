@@ -25,12 +25,14 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.ops4j.pax.web.service.WebContainer;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
+import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.NamespaceException;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Dictionary;
 
 import javax.servlet.ServletException;
@@ -55,7 +57,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Component(immediate = true, metatype = true)
 @Service
-public final class TrustedAuthenticationServlet extends HttpServlet {
+public final class TrustedAuthenticationServlet extends HttpServlet implements HttpContext {
   /**
    * 
    */
@@ -73,7 +75,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
   static final String VENDOR_PROPERTY = "service.vendor";
 
   /** Property for the path to which to register this servlet. */
-  @Property(value = "/trusted")
+  @Property(value = "/system/trustedauth")
   static final String REGISTRATION_PATH = "sakai.auth.trusted.path.registration";
 
   /**
@@ -97,7 +99,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
   /** The default destination to go to if none is specified. */
   private String defaultDestination;
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Activate
   protected void activate(ComponentContext context) {
     Dictionary props = context.getProperties();
@@ -107,7 +109,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
     // we MUST register this servlet and not let it be picked up by Sling since we want to bypass
     // the normal security and simply trust the remote user value in the request.
     try {
-      webContainer.registerServlet(registrationPath, this, null, null);
+      webContainer.registerServlet(registrationPath, this, null, this);
     } catch (NamespaceException e) {
       LOG.error(e.getMessage(), e);
       throw new ComponentException(e.getMessage(), e);
@@ -142,6 +144,25 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
     }
   }
 
+  public String getMimeType(String mimetype) {
+    return null;
+  }
+
+  public URL getResource(String name) {
+    return getClass().getResource(name);
+  }
+
+  /**
+   * (non-Javadoc) This servlet handles its own security since it is going to trust the
+   * external remote user. If we dont do this the SLing handleSecurity takes over and causes problems.
+   * 
+   * @see org.osgi.service.http.HttpContext#handleSecurity(javax.servlet.http.HttpServletRequest,
+   *      javax.servlet.http.HttpServletResponse)
+   */
+  public boolean handleSecurity(HttpServletRequest arg0, HttpServletResponse arg1)
+      throws IOException {
+    return true;
+  }
 
  
 }
