@@ -24,6 +24,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.Cache;
@@ -62,13 +64,18 @@ public class TrustedAuthenticationHandlerTest {
     
     ClusterTrackingService clusterTrackingService = createMock(ClusterTrackingService.class);
     CacheManagerService cacheManagerService = createMock(CacheManagerService.class);
+    EventAdmin eventAdmin = createMock(EventAdmin.class);
 
     Cache<Object> cache = new LocalCache<Object>();
     EasyMock.expect(cacheManagerService.getCache(TokenStore.class.getName(), CacheScope.CLUSTERREPLICATED)).andReturn(cache).anyTimes();
     EasyMock.expect(clusterTrackingService.getCurrentServerId()).andReturn("serverID").anyTimes();
+    eventAdmin.sendEvent((Event) EasyMock.anyObject());
+    EasyMock.expectLastCall().anyTimes();
+    eventAdmin.postEvent((Event) EasyMock.anyObject());
+    EasyMock.expectLastCall().anyTimes();
     trustedTokenService.clusterTrackingService = clusterTrackingService;
     trustedTokenService.cacheManager = cacheManagerService;
-
+    trustedTokenService.eventAdmin = eventAdmin;
   }
   
   public ComponentContext configureForSession() {

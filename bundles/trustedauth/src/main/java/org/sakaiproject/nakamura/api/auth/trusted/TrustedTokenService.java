@@ -38,6 +38,10 @@ public interface TrustedTokenService {
    */
   static final String CA_AUTHENTICATION_USER = "sakai-trusted-authentication-user";
 
+  static final String EVENT_USER_ID = "user";
+
+  static final String TRUST_USER_TOPIC = TrustedTokenService.class.getName().replace('.', '/')+"/trustuser";
+
   /**
    * Invalidated any trusted token in the response.
    * @param request

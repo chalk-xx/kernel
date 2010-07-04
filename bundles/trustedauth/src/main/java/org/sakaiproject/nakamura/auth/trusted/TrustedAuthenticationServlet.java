@@ -131,7 +131,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
     
     if (trustedTokenService instanceof TrustedTokenServiceImpl) {
       ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req, resp);
-      LOGGER.debug(" Injected token ");
+      LOGGER.debug(" Might have Injected token ");
       String destination = req.getParameter(PARAM_DESTINATION);
 
       if (destination == null) {
@@ -140,7 +140,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
       // ensure that the redirect is safe and not susceptible to
       resp.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
     } else {
-      LOGGER.debug("No Token present at servlet end point ");
+      LOGGER.debug("Trusted Token Service is not the correct implementation and so cant inject tokens. ");
     }
   }
 
