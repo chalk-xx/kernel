@@ -161,7 +161,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
 
     String user = session.getUserID();
     boolean isAnonymous = (UserConstants.ANON_USERID.equals(user));
-    if (isAnonymous) {
+    if (isAnonymous || authorizable == null ) {
 
       write.object();
       write.key("anon").value(true);
