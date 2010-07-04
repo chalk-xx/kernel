@@ -87,6 +87,7 @@
         <module>bundles/basiclti</module>
         <module>bundles/profile</module>
         <module>bundles/tika</module>
+        <module>bundles/captcha</module>
       </modules>
     </profile>
     <profile>
