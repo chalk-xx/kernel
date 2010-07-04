@@ -20,7 +20,6 @@ package org.sakaiproject.nakamura.auth.trusted;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
-import org.hamcrest.core.AnyOf;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

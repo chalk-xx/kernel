@@ -172,7 +172,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   }
   
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   protected void activate(ComponentContext context) {
     Dictionary props = context.getProperties();
     usingSession = (Boolean) props.get(USE_SESSION);

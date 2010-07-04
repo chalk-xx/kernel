@@ -138,6 +138,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
    * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="BC_VACUOUS_INSTANCEOF",justification="Could be injected from annother bundle")
   public void dropCredentials(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     if ( trustedTokenService instanceof TrustedTokenServiceImpl ) {
@@ -170,6 +171,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
   final class TrustedAuthentication {
     private final Credentials cred;
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="BC_VACUOUS_INSTANCEOF",justification="Could be injected from annother bundle")
     private TrustedAuthentication(HttpServletRequest req, HttpServletResponse response) {
       // This is placed here by the TrustedAuthenticationServlet, that will be in the same
       // web container as Sling and so sharing a session.

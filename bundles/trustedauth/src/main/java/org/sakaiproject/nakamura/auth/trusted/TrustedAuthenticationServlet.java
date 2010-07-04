@@ -21,7 +21,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.ops4j.pax.web.service.WebContainer;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
@@ -126,6 +125,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
    *      javax.servlet.http.HttpServletResponse)
    */
   @Override
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="BC_VACUOUS_INSTANCEOF",justification="Could be injected from annother bundle")
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     
