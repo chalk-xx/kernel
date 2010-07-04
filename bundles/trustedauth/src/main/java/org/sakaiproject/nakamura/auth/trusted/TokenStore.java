@@ -43,7 +43,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 /**
  * A Token Storage class that maintains a local ring buffer of keys for encoding and uses
- * a cluster replecated cache for keys to be shared with other servers in the cluster.
+ * a cluster replicated cache for keys to be shared with other servers in the cluster.
  */
 public class TokenStore {
 
