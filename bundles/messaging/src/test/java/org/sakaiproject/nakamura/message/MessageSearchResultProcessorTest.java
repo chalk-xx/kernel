@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingService;
+import org.sakaiproject.nakamura.message.internal.InternalMessageHandler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -59,6 +60,11 @@ public class MessageSearchResultProcessorTest {
 
     proc = new MessageSearchResultProcessor();
     proc.messagingService = messagingService;
+
+    InternalMessageHandler handler = new InternalMessageHandler();
+    MessageProfileWriterTracker tracker = mock(MessageProfileWriterTracker.class);
+    when(tracker.getMessageProfileWriterByType("internal")).thenReturn(handler);
+    proc.tracker = tracker;
   }
 
   @After

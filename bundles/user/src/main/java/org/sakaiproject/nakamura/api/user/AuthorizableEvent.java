@@ -44,6 +44,8 @@ public interface AuthorizableEvent {
   
   public static final String GROUP = "group";
 
+  public static final String MODIFYING_USER = "modifyingUser";
+
   /**
    * Operations
    */

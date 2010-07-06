@@ -34,7 +34,6 @@ import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
-import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -162,7 +161,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
 
     String user = session.getUserID();
     boolean isAnonymous = (UserConstants.ANON_USERID.equals(user));
-    if (isAnonymous) {
+    if (isAnonymous || authorizable == null ) {
 
       write.object();
       write.key("anon").value(true);

@@ -26,8 +26,10 @@ import org.sakaiproject.nakamura.version.VersionService;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.version.Version;
+import javax.jcr.version.VersionManager;
 
 /**
  * Service for doing operations with versions.
@@ -44,16 +46,18 @@ public class VersionServiceImpl implements VersionService {
       node.addMixin("sakai:propertiesmix");
     }
     node.setProperty(SAVED_BY, savingUsername);
-    node.save();
+    Session session = node.getSession();
+    session.save();
     Version version = null;
+    VersionManager versionManager = session.getWorkspace().getVersionManager();
     try {
-      version = node.checkin();
+      version = versionManager.checkin(node.getPath());
     } catch ( UnsupportedRepositoryOperationException e) {
       node.addMixin(JcrConstants.MIX_VERSIONABLE);
-      node.save();
-      version = node.checkin();
+      session.save();
+      version = versionManager.checkin(node.getPath());
     }
-    node.checkout();
+    versionManager.checkout(node.getPath());
     if ( node.getSession().hasPendingChanges() ) {
       node.getSession().save();
     }

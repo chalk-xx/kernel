@@ -22,9 +22,9 @@ import junit.framework.Assert;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.commons.auth.Authenticator;
 import org.easymock.EasyMock;
 import org.junit.Test;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.auth.trusted.TrustedTokenServiceImpl;
 import org.sakaiproject.nakamura.formauth.FormAuthenticationHandler.FormAuthentication;
 
@@ -32,11 +32,9 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 
 import javax.jcr.Session;
-import javax.jcr.query.qom.Literal;
 import javax.servlet.ServletException;
 
 
@@ -52,26 +50,22 @@ public class FormLoginServletTest {
   @Test
   public void testDoPostDrop() throws ServletException, IOException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-
+    SlingHttpServletResponse response = createNiceMock(SlingHttpServletResponse.class);
+    Authenticator authenticator = createNiceMock(Authenticator.class);
     FormLoginServlet formLoginServlet = new FormLoginServlet();
     TrustedTokenServiceImpl trustedTokenServiceImpl = new TrustedTokenServiceImpl();
     formLoginServlet.trustedTokenService = trustedTokenServiceImpl;
+    formLoginServlet.authenticator = authenticator;
 
     EasyMock.expect(request.getParameter(FormLoginServlet.FORCE_LOGOUT)).andReturn("1");
     EasyMock.expect(request.getParameter("d")).andReturn("/test");
-    response.sendRedirect("/test");
+    request.setAttribute(Authenticator.LOGIN_RESOURCE, "/test");
     EasyMock.expectLastCall();
+    authenticator.logout(request, response);
+    EasyMock.expectLastCall();    
+
     replay();
-   
-    trustedTokenServiceImpl.activateForTesting();
-   
     formLoginServlet.doPost(request, response);
-    
-    List<Object[]> calls = trustedTokenServiceImpl.getCalls();
-    Assert.assertEquals(1, calls.size());
-    Assert.assertEquals("dropCredentials", calls.get(0)[0]);
-    
     verify();
   }
 
@@ -216,6 +210,12 @@ public class FormLoginServletTest {
    */
   private <T> T createMock(Class<T> class1) {
     T m = EasyMock.createMock(class1);
+    mocks.add(m);
+    return m;
+  }
+
+  private <T> T createNiceMock(Class<T> class1) {
+    T m = EasyMock.createNiceMock(class1);
     mocks.add(m);
     return m;
   }

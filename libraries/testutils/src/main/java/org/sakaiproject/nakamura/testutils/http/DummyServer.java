@@ -24,6 +24,7 @@ import org.mortbay.jetty.handler.AbstractHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ServerSocket;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -61,18 +62,23 @@ public class DummyServer extends AbstractHandler {
   private CapturedRequest request;
 
   /**
-   * Create the dummy server on the next available port 8888 to 8988.
+   * Create the dummy server on the first available port. There will be 100 tries before
+   * we stop trying.
    */
   public DummyServer() {
-    port = 8888;
-    for (int i = 0; i < 100; i++) {
+    int attempts = 0;
+    while (server == null) {
       try {
+        // new ServerSocket(0) will automatically try to find a free port.
+        ServerSocket socket = new ServerSocket(0);
+        port = socket.getLocalPort();
+        socket.close();
+
         server = new Server(port);
         server.setHandler(this);
         server.start();
         break;
-      } catch (Exception ex) {
-        port++;
+      } catch (Exception e) {
         if (server != null) {
           try {
             server.stop();
@@ -82,10 +88,11 @@ public class DummyServer extends AbstractHandler {
         }
         server = null;
       }
-    }
-    if (server == null) {
-      throw new RuntimeException(
-          "Unable to find a free port the range 8888 - 8988, aborting http server startup ");
+      attempts++;
+      if (attempts == 100) {
+        throw new RuntimeException(
+            "Unable to find a free port the range 8888 - 8988, aborting http server startup ");
+      }
     }
   }
 
@@ -151,9 +158,10 @@ public class DummyServer extends AbstractHandler {
   public void setResponseBody(String responseBody) {
     this.responseBody = responseBody;
   }
-  
+
   public void setResponseBodyFromFile(String filename) throws IOException {
-    InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
+    InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(
+        filename);
     if (is == null) {
       throw new IOException("No such file " + filename);
     }

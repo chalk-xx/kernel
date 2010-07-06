@@ -34,7 +34,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.ValueFormatException;
 
 /**
- *
+ * A tracker factory to manage rule execution preprocessors.
  */
 public class ExecutionPreprocessorFactory implements ServiceTrackerCustomizer {
 

@@ -85,4 +85,15 @@ public class ProviderSettingsImpl implements ProviderSettings {
     return getStringProperty(providerNode, propertyName);
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.api.profile.ProviderSettings#getNode()
+   */
+  public Node getNode() {
+    return profileNode;
+  }
+  
+  
+  
+
 }

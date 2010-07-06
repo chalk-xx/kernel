@@ -22,11 +22,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.6-SNAPSHOT</version>
+    <version>0.7-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.presence</artifactId>
   <packaging>bundle</packaging>
-  <version>0.6-SNAPSHOT</version>
+  <version>0.7-SNAPSHOT</version>
   <name>Sakai Nakamura :: Presence Bundle</name>
   <description>Presence end point.</description>
   <build>
@@ -55,28 +55,45 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.7-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.connections</artifactId>
-      <version>0.6-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.search</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.7-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.7-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
-    <!-- servlet -->
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.search</artifactId>
+      <version>0.7-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
+      <version>0.7-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.doc</artifactId>
+      <version>0.7-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.search</artifactId>
+      <version>0.7-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
@@ -100,11 +117,6 @@
     <dependency>
       <groupId>com.google.collections</groupId>
       <artifactId>google-collections</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -131,15 +143,11 @@
       <artifactId>org.apache.felix.scr.annotations</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>0.6-SNAPSHOT</version>
-    </dependency>
-    <dependency>
     	<groupId>org.sakaiproject.nakamura</groupId>
     	<artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-    	<version>0.6-SNAPSHOT</version>
+    	<version>0.7-SNAPSHOT</version>
     	<scope>test</scope>
     </dependency>
+    <!-- servlet -->
   </dependencies>
 </project>

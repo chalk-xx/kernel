@@ -34,6 +34,8 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.auth.trusted.RequestTrustValidator;
+import org.sakaiproject.nakamura.api.auth.trusted.RequestTrustValidatorService;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -193,6 +195,12 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
 
     private boolean active = false;
 
+    /**
+     * 
+     * @scr.reference
+     */
+    protected RequestTrustValidatorService requestTrustValidatorService;
+
     /** Returns the JCR repository used by this service. */
     @SuppressWarnings(justification="OSGi Managed", value={"UWF_UNWRITTEN_FIELD"})
     protected SlingRepository getRepository() {
@@ -331,13 +339,28 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
             log.warn("Failed to determin if the user is an admin, assuming not. Cause: "+ex.getMessage());
             administrator = false;
           }
+          if (!administrator) {
+            if (!selfRegistrationEnabled) {
+              throw new RepositoryException(
+                  "Sorry, registration of new users is not currently enabled. Please try again later.");
+            }
 
+            boolean trustedRequest = false;
+            String trustMechanism = request.getParameter(":create-auth");
+            if (trustMechanism != null) {
+              RequestTrustValidator validator = requestTrustValidatorService
+                  .getValidator(trustMechanism);
+              if (validator != null
+                  && validator.getLevel() >= RequestTrustValidator.CREATE_USER
+                  && validator.isTrusted(request)) {
+                trustedRequest = true;
+              }
+            }
 
-        // make sure user self-registration is enabled
-        if (!administrator && !selfRegistrationEnabled) {
-            throw new RepositoryException(
-                "Sorry, registration of new users is not currently enabled.  Please try again later.");
-        }
+            if (selfRegistrationEnabled && !trustedRequest) {
+              throw new RepositoryException("Untrusted request.");
+            }
+          }
 
         Session session = request.getResourceResolver().adaptTo(Session.class);
         if (session == null) {
@@ -369,8 +392,6 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
 
             UserManager userManager = AccessControlUtil.getUserManager(selfRegSession);
 
-                Map<String, RequestProperty> reqProperties = collectContent(
-                    request, response);
 
                 User user = userManager.createUser(principalName,
                     digestPassword(pwd));
@@ -381,6 +402,8 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
 
                 String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
                     + user.getID();
+                Map<String, RequestProperty> reqProperties = collectContent(
+                    request, response, userPath);
 
                 response.setPath(userPath);
                 response.setLocation(userPath);

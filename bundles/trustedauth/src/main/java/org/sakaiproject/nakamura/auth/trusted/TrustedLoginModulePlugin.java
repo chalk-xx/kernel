@@ -65,7 +65,7 @@ public final class TrustedLoginModulePlugin implements LoginModulePlugin {
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#doInit(javax.security.auth.callback.CallbackHandler,
    *      javax.jcr.Session, java.util.Map)
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public void doInit(CallbackHandler callbackHandler, Session session, Map options)
       throws LoginException {
     try {
@@ -89,7 +89,7 @@ public final class TrustedLoginModulePlugin implements LoginModulePlugin {
    * 
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#addPrincipals(java.util.Set)
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public void addPrincipals(Set principals) {
     // Since this plugin is a service, how can principals be added. Login modules are not
     // normally services, perhapse this shoud not be one.
@@ -117,6 +117,7 @@ public final class TrustedLoginModulePlugin implements LoginModulePlugin {
     try {
       return new TrustedAuthenticationPlugin(principal, creds);
     } catch ( IllegalArgumentException e ) {
+      LOGGER.debug("Didnt get authentication {}",e.getMessage(),e);
       return null;      
     }
   }

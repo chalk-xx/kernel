@@ -173,6 +173,9 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
    */
   public void dropCredentials(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
+    // Since this component's credentials are stored via the TrustedTokenService,
+    // they should be cleared out by the TrustedAuthenticationHandler's dropCredentials.
+    // No other action required here.
   }
 
   /**

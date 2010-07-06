@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.cluster.ClusterUser;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
+import org.sakaiproject.nakamura.api.servlet.HttpOnlyCookie;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -218,7 +219,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
         LOGGER.error("Failed to hash new cookie ", e);
       }
 
-      Cookie cookie = new Cookie(SAKAI_TRACKING, trackingCookie);
+      Cookie cookie = new HttpOnlyCookie(SAKAI_TRACKING, trackingCookie);
       cookie.setMaxAge(-1);
       cookie.setComment("Cluster User Tracking");
       cookie.setPath("/");

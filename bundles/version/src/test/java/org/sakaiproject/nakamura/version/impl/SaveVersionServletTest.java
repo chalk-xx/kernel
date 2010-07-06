@@ -34,9 +34,11 @@ import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
+import javax.jcr.Workspace;
 import javax.jcr.lock.LockException;
 import javax.jcr.version.Version;
 import javax.jcr.version.VersionException;
+import javax.jcr.version.VersionManager;
 import javax.servlet.ServletException;
 
 
@@ -74,15 +76,20 @@ public class SaveVersionServletTest extends AbstractEasyMockTest {
     Version version = createNiceMock(Version.class);
     Session session = createNiceMock(Session.class);
     PropertyIterator propertyIterator = createNiceMock(PropertyIterator.class);
+    VersionManager versionManager = createNiceMock(VersionManager.class);
+    Workspace workspace = createNiceMock(Workspace.class);
 
     EasyMock.expect(request.getResource()).andReturn(resource);
     EasyMock.expect(resource.adaptTo(Node.class)).andReturn(node);
-    EasyMock.expect(node.checkin()).andReturn(version);
-    node.checkout();
+    String nodePath = "/foo";
+    EasyMock.expect(node.getPath()).andReturn(nodePath).anyTimes();
+    EasyMock.expect(session.getWorkspace()).andReturn(workspace);
+    EasyMock.expect(workspace.getVersionManager()).andReturn(versionManager);
+    EasyMock.expect(versionManager.checkin(nodePath)).andReturn(version);
+    versionManager.checkout(nodePath);
     EasyMock.expectLastCall();
-    EasyMock.expect(node.getSession()).andReturn(session);
+    EasyMock.expect(node.getSession()).andReturn(session).anyTimes();
     EasyMock.expect(session.hasPendingChanges()).andReturn(true);
-    EasyMock.expect(node.getSession()).andReturn(session);
     session.save();
     EasyMock.expectLastCall();
 

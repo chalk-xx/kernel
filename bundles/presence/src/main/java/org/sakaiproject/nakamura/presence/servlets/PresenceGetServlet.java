@@ -33,7 +33,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.presence.PresenceUtils;
+import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

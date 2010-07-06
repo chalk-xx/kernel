@@ -24,9 +24,12 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
+import org.sakaiproject.nakamura.api.servlet.HttpOnlyCookie;
 import org.sakaiproject.nakamura.auth.trusted.TokenStore.SecureCookie;
 import org.sakaiproject.nakamura.auth.trusted.TokenStore.SecureCookieException;
 import org.sakaiproject.nakamura.util.Signature;
@@ -40,6 +43,7 @@ import java.security.Principal;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.Hashtable;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
@@ -92,6 +96,10 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   @Property(value ="localhost;127.0.0.1", description="A ; seperated list of hosts that this instance trusts to make server connections.")
   public static final String SERVER_TOKEN_SAFE_HOSTS = "sakai.auth.trusted.server.safe-hosts";
 
+  @Property(value ="org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper", description="A ; seperated list of fully qualified class names that are allowed to extend the Wrapper Class.")
+  public static final String SERVER_TOKEN_SAFE_WRAPPERS = "sakai.auth.trusted.wrapper.class.names";
+
+  private static final String DEFAULT_WRAPPERS = "org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper";
   /**
    * If True, sessions will be used, if false cookies.
    */
@@ -129,6 +137,9 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   @Reference
   protected CacheManagerService cacheManager;
 
+  @Reference
+  protected EventAdmin eventAdmin;
+
   /**
    * If this is true the implementation is in test mode to enable external components to
    * test, without compromising the protection of the class.
@@ -146,6 +157,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   private String safeHosts;
 
+  private String[] safeWrappers;
+
   /**
    * @throws NoSuchAlgorithmException
    * @throws InvalidKeyException
@@ -159,7 +172,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   }
   
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   protected void activate(ComponentContext context) {
     Dictionary props = context.getProperties();
     usingSession = (Boolean) props.get(USE_SESSION);
@@ -169,6 +182,11 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     sharedSecret = (String) props.get(SERVER_TOKEN_SHARED_SECRET);
     trustedTokenEnabled = (Boolean) props.get(SERVER_TOKEN_ENABLED);
     safeHosts = (String) props.get(SERVER_TOKEN_SAFE_HOSTS);
+    String wrappers = (String)props.get(SERVER_TOKEN_SAFE_WRAPPERS);
+    if ( wrappers == null || wrappers.length() == 0 ) {
+      wrappers = DEFAULT_WRAPPERS;
+    }
+    safeWrappers = StringUtils.split(wrappers, ";");
     
     String tokenFile = (String) props.get(TOKEN_FILE_NAME);
     String serverId = clusterTrackingService.getCurrentServerId();
@@ -178,6 +196,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   public void activateForTesting() {
     testing = true;
     calls = new ArrayList<Object[]>();
+    safeWrappers = StringUtils.split(DEFAULT_WRAPPERS,";");
   }
   
   /**
@@ -222,6 +241,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
               // the user is Ok, we will trust it.
               userId = user;
               cred = createCredentials(userId);
+            } else {
+              LOG.debug("HMAC Match Failed {} != {} ", hmac, hash );
             }
           } catch (SignatureException e) {
             LOG.warn("Failed to validate server token : {} {} ", sakaiTrustedHeader, e
@@ -264,6 +285,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
               String cookieValue = c.getValue();
               userId = decodeCookie(c.getValue());
               if (userId != null) {
+                LOG.debug("Token is valid and decoded to {} ",userId);
                 cred = createCredentials(userId);
                 refreshToken(response, c.getValue(), userId);
                 break;
@@ -278,12 +300,13 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     if (userId != null) {
       LOG.debug("Trusted Authentication for {} with credentials {}  ", userId, cred);
     }
+    
     return cred;
   }
 
   /**
    * Remove credentials so that subsequent request don't contain credentials.
-   * 
+   *
    * @param request
    * @param response
    */
@@ -298,11 +321,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
         session.setAttribute(SA_AUTHENTICATION_CREDENTIALS, null);
       }
     } else {
-      Cookie c = new Cookie(trustedAuthCookieName, "invalid");
-      c.setMaxAge(-1);
-      c.setPath("/");
-      c.setSecure(secureCookie);
-      response.addCookie(c);
+      clearCookie(response);
     }
   }
 
@@ -323,9 +342,15 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     Principal p = request.getUserPrincipal();
     if (p != null) {
       userId = p.getName();
+      if ( userId != null ) {
+        LOG.info("Injecting Trusted Token from request: User Principal indicated user was [{}] ", userId);
+      }
     }
     if (userId == null) {
       userId = request.getRemoteUser();
+      if ( userId != null ) {
+        LOG.info("Injecting Trusted Token from request: Remote User indicated user was [{}] ", userId);
+      }
     }
     if (userId != null) {
       if (usingSession) {
@@ -337,6 +362,11 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       } else {
         addCookie(response, userId);
       }
+      Dictionary<String, Object> eventDictionary = new Hashtable<String, Object>();
+      eventDictionary.put(TrustedTokenService.EVENT_USER_ID, userId);
+
+      // send an async event to indicate that the user has been trusted, things that want to create users can hook into this.
+      eventAdmin.sendEvent(new Event(TrustedTokenService.TRUST_USER_TOPIC,eventDictionary));
     }
   }
 
@@ -345,8 +375,19 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * @param response
    */
   void addCookie(HttpServletResponse response, String userId) {
-    Cookie c = new Cookie(trustedAuthCookieName, encodeCookie(userId));
+    Cookie c = new HttpOnlyCookie(trustedAuthCookieName, encodeCookie(userId));
     c.setMaxAge(-1);
+    c.setPath("/");
+    c.setSecure(secureCookie);
+    response.addCookie(c);
+  }
+
+  /**
+   * @param response
+   */
+  void clearCookie(HttpServletResponse response) {
+    Cookie c = new HttpOnlyCookie(trustedAuthCookieName, "");
+    c.setMaxAge(0);
     c.setPath("/");
     c.setSecure(secureCookie);
     response.addCookie(c);
@@ -469,6 +510,13 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     String getUser() {
       return user;
     }
+  }
+
+  /**
+   * @return
+   */
+  public String[] getAuthorizedWrappers() {
+    return safeWrappers;
   }
 
 }

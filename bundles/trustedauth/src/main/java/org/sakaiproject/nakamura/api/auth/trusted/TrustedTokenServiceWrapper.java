@@ -32,16 +32,17 @@ public abstract class TrustedTokenServiceWrapper {
     if ( !delegate.getClass().equals(TrustedTokenServiceImpl.class)) {
       throw new IllegalArgumentException("You may only wrap a valid instance of the TrustedTokenService Invalid :"+delegate);
     }
-    // Only exported classes can be listed here,
-    // we cant use the class directly since that would set up a circular dependency,
-    // at the moment, this is about as good as I can get without putting all the code in a single
-    // bundle.
-    if ("org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper".equals(getClass().getName()) ) {        
+    
+    TrustedTokenServiceImpl tt = (TrustedTokenServiceImpl) delegate;
+    String[] validClasses = tt.getAuthorizedWrappers();
+    String thisClass = this.getClass().getName();
+    for ( String vc : validClasses ) {
+      if (thisClass.equals(vc) ) {        
         this.delagate = (TrustedTokenServiceImpl) delegate;
         return;
+      }
     }
-    throw new IllegalArgumentException("Invalid Wrapping Class :"+getClass());
-    
+    throw new IllegalArgumentException("Invalid Wrapping Class :"+getClass());    
   }
   
   /**
@@ -53,4 +54,10 @@ public abstract class TrustedTokenServiceWrapper {
     delagate.injectToken(request, response);
   }
 
+  /**
+   * @param request
+   * @param response
+   */
+  public abstract void addToken(SlingHttpServletRequest request, SlingHttpServletResponse response);
+  
 }

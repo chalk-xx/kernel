@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.activemq;
 
 import org.apache.activemq.broker.BrokerService;
+import org.apache.activemq.network.NetworkConnector;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -29,11 +30,21 @@ public class Activator implements BundleActivator {
   private BrokerService broker;
 
   public void start(BundleContext bundleContext) throws Exception {
-    String brokerUrl = System.getProperty("activemq.broker.url");
+    
+    String brokerUrl = bundleContext.getProperty("activemq.broker.url");
     if (brokerUrl == null) {
-      String brokerProtocol = System.getProperty("activemq.broker.protocol", "tcp");
-      String brokerHost = System.getProperty("activemq.broker.host", "localhost");
-      String brokerPort = System.getProperty("activemq.broker.port", "61616");
+      String brokerProtocol = bundleContext.getProperty("activemq.broker.protocol");
+      String brokerHost = bundleContext.getProperty("activemq.broker.host");
+      String brokerPort = bundleContext.getProperty("activemq.broker.port");
+      if ( brokerProtocol == null ) {
+        brokerProtocol = "tcp";
+      }
+      if ( brokerHost == null ) {
+        brokerHost = "localhost";
+      }
+      if ( brokerPort == null ) {
+        brokerPort = "61616";
+      }
       brokerUrl = brokerProtocol + "://" + brokerHost + ":" + brokerPort;
     }
 
@@ -44,10 +55,18 @@ public class Activator implements BundleActivator {
     String dataPath = slingHome + "/activemq-data";
     LOG.info("Setting Data Path to  [{}] [{}] ", new Object[] { slingHome, dataPath });
     broker.setDataDirectory(dataPath);
+
+    String federatedBrokerUrl = bundleContext.getProperty("activemq.federated.broker.url");
     
+    if ( federatedBrokerUrl != null ) {
+      NetworkConnector connector = broker.addNetworkConnector(federatedBrokerUrl); 
+      connector.setDuplex(true);
+    }
+
     // configure the broker
     LOG.info("Adding ActiveMQ connector [" + brokerUrl + "]");
     broker.addConnector(brokerUrl);
+    
 
     broker.start();
   }

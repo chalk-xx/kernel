@@ -100,6 +100,7 @@ else
   fi
      
   mvn clean install  | tee last-release/build.log 
+  mvn -PwithContrib clean install | tee last-release/contribBuild.log
   date > last-release/stage1
 
   echo "Build complete, preparing startup "

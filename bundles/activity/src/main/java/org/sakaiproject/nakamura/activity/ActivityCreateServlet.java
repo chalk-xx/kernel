@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.activity;
 
+import static org.apache.jackrabbit.JcrConstants.NT_UNSTRUCTURED;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_STORE_NAME;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_ACTOR_ID;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_APPLICATION_ID;
@@ -70,7 +71,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = "Records the activity related to a particular node"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-@ServiceDocumentation(name = "ActivityCreateServlet", description = "Record activity related to a specific node.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "*", selectors = @ServiceSelector(name = "activity")), methods = { @ServiceMethod(name = "POST", description = "Perform a post to a particular resource to record activity related to it.", parameters = {
+@ServiceDocumentation(name = "ActivityCreateServlet", shortDescription="Record activity related to a specific node.", description = "Record activity related to a specific node.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "*", selectors = @ServiceSelector(name = "activity")), methods = { @ServiceMethod(name = "POST", description = "Perform a post to a particular resource to record activity related to it.", parameters = {
     @ServiceParameter(name = "sakai:activity-appid", description = "i.e. used to locate the bundles"),
     @ServiceParameter(name = "sakai:activity-templateid", description = "The id of the template that will be used for text and macro expansion."
         + "Locale will be appended to the templateId for resolution"),
@@ -141,7 +142,8 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
       path = ActivityUtils.getPathFromId(id, path);
       // for some odd reason I must manually create the Node before dispatching to
       // Sling...
-      JcrUtils.deepGetOrCreateNode(session, path);
+      Node activity = JcrUtils.deepGetOrCreateNode(session, path, NT_UNSTRUCTURED);
+      activity.addMixin("mix:created");
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
       throw new Error(e);
@@ -187,7 +189,7 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
       throw new Error(e);
     }
     // post the asynchronous OSGi event
-    eventAdmin.postEvent(ActivityUtils.createEvent(activityItemPath));
+    eventAdmin.postEvent(ActivityUtils.createEvent(session.getUserID(), activityItemPath));
   }
 
   /**

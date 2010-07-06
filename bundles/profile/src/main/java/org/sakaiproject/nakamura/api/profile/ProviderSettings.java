@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.api.profile;
 
+import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 /**
@@ -44,5 +45,11 @@ public interface ProviderSettings {
    * @throws RepositoryException
    */
   String[] getProfileSettingsProperty(String propertyName) throws RepositoryException;
+  
+  
+  /**
+   * @return the node that this setting relates to.
+   */
+  Node getNode();
 
 }

@@ -20,10 +20,13 @@ package org.sakaiproject.nakamura.formauth;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.commons.auth.Authenticator;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -77,6 +80,9 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
   @Reference
   protected transient TrustedTokenService trustedTokenService;
 
+  @Reference(cardinality=ReferenceCardinality.OPTIONAL_UNARY, policy=ReferencePolicy.DYNAMIC)
+  protected Authenticator authenticator;
+
   /**
    *
    */
@@ -115,15 +121,25 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
     try {
       if ("1".equals(request.getParameter(FORCE_LOGOUT))) {
-        LOGGER.debug(" logout");
-        trustedTokenService.dropCredentials(request, response);
-        String destination = request.getParameter(PARAM_DESTINATION);
-
-        if (destination != null) {
-          // ensure that the redirect is safe and not susceptible to hacking
-          response.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
-          return;
+        LOGGER.debug("logout");
+        
+        // TODO This closely mimics Sling's LogoutServlet. Once all clients switch their
+        // logout links to "/system/sling/logout", we can remove this code.
+        final Authenticator authenticator = this.authenticator;
+        if (authenticator != null) {
+            try {
+                final String resourcePath = request.getParameter(PARAM_DESTINATION);
+                if (resourcePath != null) {
+                  request.setAttribute(Authenticator.LOGIN_RESOURCE, resourcePath);
+                }
+                authenticator.logout(request, response);
+                return;
+            } catch (IllegalStateException ise) {
+              LOGGER.error("service: Response already committed, cannot logout");
+              return;
+            }
         }
+        LOGGER.error("service: Authenticator service missing, cannot logout");
       } else {
 
         // was the request just authenticated ?

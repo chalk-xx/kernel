@@ -38,7 +38,8 @@ import javax.jcr.Session;
 import javax.jcr.Value;
 
 /**
- *
+ * A storage object that manages ID based objects (ID being an number) in JCR, auto
+ * scaling the storage structure, while eliminating expensive scans.
  */
 public abstract class AbstractIdBasedObject {
 
@@ -51,7 +52,8 @@ public abstract class AbstractIdBasedObject {
    * @throws IOException
    * 
    */
-  public AbstractIdBasedObject(Session session, long id) throws RepositoryException, IOException {
+  public AbstractIdBasedObject(Session session, long id) throws RepositoryException,
+      IOException {
     this.session = session;
     this.id = id;
     createOrGetObjectNode();
@@ -78,10 +80,11 @@ public abstract class AbstractIdBasedObject {
 
   public void remove() throws RepositoryException {
     objectNode.remove();
-    if ( session.hasPendingChanges() ) {
+    if (session.hasPendingChanges()) {
       session.save();
     }
   }
+
   /**
    * @return
    * @throws RepositoryException
@@ -170,8 +173,6 @@ public abstract class AbstractIdBasedObject {
     return lastNode;
   }
 
-  
-  
   /**
    * @param property
    * @param hashSet
@@ -203,19 +204,20 @@ public abstract class AbstractIdBasedObject {
    * @return
    * @throws RepositoryException
    */
-  protected int getIntValue(String propertyName, int defaultValue) throws RepositoryException {
+  protected int getIntValue(String propertyName, int defaultValue)
+      throws RepositoryException {
     return (int) getLongValue(propertyName, defaultValue);
   }
-  
 
   /**
    * @param prProcessInstanceId
    * @param i
    * @return
-   * @throws RepositoryException 
-   * @throws PathNotFoundException 
+   * @throws RepositoryException
+   * @throws PathNotFoundException
    */
-  protected long getLongValue(String propertyName, long defaultValue) throws RepositoryException {
+  protected long getLongValue(String propertyName, long defaultValue)
+      throws RepositoryException {
     Property property = objectNode.getProperty(propertyName);
     if (property == null) {
       return defaultValue;
@@ -224,13 +226,12 @@ public abstract class AbstractIdBasedObject {
     }
   }
 
-
   /**
    * @param property
    * @param bs
    * @return
-   * @throws RepositoryException 
-   * @throws IOException 
+   * @throws RepositoryException
+   * @throws IOException
    */
   protected byte[] getByteArray(byte[] bs) throws RepositoryException, IOException {
     Node contentNode = objectNode.addNode("jcr:content");
@@ -253,7 +254,7 @@ public abstract class AbstractIdBasedObject {
    * @param property
    * @param date
    * @return
-   * @throws RepositoryException 
+   * @throws RepositoryException
    */
   protected Date getDateValue(String propertyName, Date date) throws RepositoryException {
     Property property = objectNode.getProperty(propertyName);
@@ -261,7 +262,7 @@ public abstract class AbstractIdBasedObject {
       return date;
     } else {
       Calendar c = property.getDate();
-      if ( c == null ) {
+      if (c == null) {
         return date;
       } else {
         return c.getTime();
@@ -273,23 +274,24 @@ public abstract class AbstractIdBasedObject {
    * @param property
    * @param string
    * @return
-   * @throws RepositoryException 
-   * @throws  
+   * @throws RepositoryException
+   * @throws
    */
-  protected String getStringValue(String propertyName, String string) throws RepositoryException {
+  protected String getStringValue(String propertyName, String string)
+      throws RepositoryException {
     Property property = objectNode.getProperty(propertyName);
-    if ( property == null ) {
+    if (property == null) {
       return string;
     } else {
       String s = property.getString();
-      if ( s == null ) {
+      if (s == null) {
         return string;
       } else {
         return s;
       }
     }
   }
-  
+
   /**
    * @param startDate2
    * @return
@@ -300,51 +302,50 @@ public abstract class AbstractIdBasedObject {
     return c;
   }
 
-  
   /**
    * @param sakaiProcessInstanceState
    * @param state2
-   * @throws RepositoryException 
+   * @throws RepositoryException
    */
   protected void setProperty(String name, int value) throws RepositoryException {
-    objectNode.setProperty(name, value);    
+    objectNode.setProperty(name, value);
   }
 
   /**
    * @param sakaiProcessInstanceState
    * @param state2
-   * @throws RepositoryException 
+   * @throws RepositoryException
    */
   protected void setProperty(String name, long value) throws RepositoryException {
-    objectNode.setProperty(name, value);    
+    objectNode.setProperty(name, value);
   }
-
 
   /**
    * @param processInstanceByteArray2
-   * @throws RepositoryException 
-   * @throws  
+   * @throws RepositoryException
+   * @throws
    */
   protected void setProperty(byte[] value) throws RepositoryException {
     Node contentNode = objectNode.addNode("jcr:content");
-    if ( value == null ) {
+    if (value == null) {
       value = new byte[0];
     }
-    Binary b = contentNode.getSession().getValueFactory().createBinary(new ByteArrayInputStream(value));
-    contentNode.setProperty("jcr:date", b);    
+    Binary b = contentNode.getSession().getValueFactory().createBinary(
+        new ByteArrayInputStream(value));
+    contentNode.setProperty("jcr:date", b);
   }
 
   /**
    * @param sakaiProcessInstanceState
    * @param state2
-   * @throws RepositoryException 
-   * @throws ConstraintViolationException 
-   * @throws LockException 
-   * @throws VersionException 
-   * @throws  
+   * @throws RepositoryException
+   * @throws ConstraintViolationException
+   * @throws LockException
+   * @throws VersionException
+   * @throws
    */
-  protected void setProperty(String name, String[] values) throws  RepositoryException {
-    if ( values == null ) {
+  protected void setProperty(String name, String[] values) throws RepositoryException {
+    if (values == null) {
       values = new String[0];
     }
     objectNode.setProperty(name, values);
@@ -353,10 +354,10 @@ public abstract class AbstractIdBasedObject {
   /**
    * @param sakaiProcessInstanceStartdate
    * @param startDate2
-   * @throws RepositoryException 
+   * @throws RepositoryException
    */
   protected void setProperty(String name, Date value) throws RepositoryException {
-    if ( value == null ) {
+    if (value == null) {
       value = new Date();
     }
     objectNode.setProperty(name, getUTCCalendar(value));
@@ -365,14 +366,13 @@ public abstract class AbstractIdBasedObject {
   /**
    * @param sakaiProcessInstanceId
    * @param processId2
-   * @throws RepositoryException 
+   * @throws RepositoryException
    */
-  protected void setProperty(String name, String value) throws  RepositoryException {
-    if ( value == null ) {
+  protected void setProperty(String name, String value) throws RepositoryException {
+    if (value == null) {
       value = "";
     }
     objectNode.setProperty(name, value);
   }
-
 
 }

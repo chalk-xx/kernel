@@ -79,7 +79,8 @@ Export-Package: javax.servlet.http;uses:="javax.servlet";version="2.5.
  vlet,org.mortbay.xml,org.mortbay.jetty.servlet,org.mortbay.jetty.hand
  ler,org.mortbay.jetty";version="6.1.16",org.mortbay.util.ajax;uses:="
  org.mortbay.log,org.mortbay.util,javax.servlet.http,javax.servlet";ve
- rsion="6.1.16",org.ops4j.pax.web.service;version="0.6.0"
+ rsion="6.1.16",org.ops4j.pax.web.service;version="0.6.0",org.sakaipro
+ ject.nakamura.api.servlet
 Bundle-Version: 0.6.0
 Bundle-Name: OPS4J Pax Web - Service
 Bundle-Description: Pax Web is a OSGi Http Service based on Jetty 6.  

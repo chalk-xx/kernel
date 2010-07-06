@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.rules;
 
+import org.apache.commons.io.IOExceptionWithCause;
 import org.apache.commons.io.IOUtils;
 import org.drools.io.Resource;
 import org.drools.io.impl.BaseResource;
@@ -41,7 +42,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeType;
 
 /**
- *
+ * Drools Resource stored in JCR as a node.
  */
 public class JCRNodeResource extends BaseResource {
 
@@ -153,7 +154,7 @@ public class JCRNodeResource extends BaseResource {
     try {
       return new ByteArrayInputStream(getChangeSetXML().getBytes("UTF-8"));
     } catch (RepositoryException e) {
-      throw new IOException(e.getMessage(), e);
+      throw new IOExceptionWithCause(e.getMessage(), e);
     }
   }
 
@@ -166,7 +167,7 @@ public class JCRNodeResource extends BaseResource {
     try {
       return new StringReader(getChangeSetXML());
     } catch (RepositoryException e) {
-      throw new IOException(e.getMessage(), e);
+      throw new IOExceptionWithCause(e.getMessage(), e);
     }
   }
 
