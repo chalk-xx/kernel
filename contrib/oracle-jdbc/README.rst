@@ -2,14 +2,14 @@
 org.sakaiproject.nakamura.ojdbc
 ===============================
 -----------
-DESCRIPTION
+Description
 -----------
 This bundle is for providing an Oracle JDBC for jackrabbit clustering.
 
 There are 2 ways to build this bundle.
 
 -------------
-BUILD OPTIONS
+Build Options
 -------------
 Build with Local Oracle JDBC File
 ---------------------------------
