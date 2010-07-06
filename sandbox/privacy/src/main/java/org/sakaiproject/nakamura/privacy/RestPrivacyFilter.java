@@ -102,7 +102,11 @@ public class RestPrivacyFilter implements Filter {
       if (isProtected(srequest, resourceNode)) {
         sresponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Resource is protected");
         return;
+      } else {
+        LOGGER.info("Not Protected" );
       }
+    } else {
+      LOGGER.info("No Resource");
     }
     chain.doFilter(request, response);
 
@@ -173,6 +177,7 @@ public class RestPrivacyFilter implements Filter {
       try {
         Node rootNode = adminSession.getRootNode();
         if (!rootNode.hasProperty(PROP_SAKAI_RESTRICTIONS)) {
+          rootNode.addMixin("sakai:propertiesmix");
           rootNode.setProperty(PROP_SAKAI_RESTRICTIONS, NOGET_OPTION);
           adminSession.save();
         }
