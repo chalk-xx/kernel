@@ -93,10 +93,5 @@ public class CalendarAuthorizablePostProcessor implements AuthorizablePostProces
     String[] granted = new String[] { "jcr:all" };
     AccessControlUtil.replaceAccessControlEntry(session, path, authorizable
         .getPrincipal(), granted, null, null, null);
-
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-
   }
 }
