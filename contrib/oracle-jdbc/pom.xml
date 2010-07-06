@@ -64,7 +64,7 @@
                         <Bundle-SymbolicName>
                             ojdbc
                         </Bundle-SymbolicName>
-                        <Include-Resource>@ojdbc14.jar!/oracle/**</Include-Resource>
+                        <Embed-Dependency>oracle.jdbc;inline=true</Embed-Dependency>
                         <Export-Package>oracle.*;version=0.1</Export-Package>
                         <Import-Package>
                           oracle.i18n.text;resolution:=optional,
