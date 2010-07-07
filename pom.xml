@@ -92,7 +92,8 @@
         <module>contrib/ldap</module>
         <module>contrib/ldapauth</module>
         <module>contrib/xythos-remote</module>
-	<module>contrib/sitejoin</module>
+        <module>contrib/sitejoin</module>
+        <module>contrib/oracle-jdbc</module>
         <!--
         <module>contrib/persondirectory</module>
         <module>contrib/urldocproxy</module>
