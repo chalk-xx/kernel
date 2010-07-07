@@ -481,7 +481,9 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      */
     protected PrincipalManager createPrincipalManager(SessionImpl session) throws RepositoryException {
         PrincipalProvider[] pp = getPrincipalProviderRegistry().getProviders();
-        log.info("Got Principal Providers {} ", Arrays.toString(pp));
+        if ( log.isDebugEnabled() ) {
+          log.debug("Got Principal Providers {} ", Arrays.toString(pp));
+        }
         return new PrincipalManagerImpl(session, pp);
     }
 
