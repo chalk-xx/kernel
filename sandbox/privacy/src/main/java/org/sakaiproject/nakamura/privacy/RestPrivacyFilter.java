@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.Filter;
@@ -73,11 +72,7 @@ public class RestPrivacyFilter implements Filter {
       if (isProtected(srequest, resource)) {
         sresponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Resource is protected");
         return;
-      } else {
-        LOGGER.debug("Not Protected");
       }
-    } else {
-      LOGGER.debug("No Resource");
     }
     chain.doFilter(request, response);
 
@@ -93,45 +88,42 @@ public class RestPrivacyFilter implements Filter {
    * @throws RepositoryException
    */
   private boolean isProtected(SlingHttpServletRequest srequest, Resource resource) {
-    try {
-      if (resource == null) {
-        return false;
-      }
-
-      Node resourceNode = resource.adaptTo(Node.class);
-      if (resourceNode == null) {
-        return false;
-      }
-      Node cnode = resourceNode;
-      Session session = resourceNode.getSession();
-      Node rootNode = session.getRootNode();
+    if (resource == null) {
+      return false;
+    }
+    String path = resource.getPath();
+    if ("/".equals(path)) {
+      Session session = resource.getResourceResolver().adaptTo(Session.class);
       String currentUser = session.getUserID();
       if (ADMIN_USER.equals(currentUser)) {
         return false;
       }
+      LOGGER.debug("Root Node is protected ");
+      return true;
+    }
 
-      // no operations on the root node directly
-      if (cnode.isSame(rootNode)) {
-        LOGGER.info("Root Node is protected ");
-        return true;
-      }
+    if (path == null || path.length() < 2) {
+      return false;
+    }
+    char c = path.charAt(1);
+    if (c != '_') {
+      return false;
+    }
 
+    if (path.startsWith("/_user") || path.startsWith("/_group")) {
       if (resource.getResourceMetadata().get(HomeResourceProvider.HOME_RESOURCE_PROVIDER) instanceof HomeResourceProvider) {
         return false;
       }
-
-      // this completely blocks all access to /_user and /_group
-      String path = cnode.getPath();
-      if (path.startsWith("/_user") || path.startsWith("/_group")) {
-        LOGGER.info("/_user and /_group are protected ");
-        return true;
+      Session session = resource.getResourceResolver().adaptTo(Session.class);
+      String currentUser = session.getUserID();
+      if (ADMIN_USER.equals(currentUser)) {
+        return false;
       }
-
-      return false;
-    } catch (RepositoryException e) {
-      LOGGER.warn("Privacy Filter hit problem, forcing filter: {} ", e.getMessage(), e);
+      LOGGER.debug("/_user and /_group are protected ");
       return true;
     }
+
+    return false;
   }
 
   public void init(FilterConfig filterConfig) throws ServletException {
