@@ -73,7 +73,7 @@ import javax.servlet.http.HttpServletResponse;
  * </p>
  */
 @Service(value = Filter.class)
-@Component(immediate = true, metatype = false)
+@Component(name="org.sakaiproject.nakamura.privacy.RestPrivacyFilter", immediate=true, metatype=true, description="%restfilter.description", label="%restfilter.name")
 @Properties(value = { @Property(name = "service.description", value = "Privacy Filter"),
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "filter.scope", value = "request", propertyPrivate = true),
@@ -113,15 +113,8 @@ public class RestPrivacyFilter implements Filter {
   }
 
   /**
-   * Any node may have sakai restrictions applied to it. If it does, then the first one of
-   * these found it will be acted on, with the following meanings
    * 
-   * <pre>
-   * - sakai:restrictions : all 
-   * - sakai:restrictions : none 
-   * - sakai:restrictions : useronly
-   * - sakai:restrictions : noget
-   * </pre>
+   * If the path is /, /_user, /_group then access is protected.
    * 
    * @param srequest
    * @param resourceNode
@@ -135,35 +128,23 @@ public class RestPrivacyFilter implements Filter {
       }
       Node cnode = resourceNode;
       Session session = resourceNode.getSession();
+      Node rootNode = session.getRootNode();
       String currentUser = session.getUserID();
       if (ADMIN_USER.equals(currentUser)) {
         return false;
       }
-      if (cnode.hasProperty(PROP_SAKAI_RESTRICTIONS)) {
-        String restriction = cnode.getProperty(PROP_SAKAI_RESTRICTIONS).getString();
-        if (NOGET_OPTION.equals(restriction)) {
-          return true;
-        }
+      
+      // no operations on the root node directly
+      if ( cnode.isSame(rootNode) ) {
+        return true;
       }
-      Node rootNode = session.getRootNode();
-      while (!cnode.isSame(rootNode)) {
-        if (cnode.hasProperty(PROP_SAKAI_RESTRICTIONS)) {
-          String restriction = cnode.getProperty(PROP_SAKAI_RESTRICTIONS).getString();
-          if (ALL_OPTION.equals(restriction)) {
-            return true;
-          } else if (NONE_OPTION.equals(restriction)) {
-            return false;
-          } else if (restriction.startsWith(USERONLY_OPTION)) {
-            String userName = restriction.substring(USERONLY_OPTION.length());
-            if (currentUser.equals(userName)) {
-              return false;
-            } else {
-              return true;
-            }
-          }
-        }
-        cnode = cnode.getParent();
+      
+      // this completely blocks all access to /_user and /_group
+      String path = cnode.getPath();
+      if ( path.startsWith("/_user") || path.startsWith("/_group") ) {
+        return true;
       }
+      
       return false;
     } catch (RepositoryException e) {
       LOGGER.warn("Privacy Filter hit problem, forcing filter: {} ", e.getMessage(), e);
@@ -172,22 +153,6 @@ public class RestPrivacyFilter implements Filter {
   }
 
   public void init(FilterConfig filterConfig) throws ServletException {
-    try {
-      Session adminSession = repository.login();
-      try {
-        Node rootNode = adminSession.getRootNode();
-        if (!rootNode.hasProperty(PROP_SAKAI_RESTRICTIONS)) {
-          rootNode.addMixin("sakai:propertiesmix");
-          rootNode.setProperty(PROP_SAKAI_RESTRICTIONS, NOGET_OPTION);
-          adminSession.save();
-        }
-      } finally {
-        adminSession.logout();
-      }
-    } catch (Exception e) {
-      LOGGER.info("Setting Root node restriction {} ", e.getMessage(), e);
-    }
-
   }
 
   public void destroy() {
