@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.Filter;
@@ -98,8 +99,15 @@ public class RestPrivacyFilter implements Filter {
       if (ADMIN_USER.equals(currentUser)) {
         return false;
       }
-      LOGGER.debug("Root Node is protected ");
-      return true;
+      Node node = resource.adaptTo(Node.class);
+      if ( node == null ) {
+        return false; // webdav
+      }
+      if ( "GET".equals(srequest.getMethod()) ) {
+        LOGGER.info("Root Node is protected from GET operations ");
+        return true;
+      }
+      return false;
     }
 
     if (path == null || path.length() < 2) {
@@ -119,7 +127,11 @@ public class RestPrivacyFilter implements Filter {
       if (ADMIN_USER.equals(currentUser)) {
         return false;
       }
-      LOGGER.debug("/_user and /_group are protected ");
+      Node node = resource.adaptTo(Node.class);
+      if ( node == null ) {
+        return false; // webdav
+      }
+      LOGGER.info("/_user and /_group are protected ");
       return true;
     }
 
