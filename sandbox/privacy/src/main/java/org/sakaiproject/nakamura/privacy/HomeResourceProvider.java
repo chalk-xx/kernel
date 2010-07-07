@@ -44,15 +44,16 @@ import javax.servlet.http.HttpServletRequest;
 
 @Component(name = "org.sakaiproject.nakamura.privacy.HomeResourceProvider", immediate = true, metatype = true, description = "%homeprovider.description", label = "%homeprovider.name")
 @Service(value = ResourceProvider.class)
-@Property(name = ResourceProvider.ROOTS, value = { "/user", "/group" })
+@Property(name = ResourceProvider.ROOTS, value = { "/", "/group" })
 public class HomeResourceProvider implements ResourceProvider {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(HomeResourceProvider.class);
+  public static final String HOME_RESOURCE_PROVIDER = HomeResourceProvider.class.getName();
   private Map<String, String[]> authorizableMap = new HashMap<String, String[]>();
 
   public HomeResourceProvider() {
-    authorizableMap.put("/user/", new String[] { "/_user",
+    authorizableMap.put("/~", new String[] { "/_user",
         "/rep:security/rep:authorizables/rep:users" });
     authorizableMap.put("/group/", new String[] { "/_group",
         "/rep:security/rep:authorizables/rep:groups" });
@@ -66,7 +67,7 @@ public class HomeResourceProvider implements ResourceProvider {
 
   public Resource getResource(ResourceResolver resourceResolver, String path) {
     LOGGER.debug("Got Resource Path [{}] ", path);
-    if ( "/user".equals(path) || "/group".equals(path) ) {
+    if ( "/~".equals(path) || "/group".equals(path) ) {
       return null;
     }
     for (Entry<String, String[]> authorizableMapping : authorizableMap.entrySet()) {
@@ -88,27 +89,35 @@ public class HomeResourceProvider implements ResourceProvider {
     String targetStart = authorizableMapping.getValue()[0];
     String principalPathStart = authorizableMapping.getValue()[1];
     if (path.startsWith(pathStart)) {
-      String[] elements = StringUtils.split(path, "/", 3);
-      LOGGER.debug("Got Elements Path [{}] ", Arrays.toString(elements));
-      if (elements.length >= 2) {
+      String subPath = path.substring(pathStart.length());
+      String[] elements = StringUtils.split(subPath, "/", 2);
+      if ( LOGGER.isDebugEnabled() ) {
+        LOGGER.debug("Got Elements Path [{}] ", Arrays.toString(elements));
+      }
+      if (elements.length >= 1) {
         Session session = resourceResolver.adaptTo(Session.class);
         PrincipalManager pm = AccessControlUtil.getPrincipalManager(session);
-        Principal p = pm.getPrincipal(elements[1]);
+        Principal p = pm.getPrincipal(elements[0]);
         if (p instanceof ItemBasedPrincipal) {
 
           ItemBasedPrincipal ibp = (ItemBasedPrincipal) p;
 
           String userPath = targetStart
               + ibp.getPath().substring(principalPathStart.length());
-          if (elements.length == 3) {
-            userPath = userPath + "/" + elements[2];
+          if (elements.length == 2) {
+            userPath = userPath + "/" + elements[1];
           }
           Resource r = resourceResolver.resolve(userPath);
           LOGGER.debug("Resolving [{}] to [{}] ", userPath, r);
           if (r != null) {
             // are the last elements the same ?
-            if (getLastElement(r.getPath()).equals(getLastElement(path))) {
+            if (getLastElement(r.getPath()).equals(getLastElement(subPath))) {
+              r.getResourceMetadata().put(HomeResourceProvider.HOME_RESOURCE_PROVIDER, this);
               return r;
+            } else {
+              if ( LOGGER.isDebugEnabled() ) {
+                LOGGER.debug("Rejected [{}] != [{}] ",getLastElement(r.getPath()), getLastElement(subPath));
+              }
             }
           }
         }
@@ -123,11 +132,13 @@ public class HomeResourceProvider implements ResourceProvider {
         return path.substring(i);
       }
     }
-    return path;
+    return "/"+path;
   }
 
   public Iterator<Resource> listChildren(Resource parent) {
-    LOGGER.debug("List Children [{}] ", parent.getPath());
+    if ( LOGGER.isDebugEnabled() ) {
+      LOGGER.debug("List Children [{}] ", parent.getPath());
+    }
     return null;
   }
 

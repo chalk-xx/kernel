@@ -45,35 +45,12 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
- * This filter enforces privacy based on a property (sakai:restrictions) on nodes. This
- * filter is mounted in the SlingBase servlet and filters all requests. If the property
- * contains noget and is the current resource, then listing is not allowed. If the none is
- * specified on a node, then there are no restrictions on the node or any child nodes. If
- * all, then no request are allowed on any node, unless the subtree contains a none
- * property. if useronly:userid then the node is or any subnode is only available to the
- * specified user.
- * </p>
- * <p>
- * Examples
- * </p>
- * <pre>
- *      /
- *       - sakai:restrictions = noget
- *   all operations on / are not allowed except for admin  
- *   
- *      /_user
- *          - sakai:restrictions = all
- *      /_user/i/ie/ieb
- *                    - sakai:restrictions = none
- *      All requests to /_user, /_user/i, /_user/i/ie are blocked, /_user/i/ie/ieb is allowed
- * </pre>
- * <p>
- * When the filter initializes it sets the root node to / property sakai:restrictions value to noget
- * No other properties are set on other nodes within the system.
+ * This filter enforces privacy on certain paths. /_user subtree, /_group subtree and /
+ * unless admin is the user, or a the HomeResourceProvider resolved the request.
  * </p>
  */
 @Service(value = Filter.class)
-@Component(name="org.sakaiproject.nakamura.privacy.RestPrivacyFilter", immediate=true, metatype=true, description="%restfilter.description", label="%restfilter.name")
+@Component(name = "org.sakaiproject.nakamura.privacy.RestPrivacyFilter", immediate = true, metatype = true, description = "%restfilter.description", label = "%restfilter.name")
 @Properties(value = { @Property(name = "service.description", value = "Privacy Filter"),
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "filter.scope", value = "request", propertyPrivate = true),
@@ -81,11 +58,6 @@ import javax.servlet.http.HttpServletResponse;
 public class RestPrivacyFilter implements Filter {
 
   private static final String ADMIN_USER = "admin";
-  private static final String PROP_SAKAI_RESTRICTIONS = "sakai:restrictions";
-  private static final String USERONLY_OPTION = "useronly:";
-  private static final String NONE_OPTION = "none";
-  private static final String ALL_OPTION = "all";
-  private static final String NOGET_OPTION = "noget";
   private static final Logger LOGGER = LoggerFactory.getLogger(RestPrivacyFilter.class);
 
   @Reference
@@ -98,15 +70,14 @@ public class RestPrivacyFilter implements Filter {
     SlingHttpServletResponse sresponse = (SlingHttpServletResponse) response;
     Resource resource = srequest.getResource();
     if (resource != null) {
-      Node resourceNode = resource.adaptTo(Node.class);
-      if (isProtected(srequest, resourceNode)) {
+      if (isProtected(srequest, resource)) {
         sresponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Resource is protected");
         return;
       } else {
-        LOGGER.info("Not Protected" );
+        LOGGER.debug("Not Protected");
       }
     } else {
-      LOGGER.info("No Resource");
+      LOGGER.debug("No Resource");
     }
     chain.doFilter(request, response);
 
@@ -121,8 +92,13 @@ public class RestPrivacyFilter implements Filter {
    * @return
    * @throws RepositoryException
    */
-  private boolean isProtected(SlingHttpServletRequest srequest, Node resourceNode) {
+  private boolean isProtected(SlingHttpServletRequest srequest, Resource resource) {
     try {
+      if (resource == null) {
+        return false;
+      }
+
+      Node resourceNode = resource.adaptTo(Node.class);
       if (resourceNode == null) {
         return false;
       }
@@ -133,18 +109,24 @@ public class RestPrivacyFilter implements Filter {
       if (ADMIN_USER.equals(currentUser)) {
         return false;
       }
-      
+
       // no operations on the root node directly
-      if ( cnode.isSame(rootNode) ) {
+      if (cnode.isSame(rootNode)) {
+        LOGGER.info("Root Node is protected ");
         return true;
       }
-      
+
+      if (resource.getResourceMetadata().get(HomeResourceProvider.HOME_RESOURCE_PROVIDER) instanceof HomeResourceProvider) {
+        return false;
+      }
+
       // this completely blocks all access to /_user and /_group
       String path = cnode.getPath();
-      if ( path.startsWith("/_user") || path.startsWith("/_group") ) {
+      if (path.startsWith("/_user") || path.startsWith("/_group")) {
+        LOGGER.info("/_user and /_group are protected ");
         return true;
       }
-      
+
       return false;
     } catch (RepositoryException e) {
       LOGGER.warn("Privacy Filter hit problem, forcing filter: {} ", e.getMessage(), e);
