@@ -687,22 +687,10 @@ org.sakaiproject.nakamura.jpaprovider
       <version>0.5</version>
     </bundle>
 
-<!-- person directory information -->
-<!--
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.persondirectory</artifactId>
-      <version>0.4</version>
+      <artifactId>org.sakaiproject.nakamura.contenttype</artifactId>
+      <version>0.5</version>
     </bundle>
--->
-
-<!-- url doc proxy-->
-<!--
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.docproxy.url</artifactId>
-      <version>0.1</version>
-    </bundle>
--->
    </startLevel>
 </bundles>

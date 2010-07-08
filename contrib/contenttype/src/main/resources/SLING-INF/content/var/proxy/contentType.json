@@ -1,0 +1,20 @@
+{
+    "sling:resourceType": "sakai/proxy",
+    "sakai:request-proxy-endpoint": "${url}",
+    "sakai:request-proxy-method": "HEAD",
+    "sakai:postprocessor": "contenttype",
+    "sakai:title": "Content-Type Retrieval Proxy",
+    "sakai:shortDescription": "Get the content type of a remote URL.",
+    "sakai:parameters": [
+      "{'name':'url', 'description':'The URL to get the content type of.'}"
+    ],
+    "sakai:description": [
+        "Will retrieve the content type of a remote URL."
+    ],
+    "sakai:response": [
+        "The 'url' parameter can be sent as an encoded string or as a form field.",
+        "Examples:",
+        "Request to: /var/proxy/contentType.json?url=http%3A%2F%2Fnewsrss.bbc.co.uk%2Frss%2Fnewsonline_uk_edition%2Ffront_page%2Frss.xml",
+        "POST: url=http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss.xml to: /var/proxy/contentType.json"
+    ]
+}

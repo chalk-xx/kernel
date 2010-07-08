@@ -94,6 +94,7 @@
         <module>contrib/xythos-remote</module>
         <module>contrib/sitejoin</module>
         <module>contrib/oracle-jdbc</module>
+        <module>contrib/contenttype</module>
         <!--
         <module>contrib/persondirectory</module>
         <module>contrib/urldocproxy</module>
