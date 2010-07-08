@@ -689,7 +689,7 @@ org.sakaiproject.nakamura.jpaprovider
 
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.contenttype</artifactId>
+      <artifactId>org.sakaiproject.nakamura.header</artifactId>
       <version>0.5</version>
     </bundle>
    </startLevel>
