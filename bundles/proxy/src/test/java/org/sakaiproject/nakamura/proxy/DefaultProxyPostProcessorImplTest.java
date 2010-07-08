@@ -44,22 +44,22 @@ import javax.servlet.ServletOutputStream;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultProxyPostProcessorImplTest {
-  
+
   @Mock
   private SlingHttpServletResponse response;
-  
+
   @Mock
   private ProxyResponse proxyResponse;
-  
+
   private InputStream proxyResponseInputStream;
-  
+
   @Mock
   private ServletOutputStream responseOutputStream;
-  
+
   private Map<String, String[]> responseHeaders;
-  
+
   private DefaultProxyPostProcessorImpl proxyPostProcessor;
-  
+
   @Before
   public void setup() throws Exception {
     proxyPostProcessor = new DefaultProxyPostProcessorImpl();
@@ -67,7 +67,7 @@ public class DefaultProxyPostProcessorImplTest {
     putInSomeCannedHeaders(responseHeaders);
     proxyResponseInputStream = new ByteArrayInputStream("Hello, world.".getBytes("UTF-8"));
   }
-  
+
   private void putInSomeCannedHeaders(Map<String, String[]> headerMap) {
     headerMap.put("Date", new String[] {"Wed, 24 Feb 2010 17:11:12 GMT"});
     headerMap.put("Server", new String[] {"Chunked Update Server"});
@@ -85,10 +85,10 @@ public class DefaultProxyPostProcessorImplTest {
     proxyResponseCanReturnMapOfHeaders();
     proxyResponseCanReturnBodyAsInputStream();
     slingResponseCanReturnOutputStream();
-    
+
     //when
-    proxyPostProcessor.process(response, proxyResponse);
-    
+    proxyPostProcessor.process(null, response, proxyResponse);
+
     //then
     for (Entry<String, String[]> proxyResponseHeader : proxyResponse.getResponseHeaders().entrySet()) {
       for (String value : proxyResponseHeader.getValue()) {

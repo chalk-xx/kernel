@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.api.proxy;
 import org.apache.sling.api.SlingHttpServletResponse;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  *
@@ -27,7 +28,7 @@ import java.io.IOException;
 public interface ProxyPostProcessor {
 
   /**
-   * 
+   *
    */
   public static final String SAKAI_POSTPROCESSOR = "sakai:postprocessor";
 
@@ -35,9 +36,10 @@ public interface ProxyPostProcessor {
   /**
    * @param response
    * @param proxyResponse
-   * @throws IOException 
+   * @throws IOException
    */
-  void process(SlingHttpServletResponse response, ProxyResponse proxyResponse) throws IOException;
+  void process(Map<String, Object> templateParams, SlingHttpServletResponse response,
+      ProxyResponse proxyResponse) throws IOException;
 
   /**
    * @return

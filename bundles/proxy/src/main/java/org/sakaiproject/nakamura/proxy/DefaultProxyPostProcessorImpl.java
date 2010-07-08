@@ -23,6 +23,7 @@ import org.sakaiproject.nakamura.api.proxy.ProxyResponse;
 import org.sakaiproject.nakamura.util.IOUtils;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -32,10 +33,11 @@ public class DefaultProxyPostProcessorImpl implements ProxyPostProcessor {
 
   /**
    * {@inheritDoc}
-   * @throws IOException 
+   * @throws IOException
    * @see org.sakaiproject.nakamura.api.proxy.ProxyPostProcessor#process(org.apache.sling.api.SlingHttpServletResponse, org.sakaiproject.nakamura.api.proxy.ProxyResponse)
    */
-  public void process(SlingHttpServletResponse response, ProxyResponse proxyResponse) throws IOException {
+  public void process(Map<String, Object> templateParams,
+      SlingHttpServletResponse response, ProxyResponse proxyResponse) throws IOException {
     for (Entry<String, String[]> h : proxyResponse.getResponseHeaders().entrySet()) {
       for (String v : h.getValue()) {
         response.setHeader(h.getKey(), v);

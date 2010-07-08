@@ -325,7 +325,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
       ProxyResponse proxyResponse = proxyClientService.executeCall(node, headers,
           templateParams, requestInputStream, inputStreamLength, inputStreamContentType);
       try {
-        postProcessor.process(response, proxyResponse);
+        postProcessor.process(templateParams, response, proxyResponse);
       } finally {
         proxyResponse.close();
       }
