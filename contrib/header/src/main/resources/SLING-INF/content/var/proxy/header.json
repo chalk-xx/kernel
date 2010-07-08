@@ -2,14 +2,14 @@
     "sling:resourceType": "sakai/proxy",
     "sakai:request-proxy-endpoint": "${url}",
     "sakai:request-proxy-method": "HEAD",
-    "sakai:postprocessor": "contenttype",
-    "sakai:title": "Content-Type Retrieval Proxy",
-    "sakai:shortDescription": "Get the content type of a remote URL.",
+    "sakai:postprocessor": "header",
+    "sakai:title": "Header Retrieval Proxy",
+    "sakai:shortDescription": "Retrieve specific headers from a remote URL.",
     "sakai:parameters": [
-      "{'name':'url', 'description':'The URL to get the content type of.'}"
+      "{'name':'url', 'description':'The URL to get the headers of.'}"
     ],
     "sakai:description": [
-        "Will retrieve the content type of a remote URL."
+        "Will retrieve the headers of a remote URL."
     ],
     "sakai:response": [
         "The 'url' parameter can be sent as an encoded string or as a form field.",

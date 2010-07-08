@@ -24,10 +24,10 @@
     <artifactId>base</artifactId>
     <version>0.5</version>
   </parent>
-  <artifactId>org.sakaiproject.nakamura.contenttype</artifactId>
+  <artifactId>org.sakaiproject.nakamura.header</artifactId>
   <packaging>bundle</packaging>
   <version>0.5</version>
-  <name>Sakai Nakamura :: Content-Type Retrieval Proxy</name>
+  <name>Sakai Nakamura :: Header Retrieval Proxy</name>
   <build>
     <plugins>
       <plugin>
@@ -41,7 +41,7 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
-            <Private-Package>org.sakaiproject.nakamura.contenttype</Private-Package>
+            <Private-Package>org.sakaiproject.nakamura.header</Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
           </instructions>
         </configuration>
