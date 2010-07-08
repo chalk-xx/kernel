@@ -18,6 +18,10 @@
 package org.sakaiproject.nakamura.proxy;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.junit.Before;
@@ -32,111 +36,109 @@ import java.util.Map;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Mockito.*;
-
 
 /**
  *
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RSSProxyPostProcessorTest {
-  
+
   RSSProxyPostProcessor proxyPostProcessor;
-  
+
   @Mock
   private SlingHttpServletResponse response;
-  
+
   @Mock
   private ProxyResponse proxyResponse;
 
   @Mock
   private Map<String, String[]> proxyResponseHeaders;
-  
+
   @Mock
   private ServletOutputStream responseOutputStream;
-  
+
   @Before
   public void setup() {
     proxyPostProcessor = new RSSProxyPostProcessor();
   }
-  
+
   @Test
   public void nameIsAsExpected() {
     assertEquals("rss", proxyPostProcessor.getName());
   }
-  
+
   @Test
   public void rejectsTooLongResponse() throws Exception {
     //given
     proxyResponseCanReturnHeaders();
     proxyResponseHeaderContainsVeryLongContentLength();
-    
+
     //when
-    proxyPostProcessor.process(response, proxyResponse);
-    
+    proxyPostProcessor.process(null, response, proxyResponse);
+
     //then
     verify(response).sendError(eq(HttpServletResponse.SC_FORBIDDEN), anyString());
   }
-  
+
   @Test
   public void componentContextIsNotNeeded() {
     proxyPostProcessor.activate(null);
     proxyPostProcessor.deactivate(null);
   }
-  
+
   @Test
   public void rejectsUnsupportedContentType() throws Exception {
     //given
     proxyResponseCanReturnHeaders();
     proxyResponseHeaderContainsUnsupportedContentType();
-    
+
     //when
     proxyPostProcessor.activate(null);
-    proxyPostProcessor.process(response, proxyResponse);
-    
+    proxyPostProcessor.process(null, response, proxyResponse);
+
     //then
     verify(response).sendError(eq(HttpServletResponse.SC_FORBIDDEN), anyString());
   }
-  
+
   @Test
   public void canValidateAndWriteRssToTheSlingResponse() throws Exception {
     //given
     proxyResponseCanReturnHeaders();
     proxyResponseHasSampleRss();
     responseHasOutputStreamAvailable();
-    
+
     //when
     proxyPostProcessor.activate(null);
-    proxyPostProcessor.process(response, proxyResponse);
-    
+    proxyPostProcessor.process(null, response, proxyResponse);
+
     //then
-    
+
   }
-  
+
   @Test
   public void rejectsRssWithoutChannelTitle() throws Exception {
   //given
     proxyResponseCanReturnHeaders();
     proxyResponseHasInvalidRss();
-    
+
     //when
     proxyPostProcessor.activate(null);
-    proxyPostProcessor.process(response, proxyResponse);
-    
+    proxyPostProcessor.process(null, response, proxyResponse);
+
     //then
     verify(response).sendError(eq(HttpServletResponse.SC_FORBIDDEN), anyString());
   }
-  
+
   @Test
   public void rejectsRssWithoutWellFormedXml() throws Exception {
   //given
     proxyResponseCanReturnHeaders();
     proxyResponseHasIllFormedXml();
-    
+
     //when
     proxyPostProcessor.activate(null);
-    proxyPostProcessor.process(response, proxyResponse);
-    
+    proxyPostProcessor.process(null, response, proxyResponse);
+
     //then
     verify(response).sendError(eq(HttpServletResponse.SC_FORBIDDEN), anyString());
   }
@@ -152,19 +154,19 @@ public class RSSProxyPostProcessorTest {
   private void proxyResponseCanReturnHeaders() {
     when(proxyResponse.getResponseHeaders()).thenReturn(proxyResponseHeaders);
   }
-  
+
   private void proxyResponseHasSampleRss() throws Exception {
     when(proxyResponse.getResponseBodyAsInputStream()).thenReturn(this.getClass().getClassLoader().getResourceAsStream("sample-rss.xml"));
   }
-  
+
   private void proxyResponseHasInvalidRss() throws Exception {
     when(proxyResponse.getResponseBodyAsInputStream()).thenReturn(this.getClass().getClassLoader().getResourceAsStream("invalid-sample-rss.xml"));
   }
-  
+
   private void proxyResponseHasIllFormedXml() throws Exception {
     when(proxyResponse.getResponseBodyAsInputStream()).thenReturn(this.getClass().getClassLoader().getResourceAsStream("invalid-xml.xml"));
   }
-  
+
   private void responseHasOutputStreamAvailable() throws Exception {
     when(response.getOutputStream()).thenReturn(responseOutputStream);
   }

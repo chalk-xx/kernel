@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * Will convert iCal to JSON.
@@ -55,7 +56,7 @@ public class ICalProxyPostProcessor implements ProxyPostProcessor {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.proxy.ProxyPostProcessor#getName()
    */
   public String getName() {
@@ -64,16 +65,16 @@ public class ICalProxyPostProcessor implements ProxyPostProcessor {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.proxy.ProxyPostProcessor#process(org.apache.sling.api.SlingHttpServletResponse,
    *      org.sakaiproject.nakamura.api.proxy.ProxyResponse)
    */
-  public void process(SlingHttpServletResponse response, ProxyResponse proxyResponse)
-      throws IOException {
+  public void process(Map<String, Object> templateParams,
+      SlingHttpServletResponse response, ProxyResponse proxyResponse) throws IOException {
     try {
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
-      
+
       InputStream in = proxyResponse.getResponseBodyAsInputStream();
       CalendarBuilder builder = new CalendarBuilder();
       Calendar calendar = builder.build(in);
