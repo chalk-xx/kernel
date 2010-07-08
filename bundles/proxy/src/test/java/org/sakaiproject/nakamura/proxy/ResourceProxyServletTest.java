@@ -17,6 +17,13 @@
  */
 package org.sakaiproject.nakamura.proxy;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -40,8 +47,6 @@ import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-
-import static org.mockito.Mockito.*;
 
 /**
  *
@@ -78,14 +83,14 @@ public class ResourceProxyServletTest {
 
   @Mock
   private Property jcrProperty;
-  
+
   private Map<String, ProxyPreProcessor> proxyPreProcessors;
-  
+
   @Mock
   private ProxyPreProcessor proxyPreProcessor;
-  
+
   private Map<String, ProxyPostProcessor> proxyPostProcessors;
-  
+
   @Mock
   private ProxyPostProcessor proxyPostProcessor;
 
@@ -147,7 +152,7 @@ public class ResourceProxyServletTest {
     // when
     servlet.doGet(request, response);
   }
-  
+
   @Test
   public void canDoParameterBasicAuth() throws Exception {
     // given
@@ -165,7 +170,7 @@ public class ResourceProxyServletTest {
     // when
     servlet.doGet(request, response);
   }
-  
+
   private void requestHasBasicAuthParameters() {
     parameterNames.add(":basic-user");
     parameterNames.add(":basic-password");
@@ -185,11 +190,11 @@ public class ResourceProxyServletTest {
     proxyResponseHasHelloWorldInputStream();
     slingResponseHasOutputStream();
     servlet.proxyClientService = proxyClientService;
-    
+
     // when
     servlet.doPost(request, response);
   }
-  
+
   @Test
   public void canPutWithAContentBody() throws Exception {
     // given
@@ -203,11 +208,11 @@ public class ResourceProxyServletTest {
     proxyResponseHasHelloWorldInputStream();
     slingResponseHasOutputStream();
     servlet.proxyClientService = proxyClientService;
-    
+
     // when
     servlet.doPut(request, response);
   }
-  
+
   @Test
   public void conveysParamsToTheProxy() throws Exception {
     // given
@@ -225,7 +230,7 @@ public class ResourceProxyServletTest {
     // when
     servlet.doGet(request, response);
   }
-  
+
   @SuppressWarnings("unchecked")
   @Test
   public void canInvokePreProcessor() throws Exception {
@@ -241,13 +246,13 @@ public class ResourceProxyServletTest {
     slingResponseHasOutputStream();
     servlet.preProcessors = proxyPreProcessors;
     servlet.proxyClientService = proxyClientService;
-    
+
     // when
     servlet.doGet(request, response);
-    
+
     verify(proxyPreProcessor).preProcessRequest(eq(request), (Map<String,String>)any(), (Map<String,Object>)any());
   }
-  
+
   @Test
   public void canInvokePostProcessor() throws Exception {
     // given
@@ -262,11 +267,12 @@ public class ResourceProxyServletTest {
     slingResponseHasOutputStream();
     servlet.postProcessors = proxyPostProcessors;
     servlet.proxyClientService = proxyClientService;
-    
+
     // when
     servlet.doGet(request, response);
-    
-    verify(proxyPostProcessor).process(response, proxyResponse);
+
+    HashMap<String, Object> map = new HashMap<String, Object>();
+    verify(proxyPostProcessor).process(map, response, proxyResponse);
   }
 
   private void nodeHasSakaiPostprocessorProperty() throws Exception {
