@@ -1,7 +1,7 @@
 {
     "sling:resourceType": "sakai/proxy",
     "sakai:request-proxy-endpoint": "${url}",
-    "sakai:request-proxy-method": "HEAD",
+    "sakai:request-proxy-method": "GET",
     "sakai:postprocessor": "contenttype",
     "sakai:title": "Content-Type Retrieval Proxy",
     "sakai:shortDescription": "Get the content type of a remote URL.",
