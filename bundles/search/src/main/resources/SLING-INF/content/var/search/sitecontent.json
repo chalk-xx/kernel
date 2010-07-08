@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "//*[@sling:resourceType='sakai/site'{_site}]//*[@jcr:primaryType != 'nt:frozenNode' and @sling:resourceType and (jcr:contains(.,'{q}') or jcr:contains(jcr:content,'{q}'))]/rep:excerpt()",
+  "sakai:query-template": "//*[@sling:resourceType='sakai/site'{_site}]//*[@jcr:primaryType != 'nt:frozenNode' and @sling:resourceType and (jcr:contains(.,'{q}') or jcr:contains(jcr:content,'{q}'))]/rep:excerpt() order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:batchresultprocessor": "SiteContent",
   "sakai:propertyprovider": "Content",
