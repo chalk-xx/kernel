@@ -304,7 +304,7 @@ public class DynamicACLProvider extends ACLProvider {
       long now = System.currentTimeMillis();
 
       Value[] activeRanges = getValues(RulesBasedAce.P_ACTIVE_RANGE, aceNode);
-      if ( activeRanges != null ) {
+      if ( activeRanges.length != 0 ) {
         for ( Value r : activeRanges) {
           String[] range = StringUtils.split(r.getString(),'/');
           ISO8601Date from = new ISO8601Date(range[0]);
@@ -318,7 +318,7 @@ public class DynamicACLProvider extends ACLProvider {
       }
       
       Value[] inactiveRanges = getValues(RulesBasedAce.P_INACTIVE_RANGE,aceNode);
-      if ( inactiveRanges != null ) {
+      if ( inactiveRanges.length != 0 ) {
         for ( Value r : inactiveRanges) {
           String[] range = StringUtils.split(r.getString(),'/');
           ISO8601Date from = new ISO8601Date(range[0]);

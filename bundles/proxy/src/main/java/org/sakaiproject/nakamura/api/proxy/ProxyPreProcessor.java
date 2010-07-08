@@ -22,8 +22,8 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import java.util.Map;
 
 /**
- * A pre processor interface for Proxy Requests, preprocesses each request performing further processing on the 
- * headers and templateParameters.
+ * A pre processor interface for Proxy Requests, preprocesses each request performing
+ * further processing on the headers and templateParameters.
  */
 public interface ProxyPreProcessor {
 
@@ -31,17 +31,24 @@ public interface ProxyPreProcessor {
    * 
    */
   public static final String SAKAI_PREPROCESSOR = "sakai:preprocessor";
-  
+
   /**
    * @param request
+   *          The request that hits the proxy node.
    * @param headers
+   *          A map of headers already collected. The map can be modified as wished. All
+   *          of the entries in this map will end up als headers on the outgoing request
+   *          to the remote resource.
    * @param templateParams
+   *          A map of template parameters that will be passed to velocity to render the
+   *          url.
    */
   void preProcessRequest(SlingHttpServletRequest request, Map<String, String> headers,
       Map<String, Object> templateParams);
 
   /**
-   * @return
+   * @return The name of this ProxyPreProcessor. Nodes that want this processor to be run
+   *         should set the sakai:preprocessor property to this value.
    */
   String getName();
 

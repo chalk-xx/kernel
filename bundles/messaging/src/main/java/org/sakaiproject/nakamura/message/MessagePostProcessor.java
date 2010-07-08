@@ -39,6 +39,7 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostProcessor;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,7 +130,7 @@ public class MessagePostProcessor implements SlingPostProcessor {
           // This does mean that the listener will have to get the node each time, and probably create a new session for each message
           // This might be heavy on performance.
           messageDict.put(EVENT_LOCATION, n.getPath());
-          messageDict.put("user", request.getRemoteUser());
+          messageDict.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
           LOGGER.info("Launched event for node: " + n.getPath());
           Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT, messageDict);
           // KERN-790: Initiate a synchronous event.

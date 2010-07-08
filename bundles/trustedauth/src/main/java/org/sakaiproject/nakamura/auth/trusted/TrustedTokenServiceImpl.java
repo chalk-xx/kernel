@@ -24,6 +24,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
@@ -41,6 +43,7 @@ import java.security.Principal;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.Hashtable;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
@@ -134,6 +137,9 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   @Reference
   protected CacheManagerService cacheManager;
 
+  @Reference
+  protected EventAdmin eventAdmin;
+
   /**
    * If this is true the implementation is in test mode to enable external components to
    * test, without compromising the protection of the class.
@@ -166,7 +172,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   }
   
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   protected void activate(ComponentContext context) {
     Dictionary props = context.getProperties();
     usingSession = (Boolean) props.get(USE_SESSION);
@@ -235,6 +241,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
               // the user is Ok, we will trust it.
               userId = user;
               cred = createCredentials(userId);
+            } else {
+              LOG.debug("HMAC Match Failed {} != {} ", hmac, hash );
             }
           } catch (SignatureException e) {
             LOG.warn("Failed to validate server token : {} {} ", sakaiTrustedHeader, e
@@ -277,6 +285,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
               String cookieValue = c.getValue();
               userId = decodeCookie(c.getValue());
               if (userId != null) {
+                LOG.debug("Token is valid and decoded to {} ",userId);
                 cred = createCredentials(userId);
                 refreshToken(response, c.getValue(), userId);
                 break;
@@ -291,6 +300,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     if (userId != null) {
       LOG.debug("Trusted Authentication for {} with credentials {}  ", userId, cred);
     }
+    
     return cred;
   }
 
@@ -332,9 +342,15 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     Principal p = request.getUserPrincipal();
     if (p != null) {
       userId = p.getName();
+      if ( userId != null ) {
+        LOG.info("Injecting Trusted Token from request: User Principal indicated user was [{}] ", userId);
+      }
     }
     if (userId == null) {
       userId = request.getRemoteUser();
+      if ( userId != null ) {
+        LOG.info("Injecting Trusted Token from request: Remote User indicated user was [{}] ", userId);
+      }
     }
     if (userId != null) {
       if (usingSession) {
@@ -346,6 +362,11 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       } else {
         addCookie(response, userId);
       }
+      Dictionary<String, Object> eventDictionary = new Hashtable<String, Object>();
+      eventDictionary.put(TrustedTokenService.EVENT_USER_ID, userId);
+
+      // send an async event to indicate that the user has been trusted, things that want to create users can hook into this.
+      eventAdmin.sendEvent(new Event(TrustedTokenService.TRUST_USER_TOPIC,eventDictionary));
     }
   }
 

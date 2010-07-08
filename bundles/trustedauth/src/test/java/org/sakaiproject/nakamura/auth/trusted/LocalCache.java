@@ -54,10 +54,8 @@ public class LocalCache<T>  implements Cache<Object> {
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.memory.Cache#list()
    */
-  @SuppressWarnings("unchecked")
   public List<Object> list() {
-    // TODO Auto-generated method stub
-    return new ArrayList(m.values());
+    return new ArrayList<Object>(m.values());
   }
 
   /**

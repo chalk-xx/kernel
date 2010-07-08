@@ -4,11 +4,11 @@
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.7-SNAPSHOT</version>
     </parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
-    <version>0.6-SNAPSHOT</version>
+    <version>0.7-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Sakai Nakamura :: oracle jdbc bundle</name>
     <description>
@@ -18,15 +18,40 @@
         <name>The Sakai Foundation</name>
         <url>http://sakaiproject.org/</url>
     </organization>
-    <dependencies>
-        <dependency>
-            <groupId>oracle</groupId>
-            <artifactId>oracle.jdbc</artifactId>
-            <version>0.1</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/ojdbc14.jar</systemPath>
-        </dependency>
-    </dependencies>
+    <profiles>
+        <profile>
+            <id>local</id>
+            <activation>
+                <file>
+                    <exists>ojdbc14.jar</exists>
+                </file>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>oracle</groupId>
+                    <artifactId>oracle.jdbc</artifactId>
+                    <version>0.1</version>
+                    <scope>system</scope>
+                    <systemPath>${basedir}/ojdbc14.jar</systemPath>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>repo</id>
+            <activation>
+                <file>
+                    <missing>ojdbc14.jar</missing>
+                </file>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>oracle</groupId>
+                    <artifactId>oracle.jdbc</artifactId>
+                    <version>0.1</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
     <build>
         <plugins>
             <plugin>
@@ -39,7 +64,7 @@
                         <Bundle-SymbolicName>
                             ojdbc
                         </Bundle-SymbolicName>
-                        <Include-Resource>@ojdbc14.jar!/oracle/**</Include-Resource>
+                        <Embed-Dependency>oracle.jdbc;inline=true</Embed-Dependency>
                         <Export-Package>oracle.*;version=0.1</Export-Package>
                         <Import-Package>
                           oracle.i18n.text.converter;resolution:=optional,

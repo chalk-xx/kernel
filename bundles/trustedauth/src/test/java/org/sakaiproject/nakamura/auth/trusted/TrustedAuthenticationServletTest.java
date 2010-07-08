@@ -27,8 +27,6 @@ import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -47,7 +45,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class TrustedAuthenticationServletTest {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TrustedAuthenticationServletTest.class);
   private List<Object> mocks = new ArrayList<Object>();
   private TrustedTokenServiceImpl trustedTokenService;
 
@@ -91,7 +88,7 @@ public class TrustedAuthenticationServletTest {
     WebContainer webContainer = createMock(WebContainer.class);
     
     TrustedAuthenticationServlet trustedAuthenticationServlet = new TrustedAuthenticationServlet();
-    webContainer.registerServlet(null, trustedAuthenticationServlet, null, null);
+    webContainer.registerServlet(null, trustedAuthenticationServlet, null, trustedAuthenticationServlet);
     EasyMock.expectLastCall();
     
     EasyMock.expect(request.getUserPrincipal()).andReturn(null);

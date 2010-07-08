@@ -13,7 +13,7 @@
 If you are not already logged in you could try logging in with your favorite login mechanism
 </p>
 <ul>
-<li><a href="/trusted">Login with Single Sign On</a></li>
+<li><a href="/system/trustedauth">Login with Single Sign On</a></li>
 <li><a href="/system/sling/logout">Login with User Name and Password</a></li>
 </ul>
 <p>

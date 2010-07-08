@@ -24,12 +24,14 @@ import org.apache.felix.scr.annotations.Service;
 import org.ops4j.pax.web.service.WebContainer;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
+import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.NamespaceException;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Dictionary;
 
 import javax.servlet.ServletException;
@@ -47,10 +49,14 @@ import javax.servlet.http.HttpServletResponse;
  * the request from the authentication authority. This information is then stored in the
  * session for use by the authentication handler on subsequent calls.
  * </p>
+ * <p>
+ * This servlet is mounted outside sling. In essence we Trust the external authentication and 
+ * simply store the trusted user in a a trusted token in the form of a cookie.
+ * </p>
  */
 @Component(immediate = true, metatype = true)
 @Service
-public final class TrustedAuthenticationServlet extends HttpServlet {
+public final class TrustedAuthenticationServlet extends HttpServlet implements HttpContext {
   /**
    * 
    */
@@ -68,7 +74,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
   static final String VENDOR_PROPERTY = "service.vendor";
 
   /** Property for the path to which to register this servlet. */
-  @Property(value = "/trusted")
+  @Property(value = "/system/trustedauth")
   static final String REGISTRATION_PATH = "sakai.auth.trusted.path.registration";
 
   /**
@@ -76,6 +82,8 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
    */
   @Property(value = "/dev")
   static final String DEFAULT_DESTINATION = "sakai.auth.trusted.destination.default";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(TrustedAuthenticationServlet.class);
 
   /** Reference to web container to register this servlet. */
   @Reference
@@ -90,15 +98,17 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
   /** The default destination to go to if none is specified. */
   private String defaultDestination;
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Activate
   protected void activate(ComponentContext context) {
     Dictionary props = context.getProperties();
     registrationPath = (String) props.get(REGISTRATION_PATH);
     defaultDestination = (String) props.get(DEFAULT_DESTINATION);
 
+    // we MUST register this servlet and not let it be picked up by Sling since we want to bypass
+    // the normal security and simply trust the remote user value in the request.
     try {
-      webContainer.registerServlet(registrationPath, this, null, null);
+      webContainer.registerServlet(registrationPath, this, null, this);
     } catch (NamespaceException e) {
       LOG.error(e.getMessage(), e);
       throw new ComponentException(e.getMessage(), e);
@@ -115,12 +125,13 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
    *      javax.servlet.http.HttpServletResponse)
    */
   @Override
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="BC_VACUOUS_INSTANCEOF",justification="Could be injected from annother bundle")
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     
     if (trustedTokenService instanceof TrustedTokenServiceImpl) {
       ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req, resp);
-
+      LOGGER.debug(" Might have Injected token ");
       String destination = req.getParameter(PARAM_DESTINATION);
 
       if (destination == null) {
@@ -128,9 +139,30 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
       }
       // ensure that the redirect is safe and not susceptible to
       resp.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
+    } else {
+      LOGGER.debug("Trusted Token Service is not the correct implementation and so cant inject tokens. ");
     }
   }
 
+  public String getMimeType(String mimetype) {
+    return null;
+  }
+
+  public URL getResource(String name) {
+    return getClass().getResource(name);
+  }
+
+  /**
+   * (non-Javadoc) This servlet handles its own security since it is going to trust the
+   * external remote user. If we dont do this the SLing handleSecurity takes over and causes problems.
+   * 
+   * @see org.osgi.service.http.HttpContext#handleSecurity(javax.servlet.http.HttpServletRequest,
+   *      javax.servlet.http.HttpServletResponse)
+   */
+  public boolean handleSecurity(HttpServletRequest arg0, HttpServletResponse arg1)
+      throws IOException {
+    return true;
+  }
 
  
 }

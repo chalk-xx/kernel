@@ -31,16 +31,19 @@ public interface ProxyPostProcessor {
    */
   public static final String SAKAI_POSTPROCESSOR = "sakai:postprocessor";
 
-
   /**
    * @param response
+   *          The response that will be sent to the user.
    * @param proxyResponse
-   * @throws IOException 
+   *          The response as it came back from the remote resource.
+   * @throws IOException
    */
-  void process(SlingHttpServletResponse response, ProxyResponse proxyResponse) throws IOException;
+  void process(SlingHttpServletResponse response, ProxyResponse proxyResponse)
+      throws IOException;
 
   /**
-   * @return
+   * @return The name of this ProxyPostProcessor. Nodes that want this processor to be run
+   *         should set the sakai:postprocessor property to this value.
    */
   String getName();
 

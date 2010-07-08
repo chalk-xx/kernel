@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.auth.trusted;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
@@ -41,7 +43,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 /**
  * A Token Storage class that maintains a local ring buffer of keys for encoding and uses
- * a cluster replecated cache for keys to be shared with other servers in the cluster.
+ * a cluster replicated cache for keys to be shared with other servers in the cluster.
  */
 public class TokenStore {
 
@@ -281,6 +283,7 @@ public class TokenStore {
    * @param ttl
    *          the ttl of cookies.
    */
+  @SuppressWarnings(value="IS2_INCONSISTENT_SYNC",justification="Server ID and TTL are set at initialization")
   public void doInit(CacheManagerService cacheManager, String tokenFile, String serverId,
       long ttl) {
     this.tokenFile = new File(tokenFile);
@@ -344,6 +347,7 @@ public class TokenStore {
   /**
    * Save all the secureKeys to file
    */
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE",justification="Could be injected from annother bundle")
   private void saveLocalSecretKeys() {
     FileOutputStream fout = null;
     DataOutputStream keyOutputStream = null;
@@ -369,7 +373,9 @@ public class TokenStore {
         }
       }
       keyOutputStream.close();
-      tmpTokenFile.renameTo(tokenFile);
+      if ( !tmpTokenFile.renameTo(tokenFile) ) {
+        LOG.error("Failed to save cookie keys, rename of tokenFile failed. Reload of secure token keys will fail while this is happening. ");        
+      }
     } catch (IOException e) {
       LOG.error("Failed to save cookie keys " + e.getMessage());
     } finally {
@@ -403,7 +409,9 @@ public class TokenStore {
           long expires = keyInputStream.readLong();
           int l = keyInputStream.readInt();
           byte[] b = new byte[l];
-          keyInputStream.read(b);
+          if ( keyInputStream.read(b) != l ) {
+            throw new IOException("Failed to read Key no "+i+" from Secret Keys, end of file reached ");
+          }
           newKeys[i] = new ExpiringSecretKey(b, HMAC_SHA1, expires);
           getServerKeyCache()
               .put(getCacheKey(serverId, i), newKeys[i].getSecretKeyData());
