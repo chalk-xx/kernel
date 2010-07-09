@@ -43,7 +43,7 @@ import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 
 /**
- * 
+ *
  */
 public class PersonalUtils {
 
@@ -52,7 +52,7 @@ public class PersonalUtils {
   /**
    * Writes userinfo out for a property in a node. Make sure that the resultNode has a
    * property with propertyName that contains a userid.
-   * 
+   *
    * @param session
    *          The JCR Session
    * @param user
@@ -97,12 +97,17 @@ public class PersonalUtils {
    */
   public static String getUserHashedPath(Authorizable au) throws RepositoryException {
     String hash = null;
-    if (au.hasProperty("path")) {
-      hash = au.getProperty("path")[0].getString();
-    } else {
-      LOGGER.warn("Authorizable {} has no path property set on it, grabbing hash from ItemBasedPrincipal!", au);
-      ItemBasedPrincipal principal = (ItemBasedPrincipal) au;
-      hash = principal.getPath();
+    if (au != null) {
+      if (au.hasProperty("path")) {
+        hash = au.getProperty("path")[0].getString();
+      } else {
+        LOGGER
+            .warn(
+                "Authorizable {} has no path property set on it, grabbing hash from ItemBasedPrincipal!",
+                au);
+        ItemBasedPrincipal principal = (ItemBasedPrincipal) au;
+        hash = principal.getPath();
+      }
     }
     return hash;
   }
@@ -110,7 +115,7 @@ public class PersonalUtils {
   /**
    * Write a small bit of information from an authprofile. userid, firstName, lastName,
    * picture.
-   * 
+   *
    * @param session
    *          The {@link Session session} to access the authprofile.
    * @param user
@@ -120,22 +125,25 @@ public class PersonalUtils {
    */
   public static void writeCompactUserInfo(Session session, String user, JSONWriter write) {
     try {
-      Authorizable au = getAuthorizable(session, user);
-      String profilePath = PersonalUtils.getProfilePath(au);
-      String hash = getUserHashedPath(au);
       write.object();
       write.key("userid");
       write.value(user);
-      write.key("hash");
-      write.value(hash);
-      try {
-        Node profileNode = (Node) session.getItem(profilePath);
-        writeValue("firstName", profileNode, write);
-        writeValue("lastName", profileNode, write);
-        writeValue("picture", profileNode, write);
-      } catch (RepositoryException e) {
-        // The provided user-string is probably not a user id.
-        LOGGER.error(e.getMessage(), e);
+
+      Authorizable au = getAuthorizable(session, user);
+      if (au != null) {
+        String profilePath = PersonalUtils.getProfilePath(au);
+        String hash = getUserHashedPath(au);
+        write.key("hash");
+        write.value(hash);
+        try {
+          Node profileNode = (Node) session.getItem(profilePath);
+          writeValue("firstName", profileNode, write);
+          writeValue("lastName", profileNode, write);
+          writeValue("picture", profileNode, write);
+        } catch (RepositoryException e) {
+          // The provided user-string is probably not a user id.
+          LOGGER.error(e.getMessage(), e);
+        }
       }
       write.endObject();
     } catch (JSONException e) {
@@ -148,7 +156,7 @@ public class PersonalUtils {
   /**
    * Write the value of a property form the profileNode. If the property doesn't exist it
    * outputs "name": false.
-   * 
+   *
    * @param string
    * @param profileNode
    * @throws RepositoryException
@@ -167,7 +175,7 @@ public class PersonalUtils {
   /**
    * Writes userinfo out for a property in a node. Make sure that the resultNode has a
    * property with propertyName that contains a userid.
-   * 
+   *
    * @param resultNode
    *          The node to look on
    * @param write
@@ -256,20 +264,24 @@ public class PersonalUtils {
   /**
    * Get the home folder for an authorizable. If the authorizable is a user, this might
    * return: /_user/t/te/tes/test/testuser
-   * 
+   *
    * @param au
    *          The authorizable to get the home folder for.
    * @return The absolute path in JCR to the home folder for an authorizable.
    */
   public static String getHomeFolder(Authorizable au) {
-    String folder = PathUtils.getSubPath(au);
-    if (au.isGroup()) {
-      folder = _GROUP + folder;
+    if (au != null) {
+      String folder = PathUtils.getSubPath(au);
+      if (au.isGroup()) {
+        folder = _GROUP + folder;
+      } else {
+        // Assume this is a user.
+        folder = _USER + folder;
+      }
+      return PathUtils.normalizePath(folder);
     } else {
-      // Assume this is a user.
-      folder = _USER + folder;
+      return null;
     }
-    return PathUtils.normalizePath(folder);
   }
 
   /**
