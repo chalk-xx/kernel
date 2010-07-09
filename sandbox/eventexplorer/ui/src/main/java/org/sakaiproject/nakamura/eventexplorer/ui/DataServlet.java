@@ -18,12 +18,17 @@
 package org.sakaiproject.nakamura.eventexplorer.ui;
 
 import org.apache.cassandra.thrift.Cassandra.Client;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.json.JSONException;
+import org.json.JSONWriter;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
 import org.sakaiproject.nakamura.eventexplorer.api.cassandra.CassandraService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,15 +49,33 @@ import javax.servlet.http.HttpServletResponse;
 public class DataServlet extends HttpServlet implements Servlet {
 
   private static final long serialVersionUID = -7279082919880845845L;
+
   @Reference
   protected transient CassandraService cassandraService;
+
+  @Reference
+  protected transient HttpService httpService;
+
   private Client client;
+  private EventsWriter eventsWriter;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataServlet.class);
 
-  protected void activate(ComponentContext context) {
+  @Activate
+  protected void activate(ComponentContext context) throws ServletException,
+      NamespaceException {
+    // Register our servlet with the default context.
+    httpService.registerServlet("/system/data", this, null, null);
+
+    // Serve our static content
+    ResourceServlet resourveServlet = new ResourceServlet();
+
+    httpService.registerServlet("/static", resourveServlet, null, null);
+
+    // Get a Cassandra client
     client = cassandraService.getClient();
-    LOGGER.warn("got cassandra client.");
+
+    eventsWriter = new EventsWriter(client);
   }
 
   /**
@@ -64,11 +87,36 @@ public class DataServlet extends HttpServlet implements Servlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    // We're sending out JSON.
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+    
+    String user = request.getParameter("user");
+    if (user == null) {
+      // We default to system generated events.
+      user = "system";
+    }
 
-    int len = Integer.parseInt(request.getParameter("len"));
-    String[] val = request.getParameterValues("val");
-    String[] ar = request.getParameterValues("ar");
-    User user = new User(ar, val, len);
+    try {
+      JSONWriter writer = new JSONWriter(response.getWriter());
+      writer.object();
+      // Pass in some general information
+      writer.key("date-time-format").value("Gregorian");
+      writer.key("wiki-url").value("http://sakaiproject.org");
+      writer.key("wiki=section").value("Sakai Event explorer");
+
+      // Now write out the events.
+      writer.key("events");
+      writer.array();
+      eventsWriter.writeUser(user, writer);
+      writer.endArray();
+      writer.endObject();
+    } catch (JSONException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Failed to create JSON.");
+      LOGGER.error("Failed to create JSON", e);
+    }
+
   }
 
 }

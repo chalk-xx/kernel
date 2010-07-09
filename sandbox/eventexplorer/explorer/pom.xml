@@ -14,6 +14,8 @@
     <module>cassandrathrift</module>
     <module>listeners</module>
     <module>app</module>
+    <!-- This should be removed as it is not really part of the explorer storage  -->
+    <module>../ui</module>
   </modules>
 </project>
 
