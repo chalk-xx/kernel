@@ -37,8 +37,8 @@ class TC_Kern455Test < Test::Unit::TestCase
 	res = @s.execute_post(@s.url_for(testnode),{"testprop", "test" })
 	assert_equal(res.code.to_i, 201, "Expected the node to be created "+res.body)
 		
-	assert_equal((res.body.include?"created(\"#{testnode}\""), true, "Expected to find hashed created path "+res.body)
-	assert_equal((res.body.include?"modified(\"#{testnode}/testprop\""), true, "Expected to find the hashed created path "+res.body)
+	assert_equal((res.body.include?"created(\"/_user/a/ad/admin/private/testnode#{m}\""), true, "Expected to find hashed created path "+res.body)
+	assert_equal((res.body.include?"modified(\"/_user/a/ad/admin/private/testnode#{m}/testprop\""), true, "Expected to find the hashed created path "+res.body)
 	
 	res = @s.execute_get(@s.url_for("#{testnode}.json"))
 	assert_equal(res.code.to_i, 200, "Expected to be able to get to the node via the private route "+res.body)
@@ -53,8 +53,8 @@ class TC_Kern455Test < Test::Unit::TestCase
 	res = @s.execute_post(@s.url_for(testnode),{"testprop", "test" })
 	assert_equal(res.code.to_i, 201, "Expected the node to be created "+res.body)
 		
-	assert_equal((res.body.include?"created(\"#{privateFolder}/test/n/o/d/e/#{m}\""), true, "Expected to find hashed created path "+res.body)
-	assert_equal((res.body.include?"modified(\"#{privateFolder}/test/n/o/d/e/#{m}/testprop\""), true, "Expected to find the hashed created path "+res.body)
+	assert_equal((res.body.include?"created(\"/_user/a/ad/admin/private/test/n/o/d/e/#{m}\""), true, "Expected to find hashed created path "+res.body)
+	assert_equal((res.body.include?"modified(\"/_user/a/ad/admin/private/test/n/o/d/e/#{m}/testprop\""), true, "Expected to find the hashed created path "+res.body)
 
 	res = @s.execute_get(@s.url_for(testnode+".json"))
 	assert_equal(res.code.to_i, 200, "Expected to be able to get to the node via the private route "+res.body)
@@ -78,17 +78,10 @@ class TC_Kern455Test < Test::Unit::TestCase
 	res = @s.execute_post(@s.url_for(testnode),{"testprop", "test" })
 	assert_equal(res.code.to_i, 201, "Expected the node to be created "+res.body)
 	
-	# assume creation worked Ok, now get the node name
-	finalPath = res.body.match("/(_user/.*?/#{dummyuser.name}/private/testnode#{m})")[0]
-	@log.info("Path is "+finalPath)
-	
 	res = @s.execute_get(@s.url_for(testnode+".json"))
 	assert_equal(res.code.to_i, 200, "Expected to be able to get to the node via the private route "+res.body)
 	b1 = res.body
 
-	res = @s.execute_get(@s.url_for("#{finalPath}.json"))
-	assert_equal(res.code.to_i, 200, "Expected to be able to get to the node via the direct route "+res.body)
-	assert_equal(b1, res.body, "Expected direct and personal bodies to be the same ")
 
 
 	# check that the deep create funtionality is working for the admin user.
@@ -96,16 +89,10 @@ class TC_Kern455Test < Test::Unit::TestCase
 	res = @s.execute_post(@s.url_for(testnode),{"testprop", "test" })
 	assert_equal(res.code.to_i, 201, "Expected the node to be created "+res.body)
 		
-	finalPath = res.body.match("/(_user/.*?/#{dummyuser.name}/private/test/n/o/d/e/#{m})")[0]
-	
 	res = @s.execute_get(@s.url_for(testnode+".json"))
 	assert_equal(res.code.to_i, 200, "Expected to be able to get to the node via the private route "+res.body)
 	b1 = res.body
 
-	res = @s.execute_get(@s.url_for("#{finalPath}.json"))
-	assert_equal(res.code.to_i, 200, "Expected to be able to get to the node via the direct route "+res.body)
-	assert_equal(b1, res.body, "Expected direct and personal bodies to be the same ")
-	
 	
 	@log.info("Normal node operations working Ok on the personal space, if the test works upto this point the problem is with file upload and not permissions per-se ")
 
