@@ -123,33 +123,17 @@ class Kern356Test < Test::Unit::TestCase
 	res = @s.execute_post(@s.url_for("#{u1.private_path_for(@s)}/GetAllProfilesTest"+m+".html"),"testprop" => "testset")
 	assert_equal("201",res.code,"Expected to be able to Create a private node "+res.body)
 	res = @s.execute_get(@s.url_for("_user.tidy.infinity.json"))
-        if ( res.code != "200" && res.code != "300" )
-	    assert_equal("200",res.code,"Expected to be able to get the base json in user at lest "+res.body)
-        end
-        if ( res.code == "200" )
-	   assert_equal(true,res.body.include?("GetAllProfilesTest"+m),"Found User in response ")
-        end 
-	@log.debug(res.body)
+	assert_equal("403",res.code,"Should not be able to list users"+res.body)
 	
 	
 	
   	@s.switch_user(SlingUsers::AnonymousUser.new)
 	res = @s.execute_get(@s.url_for("_user.infinity.json"))
-        if ( res.code != "200" && res.code != "300" )
-	   assert_equal("200",res.code,"Expected to be able to get the base json in user at lest "+res.body)
-        end
-        if ( res.code == "200" ) 
-	  assert_equal(false,res.body.include?("GetAllProfilesTest"+m),"Found User in response ")
-	end
+	assert_equal("403",res.code,"Should not be able to list users"+res.body)
 
   	@s.switch_user(u2)
 	res = @s.execute_get(@s.url_for("_user.infinity.json"))
-        if ( res.code != "200" && res.code != "300" )
-	  assert_equal("200",res.code,"Expected to be able to get the base json in user at lest for user2 "+res.body)
-        end
-        if ( res.code == "200" ) 
-	  assert_equal(false,res.body.include?("GetAllProfilesTest"+m),"Found User in response for "+user2)
-        end
+	assert_equal("403",res.code,"Should not be able to list users"+res.body)
   end
 
 
