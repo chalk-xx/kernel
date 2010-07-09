@@ -9,6 +9,7 @@ class TC_Kern726Test < Test::Unit::TestCase
     siteid = "testsite_#{m}"
     siteparent = "testsite_parent_#{m}"
     sitecreator = create_user("testsiteuser#{m}")
+    otheruser = create_user("testotheruser2-#{m}")
     @s.switch_user(sitecreator)
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{siteparent}/#{siteid}",
@@ -21,7 +22,6 @@ class TC_Kern726Test < Test::Unit::TestCase
     res = @s.execute_post(@s.url_for("/sites/#{siteresource}"),
     	"myprop" => "myvalue")
     assert_equal("201", res.code, "Site creator should be able to add resource")
-    otheruser = create_user("testotheruser#{m}")
     @s.switch_user(otheruser)
     # Since the site is offline, non-members should not see it.
     res = @s.execute_get(@s.url_for("/sites/#{siteparent}/#{siteid}.json"))

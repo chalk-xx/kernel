@@ -97,8 +97,8 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
 
   public static final Logger log = LoggerFactory.getLogger(RSSProxyPostProcessor.class);
 
-  public void process(SlingHttpServletResponse response, ProxyResponse proxyResponse)
-      throws IOException {
+  public void process(Map<String, Object> templateParams,
+      SlingHttpServletResponse response, ProxyResponse proxyResponse) throws IOException {
     if ( proxyResponse.getResultCode() == HttpServletResponse.SC_PRECONDITION_FAILED ) {
       response.sendError(HttpServletResponse.SC_FORBIDDEN,
           "This RSS feed is too big ");
@@ -145,7 +145,7 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
       // Create a temporary outputstream where we can write to.
       out = new ByteArrayOutputStream();
 
-      
+
       Map<String, Boolean> checkedElements = new HashMap<String, Boolean>();
       checkedElements.put("rss", false);
       checkedElements.put("channel", false);
@@ -196,13 +196,13 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
         response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid RSS file.");
         return;
       }
-      
+
       // Check if we are not streaming a gigantic file..
       if (out.size() > MAX_RSS_LENGTH) {
         response.sendError(HttpServletResponse.SC_FORBIDDEN, "This file is to big.");
         return;
       }
-      
+
       for (Entry<String, String[]> h : proxyResponse.getResponseHeaders().entrySet()) {
         for (String v : h.getValue()) {
           response.setHeader(h.getKey(), v);

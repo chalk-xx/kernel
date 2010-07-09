@@ -61,10 +61,10 @@ public class HomeResourceProvider implements ResourceProvider {
       return null;
     }
     char c = path.charAt(1);
-    if (c != '~') {
+    if ( !(c == '~'  || c == 'u' || c =='g')  ) {
       return null;
     }
-    if ("/~".equals(path)) {
+    if ("/~".equals(path) || "/user".equals(path)  || "/group".equals(path) ) {
       return null;
     }
     try {
@@ -77,8 +77,15 @@ public class HomeResourceProvider implements ResourceProvider {
 
   private Resource resolveMappedResource(ResourceResolver resourceResolver, String path)
       throws RepositoryException {
+    String subPath = null;
     if (path.startsWith("/~")) {
-      String subPath = path.substring("/~".length());
+      subPath = path.substring("/~".length());
+    } else if ( path.startsWith("/user/") ) {
+      subPath = path.substring("/user/".length());
+    } else if ( path.startsWith("/group/")) {
+      subPath = path.substring("/group/".length());
+    } 
+    if ( subPath != null ) {
       String[] elements = StringUtils.split(subPath, "/", 2);
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Got Elements Path [{}] ", Arrays.toString(elements));

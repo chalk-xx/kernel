@@ -40,7 +40,7 @@ sub accept_setup {
     die "No base URL provided to connect at!" unless defined $baseURL;
     die "No connection to accept given!" unless defined $accept;
     my $postVariables = "\$postVariables = []";
-    return "post $baseURL/_user/contacts/$accept.accept.html $postVariables";
+    return "post $baseURL/~$user/contacts/$accept.accept.html $postVariables";
 }
 #}}}
 
@@ -77,7 +77,7 @@ sub block_setup {
     die "No base URL provided to connect at!" unless defined $baseURL;
     die "No connection to block given!" unless defined $block;
     my $postVariables = "\$postVariables = []";
-    return "post $baseURL/_user/contacts/$block.block.html $postVariables";
+    return "post $baseURL/~$user/contacts/$block.block.html $postVariables";
 }
 #}}}
 
@@ -114,7 +114,7 @@ sub cancel_setup {
     die "No base URL provided to connect at!" unless defined $baseURL;
     die "No connection to cancel given!" unless defined $cancel;
     my $postVariables = "\$postVariables = []";
-    return "post $baseURL/_user/contacts/$cancel.cancel.html $postVariables";
+    return "post $baseURL/~$user/contacts/$cancel.cancel.html $postVariables";
 }
 #}}}
 
@@ -151,7 +151,7 @@ sub ignore_setup {
     die "No base URL provided to connect at!" unless defined $baseURL;
     die "No connection to ignore given!" unless defined $ignore;
     my $postVariables = "\$postVariables = []";
-    return "post $baseURL/_user/contacts/$ignore.ignore.html $postVariables";
+    return "post $baseURL/~$user/contacts/$ignore.ignore.html $postVariables";
 }
 #}}}
 
@@ -193,7 +193,7 @@ sub invite_setup {
     }
     $postVariables =~ s/,$//;
     $postVariables .= "]";
-    return "post $baseURL/_user/contacts/$invite.invite.html $postVariables";
+    return "post $baseURL/~$user/contacts/$invite.invite.html $postVariables";
 }
 #}}}
 
@@ -228,7 +228,7 @@ the current user that are in an accepted state.
 sub list_accepted_setup {
     my ( $baseURL ) = @_;
     die "No base URL provided to connect at!" unless defined $baseURL;
-    return "get $baseURL/_user/contacts/accepted.json";
+    return "get $baseURL/~$user/contacts/accepted.json";
 }
 #}}}
 
@@ -263,7 +263,7 @@ for the current user in any state.
 sub list_all_setup {
     my ( $baseURL ) = @_;
     die "No base URL provided to connect at!" unless defined $baseURL;
-    return "get $baseURL/_user/contacts/all.json";
+    return "get $baseURL/~$user/contacts/all.json";
 }
 #}}}
 
@@ -298,7 +298,7 @@ the current user that are in a blocked state.
 sub list_blocked_setup {
     my ( $baseURL ) = @_;
     die "No base URL provided to connect at!" unless defined $baseURL;
-    return "get $baseURL/_user/contacts/blocked.json";
+    return "get $baseURL/~$user/contacts/blocked.json";
 }
 #}}}
 
@@ -333,7 +333,7 @@ the current user that are in an ignored state.
 sub list_ignored_setup {
     my ( $baseURL ) = @_;
     die "No base URL provided to connect at!" unless defined $baseURL;
-    return "get $baseURL/_user/contacts/ignored.json";
+    return "get $baseURL/~$user/contacts/ignored.json";
 }
 #}}}
 
@@ -368,7 +368,7 @@ the current user that are in an invited state.
 sub list_invited_setup {
     my ( $baseURL ) = @_;
     die "No base URL provided to connect at!" unless defined $baseURL;
-    return "get $baseURL/_user/contacts/invited.json";
+    return "get $baseURL/~$user/contacts/invited.json";
 }
 #}}}
 
@@ -403,7 +403,7 @@ the current user that are in a pending state.
 sub list_pending_setup {
     my ( $baseURL ) = @_;
     die "No base URL provided to connect at!" unless defined $baseURL;
-    return "get $baseURL/_user/contacts/pending.json";
+    return "get $baseURL/~$user/contacts/pending.json";
 }
 #}}}
 
@@ -438,7 +438,7 @@ the current user that are in a rejected state.
 sub list_rejected_setup {
     my ( $baseURL ) = @_;
     die "No base URL provided to connect at!" unless defined $baseURL;
-    return "get $baseURL/_user/contacts/rejected.json";
+    return "get $baseURL/~$user/contacts/rejected.json";
 }
 #}}}
 
@@ -475,7 +475,7 @@ sub reject_setup {
     die "No base URL provided to connect at!" unless defined $baseURL;
     die "No connection to reject given!" unless defined $reject;
     my $postVariables = "\$postVariables = []";
-    return "post $baseURL/_user/contacts/$reject.reject.html $postVariables";
+    return "post $baseURL/~$user/contacts/$reject.reject.html $postVariables";
 }
 #}}}
 
@@ -512,7 +512,7 @@ sub remove_setup {
     die "No base URL provided to connect at!" unless defined $baseURL;
     die "No connection to remove given!" unless defined $remove;
     my $postVariables = "\$postVariables = []";
-    return "post $baseURL/_user/contacts/$remove.remove.html $postVariables";
+    return "post $baseURL/~$user/contacts/$remove.remove.html $postVariables";
 }
 #}}}
 

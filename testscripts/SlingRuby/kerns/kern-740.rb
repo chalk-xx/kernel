@@ -50,7 +50,7 @@ class TC_Kern740Test < Test::Unit::TestCase
 	@log.debug(res.body)
 	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
 	assert_equal(testUser.name, props["user"]["userid"],"Authentication failed, didnt get expected user")
-	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+m
+	homeFolderTestFile = "/~#{testUser.name}/testarea"+m
 	
 	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
 	assert_equal("201",res.code, res.body)
@@ -180,7 +180,7 @@ class TC_Kern740Test < Test::Unit::TestCase
 	@log.debug(res.body)
 	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
 	assert_equal(u, props["user"]["userid"],"Authentication failed, didnt get expected user")
-	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+u+v
+	homeFolderTestFile = "/~#{u}/testarea"+u+v
 	
 	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
 	assert_equal("201",res.code, res.body)
