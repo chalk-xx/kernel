@@ -97,17 +97,15 @@ public class PersonalUtils {
    */
   public static String getUserHashedPath(Authorizable au) throws RepositoryException {
     String hash = null;
-    if (au != null) {
-      if (au.hasProperty("path")) {
-        hash = au.getProperty("path")[0].getString();
-      } else {
-        LOGGER
-            .warn(
-                "Authorizable {} has no path property set on it, grabbing hash from ItemBasedPrincipal!",
-                au);
-        ItemBasedPrincipal principal = (ItemBasedPrincipal) au;
-        hash = principal.getPath();
-      }
+    if (au.hasProperty("path")) {
+      hash = au.getProperty("path")[0].getString();
+    } else {
+      LOGGER
+          .warn(
+              "Authorizable {} has no path property set on it, grabbing hash from ItemBasedPrincipal!",
+              au);
+      ItemBasedPrincipal principal = (ItemBasedPrincipal) au;
+      hash = principal.getPath();
     }
     return hash;
   }
@@ -128,27 +126,23 @@ public class PersonalUtils {
       write.object();
       write.key("userid");
       write.value(user);
-
-      Authorizable au = getAuthorizable(session, user);
-      if (au != null) {
+      try {
+        Authorizable au = getAuthorizable(session, user);
         String profilePath = PersonalUtils.getProfilePath(au);
         String hash = getUserHashedPath(au);
         write.key("hash");
         write.value(hash);
-        try {
-          Node profileNode = (Node) session.getItem(profilePath);
-          writeValue("firstName", profileNode, write);
-          writeValue("lastName", profileNode, write);
-          writeValue("picture", profileNode, write);
-        } catch (RepositoryException e) {
-          // The provided user-string is probably not a user id.
-          LOGGER.error(e.getMessage(), e);
-        }
+
+        Node profileNode = (Node) session.getItem(profilePath);
+        writeValue("firstName", profileNode, write);
+        writeValue("lastName", profileNode, write);
+        writeValue("picture", profileNode, write);
+      } catch (Exception e) {
+        // The provided user-string is probably not a user id.
+        LOGGER.warn(e.getMessage(), e);
       }
       write.endObject();
     } catch (JSONException e) {
-      LOGGER.error(e.getMessage(), e);
-    } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);
     }
   }
@@ -270,18 +264,14 @@ public class PersonalUtils {
    * @return The absolute path in JCR to the home folder for an authorizable.
    */
   public static String getHomeFolder(Authorizable au) {
-    if (au != null) {
-      String folder = PathUtils.getSubPath(au);
-      if (au.isGroup()) {
-        folder = _GROUP + folder;
-      } else {
-        // Assume this is a user.
-        folder = _USER + folder;
-      }
-      return PathUtils.normalizePath(folder);
+    String folder = PathUtils.getSubPath(au);
+    if (au.isGroup()) {
+      folder = _GROUP + folder;
     } else {
-      return null;
+      // Assume this is a user.
+      folder = _USER + folder;
     }
+    return PathUtils.normalizePath(folder);
   }
 
   /**
