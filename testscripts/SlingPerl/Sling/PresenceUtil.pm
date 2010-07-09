@@ -37,7 +37,7 @@ status of the contacts for the logged in user in the system.
 sub contacts_setup {
     my ( $baseURL ) = @_;
     die "No base URL provided to obtain contacts status for!" unless defined $baseURL;
-    return "get $baseURL/_user/presence.contacts.tidy.json";
+    return "get $baseURL/~$user/presence.contacts.tidy.json";
 }
 #}}}
 
@@ -71,7 +71,7 @@ status for the current user from the system.
 sub delete_setup {
     my ( $baseURL ) = @_;
     die "No base URL provided to delete presence status for!" unless defined $baseURL;
-    return "delete $baseURL/_user/presence.json";
+    return "delete $baseURL/~$user/presence.json";
 }
 #}}}
 
@@ -105,7 +105,7 @@ status for the current user from the system.
 sub status_setup {
     my ( $baseURL ) = @_;
     die "No base URL provided to obtain status for!" unless defined $baseURL;
-    return "get $baseURL/_user/presence.tidy.json";
+    return "get $baseURL/~$user/presence.tidy.json";
 }
 #}}}
 
@@ -143,7 +143,7 @@ sub update_setup {
     $putVariables .= ( defined $location ? "sakai:location=$location&" : "" );
     $putVariables .= ( defined $status ? "sakai:status=$status&" : "" );
     $putVariables =~ s/&$//;
-    return "put $baseURL/_user/presence.json?$putVariables";
+    return "put $baseURL/~$user/presence.json?$putVariables";
 }
 #}}}
 

@@ -22,7 +22,7 @@ class TC_FormAuthTest < Test::Unit::TestCase
 	@log.debug(res.body)
 	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
 	assert_equal(u.name, props["user"]["userid"],"Authentication failed, didnt get expected user")
-	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+m
+	homeFolderTestFile = "/~#{u.name}/testarea"+m
 	
 	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
 	assert_equal("201",res.code, res.body)
