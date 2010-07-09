@@ -29,7 +29,9 @@ class TC_MyTest < Test::Unit::TestCase
     # Set up user and group
     @log.info("Creating test user ")
     user = @um.create_test_user(10)
+    user2 = @um.create_test_user(11)
     assert_not_nil(user, "Expected user to be created")
+    assert_not_nil(user2, "Expected user2 to be created")
     # assume already exists
     owner = Group.new("owner")
     #@s.debug = true
@@ -82,9 +84,8 @@ class TC_MyTest < Test::Unit::TestCase
     @log.debug @s.get_node_acl_json(@test_node)
 
     # Switch to a different unprivileged user and assert owner grant is not in effect
-    user2 = @um.create_test_user(11)
     @s.switch_user(user2)
-    @log.info("As non owner checking  ")
+    @log.info("As non owner checking  #{user2.name} ")
     res = @s.set_node_acl_entries(child_node, user2, { "jcr:addChildNodes" => "granted" })
     assert_equal(500, res.code.to_i, "Expected not to be able to modify ACL")
   end

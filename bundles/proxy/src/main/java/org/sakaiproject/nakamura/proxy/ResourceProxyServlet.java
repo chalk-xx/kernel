@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.proxy;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -45,8 +46,8 @@ import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.Node;
@@ -58,7 +59,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * This servlet binds to a resource that defines an end point.
- * 
+ *
  */
 @Service(value = Servlet.class)
 @SlingServlet(resourceTypes = { "sakai/proxy" }, methods = { "GET", "POST", "PUT",
@@ -84,32 +85,32 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
   public static final String PROXY_PATH_PREFIX = "/var/proxy/";
 
   /**
-   * 
+   *
    */
   private static final String SAKAI_REQUEST_STREAM_BODY = "sakai:request-stream-body";
 
   /**
-   * 
+   *
    */
   private static final String AUTHORIZATION = "Authorization";
 
   /**
-   * 
+   *
    */
   private static final String BASIC = "Basic ";
 
   /**
-   * 
+   *
    */
   private static final String BASIC_PASSWORD = ":basic-password";
 
   /**
-   * 
+   *
    */
   private static final String BASIC_USER = ":basic-user";
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = -3190208378955330531L;
 
@@ -121,16 +122,16 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
 
   private transient ProxyPostProcessor defaultPostProcessor = new DefaultProxyPostProcessorImpl();
 
-  @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, referenceInterface = ProxyPreProcessor.class, bind = "bindPreProcessor", unbind = "unbindPreProcessor")
+  @Reference(policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, referenceInterface = ProxyPreProcessor.class, bind = "bindPreProcessor", unbind = "unbindPreProcessor")
   Map<String, ProxyPreProcessor> preProcessors = new ConcurrentHashMap<String, ProxyPreProcessor>();
 
-  @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, referenceInterface = ProxyPostProcessor.class, bind = "bindPostProcessor", unbind = "unbindPostProcessor")
+  @Reference(policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, referenceInterface = ProxyPostProcessor.class, bind = "bindPostProcessor", unbind = "unbindPostProcessor")
   Map<String, ProxyPostProcessor> postProcessors = new ConcurrentHashMap<String, ProxyPostProcessor>();
 
   private Set<String> headerBacklist = new HashSet<String>();
 
   /**
-   * 
+   *
    */
   public ResourceProxyServlet() {
    headerBacklist.add("Host");
@@ -140,7 +141,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
   }
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doDelete(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -152,7 +153,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -164,7 +165,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doHead(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -176,7 +177,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doOptions(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -188,7 +189,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -205,7 +206,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPut(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -224,7 +225,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
       SlingHttpServletResponse response, boolean userInputStream)
       throws ServletException, IOException {
     try {
-      
+
       Resource resource = request.getResource();
       if ( !resource.getPath().startsWith(PROXY_PATH_PREFIX) ) {
         response.sendError(HttpServletResponse.SC_FORBIDDEN, "Proxying templates may only be stored in " + PROXY_PATH_PREFIX);
@@ -320,11 +321,11 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
           postProcessor = defaultPostProcessor;
         }
       }
-      
+
       ProxyResponse proxyResponse = proxyClientService.executeCall(node, headers,
           templateParams, requestInputStream, inputStreamLength, inputStreamContentType);
       try {
-        postProcessor.process(response, proxyResponse);
+        postProcessor.process(templateParams, response, proxyResponse);
       } finally {
         proxyResponse.close();
       }

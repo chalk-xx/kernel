@@ -40,7 +40,7 @@ sub create_setup {
     die "No name provided to send message to!" unless defined $name;
     die "No message type specified!" unless defined $type;
     my $postVariables = "\$postVariables = ['sakai:type','$type','sakai:to','$name','sakai:sendstate','pending','sakai:messagebox','drafts']";
-    return "post $baseURL/_user/message.create.html $postVariables";
+    return "post $baseURL/~$user/message.create.html $postVariables";
 }
 #}}}
 
@@ -85,11 +85,11 @@ sub list_setup {
     }
     my $request;
     if ( $box =~ /^all$/ ) {
-        $request = "get $baseURL/_user/message/all.json";
+        $request = "get $baseURL/~$user/message/all.json";
 	$request .= ( defined $sort_string ? "?$sort_string" : "" );
     }
     else {
-        $request = "get $baseURL/_user/message/box.json?box=$box";
+        $request = "get $baseURL/~$user/message/box.json?box=$box";
 	$request .= ( defined $sort_string ? "&$sort_string" : "" );
     }
     return $request;
@@ -128,7 +128,7 @@ sub send_setup {
     die "No base URL provided to send message at!" unless defined $baseURL;
     die "No message Id specified!" unless defined $messageId;
     my $postVariables = "\$postVariables = ['sakai:messagebox','outbox']";
-    return "post $baseURL/_user/message/$messageId.html $postVariables";
+    return "post $baseURL/~$user/message/$messageId.html $postVariables";
 }
 #}}}
 

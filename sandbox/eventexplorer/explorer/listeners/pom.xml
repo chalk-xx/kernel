@@ -1,0 +1,124 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.sakaiproject.nakamura</groupId>
+    <artifactId>base</artifactId>
+    <version>0.7-SNAPSHOT</version>
+  </parent>
+  <groupId>org.sakaiproject.nakamura</groupId>
+  <artifactId>org.sakaiproject.nakamura.eventexplorer.listeners</artifactId>
+  <packaging>bundle</packaging>
+  <version>0.7-SNAPSHOT</version>
+  <name>Sakai Nakamura :: Sakai JMS Listeners</name>
+  <description>Listeners for Nakamura messages</description>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-scr-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-Category>sakai-nakamura</Bundle-Category>
+            <Private-Package>org.sakaiproject.nakamura.eventexplorer.*</Private-Package>
+            <Embed-Dependency>activemq-core,activemq-pool</Embed-Dependency>
+            <Import-Package>com.thoughtworks.xstream*;resolution:=optional,
+              org.apache.activeio*;resolution:=optional,
+              org.apache.camel*;resolution:=optional,
+              org.apache.commons.pool*;resolution:=optional,
+              org.apache.derby*;resolution:=optional,
+              org.apache.tools.ant*;resolution:=optional,
+              org.apache.maven*;resolution:=optional,
+              org.apache.xbean*;resolution:=optional,
+              '=org.apache.xbean.spring.context.v2;resolution:=optional',
+              org.apache.xpath*;resolution:=optional,
+              org.codehaus.jam*;resolution:=optional,
+              org.springframework*;resolution:=optional,
+              org.springframework.beans.factory.xml;resolution:=optional,
+              org.w3c.dom.traversal*;resolution:=optional,
+              org.apache.commons.net*;resolution:=optional,
+              org.apache.kahadb*;resolution:=optional,
+              org.apache.activemq.ra*;resolution:=optional,
+              org.apache.geronimo.transaction.manager*;resolution:=optional,
+              org.sakaiproject.nakamura.eventexplorer.api.cassandra,
+              *
+            </Import-Package>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <!--  We're running in Felix's OSGi container -->
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.scr.annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.osgi.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.osgi.compendium</artifactId>
+    </dependency>
+
+    <!--  Logging -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+    </dependency>
+
+
+
+    <!--
+      Dependencies for Camel. <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-spring</artifactId> <version>2.3.0</version>
+      </dependency> <dependency> <groupId>org.apache.camel</groupId>
+      <artifactId>camel-jms</artifactId> <version>2.3.0</version>
+      </dependency> <dependency> <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-camel</artifactId> <version>5.3.2</version>
+      <exclusions> <exclusion> <groupId>org.apache.camel</groupId>
+      <artifactId>camel-web</artifactId> </exclusion> </exclusions>
+      </dependency>
+    -->
+
+
+    <!-- activemq -->
+    <dependency>
+      <groupId>javax.jms</groupId>
+      <artifactId>jms</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-core</artifactId>
+      <version>5.3.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-pool</artifactId>
+      <version>5.3.2</version>
+    </dependency>
+
+
+    <!--  Dependencies for talking to cassandra. -->
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.eventexplorer.cassandra-thrift</artifactId>
+      <version>0.7-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>

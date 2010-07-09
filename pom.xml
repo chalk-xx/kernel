@@ -88,6 +88,8 @@
         <module>bundles/profile</module>
         <module>bundles/tika</module>
         <module>bundles/captcha</module>
+        <module>bundles/webdav</module>
+        <module>bundles/privacy</module>
       </modules>
     </profile>
     <profile>

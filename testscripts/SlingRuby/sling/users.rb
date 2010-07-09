@@ -107,11 +107,7 @@ module SlingUsers
 
     # Get the home folder of a group.
     def home_path_for(sling)
-      if ( @path == nil )
-        props = sling.get_node_props(group_url)
-        @path = props["path"]
-      end
-      return "/_group"+@path
+      return "/~#{@name}"
     end
 
     def self.url_for(name)
@@ -170,11 +166,7 @@ module SlingUsers
 
     # Get the home folder of a group.
     def home_path_for(sling)
-      if ( @path == nil )
-        props = sling.get_node_props(user_url)
-        @path = props["path"]
-      end
-      return "/_user"+@path
+      return "/~#{@name}"
     end
 
     

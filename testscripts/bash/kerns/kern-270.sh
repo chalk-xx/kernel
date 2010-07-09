@@ -37,6 +37,6 @@ echo " "
 curl http://${user1}:testuser@localhost:8080/system/me
 echo " "
 echo "Auth Profile"
-curl http://localhost:8080/_user/public/${user1}/authprofile.json
+curl http://localhost:8080/~${user1}/authprofile.json
 
 
