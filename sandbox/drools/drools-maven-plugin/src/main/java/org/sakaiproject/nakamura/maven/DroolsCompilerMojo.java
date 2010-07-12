@@ -15,6 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.sakaiproject.nakamura.maven;
 
 import org.apache.maven.plugin.AbstractMojo;
@@ -47,43 +48,38 @@ import java.util.Arrays;
  */
 public class DroolsCompilerMojo extends AbstractMojo {
 
-  private static final String CHANGE_SET_PREFIX = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-      + "   <change-set xmlns=\"http://drools.org/drools-5.0/change-set\" \n"
-      + "    xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\" \n"
-      + "    xs:schemaLocation=\"http://drools.org/drools-5.0/change-set change-set.xsd\" > \n";
-  private static final String CHANGE_SET_POSTFIX = "</change-set>";
   /**
    * @parameter default-value={"**\/*"}
    */
-  private String[] includes;
+  protected String[] includes;
   /**
    * @parameter default-value={}
    */
-  private String[] excludes;
+  protected String[] excludes;
   /**
    * @parameter default-value="${basedir}/src/main/rules"
    */
-  private File rulesdir;
+  protected File rulesdir;
 
   /**
    * The output directory for bundles.
    * 
    * @parameter default-value="${project.build.directory}/classes"
    */
-  private File outputDirectory;
+  protected File outputDirectory;
   /**
    * The output directory for bundles.
    * 
    * @parameter default-value=
    *            "SLING-INF/content/var/rules/${project.groupId}/${project.artifactId}/${project.version}/${project.artifactId}-${project.version}.pkg"
    */
-  private String packageOutputName;
+  protected String packageOutputName;
 
   public void execute() throws MojoExecutionException {
     // find all the rules items and load them into a package
     try {
 
-      URLClassLoader uc = new URLClassLoader(new URL[] { outputDirectory.toURL() }, this
+      URLClassLoader uc = new URLClassLoader(new URL[] { outputDirectory.toURI().toURL() }, this
           .getClass().getClassLoader()) {
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
@@ -92,7 +88,7 @@ public class DroolsCompilerMojo extends AbstractMojo {
           return c;
         }
       };
-      URLClassLoader uc2 = new URLClassLoader(new URL[] { outputDirectory.toURL() }, this
+      URLClassLoader uc2 = new URLClassLoader(new URL[] { outputDirectory.toURI().toURL() }, this
           .getClass().getClassLoader()) {
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
