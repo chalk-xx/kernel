@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.basiclti;
 import static javax.jcr.security.Privilege.JCR_ALL;
 import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_ADMIN_NODE_NAME;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_ADDED;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.getInvalidUserPrivileges;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.isAdminUser;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.removeProperty;
@@ -43,13 +44,17 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostOperation;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,6 +86,9 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
    */
   @Reference
   private transient SlingRepository slingRepository;
+  
+  @Reference
+  protected transient EventAdmin eventAdmin;
 
   /**
    * {@inheritDoc}
@@ -144,6 +152,11 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
         session.save();
       }
       createSensitiveNode(node, session, sensitiveData);
+      
+      // Send an OSGi event.
+      Dictionary<String, String> properties = new Hashtable<String, String>();
+      properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
+      EventUtils.sendOsgiEvent(properties, TOPIC_BASICLTI_ADDED, eventAdmin);
     } catch (Exception e) {
       throw new RepositoryException(e);
     }

@@ -76,4 +76,6 @@ public interface CalendarConstants {
    * hold the uuid of that original node.
    */
   public static final String SAKAI_SIGNEDUP_ORIGINAL_EVENT = "sakai:original-event";
+  
+  public static final String TOPIC_CALENDAR_SIGNUP = "org/sakaiproject/nakamura/calendar/signup";
 }
