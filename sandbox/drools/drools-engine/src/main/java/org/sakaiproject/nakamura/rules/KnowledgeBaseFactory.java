@@ -21,6 +21,7 @@ import org.drools.KnowledgeBase;
 import org.drools.agent.KnowledgeAgent;
 import org.drools.agent.KnowledgeAgentFactory;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -37,8 +38,9 @@ public class KnowledgeBaseFactory {
    * @param ruleSetNode
    * @return
    * @throws RepositoryException 
+   * @throws IOException 
    */
-  public KnowledgeBase getKnowledgeBase(Node ruleSetNode) throws RepositoryException {
+  public KnowledgeBase getKnowledgeBase(Node ruleSetNode) throws RepositoryException, IOException {
     
     String key = ruleSetNode.getPath();
     synchronized (cache) {
@@ -49,6 +51,7 @@ public class KnowledgeBaseFactory {
         }
       }
       // not in the cache, create a knowledge base.
+      
       KnowledgeAgent ka = KnowledgeAgentFactory.newKnowledgeAgent(key);
       ka.monitorResourceChangeEvents(true);
       ka.applyChangeSet(new JCRNodeResource(ruleSetNode));

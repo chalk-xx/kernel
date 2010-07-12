@@ -18,6 +18,10 @@
 package org.sakaiproject.nakamura.rules;
 
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.ReferenceStrategy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
@@ -27,33 +31,74 @@ import org.drools.command.Command;
 import org.drools.command.CommandFactory;
 import org.drools.runtime.ExecutionResults;
 import org.drools.runtime.StatelessKnowledgeSession;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.rules.RuleConstants;
 import org.sakaiproject.nakamura.api.rules.RuleContext;
 import org.sakaiproject.nakamura.api.rules.RuleExecutionPreProcessor;
 import org.sakaiproject.nakamura.api.rules.RuleExecutionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFormatException;
 
 /**
  * A Drools implementation of the Rule Execution Service.
  */
 @Component(label = "Drools Rule Execution Service", description = "Provides Rule Execution using Drools Knowledgebases")
 @Service(value = RuleExecutionService.class)
+@Reference(name = "processor", bind = "bindProcesor", unbind = "unbindProcessor", cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, strategy = ReferenceStrategy.EVENT, referenceInterface = RuleExecutionPreProcessor.class)
 public class RuleExecutionServiceImpl implements RuleExecutionService {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(RuleExecutionServiceImpl.class);
+
   private KnowledgeBaseFactory knowledgeBaseFactory;
-  private ExecutionPreprocessorFactory executionPreprocessorFactory;
+
+  private BundleContext bundleContext;
+
+  private Map<String, ServiceReference> processorReferences = new HashMap<String, ServiceReference>();
+
+  private Map<String, RuleExecutionPreProcessor> processors  = new ConcurrentHashMap<String, RuleExecutionPreProcessor>();
+  
+
+  public void activate(ComponentContext context) {
+    knowledgeBaseFactory = new KnowledgeBaseFactory();
+    BundleContext bundleContext = context.getBundleContext();
+    synchronized (processorReferences ) {
+      processors.clear();
+      for ( Entry<String, ServiceReference> e : processorReferences.entrySet() ) {
+        RuleExecutionPreProcessor repp = (RuleExecutionPreProcessor) bundleContext.getService(e.getValue());
+        if ( repp != null ) {
+          processors.put(e.getKey(),repp);
+        }
+      }
+      processorReferences.clear();
+      this.bundleContext = bundleContext;
+    }
+  }
+  
+  public void deactivate(ComponentContext componentContext) {
+    synchronized (processorReferences ) {
+      processors.clear();
+      processorReferences.clear();
+      this.bundleContext = null;
+    }
+    knowledgeBaseFactory = null;
+  }
 
   /**
    * {@inheritDoc}
@@ -78,15 +123,13 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
         cmds.add(CommandFactory.newSetGlobal("session", session, false));
         cmds.add(CommandFactory.newSetGlobal("request", request, false));
         cmds.add(CommandFactory.newSetGlobal("resource", ruleSet, false));
-        cmds
-            .add(CommandFactory.newSetGlobal("resourceResolver", resourceResolver, false));
+        cmds.add(CommandFactory.newSetGlobal("resourceResolver", resourceResolver, false));
         cmds.add(CommandFactory.newSetGlobal("currentUser", session.getUserID(), false));
         cmds.add(CommandFactory.newSetGlobal("results", new HashMap<String, Object>(),
             true)); // add an out parameter
 
         // add other globals and input instances with the RuleExecutionPreProcessor ....
-        RuleExecutionPreProcessor preProcessor = executionPreprocessorFactory
-            .getProcessor(ruleSetNode);
+        RuleExecutionPreProcessor preProcessor = getProcessor(ruleSetNode);
         if (preProcessor != null) {
 
           Map<RulesObjectIdentifier, Object> globals = preProcessor
@@ -123,10 +166,57 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
 
       } catch (RepositoryException e) {
         LOGGER.info("Failed to invoke rule {} ", pathToRuleSet, e);
+      } catch (IOException e) {
+        LOGGER.info("Failed to invoke rule {} ", pathToRuleSet, e);
       }
 
     }
     return null;
+  }
+
+  /**
+   * @param ruleSetNode
+   * @return
+   * @throws RepositoryException
+   * @throws PathNotFoundException
+   * @throws ValueFormatException
+   */
+  public RuleExecutionPreProcessor getProcessor(Node ruleSetNode)
+      throws RepositoryException {
+    if (ruleSetNode.hasProperty(RuleConstants.SAKAI_RULE_EXECUTION_PREPROCESSOR)) {
+      return processors.get(ruleSetNode.getProperty(
+          RuleConstants.SAKAI_RULE_EXECUTION_PREPROCESSOR).getString());
+    }
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.osgi.util.tracker.ServiceTrackerCustomizer#addingService(org.osgi.framework.ServiceReference)
+   */
+  public void bindProcessor(ServiceReference reference) {
+    String name = (String) reference.getProperty(RuleConstants.PROCESSOR_NAME);
+    synchronized (processorReferences ) {
+      if (bundleContext == null) {
+        processorReferences.put(name, reference);
+      } else {
+        RuleExecutionPreProcessor o = (RuleExecutionPreProcessor) bundleContext
+            .getService(reference);
+        processors.put(name, o);
+      }
+    }
+  }
+
+  public void unbindProcessor(ServiceReference reference) {
+    String name = (String) reference.getProperty(RuleConstants.PROCESSOR_NAME);
+    synchronized (processorReferences) {
+      if (bundleContext == null) {
+        processorReferences.remove(name);
+      } else {
+        processors.remove(name);
+      }
+    }
   }
 
 }
