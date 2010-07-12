@@ -4,44 +4,26 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.drools.KnowledgeBase;
-import org.drools.KnowledgeBaseConfiguration;
-import org.drools.KnowledgeBaseFactory;
 import org.drools.RuleBase;
 import org.drools.RuleBaseConfiguration;
 import org.drools.RuleBaseFactory;
-import org.drools.agent.KnowledgeAgent;
-import org.drools.agent.KnowledgeAgentConfiguration;
-import org.drools.agent.KnowledgeAgentFactory;
-import org.drools.agent.impl.KnowledgeAgentConfigurationImpl;
 import org.drools.builder.KnowledgeBuilderError;
 import org.drools.compiler.PackageBuilder;
 import org.drools.compiler.PackageBuilderConfiguration;
 import org.drools.compiler.PackageBuilderErrors;
-import org.drools.definition.KnowledgePackage;
-import org.drools.definition.process.Process;
-import org.drools.definition.rule.Rule;
-import org.drools.definitions.impl.KnowledgePackageImp;
 import org.drools.impl.KnowledgeBaseImpl;
-import org.drools.io.ResourceFactory;
 import org.drools.rule.Package;
 import org.drools.runtime.StatelessKnowledgeSession;
-import org.drools.util.BinaryRuleBaseLoader;
 import org.drools.util.DroolsStreamUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
 
 /**
  * @goal compile-rules
@@ -64,7 +46,7 @@ public class DroolsCompilerMojo extends AbstractMojo {
   /**
    * @parameter default-value="${basedir}/src/main/rules"
    */
-  private File basedir;
+  private File rulesdir;
 
   /**
    * The output directory for bundles.
@@ -111,13 +93,13 @@ public class DroolsCompilerMojo extends AbstractMojo {
       DirectoryScanner ds = new DirectoryScanner();
       ds.setIncludes(includes);
       ds.setExcludes(excludes);
-      ds.setBasedir(basedir);
+      ds.setBasedir(rulesdir);
       ds.setCaseSensitive(true);
       ds.scan();
 
       String[] files = ds.getIncludedFiles();
       for (String file : files) {
-        File f = new File(basedir, file);
+        File f = new File(rulesdir, file);
         Reader reader = new FileReader(f);
         try {
           if (file.endsWith(".drl")) {
