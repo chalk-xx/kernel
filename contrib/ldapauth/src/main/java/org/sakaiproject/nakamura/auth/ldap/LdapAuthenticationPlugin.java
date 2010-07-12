@@ -23,25 +23,16 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.User;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
-import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapUtil;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +40,6 @@ import java.util.Map;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 
 /**
@@ -79,19 +69,8 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   static final String AUTHZ_FILTER = "sakai.auth.ldap.filter.authz";
   private String authzFilter;
 
-  public static final boolean DEFAULT_CREATE_USER = true;
-  @Property(boolValue = DEFAULT_CREATE_USER)
-  static final String CREATE_USER = "sakai.auth.ldap.create.user";
-  private boolean createUser;
-
   @Reference
   private LdapConnectionManager connMgr;
-
-  @Reference
-  private SlingRepository slingRepository;
-
-  @Reference
-  private AuthorizablePostProcessService authzPostProcessorService;
 
   public LdapAuthenticationPlugin() {
   }
@@ -114,7 +93,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), "");
     userFilter = OsgiUtil.toString(props.get(USER_FILTER), "");
     authzFilter = OsgiUtil.toString(props.get(AUTHZ_FILTER), "");
-    createUser = OsgiUtil.toBoolean(CREATE_USER, DEFAULT_CREATE_USER);
   }
 
   public boolean authenticate(Credentials credentials) throws RepositoryException {
@@ -217,10 +195,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         // FINALLY!
         auth = true;
         log.info("User [{}] authenticated with LDAP in {}ms", userDn, System.currentTimeMillis() - timeStart);
-
-        if (createUser) {
-          ensureJcrUser(sc.getUserID());
-        }
       } catch (Exception e) {
         log.warn(e.getMessage(), e);
       } finally {
@@ -228,20 +202,5 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
       }
     }
     return auth;
-  }
-
-  private void ensureJcrUser(String userId) throws RepositoryException, Exception {
-    Session session = slingRepository.loginAdministrative(null);
-    UserManager um = AccessControlUtil.getUserManager(session);
-    Authorizable auth = um.getAuthorizable(userId);
-
-    if (auth == null) {
-      String password = RandomStringUtils.random(8);
-      User user = um.createUser(userId, password);
-
-      String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
-          + user.getID();
-      authzPostProcessorService.process(user, session, Modification.onCreated(userPath));
-    }
   }
 }
