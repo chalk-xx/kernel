@@ -17,8 +17,16 @@
  */
 package org.sakaiproject.nakamura.auth.ldap;
 
+import com.novell.ldap.LDAPConnection;
+import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPSearchResults;
+
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -26,15 +34,22 @@ import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
+import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
+import org.sakaiproject.nakamura.api.ldap.LdapUtil;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -54,6 +69,53 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
 
   @Reference
   private SlingRepository slingRepository;
+
+  @Reference
+  private LdapConnectionManager connMgr;
+
+  @Property(value = "o=sakai")
+  static final String LDAP_BASE_DN = "sakai.auth.ldap.baseDn";
+  private String baseDn;
+
+  @Property(value = "uid={}")
+  static final String USER_FILTER = "sakai.auth.ldap.filter.user";
+  private String userFilter;
+
+  public static final boolean DECORATE_USER_DEFAULT = true;
+  @Property(boolValue = DECORATE_USER_DEFAULT)
+  static final String DECORATE_USER = "sakai.auth.ldap.user.decorate";
+  private boolean decorateUser;
+
+  public static final String FIRST_NAME_PROP_DEFAULT = "firstName";
+  @Property(value = FIRST_NAME_PROP_DEFAULT)
+  static final String FIRST_NAME_PROP = "sakai.auth.ldap.prop.firstName";
+  private String firstNameProp;
+
+  public static final String LAST_NAME_PROP_DEFAULT = "lastName";
+  @Property(value = LAST_NAME_PROP_DEFAULT)
+  static final String LAST_NAME_PROP = "sakai.auth.ldap.prop.lastName";
+  private String lastNameProp;
+
+  public static final String EMAIL_PROP_DEFAULT = "email";
+  @Property(value = EMAIL_PROP_DEFAULT)
+  static final String EMAIL_PROP = "sakai.auth.ldap.prop.email";
+  private String emailProp;
+
+  @Activate
+  protected void activate(Map<?, ?> props) {
+    init(props);
+  }
+
+  @Modified
+  protected void modified(Map<?, ?> props) {
+    init(props);
+  }
+
+  private void init(Map<?, ?> props) {
+    baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), "");
+    userFilter = OsgiUtil.toString(props.get(USER_FILTER), "");
+    decorateUser = OsgiUtil.toBoolean(props.get(DECORATE_USER), DECORATE_USER_DEFAULT);
+  }
 
   /**
    * {@inheritDoc}
@@ -85,6 +147,10 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
         String password = RandomStringUtils.random(8);
         User user = um.createUser(authInfo.getUser(), password);
 
+        if (decorateUser) {
+          decorateUser(session, user);
+        }
+
         String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
             + user.getID();
         authzPostProcessorService
@@ -96,4 +162,39 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
     return false;
   }
 
+  /**
+   * Decorate the user with extra information.
+   *
+   * @param session
+   * @param user
+   */
+  private void decorateUser(Session session, User user) {
+    try {
+      // fix up the user dn to search
+      String userDn = LdapUtil.escapeLDAPSearchFilter(userFilter.replace("{}",
+          user.getID()));
+
+      // get a connection to LDAP
+      LDAPConnection conn = connMgr.getBoundConnection(null, null);
+      LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userDn,
+          new String[] { firstNameProp, lastNameProp, emailProp }, true);
+      if (results.hasMore()) {
+        LDAPEntry entry = results.next();
+        logger.debug("Found user via search");
+        ValueFactory vf = session.getValueFactory();
+        user.setProperty("firstName",
+            vf.createValue(entry.getAttribute(firstNameProp).toString()));
+        user.setProperty("lastName",
+            vf.createValue(entry.getAttribute(lastNameProp).toString()));
+        user.setProperty("email",
+            vf.createValue(entry.getAttribute(emailProp).toString()));
+      } else {
+        logger.warn("Can't find user [" + userDn + "]");
+      }
+    } catch (LDAPException e) {
+      logger.warn(e.getMessage(), e);
+    } catch (RepositoryException e) {
+      logger.warn(e.getMessage(), e);
+    }
+  }
 }
