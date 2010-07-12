@@ -71,7 +71,10 @@ public interface UserConstants {
   public static final String GROUP_REPO_LOCATION = "/rep:security/rep:authorizables/rep:groups";
 
   
-  public static final String EVENT_PROP_USERID = "user";
+  /**
+   * The key name for the property in the event that will hold the userid.
+   */
+  public static final String EVENT_PROP_USERID = "userid";
 
   
 }
