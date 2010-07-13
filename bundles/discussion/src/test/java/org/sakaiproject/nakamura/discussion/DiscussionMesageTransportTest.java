@@ -23,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
@@ -65,14 +64,8 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
     repository = createMock(SlingRepository.class);
     expect(repository.loginAdministrative(null)).andReturn(adminSession);
 
-    transport.bindMessagingService(messagingService);
-    transport.bindSlingRepository(repository);
-  }
-
-  @After
-  public void tearDown() {
-    transport.unbindMessagingService(messagingService);
-    transport.unbindSlingRepository(repository);
+    transport.messagingService = messagingService;
+    transport.slingRepository = repository;
   }
 
   // PowerMock should allow us to mock static methods.
