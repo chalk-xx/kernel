@@ -18,8 +18,6 @@
 package org.sakaiproject.nakamura.rules;
 
 import org.drools.KnowledgeBase;
-import org.drools.agent.KnowledgeAgent;
-import org.drools.agent.KnowledgeAgentFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -33,32 +31,32 @@ import javax.jcr.RepositoryException;
  */
 public class KnowledgeBaseFactory {
 
-  Map<String, KnowledgeBase> cache = new WeakHashMap<String, KnowledgeBase>();
+  Map<String, KnowledgeBaseHolder> cache = new WeakHashMap<String, KnowledgeBaseHolder>();
+
   /**
    * @param ruleSetNode
    * @return
-   * @throws RepositoryException 
-   * @throws IOException 
+   * @throws RepositoryException
+   * @throws IOException
+   * @throws IllegalAccessException 
+   * @throws InstantiationException 
+   * @throws ClassNotFoundException 
    */
-  public KnowledgeBase getKnowledgeBase(Node ruleSetNode) throws RepositoryException, IOException {
+  public KnowledgeBase getKnowledgeBase(Node ruleSetNode) throws RepositoryException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
     
     String key = ruleSetNode.getPath();
     synchronized (cache) {
       if ( cache.containsKey(key)) {
-        KnowledgeBase kb = cache.get(key);
+        KnowledgeBaseHolder kb = cache.get(key);
         if ( kb != null ) {
-          return kb;
+          kb.refresh(ruleSetNode);
+          return kb.getKnowledgeBase();
         }
       }
-      // not in the cache, create a knowledge base.
-      
-      KnowledgeAgent ka = KnowledgeAgentFactory.newKnowledgeAgent(key);
-      ka.monitorResourceChangeEvents(true);
-      ka.applyChangeSet(new JCRNodeResource(ruleSetNode));
-      KnowledgeBase kb = ka.getKnowledgeBase();
+      KnowledgeBaseHolder kb = new KnowledgeBaseHolder(ruleSetNode);
       cache.put(key, kb);
-      return kb;
+      return kb.getKnowledgeBase();
+      
     }
   }
-
 }

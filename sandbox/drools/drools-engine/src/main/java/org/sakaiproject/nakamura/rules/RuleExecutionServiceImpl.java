@@ -168,6 +168,12 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
         LOGGER.info("Failed to invoke rule {} ", pathToRuleSet, e);
       } catch (IOException e) {
         LOGGER.info("Failed to invoke rule {} ", pathToRuleSet, e);
+      } catch (ClassNotFoundException e) {
+        LOGGER.info("Failed to invoke rule {} ", pathToRuleSet, e);
+      } catch (InstantiationException e) {
+        LOGGER.info("Failed to invoke rule {} ", pathToRuleSet, e);
+      } catch (IllegalAccessException e) {
+        LOGGER.info("Failed to invoke rule {} ", pathToRuleSet, e);
       }
 
     }
