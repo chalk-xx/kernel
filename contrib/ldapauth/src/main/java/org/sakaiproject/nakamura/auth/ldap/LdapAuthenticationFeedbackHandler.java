@@ -24,11 +24,9 @@ import com.novell.ldap.LDAPSearchResults;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -58,8 +56,8 @@ import javax.servlet.http.HttpServletResponse;
  * authentication processing. Attempt to create user is only tried if no
  * {@link Authorizable} is found for the provided username.
  */
-@Component
-@Service
+// @Component(metatype = true)
+// @Service
 public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedbackHandler {
   private static final Logger logger = LoggerFactory
       .getLogger(LdapAuthenticationFeedbackHandler.class);
@@ -74,31 +72,31 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
   private LdapConnectionManager connMgr;
 
   @Property(value = "o=sakai")
-  static final String LDAP_BASE_DN = "sakai.auth.ldap.baseDn";
+  static final String LDAP_BASE_DN = "sakai.auth.ldap.fb.baseDn";
   private String baseDn;
 
   @Property(value = "uid={}")
-  static final String USER_FILTER = "sakai.auth.ldap.filter.user";
+  static final String USER_FILTER = "sakai.auth.ldap.fb.filter.user";
   private String userFilter;
 
   public static final boolean DECORATE_USER_DEFAULT = true;
   @Property(boolValue = DECORATE_USER_DEFAULT)
-  static final String DECORATE_USER = "sakai.auth.ldap.user.decorate";
+  static final String DECORATE_USER = "sakai.auth.ldap.fb.user.decorate";
   private boolean decorateUser;
 
   public static final String FIRST_NAME_PROP_DEFAULT = "firstName";
   @Property(value = FIRST_NAME_PROP_DEFAULT)
-  static final String FIRST_NAME_PROP = "sakai.auth.ldap.prop.firstName";
+  static final String FIRST_NAME_PROP = "sakai.auth.ldap.fb.prop.firstName";
   private String firstNameProp;
 
   public static final String LAST_NAME_PROP_DEFAULT = "lastName";
   @Property(value = LAST_NAME_PROP_DEFAULT)
-  static final String LAST_NAME_PROP = "sakai.auth.ldap.prop.lastName";
+  static final String LAST_NAME_PROP = "sakai.auth.ldap.fb.prop.lastName";
   private String lastNameProp;
 
   public static final String EMAIL_PROP_DEFAULT = "email";
   @Property(value = EMAIL_PROP_DEFAULT)
-  static final String EMAIL_PROP = "sakai.auth.ldap.prop.email";
+  static final String EMAIL_PROP = "sakai.auth.ldap.fb.prop.email";
   private String emailProp;
 
   @Activate
@@ -180,7 +178,6 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
           new String[] { firstNameProp, lastNameProp, emailProp }, true);
       if (results.hasMore()) {
         LDAPEntry entry = results.next();
-        logger.debug("Found user via search");
         ValueFactory vf = session.getValueFactory();
         user.setProperty("firstName",
             vf.createValue(entry.getAttribute(firstNameProp).toString()));
