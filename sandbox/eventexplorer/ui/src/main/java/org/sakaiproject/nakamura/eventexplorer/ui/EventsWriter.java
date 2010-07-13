@@ -95,6 +95,8 @@ public class EventsWriter {
     writer.object();
     writer.key("start").value(format.format(cal));
     Iterator<Column> columns = superColumn.getColumnsIterator();
+    String topic = "";
+    String path = "";
     while (columns.hasNext()) {
       Column col = columns.next();
       String colName = new String(col.getName());
@@ -102,11 +104,16 @@ public class EventsWriter {
         colName = "title";
       }
       if (colName.equals("path")) {
-        colName = "description";
+        path = new String(col.getValue());
+      }
+      if (colName.equals("event.topics")) {
+        topic = new String(col.getValue());
       }
       writer.key(colName);
       writer.value(new String(col.getValue()));
     }
+    writer.key("description");
+    writer.value(topic + "<br />\n" + path);
     writer.endObject();
   }
 }

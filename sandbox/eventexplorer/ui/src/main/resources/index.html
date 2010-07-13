@@ -47,15 +47,15 @@
 	    $(document).ready(function(){
             var bandInfos = [Timeline.createBandInfo({
                 eventSource: eventSource,
-                date: "Jul 9 2010 00:00:00 GMT",
+                date: "Jul 12 2010 13:50:00 GMT",
                 width: "70%",
-                intervalUnit: Timeline.DateTime.DAY,
+                intervalUnit: Timeline.DateTime.MINUTE,
                 intervalPixels: 100
             }), Timeline.createBandInfo({
                 eventSource: eventSource,
-                date: "Jul 9 2010 00:00:00 GMT",
+                date: "Jul 12 2010 13:50:00 GMT",
                 width: "30%",
-                intervalUnit: Timeline.DateTime.MONTH,
+                intervalUnit: Timeline.DateTime.HOUR,
                 intervalPixels: 200
             })];
             bandInfos[1].syncWith = 0;
