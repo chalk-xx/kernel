@@ -30,6 +30,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.osgi.OsgiUtil;
@@ -41,6 +42,7 @@ import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapUtil;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -272,6 +274,12 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
       String password = RandomStringUtils.random(8);
       auth = um.createUser(userId, password);
 
+      ValueFactory vf = session.getValueFactory();
+      auth.setProperty(
+          "path",
+          vf.createValue(((ItemBasedPrincipal) auth.getPrincipal()).getPath().substring(
+              UserConstants.USER_REPO_LOCATION.length())));
+
       if (decorateUser) {
         decorateUser(session, auth, conn);
       }
@@ -317,10 +325,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
       log.warn(e.getMessage(), e);
     } catch (RepositoryException e) {
       log.warn(e.getMessage(), e);
-    } finally {
-      if (session.hasPendingChanges()) {
-        session.save();
-      }
     }
   }
 }

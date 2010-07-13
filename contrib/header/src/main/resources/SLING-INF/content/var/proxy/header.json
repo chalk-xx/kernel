@@ -6,7 +6,7 @@
     "sakai:title": "Header Retrieval Proxy",
     "sakai:shortDescription": "Retrieve headers from a remote URL.",
     "sakai:parameters": [
-      "{'name':'url', 'description':'The URL to get the headers of.'}"
+      "{'name':'url', 'description':'The URL to get the headers of.'}",
       "{'name':'header', 'description':'The header to return. Multiple can be submitted as separate parameters. Omission will return all headers.'}"
     ],
     "sakai:description": [
