@@ -166,14 +166,15 @@ public class PersonalUtils {
   public static void writeCompactUserInfoContent(Session session, String user,
       JSONWriter write) {
     try {
-      Authorizable au = getAuthorizable(session, user);
-      String profilePath = PersonalUtils.getProfilePath(au);
-      String hash = getUserHashedPath(au);
       write.key("userid");
       write.value(user);
-      write.key("hash");
-      write.value(hash);
       try {
+        Authorizable au = getAuthorizable(session, user);
+        String profilePath = PersonalUtils.getProfilePath(au);
+        String hash = getUserHashedPath(au);
+        write.key("hash");
+        write.value(hash);
+
         Node profileNode = (Node) session.getItem(profilePath);
         write.key("jcr:path");
         write.value(profileNode.getPath());
@@ -182,13 +183,11 @@ public class PersonalUtils {
         writeValue("firstName", profileNode, write);
         writeValue("lastName", profileNode, write);
         writeValue("picture", profileNode, write);
-      } catch (RepositoryException e) {
+      } catch (Exception e) {
         // The provided user-string is probably not a user id.
-        LOGGER.error(e.getMessage(), e);
+        LOGGER.warn(e.getMessage(), e);
       }
     } catch (JSONException e) {
-      LOGGER.error(e.getMessage(), e);
-    } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);
     }
   }
