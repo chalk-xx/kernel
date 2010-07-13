@@ -17,7 +17,10 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
+
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.TOPIC_FILES_TAG;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -31,10 +34,16 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostOperation;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.jcr.ItemNotFoundException;
@@ -53,11 +62,13 @@ import javax.servlet.http.HttpServletResponse;
 public class TagOperation extends AbstractSlingPostOperation {
 
   @Reference
-  protected SlingRepository slingRepository;
+  protected transient SlingRepository slingRepository;
 
-  /**
-   * 
-   */
+  @Reference
+  protected transient EventAdmin eventAdmin;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(TagOperation.class);
+
   private static final long serialVersionUID = -7724827744698056843L;
 
   /**
@@ -125,6 +136,22 @@ public class TagOperation extends AbstractSlingPostOperation {
             adminSession.save();
           }
 
+          // Send an OSGi event.
+          try {
+            String tagName = tagNode.getName();
+            if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
+              tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
+            }
+            Dictionary<String, String> properties = new Hashtable<String, String>();
+            properties.put(UserConstants.EVENT_PROP_USERID, user);
+            properties.put("tag-name", tagName);
+            EventUtils.sendOsgiEvent(request.getResource(), properties, TOPIC_FILES_TAG,
+                eventAdmin);
+          } catch (Exception e) {
+            // We do NOT interrupt the normal workflow if sending an event fails.
+            // We just log it to the error log.
+            LOGGER.error("Could not send an OSGi event for tagging a file", e);
+          }
         } finally {
           adminSession.logout();
         }

@@ -25,6 +25,8 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionException;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionOperation;
@@ -36,11 +38,15 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -105,6 +111,9 @@ public class ConnectionServlet extends SlingAllMethodsServlet {
   @Reference
   protected transient ConnectionManager connectionManager;
 
+  @Reference
+  protected transient EventAdmin eventAdmin;
+
   protected void bindConnectionManager(ConnectionManager connectionManager) {
     this.connectionManager = connectionManager;
   }
@@ -134,27 +143,27 @@ public class ConnectionServlet extends SlingAllMethodsServlet {
           "targetUserId not found in the request, cannot continue without it being set.");
       return;
     }
-    
-    try {
-      // current user
-      String user = request.getRemoteUser();
-      // Use to connect to
-      String targetUserId = userParam.getString();
-      // Get the connection operation from the selector.
-      String selector = request.getRequestPathInfo().getSelectorString();
-      ConnectionOperation operation = ConnectionOperation.noop;
-      try {
-        operation = ConnectionOperation.valueOf(selector);
-      } catch (IllegalArgumentException e) {
-        operation = ConnectionOperation.noop;
-      }
 
-      // Nearly impossible to get a noop, but we'll check it anyway..
-      if (operation == ConnectionOperation.noop) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid operation selector");
-        return;
-      }
-      
+    // current user
+    String user = request.getRemoteUser();
+    // User to connect to
+    String targetUserId = userParam.getString();
+    // Get the connection operation from the selector.
+    String selector = request.getRequestPathInfo().getSelectorString();
+    ConnectionOperation operation = ConnectionOperation.noop;
+    try {
+      operation = ConnectionOperation.valueOf(selector);
+    } catch (IllegalArgumentException e) {
+      operation = ConnectionOperation.noop;
+    }
+
+    // Nearly impossible to get a noop, but we'll check it anyway..
+    if (operation == ConnectionOperation.noop) {
+      response
+          .sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid operation selector");
+      return;
+    }
+    try {
       // Do the connection.
       LOGGER.info("Connection {} {} ",new Object[]{user,targetUserId});
       connectionManager.connect(request.getParameterMap(), request.getResource(), user, targetUserId, operation);
@@ -169,5 +178,12 @@ public class ConnectionServlet extends SlingAllMethodsServlet {
         response.sendError(e.getCode(), e.getMessage());
       }
     }
+
+    // Send an OSGi event. The value of the selector is the last part of the event topic.
+    final Dictionary<String, String> properties = new Hashtable<String, String>();
+    properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
+    properties.put("target", userParam.getString());
+    String topic = ConnectionConstants.EVENT_TOPIC_BASE + operation.toString();
+    EventUtils.sendOsgiEvent(properties, topic, eventAdmin);
   }
 }

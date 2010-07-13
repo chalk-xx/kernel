@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import static org.sakaiproject.nakamura.api.files.FilesConstants.TOPIC_FILES_LINK;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -30,6 +32,7 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostOperation;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -40,9 +43,12 @@ import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.jcr.Node;
@@ -77,9 +83,12 @@ public class LinkOperation extends AbstractSlingPostOperation {
 
   @Reference
   protected transient SlingRepository slingRepository;
+
   @Reference
   protected transient SiteService siteService;
 
+  @Reference
+  protected transient EventAdmin eventAdmin;
   /**
    * {@inheritDoc}
    * 
@@ -133,6 +142,18 @@ public class LinkOperation extends AbstractSlingPostOperation {
       FileUtils.createLink(node, link, site, slingRepository);
     } catch (RepositoryException e) {
       log.warn("Failed to create a link.", e);
+    }
+    
+    // Send an OSGi event.
+    try {
+      Dictionary<String, String> properties = new Hashtable<String, String>();
+      properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
+      EventUtils.sendOsgiEvent(request.getResource(), properties, TOPIC_FILES_LINK,
+          eventAdmin);
+    } catch (Exception e) {
+      // We do NOT interrupt the normal workflow if sending an event fails.
+      // We just log it to the error log.
+      log.error("Could not send an OSGi event for tagging a file", e);
     }
   }
 }

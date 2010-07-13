@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.nakamura.basiclti;
 
+import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_ACCESSED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_CHANGED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_REMOVED;
+
 import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_ID;
 import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_LABEL;
 import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_TITLE;
@@ -70,6 +74,7 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.imsglobal.basiclti.BasicLTIConstants;
 import org.imsglobal.basiclti.BasicLTIUtil;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -78,7 +83,9 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +93,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -159,6 +168,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    */
   @Reference
   private transient SlingRepository slingRepository;
+
+  @Reference
+  protected transient EventAdmin eventAdmin;
 
   // global properties used for every tool launch
   /**
@@ -263,6 +275,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       for (final String selector : request.getRequestPathInfo().getSelectors()) {
         if ("launch".equals(selector)) {
           doLaunch(request, response);
+          
+          // Send out an OSGi event that we accessed a basic/lti node.
+          Dictionary<String, String> properties = new Hashtable<String, String>();
+          properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
+          EventUtils.sendOsgiEvent(properties, TOPIC_BASICLTI_ACCESSED, eventAdmin);
           return;
         }
       }
@@ -558,7 +575,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         if (session.hasPendingChanges()) {
           session.save();
         }
-        response.setStatus(HttpServletResponse.SC_OK);
+
+        // Send out an OSGi event that we removed a basic/lti node.
+        Dictionary<String, String> properties = new Hashtable<String, String>();
+        properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
+        EventUtils.sendOsgiEvent(properties, TOPIC_BASICLTI_REMOVED, eventAdmin);
       } else {
         sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied", null, response);
       }
@@ -634,6 +655,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         session.save();
       }
       updateSensitiveNode(node, session, sensitiveData);
+
+      // Send out an OSGi event that we changed a basic/lti node.
+      Dictionary<String, String> properties = new Hashtable<String, String>();
+      properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
+      EventUtils.sendOsgiEvent(properties, TOPIC_BASICLTI_CHANGED, eventAdmin);
     } catch (Exception e) {
       sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage(), e,
           response);

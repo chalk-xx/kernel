@@ -37,18 +37,35 @@ public class BasicLtiAppConstants {
   public static final String RELEASE_PRINCIPAL_NAME = "release_principal_name";
   public static final String RELEASE_PRINCIPAL_NAME_LOCK = "release_principal_name_lock";
   /**
-   * The location used to store admin level settings which cannot be overridden
-   * by user placements.
+   * The location used to store admin level settings which cannot be overridden by user
+   * placements.
    */
   public static final String ADMIN_CONFIG_PATH = "/var/basiclti";
 
   /**
    * The path to the node that will contain the system wide settings.
    */
-  public static final String GLOBAL_SETTINGS = ADMIN_CONFIG_PATH + "/"
-      + "globalSettings";
+  public static final String GLOBAL_SETTINGS = ADMIN_CONFIG_PATH + "/" + "globalSettings";
   /**
    * The name of the child node that stores sensitive LTI information.
    */
   public static final String LTI_ADMIN_NODE_NAME = "ltiKeys";
+
+  /**
+   * A new sakai/basiclti node is created.
+   */
+  public static final String TOPIC_BASICLTI_ADDED = "org/sakaiproject/nakamura/basiclti/added";
+
+  /**
+   * A new sakai/basiclti node is changed.
+   */
+  public static final String TOPIC_BASICLTI_CHANGED = "org/sakaiproject/nakamura/basiclti/changed";
+  /**
+   * A new sakai/basiclti node is removed.
+   */
+  public static final String TOPIC_BASICLTI_REMOVED = "org/sakaiproject/nakamura/basiclti/removed";
+  /**
+   * A new sakai/basiclti node is accessed.
+   */
+  public static final String TOPIC_BASICLTI_ACCESSED = "org/sakaiproject/nakamura/basiclti/accessed";
 }
