@@ -26,6 +26,7 @@ import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -35,9 +36,13 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -133,6 +138,13 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
    */
   private transient SlingRepository repository;
 
+  /**
+   * Used to launch OSGi events.
+   * 
+   * @scr.reference
+   */
+  protected transient EventAdmin eventAdmin;
+
   /** Returns the JCR repository used by this service. */
   protected SlingRepository getRepository() {
     return repository;
@@ -197,6 +209,18 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
       if (session.hasPendingChanges()) {
         session.save();
       }
+
+      // Launch an OSGi event for updating a group.
+      try {
+        Dictionary<String, String> properties = new Hashtable<String, String>();
+        properties.put(UserConstants.EVENT_PROP_USERID, authorizable.getID());
+        EventUtils
+            .sendOsgiEvent(properties, UserConstants.TOPIC_GROUP_CREATED, eventAdmin);
+      } catch (Exception e) {
+        // Trap all exception so we don't disrupt the normal behaviour.
+        LOGGER.error("Failed to launch an OSGi event for creating a user.", e);
+      }
+
     } catch (Throwable t) {
       LOGGER.info("Failed " + t.getMessage(), t);
       throw new RepositoryException(t.getMessage(), t);

@@ -34,6 +34,7 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.auth.trusted.RequestTrustValidator;
 import org.sakaiproject.nakamura.api.auth.trusted.RequestTrustValidatorService;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -49,11 +50,13 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.NameSanitizer;
 import org.sakaiproject.nakamura.util.IOUtils;
 import org.sakaiproject.nakamura.util.osgi.BindingListener;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -188,6 +191,13 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
      * @scr.reference
      */
     private transient SlingRepository repository;
+
+    /**
+     * Used to launch OSGi events.
+     * 
+     * @scr.reference
+     */
+    protected transient EventAdmin eventAdmin;
 
     private String adminUserId = null;
 
@@ -422,6 +432,17 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
                 }
                 if (selfRegSession.hasPendingChanges()) {
                     selfRegSession.save();
+                }
+                
+                // Launch an OSGi event for creating a user.
+                try {
+                  Dictionary<String, String> properties = new Hashtable<String, String>();
+                  properties.put(UserConstants.EVENT_PROP_USERID, principalName);
+                  EventUtils
+                      .sendOsgiEvent(properties, UserConstants.TOPIC_USER_CREATED, eventAdmin);
+                } catch (Exception e) {
+                  // Trap all exception so we don't disrupt the normal behaviour.
+                  log.error("Failed to launch an OSGi event for creating a user.", e);
                 }
         } catch ( AuthorizableExistsException e) {
           log.warn(e.getMessage());
