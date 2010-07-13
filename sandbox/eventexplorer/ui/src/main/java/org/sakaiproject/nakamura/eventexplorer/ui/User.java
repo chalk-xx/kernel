@@ -31,7 +31,7 @@ import org.apache.cassandra.thrift.KeyRange;
 import org.apache.cassandra.thrift.KeySlice;
 import org.apache.cassandra.thrift.SlicePredicate;
 import org.apache.cassandra.thrift.SliceRange;
-import org.apache.sling.commons.json.JSONObject;
+import org.json.JSONObject;
 
 import java.util.List;
 
