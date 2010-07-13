@@ -62,7 +62,7 @@ public interface DiscussionConstants {
   public static final String PROP_NOTIFICATION = "sakai:notification";
 
   public static final String PROP_NOTIFY_ADDRESS = "sakai:notificationaddress";
-  
-  public static final String TOPIC_DISCUSSION_MESSAGE = "org/sakaiproject/nakamura/discussion";
+
+  public static final String TOPIC_DISCUSSION_MESSAGE = "org/sakaiproject/nakamura/message/discussion";
 
 }
