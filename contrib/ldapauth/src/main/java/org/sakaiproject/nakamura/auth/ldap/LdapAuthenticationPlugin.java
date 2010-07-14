@@ -298,33 +298,31 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
    * @param user
    */
   private void decorateUser(Session session, Authorizable user, LDAPConnection conn)
-      throws RepositoryException {
-    try {
-      // fix up the user dn to search
-      String userDn = LdapUtil.escapeLDAPSearchFilter(userFilter.replace("{}",
-          user.getID()));
+      throws RepositoryException, LDAPException {
+    // fix up the user dn to search
+    String userDn = LdapUtil
+        .escapeLDAPSearchFilter(userFilter.replace("{}", user.getID()));
 
-      // get a connection to LDAP
-      LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userDn,
-          new String[] { firstNameProp, lastNameProp, emailProp }, false);
-      if (results.hasMore()) {
-        LDAPEntry entry = results.next();
-        ValueFactory vf = session.getValueFactory();
+    // get a connection to LDAP
+    LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userDn,
+        new String[] { firstNameProp, lastNameProp, emailProp }, false);
+    if (results.hasMore()) {
+      LDAPEntry entry = results.next();
+      ValueFactory vf = session.getValueFactory();
 
-        String firstName = entry.getAttribute(firstNameProp).getStringValue();
-        String lastName = entry.getAttribute(lastNameProp).getStringValue();
-        String email = entry.getAttribute(emailProp).getStringValue();
+      LDAPAttribute firstNameAttr = entry.getAttribute(firstNameProp);
+      LDAPAttribute lastNameAttr = entry.getAttribute(lastNameProp);
+      LDAPAttribute emailAttr = entry.getAttribute(emailProp);
 
-        user.setProperty("firstName", vf.createValue(firstName));
-        user.setProperty("lastName", vf.createValue(lastName));
-        user.setProperty("email", vf.createValue(email));
-      } else {
-        log.warn("Can't find user [" + userDn + "]");
-      }
-    } catch (LDAPException e) {
-      log.warn(e.getMessage(), e);
-    } catch (RepositoryException e) {
-      log.warn(e.getMessage(), e);
+      String firstName = firstNameAttr != null ? firstNameAttr.getStringValue() : "";
+      String lastName = lastNameAttr != null ? lastNameAttr.getStringValue() : "";
+      String email = emailAttr != null ? emailAttr.getStringValue() : "";
+
+      user.setProperty("firstName", vf.createValue(firstName));
+      user.setProperty("lastName", vf.createValue(lastName));
+      user.setProperty("email", vf.createValue(email));
+    } else {
+      log.warn("Can't find user [" + userDn + "]");
     }
   }
 }
