@@ -28,6 +28,10 @@ public enum BindingType {
   /**
    * A type binding bind the Servlet to a resource type.
    */
-  TYPE;
+  TYPE,
+  /**
+   * An operation binding, bind the Operation to a specified operation string.
+   */
+  OPERATION;
 
 }
