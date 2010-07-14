@@ -28,14 +28,19 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.rules.RuleConstants;
 import org.sakaiproject.nakamura.api.rules.RuleContext;
 import org.sakaiproject.nakamura.api.rules.RuleExecutionException;
+import org.sakaiproject.nakamura.api.rules.RuleExecutionPreProcessor;
+import org.sakaiproject.nakamura.api.rules.RuleExecutionService;
 
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Binary;
 import javax.jcr.Node;
@@ -78,6 +83,10 @@ public class RuleExecutionServiceImpleTest {
   private Binary binary;
   @Mock
   private Session session;
+  @Mock
+  private Property preprocessorProperty;
+  @Mock
+  private ServiceReference reference;
 
   public RuleExecutionServiceImpleTest() {
     MockitoAnnotations.initMocks(this);
@@ -100,6 +109,22 @@ public class RuleExecutionServiceImpleTest {
     
     Mockito.when(ruleSetNode.getPath()).thenReturn(path);
     Mockito.when(ruleSetNode.getNodes()).thenReturn(nodeIterator);
+    
+    // specify the rule processor
+    Mockito.when(ruleSetNode.hasProperty(RuleConstants.SAKAI_RULE_EXECUTION_PREPROCESSOR)).thenReturn(true);
+    Mockito.when(ruleSetNode.getProperty(RuleConstants.SAKAI_RULE_EXECUTION_PREPROCESSOR)).thenReturn(preprocessorProperty);
+    Mockito.when(preprocessorProperty.getString()).thenReturn("message-test-preprocessor");
+    
+    // when the service referece is invoked we need to give it out processor
+    Mockito.when(reference.getProperty(RuleConstants.PROCESSOR_NAME)).thenReturn("message-test-preprocessor");
+    
+    RuleExecutionPreProcessor messageRuleExcutionPreProcessor = new MesageRuleExcutionPreProcessor();
+    Mockito.when(bundleContext.getService(reference)).thenReturn(messageRuleExcutionPreProcessor);
+
+    // turn on debug for this rule execution, just needs the property to exist.
+    Mockito.when(ruleSetNode.hasProperty(RuleConstants.SAKAI_RULE_DEBUG)).thenReturn(true);
+    
+    
     Mockito.when(nodeIterator.hasNext()).thenReturn(true, false, true, false);
     Mockito.when(nodeIterator.nextNode()).thenReturn(packageNode, packageNode);
     Mockito.when(packageNode.getPrimaryNodeType()).thenReturn(packageNodeType);
@@ -133,9 +158,18 @@ public class RuleExecutionServiceImpleTest {
     
     RuleExecutionServiceImpl res = new RuleExecutionServiceImpl();
     res.activate(context);
+    res.bindProcessor(reference);
     Map<String, Object> result = res.executeRuleSet(path, request, ruleContext, null);
     
     Assert.assertNotNull(result);
+    Assert.assertTrue(result.size()> 0);
+    
+    
+    for ( Entry<String, Object> e : result.entrySet() ) {
+      System.err.println(e.getKey()+" "+e.getValue());
+    }
+    
+    
     res.deactivate(context);
   }
   

@@ -14,6 +14,7 @@ rule "Hello World"
 		System.out.println( myMessage ); 
 		m.setMessage( "Goodbye cruel world" );
 		m.setStatus( Message.GOODBYE );
+		results.put("helloMessageFinal", m);
 		update( m );
 end
 
@@ -22,4 +23,5 @@ rule "GoodBye"
 		Message( status == Message.GOODBYE, myMessage : message )
 	then
 		System.out.println( myMessage );
+		results.put("goodbyMessageFinal", "Bye");
 end

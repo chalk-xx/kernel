@@ -31,4 +31,6 @@ public interface RuleConstants {
    */
   public static final String SAKAI_RULE_EXECUTION_PREPROCESSOR = "sakai:rule-execution-preprocessor";
 
+  public static final String SAKAI_RULE_DEBUG = "sakai:rule-debug-enable";
+
 }

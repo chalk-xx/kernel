@@ -29,8 +29,11 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.drools.KnowledgeBase;
 import org.drools.command.Command;
 import org.drools.command.CommandFactory;
+import org.drools.logger.KnowledgeRuntimeLogger;
+import org.drools.logger.KnowledgeRuntimeLoggerFactory;
 import org.drools.runtime.ExecutionResults;
 import org.drools.runtime.StatelessKnowledgeSession;
+import org.mvel2.PreProcessor;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -40,6 +43,7 @@ import org.sakaiproject.nakamura.api.rules.RuleExecutionErrorListener;
 import org.sakaiproject.nakamura.api.rules.RuleExecutionException;
 import org.sakaiproject.nakamura.api.rules.RuleExecutionPreProcessor;
 import org.sakaiproject.nakamura.api.rules.RuleExecutionService;
+import org.sakaiproject.nakamura.api.rules.RulePackageLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,6 +135,7 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
         }
         KnowledgeBase knowledgeBase = knowledgeBaseHolder.getKnowledgeBase();
         StatelessKnowledgeSession ksession = knowledgeBase.newStatelessKnowledgeSession();
+        RuleExecutionLogger logger = new RuleExecutionLogger(ksession, pathToRuleSet, ruleSetNode.hasProperty(RuleConstants.SAKAI_RULE_DEBUG));
         Session session = resourceResolver.adaptTo(Session.class);
 
         Set<String> globalNames = knowledgeBaseHolder.getGlobals().keySet();
@@ -148,9 +153,11 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
             false, false, errors);
         conditionallyAddGlobal(globalNames, cmds, "results",
             new HashMap<String, Object>(), true, true, errors); // add an out parameter
+        
+        
 
         // add other globals and input instances with the RuleExecutionPreProcessor ....
-        RuleExecutionPreProcessor preProcessor = getProcessor(ruleSetNode);
+        RuleExecutionPreProcessor preProcessor = getProcessor(ruleSetNode, errors);
         if (preProcessor != null) {
 
           Map<RulesObjectIdentifier, Object> globals = preProcessor
@@ -173,16 +180,21 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
             if (out != null) {
               cmds.add(CommandFactory.newInsert(g.getValue(), out));
             } else {
-              cmds.add(CommandFactory.newInsert(g.getValue()));
+              Object o = g.getValue();
+              LOGGER.info("Adding as insert "+o);
+              cmds.add(CommandFactory.newInsert(o));
             }
           }
         }
+        
+        
 
         if (errors.hasErrorMessages()) {
           errors.listErrorMessages();
           throw new RuleExecutionException(errors.getErrorMessages(),
               "Unable to execute rule at " + pathToRuleSet + " due to previous Errors");
         }
+        
         // Fire all the rules
         ExecutionResults results = ksession.execute(CommandFactory
             .newBatchExecution(cmds));
@@ -249,11 +261,16 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
    * @throws PathNotFoundException
    * @throws ValueFormatException
    */
-  public RuleExecutionPreProcessor getProcessor(Node ruleSetNode)
+  public RuleExecutionPreProcessor getProcessor(Node ruleSetNode, RuleExecutionErrorListener errors)
       throws RepositoryException {
     if (ruleSetNode.hasProperty(RuleConstants.SAKAI_RULE_EXECUTION_PREPROCESSOR)) {
-      return processors.get(ruleSetNode.getProperty(
-          RuleConstants.SAKAI_RULE_EXECUTION_PREPROCESSOR).getString());
+      String preprocessorName = ruleSetNode.getProperty(
+          RuleConstants.SAKAI_RULE_EXECUTION_PREPROCESSOR).getString();
+      RuleExecutionPreProcessor preprocessor = processors.get(preprocessorName);
+      if (preprocessor == null ) {
+        errors.error("Pre Processor "+preprocessorName+" was not found");
+      }
+      return preprocessor;
     }
     return null;
   }

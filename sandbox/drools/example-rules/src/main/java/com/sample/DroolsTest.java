@@ -12,6 +12,8 @@ import org.drools.logger.KnowledgeRuntimeLogger;
 import org.drools.logger.KnowledgeRuntimeLoggerFactory;
 import org.drools.runtime.StatefulKnowledgeSession;
 
+import java.util.HashMap;
+
 /**
  * This is a sample class to launch a rule.
  */
@@ -28,6 +30,7 @@ public class DroolsTest {
 			message.setMessage("Hello World");
 			message.setStatus(Message.HELLO);
 			ksession.insert(message);
+			ksession.setGlobal("results", new HashMap<String, Object>());
 			ksession.fireAllRules();
 			logger.close();
 		} catch (Throwable t) {
@@ -37,7 +40,7 @@ public class DroolsTest {
 
 	private static KnowledgeBase readKnowledgeBase() throws Exception {
 		KnowledgeBuilder kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
-		kbuilder.add(ResourceFactory.newClassPathResource("Sample.drl"), ResourceType.DRL);
+		kbuilder.add(ResourceFactory.newFileResource("src/main/rules/Sample.drl"), ResourceType.DRL);
 		KnowledgeBuilderErrors errors = kbuilder.getErrors();
 		if (errors.size() > 0) {
 			for (KnowledgeBuilderError error: errors) {
