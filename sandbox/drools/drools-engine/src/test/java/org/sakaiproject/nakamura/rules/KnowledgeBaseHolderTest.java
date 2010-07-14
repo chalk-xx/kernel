@@ -15,53 +15,37 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.sakaiproject.nakamura.rules;
 
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.junit.Assert;
+import junit.framework.Assert;
+
+import org.drools.KnowledgeBase;
+import org.drools.definition.KnowledgePackage;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.rules.RuleContext;
-import org.sakaiproject.nakamura.api.rules.RuleExecutionException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.GregorianCalendar;
-import java.util.Map;
 
 import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.nodetype.NodeType;
 
+public class KnowledgeBaseHolderTest {
 
-public class RuleExecutionServiceImpleTest {
-
-  @Mock
-  private RuleContext ruleContext;
-  @Mock
-  private SlingHttpServletRequest request;
-  @Mock
-  private ResourceResolver resourceResolver;
-  @Mock
-  private Resource ruleSet;
   @Mock
   private Node ruleSetNode;
-  @Mock
-  private ComponentContext context;
-  @Mock
-  private BundleContext bundleContext;
   @Mock
   private NodeIterator nodeIterator;
   @Mock
@@ -76,36 +60,22 @@ public class RuleExecutionServiceImpleTest {
   private Property packageFileBody;
   @Mock
   private Binary binary;
-  @Mock
-  private Session session;
 
-  public RuleExecutionServiceImpleTest() {
+  public KnowledgeBaseHolderTest() {
     MockitoAnnotations.initMocks(this);
   }
   
-  
   @Test
-  public void testRuleExecution() throws RepositoryException, RuleExecutionException {
-    String path = "/test/ruleset";
+  public void test() throws IOException, ClassNotFoundException, RepositoryException, InstantiationException, IllegalAccessException {
     
-    Mockito.when(request.getResourceResolver()).thenReturn(resourceResolver);
-    Mockito.when(resourceResolver.adaptTo(Session.class)).thenReturn(session);
-    Mockito.when(session.getUserID()).thenReturn("ieb");
-    
-    Mockito.when(resourceResolver.getResource(path)).thenReturn(ruleSet);
-    Mockito.when(ruleSet.getResourceType()).thenReturn("sakai/rule-set");
-    Mockito.when(ruleSet.adaptTo(Node.class)).thenReturn(ruleSetNode);
-    Mockito.when(context.getBundleContext()).thenReturn(bundleContext);
-    
-    
-    Mockito.when(ruleSetNode.getPath()).thenReturn(path);
+    Mockito.when(ruleSetNode.getPath()).thenReturn("/test/ruleset");
     Mockito.when(ruleSetNode.getNodes()).thenReturn(nodeIterator);
     Mockito.when(nodeIterator.hasNext()).thenReturn(true, false, true, false);
     Mockito.when(nodeIterator.nextNode()).thenReturn(packageNode, packageNode);
     Mockito.when(packageNode.getPrimaryNodeType()).thenReturn(packageNodeType);
     Mockito.when(packageNodeType.getName()).thenReturn(NodeType.NT_FILE);
         
-    Mockito.when(packageNode.getPath()).thenReturn(path+"/package1");
+    Mockito.when(packageNode.getPath()).thenReturn("/test/ruleset/package1");
     
     Mockito.when(packageNode.getNode(Node.JCR_CONTENT)).thenReturn(packageFileNode);
     
@@ -126,17 +96,12 @@ public class RuleExecutionServiceImpleTest {
         return  this.getClass().getResourceAsStream("/SLING-INF/content/var/rules/org.sakaiproject.nakamura.rules/org.sakaiproject.nakamura.rules.example/0.7-SNAPSHOT/org.sakaiproject.nakamura.rules.example-0.7-SNAPSHOT.pkg");
       }
     });
-
     
     
-      
-    
-    RuleExecutionServiceImpl res = new RuleExecutionServiceImpl();
-    res.activate(context);
-    Map<String, Object> result = res.executeRuleSet(path, request, ruleContext, null);
-    
-    Assert.assertNotNull(result);
-    res.deactivate(context);
+    KnowledgeBaseHolder kbh = new KnowledgeBaseHolder(ruleSetNode,null);
+    KnowledgeBase kb = kbh.getKnowledgeBase();
+    Assert.assertNotNull(kb);
+    Collection<KnowledgePackage> packages = kb.getKnowledgePackages();
+    Assert.assertEquals(1, packages.size());
   }
-  
 }

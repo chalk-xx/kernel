@@ -18,9 +18,20 @@
 
 package org.sakaiproject.nakamura.maven;
 
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.factory.ArtifactFactory;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
+import org.apache.maven.artifact.versioning.VersionRange;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.StringUtils;
 import org.drools.KnowledgeBase;
 import org.drools.RuleBase;
 import org.drools.RuleBaseConfiguration;
@@ -41,7 +52,9 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @goal compile-rules
@@ -75,33 +88,111 @@ public class DroolsCompilerMojo extends AbstractMojo {
    */
   protected String packageOutputName;
 
+  /**
+   * The Maven project.
+   * 
+   * @parameter expression="${project}"
+   * @required
+   * @readonly
+   */
+  protected MavenProject project;
+
+  /**
+   * Used to look up Artifacts in the remote repository.
+   * 
+   * @component
+   */
+  private ArtifactFactory factory;
+
+  /**
+   * Used to look up Artifacts in the remote repository.
+   * 
+   * @component
+   */
+  private ArtifactResolver resolver;
+
+  /**
+   * Location of the local repository.
+   * 
+   * @parameter expression="${localRepository}"
+   * @readonly
+   * @required
+   */
+  private ArtifactRepository local;
+
+  /**
+   * List of Remote Repositories used by the resolver.
+   * 
+   * @parameter expression="${project.remoteArtifactRepositories}"
+   * @readonly
+   * @required
+   */
+  private List<?> remoteRepos;
+
   public void execute() throws MojoExecutionException {
     // find all the rules items and load them into a package
     try {
 
-      URLClassLoader uc = new URLClassLoader(new URL[] { outputDirectory.toURI().toURL() }, this
-          .getClass().getClassLoader()) {
+      // Need to load the build classpath
+      @SuppressWarnings("unchecked")
+      List<Dependency> dependencies = project.getDependencies();
+      List<URL> url = new ArrayList<URL>();
+      url.add(outputDirectory.toURI().toURL());
+      for (Dependency d : dependencies) {
+        String scope = d.getScope();
+        if (!Artifact.SCOPE_TEST.equals(scope)) {
+          Artifact artifact = getArtifact(d.getGroupId(), d.getArtifactId(),
+              d.getVersion(), d.getType(), d.getClassifier());
+          url.add(artifact.getFile().toURI().toURL());
+        }
+      }
+
+      URL[] classpath = url.toArray(new URL[url.size()]);
+
+      URLClassLoader uc = new URLClassLoader(classpath, this.getClass().getClassLoader()) {
+        @Override
+        public Class<?> loadClass(String name) throws ClassNotFoundException {
+          getLog().debug("Loading Class for compile [" + name + "]");
+          Class<?> c = super.loadClass(name);
+          getLog().debug("Loading Class for compile [" + name + "] found [" + c + "]");
+          return c;
+        }
+
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
-          Class<?> c= super.findClass(name);
-          getLog().info("Fincing Class for compile ["+name+"] found ["+c+"]");
+          getLog().debug("Finding Class for compile [" + name + "]");
+          Class<?> c = super.findClass(name);
+          getLog().debug("Finding Class for compile [" + name + "] found [" + c + "]");
           return c;
         }
       };
-      URLClassLoader uc2 = new URLClassLoader(new URL[] { outputDirectory.toURI().toURL() }, this
-          .getClass().getClassLoader()) {
+      URLClassLoader uc2 = new URLClassLoader(classpath, this.getClass().getClassLoader()) {
+        @Override
+        public Class<?> loadClass(String name) throws ClassNotFoundException {
+          getLog().debug("Loading Class for runtime [" + name + "]");
+          Class<?> c = super.loadClass(name);
+          getLog().debug("Loading Class for runtime [" + name + "] found [" + c + "]");
+          return c;
+        }
+
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
-          Class<?> c= super.findClass(name);
-          getLog().info("Finding Class for runtime ["+name+"] found ["+c+"]");
+          getLog().debug("Finding Class for runtime [" + name + "]");
+          Class<?> c = super.findClass(name);
+          getLog().debug("Finding Class for runtime [" + name + "] found [" + c + "]");
           return c;
         }
       };
-      getLog().info("Package Class loader is using classpath " + Arrays.toString(uc.getURLs()));
+      getLog().info(
+          "Package Class loader is using classpath " + Arrays.toString(uc.getURLs()));
+
+      listClassloader("  ", uc);
 
       PackageBuilderConfiguration packageBuilderConfiguration = new PackageBuilderConfiguration(
           uc);
       PackageBuilder pb = new PackageBuilder(packageBuilderConfiguration);
+
+      uc.loadClass("javax.jcr.Session");
 
       DirectoryScanner ds = new DirectoryScanner();
       ds.setIncludes(includes);
@@ -149,35 +240,80 @@ public class DroolsCompilerMojo extends AbstractMojo {
       }
 
       File outputFile = getOutputFile();
-      getLog().info("Saving compiled package to  "+outputFile.getPath());
+      getLog().info("Saving compiled package to  " + outputFile.getPath());
       outputFile.getParentFile().mkdirs();
       FileOutputStream fout = new FileOutputStream(outputFile);
       DroolsStreamUtils.streamOut(fout, p);
       fout.close();
 
-      
-      
-      getLog().info("Testing Compiled package "+outputFile.getPath());
+      getLog().info("Testing Compiled package " + outputFile.getPath());
 
       File inputFile = getOutputFile();
       FileInputStream fin = new FileInputStream(inputFile);
-      
+
       RuleBaseConfiguration config = new RuleBaseConfiguration(uc2);
       RuleBase ruleBase = RuleBaseFactory.newRuleBase(config);
       Object o = DroolsStreamUtils.streamIn(fin, uc);
 
-     
       ruleBase.addPackage((Package) o);
       KnowledgeBase kb = new KnowledgeBaseImpl(ruleBase);
 
+      @SuppressWarnings("unused")
       StatelessKnowledgeSession session = kb.newStatelessKnowledgeSession();
-      
-      getLog().info("Testing passed ");
 
+      getLog().info("Testing passed ");
 
     } catch (Exception e) {
       getLog().error(e);
       throw new MojoExecutionException(e.getMessage());
+    }
+
+  }
+
+  /**
+   * Get a resolved Artifact from the coordinates provided
+   * 
+   * @return the artifact, which has been resolved.
+   * @throws MojoExecutionException
+   */
+  protected Artifact getArtifact(String groupId, String artifactId, String version,
+      String type, String classifier) throws MojoExecutionException {
+    Artifact artifact;
+    VersionRange vr;
+
+    try {
+      vr = VersionRange.createFromVersionSpec(version);
+    } catch (InvalidVersionSpecificationException e) {
+      vr = VersionRange.createFromVersion(version);
+    }
+
+    if (StringUtils.isEmpty(classifier)) {
+      artifact = factory.createDependencyArtifact(groupId, artifactId, vr, type, null,
+          Artifact.SCOPE_COMPILE);
+    } else {
+      artifact = factory.createDependencyArtifact(groupId, artifactId, vr, type,
+          classifier, Artifact.SCOPE_COMPILE);
+    }
+    try {
+      resolver.resolve(artifact, remoteRepos, local);
+    } catch (ArtifactResolutionException e) {
+      throw new MojoExecutionException("Unable to resolve artifact.", e);
+    } catch (ArtifactNotFoundException e) {
+      throw new MojoExecutionException("Unable to find artifact.", e);
+    }
+    return artifact;
+  }
+
+  private void listClassloader(String indent, ClassLoader uc) {
+    if (uc != null) {
+      if (uc instanceof URLClassLoader) {
+        URLClassLoader urlC = (URLClassLoader) uc;
+        getLog().debug(
+            indent + "Classloader : " + uc + " " + Arrays.toString(urlC.getURLs()));
+      } else {
+        getLog().debug(indent + "Classloader : " + uc);
+      }
+      listClassloader(indent + "  ", uc.getParent());
     }
 
   }

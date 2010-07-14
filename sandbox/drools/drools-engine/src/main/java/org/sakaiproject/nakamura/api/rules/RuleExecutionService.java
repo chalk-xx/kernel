@@ -36,8 +36,9 @@ public interface RuleExecutionService {
    * @param ruleContext
    *          a context object that may be used by any pre processor.
    * @return a map representing the results of the rule execution.
+   * @throws RuleExecutionException 
    */
   public Map<String, Object> executeRuleSet(String pathToRuleSet,
-      SlingHttpServletRequest request, RuleContext ruleContext);
+      SlingHttpServletRequest request, RuleContext ruleContext, RuleExecutionErrorListener errorListener) throws RuleExecutionException;
 
 }

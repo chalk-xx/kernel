@@ -1,7 +1,12 @@
 package com.sample
  
 import com.sample.DroolsTest.Message;
- 
+import javax.jcr.Session;
+import java.util.Map;
+
+global Session session;
+global Map results;
+
 rule "Hello World"
 	when
 		m : Message( status == Message.HELLO, myMessage : message )

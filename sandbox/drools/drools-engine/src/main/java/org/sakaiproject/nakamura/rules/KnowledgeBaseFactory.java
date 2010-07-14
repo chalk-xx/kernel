@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.rules;
 
-import org.drools.KnowledgeBase;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -35,6 +33,7 @@ public class KnowledgeBaseFactory {
 
   /**
    * @param ruleSetNode
+   * @param errors 
    * @return
    * @throws RepositoryException
    * @throws IOException
@@ -42,21 +41,21 @@ public class KnowledgeBaseFactory {
    * @throws InstantiationException 
    * @throws ClassNotFoundException 
    */
-  public KnowledgeBase getKnowledgeBase(Node ruleSetNode) throws RepositoryException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+  public KnowledgeBaseHolder getKnowledgeBase(Node ruleSetNode, RuleExecutionErrorListenerImpl errors) throws RepositoryException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
     
     String key = ruleSetNode.getPath();
     synchronized (cache) {
       if ( cache.containsKey(key)) {
         KnowledgeBaseHolder kb = cache.get(key);
         if ( kb != null ) {
-          kb.refresh(ruleSetNode);
-          return kb.getKnowledgeBase();
+          kb.refresh(ruleSetNode, errors);
+          return kb;
         }
       }
-      KnowledgeBaseHolder kb = new KnowledgeBaseHolder(ruleSetNode);
+      KnowledgeBaseHolder kb = new KnowledgeBaseHolder(ruleSetNode, errors);
       cache.put(key, kb);
-      return kb.getKnowledgeBase();
-      
+      return kb;
     }
   }
+  
 }

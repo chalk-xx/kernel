@@ -34,7 +34,7 @@
     </plugins>
   </build>
   <dependencies>
-  
+
     <dependency>
       <groupId>javax.jcr</groupId>
       <artifactId>jcr</artifactId>
@@ -49,8 +49,8 @@
       <artifactId>org.apache.sling.api</artifactId>
       <version>2.0.4-incubator</version>
     </dependency>
-    
-    
+
+
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-api</artifactId>
@@ -95,17 +95,22 @@
       <artifactId>mockito-all</artifactId>
       <version>1.8.4</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura.rules</groupId>
+      <artifactId>org.sakaiproject.nakamura.rules.example</artifactId>
+      <version>0.7-SNAPSHOT</version>
+    </dependency>
   </dependencies>
   <repositories>
     <repository>
-        <id>Drools Repo</id>
-        <url>http://repository.jboss.com/maven2</url>
-        <releases>
-           <enabled>true</enabled>
-        </releases>
-        <snapshots>
-          <enabled>false</enabled>
-        </snapshots>        
-     </repository>
+      <id>Drools Repo</id>
+      <url>http://repository.jboss.com/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
   </repositories>
 </project>
