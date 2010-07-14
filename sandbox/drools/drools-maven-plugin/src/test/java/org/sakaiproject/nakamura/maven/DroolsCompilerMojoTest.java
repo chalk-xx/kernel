@@ -1,7 +1,9 @@
 package org.sakaiproject.nakamura.maven;
 
 
+import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,6 +33,8 @@ public class DroolsCompilerMojoTest {
     }
     FileUtils.copyDirectoryStructure(new File("target/classes/"), d.outputDirectory);
     
+    Model model = new Model();
+    d.project = new MavenProject(model);
     
     d.execute();
     
@@ -52,6 +56,8 @@ public class DroolsCompilerMojoTest {
     
     d.rulesdir.mkdirs();
     d.outputDirectory.mkdirs();
+    Model model = new Model();
+    d.project = new MavenProject(model);
     
     try {
     

@@ -102,14 +102,14 @@ public class DroolsCompilerMojo extends AbstractMojo {
    * 
    * @component
    */
-  private ArtifactFactory factory;
+  protected ArtifactFactory factory;
 
   /**
    * Used to look up Artifacts in the remote repository.
    * 
    * @component
    */
-  private ArtifactResolver resolver;
+  protected ArtifactResolver resolver;
 
   /**
    * Location of the local repository.
@@ -118,7 +118,7 @@ public class DroolsCompilerMojo extends AbstractMojo {
    * @readonly
    * @required
    */
-  private ArtifactRepository local;
+  protected ArtifactRepository local;
 
   /**
    * List of Remote Repositories used by the resolver.
@@ -127,7 +127,7 @@ public class DroolsCompilerMojo extends AbstractMojo {
    * @readonly
    * @required
    */
-  private List<?> remoteRepos;
+  protected List<?> remoteRepos;
 
   public void execute() throws MojoExecutionException {
     // find all the rules items and load them into a package
@@ -192,7 +192,6 @@ public class DroolsCompilerMojo extends AbstractMojo {
           uc);
       PackageBuilder pb = new PackageBuilder(packageBuilderConfiguration);
 
-      uc.loadClass("javax.jcr.Session");
 
       DirectoryScanner ds = new DirectoryScanner();
       ds.setIncludes(includes);

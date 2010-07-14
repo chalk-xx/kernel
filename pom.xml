@@ -113,8 +113,7 @@
         <module>sandbox/sessiontest</module>
         <module>sandbox/sitetemplates</module>
         <module>sandbox/imap</module>
-        <module>sandbox/drools/drools-repository</module>
-        <module>sandbox/drools/drools-engine</module>
+        <module>sandbox/drools</module>
        </modules>
     </profile>
     <profile>
