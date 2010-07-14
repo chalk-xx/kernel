@@ -29,11 +29,8 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.drools.KnowledgeBase;
 import org.drools.command.Command;
 import org.drools.command.CommandFactory;
-import org.drools.logger.KnowledgeRuntimeLogger;
-import org.drools.logger.KnowledgeRuntimeLoggerFactory;
 import org.drools.runtime.ExecutionResults;
 import org.drools.runtime.StatelessKnowledgeSession;
-import org.mvel2.PreProcessor;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -43,7 +40,6 @@ import org.sakaiproject.nakamura.api.rules.RuleExecutionErrorListener;
 import org.sakaiproject.nakamura.api.rules.RuleExecutionException;
 import org.sakaiproject.nakamura.api.rules.RuleExecutionPreProcessor;
 import org.sakaiproject.nakamura.api.rules.RuleExecutionService;
-import org.sakaiproject.nakamura.api.rules.RulePackageLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,7 +130,12 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
               "Failed to load rule set " + pathToRuleSet);
         }
         KnowledgeBase knowledgeBase = knowledgeBaseHolder.getKnowledgeBase();
+        if ( knowledgeBase == null ) {
+          throw new RuleExecutionException(errors.getErrorMessages(),
+              "Failed to load rule set, no knowledgebase " + pathToRuleSet);          
+        }
         StatelessKnowledgeSession ksession = knowledgeBase.newStatelessKnowledgeSession();
+        @SuppressWarnings("unused")
         RuleExecutionLogger logger = new RuleExecutionLogger(ksession, pathToRuleSet, ruleSetNode.hasProperty(RuleConstants.SAKAI_RULE_DEBUG));
         Session session = resourceResolver.adaptTo(Session.class);
 

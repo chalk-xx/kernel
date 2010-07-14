@@ -31,6 +31,15 @@ public interface RuleConstants {
    */
   public static final String SAKAI_RULE_EXECUTION_PREPROCESSOR = "sakai:rule-execution-preprocessor";
 
+  /**
+   * the property name that if present will enable debugging on the rule when its executed. Debug messages appear in the log.
+   */
   public static final String SAKAI_RULE_DEBUG = "sakai:rule-debug-enable";
+
+  /**
+   * The name of the property holding the name of the class that can load a package from the classpath, must implement RulePackageLoader interface.
+   */
+  public static final String SAKAI_BUNDLE_LOADER_CLASS = "sakai:bundle-resource-class";
+
 
 }

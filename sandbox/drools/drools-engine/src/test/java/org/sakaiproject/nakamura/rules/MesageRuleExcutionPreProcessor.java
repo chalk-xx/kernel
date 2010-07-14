@@ -11,7 +11,11 @@ import java.util.Map;
 public class MesageRuleExcutionPreProcessor implements RuleExecutionPreProcessor {
 
   public Map<RulesObjectIdentifier, Object> getAdditonalGlobals(RuleContext ruleContext) {
-    return new HashMap<RulesObjectIdentifier, Object>();
+    Map<RulesObjectIdentifier, Object> inputs = new HashMap<RulesObjectIdentifier, Object>();
+    // this should be ignored and not cause a failure
+    RulesObjectIdentifier invalid = new RulesObjectIdentifier("ignore-this-global", null);
+    inputs.put(invalid, new Object());
+    return inputs;
   }
 
   public Map<RulesObjectIdentifier, Object> getAdditonalInputs(RuleContext ruleContext) {

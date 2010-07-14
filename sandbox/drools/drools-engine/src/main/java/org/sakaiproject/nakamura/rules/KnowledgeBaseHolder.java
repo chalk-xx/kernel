@@ -27,6 +27,7 @@ import org.drools.definition.rule.Rule;
 import org.drools.impl.KnowledgeBaseImpl;
 import org.drools.rule.Package;
 import org.drools.util.DroolsStreamUtils;
+import org.sakaiproject.nakamura.api.rules.RuleConstants;
 import org.sakaiproject.nakamura.api.rules.RulePackageLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,15 +59,15 @@ public class KnowledgeBaseHolder {
   private long lastModified = 0;
   private InternalRuleBase ruleBase;
 
-  public KnowledgeBaseHolder(Node ruleSetNode, RuleExecutionErrorListenerImpl errors) throws IOException,
-      ClassNotFoundException, RepositoryException, InstantiationException,
-      IllegalAccessException {
+  public KnowledgeBaseHolder(Node ruleSetNode, RuleExecutionErrorListenerImpl errors)
+      throws IOException, ClassNotFoundException, RepositoryException,
+      InstantiationException, IllegalAccessException {
     load(ruleSetNode, true, errors);
   }
 
-  private void load(Node ruleSetNode, boolean force, RuleExecutionErrorListenerImpl errors) throws IOException,
-      ClassNotFoundException, RepositoryException, InstantiationException,
-      IllegalAccessException {
+  private void load(Node ruleSetNode, boolean force, RuleExecutionErrorListenerImpl errors)
+      throws IOException, ClassNotFoundException, RepositoryException,
+      InstantiationException, IllegalAccessException {
     // not in the cache, create a knowledge base.
     // there are 2 ways of creating a rule set.
     // one is to use a resource from another bundle and also use its classloader
@@ -99,30 +100,27 @@ public class KnowledgeBaseHolder {
 
               }
             }
-          } else {
+          } else if (n.hasProperty(RuleConstants.SAKAI_BUNDLE_LOADER_CLASS)) {
+            String bundleLoaderClass = n.getProperty(
+                RuleConstants.SAKAI_BUNDLE_LOADER_CLASS).getString();
+            @SuppressWarnings("unchecked")
+            Class<RulePackageLoader> ruleLoaderCLass = (Class<RulePackageLoader>) this
+                .getClass().getClassLoader().loadClass(bundleLoaderClass);
+            RulePackageLoader rpl = ruleLoaderCLass.newInstance();
+            LOGGER.info("Loaded RulePackageLoader Class {} as {} ", bundleLoaderClass,
+                rpl);
 
-            if (n.hasProperty("sling/resourceType")) {
-              String resourceType = n.getProperty("sling/ResourceType").getString();
-              if ("sakai/rule-set-package-service".equals(resourceType)) {
-                @SuppressWarnings("unchecked")
-                Class<RulePackageLoader> ruleLoaderCLass = (Class<RulePackageLoader>) this
-                    .getClass().getClassLoader()
-                    .loadClass(n.getProperty("sakai:bundle-resource-class").getString());
-                RulePackageLoader rpl = ruleLoaderCLass.newInstance();
-                InputStream in = rpl.getPackageInputStream();
-                try {
-                  WeakReferenceClassloader wrc = new WeakReferenceClassloader(
-                      rpl.getPackageClassLoader());
-                  classloaders.add(wrc);
-                  Object o = DroolsStreamUtils.streamIn(in, wrc);
-                  newRuleBase.addPackage((Package) o);
-                } finally {
-                  try {
-                    in.close();
-                  } catch (Exception e) {
-
-                  }
-                }
+            InputStream in = rpl.getPackageInputStream();
+            try {
+              WeakReferenceClassloader wrc = new WeakReferenceClassloader(
+                  rpl.getPackageClassLoader());
+              classloaders.add(wrc);
+              Object o = DroolsStreamUtils.streamIn(in, wrc);
+              newRuleBase.addPackage((Package) o);
+            } finally {
+              try {
+                in.close();
+              } catch (Exception e) {
 
               }
             }
@@ -198,21 +196,14 @@ public class KnowledgeBaseHolder {
           curentLastModified = Math.max(curentLastModified, n.getNode(Node.JCR_CONTENT)
               .getProperty(Property.JCR_LAST_MODIFIED).getDate().getTimeInMillis());
         } catch (Exception ex) {
-          ex.printStackTrace();
+          LOGGER.debug("Cant find last modified time ", ex);
         }
-      } else {
-        if (n.hasProperty("sling/resourceType")) {
-          String resourceType = n.getProperty("sling/ResourceType").getString();
-
-          if ("sakai/rule-set-package-service".equals(resourceType)) {
-            try {
-              curentLastModified = Math.max(curentLastModified,
-                  n.getNode(Node.JCR_CONTENT).getProperty(Property.JCR_LAST_MODIFIED)
-                      .getDate().getTimeInMillis());
-            } catch (Exception ex) {
-              ex.printStackTrace();
-            }
-          }
+      } else if (n.hasProperty(RuleConstants.SAKAI_BUNDLE_LOADER_CLASS)) {
+        try {
+          curentLastModified = Math.max(curentLastModified,
+              n.getProperty(Property.JCR_LAST_MODIFIED).getDate().getTimeInMillis());
+        } catch (Exception ex) {
+          LOGGER.debug("Cant find last modified time ", ex);
         }
       }
     }
@@ -221,6 +212,7 @@ public class KnowledgeBaseHolder {
 
   /**
    * reload the rule set identified by the node.
+   * 
    * @param ruleSetNode
    * @param errors
    * @throws IOException
@@ -229,8 +221,9 @@ public class KnowledgeBaseHolder {
    * @throws InstantiationException
    * @throws IllegalAccessException
    */
-  public void refresh(Node ruleSetNode, RuleExecutionErrorListenerImpl errors) throws IOException, ClassNotFoundException,
-      RepositoryException, InstantiationException, IllegalAccessException {
+  public void refresh(Node ruleSetNode, RuleExecutionErrorListenerImpl errors)
+      throws IOException, ClassNotFoundException, RepositoryException,
+      InstantiationException, IllegalAccessException {
     load(ruleSetNode, false, errors);
   }
 
