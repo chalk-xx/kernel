@@ -139,6 +139,21 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
       if (assertion != null) {
         LOGGER.debug("CAS Authentication attribute will be removed");
         session.removeAttribute(CONST_CAS_ASSERTION);
+
+        // If we are also supposed to redirect to the CAS server to log out
+        // of SSO, set up the redirect now.
+        if (casServerLogoutUrl != null && casServerLogoutUrl.length() > 0) {
+          String target = (String) request.getAttribute(Authenticator.LOGIN_RESOURCE);
+          if (target == null || target.length() == 0) {
+            target = request.getParameter(Authenticator.LOGIN_RESOURCE);
+          }
+          if (target != null && target.length() > 0 && !("/".equals(target))) {
+            LOGGER.info("CAS logout about to override requested redirect to {} and instead redirect to {}", target, casServerLogoutUrl);
+          } else {
+            LOGGER.debug("CAS logout will request redirect to {}", casServerLogoutUrl);
+          }
+          request.setAttribute(Authenticator.LOGIN_RESOURCE, casServerLogoutUrl);
+        }
       }
     }
   }
@@ -320,52 +335,6 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
       }
     }
     return returnPath;
-  }
-
-  /**
-   * If CAS SSO logout has been configured, drop this handler's credentials,
-   * invalidate this session, and then redirect to the CAS server's logout URL.
-   * <p>
-   * TODO This goes against the spirit of current development in Sling
-   * authentication mechanisms, since it bypasses the usual logout loop.
-   * If multiple authentication handlers were involved in
-   * authenticating the current session (e.g., if a trusted token service
-   * picked up the CAS authentication), their dropCredentials methods will
-   * not be called.
-   *
-   * @param request
-   * @param response
-   * @return true if the redirect occurred; false if normal Sling logout
-   * should continue instead
-   * @throws IOException
-   */
-  boolean casLogout(HttpServletRequest request, HttpServletResponse response)
-      throws IOException {
-    boolean didRedirect = false;
-    final String authType = request.getAuthType();
-    if (CasAuthConstants.CAS_AUTH_TYPE.equals(authType)) {
-      if (casServerLogoutUrl != null && casServerLogoutUrl.length() > 0) {
-        dropCredentials(request, response);
-        final HttpSession session = request.getSession(false);
-        if (session != null) {
-          try {
-            session.invalidate();
-          } catch (IllegalStateException e) {
-            LOGGER.debug("Session already invalid", e);
-          }
-        }
-        LOGGER.info("About to redirect to {}", casServerLogoutUrl);
-        try {
-          response.sendRedirect(casServerLogoutUrl);
-          didRedirect = true;
-        } catch (IOException e) {
-          LOGGER.error("Failed to send redirect to " + casServerLogoutUrl, e);
-        }
-      }
-    } else {
-      LOGGER.info("CAS logout requested for non-CAS session; authType={}", authType);
-    }
-    return didRedirect;
   }
 
   //----------- Internal ----------------------------
