@@ -36,6 +36,7 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -47,6 +48,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.NameSanitizer;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +56,7 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -162,6 +165,13 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
    * @scr.reference
    */
   protected transient SlingRepository repository;
+
+  /**
+   * Used to launch OSGi events.
+   * 
+   * @scr.reference
+   */
+  protected transient EventAdmin eventAdmin;
 
   /**
    * 
@@ -318,6 +328,16 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                     session.save();
                 }
 
+                // Launch an OSGi event for creating a group.
+                try {
+                  Dictionary<String, String> properties = new Hashtable<String, String>();
+                  properties.put(UserConstants.EVENT_PROP_USERID, principalName);
+                  EventUtils
+                      .sendOsgiEvent(properties, UserConstants.TOPIC_GROUP_CREATED, eventAdmin);
+                } catch (Exception e) {
+                  // Trap all exception so we don't disrupt the normal behaviour.
+                  LOGGER.error("Failed to launch an OSGi event for creating a user.", e);
+                }
             }
         } catch (RepositoryException re) {
             throw new RepositoryException("Failed to create new group.", re);

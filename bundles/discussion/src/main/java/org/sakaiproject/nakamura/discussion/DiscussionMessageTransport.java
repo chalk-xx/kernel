@@ -22,6 +22,15 @@ import static javax.jcr.security.Privilege.JCR_READ;
 import static javax.jcr.security.Privilege.JCR_REMOVE_NODE;
 import static javax.jcr.security.Privilege.JCR_WRITE;
 import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
+import static org.sakaiproject.nakamura.api.discussion.DiscussionConstants.TOPIC_DISCUSSION_MESSAGE;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.BOX_INBOX;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_FROM;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_ID;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_MESSAGEBOX;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_SENDSTATE;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_TO;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_TYPE;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NOTIFIED;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -30,15 +39,20 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
-import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -58,9 +72,13 @@ public class DiscussionMessageTransport implements MessageTransport {
   private static final String TYPE = DiscussionConstants.TYPE_DISCUSSION;
 
   @Reference
-  private SlingRepository slingRepository;
+  protected transient SlingRepository slingRepository;
+
   @Reference
-  private MessagingService messagingService;
+  protected transient MessagingService messagingService;
+
+  @Reference
+  protected transient EventAdmin eventAdmin;
 
   @org.apache.felix.scr.annotations.Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
@@ -87,8 +105,7 @@ public class DiscussionMessageTransport implements MessageTransport {
         if (DiscussionConstants.TYPE_DISCUSSION.equals(route.getTransport())) {
           String rcpt = route.getRcpt();
           // the path were we want to save messages in.
-          String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID)
-              .getString();
+          String messageId = originalMessage.getProperty(PROP_SAKAI_ID).getString();
           String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
 
           // Copy the node to the destination
@@ -102,19 +119,16 @@ public class DiscussionMessageTransport implements MessageTransport {
           }
 
           // Add some extra properties on the just created node.
-          n.setProperty(MessageConstants.PROP_SAKAI_TYPE, route.getTransport());
-          n.setProperty(MessageConstants.PROP_SAKAI_TO, route.getRcpt());
-          n.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
-              MessageConstants.BOX_INBOX);
-          n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
-              MessageConstants.STATE_NOTIFIED);
+          n.setProperty(PROP_SAKAI_TYPE, route.getTransport());
+          n.setProperty(PROP_SAKAI_TO, route.getRcpt());
+          n.setProperty(PROP_SAKAI_MESSAGEBOX, BOX_INBOX);
+          n.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
 
           if (!testing) {
             // This will probably be saved in a site store. Not all the users will have
             // access to their message. So we add an ACL that allows the user to edit and
             // delete it later on.
-            String from = originalMessage.getProperty(MessageConstants.PROP_SAKAI_FROM)
-                .getString();
+            String from = originalMessage.getProperty(PROP_SAKAI_FROM).getString();
             Authorizable authorizable = AccessControlUtil.getUserManager(session)
                 .getAuthorizable(from);
             replaceAccessControlEntry(session, toPath, authorizable.getPrincipal(),
@@ -122,6 +136,18 @@ public class DiscussionMessageTransport implements MessageTransport {
           }
           if (session.hasPendingChanges()) {
             session.save();
+          }
+
+          try {
+            // Send an OSGi event. The value of the selector is the last part of the event
+            // topic.
+            final Dictionary<String, String> properties = new Hashtable<String, String>();
+            properties.put(UserConstants.EVENT_PROP_USERID, route.getRcpt());
+            properties.put("from", n.getProperty(PROP_SAKAI_FROM).getString());
+            EventUtils.sendOsgiEvent(properties, TOPIC_DISCUSSION_MESSAGE, eventAdmin);
+          } catch (Exception e) {
+            // Swallow all exceptions, but leave a note in the error log.
+            LOG.error("Failed to send OSGi event for discussion", e);
           }
         }
       }
@@ -141,22 +167,6 @@ public class DiscussionMessageTransport implements MessageTransport {
    */
   public String getType() {
     return TYPE;
-  }
-
-  protected void bindMessagingService(MessagingService messagingService) {
-    this.messagingService = messagingService;
-  }
-
-  protected void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
-  }
-
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
   }
 
   /**

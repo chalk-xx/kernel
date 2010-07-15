@@ -24,6 +24,7 @@ import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_EVE
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_SIGNEDUP_DATE;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_SIGNEDUP_ORIGINAL_EVENT;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_USER;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.TOPIC_CALENDAR_SIGNUP;
 
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -32,21 +33,26 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
 import org.sakaiproject.nakamura.api.calendar.signup.SignupPreProcessor;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.jcr.Node;
@@ -74,6 +80,9 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
   @Reference
   protected transient SlingRepository slingRepository;
 
+  @Reference
+  protected transient EventAdmin eventAdmin;
+
   /**
    * {@inheritDoc}
    * 
@@ -92,7 +101,8 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
     }
 
     // Grab the signup node.
-    Node signupNode = request.getResource().adaptTo(Node.class);
+    Resource signupResource = request.getResource();
+    Node signupNode = signupResource.adaptTo(Node.class);
 
     try {
       // Check if this user is already signed up for this event.
@@ -114,6 +124,11 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
 
       // Copy the event to the user his calendar.
       copyEventNode(signupNode);
+      
+      // Send an OSGi event for this sign up.
+      Dictionary<String, String> properties = new Hashtable<String, String>();
+      properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
+      EventUtils.sendOsgiEvent(signupResource, properties, TOPIC_CALENDAR_SIGNUP, eventAdmin);
     } catch (CalendarException e) {
       LOGGER.error("Invalid calendar signup request.", e);
       response.sendError(e.getCode(), e.getMessage());

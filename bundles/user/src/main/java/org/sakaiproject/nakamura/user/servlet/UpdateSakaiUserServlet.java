@@ -24,6 +24,7 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.post.UpdateUserServlet;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.servlets.post.Modification;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -33,9 +34,13 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.jcr.RepositoryException;
@@ -129,6 +134,13 @@ public class UpdateSakaiUserServlet extends UpdateUserServlet {
   private transient AuthorizablePostProcessService postProcessorService;
 
   /**
+   * Used to launch OSGi events.
+   * 
+   * @scr.reference
+   */
+  protected transient EventAdmin eventAdmin;
+
+  /**
    * {@inheritDoc}
    * 
    * @see org.apache.sling.jackrabbit.usermanager.post.CreateUserServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
@@ -148,6 +160,17 @@ public class UpdateSakaiUserServlet extends UpdateUserServlet {
       LOGGER.warn(e.getMessage(), e);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
+    }
+    
+    // Launch an OSGi event for updating a user.
+    try {
+      Dictionary<String, String> properties = new Hashtable<String, String>();
+      properties.put(UserConstants.EVENT_PROP_USERID, authorizable.getID());
+      EventUtils
+          .sendOsgiEvent(properties, UserConstants.TOPIC_USER_UPDATE, eventAdmin);
+    } catch (Exception e) {
+      // Trap all exception so we don't disrupt the normal behaviour.
+      LOGGER.error("Failed to launch an OSGi event for creating a user.", e);
     }
   }
 

@@ -71,7 +71,39 @@ public interface UserConstants {
   public static final String GROUP_REPO_LOCATION = "/rep:security/rep:authorizables/rep:groups";
 
   
-  public static final String EVENT_PROP_USERID = "user";
+  /**
+   * The key name for the property in the event that will hold the userid.
+   */
+  public static final String EVENT_PROP_USERID = "userid";
 
+  /**
+   * The name of the OSGi event topic for creating a user.
+   */
+  public static final String TOPIC_USER_CREATED = "org/sakaiproject/nakamura/user/created";
+
+  /**
+   * The name of the OSGi event topic for updating a user.
+   */
+  public static final String TOPIC_USER_UPDATE = "org/sakaiproject/nakamura/user/updated";
+
+  /**
+   * The name of the OSGi event topic for deleting a user.
+   */
+  public static final String TOPIC_USER_DELETED = "org/sakaiproject/nakamura/user/deleted";
+  
+  /**
+   * The name of the OSGi event topic for creating a group.
+   */
+  public static final String TOPIC_GROUP_CREATED = "org/sakaiproject/nakamura/group/created";
+
+  /**
+   * The name of the OSGi event topic for updating a group.
+   */
+  public static final String TOPIC_GROUP_UPDATE = "org/sakaiproject/nakamura/group/updated";
+
+  /**
+   * The name of the OSGi event topic for deleting a group.
+   */
+  public static final String TOPIC_GROUP_DELETED = "org/sakaiproject/nakamura/group/deleted";
   
 }

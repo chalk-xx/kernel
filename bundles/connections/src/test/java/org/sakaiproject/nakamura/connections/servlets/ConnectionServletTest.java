@@ -29,6 +29,9 @@ import org.apache.sling.api.request.RequestPathInfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.connections.ConnectionException;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionOperation;
@@ -44,18 +47,23 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ConnectionServletTest {
 
+  @Mock
   private SlingHttpServletResponse response;
+  @Mock
   private SlingHttpServletRequest request;
   private ConnectionServlet servlet;
+  @Mock
   private ConnectionManager connectionManager;
+  @Mock
+  private EventAdmin eventAdmin;
 
   @Before
   public void setUp() {
-    request = mock(SlingHttpServletRequest.class);
-    response = mock(SlingHttpServletResponse.class);
-    connectionManager = mock(ConnectionManager.class);
+    MockitoAnnotations.initMocks(this);
+    
     servlet = new ConnectionServlet();
     servlet.bindConnectionManager(connectionManager);
+    servlet.eventAdmin = eventAdmin;
 
     when(request.getRemoteUser()).thenReturn("alice");
   }

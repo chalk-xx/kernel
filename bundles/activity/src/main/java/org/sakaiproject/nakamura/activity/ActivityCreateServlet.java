@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.activity;
 
 import static org.apache.jackrabbit.JcrConstants.NT_UNSTRUCTURED;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_STORE_NAME;
+import static org.sakaiproject.nakamura.api.activity.ActivityConstants.EVENT_TOPIC;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_ACTOR_ID;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_APPLICATION_ID;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_TEMPLATE_ID;
@@ -45,12 +46,16 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -189,7 +194,10 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
       throw new Error(e);
     }
     // post the asynchronous OSGi event
-    eventAdmin.postEvent(ActivityUtils.createEvent(session.getUserID(), activityItemPath));
+    final Dictionary<String, String> properties = new Hashtable<String, String>();
+    properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
+    properties.put(ActivityConstants.EVENT_PROP_PATH, activityItemPath);
+    EventUtils.sendOsgiEvent(target, properties, EVENT_TOPIC, eventAdmin);
   }
 
   /**
