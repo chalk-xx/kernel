@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.api.rules;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
 
 import java.util.Map;
 
@@ -39,6 +40,6 @@ public interface RuleExecutionService {
    * @throws RuleExecutionException 
    */
   public Map<String, Object> executeRuleSet(String pathToRuleSet,
-      SlingHttpServletRequest request, RuleContext ruleContext, RuleExecutionErrorListener errorListener) throws RuleExecutionException;
+      SlingHttpServletRequest request, Resource resource, RuleContext ruleContext, RuleExecutionErrorListener errorListener) throws RuleExecutionException;
 
 }

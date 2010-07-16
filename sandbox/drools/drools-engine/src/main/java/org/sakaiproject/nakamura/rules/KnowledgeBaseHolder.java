@@ -100,9 +100,9 @@ public class KnowledgeBaseHolder {
 
               }
             }
-          } else if (n.hasProperty(RuleConstants.SAKAI_BUNDLE_LOADER_CLASS)) {
+          } else if (n.hasProperty(RuleConstants.PROP_SAKAI_BUNDLE_LOADER_CLASS)) {
             String bundleLoaderClass = n.getProperty(
-                RuleConstants.SAKAI_BUNDLE_LOADER_CLASS).getString();
+                RuleConstants.PROP_SAKAI_BUNDLE_LOADER_CLASS).getString();
             @SuppressWarnings("unchecked")
             Class<RulePackageLoader> ruleLoaderCLass = (Class<RulePackageLoader>) this
                 .getClass().getClassLoader().loadClass(bundleLoaderClass);
@@ -198,7 +198,7 @@ public class KnowledgeBaseHolder {
         } catch (Exception ex) {
           LOGGER.debug("Cant find last modified time ", ex);
         }
-      } else if (n.hasProperty(RuleConstants.SAKAI_BUNDLE_LOADER_CLASS)) {
+      } else if (n.hasProperty(RuleConstants.PROP_SAKAI_BUNDLE_LOADER_CLASS)) {
         try {
           curentLastModified = Math.max(curentLastModified,
               n.getProperty(Property.JCR_LAST_MODIFIED).getDate().getTimeInMillis());

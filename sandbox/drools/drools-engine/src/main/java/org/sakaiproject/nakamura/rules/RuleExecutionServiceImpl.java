@@ -113,11 +113,11 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
    */
   @SuppressWarnings("unchecked")
   public Map<String, Object> executeRuleSet(String pathToRuleSet,
-      SlingHttpServletRequest request, RuleContext ruleContext,
+      SlingHttpServletRequest request, Resource resource, RuleContext ruleContext,
       RuleExecutionErrorListener userErrorListener) throws RuleExecutionException {
     ResourceResolver resourceResolver = request.getResourceResolver();
     Resource ruleSet = resourceResolver.getResource(pathToRuleSet);
-    if (ruleSet != null && "sakai/rule-set".equals(ruleSet.getResourceType())) {
+    if (ruleSet != null && RuleConstants.SAKAI_RULE_SET.equals(ruleSet.getResourceType())) {
       try {
         Node ruleSetNode = ruleSet.adaptTo(Node.class);
         RuleExecutionErrorListenerImpl errors = new RuleExecutionErrorListenerImpl(
@@ -136,7 +136,7 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
         }
         StatelessKnowledgeSession ksession = knowledgeBase.newStatelessKnowledgeSession();
         @SuppressWarnings("unused")
-        RuleExecutionLogger logger = new RuleExecutionLogger(ksession, pathToRuleSet, ruleSetNode.hasProperty(RuleConstants.SAKAI_RULE_DEBUG));
+        RuleExecutionLogger logger = new RuleExecutionLogger(ksession, pathToRuleSet, ruleSetNode.hasProperty(RuleConstants.PROP_SAKAI_RULE_DEBUG));
         Session session = resourceResolver.adaptTo(Session.class);
 
         Set<String> globalNames = knowledgeBaseHolder.getGlobals().keySet();
@@ -146,7 +146,9 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
             errors);
         conditionallyAddGlobal(globalNames, cmds, "request", request, false, false,
             errors);
-        conditionallyAddGlobal(globalNames, cmds, "resource", ruleSet, false, false,
+        conditionallyAddGlobal(globalNames, cmds, "resource", resource, false, false,
+            errors);
+        conditionallyAddGlobal(globalNames, cmds, "ruleset", ruleSet, false, false,
             errors);
         conditionallyAddGlobal(globalNames, cmds, "resourceResolver", resourceResolver,
             false, false, errors);
@@ -264,9 +266,9 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
    */
   public RuleExecutionPreProcessor getProcessor(Node ruleSetNode, RuleExecutionErrorListener errors)
       throws RepositoryException {
-    if (ruleSetNode.hasProperty(RuleConstants.SAKAI_RULE_EXECUTION_PREPROCESSOR)) {
+    if (ruleSetNode.hasProperty(RuleConstants.PROP_SAKAI_RULE_EXECUTION_PREPROCESSOR)) {
       String preprocessorName = ruleSetNode.getProperty(
-          RuleConstants.SAKAI_RULE_EXECUTION_PREPROCESSOR).getString();
+          RuleConstants.PROP_SAKAI_RULE_EXECUTION_PREPROCESSOR).getString();
       RuleExecutionPreProcessor preprocessor = processors.get(preprocessorName);
       if (preprocessor == null ) {
         errors.error("Pre Processor "+preprocessorName+" was not found");

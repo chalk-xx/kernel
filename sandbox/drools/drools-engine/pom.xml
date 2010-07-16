@@ -61,6 +61,11 @@
       <artifactId>drools-core</artifactId>
       <version>5.0.1</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.doc</artifactId>
+      <version>0.7-SNAPSHOT</version>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -94,11 +99,13 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
       <version>1.8.4</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura.rules</groupId>
       <artifactId>org.sakaiproject.nakamura.rules.example</artifactId>
       <version>0.7-SNAPSHOT</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <repositories>
