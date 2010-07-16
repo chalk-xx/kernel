@@ -30,7 +30,6 @@
       <modules>
         <module>libraries/testutils</module>
         <module>libraries/utils</module>
-        <module>libraries/xythos-service</module>
         <module>bundles/formauth</module>
         <module>bundles/trustedauth</module>
         <module>bundles/securityloader</module>
@@ -97,6 +96,7 @@
     <profile>
        <id>withContrib</id>
        <modules>
+        <module>libraries/xythos-service</module>
         <module>contrib/import</module>
         <module>contrib/filters</module>
         <module>contrib/mailman</module>
