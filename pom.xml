@@ -51,7 +51,6 @@
         <module>bundles/files</module>
         <module>bundles/personal</module>
         <module>bundles/presence</module>
-        <module>bundles/postprocessors</module>
         <module>bundles/resource</module>
         <module>bundles/meservice</module>
         <module>bundles/server</module>
@@ -109,6 +108,7 @@
         <module>contrib/oracle-jdbc</module>
         <module>contrib/sitejoin</module>
         <module>contrib/header</module>
+        <module>contrib/postprocessors</module>
        </modules>
     </profile>
     <profile>

@@ -37,7 +37,7 @@
   <dependencies>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
+      <artifactId>org.sakaiproject.nakamura.docproxy</artifactId>
       <version>0.7-SNAPSHOT</version>
     </dependency>
     <dependency>

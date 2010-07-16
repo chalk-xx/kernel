@@ -238,7 +238,7 @@ public interface SiteService {
    * @throws SiteException
    *           thrown if there was a problem initiating the join workflow.
    */
-  void startJoinWorkflow(Node site, Group group) throws SiteException;
+  void startJoinWorkflow(Node site, Group group, Authorizable owner) throws SiteException;
 
   /**
    * @param site
