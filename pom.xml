@@ -30,6 +30,7 @@
       <modules>
         <module>libraries/testutils</module>
         <module>libraries/utils</module>
+        <module>libraries/xythos-service</module>
         <module>bundles/formauth</module>
         <module>bundles/trustedauth</module>
         <module>bundles/securityloader</module>
@@ -51,6 +52,7 @@
         <module>bundles/files</module>
         <module>bundles/personal</module>
         <module>bundles/presence</module>
+        <module>bundles/postprocessors</module>
         <module>bundles/resource</module>
         <module>bundles/meservice</module>
         <module>bundles/server</module>
@@ -103,6 +105,10 @@
         <module>contrib/ldapauth</module>
         <module>contrib/ldap</module>
         <module>contrib/urldocproxy</module>
+        <module>contrib/xythos-remote</module>
+        <module>contrib/oracle-jdbc</module>
+        <module>contrib/sitejoin</module>
+        <module>contrib/header</module>
        </modules>
     </profile>
     <profile>

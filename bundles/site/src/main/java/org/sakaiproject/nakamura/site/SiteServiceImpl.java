@@ -195,11 +195,17 @@ public class SiteServiceImpl implements SiteService {
       }
 
       if (Joinable.yes.equals(groupJoin) && Joinable.yes.equals(siteJoin)) {
+        // joinable without approval
         targetGroup.addMember(userAuthorizable);
-        postEvent(SiteEvent.joinedSite, site, targetGroup);
+        postEvent(SiteEvent.joinedSite, site, targetGroup, null);
 
       } else {
-        startJoinWorkflow(site, targetGroup);
+        // join request requires approval
+        Authorizable owner = null;
+        if (targetGroup.getMembers().hasNext()) {
+          owner = targetGroup.getMembers().next();
+        }
+        startJoinWorkflow(site, targetGroup, owner);
       }
       if ( session.hasPendingChanges()) {
         session.save();
@@ -254,7 +260,7 @@ public class SiteServiceImpl implements SiteService {
         throw new SiteException(HttpServletResponse.SC_CONFLICT, "User " + user
             + " was not a member of " + requestedGroup);
       }
-      postEvent(SiteEvent.unjoinedSite, site, targetGroup);
+      postEvent(SiteEvent.unjoinedSite, site, targetGroup, null);
 
     } catch (RepositoryException e) {
       LOGGER.warn(e.getMessage(), e);
@@ -270,8 +276,8 @@ public class SiteServiceImpl implements SiteService {
    * @throws SiteException
    * @throws RepositoryException
    */
-  public void startJoinWorkflow(Node site, Group targetGroup) throws SiteException {
-    postEvent(SiteEvent.startJoinWorkflow, site, targetGroup);
+  public void startJoinWorkflow(Node site, Group targetGroup, Authorizable owner) throws SiteException {
+    postEvent(SiteEvent.startJoinWorkflow, site, targetGroup, owner);
   }
 
   /**
@@ -280,10 +286,10 @@ public class SiteServiceImpl implements SiteService {
    * @param targetGroup
    * @throws SiteException
    */
-  private void postEvent(SiteEvent event, Node site, Group targetGroup) throws SiteException {
+  private void postEvent(SiteEvent event, Node site, Group targetGroup, Authorizable owner) throws SiteException {
 
     try {
-      eventAdmin.postEvent(SiteEventUtil.newSiteEvent(event, site, targetGroup));
+      eventAdmin.postEvent(SiteEventUtil.newSiteEvent(event, site, targetGroup, owner));
     } catch (RepositoryException ex) {
       LOGGER.warn(ex.getMessage(), ex);
       throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());

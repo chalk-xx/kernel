@@ -19,12 +19,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.5</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
   <packaging>bundle</packaging>
-  <version>0.7-SNAPSHOT</version>
-  <name>Sakai Nakamura ::: Cluster Tracking</name>
+  <version>0.5</version>
+  <name>Sakai Cluster Tracking</name>
   <description>Cluster Tracking support for app servers and users.</description>
   <build>
     <plugins>

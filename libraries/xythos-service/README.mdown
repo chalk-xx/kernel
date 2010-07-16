@@ -1,0 +1,4 @@
+Xythos Remote API
+=================
+
+I decided to use Caucho Hessian from Sakai 3 to make remote calls to Xythos, since it's so easy to use. This project just has the interface that I depend on in my Sakai bundle for Hessian to proxy.
