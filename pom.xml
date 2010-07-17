@@ -90,6 +90,7 @@
         <module>bundles/captcha</module>
         <module>bundles/webdav</module>
         <module>bundles/privacy</module>
+        <module>contrib/header</module>
       </modules>
     </profile>
     <profile>
@@ -107,7 +108,6 @@
         <module>contrib/xythos-remote</module>
         <module>contrib/oracle-jdbc</module>
         <module>contrib/sitejoin</module>
-        <module>contrib/header</module>
         <module>contrib/postprocessors</module>
        </modules>
     </profile>
