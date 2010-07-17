@@ -24,6 +24,7 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
@@ -91,26 +92,17 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   static final String DECORATE_USER = "sakai.auth.ldap.user.decorate";
   private boolean decorateUser;
 
-  public static final String FIRST_NAME_PROP_DEFAULT = "firstName";
-  @Property(value = FIRST_NAME_PROP_DEFAULT)
-  static final String FIRST_NAME_PROP = "sakai.auth.ldap.prop.firstName";
-  private String firstNameProp;
-
-  public static final String LAST_NAME_PROP_DEFAULT = "lastName";
-  @Property(value = LAST_NAME_PROP_DEFAULT)
-  static final String LAST_NAME_PROP = "sakai.auth.ldap.prop.lastName";
-  private String lastNameProp;
-
-  public static final String EMAIL_PROP_DEFAULT = "email";
-  @Property(value = EMAIL_PROP_DEFAULT)
-  static final String EMAIL_PROP = "sakai.auth.ldap.prop.email";
-  private String emailProp;
+  @Property(cardinality = 2147483647)
+  static final String USER_PROPS = "sakai.auth.ldap.user.props";
+  private String[] userProps;
+  private String[] ldapAttrNames;
+  private String[] jcrPropNames;
 
   @Reference
   private LdapConnectionManager connMgr;
 
   @Reference
-  private AuthorizablePostProcessService authzPostProcessorService;
+  private AuthorizablePostProcessService authzPostProcessService;
 
   @Reference
   private SlingRepository slingRepository;
@@ -118,8 +110,12 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   public LdapAuthenticationPlugin() {
   }
 
-  LdapAuthenticationPlugin(LdapConnectionManager connMgr) {
+  LdapAuthenticationPlugin(LdapConnectionManager connMgr,
+      AuthorizablePostProcessService authzPostProcessService,
+      SlingRepository slingRepository) {
     this.connMgr = connMgr;
+    this.authzPostProcessService = authzPostProcessService;
+    this.slingRepository = slingRepository;
   }
 
   @Activate
@@ -136,12 +132,23 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), "");
     userFilter = OsgiUtil.toString(props.get(USER_FILTER), "");
     authzFilter = OsgiUtil.toString(props.get(AUTHZ_FILTER), "");
-    createAccount = OsgiUtil.toBoolean(props.get(DECORATE_USER), DECORATE_USER_DEFAULT);
+    createAccount = OsgiUtil.toBoolean(props.get(CREATE_ACCOUNT), CREATE_ACCOUNT_DEFAULT);
     decorateUser = OsgiUtil.toBoolean(props.get(DECORATE_USER), DECORATE_USER_DEFAULT);
-    firstNameProp = OsgiUtil
-        .toString(props.get(FIRST_NAME_PROP), FIRST_NAME_PROP_DEFAULT);
-    lastNameProp = OsgiUtil.toString(props.get(LAST_NAME_PROP), LAST_NAME_PROP_DEFAULT);
-    emailProp = OsgiUtil.toString(props.get(EMAIL_PROP), EMAIL_PROP_DEFAULT);
+    userProps = OsgiUtil.toStringArray(props.get(USER_PROPS));
+
+    if (userProps != null && userProps.length > 0) {
+      ldapAttrNames = new String[userProps.length];
+      jcrPropNames = new String[userProps.length];
+      for (int i = 0; i < userProps.length; i++) {
+        String[] ldapJcr = StringUtils.split(userProps[i], "\":\"");
+        ldapAttrNames[i] = ldapJcr[0];
+        jcrPropNames[i] = ldapJcr[1];
+      }
+    } else {
+      userProps = null;
+      ldapAttrNames = null;
+      jcrPropNames = null;
+    }
   }
 
   // ---------- AuthenticationPlugin ----------
@@ -154,10 +161,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
       // get user credentials
       SimpleCredentials sc = (SimpleCredentials) credentials;
-
-      if ("admin".equals(sc.getUserID())) {
-    	  return false;
-      }
 
       long timeStart = System.currentTimeMillis();
 
@@ -244,10 +247,15 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
         // FINALLY!
         auth = true;
-        log.info("User [{}] authenticated with LDAP in {}ms", userDn, System.currentTimeMillis() - timeStart);
+        log.info("User [{}] authenticated with LDAP in {}ms", userDn,
+            System.currentTimeMillis() - timeStart);
 
-        if (createAccount) {
-          ensureJcrUser(sc.getUserID(), conn);
+        // provision & decorate the user
+        Session session = slingRepository.loginAdministrative(null);
+        Authorizable authorizable = getJcrUser(session, sc.getUserID(), conn);
+
+        if (authorizable != null && decorateUser && userProps != null) {
+          decorateUser(session, authorizable, conn);
         }
       } catch (Exception e) {
         log.warn(e.getMessage(), e);
@@ -265,12 +273,12 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
    *      javax.servlet.http.HttpServletResponse,
    *      org.apache.sling.commons.auth.spi.AuthenticationInfo)
    */
-  public Authorizable ensureJcrUser(String userId, LDAPConnection conn) throws Exception {
-    Session session = slingRepository.loginAdministrative(null);
+  public Authorizable getJcrUser(Session session, String userId, LDAPConnection conn)
+      throws Exception {
     UserManager um = AccessControlUtil.getUserManager(session);
     Authorizable auth = um.getAuthorizable(userId);
 
-    if (auth == null) {
+    if (auth == null && createAccount) {
       String password = RandomStringUtils.random(8);
       auth = um.createUser(userId, password);
 
@@ -280,13 +288,9 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
           vf.createValue(((ItemBasedPrincipal) auth.getPrincipal()).getPath().substring(
               UserConstants.USER_REPO_LOCATION.length())));
 
-      if (decorateUser) {
-        decorateUser(session, auth, conn);
-      }
-
       String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
           + auth.getID();
-      authzPostProcessorService.process(auth, session, Modification.onCreated(userPath));
+      authzPostProcessService.process(auth, session, Modification.onCreated(userPath));
     }
     return auth;
   }
@@ -305,22 +309,19 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
     // get a connection to LDAP
     LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userDn,
-        new String[] { firstNameProp, lastNameProp, emailProp }, false);
+        ldapAttrNames, false);
     if (results.hasMore()) {
       LDAPEntry entry = results.next();
       ValueFactory vf = session.getValueFactory();
 
-      LDAPAttribute firstNameAttr = entry.getAttribute(firstNameProp);
-      LDAPAttribute lastNameAttr = entry.getAttribute(lastNameProp);
-      LDAPAttribute emailAttr = entry.getAttribute(emailProp);
-
-      String firstName = firstNameAttr != null ? firstNameAttr.getStringValue() : "";
-      String lastName = lastNameAttr != null ? lastNameAttr.getStringValue() : "";
-      String email = emailAttr != null ? emailAttr.getStringValue() : "";
-
-      user.setProperty("firstName", vf.createValue(firstName));
-      user.setProperty("lastName", vf.createValue(lastName));
-      user.setProperty("email", vf.createValue(email));
+      for (int i = 0; i < ldapAttrNames.length; i++) {
+        if (user.getProperty(jcrPropNames[i]) == null) {
+          LDAPAttribute attr = entry.getAttribute(ldapAttrNames[i]);
+          if (attr != null) {
+            user.setProperty(jcrPropNames[i], vf.createValue(attr.getStringValue()));
+          }
+        }
+      }
     } else {
       log.warn("Can't find user [" + userDn + "]");
     }
