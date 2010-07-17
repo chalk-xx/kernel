@@ -87,11 +87,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   static final String CREATE_ACCOUNT = "sakai.auth.ldap.account.create";
   private boolean createAccount;
 
-  public static final boolean DECORATE_USER_DEFAULT = true;
-  @Property(boolValue = DECORATE_USER_DEFAULT)
-  static final String DECORATE_USER = "sakai.auth.ldap.user.decorate";
-  private boolean decorateUser;
-
   @Property(cardinality = 2147483647)
   static final String USER_PROPS = "sakai.auth.ldap.user.props";
   private String[] userProps;
@@ -133,7 +128,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     userFilter = OsgiUtil.toString(props.get(USER_FILTER), "");
     authzFilter = OsgiUtil.toString(props.get(AUTHZ_FILTER), "");
     createAccount = OsgiUtil.toBoolean(props.get(CREATE_ACCOUNT), CREATE_ACCOUNT_DEFAULT);
-    decorateUser = OsgiUtil.toBoolean(props.get(DECORATE_USER), DECORATE_USER_DEFAULT);
     userProps = OsgiUtil.toStringArray(props.get(USER_PROPS));
 
     if (userProps != null && userProps.length > 0) {
@@ -254,7 +248,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         Session session = slingRepository.loginAdministrative(null);
         Authorizable authorizable = getJcrUser(session, sc.getUserID(), conn);
 
-        if (authorizable != null && decorateUser && userProps != null) {
+        if (authorizable != null && userProps != null) {
           decorateUser(session, authorizable, conn);
         }
       } catch (Exception e) {
