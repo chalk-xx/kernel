@@ -90,7 +90,7 @@
         <module>bundles/captcha</module>
         <module>bundles/webdav</module>
         <module>bundles/privacy</module>
-        <module>contrib/header</module>
+        <module>bundles/header</module>
       </modules>
     </profile>
     <profile>
