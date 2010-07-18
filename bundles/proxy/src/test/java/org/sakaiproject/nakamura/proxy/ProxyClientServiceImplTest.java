@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.apache.jackrabbit.JcrConstants;
+import org.easymock.classextension.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -107,11 +108,12 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     Map<String, Object> input = new HashMap<String, Object>();
     Map<String, String> headers = new HashMap<String, String>();
     try {
-      ProxyResponse response = proxyClientServiceImpl.executeCall(null, headers, input, null, 0, null);
+      ProxyResponse response = proxyClientServiceImpl.executeCall(null, headers, input,
+          null, 0, null);
       try {
         response.close();
-      } catch ( Throwable t) {
-        
+      } catch (Throwable t) {
+
       }
       fail();
     } catch (ProxyClientException ex) {
@@ -133,14 +135,60 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     Map<String, Object> input = new HashMap<String, Object>();
     Map<String, String> headers = new HashMap<String, String>();
     try {
-      ProxyResponse response = proxyClientServiceImpl.executeCall(node, headers, input, null, 0, null);
+      ProxyResponse response = proxyClientServiceImpl.executeCall(node, headers, input,
+          null, 0, null);
       try {
         response.close();
-      } catch ( Throwable t) {
-        
+      } catch (Throwable t) {
+
       }
       fail();
     } catch (ProxyClientException ex) {
+    }
+    verify();
+  }
+
+  @Test
+  public void testInvokeServiceNodeBadEndPoint() throws Exception {
+    checkBadUrl("http://${url}",
+        "Invalid Endpoint template, relies on request to resolve valid URL http://${url}");
+    checkBadUrl("h${url}", "Invalid Endpoint template, relies on request to resolve valid URL");
+    checkBadUrl("${url}",  "Invalid Endpoint template, relies on request to resolve valid URL");
+  }
+
+  private void checkBadUrl(String badUrl, String message) throws Exception {
+    super.setUp();
+    Node node = createMock(Node.class);
+    Property endpointProperty = createMock(Property.class);
+    PropertyDefinition propertyDefinition = createMock(PropertyDefinition.class);
+    Value value = createMock(Value.class);
+
+    expect(node.getPath()).andReturn("/testing").anyTimes();
+    expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
+        true);
+    expect(node.getProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
+        endpointProperty);
+
+    expect(endpointProperty.getDefinition()).andReturn(propertyDefinition);
+    expect(propertyDefinition.isMultiple()).andReturn(false).atLeastOnce();
+    expect(endpointProperty.getValue()).andReturn(value);
+    expect(value.getString()).andReturn(badUrl);
+
+    replay();
+    Map<String, Object> input = new HashMap<String, Object>();
+    Map<String, String> headers = new HashMap<String, String>();
+    try {
+      ProxyResponse response = proxyClientServiceImpl.executeCall(node, headers, input,
+          null, 0, null);
+      try {
+        response.close();
+      } catch (Throwable t) {
+
+      }
+      fail();
+    } catch (ProxyClientException ex) {
+      ProxyClientException e = (ProxyClientException) ex.getCause();
+      assertEquals(message, e.getMessage());
     }
     verify();
   }
@@ -166,7 +214,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
     expect(node.getProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         endpointProperty);
-    
+
     expect(endpointProperty.getDefinition()).andReturn(propertyDefinition);
     expect(propertyDefinition.isMultiple()).andReturn(false).atLeastOnce();
     expect(endpointProperty.getValue()).andReturn(value);
@@ -188,13 +236,14 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
         true).atLeastOnce();
     expect(node.getProperty(ProxyClientService.SAKAI_PROXY_REQUEST_TEMPLATE)).andReturn(
         templateProperty).atLeastOnce();
-    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(
-        false).atLeastOnce();
-    
+    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(false)
+        .atLeastOnce();
+
     expect(templateProperty.getValue()).andReturn(value);
     expect(templateProperty.getDefinition()).andReturn(propertyDefinition);
     expect(value.getBinary()).andReturn(binary);
-    expect(binary.getStream()).andReturn(new ByteArrayInputStream(REQUEST_TEMPLATE.getBytes()));
+    expect(binary.getStream()).andReturn(
+        new ByteArrayInputStream(REQUEST_TEMPLATE.getBytes()));
 
     expect(node.hasProperty(JcrConstants.JCR_LASTMODIFIED)).andReturn(true).atLeastOnce();
     expect(node.getProperty(JcrConstants.JCR_LASTMODIFIED)).andReturn(
@@ -212,7 +261,8 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("SOAPAction", "");
-    ProxyResponse response = proxyClientServiceImpl.executeCall(node, headers, input, null, 0, null);
+    ProxyResponse response = proxyClientServiceImpl.executeCall(node, headers, input,
+        null, 0, null);
 
     CapturedRequest request = dummyServer.getRequest();
     assertEquals("Method not correct ", "POST", request.getMethod());
@@ -220,8 +270,8 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     assertEquals("Incorrect Content Type in request", APPLICATION_SOAP_XML_CHARSET_UTF_8,
         request.getContentType());
 
-    assertTrue("Template Not merged correctly ", request.getRequestBody().indexOf(
-        CHECK_REQUEST) > 0);
+    assertTrue("Template Not merged correctly ",
+        request.getRequestBody().indexOf(CHECK_REQUEST) > 0);
     response.close();
 
     verify();
@@ -244,16 +294,15 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
     expect(node.getProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         endpointProperty);
-    
+
     expect(endpointProperty.getDefinition()).andReturn(propertyDefinition);
     expect(propertyDefinition.isMultiple()).andReturn(false).atLeastOnce();
     expect(endpointProperty.getValue()).andReturn(value);
     expect(value.getString()).andReturn(dummyServer.getUrl());
 
+    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(false)
+        .atLeastOnce();
 
-    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(
-        false).atLeastOnce();
- 
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_METHOD)).andReturn(
         true);
 
@@ -274,13 +323,13 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
       bas[i] = (byte) (i & 0xff);
     }
     ByteArrayInputStream bais = new ByteArrayInputStream(bas);
-    ProxyResponse response = proxyClientServiceImpl.executeCall(node, headers, input, bais, bas.length,
-        "binary/x-data");
+    ProxyResponse response = proxyClientServiceImpl.executeCall(node, headers, input,
+        bais, bas.length, "binary/x-data");
 
     CapturedRequest request = dummyServer.getRequest();
     assertEquals("Method not correct ", "PUT", request.getMethod());
-    assertEquals("Incorrect Content Type in request", "binary/x-data", request
-        .getContentType());
+    assertEquals("Incorrect Content Type in request", "binary/x-data",
+        request.getContentType());
 
     assertArrayEquals("Request Not equal ", bas, request.getRequestBodyAsByteArray());
     response.close();
@@ -291,18 +340,19 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
   @Test
   public void testInvokeServiceNodeEndPointGet() throws ProxyClientException,
       RepositoryException, IOException {
-    testRequest("GET", "GET", RESPONSE_BODY, -1 );
+    testRequest("GET", "GET", RESPONSE_BODY, -1);
   }
+
   @Test
   public void testInvokeServiceNodeEndPointGetLimit() throws ProxyClientException,
       RepositoryException, IOException {
-    testRequest("GET", "GET", RESPONSE_BODY, 1020000 );
+    testRequest("GET", "GET", RESPONSE_BODY, 1020000);
   }
 
   @Test
   public void testInvokeServiceNodeEndPointGetLimitLow() throws ProxyClientException,
       RepositoryException, IOException {
-    testRequest("GET", "HEAD", null, 1 );
+    testRequest("GET", "HEAD", null, 1);
   }
 
   @Test
@@ -341,21 +391,21 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
     expect(node.getProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         endpointProperty);
-    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(
-        false).atLeastOnce();
+    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(false)
+        .atLeastOnce();
 
-    if ( limit == -1 ) {
-      expect(node.hasProperty(ProxyClientService.SAKAI_LIMIT_GET_SIZE)).andReturn(
-          false).anyTimes();
+    if (limit == -1) {
+      expect(node.hasProperty(ProxyClientService.SAKAI_LIMIT_GET_SIZE)).andReturn(false)
+          .anyTimes();
     } else {
-      expect(node.hasProperty(ProxyClientService.SAKAI_LIMIT_GET_SIZE)).andReturn(
-          true).anyTimes();
+      expect(node.hasProperty(ProxyClientService.SAKAI_LIMIT_GET_SIZE)).andReturn(true)
+          .anyTimes();
       Property sizeProperty = createNiceMock(Property.class);
       expect(node.getProperty(ProxyClientService.SAKAI_LIMIT_GET_SIZE)).andReturn(
           sizeProperty).anyTimes();
       expect(sizeProperty.getLong()).andReturn(limit).anyTimes();
     }
- 
+
     expect(endpointProperty.getDefinition()).andReturn(propertyDefinition);
     expect(propertyDefinition.isMultiple()).andReturn(false).atLeastOnce();
     expect(endpointProperty.getValue()).andReturn(value);
@@ -383,13 +433,13 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     assertEquals("Method not correct ", expectedMethod, request.getMethod());
     assertEquals("Incorrect Content Type in request", null, request.getContentType());
 
-    assertEquals(type + "s dont have request bodies ", null, request
-        .getRequestBodyAsByteArray());
+    assertEquals(type + "s dont have request bodies ", null,
+        request.getRequestBodyAsByteArray());
 
     assertEquals(body, response.getResponseBodyAsString());
-    assertEquals(APPLICATION_SOAP_XML_CHARSET_UTF_8, response.getResponseHeaders().get(
-        "Content-Type")[0]);
-    
+    assertEquals(APPLICATION_SOAP_XML_CHARSET_UTF_8,
+        response.getResponseHeaders().get("Content-Type")[0]);
+
     response.close();
 
     verify();

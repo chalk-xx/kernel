@@ -39,6 +39,9 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.exception.MethodInvocationException;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.proxy.ProxyClientException;
 import org.sakaiproject.nakamura.api.proxy.ProxyClientService;
@@ -50,10 +53,13 @@ import org.sakaiproject.nakamura.proxy.velocity.VelocityLogger;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -209,19 +215,25 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
       bindNode(node);
 
       if (node != null && node.hasProperty(SAKAI_REQUEST_PROXY_ENDPOINT)) {
+        // setup the post request
+        String endpointURL = JcrUtils.getMultiValueString(node
+            .getProperty(SAKAI_REQUEST_PROXY_ENDPOINT));
+        try {
+          URL u = new URL(endpointURL);
+          String host = u.getHost();
+          if ( host.indexOf('$') >= 0 ) {
+            throw new ProxyClientException("Invalid Endpoint template, relies on request to resolve valid URL "+u);
+          }
+        } catch ( MalformedURLException e) {
+          throw new ProxyClientException("Invalid Endpoint template, relies on request to resolve valid URL", e);
+        }
 
         VelocityContext context = new VelocityContext(input);
 
         // add in the config properties from the bundle overwriting everythign else.
         context.put("config", configProperties);
 
-        // setup the post request
-        String endpointURL = JcrUtils.getMultiValueString(node
-            .getProperty(SAKAI_REQUEST_PROXY_ENDPOINT));
-        Reader urlTemplateReader = new StringReader(endpointURL);
-        StringWriter urlWriter = new StringWriter();
-        velocityEngine.evaluate(context, urlWriter, "urlprocessing", urlTemplateReader);
-        endpointURL = urlWriter.toString();
+        endpointURL = processUrlTemplate(endpointURL, context);
 
         ProxyMethod proxyMethod = ProxyMethod.GET;
         if (node.hasProperty(SAKAI_REQUEST_PROXY_METHOD)) {
@@ -361,6 +373,13 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
     }
     throw new ProxyClientException("The Proxy request specified by " + node
         + " does not contain a valid endpoint specification ");
+  }
+
+  private String processUrlTemplate(String endpointURL, VelocityContext context) throws ParseErrorException, MethodInvocationException, ResourceNotFoundException, IOException {
+    Reader urlTemplateReader = new StringReader(endpointURL);
+    StringWriter urlWriter = new StringWriter();
+    velocityEngine.evaluate(context, urlWriter, "urlprocessing", urlTemplateReader);
+    return urlWriter.toString();
   }
 
   /**
