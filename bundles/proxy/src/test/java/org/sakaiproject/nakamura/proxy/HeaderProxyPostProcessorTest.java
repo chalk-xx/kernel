@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.contenttype;
+package org.sakaiproject.nakamura.proxy;
 
 import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.proxy.ProxyResponse;
-import org.sakaiproject.nakamura.header.HeaderProxyPostProcessor;
+import org.sakaiproject.nakamura.proxy.HeaderProxyPostProcessor;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
