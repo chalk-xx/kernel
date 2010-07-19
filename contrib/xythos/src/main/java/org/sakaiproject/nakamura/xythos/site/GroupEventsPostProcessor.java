@@ -6,7 +6,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.OsgiUtil;
+//import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
@@ -27,26 +27,20 @@ public class GroupEventsPostProcessor implements EventHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GroupEventsPostProcessor.class);
 
-  public static final String DEFAULT_SITES_REPLACEMENT = "alex3";
-  @Property(value = DEFAULT_SITES_REPLACEMENT)
-  static final String SITES_REPLACEMENT = "sakai.sites.replacement";
-  private String sitesReplacement;
-
   @Reference
   XythosRepository xythosService;
 
   @Activate
   protected void activate(Map<?, ?> props) {
-    sitesReplacement = OsgiUtil.toString(SITES_REPLACEMENT, DEFAULT_SITES_REPLACEMENT);
+    //sitesReplacement = OsgiUtil.toString(SITES_REPLACEMENT, DEFAULT_SITES_REPLACEMENT);
   }
 
   public void handleEvent(Event event) {
     String sitePath = (String) event.getProperty(SiteEvent.SITE);
-    sitePath = sitePath.replaceFirst("\\/sites\\/", "\\/" + sitesReplacement + "\\/");
     String userId = (String) event.getProperty(SiteEvent.USER);
     try {
       xythosService.createGroup(sitePath, userId);
-      xythosService.createDirectory(userId, null, "/" + sitesReplacement, sitePath);
+      xythosService.createDirectory(userId, null, "/sites", sitePath);
     } catch (Exception e1) {
       LOGGER.warn("failed to create Xythos group when creating site: " + e1.getMessage());
     }

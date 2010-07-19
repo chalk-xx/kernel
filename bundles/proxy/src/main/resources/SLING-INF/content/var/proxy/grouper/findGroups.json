@@ -1,0 +1,9 @@
+{
+    "sling:resourceType" : "sakai/proxy",
+    "sakai:request-proxy-endpoint" : "http://${hostname}:${port}/grouper-ws/servicesRest/json/v1_5_003/groups?wsLiteObjectType=WsRestFindGroupsLiteRequest&groupName=${groupname}&stemName=${stemname}&queryFilterType=FIND_BY_GROUP_NAME_APPROXIMATE",
+    "sakai:request-content-type" : "application/x-www-form-urlencoded",
+    "sakai:request-proxy-method": "GET",
+    "sakai:title" : "Grouper: get groups by user",
+    "sakai:preprocessor" : "grouper",
+    "sakai:description" : ["Find groups by group name and stem name"]
+}

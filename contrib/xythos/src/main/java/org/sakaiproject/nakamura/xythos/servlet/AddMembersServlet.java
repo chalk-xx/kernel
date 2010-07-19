@@ -26,9 +26,8 @@ public class AddMembersServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException,
       IOException {
-      String member = request.getParameter(":member");
+      String member = request.getParameter(":member[]");
       String siteId = request.getParameter("siteid");
-      siteId = siteId.replaceAll("\\/sites\\/", "\\/alex3\\/");
       
       xythos.toggleMember(siteId, member);
   }
