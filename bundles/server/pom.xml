@@ -174,7 +174,7 @@
     <dependency>
         <groupId>org.sakaiproject.nakamura</groupId>
         <artifactId>org.sakaiproject.nakamura.tika</artifactId>
-        <version>0.6-0.7-SNAPSHOT</version>
+        <version>0.7-0.7-SNAPSHOT</version>
     </dependency>
     
   </dependencies>
