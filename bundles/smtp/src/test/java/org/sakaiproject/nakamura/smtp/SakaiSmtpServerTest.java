@@ -40,7 +40,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.Session;
@@ -134,12 +133,9 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     EasyMock.expect(
         messagingService.create(EasyMock.capture(sessionCapture2), EasyMock
             .capture(mapProperties2))).andReturn(myMessageNode);
-    
-    ValueFactory valueFactory = createMock(ValueFactory.class);
-    EasyMock.expect(session.getValueFactory()).andReturn(valueFactory).anyTimes();
-    Binary binary = createMock(Binary.class);
-    EasyMock.expect(valueFactory.createBinary(dataStream)).andReturn(binary);
-    EasyMock.expect(myMessageNode.setProperty("sakai:body", binary)).andReturn(null);
+    EasyMock.expect(myMessageNode.setProperty("sakai:body", dataStream)).andReturn(null);
+    myMessageNode.save();
+    EasyMock.expectLastCall();
 
     EasyMock.expect(myMessageNode.getPath()).andReturn("/messagestore/bob/messagenode");
     EasyMock.expect(myMessageNode.getProperty("message-id")).andReturn(property);
@@ -287,11 +283,10 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
         messagingService.create(EasyMock.capture(sessionCapture2), EasyMock
             .capture(mapProperties2))).andReturn(myMessageNode);
     
-    ValueFactory valueFactory = createMock(ValueFactory.class);
-    EasyMock.expect(session.getValueFactory()).andReturn(valueFactory).anyTimes();
-    Binary binary = createMock(Binary.class);
-    EasyMock.expect(valueFactory.createBinary(dataStream)).andReturn(binary);
-    EasyMock.expect(myMessageNode.setProperty("sakai:body", binary)).andReturn(null);
+    
+    EasyMock.expect(myMessageNode.setProperty("sakai:body", dataStream)).andReturn(null);
+    myMessageNode.save();
+    EasyMock.expectLastCall();
 
     EasyMock.expect(myMessageNode.getPath()).andReturn("/messagestore/bob/messagenode");
     EasyMock.expect(myMessageNode.getProperty("message-id")).andReturn(property);
@@ -376,11 +371,6 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
             .capture(mapProperties), EasyMock.capture(messageId), EasyMock.capture(path))).andReturn(myMessageNode);
 
     EasyMock.expect(myMessageNode.addNode("part000")).andReturn(part0Node);
-    ValueFactory valueFactory = createMock(ValueFactory.class);
-    EasyMock.expect(session.getValueFactory()).andReturn(valueFactory).anyTimes();
-    Binary binary = createMock(Binary.class);
-    EasyMock.expect(valueFactory.createBinary((InputStream) EasyMock.anyObject())).andReturn(binary).anyTimes();
-    EasyMock.expect(part0Node.setProperty("sakai:body", binary)).andReturn(null);
     EasyMock.expect(myMessageNode.addNode("part001")).andReturn(part0Node);
     
 
@@ -472,13 +462,9 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
             .capture(mapProperties), EasyMock.capture(messageId), EasyMock.capture(path))).andReturn(myMessageNode);
 
     EasyMock.expect(myMessageNode.addNode("part000")).andReturn(part0Node);
-    EasyMock.expect(session.getValueFactory()).andReturn(valueFactory).anyTimes();
-    Binary binary = createMock(Binary.class);
-    EasyMock.expect(valueFactory.createBinary((InputStream) EasyMock.anyObject())).andReturn(binary).anyTimes();
-    EasyMock.expect(part0Node.setProperty("sakai:body", binary)).andReturn(null);
-
     EasyMock.expect(myMessageNode.addNode("part001","nt:file")).andReturn(part0Node);
     EasyMock.expect(part0Node.addNode("jcr:content", "nt:resource")).andReturn(part0Node);
+    EasyMock.expect(session.getValueFactory()).andReturn(valueFactory);
     
 
     EasyMock.expect(myMessageNode.getPath()).andReturn("/messagestore/bob/messagenode");
