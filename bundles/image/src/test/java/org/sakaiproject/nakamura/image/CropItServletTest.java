@@ -133,7 +133,7 @@ public class CropItServletTest extends AbstractEasyMockTest {
     ItemBasedPrincipal principal = createMock(ItemBasedPrincipal.class);
     expect(user.getPrincipal()).andReturn(principal).anyTimes();
     expect(user.isGroup()).andReturn(false).anyTimes();
-    expect(principal.getPath()).andReturn("/j/jo/jon/johndoe").anyTimes();
+    expect(principal.getPath()).andReturn("/rep:authorizables/rep:users/j/jo/jon/johndoe").anyTimes();
     String userPath = "/_user/j/jo/jon/johndoe";
     
     for (String s : dimensions) {
