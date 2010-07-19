@@ -135,7 +135,6 @@ public class LdapAuthenticationPluginTest {
     props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, LDAP_BASE_DN);
     props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
     props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
-    props.put(LdapAuthenticationPlugin.DECORATE_USER, Boolean.FALSE);
     ldapAuthenticationPlugin.activate(props);
 
     when(connMgr.getConnection()).thenReturn(conn);
@@ -164,7 +163,6 @@ public class LdapAuthenticationPluginTest {
     props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
     props.put(LdapAuthenticationPlugin.AUTHZ_FILTER, AUTHZ_FILTER);
     props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
-    props.put(LdapAuthenticationPlugin.DECORATE_USER, Boolean.FALSE);
     ldapAuthenticationPlugin.activate(props);
 
     when(connMgr.getConnection()).thenReturn(conn);
@@ -193,7 +191,6 @@ public class LdapAuthenticationPluginTest {
     props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
     props.put(LdapAuthenticationPlugin.AUTHZ_FILTER, AUTHZ_FILTER);
     props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
-    props.put(LdapAuthenticationPlugin.DECORATE_USER, Boolean.FALSE);
     ldapAuthenticationPlugin.activate(props);
 
     when(connMgr.getConnection()).thenReturn(conn);
@@ -224,7 +221,6 @@ public class LdapAuthenticationPluginTest {
     props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, LDAP_BASE_DN);
     props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
     props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
-    props.put(LdapAuthenticationPlugin.DECORATE_USER, Boolean.FALSE);
     ldapAuthenticationPlugin.activate(props);
 
     when(connMgr.getConnection()).thenThrow(new LDAPException());
@@ -241,7 +237,6 @@ public class LdapAuthenticationPluginTest {
     props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, LDAP_BASE_DN);
     props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
     props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
-    props.put(LdapAuthenticationPlugin.DECORATE_USER, Boolean.FALSE);
     ldapAuthenticationPlugin.activate(props);
 
     when(connMgr.getConnection()).thenReturn(conn);
@@ -260,7 +255,6 @@ public class LdapAuthenticationPluginTest {
     props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, LDAP_BASE_DN);
     props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
     props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
-    props.put(LdapAuthenticationPlugin.DECORATE_USER, Boolean.FALSE);
     ldapAuthenticationPlugin.activate(props);
 
     when(connMgr.getConnection()).thenReturn(conn);
@@ -282,7 +276,6 @@ public class LdapAuthenticationPluginTest {
     props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
     props.put(LdapAuthenticationPlugin.AUTHZ_FILTER, AUTHZ_FILTER);
     props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
-    props.put(LdapAuthenticationPlugin.DECORATE_USER, Boolean.FALSE);
     ldapAuthenticationPlugin.activate(props);
 
     when(connMgr.getConnection()).thenReturn(conn);
@@ -316,7 +309,6 @@ public class LdapAuthenticationPluginTest {
     props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
     props.put(LdapAuthenticationPlugin.AUTHZ_FILTER, AUTHZ_FILTER);
     props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
-    props.put(LdapAuthenticationPlugin.DECORATE_USER, Boolean.FALSE);
     ldapAuthenticationPlugin.activate(props);
 
     when(connMgr.getConnection()).thenReturn(conn);
@@ -349,7 +341,6 @@ public class LdapAuthenticationPluginTest {
     props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
     props.put(LdapAuthenticationPlugin.AUTHZ_FILTER, AUTHZ_FILTER);
     props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
-    props.put(LdapAuthenticationPlugin.DECORATE_USER, Boolean.FALSE);
     ldapAuthenticationPlugin.activate(props);
 
     when(connMgr.getConnection()).thenReturn(conn);
@@ -379,7 +370,6 @@ public class LdapAuthenticationPluginTest {
     props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, LDAP_BASE_DN);
     props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
     props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.TRUE);
-    props.put(LdapAuthenticationPlugin.DECORATE_USER, Boolean.FALSE);
     ldapAuthenticationPlugin.activate(props);
 
     when(connMgr.getConnection()).thenReturn(conn);
@@ -428,7 +418,6 @@ public class LdapAuthenticationPluginTest {
     props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, LDAP_BASE_DN);
     props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
     props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
-    props.put(LdapAuthenticationPlugin.DECORATE_USER, Boolean.TRUE);
     props.put(LdapAuthenticationPlugin.USER_PROPS, new String[] {
         "\"givenName\":\"firstName\"", "\"sn\":\"lastName\"", "\"mail\":\"email\"" });
     ldapAuthenticationPlugin.activate(props);
