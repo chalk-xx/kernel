@@ -22,6 +22,10 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 import static org.junit.Assert.assertEquals;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
+import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sanselan.util.IOUtils;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -39,6 +43,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.security.Principal;
 import java.util.Calendar;
 
 import javax.jcr.Binary;
@@ -78,8 +83,8 @@ public class CropItServletTest extends AbstractEasyMockTest {
 
     // Provide parameters
     String[] dimensions = new String[] { "16x16", "32x32" };
-    addStringRequestParameter(request, "img", "/my/people.png");
-    addStringRequestParameter(request, "save", "/my/breadcrumbs");
+    addStringRequestParameter(request, "img", "/~johndoe/people.png");
+    addStringRequestParameter(request, "save", "/~johndoe/breadcrumbs");
     addStringRequestParameter(request, "x", "10");
     addStringRequestParameter(request, "y", "10");
     addStringRequestParameter(request, "width", "70");
@@ -88,7 +93,7 @@ public class CropItServletTest extends AbstractEasyMockTest {
     expect(request.getRemoteUser()).andReturn("johndoe");
 
     // Session stuff
-    Session session = createMock(Session.class);
+    JackrabbitSession session = createMock(JackrabbitSession.class);
     ResourceResolver resolver = createMock(ResourceResolver.class);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resolver);
@@ -119,7 +124,18 @@ public class CropItServletTest extends AbstractEasyMockTest {
     expect(imgContentNode.getProperty("jcr:data")).andReturn(imgContentData);
     expect(imgContentNode.hasProperty("jcr:mimeType")).andReturn(true);
     expect(imgContentNode.getProperty("jcr:mimeType")).andReturn(imgContentType);
-
+    
+    // user resolution
+    UserManager userManager = createMock(UserManager.class);
+    expect(session.getUserManager()).andReturn(userManager).anyTimes();
+    User user = createMock(User.class);
+    expect(userManager.getAuthorizable("johndoe")).andReturn(user).anyTimes();
+    ItemBasedPrincipal principal = createMock(ItemBasedPrincipal.class);
+    expect(user.getPrincipal()).andReturn(principal).anyTimes();
+    expect(user.isGroup()).andReturn(false).anyTimes();
+    expect(principal.getPath()).andReturn("/rep:security/rep:authorizables/rep:users/j/jo/jon/johndoe").anyTimes();
+    String userPath = "/_user/j/jo/jon/johndoe";
+    
     for (String s : dimensions) {
       Node breadCrumbNode = EasyMock.createMock(Node.class);
       Node breadCrumbContentNode = EasyMock.createMock(Node.class);
@@ -137,17 +153,17 @@ public class CropItServletTest extends AbstractEasyMockTest {
 
       EasyMock.replay(breadCrumbContentNode, breadCrumbNode);
 
-      expect(session.itemExists("/my/breadcrumbs/" + s + "_people.png")).andReturn(true);
-      expect(session.getItem("/my/breadcrumbs/" + s + "_people.png")).andReturn(
+      expect(session.itemExists(userPath+"/breadcrumbs/" + s + "_people.png")).andReturn(true);
+      expect(session.getItem(userPath+"/breadcrumbs/" + s + "_people.png")).andReturn(
           breadCrumbNode);
 
       expect(session.hasPendingChanges()).andReturn(true);
       session.save();
 
     }
-    expect(session.itemExists("/my/people.png")).andReturn(true);
-    expect(session.getItem("/my/people.png")).andReturn(imgNode);
-    expect(session.itemExists("/my/breadcrumbs")).andReturn(true);
+    expect(session.itemExists(userPath+"/people.png")).andReturn(true);
+    expect(session.getItem(userPath+"/people.png")).andReturn(imgNode);
+    expect(session.itemExists(userPath+"/breadcrumbs")).andReturn(true);
 
     // Capture output.
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -167,7 +183,7 @@ public class CropItServletTest extends AbstractEasyMockTest {
     assertEquals(2, files.length());
     for (int i = 0; i < files.length(); i++) {
       String url = files.getString(i);
-      assertEquals("/my/breadcrumbs/" + dimensions[i] + "_people.png", url);
+      assertEquals("/~johndoe/breadcrumbs/" + dimensions[i] + "_people.png", url);
     }
   }
 

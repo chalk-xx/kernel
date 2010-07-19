@@ -20,6 +20,9 @@ package org.sakaiproject.nakamura.image;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -27,6 +30,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -43,6 +47,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -110,8 +115,10 @@ public class CropItServlet extends SlingAllMethodsServlet {
       ResourceResolver resourceResolver = request.getResourceResolver();
       Session session = resourceResolver.adaptTo(Session.class);
 
-      String img = imgParam.getString();
-      String save = saveParam.getString();
+      String requestImg =  imgParam.getString();
+      String requestSave = saveParam.getString();
+      String img = expandAuthorizable(session, requestImg);
+      String save = expandAuthorizable(session, requestSave);
       int x = Integer.parseInt(xParam.getString());
       int y = Integer.parseInt(yParam.getString());
       int width = Integer.parseInt(widthParam.getString());
@@ -139,6 +146,7 @@ public class CropItServlet extends SlingAllMethodsServlet {
 
       // Make sure the save path is correct.
       save = PathUtils.normalizePath(save) + "/";
+      requestSave = PathUtils.normalizePath(requestSave) + "/";
 
       String[] crop = CropItProcessor.crop(session, x, y, width, height, dimensions, img,
           save);
@@ -152,6 +160,13 @@ public class CropItServlet extends SlingAllMethodsServlet {
       output.key("files");
       output.array();
       for (String url : crop) {
+        if ( url.startsWith(img) ) {
+          url = requestImg + url.substring(img.length());
+        }
+        if ( url.startsWith(save) ) {
+          System.err.println("Chomping ["+url+"]["+save+"]["+requestSave+"]");
+          url = requestSave + url.substring(save.length());
+        }
         output.value(url);
       }
       output.endArray();
@@ -173,8 +188,40 @@ public class CropItServlet extends SlingAllMethodsServlet {
       response.sendError(e.getCode(), e.getMessage());
     } catch (JSONException e) {
       response.sendError(500, "Unable to output JSON.");
+    } catch (RepositoryException e) {
+      logger.warn(e.getMessage(),e);
+      response.sendError(500, "Unable to locate user.");
     }
   }
+
+  private String expandAuthorizable(Session session, String path) throws  RepositoryException {
+    int start = 0;
+    if ( path.startsWith("/~") ) {
+      start = "/~".length();
+    } else if ( path.startsWith("/user/" )) {
+      start = "/user/".length();
+    } else if ( path.startsWith("/group/" )) {
+      start = "/group/".length();
+    }
+    if ( start > 0 ) {
+      int nextSlash = path.indexOf("/",start);
+      if ( nextSlash > 0 ) {
+        String id = path.substring(start, nextSlash);
+        UserManager um = AccessControlUtil.getUserManager(session);
+        Authorizable a = um.getAuthorizable(id);
+        ItemBasedPrincipal p = (ItemBasedPrincipal) a.getPrincipal();
+        if ( a.isGroup() ) {
+          path = "/_group"+p.getPath().substring("/rep:security/rep:authorizables/rep:groups".length())+path.substring(nextSlash);
+        } else {
+          System.err.println("Processing Path as ["+path+"]["+p.getPath()+"]["+path.substring(nextSlash)+"]");
+          path = "/_user"+p.getPath().substring("/rep:security/rep:authorizables/rep:users".length())+path.substring(nextSlash);     
+          System.err.println("Done Processing Path as ["+path+"]");
+        }
+      }
+    }
+    return path;
+  }
+  
 
   protected int checkIntBiggerThanZero(int val, int defaultVal) {
     if (val < 0) {

@@ -31,7 +31,6 @@ import java.util.Set;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.ValueFactory;
 import javax.mail.BodyPart;
 import javax.mail.Header;
 import javax.mail.MessagingException;
@@ -209,8 +208,8 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     } else {
       Node node = messagingService.create(session, mapProperties);
       // set up to stream the body.
-      ValueFactory vf = session.getValueFactory();
-      node.setProperty(MessageConstants.PROP_SAKAI_BODY, vf.createBinary(data));
+      node.setProperty(MessageConstants.PROP_SAKAI_BODY, data);
+      node.save();
       return node;
     }
   }
@@ -247,8 +246,8 @@ public class SakaiSmtpServer implements SimpleMessageListener {
 
     Node childNode = message.addNode(childName);
     writePartPropertiesToNode(part, childNode);
-    ValueFactory vf = session.getValueFactory();
-    childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, vf.createBinary(part.getInputStream()));
+    childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, part.getInputStream());
+    childNode.save();
   }
 
   private void writePartAsFile(Session session, BodyPart part, String nodeName,
@@ -256,7 +255,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     Node fileNode = parentNode.addNode(nodeName, "nt:file");
     Node resourceNode = fileNode.addNode("jcr:content", "nt:resource");
     resourceNode.setProperty("jcr:mimeType", part.getContentType());
-    resourceNode.setProperty("jcr:data", session.getValueFactory().createBinary(
+    resourceNode.setProperty("jcr:data", session.getValueFactory().createValue(
         part.getInputStream()));
     resourceNode.setProperty("jcr:lastModified", Calendar.getInstance());
   }
