@@ -211,10 +211,10 @@ public class CropItServlet extends SlingAllMethodsServlet {
         Authorizable a = um.getAuthorizable(id);
         ItemBasedPrincipal p = (ItemBasedPrincipal) a.getPrincipal();
         if ( a.isGroup() ) {
-          path = "/_group"+p.getPath().substring("/rep:authorizables/rep:groups".length())+path.substring(nextSlash);
+          path = "/_group"+p.getPath().substring("/rep:security/rep:authorizables/rep:groups".length())+path.substring(nextSlash);
         } else {
           System.err.println("Processing Path as ["+path+"]["+p.getPath()+"]["+path.substring(nextSlash)+"]");
-          path = "/_user"+p.getPath().substring("/rep:authorizables/rep:users".length())+path.substring(nextSlash);     
+          path = "/_user"+p.getPath().substring("/rep:security/rep:authorizables/rep:users".length())+path.substring(nextSlash);     
           System.err.println("Done Processing Path as ["+path+"]");
         }
       }
