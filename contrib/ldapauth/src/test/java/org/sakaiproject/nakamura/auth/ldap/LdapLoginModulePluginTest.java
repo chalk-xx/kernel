@@ -29,7 +29,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  *
- * @author chall
  */
 @RunWith(MockitoJUnitRunner.class)
 public class LdapLoginModulePluginTest {

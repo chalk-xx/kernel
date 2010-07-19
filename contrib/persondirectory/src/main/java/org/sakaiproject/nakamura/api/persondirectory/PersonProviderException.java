@@ -20,7 +20,6 @@ package org.sakaiproject.nakamura.api.persondirectory;
  * Generic exception for representing problems when working with a person
  * provider.
  *
- * @author Carl Hall
  */
 public class PersonProviderException extends Exception {
   private static final long serialVersionUID = 1L;

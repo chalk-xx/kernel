@@ -40,7 +40,6 @@ import javax.jcr.query.Row;
 
 /**
  *
- * @author chall
  */
 @Component
 @Service

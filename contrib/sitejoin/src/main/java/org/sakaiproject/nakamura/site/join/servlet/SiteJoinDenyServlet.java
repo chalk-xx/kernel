@@ -38,7 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  *
- * @author chall
  */
 @SlingServlet(resourceTypes = "sakai/site", methods = "POST", selectors = "deny")
 public class SiteJoinDenyServlet extends SlingAllMethodsServlet {

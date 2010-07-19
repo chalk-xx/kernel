@@ -29,7 +29,6 @@ import java.util.Map;
 
 /**
  *
- * @author chall
  */
 @Component
 @Properties(value = {

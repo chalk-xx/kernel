@@ -50,7 +50,6 @@ import javax.jcr.Session;
 
 /**
  *
- * @author chall
  */
 @Component
 @Service(value = EventHandler.class)
