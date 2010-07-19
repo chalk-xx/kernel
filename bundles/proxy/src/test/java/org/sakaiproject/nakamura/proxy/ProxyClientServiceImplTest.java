@@ -24,7 +24,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.apache.jackrabbit.JcrConstants;
-import org.easymock.classextension.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -32,6 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.proxy.ProxyClientException;
 import org.sakaiproject.nakamura.api.proxy.ProxyClientService;
+import org.sakaiproject.nakamura.api.proxy.ProxyPostProcessor;
 import org.sakaiproject.nakamura.api.proxy.ProxyResponse;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.testutils.http.CapturedRequest;
@@ -164,6 +164,8 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     Value value = createMock(Value.class);
 
     expect(node.getPath()).andReturn("/testing").anyTimes();
+    expect(node.hasProperty(ProxyPostProcessor.SAKAI_POSTPROCESSOR)).andReturn(
+        false);
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         true);
     expect(node.getProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
@@ -187,8 +189,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
       }
       fail();
     } catch (ProxyClientException ex) {
-      ProxyClientException e = (ProxyClientException) ex.getCause();
-      assertEquals(message, e.getMessage());
+      assertEquals(message, ex.getMessage());
     }
     verify();
   }
@@ -209,6 +210,8 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     Value value = createMock(Value.class);
     Binary binary = createMock(Binary.class);
 
+    expect(node.hasProperty(ProxyPostProcessor.SAKAI_POSTPROCESSOR)).andReturn(
+        false);
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         true);
 
@@ -289,6 +292,8 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     PropertyDefinition propertyDefinition = createMock(PropertyDefinition.class);
     Value value = createMock(Value.class);
 
+    expect(node.hasProperty(ProxyPostProcessor.SAKAI_POSTPROCESSOR)).andReturn(
+        false);
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         true);
 
@@ -383,6 +388,9 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     Property requestMethodProperty = createMock(Property.class);
     PropertyDefinition propertyDefinition = createMock(PropertyDefinition.class);
     Value value = createMock(Value.class);
+
+    expect(node.hasProperty(ProxyPostProcessor.SAKAI_POSTPROCESSOR)).andReturn(
+        false);
 
     expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_REQUEST_TEMPLATE)).andReturn(
         false).anyTimes();
