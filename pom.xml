@@ -95,7 +95,6 @@
     <profile>
        <id>withContrib</id>
        <modules>
-        <module>libraries/xythos-service</module>
         <module>contrib/import</module>
         <module>contrib/filters</module>
         <module>contrib/mailman</module>
@@ -103,11 +102,9 @@
         <module>contrib/casauth</module>
         <module>contrib/ldapauth</module>
         <module>contrib/ldap</module>
-        <module>contrib/urldocproxy</module>
-        <module>contrib/xythos-remote</module>
-        <module>contrib/oracle-jdbc</module>
+        <module>contrib/xythos</module>
+        <!-- to build oracle you must download and install oracle.jar first  <module>contrib/oracle-jdbc</module> -->
         <module>contrib/sitejoin</module>
-        <module>contrib/postprocessors</module>
        </modules>
     </profile>
     <profile>

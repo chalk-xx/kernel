@@ -84,8 +84,8 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
   @Property(name = "createJCRNodes", description = "Wether or not nodes should be created in JCR for newly uploaded files.", boolValue = false)
   protected boolean createJCRNodes = false;
 
-  @SuppressWarnings("unchecked")
   protected void activate(ComponentContext context) {
+    @SuppressWarnings("rawtypes")
     Dictionary properties = context.getProperties();
     createJCRNodes = (Boolean) properties.get("createJCRNodes");
   }

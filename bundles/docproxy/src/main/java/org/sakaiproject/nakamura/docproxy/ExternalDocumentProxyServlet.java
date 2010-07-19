@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.docproxy;
 
-import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_REF;
-
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
