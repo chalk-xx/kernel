@@ -19,7 +19,7 @@ import java.util.Map;
 @Component(enabled = true, immediate = true, metatype = true)
 @Service(value = EventHandler.class)
 @Properties(value = {
-    @Property(name = "service.vendor", value = "New York University"),
+    @Property(name = "service.vendor", value = "Sakai Foundation"),
     @Property(name = "service.description", value = "Provides a place to respond when sites are created and memberships updated"),
     @Property(name = "event.topics", value = "org/sakaiproject/nakamura/api/site/event/created") })
 // SiteService.SiteEvent.created.getTopic()

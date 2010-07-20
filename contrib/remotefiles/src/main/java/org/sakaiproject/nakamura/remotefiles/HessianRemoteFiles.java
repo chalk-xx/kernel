@@ -38,14 +38,14 @@ import java.util.Map;
 @Component(enabled = true, immediate = true, metatype = true)
 @Service(value = RemoteFilesRepository.class)
 @Properties(value = {
-    @Property(name = "service.vendor", value = "New York University"),
+    @Property(name = "service.vendor", value = "Sakai Foundation"),
     @Property(name = "service.description", value = "Remote Files API implementation"),
     @Property(name = "repository.type", value = "remotefiles")})
 public class HessianRemoteFiles implements RemoteFilesRepository {
   
   
   @Property(name = "remotefiles.host", description = "The remote host (and port) of the remote files server")
-  protected String remoteFilesHost = "http://xtest1.home.nyu.edu:8080";
+  protected String remoteFilesHost = "http://example.com:8080";
   
   protected String remotePath = "/remoting/remoting/RemoteFilesService";
   
