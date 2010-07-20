@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -34,7 +35,7 @@ import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 
 public class ExtendedJSONWriter extends JSONWriter {
-  
+
   public ExtendedJSONWriter(Writer w) {
     super(w);
   }
@@ -47,10 +48,13 @@ public class ExtendedJSONWriter extends JSONWriter {
 
   /**
    * This will output the key value pairs of a value map as JSON without opening and
-   * closing braces, you will need to call object() and endObject() yourself but you
-   * can use this to allow appending onto the end of the existing data
-   * @param valueMap any ValueMap (cannot be null)
-   * @throws JSONException on failure
+   * closing braces, you will need to call object() and endObject() yourself but you can
+   * use this to allow appending onto the end of the existing data
+   * 
+   * @param valueMap
+   *          any ValueMap (cannot be null)
+   * @throws JSONException
+   *           on failure
    */
   public void valueMapInternals(ValueMap valueMap) throws JSONException {
     for (Entry<String, Object> entry : valueMap.entrySet()) {
@@ -58,46 +62,106 @@ public class ExtendedJSONWriter extends JSONWriter {
       Object entryValue = entry.getValue();
       if (entryValue instanceof Object[]) {
         array();
-        Object[] objects = (Object[])entryValue;
+        Object[] objects = (Object[]) entryValue;
         for (Object object : objects) {
           value(object);
         }
         endArray();
-      }
-      else {
+      } else {
         value(entry.getValue());
       }
     }
   }
 
-  public static void writeNodeContentsToWriter(JSONWriter write, Node node) throws RepositoryException, JSONException {
+  public static void writeNodeContentsToWriter(JSONWriter write, Node node)
+      throws RepositoryException, JSONException {
     // Since removal of bigstore we add in jcr:path and jcr:name
     write.key("jcr:path");
-    write.value(node.getPath());
+    write.value(translateAuthorizablePath(node.getPath()));
     write.key("jcr:name");
     write.value(node.getName());
-    
+
     PropertyIterator properties = node.getProperties();
     while (properties.hasNext()) {
       Property prop = properties.nextProperty();
-      write.key(prop.getName());
+      String name = prop.getName();
+      write.key(name);
       if (prop.getDefinition().isMultiple()) {
         Value[] values = prop.getValues();
         write.array();
         for (Value value : values) {
-          write.value(stringValue(value));
+          Object ovalue = stringValue(value);
+          if (isUserPath(name, ovalue)) {
+            write.value(translateAuthorizablePath(ovalue));
+          } else {
+            write.value(ovalue);
+          }
         }
         write.endArray();
       } else {
-        write.value(stringValue(prop.getValue()));
+        Object value = stringValue(prop.getValue());
+        if (isUserPath(name, value)) {
+          write.value(translateAuthorizablePath(value));
+        } else {
+          write.value(value);
+        }
       }
     }
   }
-  
-  public static void writeNodeToWriter(JSONWriter write, Node node) throws JSONException, RepositoryException {
+
+  private static boolean isUserPath(String name, Object value) {
+    if ("jcr:path".equals(name) || "path".equals(name) || "userProfilePath".equals(name)) {
+      String s = String.valueOf(value);
+      if (s != null && s.length() > 4) {
+        if (s.charAt(0) == '/' && s.charAt(1) == '_') {
+          if (s.startsWith("/_user/") || s.startsWith("/_group/")) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  protected static Object translateAuthorizablePath(Object value) {
+    String s = String.valueOf(value);
+    if (s != null && s.length() > 4) {
+      if (s.charAt(0) == '/' && s.charAt(1) == '_') {
+        String id = null;
+        if (s.startsWith("/_user/") || s.startsWith("/_group/")) {
+          int slash = s.indexOf('/', 2);
+          while (slash > 0) {
+            int nslash = s.indexOf('/', slash + 1);
+            String nid = null;
+            if (nslash > 0) {
+              nid = s.substring(slash + 1, nslash);
+            } else {
+              nid = s.substring(slash + 1);
+            }
+            if (id == null) {
+              id = nid;
+            } else if (nid.equals(id)) {
+              return "/~" + id + "/"+ s.substring(slash + 1);
+            } else if (!nid.startsWith(id)) {
+              return "/~" + id+ "/" + s.substring(slash + 1);
+            }
+            slash = nslash;
+            id = nid;
+          }
+          if ( id != null && id.length() > 0) {
+            return "/~" + id;
+          }
+        }
+      }
+    }
+    return value;
+  }
+
+  public static void writeNodeToWriter(JSONWriter write, Node node) throws JSONException,
+      RepositoryException {
     write.object();
     writeNodeContentsToWriter(write, node);
-    write.endObject();    
+    write.endObject();
   }
 
   private static Object stringValue(Value value) throws ValueFormatException,
@@ -113,7 +177,7 @@ public class ExtendedJSONWriter extends JSONWriter {
     case PropertyType.LONG:
       return value.getLong();
     case PropertyType.DOUBLE:
-      return value.getDouble();     
+      return value.getDouble();
     case PropertyType.DATE:
       return DateUtils.iso8601(value.getDate());
     default:
@@ -124,7 +188,7 @@ public class ExtendedJSONWriter extends JSONWriter {
   public void node(Node node) throws JSONException, RepositoryException {
     writeNodeToWriter(this, node);
   }
-  
+
   /**
    * Represent an entire JCR tree in JSON format.
    * 
