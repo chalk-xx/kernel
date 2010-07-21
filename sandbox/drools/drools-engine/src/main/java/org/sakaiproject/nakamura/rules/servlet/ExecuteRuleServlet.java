@@ -65,8 +65,10 @@ public class ExecuteRuleServlet extends SlingSafeMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExecuteRuleServlet.class);
 
+  protected static final String PARAM_RULE_SET = ":ruleset";
+
   @Reference
-  private RuleExecutionService ruleExecutionService;
+  protected RuleExecutionService ruleExecutionService;
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -75,62 +77,69 @@ public class ExecuteRuleServlet extends SlingSafeMethodsServlet {
     RuleContext ruleContext = new RequestRuleContext(request, response);
     RuleExecutionErrorListener servletErrorListener = new ServletRuleErrorListener();
 
-    String pathToRuleSet = request.getParameter(":ruleset");
-    if (pathToRuleSet.charAt(0) != '/') {
-      // we need to fidn the rule set by name
-      try {
-        Session session = request.getResourceResolver().adaptTo(Session.class);
-        ValueFactory valueFactory = session.getValueFactory();
-        QueryManager qm = session.getWorkspace().getQueryManager();
-        Query q = qm
-            .createQuery("select * from test where "
-                + RuleConstants.PROP_SAKAI_RULE_SET_NAME + " = $ruleSetName ",
-                Query.JCR_SQL2);
-        q.bindValue("ruleSetName", valueFactory.createValue(pathToRuleSet));
-        QueryResult qr = q.execute();
-        RowIterator ri = qr.getRows();
-        if (ri.hasNext()) {
-          Node node = ri.nextRow().getNode();
-          pathToRuleSet = node.getPath();
-        } else {
+    String pathToRuleSet = request.getParameter(PARAM_RULE_SET);
+    if (pathToRuleSet != null) {
+      if (pathToRuleSet.charAt(0) != '/') {
+
+        // we need to fidn the rule set by name
+        try {
+          Session session = request.getResourceResolver().adaptTo(Session.class);
+          ValueFactory valueFactory = session.getValueFactory();
+          QueryManager qm = session.getWorkspace().getQueryManager();
+          Query q = qm.createQuery("select * from test where "
+              + RuleConstants.PROP_SAKAI_RULE_SET_NAME + " = $ruleSetName ",
+              Query.JCR_SQL2);
+          q.bindValue("ruleSetName", valueFactory.createValue(pathToRuleSet));
+          QueryResult qr = q.execute();
+          RowIterator ri = qr.getRows();
+          if (ri.hasNext()) {
+            Node node = ri.nextRow().getNode();
+            pathToRuleSet = node.getPath();
+          } else {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                "Cant locate named rule " + pathToRuleSet);
+            return;
+          }
+        } catch (RepositoryException e) {
+          LOGGER.error(e.getMessage(), e);
           response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-              "Cant locate named rule " + pathToRuleSet);
+              "Cant locate named rule " + pathToRuleSet + " :" + e.getMessage());
           return;
         }
-      } catch (RepositoryException e) {
-        LOGGER.error(e.getMessage(), e);
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Cant locate named rule "
-            + pathToRuleSet + " :" + e.getMessage());
-        return;
       }
-    }
-    try {
       try {
-        Map<String, Object> result = ruleExecutionService.executeRuleSet(pathToRuleSet,
-            request, resource, ruleContext, servletErrorListener);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        JSONWriter jsonWriter = new JSONWriter(response.getWriter());
-        jsonWriter.value(new JSONObject(result));
+        try {
+          Map<String, Object> result = ruleExecutionService.executeRuleSet(pathToRuleSet,
+              request, resource, ruleContext, servletErrorListener);
+          response.setContentType("application/json");
+          response.setCharacterEncoding("UTF-8");
+          JSONObject o = new JSONObject(result);
+          response.getWriter().append(o.toString());
 
-      } catch (RuleExecutionException e) {
-        LOGGER.error(e.getMessage(), e);
+        } catch (RuleExecutionException e) {
+          LOGGER.error(e.getMessage(), e);
 
-        List<String> errors = e.getErrors();
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+          List<String> errors = e.getErrors();
+          response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+          response.setContentType("application/json");
+          response.setCharacterEncoding("UTF-8");
 
-        JSONWriter jsonWriter = new JSONWriter(response.getWriter());
-        jsonWriter.object();
-        jsonWriter.key("errors");
-        jsonWriter.value(new JSONArray(errors));
-        jsonWriter.key("exception");
-        jsonWriter.value(e.getMessage());
-        jsonWriter.endObject();
+          JSONWriter jsonWriter = new JSONWriter(response.getWriter());
+          jsonWriter.object();
+          jsonWriter.key("errors");
+          jsonWriter.value(new JSONArray(errors));
+          jsonWriter.key("exception");
+          jsonWriter.value(e.getMessage());
+          jsonWriter.endObject();
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+        throw new ServletException(e.getMessage(), e);
       }
-    } catch (JSONException e) {
-      throw new ServletException(e.getMessage(), e);
+    } else {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "You must specify a rule to execute on this resource in the parameter"
+              + PARAM_RULE_SET);
     }
   }
 
