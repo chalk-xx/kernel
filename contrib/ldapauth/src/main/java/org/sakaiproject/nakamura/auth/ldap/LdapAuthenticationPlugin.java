@@ -34,6 +34,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -47,7 +49,10 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
@@ -89,9 +94,8 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
   @Property(cardinality = 2147483647)
   static final String USER_PROPS = "sakai.auth.ldap.user.props";
-  private String[] userProps;
-  private String[] ldapAttrNames;
-  private String[] jcrPropNames;
+  private ArrayList<String> ldapAttrNames;
+  private ArrayList<String> jcrPropNames;
 
   @Reference
   private LdapConnectionManager connMgr;
@@ -128,18 +132,75 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     userFilter = OsgiUtil.toString(props.get(USER_FILTER), "");
     authzFilter = OsgiUtil.toString(props.get(AUTHZ_FILTER), "");
     createAccount = OsgiUtil.toBoolean(props.get(CREATE_ACCOUNT), CREATE_ACCOUNT_DEFAULT);
-    userProps = OsgiUtil.toStringArray(props.get(USER_PROPS));
 
-    if (userProps != null && userProps.length > 0) {
-      ldapAttrNames = new String[userProps.length];
-      jcrPropNames = new String[userProps.length];
-      for (int i = 0; i < userProps.length; i++) {
-        String[] ldapJcr = StringUtils.split(userProps[i], "\":\"");
-        ldapAttrNames[i] = ldapJcr[0];
-        jcrPropNames[i] = ldapJcr[1];
+    parseUserProps(props);
+  }
+
+  protected boolean canDecorateUser() {
+    return ldapAttrNames != null && jcrPropNames != null;
+  }
+
+  private void parseUserProps(Map<?, ?> props) {
+    // check for the existence of USER_PROPS
+    if (props.containsKey(USER_PROPS)) {
+      Object oProps = props.get(USER_PROPS);
+      if (oProps == null) {
+        ldapAttrNames = null;
+        jcrPropNames = null;
       }
-    } else {
-      userProps = null;
+      // check the String to be JSON
+      else if (oProps instanceof String && ((String) oProps).length() > 0
+          && ((String) oProps).charAt(0) == '{') {
+        try {
+          String strProps = (String) oProps;
+          JSONObject jsonObj = new JSONObject(strProps);
+          Iterator<String> keysIter = jsonObj.keys();
+          ldapAttrNames = new ArrayList<String>();
+          jcrPropNames = new ArrayList<String>();
+          while (keysIter.hasNext()) {
+            String key = keysIter.next();
+            ldapAttrNames.add(key);
+            jcrPropNames.add((String) jsonObj.get(key));
+          }
+        } catch (JSONException e) {
+          log.error(e.getMessage(), e);
+          ldapAttrNames = null;
+          jcrPropNames = null;
+        }
+      }
+      // String[] should processed as "key":"value" pairs per index.
+      else if (oProps instanceof String[]) {
+        String[] userProps = (String[]) oProps;
+
+        if (userProps.length > 0 && !(userProps.length == 1 && userProps[0] == null)) {
+          ldapAttrNames = new ArrayList<String>();
+          jcrPropNames = new ArrayList<String>();
+          for (int i = 0; i < userProps.length; i++) {
+            String[] ldapJcr = StringUtils.split(userProps[i], "\":\"");
+            ldapAttrNames.add(ldapJcr[0]);
+            jcrPropNames.add(ldapJcr[1]);
+          }
+        }
+      }
+    }
+    // process entries as sakai.auth.ldap.user.props.ldapAttrName = jcrPropName
+    else {
+      ldapAttrNames = new ArrayList<String>();
+      jcrPropNames = new ArrayList<String>();
+
+      for (Entry<?, ?> entry : props.entrySet()) {
+        String key = OsgiUtil.toString(entry.getKey(), "");
+        String value = OsgiUtil.toString(entry.getValue(), "");
+        if (key.length() > 0 && value.length() > 0 && key.startsWith(USER_PROPS)) {
+          String ldapAttrName = key.substring(USER_PROPS.length());
+          ldapAttrNames.add(ldapAttrName);
+          jcrPropNames.add(value);
+        }
+      }
+    }
+
+    if ((ldapAttrNames != null && ldapAttrNames.size() == 0)
+        || (jcrPropNames != null && jcrPropNames.size() == 0)) {
       ldapAttrNames = null;
       jcrPropNames = null;
     }
@@ -246,9 +307,9 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
         // provision & decorate the user
         Session session = slingRepository.loginAdministrative(null);
-        Authorizable authorizable = getJcrUser(session, sc.getUserID(), conn);
+        Authorizable authorizable = getJcrUser(session, sc.getUserID());
 
-        if (authorizable != null && userProps != null) {
+        if (authorizable != null && ldapAttrNames != null && jcrPropNames != null) {
           decorateUser(session, authorizable, conn);
         }
       } catch (Exception e) {
@@ -260,15 +321,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     return auth;
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
-   *      javax.servlet.http.HttpServletResponse,
-   *      org.apache.sling.commons.auth.spi.AuthenticationInfo)
-   */
-  public Authorizable getJcrUser(Session session, String userId, LDAPConnection conn)
-      throws Exception {
+  private Authorizable getJcrUser(Session session, String userId) throws Exception {
     UserManager um = AccessControlUtil.getUserManager(session);
     Authorizable auth = um.getAuthorizable(userId);
 
@@ -303,16 +356,16 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
     // get a connection to LDAP
     LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userDn,
-        ldapAttrNames, false);
+        ldapAttrNames.toArray(new String[ldapAttrNames.size()]), false);
     if (results.hasMore()) {
       LDAPEntry entry = results.next();
       ValueFactory vf = session.getValueFactory();
 
-      for (int i = 0; i < ldapAttrNames.length; i++) {
-        if (user.getProperty(jcrPropNames[i]) == null) {
-          LDAPAttribute attr = entry.getAttribute(ldapAttrNames[i]);
+      for (int i = 0; i < ldapAttrNames.size(); i++) {
+        if (user.getProperty(jcrPropNames.get(i)) == null) {
+          LDAPAttribute attr = entry.getAttribute(ldapAttrNames.get(i));
           if (attr != null) {
-            user.setProperty(jcrPropNames[i], vf.createValue(attr.getStringValue()));
+            user.setProperty(jcrPropNames.get(i), vf.createValue(attr.getStringValue()));
           }
         }
       }

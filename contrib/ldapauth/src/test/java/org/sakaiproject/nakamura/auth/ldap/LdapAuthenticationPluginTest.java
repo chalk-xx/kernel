@@ -412,7 +412,7 @@ public class LdapAuthenticationPluginTest {
   }
 
   @Test
-  public void decorateUserAfterAuth() throws Exception {
+  public void decorateUserAfterAuthUsingStringArray() throws Exception {
     // given
     HashMap<String, Object> props = new HashMap<String, Object>();
     props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, LDAP_BASE_DN);
@@ -456,5 +456,178 @@ public class LdapAuthenticationPluginTest {
 
     verify(entry).getAttribute("mail");
     verify(user).setProperty(eq("email"), isA(Value.class));
+  }
+
+  @Test
+  public void decorateUserAfterAuthWithJsonString() throws Exception {
+    // given
+    HashMap<String, Object> props = new HashMap<String, Object>();
+    props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, LDAP_BASE_DN);
+    props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
+    props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
+    props.put(LdapAuthenticationPlugin.USER_PROPS,
+        "{\"givenName\":\"firstName\", \"sn\":\"lastName\", \"mail\":\"email\"}");
+    ldapAuthenticationPlugin.activate(props);
+
+    when(connMgr.getConnection()).thenReturn(conn);
+    when(
+        conn.search(isA(String.class), anyInt(), isA(String.class), any(String[].class),
+            anyBoolean())).thenReturn(results);
+    when(results.hasMore()).thenReturn(true);
+
+    LDAPEntry ldapEntry = mock(LDAPEntry.class, RETURNS_DEEP_STUBS.get());
+    when(results.next()).thenReturn(ldapEntry);
+
+    LDAPEntry entry = mock(LDAPEntry.class);
+    when(results.next()).thenReturn(entry);
+
+    String userEntryDn = USER_FILTER.replace("{}", USER) + ", " + LDAP_BASE_DN;
+    when(entry.getDN()).thenReturn(userEntryDn);
+
+    LDAPAttribute attr = mock(LDAPAttribute.class);
+    when(entry.getAttribute(isA(String.class))).thenReturn(attr);
+
+    User user = mock(User.class);
+    when(user.getID()).thenReturn("testuser");
+    when(userManager.getAuthorizable(isA(String.class))).thenReturn(user);
+
+    // then
+    assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
+        .toCharArray())));
+
+    verify(entry).getAttribute("givenName");
+    verify(user).setProperty(eq("firstName"), isA(Value.class));
+
+    verify(entry).getAttribute("sn");
+    verify(user).setProperty(eq("lastName"), isA(Value.class));
+
+    verify(entry).getAttribute("mail");
+    verify(user).setProperty(eq("email"), isA(Value.class));
+  }
+
+  @Test
+  public void decorateUserAfterAuthWithKeyedValues() throws Exception {
+    // given
+    HashMap<String, Object> props = new HashMap<String, Object>();
+    props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, LDAP_BASE_DN);
+    props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
+    props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
+    props.put(LdapAuthenticationPlugin.USER_PROPS + "givenName", "firstName");
+    props.put(LdapAuthenticationPlugin.USER_PROPS + "sn", "lastName");
+    props.put(LdapAuthenticationPlugin.USER_PROPS + "mail", "email");
+    ldapAuthenticationPlugin.activate(props);
+
+    when(connMgr.getConnection()).thenReturn(conn);
+    when(
+        conn.search(isA(String.class), anyInt(), isA(String.class),
+            any(String[].class), anyBoolean())).thenReturn(results);
+    when(results.hasMore()).thenReturn(true);
+
+    LDAPEntry ldapEntry = mock(LDAPEntry.class, RETURNS_DEEP_STUBS.get());
+    when(results.next()).thenReturn(ldapEntry);
+
+    LDAPEntry entry = mock(LDAPEntry.class);
+    when(results.next()).thenReturn(entry);
+
+    String userEntryDn = USER_FILTER.replace("{}", USER) + ", " + LDAP_BASE_DN;
+    when(entry.getDN()).thenReturn(userEntryDn);
+
+    LDAPAttribute attr = mock(LDAPAttribute.class);
+    when(entry.getAttribute(isA(String.class))).thenReturn(attr);
+
+    User user = mock(User.class);
+    when(user.getID()).thenReturn("testuser");
+    when(userManager.getAuthorizable(isA(String.class))).thenReturn(user);
+
+    // then
+    assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
+        .toCharArray())));
+
+    verify(entry).getAttribute("givenName");
+    verify(user).setProperty(eq("firstName"), isA(Value.class));
+
+    verify(entry).getAttribute("sn");
+    verify(user).setProperty(eq("lastName"), isA(Value.class));
+
+    verify(entry).getAttribute("mail");
+    verify(user).setProperty(eq("email"), isA(Value.class));
+  }
+
+  @Test
+  public void clearAttrsPropsWithNullProps() throws Exception {
+    // given
+    HashMap<String, Object> props = new HashMap<String, Object>();
+    props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, LDAP_BASE_DN);
+    props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
+    props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
+    props.put(LdapAuthenticationPlugin.USER_PROPS, null);
+    ldapAuthenticationPlugin.activate(props);
+
+    when(connMgr.getConnection()).thenReturn(conn);
+    when(
+        conn.search(isA(String.class), anyInt(), isA(String.class), any(String[].class),
+            anyBoolean())).thenReturn(results);
+    when(results.hasMore()).thenReturn(true);
+
+    LDAPEntry ldapEntry = mock(LDAPEntry.class, RETURNS_DEEP_STUBS.get());
+    when(results.next()).thenReturn(ldapEntry);
+
+    LDAPEntry entry = mock(LDAPEntry.class);
+    when(results.next()).thenReturn(entry);
+
+    String userEntryDn = USER_FILTER.replace("{}", USER) + ", " + LDAP_BASE_DN;
+    when(entry.getDN()).thenReturn(userEntryDn);
+
+    LDAPAttribute attr = mock(LDAPAttribute.class);
+    when(entry.getAttribute(isA(String.class))).thenReturn(attr);
+
+    User user = mock(User.class);
+    when(user.getID()).thenReturn("testuser");
+    when(userManager.getAuthorizable(isA(String.class))).thenReturn(user);
+
+    // then
+    assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
+        .toCharArray())));
+
+    assertFalse(ldapAuthenticationPlugin.canDecorateUser());
+  }
+
+  @Test
+  public void clearAttrsPropsWithNullArrayEntry() throws Exception {
+    // given
+    HashMap<String, Object> props = new HashMap<String, Object>();
+    props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, LDAP_BASE_DN);
+    props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
+    props.put(LdapAuthenticationPlugin.CREATE_ACCOUNT, Boolean.FALSE);
+    props.put(LdapAuthenticationPlugin.USER_PROPS, new String[] { null });
+    ldapAuthenticationPlugin.activate(props);
+
+    when(connMgr.getConnection()).thenReturn(conn);
+    when(
+        conn.search(isA(String.class), anyInt(), isA(String.class), any(String[].class),
+            anyBoolean())).thenReturn(results);
+    when(results.hasMore()).thenReturn(true);
+
+    LDAPEntry ldapEntry = mock(LDAPEntry.class, RETURNS_DEEP_STUBS.get());
+    when(results.next()).thenReturn(ldapEntry);
+
+    LDAPEntry entry = mock(LDAPEntry.class);
+    when(results.next()).thenReturn(entry);
+
+    String userEntryDn = USER_FILTER.replace("{}", USER) + ", " + LDAP_BASE_DN;
+    when(entry.getDN()).thenReturn(userEntryDn);
+
+    LDAPAttribute attr = mock(LDAPAttribute.class);
+    when(entry.getAttribute(isA(String.class))).thenReturn(attr);
+
+    User user = mock(User.class);
+    when(user.getID()).thenReturn("testuser");
+    when(userManager.getAuthorizable(isA(String.class))).thenReturn(user);
+
+    // then
+    assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
+        .toCharArray())));
+
+    assertFalse(ldapAuthenticationPlugin.canDecorateUser());
   }
 }
