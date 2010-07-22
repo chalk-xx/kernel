@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #Sakai 3 Demo
-export K2_TAG="0.5"
-export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.5.jar"
+export K2_TAG="0.6"
+export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.6.jar"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
