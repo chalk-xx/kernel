@@ -19,7 +19,7 @@ export MAVEN_HOME=/usr/local/apache-maven-2.2.1
 export M2_HOME=/usr/local/apache-maven-2.2.1
 export PATH=$MAVEN_HOME/bin:${PATH}
 export MAVEN_OPTS="-Xmx512m -XX:MaxPermSize=256m"
-export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -Dsun.lang.ClassLoader.allowArraySyntax=true -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
+export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -Dsun.lang.ClassLoader.allowArraySyntax=true -Dorg.apache.jasper.compiler.Parser.STRICT_QUOTE_ESCAPING=false -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
 export K2_OPTS="-server -Xmx512m -XX:MaxPermSize=128m -Djava.awt.headless=true"
 BUILD_DATE=`date "+%D %R"`
 
@@ -99,8 +99,8 @@ then
 else
     echo "Building sakai2/$S2_TAG..."
     # untar tomcat
-    tar -xzf apache-tomcat-5.5.26.tar.gz 
-    mv apache-tomcat-5.5.26 sakai2-demo
+    tar -xzf apache-tomcat-5.5.30.tar.gz 
+    mv apache-tomcat-5.5.30 sakai2-demo
     mkdir -p sakai2-demo/sakai
     svn checkout -q "https://source.sakaiproject.org/svn/sakai/$S2_TAG" sakai
     cd sakai/
