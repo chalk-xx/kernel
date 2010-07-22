@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.site.join</artifactId>
   <packaging>bundle</packaging>
   <version>0.7-SNAPSHOT</version>
-  <name>Sakai Nakamura Site Join Workflow Bundle</name>
+  <name>Sakai Nakamura :: Site Join Workflow Bundle</name>
   <build>
     <plugins>
       <plugin>
