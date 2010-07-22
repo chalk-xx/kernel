@@ -24,6 +24,7 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
@@ -33,6 +34,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -46,7 +49,10 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
@@ -86,31 +92,16 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   static final String CREATE_ACCOUNT = "sakai.auth.ldap.account.create";
   private boolean createAccount;
 
-  public static final boolean DECORATE_USER_DEFAULT = true;
-  @Property(boolValue = DECORATE_USER_DEFAULT)
-  static final String DECORATE_USER = "sakai.auth.ldap.user.decorate";
-  private boolean decorateUser;
-
-  public static final String FIRST_NAME_PROP_DEFAULT = "firstName";
-  @Property(value = FIRST_NAME_PROP_DEFAULT)
-  static final String FIRST_NAME_PROP = "sakai.auth.ldap.prop.firstName";
-  private String firstNameProp;
-
-  public static final String LAST_NAME_PROP_DEFAULT = "lastName";
-  @Property(value = LAST_NAME_PROP_DEFAULT)
-  static final String LAST_NAME_PROP = "sakai.auth.ldap.prop.lastName";
-  private String lastNameProp;
-
-  public static final String EMAIL_PROP_DEFAULT = "email";
-  @Property(value = EMAIL_PROP_DEFAULT)
-  static final String EMAIL_PROP = "sakai.auth.ldap.prop.email";
-  private String emailProp;
+  @Property(cardinality = 2147483647)
+  static final String USER_PROPS = "sakai.auth.ldap.user.props";
+  private ArrayList<String> ldapAttrNames;
+  private ArrayList<String> jcrPropNames;
 
   @Reference
   private LdapConnectionManager connMgr;
 
   @Reference
-  private AuthorizablePostProcessService authzPostProcessorService;
+  private AuthorizablePostProcessService authzPostProcessService;
 
   @Reference
   private SlingRepository slingRepository;
@@ -118,8 +109,12 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   public LdapAuthenticationPlugin() {
   }
 
-  LdapAuthenticationPlugin(LdapConnectionManager connMgr) {
+  LdapAuthenticationPlugin(LdapConnectionManager connMgr,
+      AuthorizablePostProcessService authzPostProcessService,
+      SlingRepository slingRepository) {
     this.connMgr = connMgr;
+    this.authzPostProcessService = authzPostProcessService;
+    this.slingRepository = slingRepository;
   }
 
   @Activate
@@ -136,12 +131,79 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), "");
     userFilter = OsgiUtil.toString(props.get(USER_FILTER), "");
     authzFilter = OsgiUtil.toString(props.get(AUTHZ_FILTER), "");
-    createAccount = OsgiUtil.toBoolean(props.get(DECORATE_USER), DECORATE_USER_DEFAULT);
-    decorateUser = OsgiUtil.toBoolean(props.get(DECORATE_USER), DECORATE_USER_DEFAULT);
-    firstNameProp = OsgiUtil
-        .toString(props.get(FIRST_NAME_PROP), FIRST_NAME_PROP_DEFAULT);
-    lastNameProp = OsgiUtil.toString(props.get(LAST_NAME_PROP), LAST_NAME_PROP_DEFAULT);
-    emailProp = OsgiUtil.toString(props.get(EMAIL_PROP), EMAIL_PROP_DEFAULT);
+    createAccount = OsgiUtil.toBoolean(props.get(CREATE_ACCOUNT), CREATE_ACCOUNT_DEFAULT);
+
+    parseUserProps(props);
+  }
+
+  protected boolean canDecorateUser() {
+    return ldapAttrNames != null && jcrPropNames != null;
+  }
+
+  private void parseUserProps(Map<?, ?> props) {
+    // check for the existence of USER_PROPS
+    if (props.containsKey(USER_PROPS)) {
+      Object oProps = props.get(USER_PROPS);
+      if (oProps == null) {
+        ldapAttrNames = null;
+        jcrPropNames = null;
+      }
+      // check the String to be JSON
+      else if (oProps instanceof String && ((String) oProps).length() > 0
+          && ((String) oProps).charAt(0) == '{') {
+        try {
+          String strProps = (String) oProps;
+          JSONObject jsonObj = new JSONObject(strProps);
+          Iterator<String> keysIter = jsonObj.keys();
+          ldapAttrNames = new ArrayList<String>();
+          jcrPropNames = new ArrayList<String>();
+          while (keysIter.hasNext()) {
+            String key = keysIter.next();
+            ldapAttrNames.add(key);
+            jcrPropNames.add((String) jsonObj.get(key));
+          }
+        } catch (JSONException e) {
+          log.error(e.getMessage(), e);
+          ldapAttrNames = null;
+          jcrPropNames = null;
+        }
+      }
+      // String[] should processed as "key":"value" pairs per index.
+      else if (oProps instanceof String[]) {
+        String[] userProps = (String[]) oProps;
+
+        if (userProps.length > 0 && !(userProps.length == 1 && userProps[0] == null)) {
+          ldapAttrNames = new ArrayList<String>();
+          jcrPropNames = new ArrayList<String>();
+          for (int i = 0; i < userProps.length; i++) {
+            String[] ldapJcr = StringUtils.split(userProps[i], "\":\"");
+            ldapAttrNames.add(ldapJcr[0]);
+            jcrPropNames.add(ldapJcr[1]);
+          }
+        }
+      }
+    }
+    // process entries as sakai.auth.ldap.user.props.ldapAttrName = jcrPropName
+    else {
+      ldapAttrNames = new ArrayList<String>();
+      jcrPropNames = new ArrayList<String>();
+
+      for (Entry<?, ?> entry : props.entrySet()) {
+        String key = OsgiUtil.toString(entry.getKey(), "");
+        String value = OsgiUtil.toString(entry.getValue(), "");
+        if (key.length() > 0 && value.length() > 0 && key.startsWith(USER_PROPS)) {
+          String ldapAttrName = key.substring(USER_PROPS.length());
+          ldapAttrNames.add(ldapAttrName);
+          jcrPropNames.add(value);
+        }
+      }
+    }
+
+    if ((ldapAttrNames != null && ldapAttrNames.size() == 0)
+        || (jcrPropNames != null && jcrPropNames.size() == 0)) {
+      ldapAttrNames = null;
+      jcrPropNames = null;
+    }
   }
 
   // ---------- AuthenticationPlugin ----------
@@ -154,10 +216,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
       // get user credentials
       SimpleCredentials sc = (SimpleCredentials) credentials;
-
-      if ("admin".equals(sc.getUserID())) {
-    	  return false;
-      }
 
       long timeStart = System.currentTimeMillis();
 
@@ -244,10 +302,15 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
         // FINALLY!
         auth = true;
-        log.info("User [{}] authenticated with LDAP in {}ms", userDn, System.currentTimeMillis() - timeStart);
+        log.info("User [{}] authenticated with LDAP in {}ms", userDn,
+            System.currentTimeMillis() - timeStart);
 
-        if (createAccount) {
-          ensureJcrUser(sc.getUserID(), conn);
+        // provision & decorate the user
+        Session session = slingRepository.loginAdministrative(null);
+        Authorizable authorizable = getJcrUser(session, sc.getUserID());
+
+        if (authorizable != null && ldapAttrNames != null && jcrPropNames != null) {
+          decorateUser(session, authorizable, conn);
         }
       } catch (Exception e) {
         log.warn(e.getMessage(), e);
@@ -258,19 +321,11 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     return auth;
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
-   *      javax.servlet.http.HttpServletResponse,
-   *      org.apache.sling.commons.auth.spi.AuthenticationInfo)
-   */
-  public Authorizable ensureJcrUser(String userId, LDAPConnection conn) throws Exception {
-    Session session = slingRepository.loginAdministrative(null);
+  private Authorizable getJcrUser(Session session, String userId) throws Exception {
     UserManager um = AccessControlUtil.getUserManager(session);
     Authorizable auth = um.getAuthorizable(userId);
 
-    if (auth == null) {
+    if (auth == null && createAccount) {
       String password = RandomStringUtils.random(8);
       auth = um.createUser(userId, password);
 
@@ -280,13 +335,9 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
           vf.createValue(((ItemBasedPrincipal) auth.getPrincipal()).getPath().substring(
               UserConstants.USER_REPO_LOCATION.length())));
 
-      if (decorateUser) {
-        decorateUser(session, auth, conn);
-      }
-
       String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
           + auth.getID();
-      authzPostProcessorService.process(auth, session, Modification.onCreated(userPath));
+      authzPostProcessService.process(auth, session, Modification.onCreated(userPath));
     }
     return auth;
   }
@@ -298,33 +349,28 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
    * @param user
    */
   private void decorateUser(Session session, Authorizable user, LDAPConnection conn)
-      throws RepositoryException {
-    try {
-      // fix up the user dn to search
-      String userDn = LdapUtil.escapeLDAPSearchFilter(userFilter.replace("{}",
-          user.getID()));
+      throws RepositoryException, LDAPException {
+    // fix up the user dn to search
+    String userDn = LdapUtil
+        .escapeLDAPSearchFilter(userFilter.replace("{}", user.getID()));
 
-      // get a connection to LDAP
-      LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userDn,
-          new String[] { firstNameProp, lastNameProp, emailProp }, false);
-      if (results.hasMore()) {
-        LDAPEntry entry = results.next();
-        ValueFactory vf = session.getValueFactory();
+    // get a connection to LDAP
+    LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userDn,
+        ldapAttrNames.toArray(new String[ldapAttrNames.size()]), false);
+    if (results.hasMore()) {
+      LDAPEntry entry = results.next();
+      ValueFactory vf = session.getValueFactory();
 
-        String firstName = entry.getAttribute(firstNameProp).getStringValue();
-        String lastName = entry.getAttribute(lastNameProp).getStringValue();
-        String email = entry.getAttribute(emailProp).getStringValue();
-
-        user.setProperty("firstName", vf.createValue(firstName));
-        user.setProperty("lastName", vf.createValue(lastName));
-        user.setProperty("email", vf.createValue(email));
-      } else {
-        log.warn("Can't find user [" + userDn + "]");
+      for (int i = 0; i < ldapAttrNames.size(); i++) {
+        if (user.getProperty(jcrPropNames.get(i)) == null) {
+          LDAPAttribute attr = entry.getAttribute(ldapAttrNames.get(i));
+          if (attr != null) {
+            user.setProperty(jcrPropNames.get(i), vf.createValue(attr.getStringValue()));
+          }
+        }
       }
-    } catch (LDAPException e) {
-      log.warn(e.getMessage(), e);
-    } catch (RepositoryException e) {
-      log.warn(e.getMessage(), e);
+    } else {
+      log.warn("Can't find user [" + userDn + "]");
     }
   }
 }

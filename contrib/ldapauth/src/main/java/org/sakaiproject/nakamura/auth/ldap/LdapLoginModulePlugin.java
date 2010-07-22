@@ -17,9 +17,13 @@
  */
 package org.sakaiproject.nakamura.auth.ldap;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 
@@ -39,9 +43,14 @@ import javax.security.auth.login.FailedLoginException;
  * <code>SimpleCredentials</code> attributed with the special authentication
  * data provided by the {@link org.sakaiproject.nakamura.auth.ldap.LdapAuthenticationHandler}.
  */
-@Component
+@Component(metatype = true)
 @Service
 public class LdapLoginModulePlugin implements LoginModulePlugin {
+  public static final String USER_FILTER_DEFAULT = "^admin$";
+  @Property(value = USER_FILTER_DEFAULT)
+  static final String USER_FILTER = "sakai.login.ldap.user.filter";
+  private String userFilter;
+
   @Reference
   private LdapAuthenticationPlugin authPlugin;
 
@@ -50,6 +59,20 @@ public class LdapLoginModulePlugin implements LoginModulePlugin {
 
   LdapLoginModulePlugin(LdapAuthenticationPlugin authPlugin) {
     this.authPlugin = authPlugin;
+  }
+
+  @Activate
+  protected void activate(Map<?, ?> props) {
+    init(props);
+  }
+
+  @Modified
+  protected void modified(Map<?, ?> props) {
+    init(props);
+  }
+
+  protected void init(Map<?, ?> props) {
+    userFilter = OsgiUtil.toString(props.get(USER_FILTER), USER_FILTER_DEFAULT);
   }
 
   /**
@@ -71,10 +94,15 @@ public class LdapLoginModulePlugin implements LoginModulePlugin {
     boolean canHandle = false;
     if (cred instanceof SimpleCredentials) {
       SimpleCredentials sc = (SimpleCredentials) cred;
-      if (!"admin".equals(sc.getUserID()) && sc.getUserID() != null
-          && sc.getUserID().length() > 0 && sc.getPassword() != null
-          && sc.getPassword().length > 0) {
-        canHandle = true;
+
+      boolean hasUserId = sc.getUserID() != null && sc.getUserID().length() > 0;
+      boolean hasPassword = sc.getPassword() != null && sc.getPassword().length > 0;
+
+      if (hasUserId && hasPassword) {
+        boolean filtered = sc.getUserID().matches(userFilter);
+        if (!filtered) {
+          canHandle = true;
+        }
       }
     }
     return canHandle;
