@@ -367,6 +367,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       if (profileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
         profileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
       }
+      makePrivate(profileNode, session, authorizable);
     } else {
       profileNode = session.getNode(path);
     }
@@ -391,7 +392,15 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     }
     LOGGER.debug("creating or replacing ACLs for private at {} ", privatePath);
     Node privateNode = JcrUtils.deepGetOrCreateNode(session, privatePath);
+    makePrivate(privateNode, session, authorizable);
+
+    LOGGER.debug("Done creating private at {} ", privatePath);
+    return privateNode;
+  }
+
+  private void makePrivate(Node privateNode, Session session, Authorizable authorizable) throws RepositoryException {
     // Make sure that this folder is completely private.
+    String privatePath = privateNode.getPath();
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
     Principal everyone = principalManager.getEveryone();
     Principal anon = new Principal() {
@@ -405,9 +414,6 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
         new String[] { JCR_READ, JCR_WRITE }, null, null);
     AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone, null,
         new String[] { JCR_READ, JCR_WRITE }, null, null);
-
-    LOGGER.debug("Done creating private at {} ", privatePath);
-    return privateNode;
   }
 
   /**
