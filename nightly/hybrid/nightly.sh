@@ -6,7 +6,6 @@
 
 export K2_TAG="HEAD"
 export S2_TAG="tags/sakai-2.7.0-rc01"
-export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.7-SNAPSHOT.jar"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -20,7 +19,7 @@ export MAVEN_HOME=/usr/local/apache-maven-2.2.1
 export M2_HOME=/usr/local/apache-maven-2.2.1
 export PATH=$MAVEN_HOME/bin:${PATH}
 export MAVEN_OPTS="-Xmx512m -XX:MaxPermSize=256m"
-export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -Dsun.lang.ClassLoader.allowArraySyntax=true -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
+export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -Dsun.lang.ClassLoader.allowArraySyntax=true -Dorg.apache.jasper.compiler.Parser.STRICT_QUOTE_ESCAPING=false -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
 export K2_OPTS="-server -Xmx512m -XX:MaxPermSize=128m -Djava.awt.headless=true"
 BUILD_DATE=`date "+%D %R"`
 
@@ -76,7 +75,7 @@ then
 else
     echo "Building nakamura@$K2_TAG..."
     git clone -q git://github.com/sakaiproject/nakamura.git
-    cd open-experiments
+    cd nakamura
     git checkout -b "build-$K2_TAG" $K2_TAG
     mvn -B -e clean install -Dmaven.test.skip=true
     date > .lastbuild
@@ -85,6 +84,7 @@ fi
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
 cd app/target/
+K2_ARTIFACT=`find . -name "org.sakaiproject.nakamura.app*[^sources].jar"`
 mkdir -p sling/config/org/sakaiproject/nakamura/proxy
 echo 'port=I"8080"' > sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
 echo 'sharedSecret="e2KS54H35j6vS5Z38nK40"' >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
@@ -99,8 +99,8 @@ then
 else
     echo "Building sakai2/$S2_TAG..."
     # untar tomcat
-    tar -xzf apache-tomcat-5.5.26.tar.gz 
-    mv apache-tomcat-5.5.26 sakai2-demo
+    tar -xzf apache-tomcat-5.5.30.tar.gz 
+    mv apache-tomcat-5.5.30 sakai2-demo
     mkdir -p sakai2-demo/sakai
     svn checkout -q "https://source.sakaiproject.org/svn/sakai/$S2_TAG" sakai
     cd sakai/
@@ -112,7 +112,7 @@ else
     rm -rf providers
     svn checkout -q https://source.sakaiproject.org/svn/providers/branches/SAK-17222-2.7 providers
     # KERN-360 Servlet and TrustedLoginFilter RESTful services
-    cp -R $BUILD_DIR/sakai3/open-experiments/hybrid .
+    cp -R $BUILD_DIR/sakai3/nakamura/hybrid .
     find hybrid -name pom.xml -exec perl -pwi -e 's/2\.8-SNAPSHOT/2\.7-SNAPSHOT/g' {} \;
     perl -pwi -e 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml
     mvn -B -e clean install sakai:deploy -Dmaven.test.skip=true -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo

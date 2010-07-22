@@ -671,7 +671,7 @@
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-      <url>https://source.sakaiproject.org/maven2/</url>
+      <url>http://source.sakaiproject.org/maven2/</url>
     </repository>
     <repository> 
       <id>sakai-snapshots</id> 
@@ -707,7 +707,7 @@
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-      <url>https://source.sakaiproject.org/maven2/</url>
+      <url>http://source.sakaiproject.org/maven2/</url>
     </pluginRepository>
   </pluginRepositories>
 <!-- ====================================================================== -->
