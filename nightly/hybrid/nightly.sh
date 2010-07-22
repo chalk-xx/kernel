@@ -75,7 +75,7 @@ then
     echo "Skipping build nakamura@$K2_TAG..."
 else
     echo "Building nakamura@$K2_TAG..."
-    git clone -q git://github.com/ieb/open-experiments.git
+    git clone -q git://github.com/sakaiproject/nakamura.git
     cd open-experiments
     git checkout -b "build-$K2_TAG" $K2_TAG
     mvn -B -e clean install -Dmaven.test.skip=true

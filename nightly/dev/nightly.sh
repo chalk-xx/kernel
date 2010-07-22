@@ -43,7 +43,7 @@ echo "Building Nakamura@$K2_TAG UX@$UX_TAG..."
 cd $BUILD_DIR
 mkdir sakai3
 cd sakai3
-git clone -q git://github.com/ieb/open-experiments.git
+git clone -q git://github.com/sakaiproject/nakamura.git
 cd open-experiments
 mvn -B -e clean install -Dmaven.test.skip=true -Dux=$UX_TAG
 

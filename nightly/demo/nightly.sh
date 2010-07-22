@@ -42,7 +42,7 @@ echo "Building sakai3/K2@$K2_TAG..."
 cd $BUILD_DIR
 mkdir sakai3
 cd sakai3
-git clone -q git://github.com/ieb/open-experiments.git
+git clone -q git://github.com/sakaiproject/nakamura.git
 cd open-experiments
 git checkout -b "build-$K2_TAG" $K2_TAG
 mvn -B -e clean install -Dmaven.test.skip=true
