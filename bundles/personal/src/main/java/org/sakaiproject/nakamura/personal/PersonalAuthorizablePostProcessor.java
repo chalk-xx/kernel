@@ -367,7 +367,9 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       if (profileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
         profileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
       }
-      makePrivate(profileNode, session, authorizable);
+      if ( UserConstants.ANON_USERID.equals(authorizable.getID()) ) {
+        makePrivate(profileNode, session, authorizable);
+      }
     } else {
       profileNode = session.getNode(path);
     }
