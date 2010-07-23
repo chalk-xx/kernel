@@ -49,7 +49,7 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -94,8 +94,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
   @Property(cardinality = 2147483647)
   static final String USER_PROPS = "sakai.auth.ldap.user.props";
-  private ArrayList<String> ldapAttrNames;
-  private ArrayList<String> jcrPropNames;
+  private HashMap<String, String> attrsProps;
 
   @Reference
   private LdapConnectionManager connMgr;
@@ -137,7 +136,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   }
 
   protected boolean canDecorateUser() {
-    return ldapAttrNames != null && jcrPropNames != null;
+    return attrsProps != null;
   }
 
   private void parseUserProps(Map<?, ?> props) {
@@ -145,8 +144,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     if (props.containsKey(USER_PROPS)) {
       Object oProps = props.get(USER_PROPS);
       if (oProps == null) {
-        ldapAttrNames = null;
-        jcrPropNames = null;
+        attrsProps = null;
       }
       // check the String to be JSON
       else if (oProps instanceof String && ((String) oProps).length() > 0
@@ -155,17 +153,14 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
           String strProps = (String) oProps;
           JSONObject jsonObj = new JSONObject(strProps);
           Iterator<String> keysIter = jsonObj.keys();
-          ldapAttrNames = new ArrayList<String>();
-          jcrPropNames = new ArrayList<String>();
+          attrsProps = new HashMap<String, String>();
           while (keysIter.hasNext()) {
             String key = keysIter.next();
-            ldapAttrNames.add(key);
-            jcrPropNames.add((String) jsonObj.get(key));
+            attrsProps.put(key, jsonObj.getString(key));
           }
         } catch (JSONException e) {
           log.error(e.getMessage(), e);
-          ldapAttrNames = null;
-          jcrPropNames = null;
+          attrsProps = null;
         }
       }
       // String[] should processed as "key":"value" pairs per index.
@@ -173,36 +168,30 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         String[] userProps = (String[]) oProps;
 
         if (userProps.length > 0 && !(userProps.length == 1 && userProps[0] == null)) {
-          ldapAttrNames = new ArrayList<String>();
-          jcrPropNames = new ArrayList<String>();
+          attrsProps = new HashMap<String, String>();
           for (int i = 0; i < userProps.length; i++) {
             String[] ldapJcr = StringUtils.split(userProps[i], "\":\"");
-            ldapAttrNames.add(ldapJcr[0]);
-            jcrPropNames.add(ldapJcr[1]);
+            attrsProps.put(ldapJcr[0], ldapJcr[1]);
           }
         }
       }
     }
     // process entries as sakai.auth.ldap.user.props.ldapAttrName = jcrPropName
     else {
-      ldapAttrNames = new ArrayList<String>();
-      jcrPropNames = new ArrayList<String>();
+      attrsProps = new HashMap<String, String>();
 
       for (Entry<?, ?> entry : props.entrySet()) {
         String key = OsgiUtil.toString(entry.getKey(), "");
         String value = OsgiUtil.toString(entry.getValue(), "");
         if (key.length() > 0 && value.length() > 0 && key.startsWith(USER_PROPS)) {
           String ldapAttrName = key.substring(USER_PROPS.length());
-          ldapAttrNames.add(ldapAttrName);
-          jcrPropNames.add(value);
+          attrsProps.put(ldapAttrName, value);
         }
       }
     }
 
-    if ((ldapAttrNames != null && ldapAttrNames.size() == 0)
-        || (jcrPropNames != null && jcrPropNames.size() == 0)) {
-      ldapAttrNames = null;
-      jcrPropNames = null;
+    if (attrsProps != null && attrsProps.size() == 0) {
+      attrsProps = null;
     }
   }
 
@@ -309,7 +298,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         Session session = slingRepository.loginAdministrative(null);
         Authorizable authorizable = getJcrUser(session, sc.getUserID());
 
-        if (authorizable != null && ldapAttrNames != null && jcrPropNames != null) {
+        if (authorizable != null && attrsProps != null) {
           decorateUser(session, authorizable, conn);
         }
       } catch (Exception e) {
@@ -355,18 +344,19 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         .escapeLDAPSearchFilter(userFilter.replace("{}", user.getID()));
 
     // get a connection to LDAP
+    String[] ldapAttrNames = attrsProps.keySet().toArray(new String[attrsProps.size()]);
     LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userDn,
-        ldapAttrNames.toArray(new String[ldapAttrNames.size()]), false);
+        ldapAttrNames, false);
     if (results.hasMore()) {
       LDAPEntry entry = results.next();
       ValueFactory vf = session.getValueFactory();
 
-      for (int i = 0; i < ldapAttrNames.size(); i++) {
-        if (user.getProperty(jcrPropNames.get(i)) == null) {
-          LDAPAttribute attr = entry.getAttribute(ldapAttrNames.get(i));
-          if (attr != null) {
-            user.setProperty(jcrPropNames.get(i), vf.createValue(attr.getStringValue()));
-          }
+      for (String ldapAttrName : ldapAttrNames) {
+        String jcrPropName = attrsProps.get(ldapAttrName);
+
+        LDAPAttribute attr = entry.getAttribute(ldapAttrName);
+        if (attr != null) {
+          user.setProperty(jcrPropName, vf.createValue(attr.getStringValue()));
         }
       }
     } else {

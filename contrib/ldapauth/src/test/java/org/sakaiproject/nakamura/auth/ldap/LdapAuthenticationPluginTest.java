@@ -151,6 +151,7 @@ public class LdapAuthenticationPluginTest {
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
         .toCharArray())));
+    assertFalse(ldapAuthenticationPlugin.canDecorateUser());
 
     verify(ldapEntry).getDN();
   }
@@ -179,6 +180,7 @@ public class LdapAuthenticationPluginTest {
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
         .toCharArray())));
+    assertFalse(ldapAuthenticationPlugin.canDecorateUser());
 
     verify(ldapEntry).getDN();
   }
@@ -208,6 +210,7 @@ public class LdapAuthenticationPluginTest {
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
         .toCharArray())));
+    assertFalse(ldapAuthenticationPlugin.canDecorateUser());
 
     // verify that the alias attributes where accessed
     verify(ldapEntry, atLeastOnce()).getAttribute("objectClass");
@@ -447,6 +450,7 @@ public class LdapAuthenticationPluginTest {
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
         .toCharArray())));
+    assertTrue(ldapAuthenticationPlugin.canDecorateUser());
 
     verify(entry).getAttribute("givenName");
     verify(user).setProperty(eq("firstName"), isA(Value.class));
@@ -494,6 +498,7 @@ public class LdapAuthenticationPluginTest {
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
         .toCharArray())));
+    assertTrue(ldapAuthenticationPlugin.canDecorateUser());
 
     verify(entry).getAttribute("givenName");
     verify(user).setProperty(eq("firstName"), isA(Value.class));
@@ -542,6 +547,7 @@ public class LdapAuthenticationPluginTest {
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
         .toCharArray())));
+    assertTrue(ldapAuthenticationPlugin.canDecorateUser());
 
     verify(entry).getAttribute("givenName");
     verify(user).setProperty(eq("firstName"), isA(Value.class));
