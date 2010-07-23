@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_EXCLUDE_TREE;
 
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
@@ -135,6 +136,7 @@ public class TagServletTest {
     assertEquals("/tags/tagA", parent.getString("jcr:path"));
   }
 
+  @SuppressWarnings(value={"NP_ALWAYS_NULL"}, justification="Wierd, incorrect report, on System.err.println(s);")
   @Test
   public void testFiles() throws RepositoryException, IOException, ServletException,
       JSONException {
