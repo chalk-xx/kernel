@@ -50,8 +50,8 @@ import javax.servlet.http.HttpServletResponse;
  * </p>
  */
 @Service(value = Filter.class)
-@Component(name = "org.sakaiproject.nakamura.privacy.RestPrivacyFilter", immediate = true, metatype = true, description = "%restfilter.description", label = "%restfilter.name")
-@Properties(value = { @Property(name = "service.description", value = "Privacy Filter"),
+@Component(name = "org.sakaiproject.nakamura.files.pool.ContentPoolFilter", immediate = true, metatype = true, description = "%contentfilter.description", label = "%contentfilter.name")
+@Properties(value = { @Property(name = "service.description", value = "Content Filter"),
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "filter.scope", value = "request", propertyPrivate = true),
     @Property(name = "filter.order", intValue = { 10 }, propertyPrivate = true) })
