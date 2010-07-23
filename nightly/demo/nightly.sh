@@ -2,6 +2,7 @@
 
 #Sakai 3 Demo
 export K2_TAG="HEAD"
+export UX_TAG="HEAD"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -33,8 +34,19 @@ set -o errexit
 
 # clean previous builds
 cd $BUILD_DIR
+rm -rf 3akai-ux
 rm -rf sakai3
 rm -rf ~/.m2/repository/org/sakaiproject
+
+# build 3akai ux
+echo "Building 3akai-ux@$UX_TAG..."
+cd $BUILD_DIR
+mkdir 3akai-ux
+cd 3akai-ux
+git clone -q git://github.com/sakaiproject/3akai-ux.git
+cd 3akai-ux
+git checkout -b "build-$UX_TAG" $UX_TAG
+mvn -B -e clean install -Dmaven.test.skip=true
 
 # build sakai 3
 echo "Building nakamura@$K2_TAG..."
@@ -54,4 +66,4 @@ java $K2_OPTS -jar $K2_ARTIFACT -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.tx
 
 # final cleanup
 cd $BUILD_DIR
-rm -rf ~/.m2/repository/org/sakaiproject
+# rm -rf ~/.m2/repository/org/sakaiproject
