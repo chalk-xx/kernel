@@ -38,7 +38,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.cluster.ClusterServer;
+import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 
 import java.security.Principal;
 
@@ -54,7 +54,7 @@ import javax.jcr.security.Privilege;
 public class ContentPoolProviderTest {
 
   @Mock
-  private ClusterServer clusterServer;
+  private ClusterTrackingService clusterTrackingService;
   @Mock
   private ComponentContext componentContext;
   @Mock
@@ -89,8 +89,8 @@ public class ContentPoolProviderTest {
   @Test
   public void testNonExisting() {
     ContentPoolProvider cp = new ContentPoolProvider();
-    cp.clusterServer = clusterServer;
-    Mockito.when(clusterServer.getServerId()).thenReturn("serverID");
+    cp.clusterTrackingService = clusterTrackingService;
+    Mockito.when(clusterTrackingService.getCurrentServerId()).thenReturn("serverID");
     cp.activate(componentContext);
     Mockito.when(resourceResolver.resolve(Mockito.anyString())).thenReturn(resource);
     Mockito
@@ -118,7 +118,7 @@ public class ContentPoolProviderTest {
   public void testCreate() throws RepositoryException {
 
     // activate
-    Mockito.when(clusterServer.getServerId()).thenReturn("serverID");
+    Mockito.when(clusterTrackingService.getCurrentServerId()).thenReturn("serverID");
 
     // setup to create new node
     Mockito.when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
@@ -161,7 +161,7 @@ public class ContentPoolProviderTest {
 
     
     ContentPoolProvider cp = new ContentPoolProvider();
-    cp.clusterServer = clusterServer;
+    cp.clusterTrackingService = clusterTrackingService;
     cp.slingRepository = slingRepository;
     cp.activate(componentContext);
     Resource result = cp.getResource(resourceResolver, "/p");
@@ -178,8 +178,8 @@ public class ContentPoolProviderTest {
   @Test
   public void testNonMatching() {
     ContentPoolProvider cp = new ContentPoolProvider();
-    cp.clusterServer = clusterServer;
-    Mockito.when(clusterServer.getServerId()).thenReturn("serverID");
+    cp.clusterTrackingService = clusterTrackingService;
+    Mockito.when(clusterTrackingService.getCurrentServerId()).thenReturn("serverID");
     cp.activate(componentContext);
     Mockito.when(resourceResolver.resolve(Mockito.anyString())).thenReturn(resource);
     Mockito.when(resource.getPath()).thenReturn("/_p/AA/BB/CC/DD/testing");
@@ -197,8 +197,8 @@ public class ContentPoolProviderTest {
 
   public void testProviderWithId(String selectors, String extra) {
     ContentPoolProvider cp = new ContentPoolProvider();
-    cp.clusterServer = clusterServer;
-    Mockito.when(clusterServer.getServerId()).thenReturn("serverID");
+    cp.clusterTrackingService = clusterTrackingService;
+    Mockito.when(clusterTrackingService.getCurrentServerId()).thenReturn("serverID");
     cp.activate(componentContext);
 
     Mockito.when(resourceResolver.resolve(Mockito.matches("/_p/.*/testing" + selectors)))

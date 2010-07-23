@@ -34,6 +34,7 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.cluster.ClusterServer;
+import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
@@ -64,7 +65,7 @@ public class ContentPoolProvider implements ResourceProvider {
   
   
   @Reference
-  protected ClusterServer clusterServer;
+  protected ClusterTrackingService clusterTrackingService;
   @Reference
   protected SlingRepository slingRepository;
   private String serverId;
@@ -73,7 +74,7 @@ public class ContentPoolProvider implements ResourceProvider {
   
   public void activate(ComponentContext componentContext) {
     synchronized (lock) {
-      serverId = clusterServer.getServerId();
+      serverId = clusterTrackingService.getCurrentServerId();
       startingPoint = System.currentTimeMillis();      
     }
   }
