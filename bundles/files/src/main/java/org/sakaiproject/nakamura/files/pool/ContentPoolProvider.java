@@ -191,6 +191,7 @@ public class ContentPoolProvider implements ResourceProvider {
   private String hash(String poolId) throws NoSuchAlgorithmException, UnsupportedEncodingException {
     MessageDigest md = MessageDigest.getInstance("SHA-1");
     String encodedId = StringUtils.encode(md.digest(poolId.getBytes("UTF-8")), HASHENCODING);
+    LOGGER.info("Hashing [{}] gave [{}] ",poolId,encodedId);
     return "/_p/"+encodedId.charAt(0)+"/"+encodedId.substring(1,3)+"/"+encodedId.substring(3,5)+"/"+encodedId.substring(5,7)+"/"+poolId;
   }
 
@@ -211,6 +212,7 @@ public class ContentPoolProvider implements ResourceProvider {
       return StringUtils.encode(md.digest(newId.getBytes("UTF-8")), ENCODING);      
     }
   }
+
   
 
   public Iterator<Resource> listChildren(Resource parent) {

@@ -141,6 +141,17 @@ public class StringUtilsTest {
   }
 
   @Test
+  public void testEncodingState() {
+    String encoding = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    byte[] b = new byte[] {0x00,0x00,0x00,0x00};
+    String s = StringUtils.encode(b, encoding.toCharArray());
+    Assert.assertEquals(s, "emC9E", s);    
+    b = new byte[] {(byte) 0xff,(byte) 0xff,(byte) 0xff,(byte) 0xff};
+    s = StringUtils.encode(b, encoding.toCharArray());
+    Assert.assertEquals(s, "djvTE", s);    
+  }
+
+  @Test
   public void testEncoding() {
     SecureRandom sr = new SecureRandom();
     String encoding = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
