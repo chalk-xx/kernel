@@ -59,7 +59,6 @@ public class RestPrivacyFilter implements Filter {
 
   private static final String ADMIN_USER = "admin";
   private static final Logger LOGGER = LoggerFactory.getLogger(RestPrivacyFilter.class);
-  private static final int MAX_ROOT_RECURSION = 1;
 
   /** Selector value copied from JsonRendererServlet */
   public static final String INFINITY = "infinity";
@@ -107,11 +106,9 @@ public class RestPrivacyFilter implements Filter {
       if ( node == null ) {
         return false; // webdav
       }
-      if ( "GET".equals(srequest.getMethod()) ) {
-        if (isRecursionTooDeep(srequest, MAX_ROOT_RECURSION)) {
-          LOGGER.info("Root Node is protected from recursive GET operations");
-          return true;
-        }
+      if (isRecursiveGet(srequest)) {
+        LOGGER.info("Root Node is protected from recursive GET operations");
+        return true;
       }
       return false;
     }
@@ -155,26 +152,25 @@ public class RestPrivacyFilter implements Filter {
    * JsonRendererServlet.
    *
    * @param request
-   * @param maximumRecursionLevel
    * @return
    */
-  private boolean isRecursionTooDeep(SlingHttpServletRequest request, int maximumRecursionLevel) {
-    final String[] selectors = request.getRequestPathInfo().getSelectors();
-    if (selectors != null && selectors.length > 0) {
-      final String level = selectors[selectors.length - 1];
-      if (INFINITY.equals(level)) {
-        return true;  // By definition
-      } else {
-        try {
-          int recursionLevel = Integer.parseInt(level);
-          return (recursionLevel > maximumRecursionLevel);
-        } catch (NumberFormatException e) {
-          // We will let the target servlet worry about this.
-          return false;
+  private boolean isRecursiveGet(SlingHttpServletRequest request) {
+    if ("GET".equals(request.getMethod())) {
+      final String[] selectors = request.getRequestPathInfo().getSelectors();
+      if (selectors != null && selectors.length > 0) {
+        final String level = selectors[selectors.length - 1];
+        if (INFINITY.equals(level)) {
+          return true;
+        } else {
+          try {
+            Integer.parseInt(level);
+            return true;
+          } catch (NumberFormatException e) {
+            // We will let the target servlet worry about this.
+          }
         }
       }
-    } else {
-      return false;
     }
+    return false;
   }
 }
