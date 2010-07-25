@@ -59,6 +59,10 @@ public class RestPrivacyFilter implements Filter {
 
   private static final String ADMIN_USER = "admin";
   private static final Logger LOGGER = LoggerFactory.getLogger(RestPrivacyFilter.class);
+  private static final int MAX_ROOT_RECURSION = 1;
+
+  /** Selector value copied from JsonRendererServlet */
+  public static final String INFINITY = "infinity";
 
   @Reference
   public SlingRepository repository;
@@ -80,9 +84,9 @@ public class RestPrivacyFilter implements Filter {
   }
 
   /**
-   * 
+   *
    * If the path is /, /_user, /_group then access is protected.
-   * 
+   *
    * @param srequest
    * @param resourceNode
    * @return
@@ -104,8 +108,10 @@ public class RestPrivacyFilter implements Filter {
         return false; // webdav
       }
       if ( "GET".equals(srequest.getMethod()) ) {
-        LOGGER.info("Root Node is protected from GET operations ");
-        return true;
+        if (isRecursionTooDeep(srequest, MAX_ROOT_RECURSION)) {
+          LOGGER.info("Root Node is protected from recursive GET operations");
+          return true;
+        }
       }
       return false;
     }
@@ -144,4 +150,31 @@ public class RestPrivacyFilter implements Filter {
   public void destroy() {
   }
 
+  /**
+   * The recursion level is extracted from request selectors as in Sling's
+   * JsonRendererServlet.
+   *
+   * @param request
+   * @param maximumRecursionLevel
+   * @return
+   */
+  private boolean isRecursionTooDeep(SlingHttpServletRequest request, int maximumRecursionLevel) {
+    final String[] selectors = request.getRequestPathInfo().getSelectors();
+    if (selectors != null && selectors.length > 0) {
+      final String level = selectors[selectors.length - 1];
+      if (INFINITY.equals(level)) {
+        return true;  // By definition
+      } else {
+        try {
+          int recursionLevel = Integer.parseInt(level);
+          return (recursionLevel > maximumRecursionLevel);
+        } catch (NumberFormatException e) {
+          // We will let the target servlet worry about this.
+          return false;
+        }
+      }
+    } else {
+      return false;
+    }
+  }
 }
