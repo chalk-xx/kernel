@@ -91,10 +91,14 @@ public class ActiveMQBrokerComponent {
   }
 
   @Deactivate
-  protected void deactivate(ComponentContext componentContext) throws Exception {
-    if (broker != null && broker.isStarted()) {
-      broker.stop();
+  protected void deactivate(ComponentContext componentContext) {
+    try {
+      if (broker != null && broker.isStarted()) {
+        broker.stop();
+      }
+      broker = null;
+    } catch (Exception ex) {
+      LOG.info("Error Shutting down AMQ Broker {} ", ex.getMessage());
     }
-    broker = null;
   }
 }

@@ -1,5 +1,5 @@
 #!/bin/bash
-for i in `git branch -a | grep '/master' | grep -v origin | cut -f1 -d'/'`
+for i in `git branch -a | grep '/master' | grep -v origin | grep -v sakai  | cut -f1 -d'/'`
 do 
   echo "Fetching $i"
   git fetch $i

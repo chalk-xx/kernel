@@ -71,6 +71,10 @@ public class DynamicACLProvider extends ACLProvider {
   private LRUMap staticPrincipals = new LRUMap(1000);
   private NodeId rootNodeId;
   private RuleProcessorManager ruleProccesorManager;
+  
+  
+  // This creates a second systemEditor that we can see, hopefully it wont cause problems having 2 of these.
+  private ACLEditor systemEditor;
 
 
 
@@ -88,12 +92,14 @@ public class DynamicACLProvider extends ACLProvider {
    * @see org.apache.sling.jcr.jackrabbit.server.impl.security.standard.ACLProvider#init(javax.jcr.Session,
    *      java.util.Map)
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Override
   public void init(Session systemSession, Map configuration) throws RepositoryException {
     super.init(systemSession, configuration);
     NodeImpl node = (NodeImpl) systemSession.getRootNode();
     rootNodeId = node.getNodeId();
+    systemEditor = new ACLEditor(systemSession, this);
+
   }
 
   /**
@@ -128,7 +134,7 @@ public class DynamicACLProvider extends ACLProvider {
     private final List<AccessControlEntry> userAces = new ArrayList<AccessControlEntry>();
     private final List<AccessControlEntry> groupAces = new ArrayList<AccessControlEntry>();
     private StringBuilder construct;
-    private boolean forceDebug = false;
+    private boolean forceDebug = true;
 
     private Entries(NodeImpl node, Collection<String> principalNames)
         throws RepositoryException {
@@ -177,6 +183,7 @@ public class DynamicACLProvider extends ACLProvider {
       List<AccessControlEntry> gaces = new ArrayList<AccessControlEntry>();
       List<AccessControlEntry> uaces = new ArrayList<AccessControlEntry>();
 
+      ACLTemplate template = (ACLTemplate) systemEditor.getACL(aclNode);
       NodeIterator itr = aclNode.getNodes();
       while (itr.hasNext()) {
         NodeImpl aceNode = (NodeImpl) itr.nextNode();
@@ -215,9 +222,8 @@ public class DynamicACLProvider extends ACLProvider {
                 privs[i] = acMgr.privilegeFromName(privValues[i].getString());
               }
               // create a new ACEImpl (omitting validation check)
-              AccessControlEntry ace = new ACLTemplate.Entry(princ, privs, aceNode
-                  .isNodeType(AccessControlConstants.NT_REP_GRANT_ACE), sImpl
-                  .getValueFactory());
+              AccessControlEntry ace = template.createEntry(princ, privs, aceNode
+                  .isNodeType(AccessControlConstants.NT_REP_GRANT_ACE));
               // add it to the proper list (e.g. separated by principals)
               /**
                * NOTE: access control entries must be collected in reverse order in order to
