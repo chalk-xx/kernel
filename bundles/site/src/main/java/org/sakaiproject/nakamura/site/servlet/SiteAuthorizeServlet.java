@@ -74,7 +74,7 @@ import javax.servlet.http.HttpServletResponse;
         parameters={
           @ServiceParameter(name="addauth", description="The Path to the site being created (required)"),
           @ServiceParameter(name="removeauth", description="Path to a template node in JCR to use when creating the site (optional)")
-        
+
         },
         response={
           @ServiceResponse(code=200,description="The body will be empty on sucess."),
@@ -86,7 +86,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code=403,description="Current user is not allowed to create a site in the current location."),
           @ServiceResponse(code=404,description="Resource was not found."),
           @ServiceResponse(code=500,description="Failure with HTML explanation.")}
-    )) 
+    ))
 public class SiteAuthorizeServlet extends AbstractSiteServlet {
 
   /**
@@ -107,7 +107,7 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -179,7 +179,7 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
         // set the authorizables on the site
         site.setProperty(SiteService.AUTHORIZABLE, groups.toArray(new String[0]));
 
-        // adjst the sites on each group added or removed.
+        // adjust the sites on each group added or removed.
         ValueFactory vf = session.getValueFactory();
         LOGGER.debug("Removing {} Site references to Site {} ", removed.size(), site
             .getPath());
