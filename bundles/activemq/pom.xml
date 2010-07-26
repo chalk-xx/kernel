@@ -23,8 +23,6 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
-            <Bundle-Activator>org.sakaiproject.nakamura.activemq.Activator</Bundle-Activator>
-            <!-- '=META-INF.services.org.apache.xbean.spring.http.activemq.apache.org.schema' -->
             <Export-Package>org.sakaiproject.nakamura.api.activemq,org.apache.activemq*;version=5.3.0;-split-package:=merge-first</Export-Package>
             <Private-Package>org.sakaiproject.nakamura.activemq</Private-Package>
             <Embed-Dependency>activemq-core,activemq-pool</Embed-Dependency>

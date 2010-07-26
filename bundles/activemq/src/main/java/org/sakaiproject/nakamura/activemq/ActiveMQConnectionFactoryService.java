@@ -29,24 +29,24 @@ import java.util.Dictionary;
 
 import javax.jms.ConnectionFactory;
 
-@Component
-@Service
+@Component(immediate=true, metatype=true, name = "org.sakaiproject.nakamura.activemq.ActiveMQConnectionFactoryService", label="%amqf.name", description="%amqf.description")
+@Service(value=ConnectionFactoryService.class)
 public class ActiveMQConnectionFactoryService implements ConnectionFactoryService {
 
   private ActiveMQConnectionFactory defaultConnectionFactory;
 
   private PooledConnectionFactory pooledConnectionFactory;
 
-  @Property(value = "vm://localhost:61616")
-  public static final String BROKER_URL = "cluster.jms.brokerUrl";
-
+  @Property(value = "vm://localhost:61616" , description="%amqf.jms.brokerUrl")
+  public static final String BROKER_URL = "jms.brokerUrl";
+  
   public void activateForTest(ComponentContext componentContext) {
     activate(componentContext);
   }
 
   @SuppressWarnings("unchecked")
   protected void activate(ComponentContext componentContext) {
-    Dictionary props = componentContext.getProperties();
+    Dictionary<String, Object> props = componentContext.getProperties();
     String brokerURL = (String) props.get(BROKER_URL);
     defaultConnectionFactory = new ActiveMQConnectionFactory(brokerURL);
     pooledConnectionFactory = new PooledConnectionFactory(brokerURL);
