@@ -8,7 +8,7 @@
     <version>0.7-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
-  <artifactId>org.sakaiproject.nakamura.opnesso</artifactId>
+  <artifactId>org.sakaiproject.nakamura.opensso</artifactId>
   <version>0.7-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Open SSO Authenticator</name>
@@ -24,8 +24,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <Export-Package> org.sakaiproject.nakamura.api.opnesso.* </Export-Package>
+            <Bundle-Category>sakai-nakamura</Bundle-Category>
+            <Export-Package>org.sakaiproject.nakamura.api.opensso.*</Export-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <!--
             The following items have been excluded,
@@ -45,6 +45,7 @@
              !sun.security.util.*, 
              !com.sun.xml.rpc.*,
              !sun.security.x509.*,
+             org.apache.jackrabbit.api.*;version=0.0,
              *
             </Import-Package>
             <Private-Package>
