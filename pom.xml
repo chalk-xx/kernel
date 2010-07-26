@@ -72,7 +72,6 @@
         <module>bundles/specs/jms</module>
         <module>bundles/specs/jmx</module>
         <module>bundles/specs/ejb</module>
-        <module>libraries/utils</module>
         <module>bundles/activemq</module>
         <module>bundles/activity</module>
         <module>bundles/cluster</module>
