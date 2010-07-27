@@ -142,6 +142,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
     /**
      * @see org.apache.jackrabbit.core.security.authorization.AccessControlProvider#init(Session, Map)
      */
+    @Override
     public void init(Session systemSession, Map configuration) throws RepositoryException {
         super.init(systemSession, configuration);
         if (systemSession instanceof SessionImpl) {
@@ -313,7 +314,6 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
      */
     private class CompiledPermissionsImpl extends AbstractCompiledPermissions
             implements SynchronousEventListener {
-      
 
         private final String userNodePath;
 
@@ -336,6 +336,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         /**
          * @see AbstractCompiledPermissions#buildResult(Path)
          */
+        @Override
         protected Result buildResult(Path path) throws RepositoryException {
             log.debug("Build Result Path Checking {} ",path.getString());
             NodeImpl userNode = null;
@@ -391,7 +392,8 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                     }
                 } else {
                     // rep:User node or some other custom node below an existing user.
-                    // as the auth-folder doesn't allow other residual child nodes.
+                    // as the authorizable folder doesn't allow other residual
+                    // child nodes.
                     boolean editingOwnUser = node.isSame(userNode);
                     if (editingOwnUser) {
                         // user can only read && write his own props
@@ -426,15 +428,15 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 NodeImpl node = (NodeImpl) getExistingNode(path);
                 if ( node.isNodeType(NT_REP_GROUP) ) {
                   if ( node.hasProperty(NT_REP_GROUP_MANAGERS)) {
-                    log.info("Is Managed {} ", node.getPath());
+                    log.debug("Is Managed {} ", node.getPath());
                     Value[] managers = getValues(node.getProperty(NT_REP_GROUP_MANAGERS));
                     for ( Value manager : managers ) {
                       String m = manager.getString();
                       for ( Principal p : principals ) {
-                        log.info("Checking for Manager [{}] == [{}]", m, p.getName());
+                        log.debug("Checking for Manager [{}] == [{}]", m, p.getName());
                         if ( m.equals(p.getName())) {
                           isManager = true;
-                          log.info("Is a Manager [{}] == [{}]", m, p.getName());
+                          log.debug("Is a Manager [{}] == [{}]", m, p.getName());
                           break;
                         }
                       }
@@ -503,6 +505,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         /**
          * @see CompiledPermissions#close()
          */
+        @Override
         public void close() {
             try {
                 observationMgr.removeEventListener(this);
@@ -515,7 +518,13 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         /**
          * @see CompiledPermissions#grants(Path, int)
          */
+        @Override
         public boolean grants(Path absPath, int permissions) throws RepositoryException {
+            // Dont grant read by default.
+            //if (permissions == Permission.READ) {
+            //    // read is always granted
+            //    return true;
+            //}
             // otherwise: retrieve from cache (or build)
             return super.grants(absPath, permissions);
         }
@@ -523,8 +532,9 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         /**
          * @see CompiledPermissions#canReadAll()
          */
+        @Override
         public boolean canReadAll() throws RepositoryException {
-            return false;
+            return false; // in Sakai users cant read all
         }
 
         //--------------------------------------------------< EventListener >---

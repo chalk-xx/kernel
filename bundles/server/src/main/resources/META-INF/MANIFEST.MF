@@ -17,10 +17,10 @@ Export-Package: org.apache.sling.jcr.jackrabbit.server;uses:="javax.jc
  r,javax.security.auth,org.apache.commons.collections.iterators,org.ap
  ache.jackrabbit.spi,org.apache.jackrabbit.spi.commons.conversion,java
  x.jcr.observation,org.apache.jackrabbit.util,org.apache.jackrabbit.co
- mmons.iterator";version="2.0.0",org.apache.sling.jcr.jackrabbit.serve
+ mmons.iterator";version="2.1.0",org.apache.sling.jcr.jackrabbit.serve
  r.security.dynamic,org.apache.sling.jcr.jackrabbit.server.index
 Ignore-Package: org.apache.jackrabbit.test
-Bundle-ClassPath: .,jackrabbit-core-2.0.0.jar,lucene-core-2.4.1.jar,co
+Bundle-ClassPath: .,jackrabbit-core-2.1.0.jar,lucene-core-2.4.1.jar,co
  ncurrent-1.3.4.jar,commons-dbcp-1.2.2.jar,commons-pool-1.3.jar
 Bundle-Category: sling,jcr,jackrabbit
 Tool: Bnd-0.0.357
@@ -55,26 +55,26 @@ Import-Package: javax.imageio.spi,javax.jcr;version="2.0.0",javax.jcr.
  2.1",org.apache.commons.collections.map;version="3.2.1",org.apache.co
  mmons.io;version="1.4.0",org.apache.commons.io.input;version="1.4.0",
  org.apache.derby.jdbc;resolution:=optional,org.apache.jackrabbit.api;
- version="2.0.0",org.apache.jackrabbit.api.management;version="2.0.0",
- org.apache.jackrabbit.api.observation;version="2.0.0",org.apache.jack
- rabbit.api.security;version="2.0.0",org.apache.jackrabbit.api.securit
- y.principal;version="2.0.0",org.apache.jackrabbit.api.security.user;v
- ersion="2.0.0",org.apache.jackrabbit.commons;version="2.0.0",org.apac
- he.jackrabbit.commons.cnd;version="2.0.0",org.apache.jackrabbit.commo
- ns.iterator;version="2.0.0",org.apache.jackrabbit.commons.query;versi
- on="2.0.0",org.apache.jackrabbit.commons.query.qom;version="2.0.0",or
- g.apache.jackrabbit.rmi.remote;version="2.0.0",org.apache.jackrabbit.
- rmi.server;version="2.0.0",org.apache.jackrabbit.spi;version="2.0.0",
- org.apache.jackrabbit.spi.commons;version="2.0.0",org.apache.jackrabb
- it.spi.commons.conversion;version="2.0.0",org.apache.jackrabbit.spi.c
- ommons.name;version="2.0.0",org.apache.jackrabbit.spi.commons.namespa
- ce;version="2.0.0",org.apache.jackrabbit.spi.commons.nodetype;version
- ="2.0.0",org.apache.jackrabbit.spi.commons.nodetype.compact;version="
- 2.0.0",org.apache.jackrabbit.spi.commons.nodetype.constraint;version=
- "2.0.0",org.apache.jackrabbit.spi.commons.query;version="2.0.0",org.a
- pache.jackrabbit.spi.commons.query.qom;version="2.0.0",org.apache.jac
- krabbit.spi.commons.value;version="2.0.0",org.apache.jackrabbit.util;
- version="2.0.0",org.apache.jackrabbit.value;version="2.0.0",org.apach
+ version="2.1.0",org.apache.jackrabbit.api.management;version="2.1.0",
+ org.apache.jackrabbit.api.observation;version="2.1.0",org.apache.jack
+ rabbit.api.security;version="2.1.0",org.apache.jackrabbit.api.securit
+ y.principal;version="2.1.0",org.apache.jackrabbit.api.security.user;v
+ ersion="2.1.0",org.apache.jackrabbit.commons;version="2.1.0",org.apac
+ he.jackrabbit.commons.cnd;version="2.1.0",org.apache.jackrabbit.commo
+ ns.iterator;version="2.1.0",org.apache.jackrabbit.commons.query;versi
+ on="2.1.0",org.apache.jackrabbit.commons.query.qom;version="2.1.0",or
+ g.apache.jackrabbit.rmi.remote;version="2.1.0",org.apache.jackrabbit.
+ rmi.server;version="2.1.0",org.apache.jackrabbit.spi;version="2.1.0",
+ org.apache.jackrabbit.spi.commons;version="2.1.0",org.apache.jackrabb
+ it.spi.commons.conversion;version="2.1.0",org.apache.jackrabbit.spi.c
+ ommons.name;version="2.1.0",org.apache.jackrabbit.spi.commons.namespa
+ ce;version="2.1.0",org.apache.jackrabbit.spi.commons.nodetype;version
+ ="2.1.0",org.apache.jackrabbit.spi.commons.nodetype.compact;version="
+ 2.1.0",org.apache.jackrabbit.spi.commons.nodetype.constraint;version=
+ "2.1.0",org.apache.jackrabbit.spi.commons.query;version="2.1.0",org.a
+ pache.jackrabbit.spi.commons.query.qom;version="2.1.0",org.apache.jac
+ krabbit.spi.commons.value;version="2.1.0",org.apache.jackrabbit.util;
+ version="2.1.0",org.apache.jackrabbit.value;version="2.1.0",org.apach
  e.sling.jcr.api;version="2.0.2",org.apache.sling.jcr.base;version="2.
  1.0",org.apache.sling.jcr.jackrabbit.server;version="2.0.7",org.apach
  e.sling.jcr.jackrabbit.server.security;version="2.0.4",org.apache.sli

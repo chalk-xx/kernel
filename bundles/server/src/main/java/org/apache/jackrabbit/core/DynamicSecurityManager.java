@@ -426,14 +426,14 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
                 getPrincipalProviderRegistry(), adminId, anonymousId);
     }
 
-    //----------------------------------------------------------< protected >---
+    //----------------------------------------------------------< protected >---    
     /**
      * @return The <code>SecurityManagerConfig</code> configured for the
      * repository this manager has been created for.
      */
     protected SecurityManagerConfig getConfig() {
         return repository.getConfig().getSecurityConfig().getSecurityManagerConfig();
-    }
+    }   
 
     /**
      * @param workspaceName
@@ -498,7 +498,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     /**
      * Creates the default principal provider used to create the
      * {@link PrincipalProviderRegistry}.
-     *
+     * 
      * @return An new instance of <code>DefaultPrincipalProvider</code>.
      * @throws RepositoryException If an error occurs.
      */
