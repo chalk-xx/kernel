@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.Query;
@@ -55,9 +56,12 @@ public class ConnectionSearchResultProcessor implements SearchResultProcessor {
     write.value(targetUser);
     write.key("profile");
     LOGGER.info("Getting info for {} ", targetUser);
-    Node profileNode = (Node) session.getItem(
-        PersonalUtils.getProfilePath(au));
-    ExtendedJSONWriter.writeNodeToWriter(write, profileNode);
+    try {
+      Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(au));
+      ExtendedJSONWriter.writeNodeToWriter(write, profileNode);
+    } catch (PathNotFoundException ex) {
+      write.value("no-profile");
+    }
     write.key("details");
     ExtendedJSONWriter.writeNodeToWriter(write, node);
     write.endObject();

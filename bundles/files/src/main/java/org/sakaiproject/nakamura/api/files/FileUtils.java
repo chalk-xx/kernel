@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
@@ -263,6 +264,7 @@ public class FileUtils {
    * @throws RepositoryException
    * @throws JSONException
    */
+  @SuppressWarnings(justification="Need to trap subsystem errors ",value={"REC_CATCH_EXCEPTION"})
   private static void getSites(Node node, JSONWriter write, SiteService siteService)
       throws RepositoryException, JSONException {
 
@@ -297,7 +299,7 @@ public class FileUtils {
     } catch (Exception e) {
       // We ignore every exception it has when looking up sites.
       // it is dirty ..
-      log.info("Catched exception when looking up used sites for a file.");
+      log.info("Catched exception when looking up used sites for a file. "+e.getMessage());
     }
     write.endArray();
     write.key("total");

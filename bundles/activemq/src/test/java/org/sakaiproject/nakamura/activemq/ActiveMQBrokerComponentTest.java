@@ -40,31 +40,34 @@ import javax.jms.Topic;
 /**
  *
  */
-public class ActivateTest {
+public class ActiveMQBrokerComponentTest {
 
   @Mock
   private BundleContext bundleContext;
   @Mock
   private ComponentContext componentContext;
 
-  public ActivateTest() {
+  public ActiveMQBrokerComponentTest() {
     MockitoAnnotations.initMocks(this);
   }
 
   @Test
   public void testActivate() throws Exception {
     String port = String.valueOf(getFreePort());
-    Mockito.when(bundleContext.getProperty("activemq.broker.port")).thenReturn(port);
+    Dictionary<String, Object> dictionary = new Hashtable<String, Object>();
+    dictionary.put(ActiveMQBrokerComponent.ACTIVEMQ_BROKER_URL,"tcp://localhost:"+port+"/");
+    dictionary.put(ActiveMQBrokerComponent.ACTIVEMQ_BROKER_ENABLED,true);
+    dictionary.put(ActiveMQConnectionFactoryService.BROKER_URL, "vm://localhost:" + port);
+    Mockito.when(componentContext.getProperties()).thenReturn(dictionary);
+    Mockito.when(componentContext.getBundleContext()).thenReturn(bundleContext);
+    Mockito.when(bundleContext.getProperty("sling.home")).thenReturn("target");
 
     // Activate the bundle.
-    Activator activator = new Activator();
-    activator.start(bundleContext);
+    ActiveMQBrokerComponent amq = new ActiveMQBrokerComponent();
+    amq.activate(componentContext);
 
     // Start the service.
     ActiveMQConnectionFactoryService service = new ActiveMQConnectionFactoryService();
-    Dictionary<String, Object> properties = new Hashtable<String, Object>();
-    properties.put(ActiveMQConnectionFactoryService.BROKER_URL, "vm://localhost:" + port);
-    Mockito.when(componentContext.getProperties()).thenReturn(properties);
     service.activate(componentContext);
     ConnectionFactory cf = service.getDefaultConnectionFactory();
     Connection c = cf.createConnection();
@@ -82,7 +85,7 @@ public class ActivateTest {
     clientSession.close();
     c.close();
     service.deactivate(componentContext);
-    activator.stop(bundleContext);
+    amq.deactivate(componentContext);
   }
 
   public int getFreePort() {

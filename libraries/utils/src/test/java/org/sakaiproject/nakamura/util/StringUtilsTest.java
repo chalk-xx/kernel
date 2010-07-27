@@ -4,7 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.security.SecureRandom;
+import java.util.HashSet;
+import java.util.Set;
 
 public class StringUtilsTest {
 
@@ -79,7 +84,7 @@ public class StringUtilsTest {
 
   @Test
   public void testAddString() {
-    String[] a = {"Lorem"};
+    String[] a = { "Lorem" };
     String v = "ipsum";
 
     String[] result = StringUtils.addString(a, v);
@@ -95,7 +100,7 @@ public class StringUtilsTest {
 
   @Test
   public void testRemoveString() {
-    String[] a = {"Lorem", "ipsum"};
+    String[] a = { "Lorem", "ipsum" };
     String v = "ipsum";
 
     String[] result = StringUtils.removeString(a, v);
@@ -129,9 +134,67 @@ public class StringUtilsTest {
 
   @Test
   public void testJoin() {
-    String[] elements = new String[] {"foo", "bar"};
+    String[] elements = new String[] { "foo", "bar" };
     assertEquals("/foo/bar", StringUtils.join(elements, 0, '/'));
     elements = new String[] {};
     assertEquals(",", StringUtils.join(elements, 0, ','));
   }
+
+  @Test
+  public void testEncodingState() {
+    String encoding = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    byte[] b = new byte[] {0x00,0x00,0x00,0x00};
+    String s = StringUtils.encode(b, encoding.toCharArray());
+    Assert.assertEquals(s, "emC9E", s);    
+    b = new byte[] {(byte) 0xff,(byte) 0xff,(byte) 0xff,(byte) 0xff};
+    s = StringUtils.encode(b, encoding.toCharArray());
+    Assert.assertEquals(s, "djvTE", s);    
+  }
+
+  @Test
+  public void testEncoding() {
+    SecureRandom sr = new SecureRandom();
+    String encoding = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    for (int j = 10; j < encoding.length(); j++) {
+      for (int i = 1; i < 100; i++) {
+        byte[] b = new byte[i];
+        sr.nextBytes(b);
+        String s = StringUtils.encode(b, encoding.substring(0, j).toCharArray());
+        System.err.println(" bytes "+b.length+" chars "+s.length()+"  ratio "+((s.length()*100)/b.length+"% key length "+j));
+        Assert.assertNotSame(0, s.length());
+      }
+    }
+  }
+
+  
+  /**
+   *  This is a very long running test, do not enable unless you want to wait a long time.
+   */
+  //@Test
+  public void testEncodingCollision() {
+    SecureRandom sr = new SecureRandom();
+    String encoding = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    long l = 200000;
+    long m = 1000;
+    Set<String> check = new HashSet<String>((int)l);
+    for (long j = 0; j < m; j++) {
+      long s = System.currentTimeMillis();
+      check.clear();
+      for (long i = 0; i < l; i++) {
+        byte[] b = new byte[20];
+        sr.nextBytes(b);
+        String e = StringUtils.encode(b, encoding.toCharArray());
+        if (check.contains(e)) {
+          Assert.fail();
+        }
+        check.add(e);
+      }
+      long e = System.currentTimeMillis();
+      long t = (1000*(e-s+1))/l;
+      long o = (1000*l)/(e-s+1);
+      long tleft = (t*l*(m-j))/1000000;
+      System.err.println("No Collisions after "+l*j+" operations of "+l*m+" "+((100*l*j)/(l*m))+" % at "+t+" ns/op "+o+" ops/s eta "+tleft);
+    }
+  }
+
 }
