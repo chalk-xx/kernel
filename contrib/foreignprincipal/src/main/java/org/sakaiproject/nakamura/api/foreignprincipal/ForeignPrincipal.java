@@ -15,20 +15,24 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+package org.sakaiproject.nakamura.api.foreignprincipal;
 
-package org.sakaiproject.nakamura.rules.servlet;
+/**
+ *
+ */
+public interface ForeignPrincipal {
+  /**
+   * The Principal name (and Jackrabbit Group ID) used to indicate an authenticated
+   * Principal who lacks a matching Jackrabbit Authorizable.
+   */
+  final static String FOREIGN_PRINCIPAL_ID = "sakai:foreignPrincipal";
 
-import org.sakaiproject.nakamura.api.rules.RuleExecutionErrorListener;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class ServletRuleErrorListener implements RuleExecutionErrorListener {
-
-  private List<String> error = new ArrayList<String>();
-
-  public void error(String message) {
-    error.add(message);
-  }
-
+  /**
+   * Dynamic principal managers are only checked if an ACE refers to a principal
+   * whose ID matches a Jackrabbit Authorizable that has this property set to "true".
+   *
+   * TODO This constant is used by the DynamicACLProvider and in other areas of the
+   * code base but is not yet centrally exposed.
+   */
+  final static String DYNAMIC_PRINCIPAL_PROPERTY = "dynamic";
 }

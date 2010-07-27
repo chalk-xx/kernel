@@ -125,10 +125,6 @@
       <artifactId>junit</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.easymock</groupId>
-      <artifactId>easymock</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
     </dependency>
@@ -157,11 +153,14 @@
       <artifactId>org.sakaiproject.nakamura.search</artifactId>
       <version>0.7-SNAPSHOT</version>
     </dependency>
+    <!--
+    this currently comes from the testutils bundle and is controlled there
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>1.8.3</version>
+      <version>1.8.5</version>
       <scope>test</scope>
     </dependency>
+    -->
   </dependencies>
 </project>
