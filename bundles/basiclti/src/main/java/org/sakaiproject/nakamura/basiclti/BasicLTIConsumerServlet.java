@@ -335,8 +335,6 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       } else {
         vtoolId = "basiclti";
       }
-      // FIXME remove debug
-      // LOG.info("LDS vtoolId={}", vtoolId);
 
       final String adminNodePath = ADMIN_CONFIG_PATH + "/" + vtoolId;
       Map<String, Object> adminSettings = null;
@@ -473,7 +471,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       // might be useful for the remote end to know if debug is enabled...
       launchProps.put(DEBUG, "" + debug);
 
-      // TODO required to pass certification test suite
+      // FYI required to pass certification test suite
       launchProps.put("simple_key", "custom_simple_value");
       launchProps.put("Complex!@#$^*(){}[]KEY", "Complex!@#$^*(){}[]Value");
 
@@ -686,7 +684,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       throw new IllegalArgumentException("userSession == null");
     }
     if (sensitiveData == null || sensitiveData.isEmpty()) {
-      throw new IllegalArgumentException("sensitiveData is null or empty");
+      // do nothing - virtual tool use case
+      return;
     }
     final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
     // now let's elevate Privileges and do some admin modifications
@@ -762,7 +761,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           }
         }
       } else {
-        throw new PathNotFoundException("Node does not exist: " + adminNodePath);
+        settings = new HashMap<String, String>(0);
       }
     } finally {
       if (adminSession != null) {
