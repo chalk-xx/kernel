@@ -157,7 +157,7 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
       Dictionary<String, String> properties = new Hashtable<String, String>();
       properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
       EventUtils.sendOsgiEvent(properties, TOPIC_BASICLTI_ADDED, eventAdmin);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       throw new RepositoryException(e);
     }
   }

@@ -17,10 +17,6 @@
  */
 package org.sakaiproject.nakamura.basiclti;
 
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_ACCESSED;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_CHANGED;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_REMOVED;
-
 import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_ID;
 import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_LABEL;
 import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_TITLE;
@@ -47,12 +43,16 @@ import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_SE
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_SECRET_LOCK;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_URL;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_URL_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_VTOOL_ID;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_EMAIL;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_EMAIL_LOCK;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_NAMES;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_NAMES_LOCK;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_ACCESSED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_CHANGED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_REMOVED;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.getInvalidUserPrivileges;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.isAdminUser;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.removeProperty;
@@ -98,8 +98,8 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.Item;
@@ -244,7 +244,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           }
         }
       } else {
-        throw new IllegalStateException("Node does not exist: " + GLOBAL_SETTINGS);
+        LOG.error("GLOBAL_SETTINGS node does not exist: {}", GLOBAL_SETTINGS);
+        throw new IllegalStateException("GLOBAL_SETTINGS node does not exist: "
+            + GLOBAL_SETTINGS);
       }
     } catch (RepositoryException e) {
       throw new Error(e);
@@ -268,14 +270,13 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    LOG
-        .debug("doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)");
+    LOG.debug("doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)");
     final String[] selectors = request.getRequestPathInfo().getSelectors();
     if (selectors != null && selectors.length > 0) {
       for (final String selector : request.getRequestPathInfo().getSelectors()) {
         if ("launch".equals(selector)) {
           doLaunch(request, response);
-          
+
           // Send out an OSGi event that we accessed a basic/lti node.
           Dictionary<String, String> properties = new Hashtable<String, String>();
           properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
@@ -312,8 +313,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
 
   protected void doLaunch(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    LOG
-        .debug("doLaunch(SlingHttpServletRequest request, SlingHttpServletResponse response)");
+    LOG.debug("doLaunch(SlingHttpServletRequest request, SlingHttpServletResponse response)");
     final Resource resource = request.getResource();
     if (resource == null) {
       sendError(HttpServletResponse.SC_NOT_FOUND, "Resource could not be found",
@@ -322,15 +322,14 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     final Node node = resource.adaptTo(Node.class);
     final Session session = request.getResourceResolver().adaptTo(Session.class);
     try {
-      // FIXME Work with UX team to develop virtual widget model.
-      final String vtoolId = "basiclti";
-      // if (!node.hasProperty(LTI_VTOOL_ID)) {
-      // sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, LTI_VTOOL_ID
-      // + " cannot be null", new IllegalArgumentException(LTI_VTOOL_ID
-      // + " cannot be null"), response);
-      // return;
-      // }
-      // final String vtoolId = node.getProperty(LTI_VTOOL_ID).getString();
+      String vtoolId = null;
+      if (node.hasProperty(LTI_VTOOL_ID)) {
+        vtoolId = node.getProperty(LTI_VTOOL_ID).getString();
+      } else {
+        vtoolId = "basiclti";
+      }
+      // FIXME remove debug
+      // LOG.info("LDS vtoolId={}", vtoolId);
 
       final String adminNodePath = ADMIN_CONFIG_PATH + "/" + vtoolId;
       Map<String, Object> adminSettings = null;
@@ -540,8 +539,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         settings.put(property.getName(), property.getValue().getString());
         break;
       case PropertyType.BOOLEAN:
-        settings.put(property.getName(), Boolean
-            .valueOf(property.getValue().getBoolean()));
+        settings.put(property.getName(),
+            Boolean.valueOf(property.getValue().getBoolean()));
         break;
       default:
         break;
@@ -559,8 +558,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   @Override
   protected void doDelete(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    LOG
-        .debug("doDelete(SlingHttpServletRequest request, SlingHttpServletResponse response)");
+    LOG.debug("doDelete(SlingHttpServletRequest request, SlingHttpServletResponse response)");
     final Resource resource = request.getResource();
     if (resource == null) {
       sendError(HttpServletResponse.SC_NOT_FOUND, "Resource could not be found",
@@ -607,8 +605,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     final Node node = resource.adaptTo(Node.class);
     final Session session = request.getResourceResolver().adaptTo(Session.class);
     try {
-      final Map<String, String> sensitiveData = new HashMap<String, String>(sensitiveKeys
-          .size());
+      final Map<String, String> sensitiveData = new HashMap<String, String>(
+          sensitiveKeys.size());
       // loop through request parameters
       final RequestParameterMap requestParameterMap = request.getRequestParameterMap();
       for (final Entry<String, RequestParameter[]> entry : requestParameterMap.entrySet()) {
