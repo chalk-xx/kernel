@@ -113,11 +113,14 @@ public class TagOperation extends AbstractSlingPostOperation {
       if (!FileUtils.isTag(tagNode)) {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
             "Provided UUID doesn't point to a tag.");
+        return;
       }
     } catch (ItemNotFoundException e1) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Could not locate the tag.");
+      return;
     } catch (RepositoryException e1) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Could not locate the tag.");
+      return;
     }
 
     try {
@@ -128,6 +131,7 @@ public class TagOperation extends AbstractSlingPostOperation {
         try {
           adminSession = slingRepository.loginAdministrative(null);
 
+          LOGGER.info("Tagging [{}] with  [{}] [{}] ", new Object[]{ node, tagNode, uuid});
           // Add the tag on the file.
           FileUtils.addTag(adminSession, node, tagNode);
 

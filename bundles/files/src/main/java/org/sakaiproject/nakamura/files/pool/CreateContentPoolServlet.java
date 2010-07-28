@@ -35,6 +35,7 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(methods = "POST", paths = "/system/pool/createfile")
 public class CreateContentPoolServlet extends SlingAllMethodsServlet {
@@ -73,15 +74,14 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
 
-    Session userSession = request.adaptTo(ResourceResolver.class).adaptTo(Session.class);
     Session session = null;
     try {
-      String userId = userSession.getUserID();
+      session = slingRepository.loginAdministrative(null);
+      String userId = request.getRemoteUser();
       PrincipalManager principalManager = AccessControlUtil
-      .getPrincipalManager(userSession);
+      .getPrincipalManager(session);
       Principal userPrincipal = principalManager.getPrincipal(userId);
       Map<String, String> results = new HashMap<String, String>();
-      session = slingRepository.loginAdministrative(null);
       for (Map.Entry<String, RequestParameter[]> e : request.getRequestParameterMap()
           .entrySet()) {
         for (RequestParameter p : e.getValue()) {
@@ -98,6 +98,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       }
       
 
+      response.setStatus(HttpServletResponse.SC_CREATED);
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
       JSONObject jsonObject = new JSONObject(results);

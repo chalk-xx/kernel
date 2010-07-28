@@ -186,6 +186,9 @@ public class FilesUtilsTest {
     Node linkNode = mock(Node.class);
     when(session.itemExists(linkPath)).thenReturn(true);
     when(session.getItem(linkPath)).thenReturn(linkNode);
+    NodeType nodeType = mock(NodeType.class);
+    when(linkNode.getPrimaryNodeType()).thenReturn(nodeType);
+    when(nodeType.getName()).thenReturn("nt:unstructured");
 
     FileUtils.createLink(fileNode, linkPath, null, slingRepository);
 
