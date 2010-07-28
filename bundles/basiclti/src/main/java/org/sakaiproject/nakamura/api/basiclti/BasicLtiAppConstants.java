@@ -68,4 +68,8 @@ public class BasicLtiAppConstants {
    * A new sakai/basiclti node is accessed.
    */
   public static final String TOPIC_BASICLTI_ACCESSED = "org/sakaiproject/nakamura/basiclti/accessed";
+  /**
+   * A sakai/basiclti node is launched.
+   */
+  public static final String TOPIC_BASICLTI_LAUNCHED = "org/sakaiproject/nakamura/basiclti/launched";
 }

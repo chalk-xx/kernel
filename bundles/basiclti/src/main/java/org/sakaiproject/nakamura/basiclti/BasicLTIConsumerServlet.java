@@ -52,6 +52,7 @@ import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEAS
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME_LOCK;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_ACCESSED;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_CHANGED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_LAUNCHED;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_REMOVED;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.getInvalidUserPrivileges;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.isAdminUser;
@@ -278,9 +279,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           doLaunch(request, response);
 
           // Send out an OSGi event that we accessed a basic/lti node.
-          Dictionary<String, String> properties = new Hashtable<String, String>();
+          final Dictionary<String, String> properties = new Hashtable<String, String>();
           properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
-          EventUtils.sendOsgiEvent(properties, TOPIC_BASICLTI_ACCESSED, eventAdmin);
+          EventUtils.sendOsgiEvent(properties, TOPIC_BASICLTI_LAUNCHED, eventAdmin);
           return;
         }
       }
@@ -308,6 +309,12 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         }
       }
       response.setStatus(HttpServletResponse.SC_OK);
+
+      // Send out an OSGi event that we accessed a basic/lti node.
+      final Dictionary<String, String> properties = new Hashtable<String, String>();
+      properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
+      EventUtils.sendOsgiEvent(properties, TOPIC_BASICLTI_ACCESSED, eventAdmin);
+      return;
     }
   }
 
