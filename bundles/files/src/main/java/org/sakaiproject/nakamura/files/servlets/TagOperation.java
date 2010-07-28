@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.files.servlets;
 
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
-
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.TOPIC_FILES_TAG;
 
@@ -37,11 +36,14 @@ import org.apache.sling.servlets.post.SlingPostOperation;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.files.pool.CreateContentPoolServlet;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
@@ -101,15 +103,17 @@ public class TagOperation extends AbstractSlingPostOperation {
 
     // Check if the uuid is in the request.
     RequestParameter uuidParam = request.getRequestParameter("uuid");
-    if (uuidParam == null) {
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Missing uuid parameter");
+    RequestParameter pathParam = request.getRequestParameter("path");
+    RequestParameter poolIdParam = request.getRequestParameter("poolId");
+    if (uuidParam == null && pathParam == null && poolIdParam == null) {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
+          "Missing parameter: need uuid, path or poolId");
       return;
     }
 
     // Grab the tagNode.
-    String uuid = uuidParam.getString();
     try {
-      tagNode = session.getNodeByIdentifier(uuid);
+      tagNode = getTagNode(session, uuidParam, pathParam, poolIdParam);
       if (!FileUtils.isTag(tagNode)) {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
             "Provided UUID doesn't point to a tag.");
@@ -121,7 +125,17 @@ public class TagOperation extends AbstractSlingPostOperation {
     } catch (RepositoryException e1) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Could not locate the tag.");
       return;
+    } catch (NoSuchAlgorithmException e) {
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Could not get path from poolId.");
+      return;
+    } catch (UnsupportedEncodingException e) {
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Could not get path from poolId.");
+      return;
     }
+
+    String uuid = tagNode.getIdentifier();
 
     try {
       // We check if the node already has this tag.
@@ -165,6 +179,25 @@ public class TagOperation extends AbstractSlingPostOperation {
       response.setStatus(500, e.getMessage());
     }
 
+  }
+
+  private Node getTagNode(Session session, RequestParameter uuidParam,
+      RequestParameter pathParam, RequestParameter poolIdParam)
+      throws ItemNotFoundException, RepositoryException, NoSuchAlgorithmException,
+      UnsupportedEncodingException {
+    Node tagNode = null;
+    if (uuidParam != null) {
+      String uuid = uuidParam.getString();
+      tagNode = session.getNodeByIdentifier(uuid);
+    } else if (pathParam != null) {
+      String path = pathParam.getString();
+      tagNode = session.getNode(path);
+    } else if (poolIdParam != null) {
+      String poolId = poolIdParam.getString();
+      String path = CreateContentPoolServlet.hash(poolId);
+      tagNode = session.getNode(path);
+    }
+    return tagNode;
   }
 
   /**
