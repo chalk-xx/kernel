@@ -46,31 +46,35 @@ public class Signature {
    */
   public static String calculateRFC2104HMAC(String data, String key)
       throws java.security.SignatureException {
-    try {
-      // Get an hmac_sha1 key from the raw key bytes
-      byte[] keyBytes = key.getBytes("UTF-8");
-      SecretKeySpec signingKey = new SecretKeySpec(keyBytes, HMAC_SHA1_ALGORITHM);
+	  return calculateRFC2104HMACWithEncoding(data, key, false);
+  }
+  
+  public static String calculateRFC2104HMACWithEncoding(String data, String key, boolean urlSafe) 
+  	throws java.security.SignatureException {
+	  try {
+		  // Get an hmac_sha1 key from the raw key bytes
+		  byte[] keyBytes = key.getBytes("UTF-8");
+		  SecretKeySpec signingKey = new SecretKeySpec(keyBytes, HMAC_SHA1_ALGORITHM);
 
-      // Get an hmac_sha1 Mac instance and initialize with the signing key
-      Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
-      mac.init(signingKey);
+		  // Get an hmac_sha1 Mac instance and initialize with the signing key
+		  Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
+		  mac.init(signingKey);
 
-      // Compute the hmac on input data bytes
-      byte[] rawHmac = mac.doFinal(data.getBytes("UTF-8"));
+		  // Compute the hmac on input data bytes
+		  byte[] rawHmac = mac.doFinal(data.getBytes("UTF-8"));
 
-      // Convert raw bytes to Hex
-      byte[] hexBytes = Base64.encodeBase64(rawHmac);
+		  // Convert raw bytes to encoding
+		  byte[] base64Bytes = Base64.encodeBase64(rawHmac, false, urlSafe);
+		  String result = new String(base64Bytes, "UTF-8");
 
-      // Covert array of Hex bytes to a String
-      String result = new String(hexBytes, "UTF-8");
-      return result;
+		  return result;
 
-    } catch (NoSuchAlgorithmException e) {
-      throw new SignatureException("Failed to generate HMAC : " + e.getMessage(), e);
-    } catch (InvalidKeyException e) {
-      throw new SignatureException("Failed to generate HMAC : " + e.getMessage(), e);
-    } catch (UnsupportedEncodingException e) {
-      throw new SignatureException("Failed to generate HMAC : " + e.getMessage(), e);
-    }
+	  } catch (NoSuchAlgorithmException e) {
+		  throw new SignatureException("Failed to generate HMAC : " + e.getMessage(), e);
+	  } catch (InvalidKeyException e) {
+		  throw new SignatureException("Failed to generate HMAC : " + e.getMessage(), e);
+	  } catch (UnsupportedEncodingException e) {
+		  throw new SignatureException("Failed to generate HMAC : " + e.getMessage(), e);
+	  }
   }
 }
