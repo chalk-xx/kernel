@@ -26,8 +26,6 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestParameterMap;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -50,7 +48,6 @@ import java.util.Map;
 import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.ValueFactory;
 import javax.jcr.security.AccessControlEntry;
 import javax.jcr.security.AccessControlList;
@@ -62,15 +59,9 @@ import javax.servlet.ServletException;
 public class CreateContentPoolServletTest {
 
   @Mock
-  private ResourceResolver resourceResolver;
-  @Mock
-  private Resource resource;
-  @Mock
   private SlingRepository slingRepository;
   @Mock
   private JackrabbitSession adminSession;
-  @Mock
-  private JackrabbitSession userSession;
   @Mock
   private PrincipalManager principalManager;
   @Mock
@@ -118,12 +109,10 @@ public class CreateContentPoolServletTest {
     // activate
     Mockito.when(clusterTrackingService.getCurrentServerId()).thenReturn("serverID");
     Mockito.when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
-    Mockito.when(request.adaptTo(ResourceResolver.class)).thenReturn(resourceResolver);
-    Mockito.when(resourceResolver.adaptTo(Session.class)).thenReturn(userSession);
     
-    Mockito.when(userSession.getPrincipalManager()).thenReturn(principalManager);
+    Mockito.when(adminSession.getPrincipalManager()).thenReturn(principalManager);
     Mockito.when(adminSession.getAccessControlManager()).thenReturn(accessControlManager);
-    Mockito.when(userSession.getUserID()).thenReturn("ieb");
+    Mockito.when(request.getRemoteUser()).thenReturn("ieb");
     Mockito.when(principalManager.getPrincipal("ieb")).thenReturn(iebPrincipal);
     
     
