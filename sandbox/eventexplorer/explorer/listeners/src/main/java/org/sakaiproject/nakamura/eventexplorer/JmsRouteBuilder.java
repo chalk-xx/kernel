@@ -17,13 +17,14 @@
  */
 package org.sakaiproject.nakamura.eventexplorer;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.cassandra.thrift.Cassandra.Client;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
+import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
 import org.sakaiproject.nakamura.eventexplorer.api.cassandra.CassandraService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
@@ -55,6 +57,9 @@ public class JmsRouteBuilder {
   @Reference
   protected transient CassandraService cassandraService;
 
+  @Reference
+  protected transient ConnectionFactoryService connectionFactoryService;
+
   private String[] topics;
   private String connectionURL;
 
@@ -67,7 +72,7 @@ public class JmsRouteBuilder {
     connectionURL = (String) properties.get(CONNECTION_URL);
 
     // Get a factory
-    ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(connectionURL);
+    ConnectionFactory factory = connectionFactoryService.createFactory(connectionURL);
 
     // Create a connection and start it.
     connection = factory.createConnection();
@@ -87,6 +92,13 @@ public class JmsRouteBuilder {
       Destination destination = session.createTopic(topic);
       MessageConsumer messageConsumer = session.createConsumer(destination);
       messageConsumer.setMessageListener(processor);
+    }
+  }
+
+  @Deactivate
+  protected void deactivate(Map<?, ?> properties) throws JMSException {
+    if (connection != null) {
+      connection.stop();
     }
   }
 

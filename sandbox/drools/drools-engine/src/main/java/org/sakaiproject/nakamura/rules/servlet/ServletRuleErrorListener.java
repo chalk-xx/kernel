@@ -27,7 +27,6 @@ public class ServletRuleErrorListener implements RuleExecutionErrorListener {
 
   private List<String> error = new ArrayList<String>();
 
-  @Override
   public void error(String message) {
     error.add(message);
   }

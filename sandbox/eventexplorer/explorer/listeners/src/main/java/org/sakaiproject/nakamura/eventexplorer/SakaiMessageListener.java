@@ -66,10 +66,10 @@ public class SakaiMessageListener implements MessageListener {
       List<ColumnOrSuperColumn> columns = new ArrayList<ColumnOrSuperColumn>();
       List<Column> column_list = new ArrayList<Column>();
 
-      Enumeration en = message.getPropertyNames();
+      Enumeration<String> en = message.getPropertyNames();
       String user = "system";
       while (en.hasMoreElements()) {
-        String prop_name = (String) en.nextElement();
+        String prop_name = en.nextElement();
         Object obj = message.getObjectProperty(prop_name);
         String obj_val = obj.toString();
 

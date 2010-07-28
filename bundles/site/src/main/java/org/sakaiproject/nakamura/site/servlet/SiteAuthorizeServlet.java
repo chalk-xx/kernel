@@ -74,7 +74,7 @@ import javax.servlet.http.HttpServletResponse;
         parameters={
           @ServiceParameter(name="addauth", description="The Path to the site being created (required)"),
           @ServiceParameter(name="removeauth", description="Path to a template node in JCR to use when creating the site (optional)")
-        
+
         },
         response={
           @ServiceResponse(code=200,description="The body will be empty on sucess."),
@@ -86,7 +86,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code=403,description="Current user is not allowed to create a site in the current location."),
           @ServiceResponse(code=404,description="Resource was not found."),
           @ServiceResponse(code=500,description="Failure with HTML explanation.")}
-    )) 
+    ))
 public class SiteAuthorizeServlet extends AbstractSiteServlet {
 
   /**
@@ -107,7 +107,7 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -174,80 +174,72 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
       }
       String path = site.getPath();
       String siteUuid = site.getIdentifier();
-      if (changes > 0) {
 
-        // set the authorizables on the site
-        site.setProperty(SiteService.AUTHORIZABLE, groups.toArray(new String[0]));
+      // set the authorizables on the site
+      site.setProperty(SiteService.AUTHORIZABLE, groups.toArray(new String[0]));
 
-        // adjst the sites on each group added or removed.
-        ValueFactory vf = session.getValueFactory();
-        LOGGER.debug("Removing {} Site references to Site {} ", removed.size(), site
-            .getPath());
+      // adjust the sites on each group added or removed.
+      ValueFactory vf = session.getValueFactory();
+      LOGGER.debug("Removing {} Site references to Site {} ", removed.size(),
+          site.getPath());
 
-        // remove old sites.
-        for (Authorizable auth : removed.values()) {
-          if (auth.hasProperty(SiteService.SITES)) {
-            Value[] v = auth.getProperty(SiteService.SITES);
-            if (v != null) {
-              List<Value> vnew = new ArrayList<Value>();
-              boolean r = false;
-              for (int i = 0; i < v.length; i++) {
-                if (!siteUuid.equals(v[i].getString())) {
-                  vnew.add(v[i]);
-                } else {
-                  LOGGER.debug("Removing {}", siteUuid);
-                  r = true;
-                }
-              }
-              if (r) {
-                Value[] vnewa = vnew.toArray(new Value[0]);
-                auth.setProperty(SiteService.SITES, vnewa);
-              }
-            }
-          }
-        }
-
-        LOGGER
-            .debug("Adding Site {} references to Site {} ", added.size(), site.getPath());
-        // add new sites
-        for (Authorizable auth : added.values()) {
-          Value[] v = null;
-          if ( auth.hasProperty(SiteService.SITES) ) {
-            v = auth.getProperty(SiteService.SITES);
-          }
-          Value[] vnew = null;
-          if (v == null) {
-            vnew = new Value[1];
-            vnew[0] = vf.createValue(siteUuid);
-            LOGGER.debug("Adding Site {} to Group {} ", path, auth.getID());
-          } else {
-            boolean a = true;
+      // remove old sites.
+      for (Authorizable auth : removed.values()) {
+        if (auth.hasProperty(SiteService.SITES)) {
+          Value[] v = auth.getProperty(SiteService.SITES);
+          if (v != null) {
+            List<Value> vnew = new ArrayList<Value>();
+            boolean r = false;
             for (int i = 0; i < v.length; i++) {
-              if (siteUuid.equals(v[i].getString())) {
-                a = false;
-                LOGGER
-                    .debug("Site {} already is present in Group {} ", path, auth.getID());
-                break;
+              if (!siteUuid.equals(v[i].getString())) {
+                vnew.add(v[i]);
+              } else {
+                LOGGER.debug("Removing {}", siteUuid);
+                r = true;
               }
             }
-            if (a) {
-              LOGGER.debug("Appending Site {} to Group {} ", path, auth.getID());
-              vnew = new Value[v.length + 1];
-              System.arraycopy(v, 0, vnew, 0, v.length);
-              vnew[v.length] = vf.createValue(siteUuid);
+            if (r) {
+              Value[] vnewa = vnew.toArray(new Value[0]);
+              auth.setProperty(SiteService.SITES, vnewa);
             }
-
-          }
-          if (vnew != null) {
-            auth.setProperty(SiteService.SITES, vnew);
           }
         }
-        LOGGER.debug("Done processing  Site {} ", path);
-
-      } else {
-        LOGGER.debug("No change to  Site {} ", path);
-
       }
+
+      LOGGER.debug("Adding Site {} references to Site {} ", added.size(), site.getPath());
+      // add new sites
+      for (Authorizable auth : added.values()) {
+        Value[] v = null;
+        if (auth.hasProperty(SiteService.SITES)) {
+          v = auth.getProperty(SiteService.SITES);
+        }
+        Value[] vnew = null;
+        if (v == null) {
+          vnew = new Value[1];
+          vnew[0] = vf.createValue(siteUuid);
+          LOGGER.debug("Adding Site {} to Group {} ", path, auth.getID());
+        } else {
+          boolean a = true;
+          for (int i = 0; i < v.length; i++) {
+            if (siteUuid.equals(v[i].getString())) {
+              a = false;
+              LOGGER.debug("Site {} already is present in Group {} ", path, auth.getID());
+              break;
+            }
+          }
+          if (a) {
+            LOGGER.debug("Appending Site {} to Group {} ", path, auth.getID());
+            vnew = new Value[v.length + 1];
+            System.arraycopy(v, 0, vnew, 0, v.length);
+            vnew[v.length] = vf.createValue(siteUuid);
+          }
+
+        }
+        if (vnew != null) {
+          auth.setProperty(SiteService.SITES, vnew);
+        }
+      }
+      LOGGER.debug("Done processing  Site {} ", path);
 
       if (session.hasPendingChanges()) {
         session.save();

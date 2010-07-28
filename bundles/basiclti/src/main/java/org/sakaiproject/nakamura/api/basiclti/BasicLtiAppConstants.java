@@ -55,17 +55,20 @@ public class BasicLtiAppConstants {
    * A new sakai/basiclti node is created.
    */
   public static final String TOPIC_BASICLTI_ADDED = "org/sakaiproject/nakamura/basiclti/added";
-
   /**
-   * A new sakai/basiclti node is changed.
+   * A sakai/basiclti node is changed.
    */
   public static final String TOPIC_BASICLTI_CHANGED = "org/sakaiproject/nakamura/basiclti/changed";
   /**
-   * A new sakai/basiclti node is removed.
+   * A sakai/basiclti node is removed.
    */
   public static final String TOPIC_BASICLTI_REMOVED = "org/sakaiproject/nakamura/basiclti/removed";
   /**
-   * A new sakai/basiclti node is accessed.
+   * A sakai/basiclti node is accessed.
    */
   public static final String TOPIC_BASICLTI_ACCESSED = "org/sakaiproject/nakamura/basiclti/accessed";
+  /**
+   * A sakai/basiclti node is launched.
+   */
+  public static final String TOPIC_BASICLTI_LAUNCHED = "org/sakaiproject/nakamura/basiclti/launched";
 }

@@ -17,14 +17,14 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.REQUIRED_MIXIN;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_LINK;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_LINK;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
-import static org.sakaiproject.nakamura.api.files.FilesConstants.REQUIRED_MIXIN;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_LINK;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_LINK;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.commons.json.JSONException;
@@ -33,8 +33,8 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.site.SiteService;
-import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
@@ -132,7 +132,10 @@ public class FileUtils {
 
     // Create the link
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
-    linkNode.addMixin(REQUIRED_MIXIN);
+    if ( !"sling:Folder".equals(linkNode.getPrimaryNodeType().getName()) ) {
+      // sling folder allows single and multiple properties, no need for the mixin.
+      linkNode.addMixin(REQUIRED_MIXIN);
+    }
     linkNode
         .setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, RT_SAKAI_LINK);
     linkNode.setProperty(SAKAI_LINK, fileNode.getIdentifier());
@@ -354,6 +357,11 @@ public class FileUtils {
    */
   public static void addTag(Session adminSession, Node fileNode, Node tagNode)
       throws RepositoryException {
+    if ( tagNode == null || fileNode == null ) {
+      throw new RuntimeException(
+          "Cant tag non existant nodes, sorry, both must exist prior to tagging. File:"
+              + fileNode + " Node To Tag:" + tagNode);
+    }
     // Grab the node via the adminSession
     String path = fileNode.getPath();
     fileNode = (Node) adminSession.getItem(path);
