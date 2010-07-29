@@ -49,6 +49,7 @@ import javax.jcr.version.VersionException;
 
 @Component(immediate = true)
 @Service
+@Deprecated
 public class CreateTreeOperation extends AbstractSlingPostOperation {
 
   private static final long serialVersionUID = 9207596135556346980L;
@@ -58,6 +59,7 @@ public class CreateTreeOperation extends AbstractSlingPostOperation {
   @Property(value = "createTree")
   static final String SLING_POST_OPERATION = "sling.post.operation";
 
+  @Deprecated
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
