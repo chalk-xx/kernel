@@ -118,6 +118,9 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
       expect(profileNode.getName()).andReturn("profile"+i+"nodename").anyTimes();
       Authorizable au = createAuthorizable(uuid, false, true);
       authorizables.add(au);
+      expect(session.itemExists(PersonalUtils.getProfilePath(au))).andReturn(
+          true);
+
       expect(session.getItem(PersonalUtils.getProfilePath(au))).andReturn(
           profileNode);
     }
