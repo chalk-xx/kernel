@@ -711,10 +711,13 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         final AccessControlManager acm = AccessControlUtil
             .getAccessControlManager(userSession);
         Privilege[] userPrivs = acm.getPrivileges(adminNodePath);
-        Set<Privilege> invalidUserPrivileges = getInvalidUserPrivileges(acm);
-        for (Privilege privilege : userPrivs) {
-          if (invalidUserPrivileges.contains(privilege)) {
-            invalidPrivileges = true;
+        if (userPrivs != null && userPrivs.length > 0) {
+          Set<Privilege> invalidUserPrivileges = getInvalidUserPrivileges(acm);
+          for (Privilege privilege : userPrivs) {
+            if (invalidUserPrivileges.contains(privilege)) {
+              invalidPrivileges = true;
+              break;
+            }
           }
         }
       } catch (PathNotFoundException e) { // This is to be expected
