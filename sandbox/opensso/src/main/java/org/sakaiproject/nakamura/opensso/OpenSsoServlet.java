@@ -50,16 +50,16 @@ import java.util.Dictionary;
 @ServiceDocumentation(name = "OpenOss Login Servlet", shortDescription = "", description = {
     " Requests that are posted to this servlet will result in a TrustedToken being injected into the " +
     "response provided that the request was previously authenticated by the OpenSsoAuthenticationHandler " +
-    "and the session user id matches the request login userid." }, 
+    "and the session user id matches the request login userid." },
     bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/sling/opensso"), methods = {
     @ServiceMethod(name = "GET", description = "Simply respond with the ID of the current user."),
     @ServiceMethod(name = "POST", description = "Performs the login or logout operations using opensso redirects ", parameters = {
         @ServiceParameter(name = "sakaiauth:logout", description = "Perform a logout operation removing all state related to the user"),
         @ServiceParameter(name = "sakaiauth:login", description = "Perform a login operartion based on the username and password supplied."),
-        @ServiceParameter(name = "d", description = "The destination URL on a sucessfull login")}, 
+        @ServiceParameter(name = "d", description = "The destination URL on a sucessfull login")},
         response = {
        @ServiceResponse(code = 200, description = "On a sucessfull login the userid will be returned.") }) })
-@SlingServlet(paths = { "/system/sling/opensso" }, methods = { "GET", "POST" })
+@SlingServlet(paths = { "/system/sling/formlogin" }, methods = { "GET", "POST" })
 @Properties(value = {
     @Property(name = "service.description", value = "The Sakai Foundation"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
@@ -92,13 +92,14 @@ public final class OpenSsoServlet extends AbstractAuthServlet {
     Dictionary<String, Object> properties = context.getProperties();
     serverUrl = (String) properties.get(SSO_SERVER_STUB_URL);
   }
-  
+
   /**
    * modify the response object to generate an authentication failed response. This will be a redirect to the OpenSso login location.
    * @param request
    * @param response
-   * @throws IOException 
+   * @throws IOException
    */
+  @Override
   protected void sendAuthenticationFailed(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws IOException {
     OpenSsoHandler openSsoHandler = new OpenSsoHandler(request, response);
