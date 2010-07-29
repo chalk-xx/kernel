@@ -110,6 +110,10 @@ public class AbstractWidgetServletTest {
     // Mock all the children
     List<Resource> resources = mockFileChildren(path, file);
     when(resolver.listChildren(resource)).thenReturn(resources.iterator());
+    
+    // If not using ResourceUtil
+    when(resource.listChildren()).thenReturn(resources.iterator());
+    when(resource.getName()).thenReturn(file.getName());
     return resource;
   }
 

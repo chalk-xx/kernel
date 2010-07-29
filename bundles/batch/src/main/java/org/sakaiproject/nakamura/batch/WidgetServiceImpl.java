@@ -147,7 +147,7 @@ public class WidgetServiceImpl implements WidgetService {
     }
 
     // Check if we have something in the cache.
-    String widgetName = ResourceUtil.getName(resource);
+    String widgetName = resource.getName();
     Cache<Map<String, ValueMap>> cache = cacheManagerService.getCache(
         CACHE_NAME_WIDGET_FILES, CacheScope.INSTANCE);
 
@@ -281,10 +281,10 @@ public class WidgetServiceImpl implements WidgetService {
     writer.endObject();
 
     // Output widget files
-    Iterator<Resource> children = ResourceUtil.listChildren(resource);
+    Iterator<Resource> children = resource.listChildren();
     while (children.hasNext()) {
       Resource child = children.next();
-      String childName = ResourceUtil.getName(child);
+      String childName = child.getName();
       // Check if we can output this resource.
       if (skipDirectories.contains(childName)) {
         continue;
@@ -380,10 +380,10 @@ public class WidgetServiceImpl implements WidgetService {
 
     } else {
       if (fetchChildren) {
-        Iterator<Resource> children = ResourceUtil.listChildren(resource);
+        Iterator<Resource> children = resource.listChildren();
         while (children.hasNext()) {
           Resource child = children.next();
-          String childName = ResourceUtil.getName(child);
+          String childName = child.getName();
           // Check if we can output this resource.
           if (skipDirectories.contains(childName)) {
             continue;
@@ -471,10 +471,10 @@ public class WidgetServiceImpl implements WidgetService {
 
     if (folderResource != null && !(folderResource instanceof NonExistingResource)) {
       // List all the subfolders (these should all be widgets.)
-      Iterator<Resource> widgets = ResourceUtil.listChildren(folderResource);
+      Iterator<Resource> widgets = folderResource.listChildren();
       while (widgets.hasNext()) {
         Resource widget = widgets.next();
-        String widgetName = ResourceUtil.getName(widget);
+        String widgetName = widget.getName();
         // Get the config for this widget.
         // If none is found or isn't valid JSON then it is ignored.
         String configPath = widget.getPath() + "/config.json";
