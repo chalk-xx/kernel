@@ -24,4 +24,10 @@ public interface JoinRequestConstants {
   String PROP_RESOURCE_TYPE = "sling:resourceType";
   String PROP_TARGET_GROUP = "sakai:targetGroup";
   String PROP_REQUEST_STATE = "sakai:requestState";
+  String PROP_AUTHORIZABLES = "sakai:authorizables";
+  String PROP_SITE_ID ="id";
+  String PARAM_USER = "user";
+  String PARAM_SITENODE = "requestedNode";
+  String PARAM_TIME = "timestamp";
+  String PARAM_VALIDATOR = ":join-auth";
 }

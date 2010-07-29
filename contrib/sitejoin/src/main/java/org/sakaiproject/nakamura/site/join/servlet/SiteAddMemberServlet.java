@@ -31,6 +31,7 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.auth.trusted.RequestTrustValidator;
 import org.sakaiproject.nakamura.api.auth.trusted.RequestTrustValidatorService;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.site.join.JoinRequestConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ import java.io.IOException;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.Session;
+import javax.jcr.Value;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
@@ -66,8 +68,9 @@ public class SiteAddMemberServlet extends SlingAllMethodsServlet {
 		String paramGroup = "";
 		try {
 			Node requestedNode = request.getResource().adaptTo(Node.class);
-			Property authorizables = requestedNode.getProperty("sakai:authorizables");
-			request.setAttribute("requestedNode", requestedNode);
+			Value[] authorizables = requestedNode.getProperty("sakai:authorizables").getValues();
+			paramGroup = authorizables[1].getString();
+			request.setAttribute(JoinRequestConstants.PARAM_SITENODE, requestedNode);
 			Session session = slingRepository.loginAdministrative(null);
 			UserManager userManager = AccessControlUtil.getUserManager(session);
 			Authorizable userAuth = userManager.getAuthorizable(paramUser);
@@ -75,6 +78,8 @@ public class SiteAddMemberServlet extends SlingAllMethodsServlet {
 			if (siteJoinIsAuthorized(request)) {
 				groupAuth.addMember(userAuth);
 				logger.info(paramUser + " added as member of group " + paramGroup);
+			} else {
+				response.sendError(403, "Not authorized to add member to site.");
 			}
 			if (session.hasPendingChanges()) {
 				session.save();
