@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.api.aggregate;
 
 import org.apache.sling.api.resource.Resource;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,9 +30,9 @@ public interface ResourceAggregator {
   /**
    * Aggregate the resource onto the target resoruces informed by the set of properties in the aggregate Properties.
    * @param resource the resource identified by the event
-   * @param targetResource a list of resource to which aggregation should be applied.
+   * @param targetResource a resource to which aggregation should be applied.
    * @param agregateProperties a map of properties derived from the event that triggered the aggregation operation.
    */
-  public void aggregate(Resource resource, List<Resource> targetResource, Map<String, Object> agregateProperties );
+  public void aggregate(Resource resource, Resource targetResource, Map<String, Object> agregateProperties );
   
 }
