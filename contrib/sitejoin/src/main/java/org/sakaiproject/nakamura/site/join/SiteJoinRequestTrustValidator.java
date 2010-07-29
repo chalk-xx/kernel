@@ -39,12 +39,13 @@ import javax.jcr.ValueFormatException;
 import javax.servlet.http.HttpServletRequest;
 
 @Service
-@Component
+@Component(immediate=true, metatype=true)
 @Properties(value = {
 		@Property(name = "service.vendor", value = "The Sakai Foundation"),
 		@Property(name = "service.description", value = "Validates a request to join a Sakai site."),
 		@Property(name = RequestTrustValidator.VALIDATOR_NAME, value = "site-join-request"),
-		@Property(name = "site.join.secret", value = "secretsecret") })
+		@Property(name = "site.join.secret", value = "secretsecret"),
+		@Property(name = "site.join.token.ttl.millis", value="300000")})
 public class SiteJoinRequestTrustValidator implements RequestTrustValidator {
 	
 	@Reference
@@ -56,7 +57,7 @@ public class SiteJoinRequestTrustValidator implements RequestTrustValidator {
 	
 	private static final int ONE_DAY = 24 * 60 * 60 * 1000;
 	private static final int DEFAULT_TOKEN_TTL = ONE_DAY;
-	private Integer tokenTTL = null;
+	private Long tokenTTL = null;
 
 	/**
 	 * {@inheritDoc}
@@ -123,6 +124,10 @@ public class SiteJoinRequestTrustValidator implements RequestTrustValidator {
 			siteJoinSecret = (String) propValue;
 		} else {
 			siteJoinSecret = DEFAULT_SITE_JOIN_SECRET;
+		}
+		Object ttl = props.get("site.join.token.ttl.millis");
+		if (ttl != null) {
+			tokenTTL = Long.parseLong(ttl.toString());
 		}
 	}
 
