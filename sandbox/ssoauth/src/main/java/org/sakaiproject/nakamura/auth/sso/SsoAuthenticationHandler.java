@@ -19,7 +19,10 @@ package org.sakaiproject.nakamura.auth.sso;
 
 import static org.apache.felix.scr.annotations.ReferenceCardinality.MANDATORY_MULTIPLE;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
@@ -52,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.Arrays;
@@ -93,25 +97,6 @@ import javax.servlet.http.HttpSession;
 })
 public final class SsoAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin, AuthenticationFeedbackHandler {
 
-  @Property(value="https://localhost:8443")
-  protected static final String SSO_SERVER_NAME = "auth.sso.server.name";
-  private String ssoServerUrl = null;
-
-  public static final String SSO_LOGIN_URL_DEFAULT = "https://localhost:8443/cas/login";
-  @Property(value = SSO_LOGIN_URL_DEFAULT)
-  protected static final String SSO_LOGIN_URL = "auth.sso.url.login";
-  private String ssoServerLoginUrl = null;
-
-  public static final String SSO_LOGOUT_URL_DEFAULT = "https://localhost:8443/cas/login";
-  @Property(value = SSO_LOGOUT_URL_DEFAULT)
-  protected static final String SSO_LOGOUT_URL = "auth.sso.url.logout";
-  private String ssoServerLogoutUrl = null;
-
-  public static final String SSO_VALIDATE_URL_DEFAULT = "https://localhost:8443/cas/validate";
-  @Property(value = SSO_VALIDATE_URL_DEFAULT)
-  protected static final String SSO_VALIDATE_URL = "auth.sso.url.validate";
-  private String ssoServerValidateUrl = null;
-
   public static final boolean SSO_AUTOCREATE_USER_DEFAULT = false;
   @Property(boolValue = SSO_AUTOCREATE_USER_DEFAULT)
   protected static final String SSO_AUTOCREATE_USER = "auth.sso.autocreate";
@@ -131,15 +116,13 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
   protected transient AuthorizablePostProcessService authorizablePostProcessService;
 
   @Reference(referenceInterface = ArtifactHandler.class, cardinality = MANDATORY_MULTIPLE)
-  protected transient HashMap<String, ArtifactHandler> artifactHandlers = new HashMap<String, ArtifactHandler>();
+  protected HashMap<String, ArtifactHandler> artifactHandlers = new HashMap<String, ArtifactHandler>();
 
   /**
    * Define the set of authentication-related query parameters which should
    * be removed from the "service" URL sent to the CAS server.
    */
   Set<String> filteredQueryStrings = new HashSet<String>(Arrays.asList(REQUEST_LOGIN_PARAMETER));
-
-  private boolean renew = false;
 
   private GatewayResolver gatewayStorage = new DefaultGatewayResolverImpl();
 
@@ -159,7 +142,8 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
     String handlerName = OsgiUtil.toString(props.get(ArtifactHandler.HANDLER_NAME), "");
     ArtifactHandler cachedHandler = artifactHandlers.get(handlerName);
     if (cachedHandler != null) {
-      throw new ComponentException("'" + ArtifactHandler.HANDLER_NAME + "' is already mapped to " + cachedHandler.getClass().getName());
+      throw new ComponentException("'" + ArtifactHandler.HANDLER_NAME
+          + "' is already mapped to " + cachedHandler.getClass().getName());
     } else {
       artifactHandlers.put(handlerName, handler);
       filteredQueryStrings.add(handler.getArtifactName());
@@ -187,18 +171,23 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
 
         // If we are also supposed to redirect to the CAS server to log out
         // of SSO, set up the redirect now.
-        // TODO get this from the
-        if (ssoServerLogoutUrl != null && ssoServerLogoutUrl.length() > 0) {
+        // TODO get the handler
+        ArtifactHandler handler = null;
+        String logoutUrl = handler.getLogoutUrl(request);
+        if (StringUtils.isNotBlank(logoutUrl)) {
           String target = (String) request.getAttribute(Authenticator.LOGIN_RESOURCE);
           if (target == null || target.length() == 0) {
             target = request.getParameter(Authenticator.LOGIN_RESOURCE);
           }
           if (target != null && target.length() > 0 && !("/".equals(target))) {
-            LOGGER.info("CAS logout about to override requested redirect to {} and instead redirect to {}", target, ssoServerLogoutUrl);
+            LOGGER
+                .info(
+                    "CAS logout about to override requested redirect to {} and instead redirect to {}",
+                    target, logoutUrl);
           } else {
-            LOGGER.debug("CAS logout will request redirect to {}", ssoServerLogoutUrl);
+            LOGGER.debug("CAS logout will request redirect to {}", logoutUrl);
           }
-          request.setAttribute(Authenticator.LOGIN_RESOURCE, ssoServerLogoutUrl);
+          request.setAttribute(Authenticator.LOGIN_RESOURCE, logoutUrl);
         }
       }
     }
@@ -211,40 +200,68 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
     // go through artifact list to find one that can handle this request
     // Once that is found, use it here for constructServiceUrl,
     ArtifactHandler handler = null;
+    String artifact = null;
     for (Entry<String, ArtifactHandler> handlerEntry : artifactHandlers.entrySet()) {
       ArtifactHandler h = handlerEntry.getValue();
-      if (h.canHandle(request)) {
+      artifact = h.getArtifact(request);
+      if (artifact != null) {
         request.setAttribute(ArtifactHandler.HANDLER_NAME, handlerEntry.getKey());
         handler = h;
         break;
       }
     }
 
-    if (handler != null) {
-      String username = handler.getUsername(request);
-    }
-
     AuthenticationInfo authnInfo = null;
-    final HttpSession session = request.getSession(false);
-    final Assertion assertion = session != null ? (Assertion) session
-        .getAttribute(CONST_CAS_ASSERTION) : null;
-    if (assertion != null) {
-      LOGGER.debug("assertion found");
-      authnInfo = createAuthnInfo(assertion);
-    } else {
-      final String serviceUrl = constructServiceUrl(request);
-      final String ticket = CommonUtils.safeGetParameter(request, artifactParameterName);
-      final boolean wasGatewayed = this.gatewayStorage.hasGatewayedAlready(request,
-          serviceUrl);
 
-      if (CommonUtils.isNotBlank(ticket) || wasGatewayed) {
-        LOGGER.debug("found ticket: \"{}\" or was gatewayed", ticket);
-        authnInfo = getUserFromTicket(ticket, serviceUrl, request);
-      } else {
-        LOGGER.debug("no ticket and no assertion found");
+    if (handler != null) {
+      // make REST call to validate artifact
+      try {
+        // validate URL
+        String validateUrl = handler.getValidateUrl(artifact, request);
+        GetMethod get = new GetMethod(validateUrl);
+        HttpClient httpClient = new HttpClient();
+        int returnCode = httpClient.executeMethod(get);
+        if (returnCode >= 200 && returnCode < 300) {
+          String body = get.getResponseBodyAsString();
+          String credentials = handler.extractCredentials(artifact, body, request);
+          if (credentials != null) {
+            authnInfo = createAuthnInfo(credentials);
+          }
+        }
+      } catch (IOException e) {
+        LOGGER.error(e.getMessage(), e);
       }
     }
+
     return authnInfo;
+//    try {
+//      Assertion a = sv.validate(ticket, serviceUrl);
+//      request.getSession().setAttribute(CONST_CAS_ASSERTION, a);
+//      authnInfo = createAuthnInfo(a);
+//    } catch (TicketValidationException e) {
+//      LOGGER.error(e.getMessage());
+//    }
+//
+//    final HttpSession session = request.getSession(false);
+//    final Assertion assertion = session != null ? (Assertion) session
+//        .getAttribute(CONST_CAS_ASSERTION) : null;
+//    if (assertion != null) {
+//      LOGGER.debug("assertion found");
+//      authnInfo = createAuthnInfo(assertion);
+//    } else {
+//      final String serviceUrl = constructServiceUrl(request);
+//      final String ticket = CommonUtils.safeGetParameter(request, artifactParameterName);
+//      final boolean wasGatewayed = this.gatewayStorage.hasGatewayedAlready(request,
+//          serviceUrl);
+//
+//      if (CommonUtils.isNotBlank(ticket) || wasGatewayed) {
+//        LOGGER.debug("found ticket: \"{}\" or was gatewayed", ticket);
+//        authnInfo = getUserFromTicket(ticket, serviceUrl, request);
+//      } else {
+//        LOGGER.debug("no ticket and no assertion found");
+//      }
+//    }
+//    return authnInfo;
   }
 
   public boolean requestCredentials(HttpServletRequest request,
@@ -252,7 +269,7 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
     // TODO get handler and have it construct the redirect url
     ArtifactHandler handler = null;
     LOGGER.debug("requestCredentials called");
-    final String serviceUrl = constructServiceUrl(request);
+    final String serviceUrl = constructServiceParameter(request);
     Boolean gateway = Boolean.parseBoolean(request.getParameter("gateway"));
     final String modifiedServiceUrl;
     if (gateway) {
@@ -263,9 +280,11 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
       modifiedServiceUrl = serviceUrl;
     }
     LOGGER.debug("Service URL = \"{}\"", modifiedServiceUrl);
-    String urlToRedirectTo = ssoServerLoginUrl + (ssoServerLoginUrl.indexOf("?") != -1 ? "&" : "?")
-    + serviceName + "=" + URLEncoder.encode(serviceUrl, "UTF-8");
-    final String urlToRedirectTo = handler.constructRedirectUrl(options)
+    String urlToRedirectTo = handler.getLoginUrl(serviceUrl, request);
+//    String urlToRedirectTo = ssoServerLoginUrl
+//        + (ssoServerLoginUrl.indexOf("?") != -1 ? "&" : "?")
+//        + handler.getServiceName() + "=" + URLEncoder.encode(serviceUrl, "UTF-8")
+//        + handler.decorateRedirectUrl(request);
 //    final String urlToRedirectTo = CommonUtils.constructRedirectUrl(
 //        this.ssoServerLoginUrl, serviceParameterName, modifiedServiceUrl,
 //        this.renew, gateway);
@@ -296,18 +315,6 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
       plugin = new SsoAuthenticationPlugin(this);
     }
     return plugin;
-  }
-
-  private SsoPrincipal getCasPrincipal(Credentials credentials) {
-    SsoPrincipal casPrincipal = null;
-    if (credentials instanceof SimpleCredentials) {
-      SimpleCredentials simpleCredentials = (SimpleCredentials) credentials;
-      Object attribute = simpleCredentials.getAttribute(SsoPrincipal.class.getName());
-      if (attribute instanceof SsoPrincipal) {
-        casPrincipal = (SsoPrincipal) attribute;
-      }
-    }
-    return casPrincipal;
   }
 
   public Principal getPrincipal(Credentials credentials) {
@@ -375,11 +382,6 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
     return DefaultAuthenticationFeedbackHandler.handleRedirect(request, response);
   }
 
-  //----------- Public ----------------------------
-  public String getServerUrl() {
-    return ssoServerUrl;
-  }
-
   //----------- Package ----------------------------
 
   /**
@@ -413,10 +415,6 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
   //----------- Internal ----------------------------
 
   private void init(Map<?, ?> prop) {
-    ssoServerUrl = OsgiUtil.toString(prop.get(SSO_SERVER_NAME), "");
-    ssoServerLoginUrl = OsgiUtil.toString(prop.get(SSO_LOGIN_URL), "");
-    ssoServerLogoutUrl = OsgiUtil.toString(prop.get(SSO_LOGOUT_URL), "");
-    ssoServerValidateUrl = OsgiUtil.toString(prop.get(SSO_LOGOUT_URL), "");
     autoCreateUser = OsgiUtil.toBoolean(prop.get(SSO_AUTOCREATE_USER), false);
   }
 
@@ -439,27 +437,10 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
   }
 
   private AuthenticationInfo createAuthnInfo(final String principalName) {
-    AuthenticationInfo authnInfo;
-    authnInfo = new AuthenticationInfo(SsoAuthConstants.SSO_AUTH_TYPE);
+    AuthenticationInfo authnInfo = new AuthenticationInfo(SsoAuthConstants.SSO_AUTH_TYPE);
     SimpleCredentials credentials = new SimpleCredentials(principalName, new char[] {});
     credentials.setAttribute(SsoPrincipal.class.getName(), new SsoPrincipal(principalName));
     authnInfo.put(AuthenticationInfo.CREDENTIALS, credentials);
-    return authnInfo;
-  }
-
-  private AuthenticationInfo getUserFromTicket(String ticket, String serviceUrl,
-      HttpServletRequest request) {
-    ArtifactHandler handler;
-    handler.getUsername(ticket, request);
-    AuthenticationInfo authnInfo = null;
-    Cas20ServiceTicketValidator sv = new Cas20ServiceTicketValidator(ssoServerUrl);
-    try {
-      Assertion a = sv.validate(ticket, serviceUrl);
-      request.getSession().setAttribute(CONST_CAS_ASSERTION, a);
-      authnInfo = createAuthnInfo(a);
-    } catch (TicketValidationException e) {
-      LOGGER.error(e.getMessage());
-    }
     return authnInfo;
   }
 
@@ -471,7 +452,8 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
    * A request attribute or parameter can be used to specify a different
    * return path.
    */
-  private String constructServiceUrl(HttpServletRequest request) {
+  private String constructServiceParameter(HttpServletRequest request)
+      throws UnsupportedEncodingException {
     StringBuilder serviceUrl = getServerName(request);
     String requestedReturnPath = getReturnPath(request);
     if (requestedReturnPath != null && requestedReturnPath.length() > 0) {
@@ -497,7 +479,8 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
         }
       }
     }
-    return serviceUrl.toString();
+    String url = URLEncoder.encode(serviceUrl.toString(), "UTF-8");
+    return url;
   }
 
   private SsoPrincipal getSsoPrincipal(Credentials credentials) {

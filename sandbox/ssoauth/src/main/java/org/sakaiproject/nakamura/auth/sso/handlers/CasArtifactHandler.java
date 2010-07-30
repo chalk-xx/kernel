@@ -21,17 +21,24 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
-import org.sakaiproject.nakamura.api.auth.sso.SsoAuthConstants;
-import org.sakaiproject.nakamura.auth.sso.SsoAuthenticationHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.StringReader;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
 
 /**
  *
@@ -39,26 +46,22 @@ import javax.servlet.http.HttpServletRequest;
 @Component
 @Service
 public class CasArtifactHandler implements ArtifactHandler {
-  @Reference
-  private SsoAuthenticationHandler ssoAuthnHandler;
+  private static final Logger logger = LoggerFactory.getLogger(CasArtifactHandler.class);
 
-  /** Defines the parameter to look for for the service. */
-  public static final String SERVICE_PARAMETER_DEFAULT = "service";
-  @Property(value = SERVICE_PARAMETER_DEFAULT)
-  static final String SERVICE_PARAMETER = "auth.sso.service.parameter";
-  private String serviceParameter;
+  //---------- common fields ----------
+  public static final String LOGIN_URL_DEFAULT = "https://localhost:8443/cas/login";
+  @Property(value = LOGIN_URL_DEFAULT)
+  private String loginUrl = null;
 
-  /** Defines the parameter to look for for the artifact. */
-  public static final String ARTIFACT_NAME_DEFAULT = "ticket";
-  @Property(value = ARTIFACT_NAME_DEFAULT)
-  static final String ARTIFACT_NAME = "auth.sso.artifact.name";
-  private String artifactName;
+  public static final String LOGOUT_URL_DEFAULT = "https://localhost:8443/cas/logout";
+  @Property(value = LOGOUT_URL_DEFAULT)
+  private String logoutUrl = null;
 
-  public static final String SERVICE_URL_DEFAULT = SsoAuthConstants.SSO_LOGIN_PATH;
-  @Property(value = SERVICE_URL_DEFAULT)
-  static final String SERVICE_URL = "auth.sso.service.parameter";
-  private String serviceUrl;
+  public static final String SERVER_URL_DEFAULT = "https://localhost:8443/cas";
+  @Property(value = SERVER_URL_DEFAULT)
+  private String serverUrl = null;
 
+  // ---------- CAS specific fields ----------
   protected static final boolean RENEW_DEFAULT = false;
   @Property(boolValue = RENEW_DEFAULT)
   static final String RENEW = "auth.sso.prop.renew";
@@ -80,7 +83,10 @@ public class CasArtifactHandler implements ArtifactHandler {
   }
 
   protected void init(Map<?, ?> props) {
-    serviceUrl = OsgiUtil.toString(props.get(SERVICE_URL), SERVICE_URL_DEFAULT);
+    loginUrl = OsgiUtil.toString(props.get(LOGIN_URL), LOGIN_URL_DEFAULT);
+    logoutUrl = OsgiUtil.toString(props.get(LOGOUT_URL), LOGOUT_URL_DEFAULT);
+    serverUrl = OsgiUtil.toString(props.get(SERVER_URL), SERVER_URL_DEFAULT);
+
     renew = OsgiUtil.toBoolean(props.get(RENEW), RENEW_DEFAULT);
     gateway = OsgiUtil.toBoolean(props.get(GATEWAY), GATEWAY_DEFAULT);
   }
@@ -88,15 +94,19 @@ public class CasArtifactHandler implements ArtifactHandler {
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#canHandle(javax.servlet.http.HttpServletRequest)
+   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getArtifactName()
    */
-  public boolean canHandle(HttpServletRequest request) {
-    // TODO Auto-generated method stub
-    return false;
+  public String getArtifactName() {
+    return "ticket";
   }
 
-  public String getArtifactName() {
-    return ARTIFACT_NAME_DEFAULT;
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getArtifact(javax.servlet.http.HttpServletRequest)
+   */
+  public String getArtifact(HttpServletRequest request) {
+    return request.getParameter(getArtifactName());
   }
 
   /**
@@ -104,20 +114,96 @@ public class CasArtifactHandler implements ArtifactHandler {
    *
    * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getUsername(javax.servlet.http.HttpServletRequest)
    */
-  public String getUsername(HttpServletRequest request) {
-    String artifact = request.getParameter(ARTIFACT_NAME_DEFAULT);
-    ArtifactHandler handler;
-    handler.getUsername(ticket, request);
-    AuthenticationInfo authnInfo = null;
-    Cas20ServiceTicketValidator sv = new Cas20ServiceTicketValidator(ssoServerUrl);
+  public String extractCredentials(String artifact, String responseBody, HttpServletRequest request) {
+    String username = null;
+    String failureCode = null;
+    String failureMessage = null;
     try {
-      Assertion a = sv.validate(ticket, serviceUrl);
-      request.getSession().setAttribute(CONST_CAS_ASSERTION, a);
-      authnInfo = createAuthnInfo(a);
-    } catch (TicketValidationException e) {
-      LOGGER.error(e.getMessage());
+      XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+      xmlInputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
+      xmlInputFactory.setProperty(XMLInputFactory.IS_VALIDATING, false);
+      xmlInputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
+      XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(new StringReader(
+          responseBody));
+
+      while (eventReader.hasNext()) {
+        XMLEvent event = eventReader.nextEvent();
+
+        // process the event if we're starting an element
+        if (event.isStartElement()) {
+          StartElement startEl = event.asStartElement();
+          QName startElName = startEl.getName();
+          String startElLocalName = startElName.getLocalPart();
+
+          /*
+           * Example of failure XML
+          <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
+            <cas:authenticationFailure code='INVALID_REQUEST'>
+              &#039;service&#039; and &#039;ticket&#039; parameters are both required
+            </cas:authenticationFailure>
+          </cas:serviceResponse>
+          */
+          if ("authenticationFailure".equalsIgnoreCase(startElLocalName)) {
+            // get code of the failure
+            Attribute code = startEl.getAttributeByName(QName.valueOf("code"));
+            failureCode = code.getValue();
+
+            // get the message of the failure
+            event = eventReader.nextEvent();
+            assert event.isCharacters();
+            Characters chars = event.asCharacters();
+            failureMessage = chars.getData();
+            break;
+          }
+
+          /*
+           * Example of success XML
+          <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
+            <cas:authenticationSuccess>
+              <cas:user>NetID</cas:user>
+            </cas:authenticationSuccess>
+          </cas:serviceResponse>
+          */
+          if ("authenticationSuccess".equalsIgnoreCase(startElLocalName)) {
+            // skip the user tag start
+            event = eventReader.nextEvent();
+            // move on to the body of the tag
+            event = eventReader.nextEvent();
+            assert event.isCharacters();
+            Characters chars = event.asCharacters();
+            username = chars.getData();
+            break;
+          }
+        }
+      }
+    } catch (XMLStreamException e) {
+      logger.error(e.getMessage(), e);
     }
-    return authnInfo;
+
+    if (failureCode != null || failureMessage != null) {
+      logger.error("Error parsing response from server [code=" + failureCode
+          + ", message=" + failureMessage);
+    }
+    return username;
+//      // TODO parse response from server to get credentials
+//      Assertion a = sv.validate(artifact, serverUrl);
+//
+//      request.getSession().setAttribute(CONST_CAS_ASSERTION, a);
+//      authnInfo = createAuthnInfo(a);
+//    } catch (TicketValidationException e) {
+//      LOGGER.error(e.getMessage());
+//    }
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getValidateUrl(java.lang.String,
+   *      javax.servlet.http.HttpServletRequest)
+   */
+  public String getValidateUrl(String artifact, HttpServletRequest request) {
+    String url = serverUrl + "/serviceValidate?" + getArtifactName() + "=" + artifact;
+    return url;
   }
 
   /**
@@ -125,26 +211,31 @@ public class CasArtifactHandler implements ArtifactHandler {
    *
    * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#constructRedirectUrl()
    */
-  public String decorateRedirectUrl(HttpServletRequest request) {
+  public String getLoginUrl(String serviceUrl, HttpServletRequest request) {
+    String urlToRedirectTo = loginUrl + "?service=" + serviceUrl;
+
     String renewParam = request.getParameter("renew");
-    String gatewayParam = request.getParameter("gateway");
-
-    boolean renew = false;
-    boolean gateway = false;
-
-    if (renewParam == null) {
-      renew = this.renew;
-    } else {
+    boolean renew = this.renew;
+    if (renewParam != null) {
       renew = Boolean.parseBoolean(renewParam);
     }
 
-    if (gatewayParam == null) {
-      gateway = this.gateway;
-    } else {
+    String gatewayParam = request.getParameter("gateway");
+    boolean gateway = this.gateway;
+    if (gatewayParam != null) {
       gateway = Boolean.parseBoolean(gatewayParam);
     }
 
-    String retval = (renew ? "&renew=true" : "") + (gateway ? "&gateway=true" : "");
-    return retval;
+    urlToRedirectTo += (renew ? "&renew=true" : "") + (gateway ? "&gateway=true" : "");
+    return urlToRedirectTo;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getLogoutUrl(javax.servlet.http.HttpServletRequest)
+   */
+  public String getLogoutUrl(HttpServletRequest request) {
+    return logoutUrl;
   }
 }

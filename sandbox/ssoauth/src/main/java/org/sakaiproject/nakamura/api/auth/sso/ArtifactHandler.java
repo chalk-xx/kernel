@@ -17,43 +17,57 @@
  */
 package org.sakaiproject.nakamura.api.auth.sso;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 
 /**
  *
  */
 public interface ArtifactHandler {
-  final String HANDLER_NAME = "auth.sso.name";
+  String HANDLER_NAME = "auth.sso.name";
+
+  String LOGIN_URL = "auth.sso.url.login";
+  String LOGOUT_URL = "auth.sso.url.logout";
+  String SERVER_URL = "auth.sso.url.server";
 
   /**
    * Get the name of the artifact that is looked for by this handler. This is to make sure
    * URLs are filtered properly in the authentication handler.
    */
   String getArtifactName();
+  String getArtifact(HttpServletRequest request);
 
   /**
-   * Verify this handler can handle the request.
+   * Extract the credentials (ie. username) from a request. This is called after a
+   * positive response from {@link #isValid(String)}.
+   *
+   * @param artifact
+   * @param responseBody
+   * @param request
+   * @return
+   */
+  String extractCredentials(String artifact, String responseBody,
+      HttpServletRequest request);
+
+  /**
+   * Get the URL the user should be directed to for logging in.
+   *
+   * @param reqeust
+   * @return
+   */
+  String getLoginUrl(String returnUrl, HttpServletRequest reqeust);
+
+  /**
    *
    * @param request
    * @return
    */
-  boolean canHandle(HttpServletRequest request);
+  String getLogoutUrl(HttpServletRequest request);
 
   /**
-   * Get the username associated to an artifact.
+   * Decorate the URL used to validate an artifact.
    *
    * @param request
    * @return
    */
-  String getUsername(HttpServletRequest request);
-
-  /**
-   * Construct the URL to redirect the client to the login page.
-   *
-   * @param options
-   * @return
-   */
-  String constructRedirectUrl(Map<String, Object> options);
+  String getValidateUrl(String artifact, HttpServletRequest request);
 }

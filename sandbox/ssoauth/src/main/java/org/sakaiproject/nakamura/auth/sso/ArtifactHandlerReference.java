@@ -15,20 +15,29 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.auth.sso;
+package org.sakaiproject.nakamura.auth.sso;
 
-public class SsoAuthConstants {
-  /**
-   * Identification of this authentication handler. This value is set by the
-   * handler as the authentication type of the <code>AuthenticationInfo</code>
-   * object returned from the <code>extractCredentials</code> method.
-   * <p>
-   * To explicitly request CAS authentication handling, this should be used
-   * as the value of the <code>sling:authRequestLogin</code> request
-   * parameter.
-   */
-  public static final String SSO_AUTH_TYPE = "SSO";
+import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
 
-  public static final String SSO_LOGIN_PATH = "/system/sling/sso/login";
-  public static final String SSO_LOGOUT_PATH = "/system/sling/sso/logout";
+import java.util.Map;
+
+/**
+ *
+ */
+public class ArtifactHandlerReference {
+  private Map<?, ?> config;
+  private ArtifactHandler handler;
+
+  public ArtifactHandlerReference(ArtifactHandler handler, Map<?, ?> config) {
+    this.handler = handler;
+    this.config = config;
+  }
+
+  public ArtifactHandler getHandler() {
+    return handler;
+  }
+
+  public Map<?, ?> getConfig() {
+    return config;
+  }
 }

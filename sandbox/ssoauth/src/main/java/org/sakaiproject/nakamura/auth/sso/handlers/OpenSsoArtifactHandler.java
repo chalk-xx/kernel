@@ -24,12 +24,11 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
-import org.sakaiproject.nakamura.auth.sso.SsoAuthenticationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,80 +53,99 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(OpenSsoArtifactHandler.class);
 
-  /** Defines the parameter to look for for the service. */
-  public static final String COOKIE_NAME_DEFAULT = "iPlanetDirectoryPro";
+  // ---------- generic fields ----------
+  public static final String LOGIN_URL_DEFAULT = "https://localhost/sso/UI/Login";
+  @Property(value = LOGIN_URL_DEFAULT)
+  private String loginUrl = null;
 
-  public static final String SERVICE_PARAMETER_NAME_DEFAULT = "goto";
+  public static final String LOGOUT_URL_DEFAULT = "https://localhost/sso/UI/Logout";
+  @Property(value = LOGOUT_URL_DEFAULT)
+  private String logoutUrl = null;
+
+  public static final String SERVER_URL_DEFAULT = "https://localhost/sso";
+  @Property(value = SERVER_URL_DEFAULT)
+  private String serverUrl = null;
+
+  public static final String ATTRIBUTE_NAME_DEFAULT = "uid";
+  @Property(value = ATTRIBUTE_NAME_DEFAULT)
+  static final String ATTRIBUTES_NAMES = "auth.sso.attribute";
+  private String attributeName;
 
   /** Defines the parameter to look for for the artifact. */
-  public static final String ARTIFACT_PARAMETER_NAME_DEFAULT = "tokenid";
-
+  public static final String ARTIFACT_NAME_DEFAULT = "iPlanetDirectoryPro";
   public static final String SUCCESSFUL_BODY_DEFAULT = "boolean=true\n";
-
-  private static final String USRDETAILS_ATTR_NAME_STUB = "userdetails.attribute.name=";
-  private static final String USRDETAILS_ATTR_VAL_STUB = "userdetails.attribute.value=";
-
-  public static final String ATTRIBUTES_NAMES_DEFAULT = "uid";
-  @Property(value = ATTRIBUTES_NAMES_DEFAULT)
-  static final String ATTRIBUTES_NAMES = "auth.sso.attribute";
-  private String attributesNames;
-
-  @Reference
-  private SsoAuthenticationHandler authHandler;
+  private static final String USRDTLS_ATTR_NAME_STUB = "userdetails.attribute.name=";
+  private static final String USRDTLS_ATTR_VAL_STUB = "userdetails.attribute.value=";
 
   @Activate
   protected void activate(Map<?, ?> props) {
     init(props);
   }
 
+  @Modified
   protected void modified(Map<?, ?> props) {
     init(props);
   }
 
   protected void init(Map<?, ?> props) {
-    attributesNames = OsgiUtil.toString(props.get(ATTRIBUTES_NAMES),
-        ATTRIBUTES_NAMES_DEFAULT);
-  }
+    loginUrl = OsgiUtil.toString(props.get(LOGIN_URL), LOGIN_URL_DEFAULT);
+    logoutUrl = OsgiUtil.toString(props.get(LOGOUT_URL), LOGOUT_URL_DEFAULT);
+    serverUrl = OsgiUtil.toString(props.get(SERVER_URL), SERVER_URL_DEFAULT);
 
-  public String getArtifactName() {
-    return ARTIFACT_PARAMETER_NAME_DEFAULT;
-  }
-
-  public boolean canHandle(HttpServletRequest request) {
-    return getArtifact(request) != null;
+    attributeName = OsgiUtil.toString(props.get(ATTRIBUTES_NAMES), ATTRIBUTE_NAME_DEFAULT);
   }
 
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getUsername(javax.servlet.http.HttpServletRequest)
+   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getArtifactName()
    */
-  public String getUsername(HttpServletRequest request) {
-    String username = null;
-    String serverUrl = authHandler.getServerUrl();
-    String artifact = getArtifact(request);
-    try {
-      // validate URL
-      GetMethod get = new GetMethod(serverUrl + "identity/isTokenValid?"
-          + ARTIFACT_PARAMETER_NAME_DEFAULT + "=" + artifact);
-      HttpClient httpClient = new HttpClient();
-      int returnCode = httpClient.executeMethod(get);
-      String body = get.getResponseBodyAsString();
+  public String getArtifactName() {
+    return ARTIFACT_NAME_DEFAULT;
+  }
 
-      if (returnCode >= 200 && returnCode < 300 && SUCCESSFUL_BODY_DEFAULT.equals(body)) {
-        get = new GetMethod(serverUrl + "identity/attributes?attributes_names="
-            + attributesNames + "&subjectid=" + artifact);
-        returnCode = httpClient.executeMethod(get);
-        body = get.getResponseBodyAsString();
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getArtifact(javax.servlet.http.HttpServletRequest)
+   */
+  public String getArtifact(HttpServletRequest request) {
+    String artifact = null;
+    Cookie[] cookies = request.getCookies();
+    for (Cookie cookie : cookies) {
+      if (ARTIFACT_NAME_DEFAULT.equals(cookie.getName())) {
+        artifact = cookie.getValue();
+        break;
+      }
+    }
+    return artifact;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#extractCredentials(javax.servlet.http.HttpServletRequest)
+   */
+  public String extractCredentials(String artifact, String responseBody,
+      HttpServletRequest request) {
+    String username = null;
+
+    try {
+      if (SUCCESSFUL_BODY_DEFAULT.equals(responseBody)) {
+        GetMethod get = new GetMethod(serverUrl + "identity/attributes?attributes_names="
+            + attributeName + "&subjectid=" + artifact);
+        HttpClient httpClient = new HttpClient();
+        int returnCode = httpClient.executeMethod(get);
+        String body = get.getResponseBodyAsString();
 
         if (returnCode >= 200 && returnCode < 300) {
           BufferedReader br = new BufferedReader(new StringReader(body));
-          String attrLine = USRDETAILS_ATTR_NAME_STUB + attributesNames;
+          String attrLine = USRDTLS_ATTR_NAME_STUB + attributeName;
           String line = null;
           boolean getNextValue = false;
           while ((line = br.readLine()) != null) {
-            if (getNextValue && line.startsWith(USRDETAILS_ATTR_VAL_STUB)) {
-              username = line.substring(USRDETAILS_ATTR_VAL_STUB.length());
+            if (getNextValue && line.startsWith(USRDTLS_ATTR_VAL_STUB)) {
+              username = line.substring(USRDTLS_ATTR_VAL_STUB.length());
             } else if (attrLine.equals(line)) {
               getNextValue = true;
             }
@@ -136,7 +154,6 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
       }
     } catch (IOException e) {
       LOGGER.error(e.getMessage(), e);
-      return null;
     }
     return username;
   }
@@ -144,22 +161,30 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#constructRedirectUrl(java.util.Map)
+   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getValidateUrl(java.lang.String,
+   *      javax.servlet.http.HttpServletRequest)
    */
-  public String constructRedirectUrl(Map<String, Object> options) {
-    // TODO Auto-generated method stub
-    return null;
+  public String getValidateUrl(String artifact, HttpServletRequest request) {
+    String url = serverUrl + "/identity/isTokenValid?tokenid=" + artifact;
+    return url;
   }
 
-  private String getArtifact(HttpServletRequest request) {
-    String artifact = null;
-    Cookie[] cookies = request.getCookies();
-    for (Cookie cookie : cookies) {
-      if (COOKIE_NAME_DEFAULT.equals(cookie.getName())) {
-        artifact = cookie.getValue();
-        break;
-      }
-    }
-    return artifact;
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#decorateRedirectUrl(java.util.Map)
+   */
+  public String getLoginUrl(String serviceUrl, HttpServletRequest request) {
+    String url = loginUrl + "?goto=" + serviceUrl;
+    return url;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getLogoutUrl(javax.servlet.http.HttpServletRequest)
+   */
+  public String getLogoutUrl(HttpServletRequest request) {
+    return logoutUrl;
   }
 }
