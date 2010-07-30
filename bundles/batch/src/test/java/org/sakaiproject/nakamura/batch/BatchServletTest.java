@@ -74,7 +74,7 @@ public class BatchServletTest {
     ResourceResolver resourceResolver = mock(ResourceResolver.class);
     Resource resource = mock(Resource.class);
     when(request.getResourceResolver()).thenReturn(resourceResolver);
-    when(resourceResolver.getResource("/foo/bar")).thenReturn(resource);
+    when(resourceResolver.resolve(request, "/foo/bar")).thenReturn(resource);
     when(request.getRequestDispatcher(resource)).thenReturn(dispatcher);
     when(response.getWriter()).thenReturn(writer);
     servlet.doPost(request, response);
