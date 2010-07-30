@@ -29,19 +29,23 @@ import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.auth.trusted.RequestTrustValidator;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.site.join.JoinRequestConstants;
 import org.sakaiproject.nakamura.util.Signature;
 
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
+import javax.jcr.ValueFormatException;
 import javax.servlet.http.HttpServletRequest;
 
 @Service
-@Component
+@Component(immediate=true, metatype=true)
 @Properties(value = {
 		@Property(name = "service.vendor", value = "The Sakai Foundation"),
 		@Property(name = "service.description", value = "Validates a request to join a Sakai site."),
 		@Property(name = RequestTrustValidator.VALIDATOR_NAME, value = "site-join-request"),
-		@Property(name = "site.join.secret", value = "secretsecret") })
+		@Property(name = "site.join.secret", value = "secretsecret"),
+		@Property(name = "site.join.token.ttl.millis", value="300000")})
 public class SiteJoinRequestTrustValidator implements RequestTrustValidator {
 	
 	@Reference
@@ -49,10 +53,11 @@ public class SiteJoinRequestTrustValidator implements RequestTrustValidator {
 
 	private static final String DEFAULT_SITE_JOIN_SECRET = "secretsecret";
 	private String siteJoinSecret = DEFAULT_SITE_JOIN_SECRET;
+	private static final boolean URL_SAFE = Boolean.TRUE;
 	
 	private static final int ONE_DAY = 24 * 60 * 60 * 1000;
 	private static final int DEFAULT_TOKEN_TTL = ONE_DAY;
-	private Integer tokenTTL = null;
+	private Long tokenTTL = null;
 
 	/**
 	 * {@inheritDoc}
@@ -78,15 +83,16 @@ public class SiteJoinRequestTrustValidator implements RequestTrustValidator {
 		}
 	}
 
-	private boolean requestHasValidAuthToken(HttpServletRequest request) {
-		String userName = request.getParameter("user");
-		String siteId = request.getParameter("siteId");
-		String timestamp = request.getParameter("timestamp");
+	private boolean requestHasValidAuthToken(HttpServletRequest request) throws ValueFormatException, PathNotFoundException, RepositoryException {
+		String userName = request.getParameter(JoinRequestConstants.PARAM_USER);
+		Node siteNode = (Node)request.getAttribute(JoinRequestConstants.PARAM_SITENODE);
+		String siteId = siteNode.getProperty(JoinRequestConstants.PROP_SITE_ID).getString();
+		String timestamp = request.getParameter(JoinRequestConstants.PARAM_TIME);
 		String token = request.getParameter("authToken");
 		String tokenData = userName + ";" + siteId + ";" + timestamp;
 		try {
-			return tokenIsNotExpired(timestamp) && Signature.calculateRFC2104HMACWithEncoding(tokenData, siteJoinSecret, true)
-					.equals(token);
+			String hmacHash = Signature.calculateRFC2104HMACWithEncoding(tokenData, siteJoinSecret, URL_SAFE);
+			return tokenIsNotExpired(timestamp) && hmacHash.equals(token);
 		} catch (SignatureException e) {
 			return false;
 		}
@@ -94,7 +100,7 @@ public class SiteJoinRequestTrustValidator implements RequestTrustValidator {
 
 	private boolean tokenIsNotExpired(String timestampString) {
 		Date now = new Date();
-		int timestamp = Integer.parseInt(timestampString);
+		long timestamp = Long.parseLong(timestampString);
 		if (tokenTTL != null) {
 			return now.before(new Date(timestamp + tokenTTL));
 		} else {
@@ -118,6 +124,10 @@ public class SiteJoinRequestTrustValidator implements RequestTrustValidator {
 			siteJoinSecret = (String) propValue;
 		} else {
 			siteJoinSecret = DEFAULT_SITE_JOIN_SECRET;
+		}
+		Object ttl = props.get("site.join.token.ttl.millis");
+		if (ttl != null) {
+			tokenTTL = Long.parseLong(ttl.toString());
 		}
 	}
 
