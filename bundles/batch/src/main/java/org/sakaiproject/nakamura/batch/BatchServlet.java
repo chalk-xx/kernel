@@ -211,8 +211,13 @@ public class BatchServlet extends SlingAllMethodsServlet {
         System.err.println("Resolving "+path);
         Resource resource = resourceResolver.getResource(path);
         System.err.println("Dispatching to "+path+" resource "+resource+" "+resourceResolver);
+        if ( resource == null ) {
+          request.getRequestDispatcher(requestInfo.getUrl()).forward(requestWrapper,
+              responseWrapper);     
+        } else {
         request.getRequestDispatcher(resource).forward(requestWrapper,
             responseWrapper);
+        }
       } catch (ResourceNotFoundException e) {
         responseWrapper.setStatus(HttpServletResponse.SC_NOT_FOUND);
       } catch (SlingException e) {

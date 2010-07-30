@@ -209,7 +209,7 @@ class TC_Kern330Test < Test::Unit::TestCase
       "requests" => JSON.generate(str)
     }
     res = @s.execute_post(@s.url_for("system/batch"), parameters)
-    assert_equal(200, res.code.to_i, "Batch servlet should always return a 200 (with good parameters)")
+    assert_equal(200, res.code.to_i, "Batch servlet should always return a 200 (with good parameters) #{res.body} ")
     result = JSON.parse(res.body)
     assert_equal(201, result[0]["status"], "Expected a created status code.")
     assert_equal(404, result[1]["status"], "Expected a not found status code.")
