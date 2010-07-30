@@ -3,6 +3,7 @@ package org.sakaiproject.nakamura.util;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestParameterMap;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
 import org.sakaiproject.nakamura.util.RequestInfo;
 import org.sakaiproject.nakamura.util.parameters.ParameterMap;
@@ -16,17 +17,24 @@ public class RequestWrapper extends SlingHttpServletRequestWrapper {
 
   private RequestInfo requestInfo;
   private ParameterMap postParameterMap;
+  private RequestPathInfo requestPathInfo;
 
-  public RequestWrapper(SlingHttpServletRequest request) {
+  public RequestWrapper(SlingHttpServletRequest request, RequestPathInfo requestPathInfo, RequestInfo requestInfo) {
     super(request);
-  }
-
-  public void setRequestInfo(RequestInfo requestInfo) {
+    this.requestPathInfo = requestPathInfo;
     this.requestInfo = requestInfo;
+    
   }
+  
+
 
   private Hashtable<String, String[]> getParameters() {
     return requestInfo.getParameters();
+  }
+  
+  @Override
+  public RequestPathInfo getRequestPathInfo() {
+    return requestPathInfo;
   }
 
   // 

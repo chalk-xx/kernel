@@ -21,7 +21,11 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestPathInfo;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceNotFoundException;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
@@ -34,6 +38,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.util.RequestInfo;
+import org.sakaiproject.nakamura.util.RequestPathInfoWrapper;
 import org.sakaiproject.nakamura.util.RequestWrapper;
 import org.sakaiproject.nakamura.util.ResponseWrapper;
 import org.slf4j.Logger;
@@ -102,7 +107,7 @@ public class BatchServlet extends SlingAllMethodsServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    hashRequest(request, response);
+    batchRequest(request, response, false);
   }
 
   /**
@@ -114,7 +119,7 @@ public class BatchServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPost(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    hashRequest(request, response);
+    batchRequest(request, response, true);
   }
 
   /**
@@ -126,7 +131,7 @@ public class BatchServlet extends SlingAllMethodsServlet {
   @Override
   protected void doDelete(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    hashRequest(request, response);
+    response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
   }
 
   /**
@@ -138,7 +143,7 @@ public class BatchServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPut(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    hashRequest(request, response);
+    response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
   }
 
   /**
@@ -148,8 +153,8 @@ public class BatchServlet extends SlingAllMethodsServlet {
    * @param response
    * @throws IOException
    */
-  protected void hashRequest(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws IOException {
+  protected void batchRequest(SlingHttpServletRequest request,
+      SlingHttpServletResponse response, boolean allowModify) throws IOException {
     // Grab the JSON block out of it and convert it to RequestData objects we can use.
     String json = request.getParameter(REQUESTS_PARAMETER);
     List<RequestInfo> batchedRequests = new ArrayList<RequestInfo>();
@@ -158,7 +163,9 @@ public class BatchServlet extends SlingAllMethodsServlet {
       for (int i = 0; i < arr.length(); i++) {
         JSONObject obj = arr.getJSONObject(i);
         RequestInfo r = new RequestInfo(obj);
-        batchedRequests.add(r);
+        if ( allowModify || r.isSafe() ) {
+          batchedRequests.add(r);
+        }
       }
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
@@ -192,14 +199,19 @@ public class BatchServlet extends SlingAllMethodsServlet {
       JSONWriter write) throws JSONException {
 
     // Wrap the request and response so we can read them.
-    RequestWrapper requestWrapper = new RequestWrapper(request);
-    requestWrapper.setRequestInfo(requestInfo);
+    RequestPathInfoWrapper requestPathInfo = new RequestPathInfoWrapper(requestInfo.getUrl());
+    RequestWrapper requestWrapper = new RequestWrapper(request, requestPathInfo, requestInfo);
     ResponseWrapper responseWrapper = new ResponseWrapper(response);
 
     try {
       // Get the response
       try {
-        request.getRequestDispatcher(requestInfo.getUrl()).forward(requestWrapper,
+        ResourceResolver resourceResolver = request.getResourceResolver();
+        String path = requestPathInfo.getResourcePath();
+        System.err.println("Resolving "+path);
+        Resource resource = resourceResolver.getResource(path);
+        System.err.println("Dispatching to "+path+" resource "+resource+" "+resourceResolver);
+        request.getRequestDispatcher(resource).forward(requestWrapper,
             responseWrapper);
       } catch (ResourceNotFoundException e) {
         responseWrapper.setStatus(HttpServletResponse.SC_NOT_FOUND);

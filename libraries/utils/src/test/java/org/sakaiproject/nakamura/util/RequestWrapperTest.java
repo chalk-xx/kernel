@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.junit.Test;
 
 import java.io.UnsupportedEncodingException;
@@ -38,20 +39,20 @@ public class RequestWrapperTest {
   @Test
   public void test() throws UnsupportedEncodingException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    RequestPathInfo requestPathInfo = createMock(RequestPathInfo.class);
     expect(request.getCharacterEncoding()).andReturn("UTF-8");
     replay(request);
-
-    RequestWrapper wrapper = new RequestWrapper(request);
 
     RequestInfo requestInfo = new RequestInfo();
     requestInfo.setMethod("POST");
     requestInfo.setUrl("/foo/bar");
+    RequestWrapper wrapper = new RequestWrapper(request, requestPathInfo, requestInfo);
+
 
     Hashtable<String, String[]> parameters = new Hashtable<String, String[]>();
     parameters.put("foo", new String[] { "bar" });
     parameters.put("alfabet", new String[] { "alfa", "beta" });
     requestInfo.setParameters(parameters);
-    wrapper.setRequestInfo(requestInfo);
 
     assertEquals("bar", wrapper.getRequestParameter("foo").getString());
     assertEquals("bar", wrapper.getParameter("foo"));
