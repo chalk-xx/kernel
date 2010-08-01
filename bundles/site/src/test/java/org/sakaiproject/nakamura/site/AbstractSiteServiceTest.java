@@ -38,7 +38,7 @@ import java.util.List;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 
-public class AbstractSiteServiceTest extends AbstractEasyMockTest {
+public abstract class AbstractSiteServiceTest extends AbstractEasyMockTest {
 
   protected EventAdmin eventAdmin;
   protected UserManager userManager;

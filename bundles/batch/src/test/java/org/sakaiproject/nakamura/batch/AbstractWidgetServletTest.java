@@ -43,7 +43,7 @@ import java.util.Map;
 /**
  *
  */
-public class AbstractWidgetServletTest {
+public abstract class AbstractWidgetServletTest {
 
   @Mock
   protected ResourceResolver resolver;
@@ -91,7 +91,7 @@ public class AbstractWidgetServletTest {
   }
 
   /**
-   * 
+   *
    */
   private Resource mockResource(String path, File file) {
     // Get the inputstream for this file (null if directory.)
@@ -110,7 +110,7 @@ public class AbstractWidgetServletTest {
     // Mock all the children
     List<Resource> resources = mockFileChildren(path, file);
     when(resolver.listChildren(resource)).thenReturn(resources.iterator());
-    
+
     // If not using ResourceUtil
     when(resource.listChildren()).thenReturn(resources.iterator());
     when(resource.getName()).thenReturn(file.getName());
