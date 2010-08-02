@@ -98,7 +98,13 @@ class TC_MyAuthZTest < Test::Unit::TestCase
 	create_node(path,"testproperty" => "testvalue")
 	
 	# set all the acls
-    updateAcl(path,user1,true,true)
+        # user1 can read and write
+        # user2 can read
+        # user5 cant
+        # group1 can read and write ( ie user3)
+        # group2 can read (ie user4)
+        # group 3 cant (user6)
+        updateAcl(path,user1,true,true)
 	updateAcl(path,user2,true,false)
 	updateAcl(path,user5,false,false)
 	updateAcl(path,group1,true,true)
@@ -110,6 +116,8 @@ class TC_MyAuthZTest < Test::Unit::TestCase
 	checkAcl(path,user2,true,false)
 	checkAcl(path,group1,true,true)
 	checkAcl(path,group2,true,false)
+
+        # If the test gets to here the ACLs are all stored correctly in the JCR, now we need to see if they will work.
 
 	# check Http access (read, write)
 	checkHttpAccess(path,u1,"",true,true)

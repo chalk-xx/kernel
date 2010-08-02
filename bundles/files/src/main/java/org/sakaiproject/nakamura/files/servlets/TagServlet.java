@@ -73,7 +73,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
   @Reference
   protected transient SiteService siteService;
 
-  private FileSearchBatchResultProcessor proc;
+  private transient FileSearchBatchResultProcessor proc;
 
   /**
    * {@inheritDoc}

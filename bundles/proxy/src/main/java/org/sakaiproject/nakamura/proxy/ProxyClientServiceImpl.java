@@ -35,30 +35,40 @@ import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.exception.MethodInvocationException;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.proxy.ProxyClientException;
 import org.sakaiproject.nakamura.api.proxy.ProxyClientService;
 import org.sakaiproject.nakamura.api.proxy.ProxyMethod;
 import org.sakaiproject.nakamura.api.proxy.ProxyNodeSource;
+import org.sakaiproject.nakamura.api.proxy.ProxyPostProcessor;
 import org.sakaiproject.nakamura.api.proxy.ProxyResponse;
 import org.sakaiproject.nakamura.proxy.velocity.JcrResourceLoader;
 import org.sakaiproject.nakamura.proxy.velocity.VelocityLogger;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -91,6 +101,9 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * The JCR resoruce loader prefix used in the velocity properties.
    */
   private static final String JCR_RESOURCE_LOADER = "jcr";
+  
+  @Property(value={"rss","someothersafepostprocessor"})
+  private static final String SAFE_POSTPROCESSORS = "safe.postprocessors";
 
   /**
    * The shared velocity engine, which should cache all the templates. (need to sort out
@@ -115,6 +128,8 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
 
   private Map<String, Object> configProperties;
 
+  private Set<String> safeOpenProcessors = new HashSet<String>();
+
   /**
    * Create resources used by this component.
    * 
@@ -129,6 +144,14 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
       for (Enumeration<String> e = props.keys(); e.hasMoreElements();) {
         String k = e.nextElement();
         configProperties.put(k, props.get(k));
+      }
+      String[] safePostProcessorNames = (String[]) configProperties.get(SAFE_POSTPROCESSORS);
+      if ( safePostProcessorNames == null ) {
+        safeOpenProcessors.add("rss");
+      } else {
+        for ( String pp : safePostProcessorNames ) {
+          safeOpenProcessors.add(pp);
+        }
       }
     } else {
       configProperties = new HashMap<String, Object>();
@@ -209,19 +232,27 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
       bindNode(node);
 
       if (node != null && node.hasProperty(SAKAI_REQUEST_PROXY_ENDPOINT)) {
+        // setup the post request
+        String endpointURL = JcrUtils.getMultiValueString(node
+            .getProperty(SAKAI_REQUEST_PROXY_ENDPOINT));
+        if ( isUnsafeProxyDefinition(node)) {
+          try {
+            URL u = new URL(endpointURL);
+            String host = u.getHost();
+            if ( host.indexOf('$') >= 0 ) {
+              throw new ProxyClientException("Invalid Endpoint template, relies on request to resolve valid URL "+u);
+            }
+          } catch ( MalformedURLException e) {
+            throw new ProxyClientException("Invalid Endpoint template, relies on request to resolve valid URL", e);
+          }
+        }
 
         VelocityContext context = new VelocityContext(input);
 
         // add in the config properties from the bundle overwriting everythign else.
         context.put("config", configProperties);
 
-        // setup the post request
-        String endpointURL = JcrUtils.getMultiValueString(node
-            .getProperty(SAKAI_REQUEST_PROXY_ENDPOINT));
-        Reader urlTemplateReader = new StringReader(endpointURL);
-        StringWriter urlWriter = new StringWriter();
-        velocityEngine.evaluate(context, urlWriter, "urlprocessing", urlTemplateReader);
-        endpointURL = urlWriter.toString();
+        endpointURL = processUrlTemplate(endpointURL, context);
 
         ProxyMethod proxyMethod = ProxyMethod.GET;
         if (node.hasProperty(SAKAI_REQUEST_PROXY_METHOD)) {
@@ -353,6 +384,8 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
         return new ProxyResponseImpl(result, method);
       }
 
+    } catch ( ProxyClientException e ) {
+      throw e;
     } catch (Exception e) {
       throw new ProxyClientException("The Proxy request specified by  " + node
           + " failed, cause follows:", e);
@@ -361,6 +394,22 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
     }
     throw new ProxyClientException("The Proxy request specified by " + node
         + " does not contain a valid endpoint specification ");
+  }
+
+  private boolean isUnsafeProxyDefinition(Node node) throws RepositoryException {
+    if (node.hasProperty(ProxyPostProcessor.SAKAI_POSTPROCESSOR)) {
+      String postProcessorName = node.getProperty(
+          ProxyPostProcessor.SAKAI_POSTPROCESSOR).getString();
+      return !safeOpenProcessors.contains(postProcessorName);
+    }
+    return true;
+  }
+
+  private String processUrlTemplate(String endpointURL, VelocityContext context) throws ParseErrorException, MethodInvocationException, ResourceNotFoundException, IOException {
+    Reader urlTemplateReader = new StringReader(endpointURL);
+    StringWriter urlWriter = new StringWriter();
+    velocityEngine.evaluate(context, urlWriter, "urlprocessing", urlTemplateReader);
+    return urlWriter.toString();
   }
 
   /**

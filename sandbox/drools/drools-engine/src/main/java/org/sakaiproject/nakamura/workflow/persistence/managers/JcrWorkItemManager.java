@@ -90,8 +90,7 @@ public class JcrWorkItemManager implements WorkItemManager {
         if (handler != null) {
           handler.abortWorkItem(workItem, this);
         } else {
-          System.err
-              .println("Could not find work item handler for " + workItem.getName());
+          LOGGER.info("Could not find work item handler for " + workItem.getName());
         }
         workItems.remove(id);
         workItemInfo.remove();

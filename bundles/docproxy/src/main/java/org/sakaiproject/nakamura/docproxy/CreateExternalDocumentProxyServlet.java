@@ -49,8 +49,8 @@ public class CreateExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       .getLogger(CreateExternalDocumentProxyServlet.class);
   protected ExternalRepositoryProcessorTracker tracker;
   private static final long serialVersionUID = -3606817798030170480L;
-  protected static final String PARAM_FILENAME = "filename";
-  protected static final String PARAM_FILEBODY = "filebody";
+  protected static final String PARAM_FILENAME = "Filename";
+  protected static final String PARAM_FILEBODY = "Filedata";
 
   /**
    * {@inheritDoc}
@@ -62,18 +62,28 @@ public class CreateExternalDocumentProxyServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     try {
+      String userId = request.getRemoteUser();
       // Anonymous users can't do anything.
-      if (request.getRemoteUser().equals("anon")) {
+      if (userId.equals("anonymous")) {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
             "Anonymous users can't post anything.");
         return;
       }
+      
 
       // Check required parameters.
-      RequestParameter filename = request.getRequestParameter(PARAM_FILENAME);
+      RequestParameter filenameParam = request.getRequestParameter(PARAM_FILENAME);
       RequestParameter filebody = request.getRequestParameter(PARAM_FILEBODY);
+      
+      String filename = "";
+      
+      if (filenameParam == null && filebody != null) {
+        filename = filebody.getFileName();
+      } else if (filenameParam != null) {
+        filename = filenameParam.toString();
+      }
 
-      if (filename == null || filebody == null || filebody.isFormField()) {
+      if (filebody == null || filebody.isFormField()) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST,
             "Not all required parameters were supplied.");
         return;
@@ -83,6 +93,7 @@ public class CreateExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       Node node = request.getResource().adaptTo(Node.class);
       String processorType = node.getProperty(DocProxyConstants.REPOSITORY_PROCESSOR)
           .getString();
+      LOGGER.info("Preparing to get document creation processor: " + processorType);
       ExternalRepositoryProcessor processor = tracker.getProcessorByType(processorType);
       if (processor == null) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown repository.");
@@ -95,11 +106,12 @@ public class CreateExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       // Get index of this
 
       String path;
-      if (filename.getString().equals("")) {
+      if (filename.equals("")) {
         path = filebody.getFileName();
       } else {
-        path = filename.getString() + "/" + filebody.getFileName();
+        path = filename;
       }
+      LOGGER.info("Invoking updateDocument on processor.");
       processor.updateDocument(node, path, null, stream, filebody.getSize());
       
       // FIXME: I should respond with something ?

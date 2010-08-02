@@ -108,7 +108,7 @@ public interface SiteService {
      */
     no(),
     /**
-     * Is joinable.
+     * The site is joinable with approval.
      */
     withauth();
   }
@@ -150,6 +150,11 @@ public interface SiteService {
      * The target group of the request.
      */
     public static final String GROUP = "group";
+    
+    /**
+     * One of the maintainers of the request group
+     */
+    public static final String OWNER = "owner";
 
     /**
      * @return a topic ID for sites, bound to the operation being performed.
@@ -201,7 +206,7 @@ public interface SiteService {
    * @return the joinable status of the authorizable
    */
   Joinable getJoinable(Authorizable authorizable);
-
+  
   /**
    * Is the group a member of the site, either directly or implied.
    *
@@ -233,7 +238,7 @@ public interface SiteService {
    * @throws SiteException
    *           thrown if there was a problem initiating the join workflow.
    */
-  void startJoinWorkflow(Node site, Group group) throws SiteException;
+  void startJoinWorkflow(Node site, Group group, Authorizable owner) throws SiteException;
 
   /**
    * @param site

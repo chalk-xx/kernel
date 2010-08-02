@@ -256,4 +256,41 @@ public class StringUtils {
     return new String(ca, 0, i);
   }
 
+  /**
+   * Generate an encoded array of chars using as few chars as possible
+   * 
+   * @param hash
+   *          the hash to encode
+   * @param encode
+   *          a char array of encodings any length you lik but probably but the shorter it
+   *          is the longer the result. Dont be dumb and use an encoding size of < 2.
+   * @return
+   */
+  public static String encode(byte[] hash, char[] encode) {
+    StringBuilder sb = new StringBuilder((hash.length*15)/10);
+    int x = (int) (hash[0] + 128);
+    int xt = 0;
+    int i = 0;
+    while (i < hash.length) {
+      if (x < encode.length) {
+        i++;
+        if (i < hash.length) {
+          if (x == 0) {
+            x = (int) (hash[i] + 128);
+          } else {
+            x = (x + 1) * (int) (hash[i] + 128);
+          }
+        } else {
+          sb.append(encode[x]);
+          break;
+        }
+      }
+      xt = x % encode.length;
+      x = x / encode.length;
+      sb.append(encode[xt]);
+    }
+
+    return sb.toString();
+  }
+
 }

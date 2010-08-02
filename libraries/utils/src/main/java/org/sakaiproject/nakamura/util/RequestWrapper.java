@@ -4,7 +4,6 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
-import org.sakaiproject.nakamura.util.RequestInfo;
 import org.sakaiproject.nakamura.util.parameters.ParameterMap;
 
 import java.io.UnsupportedEncodingException;
@@ -17,25 +16,23 @@ public class RequestWrapper extends SlingHttpServletRequestWrapper {
   private RequestInfo requestInfo;
   private ParameterMap postParameterMap;
 
-  public RequestWrapper(SlingHttpServletRequest request) {
+  public RequestWrapper(SlingHttpServletRequest request, RequestInfo requestInfo) {
     super(request);
-  }
-
-  public void setRequestInfo(RequestInfo requestInfo) {
     this.requestInfo = requestInfo;
+
   }
 
   private Hashtable<String, String[]> getParameters() {
     return requestInfo.getParameters();
   }
 
-  // 
+  //
   // Sling Request parameters
   //
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper#getRequestParameter(java.lang.String)
    */
   @Override
@@ -45,7 +42,7 @@ public class RequestWrapper extends SlingHttpServletRequestWrapper {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper#getRequestParameterMap()
    */
   @Override
@@ -55,7 +52,7 @@ public class RequestWrapper extends SlingHttpServletRequestWrapper {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper#getRequestParameters(java.lang.String)
    */
   @Override

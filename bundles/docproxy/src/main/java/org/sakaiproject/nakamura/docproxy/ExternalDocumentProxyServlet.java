@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.docproxy;
 
-import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_REF;
-
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -74,12 +72,16 @@ public class ExternalDocumentProxyServlet extends SlingSafeMethodsServlet {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node node = JcrUtils.getFirstExistingNode(session, url);
 
+/*
+      --- this block removed because it yields an unusable path - zathomas
+
       if (DocProxyUtils.isExternalRepositoryDocument(node)) {
         // This document should reference the config node.
         String uuid = node.getProperty(REPOSITORY_REF).getString();
         node = session.getNodeByIdentifier(uuid);
       }
 
+*/
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
         response.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested resource does not exist here: " + url);
@@ -100,7 +102,7 @@ public class ExternalDocumentProxyServlet extends SlingSafeMethodsServlet {
       try {
         // Get actual content.
         ExternalDocumentResult result = processor.getDocument(node, path);
-        InputStream in = result.getDocumentInputStream(0);
+        InputStream in = result.getDocumentInputStream(0, session.getUserID());
 
         // FIXME: what about content type and encoding ?
         

@@ -127,6 +127,11 @@
     	<version>0.7-SNAPSHOT</version>
     </dependency>
     <dependency>
+    	<groupId>org.sakaiproject.nakamura</groupId>
+    	<artifactId>org.sakaiproject.nakamura.site</artifactId>
+    	<version>0.7-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
       <version>0.7-SNAPSHOT</version>

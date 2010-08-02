@@ -262,7 +262,8 @@ public class LdapPersonProviderTest {
     // get the attributes and an iterator to them
     LDAPAttributeSet attrSet = mock(LDAPAttributeSet.class);
     when(entry.getAttributeSet()).thenReturn(attrSet);
-    Iterator attrIter = mock(Iterator.class);
+    @SuppressWarnings("unchecked")
+    Iterator<LDAPAttribute> attrIter = mock(Iterator.class);
     when(attrSet.iterator()).thenReturn(attrIter);
 
     when(attrIter.hasNext()).thenReturn(true).thenReturn(true).thenReturn(false);

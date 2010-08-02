@@ -23,29 +23,47 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 
+import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
+import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
+import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapUtil;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
+import javax.jcr.ValueFactory;
 
 /**
  * Authentication plugin for verifying a user against an LDAP instance.
  */
-@Component(metatype = true, immediate = true)
+@Component(metatype = true)
 @Service(value = LdapAuthenticationPlugin.class)
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
@@ -69,14 +87,33 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   static final String AUTHZ_FILTER = "sakai.auth.ldap.filter.authz";
   private String authzFilter;
 
+  public static final boolean CREATE_ACCOUNT_DEFAULT = true;
+  @Property(boolValue = CREATE_ACCOUNT_DEFAULT)
+  static final String CREATE_ACCOUNT = "sakai.auth.ldap.account.create";
+  private boolean createAccount;
+
+  @Property(cardinality = 2147483647)
+  static final String USER_PROPS = "sakai.auth.ldap.user.props";
+  private HashMap<String, String> attrsProps;
+
   @Reference
   private LdapConnectionManager connMgr;
+
+  @Reference
+  private AuthorizablePostProcessService authzPostProcessService;
+
+  @Reference
+  private SlingRepository slingRepository;
 
   public LdapAuthenticationPlugin() {
   }
 
-  LdapAuthenticationPlugin(LdapConnectionManager connMgr) {
+  LdapAuthenticationPlugin(LdapConnectionManager connMgr,
+      AuthorizablePostProcessService authzPostProcessService,
+      SlingRepository slingRepository) {
     this.connMgr = connMgr;
+    this.authzPostProcessService = authzPostProcessService;
+    this.slingRepository = slingRepository;
   }
 
   @Activate
@@ -93,8 +130,72 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), "");
     userFilter = OsgiUtil.toString(props.get(USER_FILTER), "");
     authzFilter = OsgiUtil.toString(props.get(AUTHZ_FILTER), "");
+    createAccount = OsgiUtil.toBoolean(props.get(CREATE_ACCOUNT), CREATE_ACCOUNT_DEFAULT);
+
+    parseUserProps(props);
   }
 
+  protected boolean canDecorateUser() {
+    return attrsProps != null;
+  }
+
+  private void parseUserProps(Map<?, ?> props) {
+    // check for the existence of USER_PROPS
+    if (props.containsKey(USER_PROPS)) {
+      Object oProps = props.get(USER_PROPS);
+      if (oProps == null) {
+        attrsProps = null;
+      }
+      // check the String to be JSON
+      else if (oProps instanceof String && ((String) oProps).length() > 0
+          && ((String) oProps).charAt(0) == '{') {
+        try {
+          String strProps = (String) oProps;
+          JSONObject jsonObj = new JSONObject(strProps);
+          Iterator<String> keysIter = jsonObj.keys();
+          attrsProps = new HashMap<String, String>();
+          while (keysIter.hasNext()) {
+            String key = keysIter.next();
+            attrsProps.put(key, jsonObj.getString(key));
+          }
+        } catch (JSONException e) {
+          log.error(e.getMessage(), e);
+          attrsProps = null;
+        }
+      }
+      // String[] should processed as "key":"value" pairs per index.
+      else if (oProps instanceof String[]) {
+        String[] userProps = (String[]) oProps;
+
+        if (userProps.length > 0 && !(userProps.length == 1 && userProps[0] == null)) {
+          attrsProps = new HashMap<String, String>();
+          for (int i = 0; i < userProps.length; i++) {
+            String[] ldapJcr = StringUtils.split(userProps[i], "\":\"");
+            attrsProps.put(ldapJcr[0], ldapJcr[1]);
+          }
+        }
+      }
+    }
+    // process entries as sakai.auth.ldap.user.props.ldapAttrName = jcrPropName
+    else {
+      attrsProps = new HashMap<String, String>();
+
+      for (Entry<?, ?> entry : props.entrySet()) {
+        String key = OsgiUtil.toString(entry.getKey(), "");
+        String value = OsgiUtil.toString(entry.getValue(), "");
+        if (key.length() > 0 && value.length() > 0 && key.startsWith(USER_PROPS)) {
+          String ldapAttrName = key.substring(USER_PROPS.length());
+          attrsProps.put(ldapAttrName, value);
+        }
+      }
+    }
+
+    if (attrsProps != null && attrsProps.size() == 0) {
+      attrsProps = null;
+    }
+  }
+
+  // ---------- AuthenticationPlugin ----------
   public boolean authenticate(Credentials credentials) throws RepositoryException {
     boolean auth = false;
     if (credentials instanceof SimpleCredentials) {
@@ -104,13 +205,9 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
       // get user credentials
       SimpleCredentials sc = (SimpleCredentials) credentials;
-      
-      if ("admin".equals(sc.getUserID())) {
-    	  return false;
-      }
-      
+
       long timeStart = System.currentTimeMillis();
-      
+
       String userDn = LdapUtil.escapeLDAPSearchFilter(userFilter.replace("{}",
           sc.getUserID()));
       String userPass = new String(sc.getPassword());
@@ -194,7 +291,16 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
         // FINALLY!
         auth = true;
-        log.info("User [{}] authenticated with LDAP in {}ms", userDn, System.currentTimeMillis() - timeStart);
+        log.info("User [{}] authenticated with LDAP in {}ms", userDn,
+            System.currentTimeMillis() - timeStart);
+
+        // provision & decorate the user
+        Session session = slingRepository.loginAdministrative(null);
+        Authorizable authorizable = getJcrUser(session, sc.getUserID());
+
+        if (authorizable != null && attrsProps != null) {
+          decorateUser(session, authorizable, conn);
+        }
       } catch (Exception e) {
         log.warn(e.getMessage(), e);
       } finally {
@@ -202,5 +308,59 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
       }
     }
     return auth;
+  }
+
+  private Authorizable getJcrUser(Session session, String userId) throws Exception {
+    UserManager um = AccessControlUtil.getUserManager(session);
+    Authorizable auth = um.getAuthorizable(userId);
+
+    if (auth == null && createAccount) {
+      String password = RandomStringUtils.random(8);
+      auth = um.createUser(userId, password);
+
+      ValueFactory vf = session.getValueFactory();
+      auth.setProperty(
+          "path",
+          vf.createValue(((ItemBasedPrincipal) auth.getPrincipal()).getPath().substring(
+              UserConstants.USER_REPO_LOCATION.length())));
+
+      String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
+          + auth.getID();
+      authzPostProcessService.process(auth, session, Modification.onCreated(userPath));
+    }
+    return auth;
+  }
+
+  /**
+   * Decorate the user with extra information.
+   *
+   * @param session
+   * @param user
+   */
+  private void decorateUser(Session session, Authorizable user, LDAPConnection conn)
+      throws RepositoryException, LDAPException {
+    // fix up the user dn to search
+    String userDn = LdapUtil
+        .escapeLDAPSearchFilter(userFilter.replace("{}", user.getID()));
+
+    // get a connection to LDAP
+    String[] ldapAttrNames = attrsProps.keySet().toArray(new String[attrsProps.size()]);
+    LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userDn,
+        ldapAttrNames, false);
+    if (results.hasMore()) {
+      LDAPEntry entry = results.next();
+      ValueFactory vf = session.getValueFactory();
+
+      for (String ldapAttrName : ldapAttrNames) {
+        String jcrPropName = attrsProps.get(ldapAttrName);
+
+        LDAPAttribute attr = entry.getAttribute(ldapAttrName);
+        if (attr != null) {
+          user.setProperty(jcrPropName, vf.createValue(attr.getStringValue()));
+        }
+      }
+    } else {
+      log.warn("Can't find user [" + userDn + "]");
+    }
   }
 }

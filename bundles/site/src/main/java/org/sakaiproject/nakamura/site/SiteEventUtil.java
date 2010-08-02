@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.site;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
@@ -44,12 +45,15 @@ public class SiteEventUtil {
    * @return A new event ready for posting.
    * @throws RepositoryException
    */
-  public static Event newSiteEvent(SiteEvent event, Node site, Group targetGroup)
+  public static Event newSiteEvent(SiteEvent event, Node site, Group targetGroup, Authorizable owner)
       throws RepositoryException {
     Dictionary<String, Object> dictionary = new Hashtable<String, Object>();
     dictionary.put(SiteEvent.SITE, site.getPath());
     dictionary.put(SiteEvent.USER, site.getSession().getUserID());
-    dictionary.put(SiteEvent.GROUP, targetGroup);
+    dictionary.put(SiteEvent.GROUP, targetGroup.getID());
+    if (owner != null) {
+      dictionary.put(SiteEvent.OWNER, owner.getID());
+    }
     return new Event(event.getTopic(), dictionary);
   }
 

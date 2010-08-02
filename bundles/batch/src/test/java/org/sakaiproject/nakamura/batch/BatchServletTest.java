@@ -24,6 +24,8 @@ import static org.sakaiproject.nakamura.batch.BatchServlet.REQUESTS_PARAMETER;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,7 +71,11 @@ public class BatchServletTest {
     PrintWriter writer = new PrintWriter(baos);
 
     RequestDispatcher dispatcher = mock(RequestDispatcher.class);
-    when(request.getRequestDispatcher("/foo/bar")).thenReturn(dispatcher);
+    ResourceResolver resourceResolver = mock(ResourceResolver.class);
+    Resource resource = mock(Resource.class);
+    when(request.getResourceResolver()).thenReturn(resourceResolver);
+    when(resourceResolver.resolve(request, "/foo/bar")).thenReturn(resource);
+    when(request.getRequestDispatcher(resource)).thenReturn(dispatcher);
     when(response.getWriter()).thenReturn(writer);
     servlet.doPost(request, response);
   }

@@ -24,7 +24,7 @@
   <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
   <packaging>bundle</packaging>
   <version>0.7-SNAPSHOT</version>
-  <name>Sakai Nakamura ::: Cluster Tracking</name>
+  <name>Sakai Nakamura :: Sakai Cluster Tracking</name>
   <description>Cluster Tracking support for app servers and users.</description>
   <build>
     <plugins>

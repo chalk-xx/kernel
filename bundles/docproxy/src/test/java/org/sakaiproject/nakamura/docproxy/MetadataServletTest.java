@@ -153,7 +153,7 @@ public class MetadataServletTest extends AbstractDocProxyServlet {
     expect(request.getRequestURI()).andReturn("/docproxy/disk/README.metadata.json");
     expect(request.getResourceResolver()).andReturn(resolver);
 
-    expect(request.getRemoteUser()).andReturn("anon");
+    expect(request.getRemoteUser()).andReturn("anonymous");
     response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
         "Anonymous users can't post anything.");
 

@@ -50,7 +50,7 @@ public class DiskDocumentResult implements ExternalDocumentResult {
    * 
    * @see org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult#getDocumentInputStream(long)
    */
-  public InputStream getDocumentInputStream(long startingAt) throws DocProxyException {
+  public InputStream getDocumentInputStream(long startingAt, String userId) throws DocProxyException {
     try {
       FileInputStream in = new FileInputStream(file);
       in.skip(startingAt);

@@ -72,7 +72,6 @@
         <module>bundles/specs/jms</module>
         <module>bundles/specs/jmx</module>
         <module>bundles/specs/ejb</module>
-        <module>libraries/utils</module>
         <module>bundles/activemq</module>
         <module>bundles/activity</module>
         <module>bundles/cluster</module>
@@ -102,7 +101,9 @@
         <module>contrib/casauth</module>
         <module>contrib/ldapauth</module>
         <module>contrib/ldap</module>
-        <module>contrib/urldocproxy</module>
+        <module>contrib/remotefiles</module>
+        <!-- to build oracle you must download and install oracle.jar first  <module>contrib/oracle-jdbc</module> -->
+        <module>contrib/sitejoin</module>
        </modules>
     </profile>
     <profile>
@@ -113,8 +114,7 @@
         <module>sandbox/sessiontest</module>
         <module>sandbox/sitetemplates</module>
         <module>sandbox/imap</module>
-        <module>sandbox/drools/drools-repository</module>
-        <module>sandbox/drools/drools-engine</module>
+        <module>sandbox/drools</module>
        </modules>
     </profile>
     <profile>
@@ -245,6 +245,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.5.10</slf4j.version>
+    <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
   </properties>
   <build>
     <defaultGoal>install</defaultGoal>
@@ -276,13 +277,6 @@
             <version>1.2</version>
           </dependency>
         </dependencies>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -516,7 +510,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.3</version>
+          <version>2.5</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -670,7 +664,7 @@
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-      <url>https://source.sakaiproject.org/maven2/</url>
+      <url>http://source.sakaiproject.org/maven2/</url>
     </repository>
     <repository> 
       <id>sakai-snapshots</id> 
@@ -706,7 +700,7 @@
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-      <url>https://source.sakaiproject.org/maven2/</url>
+      <url>http://source.sakaiproject.org/maven2/</url>
     </pluginRepository>
   </pluginRepositories>
 <!-- ====================================================================== -->

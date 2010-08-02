@@ -15,7 +15,7 @@ class TC_RSSTest < Test::Unit::TestCase
     @log.info("Getting BBCNews")
     res = @s.execute_get(@s.url_for("var/proxy/rss.json"), {"rss" => "http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss.xml"})
     @log.info("Done Getting BBCNews")
-    assert_equal(200, res.code.to_i, "This is a valid XML file, this should return 200.")
+    assert_equal(200, res.code.to_i, "This is a valid XML file, this should return 200."+res.body)
   end
 
   def test_regular_file
@@ -23,7 +23,7 @@ class TC_RSSTest < Test::Unit::TestCase
     @log.info("Getting Google.com")
     res = @s.execute_get(@s.url_for("var/proxy/rss.json"), {"rss" => "http://www.google.com"})
     @log.info("Done Getting Google.com")
-    assert_equal(403, res.code.to_i, "This is not an XML file. Service should return 403.")
+    assert_equal(403, res.code.to_i, "This is not an XML file. Service should return 403."+res.body)
   end
 
   def test_invalid_xml_file
@@ -31,7 +31,7 @@ class TC_RSSTest < Test::Unit::TestCase
     @log.info("Getting W3Schools.com")
     res = @s.execute_get(@s.url_for("var/proxy/rss.json"), {"rss" => "http://www.w3schools.com/xml/note.xml"})
     @log.info("Done Getting W3Schools.com")
-    assert_equal(403, res.code.to_i, "This is a plain XML (non-RSS) file. Service should return 403.")
+    assert_equal(403, res.code.to_i, "This is a plain XML (non-RSS) file. Service should return 403."+res.body)
   end
 
 
@@ -40,7 +40,7 @@ class TC_RSSTest < Test::Unit::TestCase
     @log.info("Getting Huge file")
     res = @s.execute_get(@s.url_for("var/proxy/rss.json"), {"rss" => "http://ftp.belnet.be/packages/apache/sling/org.apache.sling.launchpad.app-5-incubator-bin.tar.gz"})
     @log.info("Done Getting Huge file")
-    assert_equal(403, res.code.to_i, "This file is way to big. Service should return 403")
+    assert_equal(403, res.code.to_i, "This file is way to big. Service should return 403"+res.body)
   end
 
 

@@ -13,9 +13,9 @@ class TC_PrivateNodeCreateTest < Test::Unit::TestCase
     @log.info("test_create_private_node---------------------------------------------------START")
     m = Time.now.to_i.to_s
     testpath = "/private/testnode"
-    user1 = "user1-"+m
+    user1 = "user1ps-"+m
     u1 = create_user(user1)
-    user2 = "user2-"+m
+    user2 = "user2ps-"+m
     u2 = create_user(user2)
     @s.switch_user(u1)
     u1home = u1.home_path_for(@s)

@@ -112,8 +112,13 @@ public class LinkOperation extends AbstractSlingPostOperation {
     String link = request.getParameter(LINK_PARAM);
     String site = request.getParameter(SITE_PARAM);
     Resource resource = request.getResource();
+    if ( resource == null ) {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
+      "A link operation must be performed on an actual resource");
+      return;      
+    }
     Node node = resource.adaptTo(Node.class);
-    if (node == null || resource == null || ResourceUtil.isNonExistingResource(resource)) {
+    if (node == null || ResourceUtil.isNonExistingResource(resource)) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
           "A link operation must be performed on an actual resource");
       return;
@@ -128,12 +133,12 @@ public class LinkOperation extends AbstractSlingPostOperation {
       try {
         Session session = request.getResourceResolver().adaptTo(Session.class);
         Node siteNode = (Node) session.getNodeByIdentifier(site);
-        site = siteNode.getPath();
         if (siteNode == null || !siteService.isSite(siteNode)) {
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
               "The site parameter doesn't point to a valid site.");
           return;
         }
+        site = siteNode.getPath();
       } catch (RepositoryException e) {
         // We assume it went wrong because of a bad parameter.
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST,

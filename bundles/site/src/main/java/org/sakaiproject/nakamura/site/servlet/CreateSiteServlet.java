@@ -316,8 +316,8 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
     Node firstRealNode = null;
     for (String firstRealNodePath = sitePath;
-      (firstRealNode == null) && (firstRealNodePath != null);
-      firstRealNodePath = PathUtils.getParentReference(firstRealNodePath)) {
+        (firstRealNode == null) && (!"/".equals(firstRealNodePath));
+        firstRealNodePath = PathUtils.getParentReference(firstRealNodePath)) {
       if (adminSession.itemExists(firstRealNodePath)) {
         firstRealNode = (Node)adminSession.getItem(firstRealNodePath);
       }
@@ -518,7 +518,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
             + PARAM_SITE_PATH + " must be set to a relative path ");
         return null;
       }
-      if (sitePath.startsWith("/")) {
+      if (relativePath.startsWith("/")) {
         sitePath = sitePath + relativePath;
       } else {
         sitePath = sitePath + "/" + relativePath;
@@ -563,5 +563,33 @@ public class CreateSiteServlet extends AbstractSiteServlet {
    */
   protected void unbindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = null;
+  }
+
+  /**
+   * @param eventAdmin
+   */
+  protected void bindEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = eventAdmin;
+  }
+
+  /**
+   * @param eventAdmin
+   */
+  protected void unbindEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = null;
+  }
+
+  /**
+   * @param versionService
+   */
+  protected void bindVersionService(VersionService versionService) {
+    this.versionService = versionService;
+  }
+
+  /**
+   * @param slingRepository
+   */
+  protected void unbindVersionService(VersionService versionService) {
+    this.versionService = null;
   }
 }

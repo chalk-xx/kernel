@@ -29,6 +29,26 @@ public interface RuleConstants {
   /**
    * The name of the property on the rule node that defines the processor name.
    */
-  public static final String SAKAI_RULE_EXECUTION_PREPROCESSOR = "sakai:rule-execution-preprocessor";
+  public static final String PROP_SAKAI_RULE_EXECUTION_PREPROCESSOR = "sakai:rule-execution-preprocessor";
+
+  /**
+   * the property name that if present will enable debugging on the rule when its executed. Debug messages appear in the log.
+   */
+  public static final String PROP_SAKAI_RULE_DEBUG = "sakai:rule-debug-enable";
+
+  /**
+   * The name of the property holding the name of the class that can load a package from the classpath, must implement RulePackageLoader interface.
+   */
+  public static final String PROP_SAKAI_BUNDLE_LOADER_CLASS = "sakai:bundle-resource-class";
+
+  /**
+   * Sling Resource Type for a rule set.
+   */
+  public static final String SAKAI_RULE_SET = "sakai/rule-set";
+
+  /**
+   * The name of a rule set, used to find rule sets by name.
+   */
+  public static final String PROP_SAKAI_RULE_SET_NAME = "sakai:rule-set-name";
 
 }

@@ -89,7 +89,7 @@ public class DiskProcessorTest {
         locationProp);
     replay(locationProp, proxyNode);
     ExternalDocumentResult result = diskProcessor.getDocument(proxyNode, "README");
-    InputStream in = result.getDocumentInputStream(0);
+    InputStream in = result.getDocumentInputStream(0, "zach");
     String content = IOUtils.readFully(in, "UTF-8");
     Assert.assertEquals(TEST_STRING, content);
 
@@ -109,7 +109,7 @@ public class DiskProcessorTest {
 
     // Get the file
     ExternalDocumentResult result = diskProcessor.getDocument(newNode, path);
-    InputStream in = result.getDocumentInputStream(0);
+    InputStream in = result.getDocumentInputStream(0, "zach");
 
     // Read content
     String content = IOUtils.readFully(in, "UTF-8");
