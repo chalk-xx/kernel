@@ -15,23 +15,24 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.doc;
+package org.sakaiproject.nakamura.api.aggregate;
+
+import org.apache.sling.api.resource.Resource;
+
+import java.util.Map;
 
 /**
- * The type of binding used by the servlet.
+ * Implementations of this interface manage the aggregation of modifications to resources
+ * onto a set of target resources.
  */
-public enum BindingType {
-  /**
-   * A path binding, binds a Servlet to a fixed path.
-   */
-  PATH,
-  /**
-   * A type binding bind the Servlet to a resource type.
-   */
-  TYPE,
-  /**
-   * An operation binding, bind the Operation to a specified operation string.
-   */
-  OPERATION;
+public interface ResourceAggregator {
 
+  /**
+   * Aggregate the resource onto the target resoruces informed by the set of properties in the aggregate Properties.
+   * @param resource the resource identified by the event
+   * @param targetResource a resource to which aggregation should be applied.
+   * @param agregateProperties a map of properties derived from the event that triggered the aggregation operation.
+   */
+  public void aggregate(Resource resource, Resource targetResource, Map<String, Object> agregateProperties );
+  
 }

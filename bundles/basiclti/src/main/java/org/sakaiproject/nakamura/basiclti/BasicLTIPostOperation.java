@@ -57,8 +57,8 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemExistsException;
@@ -86,7 +86,7 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
    */
   @Reference
   private transient SlingRepository slingRepository;
-  
+
   @Reference
   protected transient EventAdmin eventAdmin;
 
@@ -106,8 +106,8 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
       node = JcrUtils.deepGetOrCreateNode(session, path);
     }
     try {
-      final Map<String, String> sensitiveData = new HashMap<String, String>(sensitiveKeys
-          .size());
+      final Map<String, String> sensitiveData = new HashMap<String, String>(
+          sensitiveKeys.size());
       // loop through request parameters
       final RequestParameterMap requestParameterMap = request.getRequestParameterMap();
       for (final Entry<String, RequestParameter[]> entry : requestParameterMap.entrySet()) {
@@ -152,7 +152,7 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
         session.save();
       }
       createSensitiveNode(node, session, sensitiveData);
-      
+
       // Send an OSGi event.
       Dictionary<String, String> properties = new Hashtable<String, String>();
       properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
@@ -177,7 +177,8 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
       throw new IllegalArgumentException("userSession == null");
     }
     if (sensitiveData == null || sensitiveData.isEmpty()) {
-      throw new IllegalArgumentException("sensitiveData is null or empty");
+      // do nothing - virtual tool use case
+      return;
     }
     final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
     // now let's elevate Privileges and do some admin modifications
@@ -205,10 +206,13 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
         final AccessControlManager acm = AccessControlUtil
             .getAccessControlManager(userSession);
         Privilege[] userPrivs = acm.getPrivileges(adminNodePath);
-        Set<Privilege> invalidUserPrivileges = getInvalidUserPrivileges(acm);
-        for (Privilege privilege : userPrivs) {
-          if (invalidUserPrivileges.contains(privilege)) {
-            invalidPrivileges = true;
+        if (userPrivs != null && userPrivs.length > 0) {
+          Set<Privilege> invalidUserPrivileges = getInvalidUserPrivileges(acm);
+          for (Privilege privilege : userPrivs) {
+            if (invalidUserPrivileges.contains(privilege)) {
+              invalidPrivileges = true;
+              break;
+            }
           }
         }
       } catch (PathNotFoundException e) { // This is to be expected

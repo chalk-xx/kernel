@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.References;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.servlets.post.SlingPostOperation;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 
@@ -38,11 +39,17 @@ import javax.servlet.Servlet;
  */
 @Component(immediate=true)
 @Service(value=ServletDocumentationRegistry.class)
-@References( { @Reference(name = "servlet", referenceInterface=Servlet.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC) })
+@References(
+    value = { 
+        @Reference(name = "servlet", referenceInterface=Servlet.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
+        @Reference(name = "operation", referenceInterface=SlingPostOperation.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+    }
+  )
 public class ServletDocumentationRegistryImpl implements ServletDocumentationRegistry {
 
   private ComponentContext context;
   private List<ServiceReference> pendingServlets = new ArrayList<ServiceReference>();
+  private List<ServiceReference> pendingOperations = new ArrayList<ServiceReference>();
   /**
    * A map of servlet Documetnation objects.
    */
@@ -109,6 +116,57 @@ public class ServletDocumentationRegistryImpl implements ServletDocumentationReg
       servletDocumentation.put(key, doc);
     }
   }
+  
+  /*
+   * Operations
+   */
+  
+  protected void bindOperation(ServiceReference reference) {
+    synchronized (pendingOperations) {
+      if (context == null) {
+        pendingOperations.add(reference);
+      } else {
+        addOperation(reference);
+      }
+    }
+  }
+
+  protected void unbindOperation(ServiceReference reference) {
+    synchronized (pendingOperations) {
+      pendingOperations.remove(reference);
+      if (context != null) {
+        removeOperation(reference);
+      }
+    }
+  }
+
+  
+  
+  /**
+   * @param reference
+   */
+  protected void addOperation(ServiceReference reference) {
+    SlingPostOperation operation = (SlingPostOperation) context.getBundleContext().getService(reference);
+    ServletDocumentation doc = new ServletDocumentation(reference, operation);
+    String key = doc.getKey();
+    if (key != null) {
+      servletDocumentation.put(key, doc);
+    }
+  }
+  
+  /**
+   * @param reference
+   */
+  protected void removeOperation(ServiceReference reference) {
+    SlingPostOperation operation = (SlingPostOperation) context.getBundleContext().getService(reference);
+    ServletDocumentation doc = new ServletDocumentation(reference, operation);
+    String key = doc.getKey();
+    if (key != null) {
+      servletDocumentation.remove(key);
+    }
+  }
+  
+  
   
   /**
    * @return the map of servlet documents, this map is the internal map and should not be

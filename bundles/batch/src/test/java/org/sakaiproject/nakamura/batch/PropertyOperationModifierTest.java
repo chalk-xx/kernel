@@ -44,7 +44,7 @@ import javax.jcr.Session;
 /**
  *
  */
-public class AbstractPropertyOperationModifierTest {
+public class PropertyOperationModifierTest {
 
   @Test
   public void testAdd() throws PathNotFoundException, RepositoryException {

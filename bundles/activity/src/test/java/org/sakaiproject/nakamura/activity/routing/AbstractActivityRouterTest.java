@@ -36,7 +36,7 @@ import javax.jcr.Value;
 /**
  *
  */
-public class AbstractActivityRouterTest extends AbstractEasyMockTest {
+public abstract class AbstractActivityRouterTest extends AbstractEasyMockTest {
 
   protected Node activity;
   protected String user = "jack";

@@ -48,11 +48,7 @@ import org.slf4j.LoggerFactory;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -62,11 +58,6 @@ import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.security.AccessControlEntry;
-import javax.jcr.security.AccessControlList;
-import javax.jcr.security.AccessControlManager;
-import javax.jcr.security.AccessControlPolicy;
-import javax.jcr.security.Privilege;
 import javax.jcr.version.VersionException;
 
 /**
@@ -161,8 +152,8 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     }
     // copy the non blacklist set of properties into the users profile.
     if (athorizable != null) {
-      // explicitly add protected properties form the authorizable
-      if (!profileNode.hasProperty("rep:userId")) {
+      // explicitly add protected properties form the user authorizable
+      if (!athorizable.isGroup() && !profileNode.hasProperty("rep:userId")) {
         profileNode.setProperty("rep:userId", athorizable.getID());
       }
       Iterator<?> inames = athorizable.getPropertyNames();
@@ -252,78 +243,6 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     // Update the values on the profile node.
     updateProperties(session, profileNode, authorizable, change);
     return homeNode;
-  }
-
-  /**
-   * @param session
-   * @param homeFolderPath
-   * @throws RepositoryException
-   */
-  private void dumpAccessControlList(Session session, String resourcePath)
-      throws RepositoryException {
-    AccessControlEntry[] declaredAccessControlEntries = getDeclaredAccessControlEntries(
-        session, resourcePath);
-    Map<String, Map<String, Set<String>>> aclMap = new LinkedHashMap<String, Map<String, Set<String>>>();
-    for (AccessControlEntry ace : declaredAccessControlEntries) {
-      Principal principal = ace.getPrincipal();
-      Map<String, Set<String>> map = aclMap.get(principal.getName());
-      if (map == null) {
-        map = new LinkedHashMap<String, Set<String>>();
-        aclMap.put(principal.getName(), map);
-      }
-
-      boolean allow = AccessControlUtil.isAllow(ace);
-      if (allow) {
-        Set<String> grantedSet = map.get("granted");
-        if (grantedSet == null) {
-          grantedSet = new LinkedHashSet<String>();
-          map.put("granted", grantedSet);
-        }
-        Privilege[] privileges = ace.getPrivileges();
-        for (Privilege privilege : privileges) {
-          grantedSet.add(privilege.getName());
-        }
-      } else {
-        Set<String> deniedSet = map.get("denied");
-        if (deniedSet == null) {
-          deniedSet = new LinkedHashSet<String>();
-          map.put("denied", deniedSet);
-        }
-        Privilege[] privileges = ace.getPrivileges();
-        for (Privilege privilege : privileges) {
-          deniedSet.add(privilege.getName());
-        }
-      }
-    }
-
-    StringBuilder sb = new StringBuilder();
-    for (Entry<String, Map<String, Set<String>>> acl : aclMap.entrySet()) {
-      sb.append("Principal ").append(acl.getKey()).append("\n");
-      for (Entry<String, Set<String>> ace : acl.getValue().entrySet()) {
-        sb.append("\t").append(ace.getKey());
-        for (String perm : ace.getValue()) {
-          sb.append("[").append(perm).append("]");
-        }
-        sb.append("\n");
-      }
-    }
-
-    LOGGER.info("Permissions at {} are \n {} ", resourcePath, sb.toString());
-  }
-
-  private AccessControlEntry[] getDeclaredAccessControlEntries(Session session,
-      String absPath) throws RepositoryException {
-    AccessControlManager accessControlManager = AccessControlUtil
-        .getAccessControlManager(session);
-    AccessControlPolicy[] policies = accessControlManager.getPolicies(absPath);
-    for (AccessControlPolicy accessControlPolicy : policies) {
-      if (accessControlPolicy instanceof AccessControlList) {
-        AccessControlEntry[] accessControlEntries = ((AccessControlList) accessControlPolicy)
-            .getAccessControlEntries();
-        return accessControlEntries;
-      }
-    }
-    return new AccessControlEntry[0];
   }
 
   /**

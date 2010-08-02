@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.files.servlets;
 
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
-
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.TOPIC_FILES_TAG;
 
@@ -35,13 +34,22 @@ import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostOperation;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.files.pool.CreateContentPoolServlet;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
@@ -53,6 +61,13 @@ import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.servlet.http.HttpServletResponse;
 
+@ServiceDocumentation(name = "TagOperation", shortDescription = "Tag a node", description = { "Add a tag to a node." }, methods = { @ServiceMethod(name = "POST", description = { "This operation should be performed on the node you wish to tag. Tagging on any item will be performed by adding a weak reference to the content item. Put simply a sakai:tag-uuid property with the UUID of the tag node. We use the UUID to uniquely identify the tag in question, a string of the tag name is not sufficient. This allows the tag to be renamed and moved without breaking the relationship. Additionally for convenience purposes we may put the name of the tag at the time of tagging in sakai:tag although this will not be actively maintained. " }, parameters = {
+    @ServiceParameter(name = ":operation", description = "The value HAS TO BE <i>tag</i>."),
+    @ServiceParameter(name = "uuid", description = "The uuid of the tag you wish to add to this node.") }, response = {
+    @ServiceResponse(code = 201, description = "The tag was added to the node."),
+    @ServiceResponse(code = 400, description = "The request did not have sufficient information to perform the tagging, probably a missing parameter or the uuid does not point to an existing tag."),
+    @ServiceResponse(code = 403, description = "Anonymous users can't tag anything, other people can tag <i>every</i> node in the repository where they have READ on."),
+    @ServiceResponse(code = 500, description = "Something went wrong, the error is in the HTML.") }) }, bindings = { @ServiceBinding(type = BindingType.OPERATION, bindings = { "tag" }) })
 @Component(immediate = true)
 @Service(value = SlingPostOperation.class)
 @Properties(value = {
@@ -101,15 +116,17 @@ public class TagOperation extends AbstractSlingPostOperation {
 
     // Check if the uuid is in the request.
     RequestParameter uuidParam = request.getRequestParameter("uuid");
-    if (uuidParam == null) {
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Missing uuid parameter");
+    RequestParameter pathParam = request.getRequestParameter("path");
+    RequestParameter poolIdParam = request.getRequestParameter("poolId");
+    if (uuidParam == null && pathParam == null && poolIdParam == null) {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
+          "Missing parameter: need uuid, path or poolId");
       return;
     }
 
     // Grab the tagNode.
-    String uuid = uuidParam.getString();
     try {
-      tagNode = session.getNodeByIdentifier(uuid);
+      tagNode = getTagNode(session, uuidParam, pathParam, poolIdParam);
       if (!FileUtils.isTag(tagNode)) {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
             "Provided UUID doesn't point to a tag.");
@@ -121,7 +138,17 @@ public class TagOperation extends AbstractSlingPostOperation {
     } catch (RepositoryException e1) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Could not locate the tag.");
       return;
+    } catch (NoSuchAlgorithmException e) {
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Could not get path from poolId.");
+      return;
+    } catch (UnsupportedEncodingException e) {
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Could not get path from poolId.");
+      return;
     }
+
+    String uuid = tagNode.getIdentifier();
 
     try {
       // We check if the node already has this tag.
@@ -165,6 +192,25 @@ public class TagOperation extends AbstractSlingPostOperation {
       response.setStatus(500, e.getMessage());
     }
 
+  }
+
+  private Node getTagNode(Session session, RequestParameter uuidParam,
+      RequestParameter pathParam, RequestParameter poolIdParam)
+      throws ItemNotFoundException, RepositoryException, NoSuchAlgorithmException,
+      UnsupportedEncodingException {
+    Node tagNode = null;
+    if (uuidParam != null) {
+      String uuid = uuidParam.getString();
+      tagNode = session.getNodeByIdentifier(uuid);
+    } else if (pathParam != null) {
+      String path = pathParam.getString();
+      tagNode = session.getNode(path);
+    } else if (poolIdParam != null) {
+      String poolId = poolIdParam.getString();
+      String path = CreateContentPoolServlet.hash(poolId);
+      tagNode = session.getNode(path);
+    }
+    return tagNode;
   }
 
   /**

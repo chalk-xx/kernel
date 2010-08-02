@@ -155,10 +155,13 @@ public class PresenceContactsServlet extends SlingSafeMethodsServlet {
         // put in the basics
         PresenceUtils.makePresenceJSON(output, userId, presenceService, true);
         // add in the profile
-        output.key("profile");
         Authorizable au = PersonalUtils.getAuthorizable(session, userId);
-        Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(au));
-        ExtendedJSONWriter.writeNodeToWriter(output, profileNode);
+        String profilePath = PersonalUtils.getProfilePath(au);
+        if ( session.itemExists(profilePath)) {
+          Node profileNode = (Node) session.getItem(profilePath);
+          output.key("profile");
+          ExtendedJSONWriter.writeNodeToWriter(output, profileNode);
+        }
         output.endObject();
       }
       output.endArray();
