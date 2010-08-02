@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.util;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -123,7 +122,7 @@ public class ExtendedJSONWriter extends JSONWriter {
     return false;
   }
 
-  protected static Object translateAuthorizablePath(Object value) {
+  public static Object translateAuthorizablePath(Object value) {
     String s = String.valueOf(value);
     if (s != null && s.length() > 4) {
       if (s.charAt(0) == '/' && s.charAt(1) == '_') {

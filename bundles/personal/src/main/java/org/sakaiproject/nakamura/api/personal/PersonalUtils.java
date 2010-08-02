@@ -126,7 +126,7 @@ public class PersonalUtils {
           .warn(
               "Authorizable {} has no path property set on it, grabbing hash from ItemBasedPrincipal!",
               au);
-      ItemBasedPrincipal principal = (ItemBasedPrincipal) au;
+      ItemBasedPrincipal principal = (ItemBasedPrincipal) au.getPrincipal();
       hash = principal.getPath();
     }
     return hash;
@@ -178,12 +178,65 @@ public class PersonalUtils {
 
         Node profileNode = (Node) session.getItem(profilePath);
         write.key("jcr:path");
-        write.value(profileNode.getPath());
+        write.value(ExtendedJSONWriter.translateAuthorizablePath(profileNode.getPath()));
         write.key("jcr:name");
         write.value(profileNode.getName());
         writeValue("firstName", profileNode, write);
         writeValue("lastName", profileNode, write);
         writeValue("picture", profileNode, write);
+      } catch (Exception e) {
+        // The provided user-string is probably not a user id.
+        LOGGER.warn(e.getMessage(), e);
+      }
+    } catch (JSONException e) {
+      LOGGER.error(e.getMessage(), e);
+    }
+  }
+  
+  /**
+   * Write a small bit of information from a group authprofile. 
+   *
+   * @param session
+   *          The {@link Session session} to access the authprofile.
+   * @param group
+   *          The group ID to look up
+   * @param write
+   *          The {@link JSONWriter writer} to write to.
+   */
+  public static void writeCompactGroupInfo(Session session, String group, JSONWriter write) {
+    try {
+      write.object();
+      writeCompactGroupInfoContent(session, group, write);
+      write.endObject();
+    } catch (JSONException e) {
+      LOGGER.error(e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Write a small bit of information from a group authprofile
+   * 
+   * @param session
+   *          The {@link Session session} to access the authprofile.
+   * @param group
+   *          The group ID to look up
+   * @param write
+   *          The {@link JSONWriter writer} to write to.
+   */
+  public static void writeCompactGroupInfoContent(Session session, String group,
+      JSONWriter write) {
+    try {
+      write.key("groupid");
+      write.value(group);
+      try {
+        Authorizable au = getAuthorizable(session, group);
+        String profilePath = PersonalUtils.getProfilePath(au);
+        Node profileNode = (Node) session.getItem(profilePath);
+        write.key("jcr:path");
+        write.value(ExtendedJSONWriter.translateAuthorizablePath(profileNode.getPath()));
+        write.key("jcr:name");
+        write.value(profileNode.getName());
+        writeValue("name", profileNode, write);
       } catch (Exception e) {
         // The provided user-string is probably not a user id.
         LOGGER.warn(e.getMessage(), e);

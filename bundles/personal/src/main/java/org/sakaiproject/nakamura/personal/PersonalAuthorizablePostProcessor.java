@@ -21,8 +21,11 @@ import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static javax.jcr.security.Privilege.JCR_WRITE;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.PropertyOption;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.JcrConstants;
@@ -30,6 +33,7 @@ import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
@@ -48,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import javax.jcr.Node;
@@ -64,29 +69,33 @@ import javax.jcr.version.VersionException;
  * This PostProcessor listens to post operations on User objects and processes the
  * changes.
  * 
- * @scr.service interface="org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.component immediate="true" label="SitePostProcessor"
- *                description="Post Processor for User and Group operations" metatype="no"
- * @scr.property name="service.description"
- *               value="Post Processes User and Group operations"
- * 
  */
-@Component(immediate=true, description="Post Processor for User and Group operations", metatype=false, label="PersonalAuthorizablePostProcessor")
-@Service(value=AuthorizablePostProcessor.class)
-@Properties(value={
-  @org.apache.felix.scr.annotations.Property(name="service.vendor", value="The Sakai Foundation"),
-  @org.apache.felix.scr.annotations.Property(name="service.description", value="Post Processes User and Group operations")
-})
+@Component(immediate = true, description = "Post Processor for User and Group operations", metatype = true, label = "PersonalAuthorizablePostProcessor")
+@Service(value = AuthorizablePostProcessor.class)
+@Properties(value = {
+    @org.apache.felix.scr.annotations.Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @org.apache.felix.scr.annotations.Property(name = "service.description", value = "Post Processes User and Group operations") })
 public class PersonalAuthorizablePostProcessor implements AuthorizablePostProcessor {
+
+  @org.apache.felix.scr.annotations.Property(name = "org.sakaiproject.nakamura.personal.profile.preference", description = "What the default behaviour for the ACL on an authprofile should be when an authorizable gets created.", options = {
+      @PropertyOption(name = "private", value = "The profile is completely private."),
+      @PropertyOption(name = "semi", value = "The profile is private to anonymous users, logged in users can see it."),
+      @PropertyOption(name = "public", value = "The profile is completely public.") })
+  static final String PROFILE_PREFERENCE = "org.sakaiproject.nakamura.personal.profile.preference";
+  static final String PROFILE_PREFERENCE_DEFAULT = "semi";
+
+  @Reference
+  private EventAdmin eventAdmin;
+
+  private String profilePreference;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PersonalAuthorizablePostProcessor.class);
 
-  /**
-   */
-  @Reference
-  private EventAdmin eventAdmin;
+  @Modified
+  protected void modified(Map<?, ?> props) {
+    profilePreference = OsgiUtil.toString(props.get(PROFILE_PREFERENCE), PROFILE_PREFERENCE_DEFAULT);
+  }
 
   /**
    * @param request
@@ -331,10 +340,24 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     };
     AccessControlUtil.replaceAccessControlEntry(session, privatePath, authorizable
         .getPrincipal(), new String[] { JCR_ALL }, null, null, null);
-    AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon, null,
-        new String[] { JCR_READ, JCR_WRITE }, null, null);
-    AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone, null,
-        new String[] { JCR_READ, JCR_WRITE }, null, null);
+
+    // KERN-886 : Depending on the profile preference we set some ACL's on the profile.
+    if ("public".equals(profilePreference)) {
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon,
+          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone,
+          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
+    } else if ("semi".equals(profilePreference)) {
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon, null,
+          new String[] { JCR_READ, JCR_WRITE }, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone, null,
+          new String[] { JCR_WRITE }, null, null);
+    } else if ("private".equals(profilePreference)) {
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon, null,
+          new String[] { JCR_READ, JCR_WRITE }, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone,
+          new String[] { JCR_READ }, new String[] { JCR_READ, JCR_WRITE }, null, null);
+    }
   }
 
   /**
