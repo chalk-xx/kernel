@@ -96,12 +96,6 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.meservice</artifactId>
-      <version>0.7-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
       <version>0.7-SNAPSHOT</version>
       <scope>provided</scope>
