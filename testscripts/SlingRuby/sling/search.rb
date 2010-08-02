@@ -22,6 +22,10 @@ module SlingSearch
       return json_search("users", "q" => username) 
     end
 
+    def search_for_group(group)
+      return json_search("groups", "q" => group) 
+    end
+
     def search_for_site(sitepropertyvalue)
       return json_search("sites", "q" => sitepropertyvalue)
     end
