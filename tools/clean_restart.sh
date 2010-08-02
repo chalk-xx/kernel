@@ -33,8 +33,11 @@ popd
 rm -rf sling
 
 ## check for 32 bit capability
-has_32_bit=`java -help | grep -c "\-d32"`
-if [[ $has_32_bit == "1" ]]
+## this does not work for linux and possibly windows.
+## seems to be a Mac and Solaris option.
+#has_32_bit=`java -help | grep -c "\-d32"`
+#if [[ $has_32_bit == "1" ]]
+if [[ ${OSTYPE:0:6} == "darwin" ]]
 then
   d32="-d32"
 else
