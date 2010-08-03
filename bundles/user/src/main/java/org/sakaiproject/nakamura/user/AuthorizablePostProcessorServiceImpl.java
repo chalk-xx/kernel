@@ -30,7 +30,6 @@ import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.util.osgi.AbstractOrderedService;
 
-import java.util.Comparator;
 import java.util.List;
 
 import javax.jcr.Session;
@@ -61,19 +60,6 @@ public class AuthorizablePostProcessorServiceImpl extends AbstractOrderedService
        processor.process(authorizable, session, change);
     }
   }
-
-  /**
-   * @return
-   */
-  protected Comparator<AuthorizablePostProcessor> getComparitor() {
-    return new Comparator<AuthorizablePostProcessor>() {
-      public int compare(AuthorizablePostProcessor o1, AuthorizablePostProcessor o2) {
-        return o1.getSequence() - o2.getSequence();
-      }
-    };  
-  }
-
-
 
   protected void bindAuthorizablePostProcessor(AuthorizablePostProcessor service) {
     addService(service);

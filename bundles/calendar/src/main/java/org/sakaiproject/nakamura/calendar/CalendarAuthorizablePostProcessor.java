@@ -20,12 +20,14 @@ package org.sakaiproject.nakamura.calendar;
 import net.fortuna.ical4j.model.Calendar;
 
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
+import org.osgi.framework.Constants;
 import org.sakaiproject.nakamura.api.calendar.CalendarConstants;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
 import org.sakaiproject.nakamura.api.calendar.CalendarService;
@@ -42,19 +44,11 @@ import javax.jcr.Session;
 @Service
 @Component(immediate = true)
 public class CalendarAuthorizablePostProcessor implements AuthorizablePostProcessor {
+  @Property(intValue = 10, propertyPrivate = false)
+  private static final String PAR_SERVICE_RANKING = Constants.SERVICE_RANKING; 
 
   @Reference
   protected transient CalendarService calendarService;
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#getSequence()
-   */
-  public int getSequence() {
-    // We make sure that the home folders get created before we run ours.
-    return 10;
-  }
 
   /**
    * {@inheritDoc}
@@ -94,4 +88,5 @@ public class CalendarAuthorizablePostProcessor implements AuthorizablePostProces
     AccessControlUtil.replaceAccessControlEntry(session, path, authorizable
         .getPrincipal(), granted, null, null, null);
   }
+  
 }

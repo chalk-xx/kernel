@@ -21,7 +21,6 @@ import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static javax.jcr.security.Privilege.JCR_WRITE;
 
-import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Properties;
@@ -38,12 +37,13 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
+import org.osgi.framework.Constants;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.api.user.AuthorizableEventUtil;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -76,6 +76,9 @@ import javax.jcr.version.VersionException;
     @org.apache.felix.scr.annotations.Property(name = "service.vendor", value = "The Sakai Foundation"),
     @org.apache.felix.scr.annotations.Property(name = "service.description", value = "Post Processes User and Group operations") })
 public class PersonalAuthorizablePostProcessor implements AuthorizablePostProcessor {
+  
+  @org.apache.felix.scr.annotations.Property(intValue = 0, propertyPrivate = false)
+  private static final String PAR_SERVICE_RANKING = Constants.SERVICE_RANKING;
 
   @org.apache.felix.scr.annotations.Property(name = "org.sakaiproject.nakamura.personal.profile.preference", description = "What the default behaviour for the ACL on an authprofile should be when an authorizable gets created.", options = {
       @PropertyOption(name = "private", value = "The profile is completely private."),
@@ -484,15 +487,6 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   }
 
   /**
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#getSequence()
-   */
-  public int getSequence() {
-    return 0;
-  }
-
-  /**
    * Decide whether post-processing this user or group would be redundant because it has
    * already been done. The current logic uses the existence of a profile node of the
    * correct type as a marker.
@@ -519,4 +513,5 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     }
     return isProfileCreated;
   }
+
 }

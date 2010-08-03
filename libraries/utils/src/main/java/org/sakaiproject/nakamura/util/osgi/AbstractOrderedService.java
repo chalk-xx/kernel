@@ -18,8 +18,6 @@
 package org.sakaiproject.nakamura.util.osgi;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -118,7 +116,6 @@ public abstract class AbstractOrderedService<T> implements BoundService {
    */
   private void createNewSortedList() {
     List<T> serviceList = new ArrayList<T>(serviceSet);
-    Collections.sort(serviceList, getComparitor());
     saveArray(serviceList);
   }
 
@@ -126,10 +123,5 @@ public abstract class AbstractOrderedService<T> implements BoundService {
    * @param serviceList
    */
   protected abstract void saveArray(List<T> serviceList);
-
-  /**
-   * @return a compartator suitable for sorting the list of services.
-   */
-  protected abstract Comparator<? super T> getComparitor();
 
 }

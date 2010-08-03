@@ -31,6 +31,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
+import org.osgi.framework.Constants;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
@@ -55,6 +56,9 @@ import javax.jcr.Session;
     @Property(name = "service.description", value = "Creates the message stores for users and groups.") })
 public class MessageAuthorizablePostProcessor implements AuthorizablePostProcessor {
 
+  @Property(intValue = 10, propertyPrivate = false)
+  private static final String PAR_SERVICE_RANKING = Constants.SERVICE_RANKING;
+  
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessageAuthorizablePostProcessor.class);
 
@@ -90,14 +94,6 @@ public class MessageAuthorizablePostProcessor implements AuthorizablePostProcess
       replaceAccessControlEntry(session, path, anon, null, deniedPrivs, null, null);
       replaceAccessControlEntry(session, path, everyone, null, deniedPrivs, null, null);
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#getSequence()
-   */
-  public int getSequence() {
-    return 10;
   }
 
 }
