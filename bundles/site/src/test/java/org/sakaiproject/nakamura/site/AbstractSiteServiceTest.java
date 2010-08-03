@@ -115,12 +115,11 @@ public abstract class AbstractSiteServiceTest extends AbstractEasyMockTest {
     replay();
     siteService = new SiteServiceImpl();
     siteService.bindEventAdmin(eventAdmin);
-    siteService.bindSlingRepository(slingRepository);
+    siteService.slingRepository = slingRepository;
   }
 
   protected void postRequest() {
     siteService.unbindEventAdmin(eventAdmin);
-    siteService.unbindSlingRepository(slingRepository);
     verify();
   }
 

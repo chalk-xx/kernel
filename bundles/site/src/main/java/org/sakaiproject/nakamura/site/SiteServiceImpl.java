@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
@@ -39,6 +40,7 @@ import org.sakaiproject.nakamura.api.site.Sort;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.version.VersionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +59,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
+import javax.jcr.Workspace;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
@@ -72,7 +75,10 @@ public class SiteServiceImpl implements SiteService {
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteServiceImpl.class);
 
   @Reference
-  private SlingRepository slingRepository;
+  protected transient SlingRepository slingRepository;
+  
+  @Reference
+  protected transient VersionService versionService;
 
   @org.apache.felix.scr.annotations.Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
@@ -858,12 +864,210 @@ public class SiteServiceImpl implements SiteService {
     return null;
   }
 
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
+  /**
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.nakamura.api.site.SiteService#createSite(javax.jcr.Session,
+   *      org.apache.jackrabbit.api.security.user.Authorizable, java.lang.String,
+   *      java.lang.String, java.lang.String)
+   */
+  public Node createSite(Session session, Authorizable creator, String sitePath,
+      String templatePath, String sakaiSiteType) throws SiteException {
+    try {
+      Node siteNode = null;
+
+      // If there is a path to a template provided we copy it.
+      if (templatePath != null) {
+        // if the sitepath is /_user/j/ja/jack/public/sites/my-awesome-site
+        // ensure that /_user/j/ja/jack/public/sites
+        ensureParent(session, sitePath);
+
+        // Copy the template files in the new folder.
+        LOGGER.debug("Copying template ({}) to new dir ({})", templatePath, sitePath);
+        Workspace workspace = session.getWorkspace();
+        workspace.copy(templatePath, sitePath);
+
+        // Get the created site.
+        siteNode = (Node) session.getItem(sitePath);
+
+        // Set the template to false.
+        if (siteNode.hasProperty(SAKAI_IS_SITE_TEMPLATE)) {
+          if (siteNode.getProperty(SAKAI_IS_SITE_TEMPLATE).getBoolean()) {
+            siteNode.setProperty(SAKAI_IS_SITE_TEMPLATE, false);
+          }
+        }
+      } else {
+        // Just create a simple node at the specified path.
+        siteNode = JcrUtils.deepGetOrCreateNode(session, sitePath);
+      }
+
+      // Set the correct properties and ACL on the site.
+      initializeAccess(session, siteNode, creator);
+      initializeNewSite(siteNode, sakaiSiteType);
+
+      // Version the entire site tree.
+      versionNodeAndChildren(siteNode, creator.getID(), session);
+
+      return siteNode;
+    } catch (RepositoryException e) {
+      throw new SiteException(500, e);
+    }
   }
 
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
+  /**
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.nakamura.api.site.SiteService#copySite(javax.jcr.Session,
+   *      org.apache.jackrabbit.api.security.user.Authorizable, java.lang.String,
+   *      java.lang.String)
+   */
+  public Node copySite(Session session, Authorizable creator, String sitePath,
+      String fromPath) throws SiteException {
+    try {
+      ensureParent(session, sitePath);
+
+      // Copy the entire site over
+      LOGGER.debug("Copying site ({}) to new dir ({})", fromPath, sitePath);
+      Workspace workspace = session.getWorkspace();
+      workspace.copy(fromPath, sitePath);
+      Node siteNode = (Node) session.getItem(sitePath);
+
+      // Setup the ACEs
+      initializeAccess(session, siteNode, creator);
+
+      // Version the entire site.
+      versionNodeAndChildren(siteNode, creator.getID(), session);
+
+      // Return the top site node.
+      return siteNode;
+    } catch (RepositoryException e) {
+      throw new SiteException(500, e);
+    }
   }
 
+  /**
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.nakamura.api.site.SiteService#moveSite(javax.jcr.Session,
+   *      org.apache.jackrabbit.api.security.user.Authorizable, java.lang.String,
+   *      java.lang.String)
+   */
+  public Node moveSite(Session session, Authorizable creator, String sitePath,
+      String fromPath) throws SiteException {
+    try {
+      ensureParent(session, sitePath);
+
+      // Move the site to it's new location
+      LOGGER.debug("Moving site ({}) to new dir ({})", fromPath, sitePath);
+      Workspace workspace = session.getWorkspace();
+      workspace.move(fromPath, sitePath);
+
+      // Get the new top node.
+      Node siteNode = (Node) session.getItem(sitePath);
+
+      // Return the top node for the NEW site.
+      return siteNode;
+    } catch (RepositoryException e) {
+      throw new SiteException(500, e);
+    }
+  }
+
+  /**
+   * Workspace copy/move needs the destination's parent to exist and be saved.
+   * 
+   * @param session
+   * @param sitePath
+   * @throws RepositoryException
+   */
+  private void ensureParent(Session session, String sitePath) throws RepositoryException {
+    String parentPath = PathUtils.getParentReference(sitePath);
+    JcrUtils.deepGetOrCreateNode(session, parentPath);
+    // TODO Try to get rid of this, as it screws up atomicity.
+    if (session.hasPendingChanges()) {
+      session.save();
+    }
+  }
+
+  /**
+   * Performs all the necessary ACL actions on the site. It gives the creator
+   * JCR_ALL:granted and hands off the rest of the ACL procedure to the SiteAuthz helper.
+   * 
+   * @param session
+   *          A session that is able to set ACEs on the site node.
+   * @param site
+   *          The node that represents the top site node.
+   * @param creator
+   *          The authorizable that represents the site creator.
+   * @throws RepositoryException
+   */
+  private void initializeAccess(Session session, Node site, Authorizable creator)
+      throws RepositoryException {
+    // Give the creator full rights on the site tree.
+    AccessControlUtil.replaceAccessControlEntry(session, site.getPath(), creator
+        .getPrincipal(), new String[] { "jcr:all" }, null, null, null);
+
+    // Handle authz configuration via a helper.
+    SiteAuthz authzHelper = new SiteAuthz(site, postProcessService);
+    authzHelper.initAccess(creator.getID());
+  }
+
+  /**
+   * Sets the correct sling:resourceType on the site top node and if necessary the
+   * siteType.
+   * 
+   * @param site
+   *          The node that resembles the top site node.
+   * @param sakaiSiteType
+   *          [OPTIONAL] The type of the site (ie: course, project, ..)
+   * @throws RepositoryException
+   */
+  private void initializeNewSite(Node site, String sakaiSiteType)
+      throws RepositoryException {
+    site.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+        SiteService.SITE_RESOURCE_TYPE);
+
+    if (sakaiSiteType != null)
+      site.setProperty(SiteService.SAKAI_SITE_TYPE, sakaiSiteType);
+
+    // Add a message store to this site.
+    // TODO Is there any reason this can't be handled by site templates?
+    Node storeNode = site.addNode("store");
+    storeNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+        "sakai/messagestore");
+  }
+
+  /**
+   * Versions a node and all its child nodes.
+   * 
+   * @param n
+   *          The node to version
+   * @param userID
+   *          The username that should be used as an ID.
+   * @param session
+   *          The session to version the node with.
+   */
+  private void versionNodeAndChildren(Node n, String userID, Session session) {
+    try {
+      // TODO do better check
+      if (n.isNode()
+          && !n.getName().startsWith("rep:")
+          && !n.getName().startsWith("jcr:")
+          && n.hasProperties()
+          && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(
+              JcrConstants.NT_RESOURCE)) {
+        versionService.saveNode((Node) session.getItem(n.getPath()), userID);
+        NodeIterator it = n.getNodes();
+        // Version the childnodes
+        while (it.hasNext()) {
+          Node childNode = it.nextNode();
+          versionNodeAndChildren(childNode, userID, session);
+        }
+      }
+    } catch (RepositoryException re) {
+      LOGGER.warn("Unable to save copied node", re);
+    }
+  }
 }

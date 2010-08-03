@@ -40,7 +40,8 @@ class TC_Kern259Test < Test::Unit::TestCase
 
     membership = @sm.get_membership()
     @log.info("Got membership as #{membership} ")
-    assert_equal(1, membership.size, "Expected one member")
+    # Since KERN-916 each user has a site, so that one + this one = 2
+    assert_equal(2, membership.size, "Expected one member")
     member = membership[0]
     assert_equal("/" + test_site.path, member["siteref"], "Expected site path to match")
   end

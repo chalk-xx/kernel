@@ -17,6 +17,12 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
+import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_IS_SITE_TEMPLATE;
+
+import static org.sakaiproject.nakamura.api.site.SiteService.SITE_RESOURCE_TYPE;
+
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
@@ -57,11 +63,13 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.site.SiteServiceImpl;
 import org.sakaiproject.nakamura.version.VersionService;
 
 import java.security.Principal;
 
 import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.jcr.Session;
 import javax.jcr.Workspace;
 import javax.jcr.security.AccessControlEntry;
@@ -81,8 +89,6 @@ public class TestCreateSiteServlet {
   @Mock(answer = RETURNS_DEEP_STUBS)
   private SlingHttpServletResponse response;
 
-  @Mock
-  private SiteService siteService;
   @Mock
   private SlingRepository slingRepository;
   @Mock
@@ -125,16 +131,17 @@ public class TestCreateSiteServlet {
   private JackrabbitAccessControlEntry ace;
 
   private CreateSiteServlet servlet;
+  private SiteService siteService;
 
   private static final String USER = "aUser";
 
   @Before
   public void setUp() throws Exception {
     servlet = new CreateSiteServlet();
+    siteService = new SiteServiceImpl();
     servlet.bindSiteService(siteService);
-    servlet.bindSlingRepository(slingRepository);
-    servlet.bindEventAdmin(eventAdmin);
-    servlet.bindVersionService(versionService);
+    servlet.slingRepository = slingRepository;
+    servlet.eventAdmin = eventAdmin;
 
     when(slingRepository.loginAdministrative(anyString())).thenReturn(session);
 
@@ -175,8 +182,6 @@ public class TestCreateSiteServlet {
   @After
   public void tearDown() throws Exception {
     servlet.unbindSiteService(siteService);
-    servlet.unbindSlingRepository(slingRepository);
-    servlet.unbindEventAdmin(eventAdmin);
   }
 
   @Test
@@ -278,7 +283,11 @@ public class TestCreateSiteServlet {
         templatePath);
     when(session.itemExists(templatePath)).thenReturn(true);
     when(session.getItem(templatePath)).thenReturn(templateNode);
-    when(siteService.isSiteTemplate(templateNode)).thenReturn(false);
+
+    when(templateNode.hasProperty(SAKAI_IS_SITE_TEMPLATE)).thenReturn(true);
+    Property slingProp = mock(Property.class);
+    when(slingProp.getBoolean()).thenReturn(false);
+    when(templateNode.getProperty(SAKAI_IS_SITE_TEMPLATE)).thenReturn(slingProp);
 
     RequestParameter sitePathParam = mock(RequestParameter.class);
     when(sitePathParam.getString()).thenReturn(somePath);
@@ -301,11 +310,15 @@ public class TestCreateSiteServlet {
         templatePath);
     when(session.itemExists(templatePath)).thenReturn(true);
     when(session.getItem(templatePath)).thenReturn(templateNode);
-    when(siteService.isSiteTemplate(templateNode)).thenReturn(true);
     when(request.getRequestParameter(PARAM_MOVE_FROM)).thenReturn(null);
     when(request.getRequestParameter(PARAM_COPY_FROM)).thenReturn(null);
     when(request.getRequestParameter(SAKAI_SITE_TYPE)).thenReturn(null);
 
+    when(templateNode.hasProperty(SAKAI_IS_SITE_TEMPLATE)).thenReturn(true);
+    Property slingProp = mock(Property.class);
+    when(slingProp.getBoolean()).thenReturn(true);
+    when(templateNode.getProperty(SAKAI_IS_SITE_TEMPLATE)).thenReturn(slingProp);
+    
     String path = sitePath + "/" + somePath;
     when(session.itemExists(sitePath)).thenReturn(true);
     when(session.getItem(sitePath)).thenReturn(siteNode);
@@ -406,9 +419,12 @@ public class TestCreateSiteServlet {
     when(node.getPath()).thenReturn(path);
 
     Node copySite = mock(Node.class);
+    when(copySite.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)).thenReturn(true);
+    Property siteProp = mock(Property.class);
+    when(siteProp.getString()).thenReturn(SITE_RESOURCE_TYPE);
+    when(copySite.getProperty(SLING_RESOURCE_TYPE_PROPERTY)).thenReturn(siteProp);
     when(session.itemExists(copySitePath)).thenReturn(true);
     when(session.getItem(copySitePath)).thenReturn(copySite);
-    when(siteService.isSite(copySite)).thenReturn(true);
 
     RequestParameter sitePathParam = mock(RequestParameter.class);
     when(sitePathParam.getString()).thenReturn(somePath);
@@ -506,9 +522,14 @@ public class TestCreateSiteServlet {
     when(node.getPath()).thenReturn(path);
 
     Node copySite = mock(Node.class);
+    when(copySite.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)).thenReturn(true);
+    Property siteProp = mock(Property.class);
+    when(siteProp.getString()).thenReturn(SITE_RESOURCE_TYPE);
+    when(copySite.getProperty(SLING_RESOURCE_TYPE_PROPERTY)).thenReturn(siteProp);
+    
     when(session.itemExists(moveSitePath)).thenReturn(true);
     when(session.getItem(moveSitePath)).thenReturn(copySite);
-    when(siteService.isSite(copySite)).thenReturn(true);
+
 
     RequestParameter sitePathParam = mock(RequestParameter.class);
     when(sitePathParam.getString()).thenReturn(somePath);
