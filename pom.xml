@@ -77,7 +77,6 @@
         <module>bundles/cluster</module>
         <module>bundles/chat</module>
         <module>bundles/doc</module>
-        <module>bundles/content</module>
         <module>bundles/docproxy</module>
         <module>bundles/google-collections</module>
         <module>bundles/woodstox</module>
