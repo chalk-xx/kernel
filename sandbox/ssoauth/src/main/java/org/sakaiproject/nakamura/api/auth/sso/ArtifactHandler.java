@@ -23,27 +23,38 @@ import javax.servlet.http.HttpServletRequest;
  *
  */
 public interface ArtifactHandler {
-  String HANDLER_NAME = "auth.sso.name";
+  String HANDLER_NAME = "sakai.auth.sso.name";
 
-  String LOGIN_URL = "auth.sso.url.login";
-  String LOGOUT_URL = "auth.sso.url.logout";
-  String SERVER_URL = "auth.sso.url.server";
+  String LOGIN_URL = "sakai.auth.sso.url.login";
+  String LOGOUT_URL = "sakai.auth.sso.url.logout";
+  String SERVER_URL = "sakai.auth.sso.url.server";
 
   /**
    * Get the name of the artifact that is looked for by this handler. This is to make sure
    * URLs are filtered properly in the authentication handler.
    */
   String getArtifactName();
-  String getArtifact(HttpServletRequest request);
 
   /**
-   * Extract the credentials (ie. username) from a request. This is called after a
-   * positive response from {@link #isValid(String)}.
+   * Extract the artifact from the request.
+   *
+   * @param request
+   * @return null if artifact can not be extracted by this handler. non-null if extracted
+   *         by this handler. A non-null response will mark this handler for use later in
+   *         the authentication process.
+   */
+  String extractArtifact(HttpServletRequest request);
+
+  /**
+   * Extract the credentials (ie. username) from a request, artifact and/or response. This
+   * is called after a positive response from a GET call to
+   * {@link #getValidateUrl(String, HttpServletRequest)}.
    *
    * @param artifact
    * @param responseBody
    * @param request
-   * @return
+   * @return The username associated to the artifact/responseBody/request. null if the
+   *         username can not be extracted (response is negative, etc).
    */
   String extractCredentials(String artifact, String responseBody,
       HttpServletRequest request);

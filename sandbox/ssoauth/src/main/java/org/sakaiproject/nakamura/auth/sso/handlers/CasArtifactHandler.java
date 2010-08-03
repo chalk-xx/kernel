@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.auth.sso.handlers;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.ConfigurationPolicy;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
@@ -43,22 +44,22 @@ import javax.xml.stream.events.XMLEvent;
 /**
  *
  */
-@Component
+@Component(configurationFactory = true, policy = ConfigurationPolicy.REQUIRE, metatype = true)
 @Service
 public class CasArtifactHandler implements ArtifactHandler {
   private static final Logger logger = LoggerFactory.getLogger(CasArtifactHandler.class);
 
   //---------- common fields ----------
   public static final String LOGIN_URL_DEFAULT = "https://localhost:8443/cas/login";
-  @Property(value = LOGIN_URL_DEFAULT)
+  @Property(name = ArtifactHandler.LOGIN_URL, value = LOGIN_URL_DEFAULT)
   private String loginUrl = null;
 
   public static final String LOGOUT_URL_DEFAULT = "https://localhost:8443/cas/logout";
-  @Property(value = LOGOUT_URL_DEFAULT)
+  @Property(name = ArtifactHandler.LOGOUT_URL, value = LOGOUT_URL_DEFAULT)
   private String logoutUrl = null;
 
   public static final String SERVER_URL_DEFAULT = "https://localhost:8443/cas";
-  @Property(value = SERVER_URL_DEFAULT)
+  @Property(name = ArtifactHandler.SERVER_URL, value = SERVER_URL_DEFAULT)
   private String serverUrl = null;
 
   // ---------- CAS specific fields ----------
@@ -103,9 +104,9 @@ public class CasArtifactHandler implements ArtifactHandler {
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getArtifact(javax.servlet.http.HttpServletRequest)
+   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#extractArtifact(javax.servlet.http.HttpServletRequest)
    */
-  public String getArtifact(HttpServletRequest request) {
+  public String extractArtifact(HttpServletRequest request) {
     return request.getParameter(getArtifactName());
   }
 

@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.casauth;
+package org.sakaiproject.nakamura.auth.sso;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -23,8 +23,6 @@ import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.apache.sling.servlets.post.Modification;
-import org.jasig.cas.client.authentication.AttributePrincipal;
-import org.jasig.cas.client.validation.Assertion;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,8 +30,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.auth.sso.SsoAuthenticationHandler;
-import org.sakaiproject.nakamura.auth.sso.SsoAuthenticationPlugin;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -50,7 +46,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CasAuthenticationHandlerTest {
+public class SsoAuthenticationHandlerTest {
   private SsoAuthenticationHandler casAuthenticationHandler;
   private SsoAuthenticationPlugin casAuthenticationPlugin;
   private SimpleCredentials casCredentials;
@@ -63,9 +59,7 @@ public class CasAuthenticationHandlerTest {
   @Mock
   ValueFactory valueFactory;
   @Mock
-  Assertion assertion;
-  @Mock
-  private AttributePrincipal casPrincipal;
+  private Principal casPrincipal;
   @Mock
   private SlingRepository repository;
   @Mock
@@ -75,8 +69,7 @@ public class CasAuthenticationHandlerTest {
 
   @Before
   public void setUp() throws RepositoryException {
-    casAuthenticationHandler = new SsoAuthenticationHandler();
-    casAuthenticationHandler.repository = repository;
+    casAuthenticationHandler = new SsoAuthenticationHandler(repository, null, null);
     when(adminSession.getUserManager()).thenReturn(userManager);
     when(adminSession.getValueFactory()).thenReturn(valueFactory);
     when(repository.loginAdministrative(null)).thenReturn(adminSession);
@@ -96,7 +89,7 @@ public class CasAuthenticationHandlerTest {
 
   @Test
   public void testDropNoAssertion() throws IOException {
-    when(session.getAttribute(SsoAuthenticationHandler.CONST_CAS_ASSERTION)).thenReturn(null);
+    when(session.getAttribute(SsoAuthenticationHandler.CONST_SSO_ASSERTION)).thenReturn(null);
     when(request.getSession(false)).thenReturn(session);
     casAuthenticationHandler.dropCredentials(request, response);
   }
@@ -104,16 +97,16 @@ public class CasAuthenticationHandlerTest {
   @Test
   public void testDropWithAssertion() throws IOException {
     Assertion assertion = mock(Assertion.class);
-    when(session.getAttribute(SsoAuthenticationHandler.CONST_CAS_ASSERTION)).thenReturn(assertion);
+    when(session.getAttribute(SsoAuthenticationHandler.CONST_SSO_ASSERTION)).thenReturn(assertion);
     when(request.getSession(false)).thenReturn(session);
     casAuthenticationHandler.dropCredentials(request, response);
-    verify(session).removeAttribute(SsoAuthenticationHandler.CONST_CAS_ASSERTION);
+    verify(session).removeAttribute(SsoAuthenticationHandler.CONST_SSO_ASSERTION);
   }
 
   private void setUpCasCredentials() {
     when(casPrincipal.getName()).thenReturn("joe");
     when(assertion.getPrincipal()).thenReturn(casPrincipal);
-    when(session.getAttribute(SsoAuthenticationHandler.CONST_CAS_ASSERTION)).thenReturn(
+    when(session.getAttribute(SsoAuthenticationHandler.CONST_SSO_ASSERTION)).thenReturn(
         assertion);
     when(request.getSession(false)).thenReturn(session);
     AuthenticationInfo authenticationInfo = casAuthenticationHandler.extractCredentials(request, response);
@@ -232,7 +225,7 @@ public class CasAuthenticationHandlerTest {
   @Test
   public void testPostProcessingAfterUserCreation() throws Exception {
     AuthorizablePostProcessService postProcessService = mock(AuthorizablePostProcessService.class);
-    casAuthenticationHandler.authorizablePostProcessService = postProcessService;
+    casAuthenticationHandler.authzPostProcessService = postProcessService;
     setAutocreateUser("true");
     setUpCasCredentials();
     setUpPseudoCreateUserService();

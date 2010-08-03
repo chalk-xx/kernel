@@ -41,6 +41,7 @@ import org.apache.sling.commons.auth.spi.AuthenticationHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.apache.sling.commons.auth.spi.DefaultAuthenticationFeedbackHandler;
 import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
@@ -78,12 +79,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- * This class integrates CAS SSO with the Sling authentication framework.
- * Most of its logic is copied from org.jasig.cas.client servlet filters.
+ * This class integrates SSO with the Sling authentication framework.
  * The integration is needed only due to limitations on servlet filter
  * support in the OSGi / Sling environment.
  */
-@Component(immediate=true, label="%auth.sso.name", description="%auth.sso.description", enabled=true, metatype=true)
+@Component(metatype=true)
 @Properties(value={
     @Property(name=AuthenticationHandler.PATH_PROPERTY, value="/"),
     @Property(name=org.osgi.framework.Constants.SERVICE_RANKING, value="5"),
@@ -95,7 +95,8 @@ import javax.servlet.http.HttpSession;
   @Service(value=LoginModulePlugin.class),
   @Service(value=AuthenticationFeedbackHandler.class)
 })
-public final class SsoAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin, AuthenticationFeedbackHandler {
+public final class SsoAuthenticationHandler implements AuthenticationHandler,
+    LoginModulePlugin, AuthenticationFeedbackHandler {
 
   public static final boolean SSO_AUTOCREATE_USER_DEFAULT = false;
   @Property(boolValue = SSO_AUTOCREATE_USER_DEFAULT)
@@ -103,31 +104,40 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
   private boolean autoCreateUser;
 
   /** Represents the constant for where the assertion will be located in memory. */
-  static final String CONST_CAS_ASSERTION = "_const_cas_assertion_";
+  static final String CONST_SSO_ASSERTION = "_const_sso_assertion_";
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SsoAuthenticationHandler.class);
 
-  // TODO Only needed for the automatic user creation.
+  // needed for the automatic user creation.
   @Reference
-  protected transient SlingRepository repository;
+  protected SlingRepository repository;
 
   @Reference
-  protected transient AuthorizablePostProcessService authorizablePostProcessService;
+  protected AuthorizablePostProcessService authzPostProcessService;
 
   @Reference(referenceInterface = ArtifactHandler.class, cardinality = MANDATORY_MULTIPLE)
   protected HashMap<String, ArtifactHandler> artifactHandlers = new HashMap<String, ArtifactHandler>();
 
   /**
    * Define the set of authentication-related query parameters which should
-   * be removed from the "service" URL sent to the CAS server.
+   * be removed from the "service" URL sent to the SSO server.
    */
-  Set<String> filteredQueryStrings = new HashSet<String>(Arrays.asList(REQUEST_LOGIN_PARAMETER));
+  Set<String> filteredQueryStrings = new HashSet<String>(
+      Arrays.asList(REQUEST_LOGIN_PARAMETER));
 
-  private GatewayResolver gatewayStorage = new DefaultGatewayResolverImpl();
+  public SsoAuthenticationHandler() {
+  }
+
+  protected SsoAuthenticationHandler(SlingRepository repository,
+      AuthorizablePostProcessService authzPostProcessService,
+      HashMap<String, ArtifactHandler> artifactHandlers) {
+    this.repository = repository;
+    this.authzPostProcessService = authzPostProcessService;
+    this.artifactHandlers = artifactHandlers;
+  }
 
   //----------- OSGi integration ----------------------------
-
   @Activate
   protected void activate(Map<?, ?> properties) {
     init(properties);
@@ -164,15 +174,20 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
       throws IOException {
     final HttpSession session = request.getSession(false);
     if (session != null) {
-      final Assertion assertion = (Assertion) session.getAttribute(CONST_CAS_ASSERTION);
-      if (assertion != null) {
-        LOGGER.debug("CAS Authentication attribute will be removed");
-        session.removeAttribute(CONST_CAS_ASSERTION);
+      final SsoPrincipal principal = getSsoPrincipal(session);
+      if (principal != null) {
+        LOGGER.debug("SSO Authentication attribute will be removed");
+        session.removeAttribute(CONST_SSO_ASSERTION);
 
-        // If we are also supposed to redirect to the CAS server to log out
+        // If we are also supposed to redirect to the SSO server to log out
         // of SSO, set up the redirect now.
-        // TODO get the handler
-        ArtifactHandler handler = null;
+        ArtifactHandler handler = artifactHandlers.get(principal.getHandlerName());
+        if (handler == null) {
+          LOGGER.warn("Unable to find handler for principal [handler="
+              + principal.getHandlerName());
+          return;
+        }
+
         String logoutUrl = handler.getLogoutUrl(request);
         if (StringUtils.isNotBlank(logoutUrl)) {
           String target = (String) request.getAttribute(Authenticator.LOGIN_RESOURCE);
@@ -182,10 +197,10 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
           if (target != null && target.length() > 0 && !("/".equals(target))) {
             LOGGER
                 .info(
-                    "CAS logout about to override requested redirect to {} and instead redirect to {}",
+                    "SSO logout about to override requested redirect to {} and instead redirect to {}",
                     target, logoutUrl);
           } else {
-            LOGGER.debug("CAS logout will request redirect to {}", logoutUrl);
+            LOGGER.debug("SSO logout will request redirect to {}", logoutUrl);
           }
           request.setAttribute(Authenticator.LOGIN_RESOURCE, logoutUrl);
         }
@@ -197,105 +212,88 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
       HttpServletResponse response) {
     LOGGER.debug("extractCredentials called");
 
-    // go through artifact list to find one that can handle this request
-    // Once that is found, use it here for constructServiceUrl,
-    ArtifactHandler handler = null;
-    String artifact = null;
-    for (Entry<String, ArtifactHandler> handlerEntry : artifactHandlers.entrySet()) {
-      ArtifactHandler h = handlerEntry.getValue();
-      artifact = h.getArtifact(request);
-      if (artifact != null) {
-        request.setAttribute(ArtifactHandler.HANDLER_NAME, handlerEntry.getKey());
-        handler = h;
-        break;
-      }
-    }
-
     AuthenticationInfo authnInfo = null;
 
-    if (handler != null) {
-      // make REST call to validate artifact
-      try {
-        // validate URL
-        String validateUrl = handler.getValidateUrl(artifact, request);
-        GetMethod get = new GetMethod(validateUrl);
-        HttpClient httpClient = new HttpClient();
-        int returnCode = httpClient.executeMethod(get);
-        if (returnCode >= 200 && returnCode < 300) {
-          String body = get.getResponseBodyAsString();
-          String credentials = handler.extractCredentials(artifact, body, request);
-          if (credentials != null) {
-            authnInfo = createAuthnInfo(credentials);
-          }
+    final HttpSession session = request.getSession(false);
+    SsoPrincipal principal = getSsoPrincipal(session);
+    if (principal != null) {
+      LOGGER.debug("assertion found");
+      authnInfo = createAuthnInfo(principal);
+    } else {
+      // go through artifact handler list to find one that can handle this request.
+      ArtifactHandler handler = null;
+      String handlerName = null;
+      String artifact = null;
+      for (Entry<String, ArtifactHandler> handlerEntry : artifactHandlers.entrySet()) {
+        ArtifactHandler h = handlerEntry.getValue();
+        artifact = h.extractArtifact(request);
+        if (artifact != null) {
+          handlerName = handlerEntry.getKey();
+          request.setAttribute(ArtifactHandler.HANDLER_NAME, handlerName);
+          handler = h;
+          break;
         }
-      } catch (IOException e) {
-        LOGGER.error(e.getMessage(), e);
+      }
+
+      if (handler != null) {
+        // make REST call to validate artifact
+        try {
+          // validate URL
+          String validateUrl = handler.getValidateUrl(artifact, request);
+          GetMethod get = new GetMethod(validateUrl);
+          HttpClient httpClient = new HttpClient();
+          int returnCode = httpClient.executeMethod(get);
+          if (returnCode >= 200 && returnCode < 300) {
+            String body = get.getResponseBodyAsString();
+            String credentials = handler.extractCredentials(artifact, body, request);
+            if (credentials != null) {
+              principal = new SsoPrincipal(credentials, artifact, handlerName);
+              request.getSession().setAttribute(CONST_SSO_ASSERTION, principal);
+              authnInfo = createAuthnInfo(principal);
+            } else {
+              LOGGER.warn("Unable to extract credentials.");
+            }
+          } else {
+            LOGGER.error("Failed response from validation server: [" + returnCode + "]");
+          }
+        } catch (Exception e) {
+          LOGGER.error(e.getMessage(), e);
+        }
       }
     }
 
     return authnInfo;
-//    try {
-//      Assertion a = sv.validate(ticket, serviceUrl);
-//      request.getSession().setAttribute(CONST_CAS_ASSERTION, a);
-//      authnInfo = createAuthnInfo(a);
-//    } catch (TicketValidationException e) {
-//      LOGGER.error(e.getMessage());
-//    }
-//
-//    final HttpSession session = request.getSession(false);
-//    final Assertion assertion = session != null ? (Assertion) session
-//        .getAttribute(CONST_CAS_ASSERTION) : null;
-//    if (assertion != null) {
-//      LOGGER.debug("assertion found");
-//      authnInfo = createAuthnInfo(assertion);
-//    } else {
-//      final String serviceUrl = constructServiceUrl(request);
-//      final String ticket = CommonUtils.safeGetParameter(request, artifactParameterName);
-//      final boolean wasGatewayed = this.gatewayStorage.hasGatewayedAlready(request,
-//          serviceUrl);
-//
-//      if (CommonUtils.isNotBlank(ticket) || wasGatewayed) {
-//        LOGGER.debug("found ticket: \"{}\" or was gatewayed", ticket);
-//        authnInfo = getUserFromTicket(ticket, serviceUrl, request);
-//      } else {
-//        LOGGER.debug("no ticket and no assertion found");
-//      }
-//    }
-//    return authnInfo;
   }
 
+  /**
+   * Called after extractCredentials has returne non-null but logging into the repository
+   * with the provided AuthenticationInfo failed.<br/>
+   *
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest,
+   *      javax.servlet.http.HttpServletResponse)
+   */
   public boolean requestCredentials(HttpServletRequest request,
       HttpServletResponse response) throws IOException {
-    // TODO get handler and have it construct the redirect url
-    ArtifactHandler handler = null;
     LOGGER.debug("requestCredentials called");
-    final String serviceUrl = constructServiceParameter(request);
-    Boolean gateway = Boolean.parseBoolean(request.getParameter("gateway"));
-    final String modifiedServiceUrl;
-    if (gateway) {
-      LOGGER.debug("Setting gateway attribute in session");
-      modifiedServiceUrl = this.gatewayStorage.storeGatewayInformation(request,
-          serviceUrl);
+    String handlerName = (String) request.getAttribute(ArtifactHandler.HANDLER_NAME);
+    if (handlerName != null) {
+      ArtifactHandler handler = artifactHandlers.get(handlerName);
+      final String serviceUrl = constructServiceParameter(request);
+      LOGGER.debug("Service URL = \"{}\"", serviceUrl);
+      String urlToRedirectTo = handler.getLoginUrl(serviceUrl, request);
+      LOGGER.debug("Redirecting to: \"{}\"", urlToRedirectTo);
+      response.sendRedirect(urlToRedirectTo);
+      return true;
     } else {
-      modifiedServiceUrl = serviceUrl;
+      return false;
     }
-    LOGGER.debug("Service URL = \"{}\"", modifiedServiceUrl);
-    String urlToRedirectTo = handler.getLoginUrl(serviceUrl, request);
-//    String urlToRedirectTo = ssoServerLoginUrl
-//        + (ssoServerLoginUrl.indexOf("?") != -1 ? "&" : "?")
-//        + handler.getServiceName() + "=" + URLEncoder.encode(serviceUrl, "UTF-8")
-//        + handler.decorateRedirectUrl(request);
-//    final String urlToRedirectTo = CommonUtils.constructRedirectUrl(
-//        this.ssoServerLoginUrl, serviceParameterName, modifiedServiceUrl,
-//        this.renew, gateway);
-    LOGGER.debug("Redirecting to: \"{}\"", urlToRedirectTo);
-    response.sendRedirect(urlToRedirectTo);
-    return true;
   }
 
   //----------- LoginModulePlugin interface ----------------------------
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public void addPrincipals(Set principals) {
   }
 
@@ -303,13 +301,13 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
     return (getSsoPrincipal(credentials) != null);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public void doInit(CallbackHandler callbackHandler, Session session, Map options)
       throws LoginException {
   }
 
-  public AuthenticationPlugin getAuthentication(Principal principal, Credentials credentials)
-      throws RepositoryException {
+  public AuthenticationPlugin getAuthentication(Principal principal,
+      Credentials credentials) throws RepositoryException {
     AuthenticationPlugin plugin = null;
     if (canHandle(credentials)) {
       plugin = new SsoAuthenticationPlugin(this);
@@ -330,16 +328,20 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationFailed(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.apache.sling.commons.auth.spi.AuthenticationInfo)
+   *
+   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationFailed(javax.servlet.http.HttpServletRequest,
+   *      javax.servlet.http.HttpServletResponse,
+   *      org.apache.sling.commons.auth.spi.AuthenticationInfo)
    */
   public void authenticationFailed(HttpServletRequest request,
       HttpServletResponse response, AuthenticationInfo authInfo) {
     LOGGER.debug("authenticationFailed called");
     final HttpSession session = request.getSession(false);
     if (session != null) {
-      final Assertion assertion = (Assertion) session.getAttribute(CONST_CAS_ASSERTION);
-      if (assertion != null) {
-        LOGGER.warn("CAS assertion is set", new Exception());
+      final SsoPrincipal principal = (SsoPrincipal) session
+          .getAttribute(CONST_SSO_ASSERTION);
+      if (principal != null) {
+        LOGGER.warn("SSO assertion is set", new Exception());
       }
     }
   }
@@ -347,17 +349,20 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
   /**
    * If a redirect is configured, this method will take care of the redirect.
    * <p>
-   * If user auto-creation is configured, this method will check for an existing Authorizable
-   * that matches the principal. If not found, it creates a new Jackrabbit user
-   * with all properties blank except for the ID and a randomly generated password.
+   * If user auto-creation is configured, this method will check for an existing
+   * Authorizable that matches the principal. If not found, it creates a new Jackrabbit
+   * user with all properties blank except for the ID and a randomly generated password.
    * WARNING: Currently this will not perform the extra work done by the Nakamura
-   * CreateUserServlet, and the resulting user will not be associated with a
-   * valid profile.
+   * CreateUserServlet, and the resulting user will not be associated with a valid
+   * profile.
    * <p>
    * TODO This really needs to be dropped to allow for user pull, person directory
-   * integrations, etc. See SLING-1563 for the related issue of user population via OpenID.
+   * integrations, etc. See SLING-1563 for the related issue of user population via
+   * OpenID.
    *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.apache.sling.commons.auth.spi.AuthenticationInfo)
+   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
+   *      javax.servlet.http.HttpServletResponse,
+   *      org.apache.sling.commons.auth.spi.AuthenticationInfo)
    */
   public boolean authenticationSucceeded(HttpServletRequest request,
       HttpServletResponse response, AuthenticationInfo authInfo) {
@@ -368,11 +373,13 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
     if (this.autoCreateUser) {
       boolean isUserValid = findOrCreateUser(authInfo);
       if (!isUserValid) {
-        LOGGER.warn("CAS authentication succeeded but corresponding user not found or created");
+        LOGGER
+            .warn("SSO authentication succeeded but corresponding user not found or created");
         try {
           dropCredentials(request, response);
         } catch (IOException e) {
-          LOGGER.error("Failed to drop credentials after CAS authentication by invalid user", e);
+          LOGGER.error(
+              "Failed to drop credentials after SSO authentication by invalid user", e);
         }
         return true;
       }
@@ -421,9 +428,13 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
   private static final class SsoPrincipal implements Principal {
     private static final long serialVersionUID = -6232157660434175773L;
     private String principalName;
+    private String artifact;
+    private String handlerName;
 
-    public SsoPrincipal(String principalName) {
+    public SsoPrincipal(String principalName, String artifact, String handlerName) {
       this.principalName = principalName;
+      this.artifact = artifact;
+      this.handlerName = handlerName;
     }
 
     /**
@@ -434,19 +445,28 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
     public String getName() {
       return principalName;
     }
+
+    public String getArtifact() {
+      return artifact;
+    }
+
+    public String getHandlerName() {
+      return handlerName;
+    }
   }
 
-  private AuthenticationInfo createAuthnInfo(final String principalName) {
+  private AuthenticationInfo createAuthnInfo(final SsoPrincipal principal) {
     AuthenticationInfo authnInfo = new AuthenticationInfo(SsoAuthConstants.SSO_AUTH_TYPE);
-    SimpleCredentials credentials = new SimpleCredentials(principalName, new char[] {});
-    credentials.setAttribute(SsoPrincipal.class.getName(), new SsoPrincipal(principalName));
+    SimpleCredentials credentials = new SimpleCredentials(principal.getName(),
+        new char[] {});
+    credentials.setAttribute(SsoPrincipal.class.getName(), principal);
     authnInfo.put(AuthenticationInfo.CREDENTIALS, credentials);
     return authnInfo;
   }
 
   /**
    * @param request
-   * @return the URL to which the CAS server should redirect after successful
+   * @return the URL to which the SSO server should redirect after successful
    * authentication. By default, this is the same URL from which authentication
    * was initiated (minus authentication-related query strings like "ticket").
    * A request attribute or parameter can be used to specify a different
@@ -483,6 +503,17 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
     return url;
   }
 
+  private SsoPrincipal getSsoPrincipal(HttpSession session) {
+    SsoPrincipal prin = null;
+    if (session != null) {
+      Object obj = session.getAttribute(CONST_SSO_ASSERTION);
+      if (obj != null && obj instanceof SsoPrincipal) {
+        prin = (SsoPrincipal) obj;
+      }
+    }
+    return prin;
+  }
+
   private SsoPrincipal getSsoPrincipal(Credentials credentials) {
     SsoPrincipal ssoPrincipal = null;
     if (credentials instanceof SimpleCredentials) {
@@ -497,9 +528,10 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
 
   private boolean findOrCreateUser(AuthenticationInfo authInfo) {
     boolean isUserValid = false;
-    final SsoPrincipal casPrincipal = getSsoPrincipal((Credentials)authInfo.get(AuthenticationInfo.CREDENTIALS));
-    if (casPrincipal != null) {
-      final String principalName = casPrincipal.getName();
+    final SsoPrincipal principal = getSsoPrincipal((Credentials) authInfo
+        .get(AuthenticationInfo.CREDENTIALS));
+    if (principal != null) {
+      final String principalName = principal.getName();
       // Check for a matching Authorizable. If one isn't found, create
       // a new user.
       Session session = null;
@@ -535,8 +567,11 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler, Lo
     path = path.substring(UserConstants.USER_REPO_LOCATION.length());
     ValueFactory valueFactory = session.getValueFactory();
     user.setProperty("path", valueFactory.createValue(path));
-    if (authorizablePostProcessService != null) {
-      authorizablePostProcessService.process(user, session, Modification.onCreated(user.getID()));
+
+    String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
+        + user.getID();
+    if (authzPostProcessService != null) {
+      authzPostProcessService.process(user, session, Modification.onCreated(userPath));
     }
     return user;
   }

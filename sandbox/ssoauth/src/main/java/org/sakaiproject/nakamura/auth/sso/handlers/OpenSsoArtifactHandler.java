@@ -17,14 +17,15 @@
  */
 package org.sakaiproject.nakamura.auth.sso.handlers;
 
-import static org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler.HANDLER_NAME;
 import static org.sakaiproject.nakamura.auth.sso.handlers.OpenSsoArtifactHandler.HANDLER_NAME_DEFAULT;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.ConfigurationPolicy;
 import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
@@ -43,9 +44,11 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Artifact handler specifically designed to handle the interactions with OpenSSO.
  */
-@Component(configurationFactory = true, metatype = true)
+@Component(configurationFactory = true, policy = ConfigurationPolicy.REQUIRE, metatype = true)
 @Service
-@Property(name = HANDLER_NAME, value = HANDLER_NAME_DEFAULT)
+@Properties({
+  @Property(name = ArtifactHandler.HANDLER_NAME, value = HANDLER_NAME_DEFAULT)
+})
 public class OpenSsoArtifactHandler implements ArtifactHandler {
 
   protected static final String HANDLER_NAME_DEFAULT = "openSso";
@@ -55,16 +58,16 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
 
   // ---------- generic fields ----------
   public static final String LOGIN_URL_DEFAULT = "https://localhost/sso/UI/Login";
-  @Property(value = LOGIN_URL_DEFAULT)
+  @Property(name = ArtifactHandler.LOGIN_URL, value = LOGIN_URL_DEFAULT)
   private String loginUrl = null;
 
   public static final String LOGOUT_URL_DEFAULT = "https://localhost/sso/UI/Logout";
-  @Property(value = LOGOUT_URL_DEFAULT)
-  private String logoutUrl = null;
+  @Property(name = ArtifactHandler.LOGOUT_URL, value = LOGOUT_URL_DEFAULT)
+  private String logoutUrl;
 
   public static final String SERVER_URL_DEFAULT = "https://localhost/sso";
-  @Property(value = SERVER_URL_DEFAULT)
-  private String serverUrl = null;
+  @Property(name = ArtifactHandler.SERVER_URL, value = SERVER_URL_DEFAULT)
+  private String serverUrl;
 
   public static final String ATTRIBUTE_NAME_DEFAULT = "uid";
   @Property(value = ATTRIBUTE_NAME_DEFAULT)
@@ -107,9 +110,9 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getArtifact(javax.servlet.http.HttpServletRequest)
+   * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#extractArtifact(javax.servlet.http.HttpServletRequest)
    */
-  public String getArtifact(HttpServletRequest request) {
+  public String extractArtifact(HttpServletRequest request) {
     String artifact = null;
     Cookie[] cookies = request.getCookies();
     for (Cookie cookie : cookies) {
@@ -132,7 +135,7 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
 
     try {
       if (SUCCESSFUL_BODY_DEFAULT.equals(responseBody)) {
-        GetMethod get = new GetMethod(serverUrl + "identity/attributes?attributes_names="
+        GetMethod get = new GetMethod(serverUrl + "/identity/attributes?attributes_names="
             + attributeName + "&subjectid=" + artifact);
         HttpClient httpClient = new HttpClient();
         int returnCode = httpClient.executeMethod(get);
@@ -146,6 +149,7 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
           while ((line = br.readLine()) != null) {
             if (getNextValue && line.startsWith(USRDTLS_ATTR_VAL_STUB)) {
               username = line.substring(USRDTLS_ATTR_VAL_STUB.length());
+              break;
             } else if (attrLine.equals(line)) {
               getNextValue = true;
             }

@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.nakamura.auth.sso</artifactId>
   <packaging>bundle</packaging>
   <version>0.7-SNAPSHOT</version>
-  <name>Sakai Nakamura :: SSO Auth Bundle</name>
+  <name>Sakai Nakamura :: SSO Authentication Bundle</name>
   <description>Provides SSO based authentication support to the request cycle.</description>
   <build>
     <plugins>
