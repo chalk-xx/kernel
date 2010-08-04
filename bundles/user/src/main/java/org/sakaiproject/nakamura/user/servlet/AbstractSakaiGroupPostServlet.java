@@ -142,7 +142,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
         Value[] adminPrincipalsProperties = group
             .getProperty(UserConstants.PROP_GROUP_MANAGERS);
         for (Value adminPricipal : adminPrincipalsProperties) {
-          adminPrincipals.add(adminPricipal.toString());
+          adminPrincipals.add(adminPricipal.getString());
         }
       }
       boolean changed = false;
