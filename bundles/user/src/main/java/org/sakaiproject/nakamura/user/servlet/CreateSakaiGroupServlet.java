@@ -16,6 +16,10 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGERS;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWERS;
+import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
@@ -305,6 +309,11 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                 response.setParentLocation(externalizePath(request,
                     AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PATH));
                 changes.add(Modification.onCreated(groupPath));
+
+                // It is not allowed to touch the rep:group-managers property directly.
+                String key = SYSTEM_USER_MANAGER_GROUP_PREFIX + principalName + "/";
+                reqProperties.remove(key + PROP_GROUP_MANAGERS);
+                reqProperties.remove(key + PROP_GROUP_VIEWERS);
 
                 // write content from form
                 writeContent(session, group, reqProperties, changes);

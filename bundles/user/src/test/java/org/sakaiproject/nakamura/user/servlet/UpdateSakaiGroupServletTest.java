@@ -18,6 +18,7 @@ import org.apache.sling.servlets.post.Modification;
 import org.easymock.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.util.ArrayList;
@@ -41,7 +42,9 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     AuthorizablePostProcessService authorizablePostProcessService = createMock(AuthorizablePostProcessService.class);
     
     expect(authorizable.isGroup()).andReturn(true).times(2);
-    expect(authorizable.getID()).andReturn("g-foo").times(4);
+    expect(authorizable.getID()).andReturn("g-foo").times(5);
+    expect(authorizable.hasProperty(UserConstants.PROP_GROUP_MANAGERS)).andReturn(false);
+    expect(authorizable.hasProperty(UserConstants.PROP_GROUP_VIEWERS)).andReturn(false);
 
     Resource resource = createMock(Resource.class);
     expect(resource.adaptTo(Authorizable.class)).andReturn(authorizable);
@@ -75,6 +78,10 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(request.getRequestParameterMap()).andReturn(requestParameterMap);
     expect(request.getParameterValues(":member@Delete")).andReturn(new String[] {});
     expect(request.getParameterValues(":member")).andReturn(new String[] {});
+    expect(request.getParameterValues(":manager@Delete")).andReturn(new String[] {});
+    expect(request.getParameterValues(":manager")).andReturn(new String[] {});
+    expect(request.getParameterValues(":viewer@Delete")).andReturn(new String[] {});
+    expect(request.getParameterValues(":viewer")).andReturn(new String[] {});
     
     authorizablePostProcessService.process((Authorizable)EasyMock.anyObject(),(Session)EasyMock.anyObject(),(Modification)EasyMock.anyObject());
     expectLastCall();

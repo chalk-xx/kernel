@@ -17,7 +17,13 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWERS;
+
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGERS;
+import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
+
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
@@ -110,6 +116,13 @@ import javax.servlet.http.HttpServletResponse;
     "Example<br>"
         + "<pre>curl -Fproperty1@Delete -Fproperty2=value2 http://localhost:8080/system/userManager/group/g-groupname.update.html</pre>" }, parameters = {
     @ServiceParameter(name = "propertyName@Delete", description = "Delete property, eg property1@Delete means delete property1 (optional)"),
+    @ServiceParameter(name = ":member", description = "Add a member to this group (optional)"),
+    @ServiceParameter(name = ":member@Delete", description = "Remove a member from this group (optional)"),
+    @ServiceParameter(name = ":manager", description = "Add a manager to this group, note: this does not add the manager as a member! (optional)"),
+    @ServiceParameter(name = ":manager@Delete", description = "Remove a manager from this group, note: this does not remove the manager as a member! (optional)"),
+    @ServiceParameter(name = ":viewer", description = "Add a viewer to this group, note: this does not add the viewer as a member! (optional)"),
+    @ServiceParameter(name = ":viewer@Delete", description = "Remove a viewer from this group, note: this does not remove the viewer as a member! (optional)"),
+    @ServiceParameter(name = "propertyName@Delete", description = "Delete property, eg property1@Delete means delete property1 (optional)"),
     @ServiceParameter(name = "", description = "Additional parameters become group node properties (optional)") }, response = {
     @ServiceResponse(code = 200, description = "Success, a redirect is sent to the group's resource locator with HTML describing status."),
     @ServiceResponse(code = 404, description = "Group was not found."),
@@ -184,12 +197,18 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
         // cleanup any old content (@Delete parameters)
         processDeletes(authorizable, reqProperties, changes);
 
+        // It is not allowed to touch the rep:group-managers property directly.
+        String key = SYSTEM_USER_MANAGER_GROUP_PREFIX + authorizable.getID() + "/";
+        reqProperties.remove(key + PROP_GROUP_MANAGERS);
+        reqProperties.remove(key + PROP_GROUP_VIEWERS);
+
         // write content from form
         writeContent(session, authorizable, reqProperties, changes);
 
         // update the group memberships
         if (authorizable.isGroup()) {
           updateGroupMembership(request, authorizable, changes);
+          updateOwnership(request, (Group)authorizable, new String[0], changes);
         }
       } catch (RepositoryException re) {
         throw new RepositoryException("Failed to update group.", re);
