@@ -40,7 +40,7 @@ class TC_Kern308Test < Test::Unit::TestCase
     g2.add_member(@s, u2.name, "user")
     assert(g2.has_member(@s, u2.name), "Expected user to be a member of their group")
 	
-    res = g2.update_properties(@s, "rep:group-managers" => g1.name)
+    res = g2.add_manager(@s, g1.name)
     assert_equal("200", res.code, "Expected to be able to make change to add the group manager in "+res.body)
     res = @s.execute_get(@s.url_for(Group.url_for(g2.name) + ".tidy.json"))
 	@log.debug(res.body)
