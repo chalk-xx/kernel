@@ -27,7 +27,7 @@ import javax.jcr.Session;
  *
  */
 public interface AuthorizablePostProcessService extends BoundService {
-  
+
   /**
    * @param authorizable
    * @param session
@@ -37,5 +37,7 @@ public interface AuthorizablePostProcessService extends BoundService {
   void process(Authorizable authorizable, Session session, Modification change)
       throws Exception;
 
+  void bindSakaiAuthorizableService(SakaiAuthorizableService sakaiAuthorizableService);
 
+  void unbindSakaiAuthorizableService(SakaiAuthorizableService sakaiAuthorizableService);
 }

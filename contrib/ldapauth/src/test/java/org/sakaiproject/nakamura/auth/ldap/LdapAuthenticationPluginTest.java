@@ -39,25 +39,21 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.servlets.post.Modification;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.stubbing.defaultanswers.Answers;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
-import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
 
 import java.util.HashMap;
 
 import javax.jcr.Credentials;
+import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 import javax.jcr.Value;
 
@@ -84,7 +80,7 @@ public class LdapAuthenticationPluginTest {
   private LDAPSearchResults results;
 
   @Mock
-  private AuthorizablePostProcessService authzPostProcessService;
+  private SakaiAuthorizableService sakaiAuthorizableService;
 
   @Mock
   private SlingRepository slingRepository;
@@ -105,7 +101,7 @@ public class LdapAuthenticationPluginTest {
     when(session.getUserManager()).thenReturn(userManager);
 
     ldapAuthenticationPlugin = new LdapAuthenticationPlugin(connMgr,
-        authzPostProcessService, slingRepository);
+        sakaiAuthorizableService, slingRepository);
   }
 
   @Test
@@ -394,24 +390,13 @@ public class LdapAuthenticationPluginTest {
     when(entry.getAttribute(isA(String.class))).thenReturn(attr);
 
     User user = mock(User.class);
-    when(userManager.createUser(isA(String.class), isA(String.class))).thenReturn(user);
-
-    Value value = mock(Value.class);
-    when(session.getValueFactory().createValue(isA(String.class))).thenReturn(value);
-
-    ItemBasedPrincipal principal = mock(ItemBasedPrincipal.class,
-        Answers.RETURNS_DEEP_STUBS.get());
-    when(user.getPrincipal()).thenReturn(principal);
-
-    when(principal.getPath()).thenReturn(UserConstants.USER_REPO_LOCATION + "someMore");
+    when(sakaiAuthorizableService.createUser(isA(String.class), isA(String.class), isA(Session.class))).thenReturn(user);
 
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
         .toCharArray())));
 
-    verify(user).setProperty(eq("path"), isA(Value.class));
-    verify(authzPostProcessService).process(isA(Authorizable.class), eq(session),
-        isA(Modification.class));
+    verify(sakaiAuthorizableService).createUser(eq(USER), isA(String.class), isA(Session.class));
   }
 
   @Test

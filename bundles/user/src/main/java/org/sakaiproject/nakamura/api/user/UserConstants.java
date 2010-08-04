@@ -18,7 +18,7 @@
 package org.sakaiproject.nakamura.api.user;
 
 /**
- * 
+ *
  */
 public interface UserConstants {
   public static final String SYSTEM_USER_MANAGER_PATH = "/system/userManager";
@@ -46,31 +46,34 @@ public interface UserConstants {
    * changed once an instance has been loaded with users. 4 will give upto 2E9 users.
    */
   public static final int DEFAULT_HASH_LEVELS = 4;
-  
-  
+
+
   /**
    * A node property that indicates which use the node was created by, for ownership.
    */
   public static final String JCR_CREATED_BY = "jcr:createdBy";
-  
-  
+
+
   /**
    * The ID of an anon user.
    */
   public static final String ANON_USERID = "anonymous";
-  
+
   public static final String ADMIN_USERID = "admin";
-  
+
   public static final String PROP_GROUP_MANAGERS = "rep:group-managers";
 
   public static final String PROP_GROUP_VIEWERS = "rep:group-viewers";
 
-  public static final String[] DEFAULT_USERS = { ANON_USERID, ADMIN_USERID};
+  /**
+   * The Authorizable node's subpath within the repository's user or group tree.
+   */
+  public static final String PROP_AUTHORIZABLE_PATH = "path";
 
   public static final String USER_REPO_LOCATION = "/rep:security/rep:authorizables/rep:users";
   public static final String GROUP_REPO_LOCATION = "/rep:security/rep:authorizables/rep:groups";
 
-  
+
   /**
    * The key name for the property in the event that will hold the userid.
    */
@@ -90,7 +93,7 @@ public interface UserConstants {
    * The name of the OSGi event topic for deleting a user.
    */
   public static final String TOPIC_USER_DELETED = "org/sakaiproject/nakamura/user/deleted";
-  
+
   /**
    * The name of the OSGi event topic for creating a group.
    */
@@ -105,5 +108,5 @@ public interface UserConstants {
    * The name of the OSGi event topic for deleting a group.
    */
   public static final String TOPIC_GROUP_DELETED = "org/sakaiproject/nakamura/group/deleted";
-  
+
 }

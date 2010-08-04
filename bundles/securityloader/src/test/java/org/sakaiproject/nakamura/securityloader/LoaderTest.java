@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
 
 import java.io.IOException;
 import java.net.URL;
@@ -47,12 +48,13 @@ public class LoaderTest extends SecurityLoaderServiceTest {
   @Mock private PrincipalManager principalManager;
   @Mock private Group group;
   @Mock private ValueFactory valueFactory;
+  @Mock private SakaiAuthorizableService sakaiAuthorizableService;
 
   @Before
   public void before() throws RepositoryException {
     super.before();
   }
-  
+
   @Test
   public void testLoader() throws JSONException, IOException, RepositoryException {
     if ( true ) {
@@ -74,17 +76,17 @@ public class LoaderTest extends SecurityLoaderServiceTest {
     Mockito.when(aNode.addNode(Mockito.anyString())).thenReturn(aNode);
     Mockito.when(aNode.getNode(Mockito.anyString())).thenReturn(aNode);
     Mockito.when(aNode.isNode()).thenReturn(true);
-    
+
     URL u = this.getClass().getResource("testacl.json");
-    
+
     Mockito.when(bundle1.getEntry("SLING-INF/acl/personal-acl.json")).thenReturn(u);
     Mockito.when(bundle1.getEntry("SLING-INF/acl2/personal-acl.json")).thenReturn(u);
     Mockito.when(bundle1.getEntry("SLING-INF/acl3/personal-acl.json")).thenReturn(u);
     Mockito.when(bundle2.getEntry("SLING-INF/acl/personal-acl.json")).thenReturn(u);
     Mockito.when(bundle2.getEntry("SLING-INF/acl2/personal-acl.json")).thenReturn(u);
     Mockito.when(bundle2.getEntry("SLING-INF/acl3/personal-acl.json")).thenReturn(u);
-    
-    Loader loader = new Loader(securityLoaderService);
+
+    Loader loader = new Loader(securityLoaderService, sakaiAuthorizableService);
     loader.registerBundle(session, bundle1, false);
     loader.registerBundle(session, bundle1, false);
     Mockito.when(b1node.isLocked()).thenReturn(true);

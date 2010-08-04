@@ -30,6 +30,7 @@ import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.Bundle;
+import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +65,7 @@ import javax.jcr.security.Privilege;
 
 
 /**
- * 
+ *
  */
 @SuppressWarnings(justification="Circular dependency noted ", value={"CD_CIRCULAR_DEPENDENCY"})
 public class Loader implements SecurityLoader {
@@ -72,6 +73,7 @@ public class Loader implements SecurityLoader {
   private static final Logger LOGGER = LoggerFactory.getLogger(Loader.class);
   private List<Bundle> delayedBundles;
   private SecurityLoaderService jcrContentHelper;
+  private SakaiAuthorizableService sakaiAuthorizableService;
 
   public static final String SYSTEM_USER_MANAGER_PATH = "/system/userManager";
 
@@ -99,14 +101,15 @@ public class Loader implements SecurityLoader {
   /**
    * @param securityLoaderService
    */
-  public Loader(SecurityLoaderService jcrContentHelper) {
+  public Loader(SecurityLoaderService jcrContentHelper, SakaiAuthorizableService sakaiAuthorizableService) {
     this.jcrContentHelper = jcrContentHelper;
     this.delayedBundles = new LinkedList<Bundle>();
+    this.sakaiAuthorizableService = sakaiAuthorizableService;
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.securityloader.SecurityLoader#dispose()
    */
   public void dispose() {
@@ -119,10 +122,10 @@ public class Loader implements SecurityLoader {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @throws IOException
    * @throws JSONException
-   * 
+   *
    * @see org.sakaiproject.nakamura.securityloader.SecurityLoader#registerBundle(org.osgi.framework.Bundle,
    *      boolean)
    */
@@ -240,7 +243,7 @@ public class Loader implements SecurityLoader {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.securityloader.SecurityLoader#unregisterBundle(org.osgi.framework.Bundle)
    */
   public void unregisterBundle(Session session, Bundle bundle) {
@@ -309,7 +312,7 @@ public class Loader implements SecurityLoader {
 
   /**
    * Install the content from the bundle.
-   * 
+   *
    * @return If the content should be removed on uninstall, a list of top nodes
    * @throws IOException
    * @throws JSONException
@@ -372,7 +375,7 @@ LOGGER.info("Got Target Node as "+targetNode);
 
   /**
    * Load the descriptor and process information
-   * 
+   *
    * @param bundle
    * @param path
    * @param entry
@@ -414,10 +417,10 @@ LOGGER.info("Got Target Node as "+targetNode);
    * @param session
    * @param targetNode
    * @param acl
-   * @throws JSONException 
-   * @throws RepositoryException 
-   * @throws UnsupportedRepositoryOperationException 
-   * @throws AccessDeniedException 
+   * @throws JSONException
+   * @throws RepositoryException
+   * @throws UnsupportedRepositoryOperationException
+   * @throws AccessDeniedException
    */
   private void createAcl(Session session, Node targetNode, JSONObject acl) throws JSONException, AccessDeniedException, UnsupportedRepositoryOperationException, RepositoryException {
 
@@ -432,15 +435,15 @@ LOGGER.info("Got Target Node as "+targetNode);
 
     String path = acl.getString(PATH);
     String targetPath = targetNode.getPath();
-    
+
     LOGGER.debug("Base Path {} Source Path {} ", targetPath, path);
-    
+
     String resourcePath = path;
     if ( !"/".equals(targetPath) )  {
       resourcePath = targetPath + resourcePath;
     }
     LOGGER.debug("Resource Path {} ", resourcePath);
-    
+
     // create the path, if it doesnt exist.
     // this may cause problems if we are putting files with acls
     jcrContentHelper.createRepositoryPath(session, resourcePath);
@@ -468,7 +471,7 @@ LOGGER.info("Got Target Node as "+targetNode);
     AccessControlManager accessControlManager = AccessControlUtil
         .getAccessControlManager(session);
     AccessControlList updatedAcl = null;
-    
+
     AccessControlPolicyIterator applicablePolicies = accessControlManager
         .getApplicablePolicies(resourcePath);
     while (applicablePolicies.hasNext()) {
@@ -478,24 +481,24 @@ LOGGER.info("Got Target Node as "+targetNode);
         break;
       }
     }
-    
+
     if (updatedAcl == null) {
       AccessControlPolicy[] policies = accessControlManager.getPolicies(resourcePath);
       for ( AccessControlPolicy policy : policies ) {
         if (policy instanceof AccessControlList) {
           updatedAcl = (AccessControlList) policy;
           break;
-        }      
+        }
       }
     }
-    
+
     if (updatedAcl == null) {
       throw new RepositoryException("Unable to find an access conrol policy to update.");
     }
 
     StringBuilder oldPrivileges = null;
     StringBuilder newPrivileges = new StringBuilder();
-    
+
     if (LOGGER.isInfoEnabled()) {
       oldPrivileges = new StringBuilder();
     }
@@ -621,6 +624,9 @@ LOGGER.info("Got Target Node as "+targetNode);
       // write content from form
       writeContent(session, user, principal, changes);
 
+      // Process new user record for general use in Sakai.
+      sakaiAuthorizableService.postprocess(user, session);
+
       jcrContentHelper.fireEvent(Operation.create, session, user, changes);
     } else {
       LOGGER.debug("Principal "+principalName+" exists, no action required");
@@ -675,7 +681,7 @@ LOGGER.info("Got Target Node as "+targetNode);
    * Update the group membership based on the ":member" request parameters. If the
    * ":member" value ends with @Delete it is removed from the group membership, otherwise
    * it is added to the group membership.
-   * 
+   *
    * @param request
    * @param authorizable
    * @throws RepositoryException
@@ -710,7 +716,7 @@ LOGGER.info("Got Target Node as "+targetNode);
 
   /**
    * Writes back the content
-   * 
+   *
    * @throws RepositoryException
    *           if a repository error occurs
    * @throws JSONException
@@ -843,7 +849,7 @@ LOGGER.info("Got Target Node as "+targetNode);
 
   /**
    * set property without processing, except for type hints
-   * 
+   *
    * @param parent
    *          the parent node
    * @param prop

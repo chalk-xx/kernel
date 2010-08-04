@@ -33,13 +33,11 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapUtil;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
+import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +61,7 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
       .getLogger(LdapAuthenticationFeedbackHandler.class);
 
   @Reference
-  private AuthorizablePostProcessService authzPostProcessorService;
+  private SakaiAuthorizableService sakaiAuthorizableService;
 
   @Reference
   private SlingRepository slingRepository;
@@ -138,6 +136,7 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
       HttpServletResponse resp, AuthenticationInfo authInfo) {
     try {
       Session session = slingRepository.loginAdministrative(null);
+
       UserManager um = AccessControlUtil.getUserManager(session);
       Authorizable auth = um.getAuthorizable(authInfo.getUser());
 
@@ -149,10 +148,7 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
           decorateUser(session, user);
         }
 
-        String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
-            + user.getID();
-        authzPostProcessorService
-            .process(user, session, Modification.onCreated(userPath));
+        sakaiAuthorizableService.postprocess(user, session);
       }
     } catch (Exception e) {
       logger.warn(e.getMessage(), e);
