@@ -62,14 +62,22 @@ public class SsoLoginServlet extends SlingAllMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(SsoLoginServlet.class);
 
   @Reference
-  protected transient SsoAuthenticationHandler ssoAuthenHandler;
+  protected transient SsoAuthenticationHandler ssoAuthnHandler;
+
+  public SsoLoginServlet() {
+
+  }
+
+  protected SsoLoginServlet(SsoAuthenticationHandler ssoAuthHandler) {
+    this.ssoAuthnHandler = ssoAuthHandler;
+  }
 
   @Override
   protected void service(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
     // Check for possible loop after authentication.
     if (request.getAuthType() != null) {
-      String redirectTarget = ssoAuthenHandler.getReturnPath(request);
+      String redirectTarget = ssoAuthnHandler.getReturnPath(request);
       if ((redirectTarget == null) || request.getRequestURI().equals(redirectTarget)) {
         redirectTarget = request.getContextPath() + "/";
       }
@@ -79,7 +87,7 @@ public class SsoLoginServlet extends SlingAllMethodsServlet {
     }
 
     // Pass control to the handler.
-    if (!ssoAuthenHandler.requestCredentials(request, response)) {
+    if (!ssoAuthnHandler.requestCredentials(request, response)) {
       LOGGER.error("Unable to request credentials from handler");
       response.sendError(HttpServletResponse.SC_FORBIDDEN, "Cannot login");
     }

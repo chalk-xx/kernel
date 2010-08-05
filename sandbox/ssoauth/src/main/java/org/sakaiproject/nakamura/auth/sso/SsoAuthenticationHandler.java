@@ -47,6 +47,7 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.apache.sling.servlets.post.Modification;
+import org.osgi.framework.Constants;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
 import org.sakaiproject.nakamura.api.auth.sso.SsoAuthConstants;
@@ -84,16 +85,16 @@ import javax.servlet.http.HttpSession;
  * support in the OSGi / Sling environment.
  */
 @Component(metatype=true)
-@Properties(value={
-    @Property(name=AuthenticationHandler.PATH_PROPERTY, value="/"),
-    @Property(name=org.osgi.framework.Constants.SERVICE_RANKING, value="5"),
-    @Property(name=AuthenticationHandler.TYPE_PROPERTY, value=SsoAuthConstants.SSO_AUTH_TYPE, propertyPrivate=true)
+@Properties(value = {
+    @Property(name = AuthenticationHandler.PATH_PROPERTY, value = "/"),
+    @Property(name = Constants.SERVICE_RANKING, intValue = 5),
+    @Property(name = AuthenticationHandler.TYPE_PROPERTY, value = SsoAuthConstants.SSO_AUTH_TYPE, propertyPrivate=true)
 })
 @Services({
-  @Service(value=SsoAuthenticationHandler.class),
-  @Service(value=AuthenticationHandler.class),
-  @Service(value=LoginModulePlugin.class),
-  @Service(value=AuthenticationFeedbackHandler.class)
+  @Service(value = SsoAuthenticationHandler.class),
+  @Service(value = AuthenticationHandler.class),
+  @Service(value = LoginModulePlugin.class),
+  @Service(value = AuthenticationFeedbackHandler.class)
 })
 public final class SsoAuthenticationHandler implements AuthenticationHandler,
     LoginModulePlugin, AuthenticationFeedbackHandler {
@@ -134,7 +135,9 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler,
       HashMap<String, ArtifactHandler> artifactHandlers) {
     this.repository = repository;
     this.authzPostProcessService = authzPostProcessService;
-    this.artifactHandlers = artifactHandlers;
+    if (artifactHandlers != null) {
+      this.artifactHandlers = artifactHandlers;
+    }
   }
 
   //----------- OSGi integration ----------------------------

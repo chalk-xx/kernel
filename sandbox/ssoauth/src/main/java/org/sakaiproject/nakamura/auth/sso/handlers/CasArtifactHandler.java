@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.ConfigurationPolicy;
 import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
@@ -46,30 +47,33 @@ import javax.xml.stream.events.XMLEvent;
  */
 @Component(configurationFactory = true, policy = ConfigurationPolicy.REQUIRE, metatype = true)
 @Service
+@Properties(value = {
+    @Property(name = ArtifactHandler.LOGIN_URL, value = CasArtifactHandler.LOGIN_URL_DEFAULT),
+    @Property(name = ArtifactHandler.LOGOUT_URL, value = CasArtifactHandler.LOGOUT_URL_DEFAULT),
+    @Property(name = ArtifactHandler.SERVER_URL, value = CasArtifactHandler.SERVER_URL_DEFAULT),
+    @Property(name = CasArtifactHandler.RENEW, boolValue = CasArtifactHandler.RENEW_DEFAULT),
+    @Property(name = CasArtifactHandler.GATEWAY, boolValue = CasArtifactHandler.GATEWAY_DEFAULT)
+})
 public class CasArtifactHandler implements ArtifactHandler {
   private static final Logger logger = LoggerFactory.getLogger(CasArtifactHandler.class);
 
   //---------- common fields ----------
-  public static final String LOGIN_URL_DEFAULT = "https://localhost:8443/cas/login";
-  @Property(name = ArtifactHandler.LOGIN_URL, value = LOGIN_URL_DEFAULT)
+  protected static final String LOGIN_URL_DEFAULT = "https://localhost:8443/cas/login";
+  protected static final String LOGOUT_URL_DEFAULT = "https://localhost:8443/cas/logout";
+  protected static final String SERVER_URL_DEFAULT = "https://localhost:8443/cas";
+  protected static final boolean RENEW_DEFAULT = false;
+  protected static final boolean GATEWAY_DEFAULT = false;
+  protected static final String VALIDATE_URL_TMPL = "%s/serviceValidate?%s=%s";
+  protected static final String LOGIN_URL_TMPL = "%s?service=%s";
+
   private String loginUrl = null;
-
-  public static final String LOGOUT_URL_DEFAULT = "https://localhost:8443/cas/logout";
-  @Property(name = ArtifactHandler.LOGOUT_URL, value = LOGOUT_URL_DEFAULT)
   private String logoutUrl = null;
-
-  public static final String SERVER_URL_DEFAULT = "https://localhost:8443/cas";
-  @Property(name = ArtifactHandler.SERVER_URL, value = SERVER_URL_DEFAULT)
   private String serverUrl = null;
 
   // ---------- CAS specific fields ----------
-  protected static final boolean RENEW_DEFAULT = false;
-  @Property(boolValue = RENEW_DEFAULT)
   static final String RENEW = "auth.sso.prop.renew";
   private boolean renew;
 
-  protected static final boolean GATEWAY_DEFAULT = false;
-  @Property(boolValue = GATEWAY_DEFAULT)
   static final String GATEWAY = "auth.sso.prop.gateway";
   private boolean gateway;
 
@@ -203,7 +207,7 @@ public class CasArtifactHandler implements ArtifactHandler {
    *      javax.servlet.http.HttpServletRequest)
    */
   public String getValidateUrl(String artifact, HttpServletRequest request) {
-    String url = serverUrl + "/serviceValidate?" + getArtifactName() + "=" + artifact;
+    String url = String.format(VALIDATE_URL_TMPL, serverUrl, getArtifactName(), artifact);
     return url;
   }
 
@@ -213,7 +217,7 @@ public class CasArtifactHandler implements ArtifactHandler {
    * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#constructRedirectUrl()
    */
   public String getLoginUrl(String serviceUrl, HttpServletRequest request) {
-    String urlToRedirectTo = loginUrl + "?service=" + serviceUrl;
+    String urlToRedirectTo = String.format(LOGIN_URL_TMPL, loginUrl, serviceUrl);
 
     String renewParam = request.getParameter("renew");
     boolean renew = this.renew;

@@ -15,20 +15,31 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.auth.sso;
+package org.sakaiproject.nakamura.auth.sso;
 
-public interface SsoAuthConstants {
-  /**
-   * Identification of this authentication handler. This value is set by the
-   * handler as the authentication type of the <code>AuthenticationInfo</code>
-   * object returned from the <code>extractCredentials</code> method.
-   * <p>
-   * To explicitly request CAS authentication handling, this should be used
-   * as the value of the <code>sling:authRequestLogin</code> request
-   * parameter.
-   */
-  String SSO_AUTH_TYPE = "SSO";
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
-  String SSO_LOGIN_PATH = "/system/sling/sso/login";
-  String SSO_LOGOUT_PATH = "/system/sling/sso/logout";
+/**
+ *
+ */
+@RunWith(value = MockitoJUnitRunner.class)
+public class SsoLoginServletTest {
+  SsoLoginServlet servlet;
+
+  @Mock
+  SsoAuthenticationHandler handler;
+
+  @Before
+  public void setUp() {
+    servlet = new SsoLoginServlet(handler);
+  }
+
+  @Test
+  public void test() throws Exception {
+
+  }
 }
