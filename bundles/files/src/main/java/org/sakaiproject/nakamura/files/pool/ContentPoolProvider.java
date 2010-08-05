@@ -41,20 +41,34 @@ import javax.servlet.http.HttpServletRequest;
 public class ContentPoolProvider implements ResourceProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ContentPoolProvider.class);
-  public static final String CONTENT_RESOURCE_PROVIDER = ContentPoolProvider.class.getName();
-  // this 36*36 = 1296, so /a/aa/aa/aa will have 36 at the first level, then 46656 at the second and then 60M, then 7e10 items at the last level.
-  
-  
-  
+  public static final String CONTENT_RESOURCE_PROVIDER = ContentPoolProvider.class
+      .getName();
 
+  // this 36*36 = 1296, so /a/aa/aa/aa will have 36 at the first level, then 46656 at the
+  // second and then 60M, then 7e10 items at the last level.
+
+  /**
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.resource.ResourceProvider#getResource(org.apache.sling.api.resource.ResourceResolver,
+   *      javax.servlet.http.HttpServletRequest, java.lang.String)
+   */
   public Resource getResource(ResourceResolver resourceResolver,
       HttpServletRequest request, String path) {
     LOGGER.info("Got Resource URI [{}]  Path [{}] ", request.getRequestURI(), path);
     return getResource(resourceResolver, path);
   }
 
+  /**
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.resource.ResourceProvider#getResource(org.apache.sling.api.resource.ResourceResolver,
+   *      java.lang.String)
+   */
   public Resource getResource(ResourceResolver resourceResolver, String path) {
-  
+
     if (path == null || path.length() < 2) {
       return null;
     }
@@ -73,10 +87,10 @@ public class ContentPoolProvider implements ResourceProvider {
   private Resource resolveMappedResource(ResourceResolver resourceResolver, String path)
       throws RepositoryException {
     String poolId = null;
-   
+
     if (path.startsWith("/p/")) {
       poolId = path.substring("/p/".length());
-    } else if ( path.length() == 2) {
+    } else if (path.length() == 2) {
     }
     if (poolId != null && poolId.length() > 0) {
       int i = poolId.indexOf('/');
@@ -85,35 +99,44 @@ public class ContentPoolProvider implements ResourceProvider {
       }
       i = poolId.indexOf('.');
       String selectors = "";
-      if ( i > 0 ) {
-        selectors = poolId.substring(i);
-        poolId = poolId.substring(0, i);
+      if (i > 0) {
+        // This ResourceProvider should really only resolver things like
+        // /p/717AugiABkcKGOOYxGyzoEsa
+        // If extensions and selectors are added, this resolver should NOT resolve it.
+        // Sling wil keep slicing the extensions/selectors off untill it hits this url
+        // ie: /p/717AugiABkcKGOOYxGyzoEsa.modifyAce.html
+        // - /p/717AugiABkcKGOOYxGyzoEsa.modifyAce.html -> null
+        // - /p/717AugiABkcKGOOYxGyzoEsa.modifyAce -> null
+        // - /p/717AugiABkcKGOOYxGyzoEsa -> return JcrNodeResource
+        return null;
       }
       if (LOGGER.isInfoEnabled()) {
         LOGGER.info("Pool ID is [{}]", poolId);
       }
       String poolPath = null;
       try {
-        poolPath = CreateContentPoolServlet.hash(poolId)+selectors;
+        poolPath = CreateContentPoolServlet.hash(poolId) + selectors;
       } catch (Exception e) {
-        throw new RepositoryException("Unable to hash pool ID "+e.getMessage(),e );
+        throw new RepositoryException("Unable to hash pool ID " + e.getMessage(), e);
       }
       Resource r = resourceResolver.resolve(poolPath);
-      if ( r instanceof NonExistingResource ) {
-        LOGGER.info("Pool ID does not exist, reject and dont allow creation on POST {} ", poolPath);
-        throw new SlingException("Resources may not be created at /p by the user", new AccessDeniedException("Cant create user specified pool resoruce"));
+      if (r instanceof NonExistingResource) {
+        LOGGER.info("Pool ID does not exist, reject and dont allow creation on POST {} ",
+            poolPath);
+        throw new SlingException("Resources may not be created at /p by the user",
+            new AccessDeniedException("Cant create user specified pool resoruce"));
       }
       LOGGER.info("Resolving [{}] to [{}] ", poolPath, r);
       if (r != null) {
         // are the last elements the same ?
-        if (getLastElement(r.getPath()).equals("/"+poolId)) {
-          r.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER,
-              this);
+        if (getLastElement(r.getPath()).equals("/" + poolId)) {
+          r.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
+          r.getResourceMetadata().setResolutionPathInfo(selectors);
           return r;
         } else {
           if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Rejected [{}] != [{}] ", getLastElement(r.getPath()),
-                "/"+poolId);
+            LOGGER.info("Rejected [{}] != [{}] ", getLastElement(r.getPath()), "/"
+                + poolId);
           }
         }
       }
@@ -121,8 +144,6 @@ public class ContentPoolProvider implements ResourceProvider {
     }
     return null;
   }
-  
-
 
   private String getLastElement(String path) {
     for (int i = path.length() - 1; i >= 0; i--) {
@@ -132,9 +153,6 @@ public class ContentPoolProvider implements ResourceProvider {
     }
     return "/" + path;
   }
-
-
-  
 
   public Iterator<Resource> listChildren(Resource parent) {
     if (LOGGER.isDebugEnabled()) {
