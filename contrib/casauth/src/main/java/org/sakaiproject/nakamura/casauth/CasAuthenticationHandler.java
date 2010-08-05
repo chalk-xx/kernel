@@ -77,7 +77,7 @@ import javax.servlet.http.HttpSession;
 @Component(immediate=true, label="%auth.cas.name", description="%auth.cas.description", enabled=true, metatype=true)
 @Properties(value={
     @Property(name=AuthenticationHandler.PATH_PROPERTY, value="/"),
-    @Property(name=org.osgi.framework.Constants.SERVICE_RANKING, value="5"),
+    @Property(name=org.osgi.framework.Constants.SERVICE_RANKING, intValue=5),
     @Property(name=AuthenticationHandler.TYPE_PROPERTY, value=CasAuthConstants.CAS_AUTH_TYPE, propertyPrivate=true)
 })
 @Services({
