@@ -30,6 +30,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceUtil;
@@ -51,6 +52,7 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.jcr.RepositoryException;
@@ -114,21 +116,24 @@ public class AuthorizablePostProcessorServiceImpl extends AbstractOrderedService
   /**
    * @return
    */
-  protected Comparator<AuthorizablePostProcessor> getComparator() {
+  protected Comparator<AuthorizablePostProcessor> getComparator(final Map<AuthorizablePostProcessor, Map<String, Object>> propertiesMap) {
     return new Comparator<AuthorizablePostProcessor>() {
       public int compare(AuthorizablePostProcessor o1, AuthorizablePostProcessor o2) {
-        return o1.toString().compareTo(o2.toString());
+        Map<String, Object> props1 = propertiesMap.get(o1);
+        Map<String, Object> props2 = propertiesMap.get(o2);
+        
+        return OsgiUtil.getComparableForServiceRanking(props1).compareTo(props2);
       }
     };
   }
 
-  protected void bindAuthorizablePostProcessor(AuthorizablePostProcessor service) {
-    addService(service);
+  protected void bindAuthorizablePostProcessor(AuthorizablePostProcessor service, Map<String, Object> properties) {
+    addService(service, properties);
     applyPostProcessorsToDefaultUsers();
   }
 
-  protected void unbindAuthorizablePostProcessor(AuthorizablePostProcessor service) {
-    removeService(service);
+  protected void unbindAuthorizablePostProcessor(AuthorizablePostProcessor service, Map<String, Object> properties) {
+    removeService(service, properties);
     applyPostProcessorsToDefaultUsers();
   }
 

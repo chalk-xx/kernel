@@ -74,11 +74,9 @@ import javax.jcr.version.VersionException;
 @Service(value = AuthorizablePostProcessor.class)
 @Properties(value = {
     @org.apache.felix.scr.annotations.Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @org.apache.felix.scr.annotations.Property(name = "service.description", value = "Post Processes User and Group operations") })
+    @org.apache.felix.scr.annotations.Property(name = "service.description", value = "Post Processes User and Group operations"),
+    @org.apache.felix.scr.annotations.Property(name = "service.ranking", intValue=0)})
 public class PersonalAuthorizablePostProcessor implements AuthorizablePostProcessor {
-  
-  @org.apache.felix.scr.annotations.Property(intValue = 0, propertyPrivate = false)
-  private static final String PAR_SERVICE_RANKING = Constants.SERVICE_RANKING;
 
   @org.apache.felix.scr.annotations.Property(name = "org.sakaiproject.nakamura.personal.profile.preference", description = "What the default behaviour for the ACL on an authprofile should be when an authorizable gets created.", options = {
       @PropertyOption(name = "private", value = "The profile is completely private."),

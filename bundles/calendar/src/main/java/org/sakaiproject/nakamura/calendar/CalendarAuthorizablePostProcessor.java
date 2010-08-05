@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.calendar;
 import net.fortuna.ical4j.model.Calendar;
 
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
@@ -27,7 +28,6 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
-import org.osgi.framework.Constants;
 import org.sakaiproject.nakamura.api.calendar.CalendarConstants;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
 import org.sakaiproject.nakamura.api.calendar.CalendarService;
@@ -43,10 +43,9 @@ import javax.jcr.Session;
  */
 @Service
 @Component(immediate = true)
+@Properties(value = {
+    @Property(name = "service.ranking", intValue=10)})
 public class CalendarAuthorizablePostProcessor implements AuthorizablePostProcessor {
-  @Property(intValue = 10, propertyPrivate = false)
-  private static final String PAR_SERVICE_RANKING = Constants.SERVICE_RANKING; 
-
   @Reference
   protected transient CalendarService calendarService;
 
