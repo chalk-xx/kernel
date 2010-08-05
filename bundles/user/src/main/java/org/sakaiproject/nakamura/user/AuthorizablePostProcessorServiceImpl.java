@@ -117,7 +117,7 @@ public class AuthorizablePostProcessorServiceImpl extends AbstractOrderedService
   protected Comparator<AuthorizablePostProcessor> getComparator() {
     return new Comparator<AuthorizablePostProcessor>() {
       public int compare(AuthorizablePostProcessor o1, AuthorizablePostProcessor o2) {
-        return o1.getSequence() - o2.getSequence();
+        return o1.toString().compareTo(o2.toString());
       }
     };
   }
