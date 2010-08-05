@@ -328,7 +328,11 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
         Session selfRegSession = null;
         try {
           selfRegSession = getSession();
-          User user = sakaiAuthorizableService.createUser(principalName, digestPassword(pwd), selfRegSession);
+          UserManager userManager = AccessControlUtil.getUserManager(selfRegSession);
+          User user = userManager.createUser(principalName,
+              digestPassword(pwd));
+          log.info("User {} created", user.getID());
+
           String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX + user.getID();
           Map<String, RequestProperty> reqProperties = collectContent(
               request, response, userPath);
@@ -342,6 +346,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
           if (selfRegSession.hasPendingChanges()) {
             selfRegSession.save();
           }
+          sakaiAuthorizableService.postprocess(user, selfRegSession);
 
           // Launch an OSGi event for creating a user.
           try {
