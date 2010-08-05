@@ -149,7 +149,7 @@ public class UrlDocumentResultTest {
   public void testGetInputStream() throws DocProxyException, IOException {
     File f = File.createTempFile("urlDocProxyTest", null);
     UrlDocumentResult result1 = new UrlDocumentResult();
-    result1.setUri("file://" + f.getPath());
+    result1.setUri(f.toURI().toString());
     result1.getDocumentInputStream(0);
   }
 }
