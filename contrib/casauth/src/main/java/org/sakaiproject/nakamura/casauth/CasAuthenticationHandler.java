@@ -26,9 +26,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler;
@@ -40,7 +38,6 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
-import org.apache.sling.servlets.post.Modification;
 import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.jasig.cas.client.authentication.DefaultGatewayResolverImpl;
 import org.jasig.cas.client.authentication.GatewayResolver;
@@ -49,8 +46,7 @@ import org.jasig.cas.client.validation.Assertion;
 import org.jasig.cas.client.validation.Cas20ServiceTicketValidator;
 import org.jasig.cas.client.validation.TicketValidationException;
 import org.sakaiproject.nakamura.api.casauth.CasAuthConstants;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
-import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +61,6 @@ import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
-import javax.jcr.ValueFactory;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
@@ -125,7 +120,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
   @Reference
   protected transient SlingRepository repository;
   @Reference
-  protected transient AuthorizablePostProcessService authorizablePostProcessService;
+  protected transient SakaiAuthorizableService sakaiAuthorizableService;
 
   /**
    * Define the set of authentication-related query parameters which should
@@ -469,7 +464,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
         UserManager userManager = AccessControlUtil.getUserManager(session);
         Authorizable authorizable = userManager.getAuthorizable(principalName);
         if (authorizable == null) {
-          createUser(principalName, session);
+          sakaiAuthorizableService.createUser(principalName, RandomStringUtils.random(32), session);
         }
         isUserValid = true;
       } catch (Exception e) {
@@ -481,25 +476,6 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
       }
     }
     return isUserValid;
-  }
-
-  /**
-   * TODO This logic should probably be supplied by a shared service rather
-   * than copied and pasted across components.
-   */
-  private User createUser(String principalName, Session session) throws Exception {
-    LOGGER.info("Creating user {}", principalName);
-    UserManager userManager = AccessControlUtil.getUserManager(session);
-    User user = userManager.createUser(principalName, RandomStringUtils.random(32));
-    ItemBasedPrincipal principal = (ItemBasedPrincipal) user.getPrincipal();
-    String path = principal.getPath();
-    path = path.substring(UserConstants.USER_REPO_LOCATION.length());
-    ValueFactory valueFactory = session.getValueFactory();
-    user.setProperty("path", valueFactory.createValue(path));
-    if (authorizablePostProcessService != null) {
-      authorizablePostProcessService.process(user, session, Modification.onCreated(user.getID()));
-    }
-    return user;
   }
 
   private StringBuilder getServerName(HttpServletRequest request) {

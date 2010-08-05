@@ -101,26 +101,26 @@ import javax.servlet.http.HttpServletResponse;
  * <dd>Failure, including group already exists. HTML explains the failure.</dd>
  * </dl>
  * <h4>Example</h4>
- * 
+ *
  * <code>
  * curl -F:name=newGroupA  -Fproperty1=value1 http://localhost:8080/system/userManager/group.create.html
  * </code>
- * 
+ *
  * <h4>Notes</h4>
- * 
+ *
  * @scr.component immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sling/groups"
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="create"
- * 
+ *
  * @scr.property name="servlet.post.dateFormats"
  *               values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
  *               values.1="yyyy-MM-dd'T'HH:mm:ss.SSSZ" values.2="yyyy-MM-dd'T'HH:mm:ss"
  *               values.3="yyyy-MM-dd" values.4="dd.MM.yyyy HH:mm:ss"
  *               values.5="dd.MM.yyyy"
- * 
- * 
+ *
+ *
  */
 @ServiceDocumentation(name="Create Group Servlet",
     description="Creates a new group. Maps on to nodes of resourceType sling/groups like " +
@@ -142,12 +142,12 @@ import javax.servlet.http.HttpServletResponse;
         response={
         @ServiceResponse(code=200,description="Success, a redirect is sent to the groups resource locator with HTML describing status."),
         @ServiceResponse(code=500,description="Failure, including group already exists. HTML explains failure.")
-        }))   
+        }))
 
 public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet implements
     ManagedService {
 
-  
+
   /**
    *
    */
@@ -158,27 +158,27 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
 
   /**
    * Used to perform post processing.
-   * 
+   *
    * @scr.reference
    */
   protected transient AuthorizablePostProcessService postProcessorService;
 
   /**
    * The JCR Repository we access to resolve resources
-   * 
+   *
    * @scr.reference
    */
   protected transient SlingRepository repository;
 
   /**
    * Used to launch OSGi events.
-   * 
+   *
    * @scr.reference
    */
   protected transient EventAdmin eventAdmin;
 
   /**
-   * 
+   *
    * @scr.property value="authenticated,everyone" type="String"
    *               name="Groups who are allowed to create other groups" description=
    *               "A comma separated list of groups who area allowed to create other groups"
@@ -190,7 +190,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @seeorg.apache.sling.jackrabbit.usermanager.post.AbstractAuthorizablePostServlet#
    * handleOperation(org.apache.sling.api.SlingHttpServletRequest,
    * org.apache.sling.api.servlets.HtmlResponse, java.util.List)
@@ -198,8 +198,8 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
   @Override
   @edu.umd.cs.findbugs.annotations.SuppressWarnings(justification="If there is an exception, the user is certainly not admin", value={"REC_CATCH_EXCEPTION"})
 
-  protected void handleOperation(SlingHttpServletRequest request, 
-      HtmlResponse response, List<Modification> changes) 
+  protected void handleOperation(SlingHttpServletRequest request,
+      HtmlResponse response, List<Modification> changes)
       throws RepositoryException {
 
     // KERN-432 dont allow anon users to access create group.
@@ -288,7 +288,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                     "A principal already exists with the requested name: "
                         + principalName);
             } else {
-              
+
                 Group group = userManager.createGroup(new Principal() {
                   public String getName() {
                     return principalName;
@@ -301,7 +301,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
 
                 ItemBasedPrincipal p = (ItemBasedPrincipal) group.getPrincipal();
                 ValueFactory vf = session.getValueFactory();
-                group.setProperty("path", vf.createValue(p.getPath().substring(UserConstants.GROUP_REPO_LOCATION.length())));
+                group.setProperty(UserConstants.PROP_AUTHORIZABLE_PATH, vf.createValue(p.getPath().substring(UserConstants.GROUP_REPO_LOCATION.length())));
                 LOGGER.info("Group {} created at {} ",p.getName(), p.getPath());
 
                 response.setPath(groupPath);
