@@ -116,6 +116,7 @@ public abstract class AbstractOrderedService<T> implements BoundService {
    */
   private void createNewSortedList() {
     List<T> serviceList = new ArrayList<T>(serviceSet);
+    Collections.sort(serviceList, getComparator());
     saveArray(serviceList);
   }
 
@@ -123,5 +124,10 @@ public abstract class AbstractOrderedService<T> implements BoundService {
    * @param serviceList
    */
   protected abstract void saveArray(List<T> serviceList);
+
+  /**
+   * @return a compartator suitable for sorting the list of services.
+   */
+  protected abstract Comparator<? super T> getComparator();
 
 }

@@ -7,7 +7,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.rootconfig</artifactId>
-  <name>Nakamura Root Node Configuration</name>
+  <name>Sakai Nakamura :: Root Node Configuration</name>
   <version>0.7-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <build>

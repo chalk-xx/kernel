@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "JCR-SQL2",
-  "sakai:query-template": "SELECT * FROM [nt:base] WHERE ISDESCENDANTNODE([/{_requeststore}]) AND [sling:resourceType] = 'sakai/joinrequest' AND [sakai:requestState] = 'pending'",
+  "sakai:query-template": "SELECT * FROM [nt:base] WHERE ISDESCENDANTNODE([/{_requeststore}]) AND [sling:resourceType] = 'sakai/joinrequest' AND [sakai:requestState] = 'pending' order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "JoinRequest",
   "sakai:resultprocessor": "JoinRequest",

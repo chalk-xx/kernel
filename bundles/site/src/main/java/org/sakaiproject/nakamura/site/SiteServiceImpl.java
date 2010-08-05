@@ -469,7 +469,7 @@ public class SiteServiceImpl implements SiteService {
       throws SiteException {
     MembershipTree membership = getMembershipTree(site, true);
     if (sort != null && sort.length > 0) {
-      Comparator<GroupKey> comparitor = buildCompoundComparitor(sort);
+      Comparator<GroupKey> comparitor = buildCompoundComparator(sort);
       List<GroupKey> sortedList = Lists.sortedCopy(membership.getGroups().keySet(), comparitor);
       Iterator<GroupKey> sortedIterator = sortedList.listIterator(start);
       return unwrapGroups(Iterators.limit(sortedIterator, nitems));
@@ -508,7 +508,7 @@ public class SiteServiceImpl implements SiteService {
   public AbstractCollection<User> getMembers(Node site, int start, int nitems, Sort[] sort) {
     MembershipTree membership = getMembershipTree(site, true);
     if (sort != null && sort.length > 0) {
-      Comparator<UserKey> comparitor = buildCompoundComparitor(sort);
+      Comparator<UserKey> comparitor = buildCompoundComparator(sort);
       List<UserKey> sortedList = Lists.sortedCopy(membership.getUsers().keySet(), comparitor);
       Iterator<UserKey> sortedIterator = sortedList.listIterator(start);
       return returnCollection(sortedIterator, nitems, sortedList.size());
@@ -636,7 +636,7 @@ public class SiteServiceImpl implements SiteService {
    * @return the first comparator in the set.
    */
   @SuppressWarnings("unchecked")
-  private <T extends AuthorizableKey> Comparator<T> buildCompoundComparitor(Sort[] sort) {
+  private <T extends AuthorizableKey> Comparator<T> buildCompoundComparator(Sort[] sort) {
     if (sort.length == 0) {
       return null;
     }

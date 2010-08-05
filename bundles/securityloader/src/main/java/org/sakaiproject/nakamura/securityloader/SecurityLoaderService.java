@@ -31,8 +31,9 @@ import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
-import org.sakaiproject.nakamura.api.user.AuthorizableEventUtil;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
+import org.sakaiproject.nakamura.api.user.AuthorizableEventUtil;
+import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,13 +83,13 @@ public class SecurityLoaderService implements SynchronousBundleListener {
 
   /**
    * To be used for the encryption. E.g. for passwords in
-   * {@link javax.jcr.SimpleCredentials#getPassword()}  SimpleCredentials} 
+   * {@link javax.jcr.SimpleCredentials#getPassword()}  SimpleCredentials}
    */
   private static final String DEFAULT_PASSWORD_DIGEST_ALGORITHM = "sha1";
 
   @Property(value = DEFAULT_PASSWORD_DIGEST_ALGORITHM)
   private static final String PROP_PASSWORD_DIGEST_ALGORITHM = "password.digest.algorithm";
-  
+
   @Reference
   protected SlingSettingsService settingsService;
 
@@ -100,6 +101,9 @@ public class SecurityLoaderService implements SynchronousBundleListener {
 
   @Reference(bind = "bindEventAdmin", unbind = "bindEventAdmin")
   protected EventAdmin eventAdmin;
+
+  @Reference
+  protected SakaiAuthorizableService sakaiAuthorizableService;
 
   /**
    * List of currently updated bundles.
@@ -121,7 +125,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.osgi.framework.BundleListener#bundleChanged(org.osgi.framework.BundleEvent)
    */
   public void bundleChanged(BundleEvent event) {
@@ -171,10 +175,10 @@ public class SecurityLoaderService implements SynchronousBundleListener {
 
   /** Activates this component, called by SCR before registering as a service */
   protected void activate(ComponentContext componentContext) {
-    
-    
+
+
     this.slingId = this.settingsService.getSlingId();
-    this.initialSecurityLoader = new Loader(this);
+    this.initialSecurityLoader = new Loader(this, sakaiAuthorizableService);
 
     componentContext.getBundleContext().addBundleListener(this);
     Dictionary<?, ?> props = componentContext.getProperties();
@@ -185,7 +189,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
     } else {
       passwordDigestAlgoritm = DEFAULT_PASSWORD_DIGEST_ALGORITHM;
     }
-    
+
     Session session = null;
     try {
       session = this.getSession();
@@ -261,7 +265,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
 
   /**
    * Return the bundle content info and make an exclusive lock.
-   * 
+   *
    * @param session
    * @param bundle
    * @return The map of bundle content info or null.
@@ -354,7 +358,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
 
   /**
    * Fire events, into OSGi, one synchronous one asynchronous.
-   * 
+   *
    * @param operation
    *          the operation being performed.
    * @param session
@@ -374,7 +378,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
       LOGGER.warn("Failed to fire event", t);
     }
   }
-  
+
   public void fireEvent(String path, String acl ) {
     try {
       Dictionary<String, Object> d = new Hashtable<String, Object>();
@@ -408,7 +412,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
    */
   /**
    * Digest the given password using the configured digest algorithm
-   * 
+   *
    * @param pwd
    *          the value to digest
    * @return the digested value
@@ -426,7 +430,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
       throw new IllegalArgumentException(e.toString());
     }
   }
-  
+
   protected void createRepositoryPath(final Session writerSession, final String repositoryPath)
   throws RepositoryException {
       if ( !writerSession.itemExists(repositoryPath) ) {

@@ -64,6 +64,16 @@ module SlingUsers
               { ":member" => principal_paths })
     end
 
+    def add_manager(sling, principal)
+      return sling.execute_post(sling.url_for("#{group_url}.update.html"),
+              { ":manager" => principal })
+    end
+
+    def add_viewer(sling, principal)
+      return sling.execute_post(sling.url_for("#{group_url}.update.html"),
+              { ":viewer" => principal })
+    end
+
     def details(sling)
       return sling.get_node_props(group_url)
     end
@@ -81,6 +91,16 @@ module SlingUsers
         return false
       end
       return members.include?(principal)
+    end
+
+    def remove_manager(sling, principal)
+      return sling.execute_post(sling.url_for("#{group_url}.update.html"),
+              { ":manager@Delete" => principal })
+    end
+
+    def remove_viewer(sling, principal)
+      return sling.execute_post(sling.url_for("#{group_url}.update.html"),
+              { ":viewer@Delete" => principal })
     end
 
     def remove_members(sling, principals)

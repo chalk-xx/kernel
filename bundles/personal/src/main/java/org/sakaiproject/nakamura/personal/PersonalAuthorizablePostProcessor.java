@@ -353,13 +353,13 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     } else if ("semi".equals(profilePreference)) {
       AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon, null,
           new String[] { JCR_READ, JCR_WRITE }, null, null);
-      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone, null,
-          new String[] { JCR_WRITE }, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone,
+          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
     } else if ("private".equals(profilePreference)) {
       AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon, null,
           new String[] { JCR_READ, JCR_WRITE }, null, null);
-      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone,
-          new String[] { JCR_READ }, new String[] { JCR_READ, JCR_WRITE }, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone, null,
+          new String[] { JCR_READ, JCR_WRITE }, null, null);
     }
   }
 

@@ -42,8 +42,17 @@ class TC_Kern259Test < Test::Unit::TestCase
     @log.info("Got membership as #{membership} ")
     # Since KERN-916 each user has a site, so that one + this one = 2
     assert_equal(2, membership.size, "Expected one member")
-    member = membership[0]
-    assert_equal("/" + test_site.path, member["siteref"], "Expected site path to match")
+    assert_value(membership, 'siteref', "/" + test_site.path, "Expected site path to match")
+  end
+
+  def assert_value(hash, key, value, message)
+    found = false
+    hash.each {|o|
+      if (o[key] == value)
+        found = true
+      end
+    }
+    assert(found, message)
   end
 
 end
