@@ -59,12 +59,6 @@
                                      <version>${ux}</version>
                                      <startLevel>30</startLevel>
                                  </bundle>
-            <bundle>
-              <groupId>org.sakaiproject.nakamura</groupId>
-              <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
-              <version>0.7-SNAPSHOT</version>
-              <startLevel>1</startLevel>
-            </bundle>
                            </additionalBundles>
                         </configuration>
                     </execution>
