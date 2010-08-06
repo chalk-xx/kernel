@@ -15,7 +15,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.doc.DocumentationWriter;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.RepositoryException;

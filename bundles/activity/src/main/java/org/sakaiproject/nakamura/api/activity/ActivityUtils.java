@@ -41,9 +41,9 @@ public class ActivityUtils {
 
   private static SecureRandom random = null;
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public static Event createEvent(String user, String activityItemPath) {
-    final Dictionary<String, String> map = new Hashtable(1);
+    final Dictionary<String, String> map = new Hashtable<String, String>(1);
     map.put(UserConstants.EVENT_PROP_USERID, user);
     map.put(ActivityConstants.EVENT_PROP_PATH, activityItemPath);
     return new Event(EVENT_TOPIC, (Dictionary) map);

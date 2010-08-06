@@ -17,14 +17,9 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
-import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_IS_SITE_TEMPLATE;
-
-import static org.sakaiproject.nakamura.api.site.SiteService.SITE_RESOURCE_TYPE;
-
-import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -37,9 +32,11 @@ import static org.mockito.Mockito.when;
 import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_COPY_FROM;
 import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_MOVE_FROM;
 import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_SITE_PATH;
+import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_IS_SITE_TEMPLATE;
 import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_SITE_TEMPLATE;
 import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_SITE_TYPE;
 import static org.sakaiproject.nakamura.api.site.SiteService.SITES_CONTAINER_RESOURCE_TYPE;
+import static org.sakaiproject.nakamura.api.site.SiteService.SITE_RESOURCE_TYPE;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.JackrabbitAccessControlEntry;
@@ -64,7 +61,6 @@ import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.site.SiteServiceImpl;
-import org.sakaiproject.nakamura.version.VersionService;
 
 import java.security.Principal;
 
@@ -93,8 +89,6 @@ public class TestCreateSiteServlet {
   private SlingRepository slingRepository;
   @Mock
   private EventAdmin eventAdmin;
-  @Mock
-  private VersionService versionService;
   @Mock
   private ResourceResolver resourceResolver;
   @Mock

@@ -26,7 +26,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.osgi.OsgiUtil;
@@ -90,7 +89,7 @@ public class WidgetServiceImpl implements WidgetService {
   private List<String> validMimetypes;
   private Detector detector;
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Activate
   protected void activate(Map properties) {
     AutoDetectParser parser = new AutoDetectParser();
@@ -99,13 +98,13 @@ public class WidgetServiceImpl implements WidgetService {
     modified(properties);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Modified
   protected void modified(Map properties) {
     init(properties);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   private void init(Map props) {
     String[] names = OsgiUtil
         .toStringArray(props.get(WIDGET_IGNORE_NAMES), new String[0]);

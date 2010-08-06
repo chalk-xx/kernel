@@ -96,13 +96,13 @@ public class RequestWrapper extends SlingHttpServletRequestWrapper {
     return null;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Override
   public Map getParameterMap() {
     return getParameters();
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Override
   public Enumeration getParameterNames() {
     return getParameters().keys();

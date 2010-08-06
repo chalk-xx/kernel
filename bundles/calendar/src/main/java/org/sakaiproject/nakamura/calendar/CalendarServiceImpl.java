@@ -184,7 +184,7 @@ public class CalendarServiceImpl implements CalendarService {
       calendarNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, SAKAI_CALENDAR_RT);
 
       // Store all the properties of the calendar on the node.
-      @SuppressWarnings("unchecked")
+      @SuppressWarnings("rawtypes")
       Iterator it = calendar.getProperties().iterator();
       while (it.hasNext()) {
         Property p = (Property) it.next();

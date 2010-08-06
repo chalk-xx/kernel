@@ -18,8 +18,6 @@
 
 package org.sakaiproject.nakamura.persistence.dynamic;
 
-import org.sakaiproject.nakamura.persistence.dynamic.AmalgamatingClassloader;
-import org.sakaiproject.nakamura.persistence.dynamic.PersistenceBundleMonitor;
 import org.sakaiproject.nakamura.persistence.dynamic.xstream.PersistenceSettings;
 import org.sakaiproject.nakamura.testutils.osgi.DummyBundle;
 
@@ -43,14 +41,14 @@ public class DummyJpaBundle extends DummyBundle {
     this.puName = settings.getPersistenceUnits().get(0).getName();
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public Dictionary getHeaders() {
     Hashtable<String, String> result = new Hashtable<String, String>();
     result.put(PersistenceBundleMonitor.SAKAI_JPA_PERSISTENCE_UNITS_BUNDLE_HEADER, puName);
     return result;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public Dictionary getHeaders(String arg0) {
     return getHeaders();
   }

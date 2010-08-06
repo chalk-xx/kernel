@@ -9,7 +9,6 @@ import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.api.SlingRepository;

@@ -93,7 +93,7 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
    *
    * @param context
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   protected void activate(ComponentContext context) {
     // Get the properties from the console.
     Dictionary props = context.getProperties();

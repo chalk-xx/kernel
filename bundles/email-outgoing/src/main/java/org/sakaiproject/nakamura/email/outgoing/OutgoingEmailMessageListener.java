@@ -315,7 +315,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
   }
 
   protected void activate(ComponentContext ctx) {
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     Dictionary props = ctx.getProperties();
 
     Integer _maxRetries = (Integer) props.get(MAX_RETRIES);

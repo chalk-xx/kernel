@@ -20,9 +20,9 @@ package org.sakaiproject.nakamura.api.configuration;
 
 import com.google.common.base.ReferenceType;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ReferenceMap;
-import com.google.common.collect.ImmutableMap.Builder;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
@@ -285,7 +285,7 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
    * 
    * @see org.osgi.service.cm.ManagedService#updated(java.util.Dictionary)
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public void updated(Dictionary config) throws ConfigurationException {
     Builder<String, String> builder = ImmutableMap.builder();
     for (Enumeration<?> e = config.keys(); e.hasMoreElements();) {

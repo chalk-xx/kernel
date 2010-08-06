@@ -403,7 +403,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
    *
    * @see org.osgi.service.cm.ManagedService#updated(java.util.Dictionary)
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public void updated(Dictionary dictionary) throws ConfigurationException {
     String groupList = (String) dictionary.get(GROUP_AUTHORISED_TOCREATE);
     if (groupList != null) {

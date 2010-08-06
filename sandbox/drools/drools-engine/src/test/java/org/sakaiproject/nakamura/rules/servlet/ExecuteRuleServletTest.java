@@ -1,7 +1,5 @@
 package org.sakaiproject.nakamura.rules.servlet;
 
-import junit.textui.ResultPrinter;
-
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -10,7 +8,6 @@ import org.apache.sling.commons.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -18,12 +15,10 @@ import org.sakaiproject.nakamura.api.rules.RuleContext;
 import org.sakaiproject.nakamura.api.rules.RuleExecutionErrorListener;
 import org.sakaiproject.nakamura.api.rules.RuleExecutionException;
 import org.sakaiproject.nakamura.api.rules.RuleExecutionService;
-import org.sakaiproject.nakamura.rules.servlet.ExecuteRuleServlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 

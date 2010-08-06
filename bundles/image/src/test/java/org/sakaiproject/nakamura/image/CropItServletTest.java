@@ -43,7 +43,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.security.Principal;
 import java.util.Calendar;
 
 import javax.jcr.Binary;

@@ -226,7 +226,7 @@ public class ScopedEntityManager implements EntityManager {
    * @see javax.persistence.EntityManager#createNativeQuery(java.lang.String,
    *      java.lang.Class)
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public Query createNativeQuery(String sqlString, Class resultClass) {
     return getEntityManager().createNativeQuery(sqlString, resultClass);
   }

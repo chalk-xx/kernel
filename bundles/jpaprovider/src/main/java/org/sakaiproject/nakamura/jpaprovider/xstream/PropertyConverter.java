@@ -39,7 +39,7 @@ public class PropertyConverter implements Converter {
     return property;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public boolean canConvert(Class clazz) {
     return clazz.equals(Property.class);
   }

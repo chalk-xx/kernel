@@ -104,12 +104,12 @@ public class DummyBundleContext implements BundleContext {
     return null;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public ServiceRegistration registerService(String[] arg0, Object arg1, Dictionary arg2) {
     return null;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public ServiceRegistration registerService(String arg0, Object arg1, Dictionary arg2) {
     return null;
   }

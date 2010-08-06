@@ -37,7 +37,7 @@ public class EntityConverter implements Converter {
     return entity;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public boolean canConvert(Class clazz) {
     return clazz.equals(OrmEntity.class);
   }
