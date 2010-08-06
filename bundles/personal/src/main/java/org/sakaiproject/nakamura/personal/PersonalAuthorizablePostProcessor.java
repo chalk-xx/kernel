@@ -26,6 +26,8 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.PropertyOption;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
@@ -34,10 +36,10 @@ import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.sling.jcr.contentloader.ContentImporter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
-import org.osgi.framework.Constants;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
@@ -68,7 +70,7 @@ import javax.jcr.version.VersionException;
 /**
  * This PostProcessor listens to post operations on User objects and processes the
  * changes.
- * 
+ *
  */
 @Component(immediate = true, description = "Post Processor for User and Group operations", metatype = true, label = "PersonalAuthorizablePostProcessor")
 @Service(value = AuthorizablePostProcessor.class)
@@ -87,6 +89,9 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
   @Reference
   private EventAdmin eventAdmin;
+
+  @Reference(policy=ReferencePolicy.DYNAMIC, cardinality=ReferenceCardinality.OPTIONAL_UNARY)
+  protected ContentImporter contentImporter;
 
   private String profilePreference;
 
@@ -151,8 +156,11 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       return;
     }
 
-    // build a blacklist set of properties that should be kept private
+    // This awful hack is a workaround for KERN-929.
+    // TODO DO NOT LET THIS BECOME PERMANENT.
+    ProfileImporter.importFromAuthorizable(profileNode, athorizable, contentImporter, session);
 
+    // build a blacklist set of properties that should be kept private
     Set<String> privateProperties = new HashSet<String>();
     if (profileNode.hasProperty(UserConstants.PRIVATE_PROPERTIES)) {
       Value[] pp = profileNode.getProperty(UserConstants.PRIVATE_PROPERTIES).getValues();
@@ -193,7 +201,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   /**
    * Creates the home folder for a {@link User user} or a {@link Group group}. It will
    * also create all the subfolders such as private, public, ..
-   * 
+   *
    * @param session
    * @param authorizable
    * @param isGroup
@@ -307,7 +315,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
   /**
    * Creates the private folder in the user his home space.
-   * 
+   *
    * @param session
    *          The session to create the node
    * @param athorizable
@@ -363,7 +371,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
   /**
    * Creates the public folder in the user his home space.
-   * 
+   *
    * @param session
    *          The session to create the node
    * @param athorizable
@@ -407,7 +415,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
   /**
    * Fire events, into OSGi, one synchronous one asynchronous.
-   * 
+   *
    * @param operation
    *          the operation being performed.
    * @param session
@@ -488,7 +496,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    * Decide whether post-processing this user or group would be redundant because it has
    * already been done. The current logic uses the existence of a profile node of the
    * correct type as a marker.
-   * 
+   *
    * @param session
    * @param authorizable
    * @return true if there is evidence that post-processing has already occurred for this
