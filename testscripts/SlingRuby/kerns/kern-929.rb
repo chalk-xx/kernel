@@ -26,11 +26,7 @@ class TC_Kern929Test < Test::Unit::TestCase
     testuser = User.new(userid)
     public = testuser.public_path_for(@s)
 
-    res = @s.execute_get(@s.url_for("#{public}/authprofile.tidy.3.json"))
-    puts res.code, res.body
-
     res = @s.execute_get(@s.url_for("#{public}/authprofile.json"))
-    puts res.code, res.body
     json = JSON.parse(res.body)
     assert_nil(json[importprop], "Import directive should not be stored as authprofile property")
 
@@ -41,7 +37,6 @@ class TC_Kern929Test < Test::Unit::TestCase
 
     userpath = User.url_for(userid)
     res = @s.execute_get(@s.url_for("#{userpath}.json"))
-    puts res.code, res.body
     json = JSON.parse(res.body)
     assert_nil(json[importprop], "Import directive should not be stored as user property")
 
