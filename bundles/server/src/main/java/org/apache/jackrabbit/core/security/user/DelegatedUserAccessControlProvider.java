@@ -200,15 +200,11 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         if (isAdminOrSystem(principals)) {
             return getAdminPermissions();
         } else {
-            // determined the 'user' present in the given set of principals.
-            ItemBasedPrincipal userPrincipal = getUserPrincipal(principals);
-            NodeImpl userNode = getUserNode(userPrincipal);
-            if (userNode == null) {
-                // no 'user' within set of principals -> READ-only
-                return getReadOnlyPermissions();
-            } else {
-                return new CompiledPermissionsImpl(principals, userNode.getPath());
-            }
+          // determined the 'user' present in the given set of principals.
+          ItemBasedPrincipal userPrincipal = getUserPrincipal(principals);
+          NodeImpl userNode = getUserNode(userPrincipal);
+          String userNodePath = (userNode != null) ? userNode.getPath() : null;
+          return new CompiledPermissionsImpl(principals, userNodePath);
         }
     }
 
@@ -266,7 +262,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 } else {
                     pPath = Text.getRelativeParent(pPath, 1);
                 }
-            }         
+            }
             throw new ItemNotFoundException("Unable to determine permissions: No item and no existing parent for target path " + absPath);
         }
     }
@@ -322,6 +318,13 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
 
         private Set<Principal> principals;
 
+        /**
+         * @param principals
+         * @param userNodePath used to check for user self-edits and events that
+         *        modify the membership of the user or group administrators; null
+         *        if user is not an ItemBasedPrincipal
+         * @throws RepositoryException
+         */
         protected CompiledPermissionsImpl(Set<Principal> principals, String userNodePath) throws RepositoryException {
             this.principals = principals;
             this.userNodePath = userNodePath;
@@ -340,19 +343,20 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         protected Result buildResult(Path path) throws RepositoryException {
             log.debug("Build Result Path Checking {} ",path.getString());
             NodeImpl userNode = null;
-            try {
+            if (userNodePath != null) {
+              try {
                 if (session.nodeExists(userNodePath)) {
                     userNode = (NodeImpl) session.getNode(userNodePath);
                 }
-            } catch (RepositoryException e) {
+              } catch (RepositoryException e) {
                 // ignore
-            }
-
-            if (userNode == null) {
+              }
+              if (userNode == null) {
                 // no Node corresponding to user for which the permissions are
                 // calculated -> no permissions/privileges.
                 log.debug("No node at " + userNodePath);
                 return new Result(Permission.NONE, Permission.NONE, PrivilegeRegistry.NO_PRIVILEGE, PrivilegeRegistry.NO_PRIVILEGE);
+              }
             }
 
             // no explicit denied permissions:
@@ -394,7 +398,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                     // rep:User node or some other custom node below an existing user.
                     // as the authorizable folder doesn't allow other residual
                     // child nodes.
-                    boolean editingOwnUser = node.isSame(userNode);
+                    boolean editingOwnUser = ((userNode != null) && node.isSame(userNode));
                     if (editingOwnUser) {
                         // user can only read && write his own props
                         allows |= (Permission.SET_PROPERTY | Permission.REMOVE_PROPERTY);
@@ -417,12 +421,12 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 - make sure group-admin cannot modify user-admin or administrators
                 - ... and cannot remove itself.
                 */
-              
+
                 // There are 2 protected properties on a group, potentially.
                 // A list of princiapls that are allowed to manage the group, if not present then the default is true.
-                
+
                 // A list of principals that are allowed to read the group, if check that the group is not private
-                // 
+                //
                 boolean isManager = false;
                 boolean isPrivate = false;
                 NodeImpl node = (NodeImpl) getExistingNode(path);
@@ -464,11 +468,11 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                               break;
                             }
                           }
-                          
+
                       }
                   }
                 }
-              
+
                 if (isGroupAdmin || isManager ) {
                     if (!jcrPath.startsWith(administratorsGroupPath) &&
                             !jcrPath.startsWith(userAdminGroupPath)) {
@@ -551,6 +555,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                     String evPath = ev.getPath();
                     String repMembers = session.getJCRName(UserConstants.P_MEMBERS);
                     if (repMembers.equals(Text.getName(evPath))) {
+                      if (userNodePath != null) {
                         // recalculate the is...Admin flags
                         Node userNode = session.getNode(userNodePath);
                         String nodePath = Text.getRelativeParent(evPath, 1);
@@ -575,6 +580,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                         clearCache();
                         // only need to clear the cache once. stop processing
                         break;
+                      }
                     }
                 } catch (RepositoryException e) {
                     // should never get here
@@ -587,7 +593,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
     /**
      * @param property
      * @return
-     * @throws RepositoryException 
+     * @throws RepositoryException
      */
     public Value[] getValues(Property property) throws RepositoryException {
       if ( property == null ) {
