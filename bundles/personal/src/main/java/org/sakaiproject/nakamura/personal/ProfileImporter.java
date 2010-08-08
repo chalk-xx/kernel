@@ -58,6 +58,10 @@ public class ProfileImporter {
     public boolean isIgnoredImportProvider(String extension) {
       return false;
     }
+    @Override
+    public boolean isPropertyOverwrite() {
+      return false;
+    }
   };
 
   public static void importFromAuthorizable(Node profileNode, Authorizable authorizable, ContentImporter contentImporter,

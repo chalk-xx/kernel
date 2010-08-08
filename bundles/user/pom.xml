@@ -55,6 +55,10 @@
             <Export-Package> org.sakaiproject.nakamura.api.user </Export-Package>
             <Private-Package> org.sakaiproject.nakamura.user.*,
               org.apache.sling.jackrabbit.usermanager.* </Private-Package>
+            <Embed-Dependency>
+              org.apache.sling.servlets.post;inline="org/apache/sling/servlets/post/impl/helper/RequestProperty*
+                  |org/apache/sling/servlets/post/impl/helper/DateParser*"
+            </Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
