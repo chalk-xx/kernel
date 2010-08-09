@@ -17,7 +17,7 @@ Before we run `do_release.sh` we use `deploy-snapshots.sh` to convert all of our
 
     ./tools/deploy-snapshots.sh `date +"%Y%m%d"`
     
-The convention is to run all the release scripts from nakamura's base directory. When `deploy-snapshots.sh` is finished, you'll have a tarball of the modified dependencies in a file called `repo.tgz`. When you run the `do_release.sh` script, it will clear out the nakamura and sling portions of your local repository and load them up from the tarball.
+The convention is to run all the release scripts from nakamura's base directory. When `deploy-snapshots.sh` is finished, you'll have a tarball of the modified dependencies in a file called `repo.tgz`. When you run the `do_release.sh` script, it will clear out the nakamura and sling portions of your local repository and load them up from the tarball. When the release script completes successfully, you will want to deploy these artifacts to Sakai's public maven repository at http://source.sakaiproject.org/maven2/
     
 The next step is to change any of the references to SNAPSHOT dependencies in any of our `pom.xml` or `list.xml` files from "SNAPSHOT" to the version number we just generated. There isn't yet a script to do this part.
 
@@ -28,6 +28,8 @@ When we run `do_release.sh`, we pass it the current nakamura version number, the
     ./tools/do_release.sh 0.7 0.8 RC1
     
 If something goes wrong, like a build failure, use `git checkout .` to revert the changes that the release script has just made. Fix whatever broke the build (it's probably going to be something missing from your maven repo), remove `last-release/stage1` or `last-release/stage2` if they're there, and run it again. If everything goes well, you'll have a new, signed tag in git.
+
+Before pushing to any remotes, you will want to go through the `pom.xml` and `list.xml` files that you modified with today's date and restore them to "SNAPSHOT" versions. This will ensure that the mainline will continue to use SNAPSHOTs and will not experience any disruption.
 
 If you want to push a tag to a remote server, you need to add a flag to git's push command:
 
