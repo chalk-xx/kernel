@@ -146,7 +146,7 @@ public class SakaiAuthorizableResourceProviderTest extends AbstractEasyMockTest 
     replay();
     try {
       SakaiAuthorizableResourceProvider srp = new SakaiAuthorizableResourceProvider();
-      Resource resource = srp.getResource(resourceResolver,
+      srp.getResource(resourceResolver,
           SakaiAuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
               + "g-course101");
       Assert.fail();

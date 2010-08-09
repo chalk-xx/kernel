@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "//element(*, nt:file)[(jcr:contains(., '{q}') or jcr:contains(jcr:content, '{q}')){_tags}{_usedin}]{_order}",
+  "sakai:query-template": "//element(*, nt:file)[(jcr:contains(., '{q}') or jcr:contains(jcr:content, '{q}')){_tags}{_usedin}] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:batchresultprocessor": "Files",
   "sakai:propertyprovider": "Files",

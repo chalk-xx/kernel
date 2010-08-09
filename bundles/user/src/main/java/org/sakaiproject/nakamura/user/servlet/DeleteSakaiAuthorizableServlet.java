@@ -39,11 +39,13 @@ import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -146,7 +148,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
       List<Modification> changes) throws RepositoryException {
 
     Iterator<Resource> res = getApplyToResources(request);
-    List<Authorizable> authorizables = new ArrayList<Authorizable>();
+    Map<String, Boolean> authorizables = new HashMap<String, Boolean>();
     if (res == null) {
         Resource resource = request.getResource();
         Authorizable item = resource.adaptTo(Authorizable.class);
@@ -156,7 +158,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND, msg);
             throw new ResourceNotFoundException(msg);
         }
-        authorizables.add(item);
+        authorizables.put(item.getID(), item.isGroup());
         changes.add(Modification.onDeleted(resource.getPath()));
     } else {
         while (res.hasNext()) {
@@ -164,8 +166,8 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
             Authorizable item = resource.adaptTo(Authorizable.class);
             if (item != null) {
                 changes.add(Modification.onDeleted(resource.getPath()));
+                authorizables.put(item.getID(), item.isGroup());
             }
-            authorizables.add(item);
         }
     }
     int endOfChanges = changes.size();
@@ -184,12 +186,12 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
       }
 
       // Launch an OSGi event for each authorizable.
-      for (Authorizable au : authorizables) {
+      for (Entry<String, Boolean> entry : authorizables.entrySet()) {
         try {
           Dictionary<String, String> properties = new Hashtable<String, String>();
-          properties.put(UserConstants.EVENT_PROP_USERID, au.getID());
+          properties.put(UserConstants.EVENT_PROP_USERID, entry.getKey());
           String topic = UserConstants.TOPIC_USER_DELETED;
-          if (au.isGroup()) {
+          if (entry.getValue()) {
             topic = UserConstants.TOPIC_GROUP_DELETED;
           }
           EventUtils.sendOsgiEvent(properties, topic, eventAdmin);

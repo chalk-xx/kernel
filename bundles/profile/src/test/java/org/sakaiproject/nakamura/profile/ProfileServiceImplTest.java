@@ -66,7 +66,6 @@ public class ProfileServiceImplTest {
     MockitoAnnotations.initMocks(this);
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void testLoadProfile() throws Exception {
 
@@ -117,6 +116,7 @@ public class ProfileServiceImplTest {
    * @throws ExecutionException
    * @throws InterruptedException
    */
+  @SuppressWarnings("unchecked")
   public ProfileService setupProfileService() throws RepositoryException,
       InterruptedException, ExecutionException {
     ProfileServiceImpl ps = new ProfileServiceImpl();
@@ -129,7 +129,7 @@ public class ProfileServiceImplTest {
     Mockito.when(nodeIterator.nextNode()).thenReturn(normal, external, normal2, normal,
         external, normal2);
 
-    ExternalNodeConfig externalNodeConfig = ExternalNodeConfig.configExternal(external,
+    ExternalNodeConfig.configExternal(external,
         "externalNode", "", "externalNodeProvider", "/var/profile/config/ldap");
     Mockito.when(baseNode.getPath()).thenReturn("/_user/i/ie/ieb/profile");
     Mockito.when(baseNode.getName()).thenReturn("profile");

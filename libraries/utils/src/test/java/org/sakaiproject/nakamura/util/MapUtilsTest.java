@@ -1,16 +1,16 @@
 package org.sakaiproject.nakamura.util;
 
-import static org.junit.Assert.*;
-
-import java.util.Map;
-
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.ImmutableMap;
 
+import org.junit.Test;
+
+import java.util.Map;
+
 public class MapUtilsTest {
 
-  @SuppressWarnings("unchecked")
   @Test
   public void testConvertToImmutableMap() {
     String s = "Lorem=ipsum; dolor = sit ;amet=.";

@@ -36,9 +36,4 @@ public interface AuthorizablePostProcessor {
   void process(Authorizable authorizable, Session session, Modification change)
       throws Exception;
 
-  /**
-   * @return the sequence in which this should be invoked 0 is first.
-   */
-  int getSequence();
-
 }

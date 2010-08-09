@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_path}//*[@sling:resourceType=\"sakai/message\" and @sakai:type=\"discussion\" and @sakai:sendstate=\"notified\" and @sakai:initialpost=\"true\"]",
+  "sakai:query-template": "/{_path}//*[@sling:resourceType=\"sakai/message\" and @sakai:type=\"discussion\" and @sakai:sendstate=\"notified\" and @sakai:initialpost=\"true\"] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Message",
   "sakai:propertyprovider": "DiscussionInitialPost",

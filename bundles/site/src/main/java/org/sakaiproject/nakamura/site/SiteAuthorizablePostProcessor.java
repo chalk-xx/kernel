@@ -87,16 +87,6 @@ public class SiteAuthorizablePostProcessor implements AuthorizablePostProcessor 
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#getSequence()
-   */
-  public int getSequence() {
-    // Should get executed AFTER the PersonalAuthorizablePostProcessor!
-    return 100;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
    * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#process(org.apache.jackrabbit.api.security.user.Authorizable,
    *      javax.jcr.Session, org.apache.sling.servlets.post.Modification)
    */

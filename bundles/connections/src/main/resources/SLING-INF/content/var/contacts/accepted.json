@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "/jcr:root/{_connectionstore}//*[@sling:resourceType=\"sakai/contact\" and @sakai:state=\"ACCEPTED\"]",
+  "sakai:query-template": "/jcr:root/{_connectionstore}//*[@sling:resourceType=\"sakai/contact\" and @sakai:state=\"ACCEPTED\"] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "Connection",
   "sakai:resultprocessor": "Connection",

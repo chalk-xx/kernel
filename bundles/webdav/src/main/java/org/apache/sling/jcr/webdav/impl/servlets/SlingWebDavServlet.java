@@ -18,11 +18,6 @@
  */
 package org.apache.sling.jcr.webdav.impl.servlets;
 
-import javax.jcr.Repository;
-import javax.jcr.Session;
-import javax.servlet.Servlet;
-import javax.servlet.ServletException;
-
 import org.apache.jackrabbit.server.SessionProvider;
 import org.apache.jackrabbit.webdav.DavException;
 import org.apache.jackrabbit.webdav.DavLocatorFactory;
@@ -43,6 +38,11 @@ import org.sakaiproject.nakamura.webdav.SlingLocatorMapper;
 
 import java.io.IOException;
 
+import javax.jcr.Repository;
+import javax.jcr.Session;
+import javax.servlet.Servlet;
+import javax.servlet.ServletException;
+
 /**
  * The <code>SlingWebDavServlet</code> implements the WebDAV protocol as a
  * default servlet for Sling handling all WebDAV methods.
@@ -58,6 +58,8 @@ import java.io.IOException;
  * @scr.property name="sling.servlet.methods" value="*" private="true"
  */
 public class SlingWebDavServlet extends SimpleWebdavServlet {
+
+  private static final long serialVersionUID = -4040977006826590912L;
 
     /** @scr.property valueRef="DEFAULT_CONTEXT" */
     public static final String PROP_CONTEXT = "dav.root";

@@ -24,13 +24,13 @@ import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
 import org.apache.sling.jackrabbit.usermanager.impl.post.AbstractUserPostServlet;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
+import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.auth.trusted.RequestTrustValidator;
@@ -328,7 +328,11 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
         Session selfRegSession = null;
         try {
           selfRegSession = getSession();
-          User user = sakaiAuthorizableService.createUser(principalName, digestPassword(pwd), selfRegSession);
+          UserManager userManager = AccessControlUtil.getUserManager(selfRegSession);
+          User user = userManager.createUser(principalName,
+              digestPassword(pwd));
+          log.info("User {} created", user.getID());
+
           String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX + user.getID();
           Map<String, RequestProperty> reqProperties = collectContent(
               request, response, userPath);
@@ -342,6 +346,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
           if (selfRegSession.hasPendingChanges()) {
             selfRegSession.save();
           }
+          sakaiAuthorizableService.postprocess(user, selfRegSession);
 
           // Launch an OSGi event for creating a user.
           try {

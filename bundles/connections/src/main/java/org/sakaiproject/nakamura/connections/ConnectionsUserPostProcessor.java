@@ -53,7 +53,8 @@ import javax.jcr.Session;
 @Component(immediate = true, description = "Post Processor for User and Group operations to create a connection store", label = "ConnectionsAuthorizablePostProcessor")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Post Processes User and Group operations") })
+    @Property(name = "service.description", value = "Post Processes User and Group operations"),
+    @Property(name = "service.ranking", intValue=10)})
 @Service(value = AuthorizablePostProcessor.class)
 public class ConnectionsUserPostProcessor implements AuthorizablePostProcessor {
 
@@ -113,14 +114,5 @@ public class ConnectionsUserPostProcessor implements AuthorizablePostProcessor {
       um.createGroup(p);
     }
   }
-
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#getSequence()
-   */
-  public int getSequence() {
-    return 10;
-  }
-
 
 }

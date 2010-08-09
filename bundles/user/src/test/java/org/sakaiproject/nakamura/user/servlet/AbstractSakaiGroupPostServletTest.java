@@ -18,9 +18,7 @@
 package org.sakaiproject.nakamura.user.servlet;
 
 import static org.junit.Assert.assertEquals;
-
 import static org.junit.Assert.assertTrue;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -38,7 +36,6 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 
 import java.util.List;
 
-import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;

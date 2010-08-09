@@ -17,9 +17,8 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWERS;
-
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGERS;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWERS;
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -28,10 +27,10 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -90,11 +89,11 @@ import javax.servlet.http.HttpServletResponse;
  * <dd>Failure</dd>
  * </dl>
  * <h4>Example</h4>
- * 
+ *
  * <code>
  * curl -Fprop1=value2 -Fproperty1=value1 http://localhost:8080/system/userManager/group/testGroup.update.html
  * </code>
- * 
+ *
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" values="sling/group"
@@ -105,7 +104,7 @@ import javax.servlet.http.HttpServletResponse;
  *               values.1="yyyy-MM-dd'T'HH:mm:ss.SSSZ" values.2="yyyy-MM-dd'T'HH:mm:ss"
  *               values.3="yyyy-MM-dd" values.4="dd.MM.yyyy HH:mm:ss"
  *               values.5="dd.MM.yyyy"
- * 
+ *
  */
 @ServiceDocumentation(name = "Update Group Servlet", description = "Updates a group's properties. Maps on to nodes of resourceType sling/group "
     + "like /rep:system/rep:userManager/rep:groups/ae/3f/ed/groupname mapped to a resource "
@@ -139,21 +138,21 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
 
   /**
    * The post processor service.
-   * 
+   *
    * @scr.reference
    */
   protected transient AuthorizablePostProcessService postProcessorService;
-  
+
   /**
    * The JCR Repository we access to resolve resources
-   * 
+   *
    * @scr.reference
    */
   private transient SlingRepository repository;
 
   /**
    * Used to launch OSGi events.
-   * 
+   *
    * @scr.reference
    */
   protected transient EventAdmin eventAdmin;
@@ -165,7 +164,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.jackrabbit.usermanager.post.CreateUserServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */

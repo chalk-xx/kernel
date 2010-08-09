@@ -67,7 +67,7 @@ public class SakaiPersistenceProviderImpl extends PersistenceProvider implements
   
   
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override
   protected EntityManagerFactory createEntityManagerFactory(String emName,
       Map properties, ClassLoader classLoader) {
