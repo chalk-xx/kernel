@@ -1,12 +1,13 @@
 This directory contains some scripts
 
-upload.py uploads diffs to codereview.appspot.com for review
-clean_restart.sh rebuilds a list of bundles specified on the command line, 
-                 rebuilds the application, cleans the previous start and 
-                 restarts the app server.
-                 if the list of bundles starts with 'all' it will do a full build.	
-rebundle.sh rebundles a list of bundles, rebuilding the app
-runalltests.sh will search for all testall.sh scripts and run them.
+`upload.py` uploads diffs to http://codereview.appspot.com for review
+
+`clean_restart.sh` rebuilds a list of bundles specified on the command line, rebuilds the application, cleans the previous start and restarts the app server. if the list of bundles starts with 'all' it will do a full build.	
+
+`rebundle.sh` rebundles a list of bundles, rebuilding the app
+
+`runalltests.sh` will search for all `testall.sh` scripts and run them.
+
 
 Doing a Release
 ===============
@@ -22,7 +23,7 @@ The next step is to change any of the references to SNAPSHOT dependencies in any
 
 Once the version numbers are taken care of, use git to remove `last-release/stage1` and `last-release/stage2`. `stage1` tells the release script that the build has completed succssfully, and `stage2` tells the release script that the integration tests have passed successfully. Do one last commit to the repository and make sure you don't have anything running on port 8080. A note about tools: running `do_release.sh` will use a number of standard Unix commands, but it will also run the integration tests, for which you'll need Ruby and several optional libraries (rubygems, json, and curb). You'll need `git` for the automatic tagging and committing, and you'll need [gpg](http://www.gnupg.org/), with a private key installed, for git's tag-signing feature.
 
-When we run `do_release.sh`, we pass it the current version number, the next version number and (optionally) an RC suffix if this is going to be a release candidate:
+When we run `do_release.sh`, we pass it the current nakamura version number, the next version number and (optionally) an RC suffix if this is going to be a release candidate:
 
     ./tools/do_release.sh 0.7 0.8 RC1
     
