@@ -17,11 +17,10 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
-import static org.mockito.Mockito.verify;
-
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.apache.jackrabbit.JcrConstants;
@@ -112,8 +111,8 @@ public class FilesUtilsTest {
     fooProp.setValue("bar");
     List<Property> propertyList = new ArrayList<Property>();
     propertyList.add(fooProp);
-    MockPropertyIterator propertyIterator = new MockPropertyIterator(propertyList
-        .iterator());
+    MockPropertyIterator propertyIterator = new MockPropertyIterator(
+        propertyList.iterator());
 
     when(node.getProperties()).thenReturn(propertyIterator);
     when(node.hasNode("jcr:content")).thenReturn(true);
