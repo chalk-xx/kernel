@@ -34,6 +34,7 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.files.pool.CreateContentPoolServlet;
 import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
@@ -48,6 +49,7 @@ import java.util.List;
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
@@ -132,7 +134,7 @@ public class FileUtils {
 
     // Create the link
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
-    if ( !"sling:Folder".equals(linkNode.getPrimaryNodeType().getName()) ) {
+    if (!"sling:Folder".equals(linkNode.getPrimaryNodeType().getName())) {
       // sling folder allows single and multiple properties, no need for the mixin.
       linkNode.addMixin(REQUIRED_MIXIN);
     }
@@ -267,7 +269,7 @@ public class FileUtils {
    * @throws RepositoryException
    * @throws JSONException
    */
-  @SuppressWarnings(justification="Need to trap subsystem errors ",value={"REC_CATCH_EXCEPTION"})
+  @SuppressWarnings(justification = "Need to trap subsystem errors ", value = { "REC_CATCH_EXCEPTION" })
   private static void getSites(Node node, JSONWriter write, SiteService siteService)
       throws RepositoryException, JSONException {
 
@@ -302,7 +304,8 @@ public class FileUtils {
     } catch (Exception e) {
       // We ignore every exception it has when looking up sites.
       // it is dirty ..
-      log.info("Catched exception when looking up used sites for a file. "+e.getMessage());
+      log.info("Catched exception when looking up used sites for a file. "
+          + e.getMessage());
     }
     write.endArray();
     write.key("total");
@@ -357,7 +360,7 @@ public class FileUtils {
    */
   public static void addTag(Session adminSession, Node fileNode, Node tagNode)
       throws RepositoryException {
-    if ( tagNode == null || fileNode == null ) {
+    if (tagNode == null || fileNode == null) {
       throw new RuntimeException(
           "Cant tag non existant nodes, sorry, both must exist prior to tagging. File:"
               + fileNode + " Node To Tag:" + tagNode);
@@ -384,4 +387,54 @@ public class FileUtils {
         PropertyType.STRING);
 
   }
+
+  /**
+   * Resolves a Node given one of three possible passed parameters: 1) A fully qualified
+   * path to a Node (e.g. "/foo/bar/baz"), 2) a Node's UUID, or 3) the PoolId from a
+   * ContentPool.
+   * 
+   * @param pathOrIdentifier
+   *          One of three possible parameters: 1) A fully qualified path to a Node (e.g.
+   *          "/foo/bar/baz"), 2) a Node's UUID, or 3) the PoolId from a ContentPool.
+   * @param session
+   * @return If the Node cannot be resolved, <code>null</code> will be returned.
+   * @throws IllegalArgumentException
+   */
+  public static Node resolveNode(final String pathOrIdentifier, final Session session) {
+    if (pathOrIdentifier == null || "".equals(pathOrIdentifier)) {
+      throw new IllegalArgumentException("Passed argument was null or empty");
+    }
+    if (session == null) {
+      throw new IllegalArgumentException("Session cannot be null");
+    }
+    Node node = null;
+    try {
+      if (pathOrIdentifier.startsWith("/")) { // it is a path specification
+        node = session.getNode(pathOrIdentifier);
+      } else {
+        // assume we have a UUID and try to resolve
+        node = session.getNodeByIdentifier(pathOrIdentifier);
+      }
+    } catch (PathNotFoundException e) {
+      // Normal execution path - ignore
+    } catch (ItemNotFoundException e) {
+      // Normal execution path - ignore
+    } catch (Throwable e) {
+      log.error(e.getLocalizedMessage(), e);
+    }
+    if (node == null) {
+      // must not have been a UUID; resolve via poolId
+      try {
+        // 
+        final String poolPath = CreateContentPoolServlet.hash(pathOrIdentifier);
+        node = session.getNode(poolPath);
+      } catch (PathNotFoundException e) {
+        // Normal execution path - ignore
+      } catch (Throwable e) {
+        log.error(e.getLocalizedMessage(), e);
+      }
+    }
+    return node;
+  }
+
 }

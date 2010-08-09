@@ -17,12 +17,15 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
-import static org.mockito.Mockito.verify;
-
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.startsWith;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.sakaiproject.nakamura.api.files.FileUtils.resolveNode;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.commons.json.JSONException;
@@ -45,7 +48,9 @@ import java.util.Calendar;
 import java.util.List;
 
 import javax.jcr.AccessDeniedException;
+import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -112,8 +117,8 @@ public class FilesUtilsTest {
     fooProp.setValue("bar");
     List<Property> propertyList = new ArrayList<Property>();
     propertyList.add(fooProp);
-    MockPropertyIterator propertyIterator = new MockPropertyIterator(propertyList
-        .iterator());
+    MockPropertyIterator propertyIterator = new MockPropertyIterator(
+        propertyList.iterator());
 
     when(node.getProperties()).thenReturn(propertyIterator);
     when(node.hasNode("jcr:content")).thenReturn(true);
@@ -215,6 +220,87 @@ public class FilesUtilsTest {
     assertEquals("11", o.get("member-count"));
     assertEquals(siteNode.getPath(), o.get("jcr:path"));
 
+  }
+
+  @Test
+  public void testResolveNode() throws RepositoryException {
+    Session session = mock(Session.class);
+
+    // test IllegalArgumentException for null pathOrIdentifier
+    try {
+      @SuppressWarnings("unused")
+      Node node = resolveNode(null, session);
+    } catch (IllegalArgumentException e) {
+      assertNotNull(
+          "IllegalArgumentException should be thrown for null pathOrIdentifier", e);
+    }
+
+    // test IllegalArgumentException for empty pathOrIdentifier
+    try {
+      @SuppressWarnings("unused")
+      Node node = resolveNode("", session);
+    } catch (IllegalArgumentException e) {
+      assertNotNull(
+          "IllegalArgumentException should be thrown for empty pathOrIdentifier", e);
+    }
+
+    // test IllegalArgumentException for null Session
+    try {
+      @SuppressWarnings("unused")
+      Node node = resolveNode("/foo", null);
+    } catch (IllegalArgumentException e) {
+      assertNotNull("IllegalArgumentException should be thrown for null Session", e);
+    }
+
+    // test path not found (i.e. fully qualified path use case)
+    when(session.getNode(anyString())).thenThrow(new PathNotFoundException());
+    try {
+      Node node = resolveNode("/foo/bar", session);
+      assertEquals("Node should resolve to null", node, null);
+    } catch (Throwable e) {
+      assertEquals("No exception should be thrown for PathNotFoundException", e, null);
+    }
+
+    // test item not found (i.e. uuid or poolId use case)
+    when(session.getNodeByIdentifier(anyString())).thenThrow(new ItemNotFoundException());
+    try {
+      Node node = resolveNode("UUID1234", session);
+      assertEquals("Node should resolve to null", node, null);
+    } catch (Throwable e) {
+      assertEquals("No exception should be thrown for ItemNotFoundException", e, null);
+    }
+
+    // test path found fully qualified
+    session = mock(Session.class);
+    Node fullyQualifiedNode = mock(Node.class, "fullyQualifiedNode");
+    when(session.getNode(startsWith("/"))).thenReturn(fullyQualifiedNode);
+    try {
+      Node node = resolveNode("/should/exist", session);
+      assertEquals("Node should resolve to modelNode", node, fullyQualifiedNode);
+    } catch (Throwable e) {
+      assertEquals("No exception should be thrown", e, null);
+    }
+
+    // test path found UUID
+    Node uuidNode = mock(Node.class, "uuidNode");
+    when(session.getNodeByIdentifier("UUID1234")).thenReturn(uuidNode);
+    try {
+      Node node = resolveNode("UUID1234", session);
+      assertEquals("Node should resolve to modelNode", node, uuidNode);
+    } catch (Throwable e) {
+      assertEquals("No exception should be thrown", e, null);
+    }
+
+    // test path found poolId
+    Node poolIdNode = mock(Node.class, "poolIdNode");
+    // see CreateContentPoolServlet.generatePoolId() method
+    when(session.getNode("/_p/k/dg/dd/nr/poolId1234")).thenReturn(poolIdNode);
+    try {
+      Node node = resolveNode("poolId1234", session);
+      assertEquals("Node should resolve to modelNode", node, poolIdNode);
+    } catch (Throwable e) {
+      assertEquals("No exception should be thrown", e, null);
+    }
   }
 
 }
