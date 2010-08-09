@@ -53,7 +53,6 @@ install "org.apache.sling.commons.testing" "2.0.5" $version
 install "org.apache.sling.jcr.jackrabbit.usermanager" "2.0.5" $version
 install "org.apache.sling.httpauth" "2.0.5" $version
 install "org.apache.sling.servlets.post" "2.0.5" $version
-install "org.apache.sling.launchpad.base" "2.2.1" $version
 install "org.apache.sling.launchpad.content" "2.0.5" $version
 install "org.apache.sling.commons.json" "2.0.5" $version
 install "org.apache.sling.jcr.jackrabbit.accessmanager" "2.0.5" $version
