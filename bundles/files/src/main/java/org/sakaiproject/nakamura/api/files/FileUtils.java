@@ -132,7 +132,7 @@ public class FileUtils {
 
     // Create the link
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
-    if ( !"sling:Folder".equals(linkNode.getPrimaryNodeType().getName()) ) {
+    if (!"sling:Folder".equals(linkNode.getPrimaryNodeType().getName())) {
       // sling folder allows single and multiple properties, no need for the mixin.
       linkNode.addMixin(REQUIRED_MIXIN);
     }
@@ -267,7 +267,7 @@ public class FileUtils {
    * @throws RepositoryException
    * @throws JSONException
    */
-  @SuppressWarnings(justification="Need to trap subsystem errors ",value={"REC_CATCH_EXCEPTION"})
+  @SuppressWarnings(justification = "Need to trap subsystem errors ", value = { "REC_CATCH_EXCEPTION" })
   private static void getSites(Node node, JSONWriter write, SiteService siteService)
       throws RepositoryException, JSONException {
 
@@ -302,7 +302,8 @@ public class FileUtils {
     } catch (Exception e) {
       // We ignore every exception it has when looking up sites.
       // it is dirty ..
-      log.info("Catched exception when looking up used sites for a file. "+e.getMessage());
+      log.info("Catched exception when looking up used sites for a file. "
+          + e.getMessage());
     }
     write.endArray();
     write.key("total");
@@ -357,7 +358,7 @@ public class FileUtils {
    */
   public static void addTag(Session adminSession, Node fileNode, Node tagNode)
       throws RepositoryException {
-    if ( tagNode == null || fileNode == null ) {
+    if (tagNode == null || fileNode == null) {
       throw new RuntimeException(
           "Cant tag non existant nodes, sorry, both must exist prior to tagging. File:"
               + fileNode + " Node To Tag:" + tagNode);
