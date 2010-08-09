@@ -38,7 +38,14 @@
                 <artifactId>org.sakaiproject.nakamura.app</artifactId>
                 <version>${nakamura.version}</version>
               </defaultBundleList>
+              <jarWebSupport>
+                <groupId>org.sakaiproject.nakamura</groupId>
+                <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
+                <version>${nakamura.version}</version>
+                <startLevel>5</startLevel>
+              </jarWebSupport>
               <additionalBundles>
+                <!-- contrib bundles -->
                 <bundle>
                   <groupId>org.sakaiproject.nakamura</groupId>
                   <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
@@ -77,13 +84,8 @@
                   <version>${ux.version}</version>
                   <startLevel>30</startLevel>
                 </bundle>
+                <!-- sandbox bundles -->
               </additionalBundles>
-              <jarWebSupport>
-                <groupId>org.sakaiproject.nakamura</groupId>
-                <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
-                <version>${nakamura.version}</version>
-                <startLevel>5</startLevel>
-              </jarWebSupport>
             </configuration>
           </execution>
         </executions>
