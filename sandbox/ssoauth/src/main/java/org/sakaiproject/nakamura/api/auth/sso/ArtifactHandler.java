@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface ArtifactHandler {
   String HANDLER_NAME = "sakai.auth.sso.name";
+  String DEFAULT_HANDLER = "sakai.auth.sso.handler.default";
 
   String LOGIN_URL = "sakai.auth.sso.url.login";
   String LOGOUT_URL = "sakai.auth.sso.url.logout";

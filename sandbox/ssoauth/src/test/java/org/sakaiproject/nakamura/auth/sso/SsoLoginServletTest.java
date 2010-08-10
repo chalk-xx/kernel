@@ -17,11 +17,20 @@
  */
 package org.sakaiproject.nakamura.auth.sso;
 
+import static junit.framework.Assert.assertEquals;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sakaiproject.nakamura.api.auth.sso.SsoAuthConstants;
 
 /**
  *
@@ -33,13 +42,71 @@ public class SsoLoginServletTest {
   @Mock
   SsoAuthenticationHandler handler;
 
+  @Mock
+  SlingHttpServletRequest request;
+
+  @Mock
+  SlingHttpServletResponse response;
+
   @Before
   public void setUp() {
+    // here to make coverage 100%
+    new SsoLoginServlet();
+
     servlet = new SsoLoginServlet(handler);
   }
 
   @Test
-  public void test() throws Exception {
+  public void requestCredentials() throws Exception {
+    servlet.service(request, response);
+    verify(handler).requestCredentials(request, response);
+  }
 
+  @Test
+  public void redirectWithoutTarget() throws Exception {
+    when(request.getAuthType()).thenReturn(SsoAuthConstants.SSO_AUTH_TYPE);
+
+    ArgumentCaptor<String> redirectCaptor = ArgumentCaptor.forClass(String.class);
+
+    when(handler.getReturnPath(request)).thenReturn(null);
+    servlet.service(request, response);
+
+    verify(response).sendRedirect(redirectCaptor.capture());
+    verify(handler, Mockito.never()).requestCredentials(request, response);
+
+    assertEquals("null/", redirectCaptor.getValue());
+  }
+
+  @Test
+  public void redirectWithTarget() throws Exception {
+    when(request.getAuthType()).thenReturn(SsoAuthConstants.SSO_AUTH_TYPE);
+
+    ArgumentCaptor<String> redirectCaptor = ArgumentCaptor.forClass(String.class);
+
+    when(request.getRequestURI()).thenReturn("someURI");
+    when(handler.getReturnPath(request)).thenReturn("greatplace");
+    servlet.service(request, response);
+
+    verify(response).sendRedirect(redirectCaptor.capture());
+    verify(handler, Mockito.never()).requestCredentials(request, response);
+
+    assertEquals("greatplace", redirectCaptor.getValue());
+  }
+
+  @Test
+  public void redirectWithTargetEqualsRequestURI() throws Exception {
+    when(request.getAuthType()).thenReturn(SsoAuthConstants.SSO_AUTH_TYPE);
+
+    ArgumentCaptor<String> redirectCaptor = ArgumentCaptor.forClass(String.class);
+
+    when(request.getContextPath()).thenReturn("someContextPath");
+    when(request.getRequestURI()).thenReturn("someURI");
+    when(handler.getReturnPath(request)).thenReturn("someURI");
+    servlet.service(request, response);
+
+    verify(response).sendRedirect(redirectCaptor.capture());
+    verify(handler, Mockito.never()).requestCredentials(request, response);
+
+    assertEquals("someContextPath/", redirectCaptor.getValue());
   }
 }

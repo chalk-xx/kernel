@@ -48,21 +48,21 @@ import javax.xml.stream.events.XMLEvent;
 @Component(configurationFactory = true, policy = ConfigurationPolicy.REQUIRE, metatype = true)
 @Service
 @Properties(value = {
-    @Property(name = ArtifactHandler.LOGIN_URL, value = CasArtifactHandler.LOGIN_URL_DEFAULT),
-    @Property(name = ArtifactHandler.LOGOUT_URL, value = CasArtifactHandler.LOGOUT_URL_DEFAULT),
-    @Property(name = ArtifactHandler.SERVER_URL, value = CasArtifactHandler.SERVER_URL_DEFAULT),
-    @Property(name = CasArtifactHandler.RENEW, boolValue = CasArtifactHandler.RENEW_DEFAULT),
-    @Property(name = CasArtifactHandler.GATEWAY, boolValue = CasArtifactHandler.GATEWAY_DEFAULT)
+    @Property(name = ArtifactHandler.LOGIN_URL, value = CasArtifactHandler.DEFAULT_LOGIN_URL),
+    @Property(name = ArtifactHandler.LOGOUT_URL, value = CasArtifactHandler.DEFAULT_LOGOUT_URL),
+    @Property(name = ArtifactHandler.SERVER_URL, value = CasArtifactHandler.DEFAULT_SERVER_URL),
+    @Property(name = CasArtifactHandler.RENEW, boolValue = CasArtifactHandler.DEFAULT_RENEW),
+    @Property(name = CasArtifactHandler.GATEWAY, boolValue = CasArtifactHandler.DEFAULT_GATEWAY)
 })
 public class CasArtifactHandler implements ArtifactHandler {
   private static final Logger logger = LoggerFactory.getLogger(CasArtifactHandler.class);
 
   //---------- common fields ----------
-  protected static final String LOGIN_URL_DEFAULT = "https://localhost:8443/cas/login";
-  protected static final String LOGOUT_URL_DEFAULT = "https://localhost:8443/cas/logout";
-  protected static final String SERVER_URL_DEFAULT = "https://localhost:8443/cas";
-  protected static final boolean RENEW_DEFAULT = false;
-  protected static final boolean GATEWAY_DEFAULT = false;
+  protected static final String DEFAULT_LOGIN_URL = "https://localhost:8443/cas/login";
+  protected static final String DEFAULT_LOGOUT_URL = "https://localhost:8443/cas/logout";
+  protected static final String DEFAULT_SERVER_URL = "https://localhost:8443/cas";
+  protected static final boolean DEFAULT_RENEW = false;
+  protected static final boolean DEFAULT_GATEWAY = false;
   protected static final String VALIDATE_URL_TMPL = "%s/serviceValidate?%s=%s";
   protected static final String LOGIN_URL_TMPL = "%s?service=%s";
 
@@ -71,10 +71,10 @@ public class CasArtifactHandler implements ArtifactHandler {
   private String serverUrl = null;
 
   // ---------- CAS specific fields ----------
-  static final String RENEW = "auth.sso.prop.renew";
+  static final String RENEW = "sakai.auth.sso.cas.prop.renew";
   private boolean renew;
 
-  static final String GATEWAY = "auth.sso.prop.gateway";
+  static final String GATEWAY = "sakai.auth.sso.cas.prop.gateway";
   private boolean gateway;
 
   @Activate
@@ -88,12 +88,12 @@ public class CasArtifactHandler implements ArtifactHandler {
   }
 
   protected void init(Map<?, ?> props) {
-    loginUrl = OsgiUtil.toString(props.get(LOGIN_URL), LOGIN_URL_DEFAULT);
-    logoutUrl = OsgiUtil.toString(props.get(LOGOUT_URL), LOGOUT_URL_DEFAULT);
-    serverUrl = OsgiUtil.toString(props.get(SERVER_URL), SERVER_URL_DEFAULT);
+    loginUrl = OsgiUtil.toString(props.get(LOGIN_URL), DEFAULT_LOGIN_URL);
+    logoutUrl = OsgiUtil.toString(props.get(LOGOUT_URL), DEFAULT_LOGOUT_URL);
+    serverUrl = OsgiUtil.toString(props.get(SERVER_URL), DEFAULT_SERVER_URL);
 
-    renew = OsgiUtil.toBoolean(props.get(RENEW), RENEW_DEFAULT);
-    gateway = OsgiUtil.toBoolean(props.get(GATEWAY), GATEWAY_DEFAULT);
+    renew = OsgiUtil.toBoolean(props.get(RENEW), DEFAULT_RENEW);
+    gateway = OsgiUtil.toBoolean(props.get(GATEWAY), DEFAULT_GATEWAY);
   }
 
   /**
@@ -172,7 +172,13 @@ public class CasArtifactHandler implements ArtifactHandler {
           if ("authenticationSuccess".equalsIgnoreCase(startElLocalName)) {
             // skip the user tag start
             event = eventReader.nextEvent();
-            // move on to the body of the tag
+            assert event.isStartElement();
+
+            // move on to the start of the user tag
+            event = eventReader.nextEvent();
+            assert event.isStartElement();
+
+            // move on to the body of the user tag
             event = eventReader.nextEvent();
             assert event.isCharacters();
             Characters chars = event.asCharacters();
@@ -190,14 +196,6 @@ public class CasArtifactHandler implements ArtifactHandler {
           + ", message=" + failureMessage);
     }
     return username;
-//      // TODO parse response from server to get credentials
-//      Assertion a = sv.validate(artifact, serverUrl);
-//
-//      request.getSession().setAttribute(CONST_CAS_ASSERTION, a);
-//      authnInfo = createAuthnInfo(a);
-//    } catch (TicketValidationException e) {
-//      LOGGER.error(e.getMessage());
-//    }
   }
 
   /**

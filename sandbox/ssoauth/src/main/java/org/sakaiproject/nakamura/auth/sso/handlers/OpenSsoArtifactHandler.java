@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.auth.sso.handlers;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.ConfigurationPolicy;
@@ -63,9 +62,12 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
   public static final String DEFAULT_ATTRIBUTE_NAME = "uid";
 
   protected static final String DEFAULT_HANDLER_NAME = "openSso";
-  protected static final String VALIDATE_URL_TMPL = "${server}/identity/isTokenValid?tokenid=${token}";
-  protected static final String LOGIN_URL_TMPL = "${server}?goto=${service}";
-  protected static final String ATTRS_URL_TMPL = "${server}/identity/attributes?attributes_names=${attribute}&subjectid=${subject}";
+//  protected static final String VALIDATE_URL_TMPL = "${server}/identity/isTokenValid?tokenid=${token}";
+//  protected static final String LOGIN_URL_TMPL = "${server}?goto=${service}";
+//  protected static final String ATTRS_URL_TMPL = "${server}/identity/attributes?attributes_names=${attribute}&subjectid=${subject}";
+  protected static final String VALIDATE_URL_TMPL = "%s/identity/isTokenValid?tokenid=%s";
+  protected static final String LOGIN_URL_TMPL = "%s?goto=%s";
+  protected static final String ATTRS_URL_TMPL = "%s/identity/attributes?attributes_names=%s&subjectid=%s";
   protected static final String USRDTLS_ATTR_NAME_STUB = "userdetails.attribute.name=";
   protected static final String USRDTLS_ATTR_VAL_STUB = "userdetails.attribute.value=";
 
@@ -79,7 +81,7 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
 
   private String serverUrl;
 
-  static final String ATTRIBUTES_NAMES = "auth.sso.attribute";
+  static final String ATTRIBUTES_NAMES = "sakai.auth.sso.opensso.user.attribute";
   private String attributeName;
 
   @Activate
@@ -174,10 +176,10 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
    *      javax.servlet.http.HttpServletRequest)
    */
   public String getValidateUrl(String artifact, HttpServletRequest request) {
-    String url = StringUtils.replaceEach(VALIDATE_URL_TMPL,
-        new String[] { "server", "token" },
-        new String[] { serverUrl, artifact });
-//    String url = String.format(VALIDATE_URL_TMPL, serverUrl, artifact);
+//    String url = StringUtils.replaceEach(VALIDATE_URL_TMPL,
+//        new String[] { "server", "token" },
+//        new String[] { serverUrl, artifact });
+    String url = String.format(VALIDATE_URL_TMPL, serverUrl, artifact);
     return url;
   }
 

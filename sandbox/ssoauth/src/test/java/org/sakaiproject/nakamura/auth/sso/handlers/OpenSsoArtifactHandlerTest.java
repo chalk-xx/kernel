@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.auth.sso.handlers;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import junit.framework.Assert;
@@ -40,6 +41,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 
 import javax.servlet.http.Cookie;
@@ -63,12 +65,6 @@ public class OpenSsoArtifactHandlerTest {
 
   @Before
   public void setUp() {
-    props.put(ArtifactHandler.LOGIN_URL, OpenSsoArtifactHandler.DEFAULT_LOGIN_URL);
-    props.put(ArtifactHandler.LOGOUT_URL, OpenSsoArtifactHandler.DEFAULT_LOGOUT_URL);
-    props.put(ArtifactHandler.SERVER_URL, OpenSsoArtifactHandler.DEFAULT_SERVER_URL);
-    props.put(OpenSsoArtifactHandler.ATTRIBUTES_NAMES,
-        OpenSsoArtifactHandler.DEFAULT_ATTRIBUTE_NAME);
-
     handler = new OpenSsoArtifactHandler();
     handler.activate(props);
   }
@@ -81,51 +77,48 @@ public class OpenSsoArtifactHandlerTest {
   }
 
   @Test
-  public void getLoginUrl() {
-    String loginUrl = String.format(OpenSsoArtifactHandler.LOGIN_URL_TMPL,
-        OpenSsoArtifactHandler.DEFAULT_LOGIN_URL, SERVICE_URL);
+  public void getLoginUrl() throws Exception {
     String url = handler.getLoginUrl(SERVICE_URL, request);
-    assertEquals(loginUrl, url);
+    new URL(url);
+    assertTrue(url.startsWith(OpenSsoArtifactHandler.DEFAULT_LOGIN_URL));
 
     String otherServer = "http://someotherserver/sso/UI/Login";
     props.put(ArtifactHandler.LOGIN_URL, otherServer);
     handler.modified(props);
 
-
-    loginUrl = String.format(OpenSsoArtifactHandler.LOGIN_URL_TMPL, otherServer,
-        SERVICE_URL);
     url = handler.getLoginUrl(SERVICE_URL, request);
-    assertEquals(loginUrl, url);
+    new URL(url);
+    assertTrue(url.startsWith(otherServer));
   }
 
   @Test
-  public void getValidateUrl() {
-    String validateUrl = String.format(OpenSsoArtifactHandler.VALIDATE_URL_TMPL,
-        OpenSsoArtifactHandler.DEFAULT_SERVER_URL, ARTIFACT);
+  public void getValidateUrl() throws Exception {
     String url = handler.getValidateUrl(ARTIFACT, request);
-    assertEquals(validateUrl, url);
+    new URL(url);
+    assertTrue(url.startsWith(OpenSsoArtifactHandler.DEFAULT_SERVER_URL));
 
     String otherServer = "http://someotherserver";
     props.put(ArtifactHandler.SERVER_URL, otherServer);
     handler.modified(props);
 
-    validateUrl = String.format(OpenSsoArtifactHandler.VALIDATE_URL_TMPL,
-        otherServer, ARTIFACT);
     url = handler.getValidateUrl(ARTIFACT, request);
-    assertEquals(validateUrl, url);
+    new URL(url);
+    assertTrue(url.startsWith(otherServer));
   }
 
   @Test
-  public void getLogoutUrl() {
+  public void getLogoutUrl() throws Exception {
     String url = handler.getLogoutUrl(request);
-    assertEquals(OpenSsoArtifactHandler.DEFAULT_LOGOUT_URL, url);
+    new URL(url);
+    assertTrue(url.startsWith(OpenSsoArtifactHandler.DEFAULT_LOGOUT_URL));
 
     String otherServer = "http://someotherserver/sso/UI/Logout";
     props.put(ArtifactHandler.LOGOUT_URL, otherServer);
     handler.modified(props);
 
     url = handler.getLogoutUrl(request);
-    assertEquals(otherServer, url);
+    new URL(url);
+    assertTrue(url.startsWith(otherServer));
   }
 
   @Test

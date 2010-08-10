@@ -47,7 +47,6 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.apache.sling.servlets.post.Modification;
-import org.osgi.framework.Constants;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
 import org.sakaiproject.nakamura.api.auth.sso.SsoAuthConstants;
@@ -85,30 +84,29 @@ import javax.servlet.http.HttpSession;
  * support in the OSGi / Sling environment.
  */
 @Component(metatype=true)
+@Services({
+    @Service(value = SsoAuthenticationHandler.class),
+    @Service(value = AuthenticationHandler.class),
+    @Service(value = LoginModulePlugin.class),
+    @Service(value = AuthenticationFeedbackHandler.class)
+})
 @Properties(value = {
     @Property(name = AuthenticationHandler.PATH_PROPERTY, value = "/"),
-    @Property(name = Constants.SERVICE_RANKING, intValue = 5),
-    @Property(name = AuthenticationHandler.TYPE_PROPERTY, value = SsoAuthConstants.SSO_AUTH_TYPE, propertyPrivate=true)
+    @Property(name = AuthenticationHandler.TYPE_PROPERTY, value = SsoAuthConstants.SSO_AUTH_TYPE, propertyPrivate = true),
+    @Property(name = SsoAuthenticationHandler.SSO_AUTOCREATE_USER, boolValue = SsoAuthenticationHandler.DEFAULT_SSO_AUTOCREATE_USER)
 })
-@Services({
-  @Service(value = SsoAuthenticationHandler.class),
-  @Service(value = AuthenticationHandler.class),
-  @Service(value = LoginModulePlugin.class),
-  @Service(value = AuthenticationFeedbackHandler.class)
-})
-public final class SsoAuthenticationHandler implements AuthenticationHandler,
+public class SsoAuthenticationHandler implements AuthenticationHandler,
     LoginModulePlugin, AuthenticationFeedbackHandler {
-
-  public static final boolean SSO_AUTOCREATE_USER_DEFAULT = false;
-  @Property(boolValue = SSO_AUTOCREATE_USER_DEFAULT)
-  protected static final String SSO_AUTOCREATE_USER = "auth.sso.autocreate";
-  private boolean autoCreateUser;
-
-  /** Represents the constant for where the assertion will be located in memory. */
-  static final String CONST_SSO_ASSERTION = "_const_sso_assertion_";
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SsoAuthenticationHandler.class);
+
+  /** Represents the constant for where the assertion will be located in memory. */
+  static final String CONST_SSO_ASSERTION = "_const_sso_assertion_";
+  static final String SSO_AUTOCREATE_USER = "sakai.auth.sso.user.autocreate";
+
+  public static final boolean DEFAULT_SSO_AUTOCREATE_USER = false;
+  private boolean autoCreateUser;
 
   // needed for the automatic user creation.
   @Reference
@@ -119,6 +117,7 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler,
 
   @Reference(referenceInterface = ArtifactHandler.class, cardinality = MANDATORY_MULTIPLE)
   protected HashMap<String, ArtifactHandler> artifactHandlers = new HashMap<String, ArtifactHandler>();
+  protected ArtifactHandler defaultHandler = null;
 
   /**
    * Define the set of authentication-related query parameters which should
@@ -142,13 +141,13 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler,
 
   //----------- OSGi integration ----------------------------
   @Activate
-  protected void activate(Map<?, ?> properties) {
-    init(properties);
+  protected void activate(Map<?, ?> props) {
+    modified(props);
   }
 
   @Modified
-  protected void modified(Map<?, ?> properties) {
-    init(properties);
+  protected void modified(Map<?, ?> props) {
+    autoCreateUser = OsgiUtil.toBoolean(props.get(SSO_AUTOCREATE_USER), false);
   }
 
   protected void bindArtifactHandlers(ArtifactHandler handler, Map<?, ?> props) {
@@ -158,17 +157,26 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler,
       throw new ComponentException("'" + ArtifactHandler.HANDLER_NAME
           + "' is already mapped to " + cachedHandler.getClass().getName());
     } else {
+      if (defaultHandler == null) {
+        defaultHandler = handler;
+      } else {
+        boolean isDefaultHandler = OsgiUtil.toBoolean(
+            props.get(ArtifactHandler.DEFAULT_HANDLER), false);
+        if (isDefaultHandler) {
+          LOGGER.info("Replacing default handler [" + defaultHandler +
+              "] with new handler [" + handler + "]");
+          defaultHandler = handler;
+        }
+      }
       artifactHandlers.put(handlerName, handler);
       filteredQueryStrings.add(handler.getArtifactName());
     }
   }
 
   protected void unbindArtifactHandlers(ArtifactHandler handler, Map<?, ?> props) {
-    if (artifactHandlers.size() > 0) {
-      String handlerName = OsgiUtil.toString(props.get(ArtifactHandler.HANDLER_NAME), "");
-      artifactHandlers.remove(handlerName);
-      filteredQueryStrings.remove(handler.getArtifactName());
-    }
+    String handlerName = OsgiUtil.toString(props.get(ArtifactHandler.HANDLER_NAME), "");
+    artifactHandlers.remove(handlerName);
+    filteredQueryStrings.remove(handler.getArtifactName());
   }
 
   //----------- AuthenticationHandler interface ----------------------------
@@ -177,31 +185,43 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler,
       throws IOException {
     final HttpSession session = request.getSession(false);
     if (session != null) {
+
       final SsoPrincipal principal = getSsoPrincipal(session);
       if (principal != null) {
+
         LOGGER.debug("SSO Authentication attribute will be removed");
         session.removeAttribute(CONST_SSO_ASSERTION);
 
         // If we are also supposed to redirect to the SSO server to log out
-        // of SSO, set up the redirect now.
         ArtifactHandler handler = artifactHandlers.get(principal.getHandlerName());
         if (handler == null) {
-          LOGGER.warn("Unable to find handler for principal [handler="
-              + principal.getHandlerName());
-          return;
+
+          LOGGER.warn("Unable to find handler for principal [handler=" +
+              principal.getHandlerName());
+
+          if (defaultHandler != null) {
+
+            LOGGER.info("Using default handler to logout.");
+            handler = defaultHandler;
+          } else {
+
+            return;
+          }
         }
 
         String logoutUrl = handler.getLogoutUrl(request);
         if (StringUtils.isNotBlank(logoutUrl)) {
+
           String target = (String) request.getAttribute(Authenticator.LOGIN_RESOURCE);
           if (target == null || target.length() == 0) {
+
             target = request.getParameter(Authenticator.LOGIN_RESOURCE);
           }
+
           if (target != null && target.length() > 0 && !("/".equals(target))) {
-            LOGGER
-                .info(
-                    "SSO logout about to override requested redirect to {} and instead redirect to {}",
-                    target, logoutUrl);
+            LOGGER.info(
+                "SSO logout about to override requested redirect to {} and instead redirect to {}",
+                target, logoutUrl);
           } else {
             LOGGER.debug("SSO logout will request redirect to {}", logoutUrl);
           }
@@ -280,9 +300,9 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler,
   public boolean requestCredentials(HttpServletRequest request,
       HttpServletResponse response) throws IOException {
     LOGGER.debug("requestCredentials called");
-    String handlerName = (String) request.getAttribute(ArtifactHandler.HANDLER_NAME);
-    if (handlerName != null) {
-      ArtifactHandler handler = artifactHandlers.get(handlerName);
+
+    ArtifactHandler handler = getHandler(request);
+    if (handler != null) {
       final String serviceUrl = constructServiceParameter(request);
       LOGGER.debug("Service URL = \"{}\"", serviceUrl);
       String urlToRedirectTo = handler.getLoginUrl(serviceUrl, request);
@@ -423,11 +443,6 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler,
   }
 
   //----------- Internal ----------------------------
-
-  private void init(Map<?, ?> prop) {
-    autoCreateUser = OsgiUtil.toBoolean(prop.get(SSO_AUTOCREATE_USER), false);
-  }
-
   private static final class SsoPrincipal implements Principal {
     private static final long serialVersionUID = -6232157660434175773L;
     private String principalName;
@@ -589,5 +604,18 @@ public final class SsoAuthenticationHandler implements AuthenticationHandler,
       serverName.append(':').append(port);
     }
     return serverName;
+  }
+
+  private ArtifactHandler getHandler(HttpServletRequest request) {
+    ArtifactHandler handler = null;
+
+    String handlerName = (String) request.getAttribute(ArtifactHandler.HANDLER_NAME);
+    if (handlerName != null) {
+      handler = artifactHandlers.get(handlerName);
+    } else if (defaultHandler != null) {
+      handler = defaultHandler;
+    }
+
+    return handler;
   }
 }

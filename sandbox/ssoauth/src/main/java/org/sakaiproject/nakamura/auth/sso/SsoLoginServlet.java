@@ -24,11 +24,6 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.sakaiproject.nakamura.api.doc.BindingType;
-import org.sakaiproject.nakamura.api.doc.ServiceBinding;
-import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
-import org.sakaiproject.nakamura.api.doc.ServiceMethod;
-import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,13 +44,6 @@ import javax.servlet.http.HttpServletResponse;
  * (including sling.commons.auth's LoginServlet) by setting the
  * sling:authRequestLogin request parameter to "CAS".
  */
-@ServiceDocumentation(name="SSO Login Servlet", shortDescription=
-    "Redirects to the configured SSO server, which will return on successful authentication.",
-    bindings = @ServiceBinding(type=BindingType.PATH, bindings=SSO_LOGIN_PATH),
-    methods = {
-    @ServiceMethod(name="GET, POST", parameters={
-        @ServiceParameter(name="resource", description="The path to return to (default is /)")
-    })})
 @SlingServlet(paths = { SSO_LOGIN_PATH }, methods = { "GET", "POST" })
 public class SsoLoginServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -1894135945816269913L;
@@ -65,7 +53,6 @@ public class SsoLoginServlet extends SlingAllMethodsServlet {
   protected transient SsoAuthenticationHandler ssoAuthnHandler;
 
   public SsoLoginServlet() {
-
   }
 
   protected SsoLoginServlet(SsoAuthenticationHandler ssoAuthHandler) {
