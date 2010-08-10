@@ -89,11 +89,6 @@ mkdir -p sling/config/org/sakaiproject/nakamura/proxy
 echo 'port=I"8080"' > sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
 echo 'sharedSecret="e2KS54H35j6vS5Z38nK40"' >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
 echo 'service.pid="org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor"' >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
-mkdir -p sling/config/org/sakaiproject/nakamura/captcha
-echo 'service.pid="org.sakaiproject.nakamura.captcha.ReCaptchaService"' > sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
-echo 'org.sakaiproject.nakamura.captcha.key_private="6Lef4bsSAAAAAId09ufqqs89SwdWpa9t7htW1aRc"' >> sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
-echo 'org.sakaiproject.nakamura.captcha.key_public="6Lef4bsSAAAAAJOwQE-qwkAOzGG3DizFP7GYYng-"' >> sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
-echo 'org.sakaiproject.nakamura.captcha.endpoint="http://www.google.com/recaptcha/api/verify"' >> sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
 java $K2_OPTS -jar $K2_ARTIFACT -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # build sakai 2
