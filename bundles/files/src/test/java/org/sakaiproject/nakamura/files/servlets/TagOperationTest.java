@@ -111,14 +111,12 @@ public class TagOperationTest {
 
     when(request.getResource()).thenReturn(resource);
     when(request.getResourceResolver()).thenReturn(resolver);
-    when(request.getRequestParameter("uuid")).thenReturn(null);
+    when(request.getRequestParameter("key")).thenReturn(null);
     when(request.getRemoteUser()).thenReturn("john");
 
     operation.doRun(request, response, null);
 
     assertEquals(400, response.getStatusCode());
-    assertEquals("Missing parameter: need uuid, path or poolId",
-        response.getStatusMessage());
   }
 
   @Test
@@ -158,7 +156,7 @@ public class TagOperationTest {
     when(uuidParam.getString()).thenReturn(uuid);
     when(request.getResource()).thenReturn(resource);
     when(request.getResourceResolver()).thenReturn(resolver);
-    when(request.getRequestParameter("uuid")).thenReturn(uuidParam);
+    when(request.getRequestParameter("key")).thenReturn(uuidParam);
     when(request.getRemoteUser()).thenReturn("john");
 
     // Actual tagging procedure
@@ -218,7 +216,7 @@ public class TagOperationTest {
     when(pathParam.getString()).thenReturn(path);
     when(request.getResource()).thenReturn(resource);
     when(request.getResourceResolver()).thenReturn(resolver);
-    when(request.getRequestParameter("path")).thenReturn(pathParam);
+    when(request.getRequestParameter("key")).thenReturn(pathParam);
     when(request.getRemoteUser()).thenReturn("john");
 
     // Actual tagging procedure
@@ -279,7 +277,7 @@ public class TagOperationTest {
     when(poolIdParam.getString()).thenReturn(poolId);
     when(request.getResource()).thenReturn(resource);
     when(request.getResourceResolver()).thenReturn(resolver);
-    when(request.getRequestParameter("poolId")).thenReturn(poolIdParam);
+    when(request.getRequestParameter("key")).thenReturn(poolIdParam);
     when(request.getRemoteUser()).thenReturn("john");
 
     // Actual tagging procedure
