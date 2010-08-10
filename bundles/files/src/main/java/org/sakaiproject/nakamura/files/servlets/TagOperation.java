@@ -158,7 +158,8 @@ public class TagOperation extends AbstractSlingPostOperation {
         try {
           adminSession = slingRepository.loginAdministrative(null);
 
-          LOGGER.info("Tagging [{}] with  [{}] [{}] ", new Object[]{ node, tagNode, uuid});
+          LOGGER.info("Tagging [{}] with  [{}] [{}] ",
+              new Object[] { node, tagNode, uuid });
           // Add the tag on the file.
           FileUtils.addTag(adminSession, node, tagNode);
 
