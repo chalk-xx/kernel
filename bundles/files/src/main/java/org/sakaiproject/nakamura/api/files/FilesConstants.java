@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
-
 public interface FilesConstants {
   /**
    * The resource type for a sakai link. sakai/link
@@ -73,4 +72,30 @@ public interface FilesConstants {
    * The OSGi topic for linking a file.
    */
   public static final String TOPIC_FILES_LINK = "org/sakaiproject/nakamura/files/link";
+
+  /**
+   * The sling:resourceType for pooled content.
+   */
+  public static final String POOLED_CONTENT_RT = "sakai/pooled-content";
+  /**
+   * The jcr:primaryType for pooled content.
+   */
+  public static final String POOLED_CONTENT_NT = "sakai:pooled-content";
+  /**
+   * The jcr:primaryType for the pooled content members nodetype.
+   */
+  public static final String POOLED_CONTENT_USER_RT = "sakai/pooled-content-user";
+
+  /**
+   * The name for the managers property on the pooled content members node.
+   */
+  public static final String POOLED_CONTENT_USER_MANAGER = "sakai:pooled-content-manager";
+  /**
+   * The name for the viewers property on the pooled content members node.
+   */
+  public static final String POOLED_CONTENT_USER_VIEWER = "sakai:pooled-content-viewer";
+  /**
+   * The name of the property that holds the filename.
+   */
+  public static final String POOLED_CONTENT_FILENAME = "sakai:pooled-content-file-name";
 }
