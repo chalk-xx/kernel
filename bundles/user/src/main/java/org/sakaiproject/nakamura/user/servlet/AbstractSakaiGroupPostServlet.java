@@ -42,136 +42,187 @@ import javax.jcr.ValueFactory;
  * Base class for servlets manipulating groups
  */
 public abstract class AbstractSakaiGroupPostServlet extends
-        AbstractAuthorizablePostServlet {
-    private static final long serialVersionUID = 1159063041816944076L;
+    AbstractAuthorizablePostServlet {
+  private static final long serialVersionUID = 1159063041816944076L;
 
-    /**
-     * Update the group membership based on the ":member" request parameters. If
-     * the ":member" value ends with @Delete it is removed from the group
-     * membership, otherwise it is added to the group membership.
-     * 
-     * @param request
-     * @param authorizable
-     * @throws RepositoryException
-     */
-    protected void updateGroupMembership(SlingHttpServletRequest request,
-            Authorizable authorizable, List<Modification> changes)
-            throws RepositoryException {
-        if (authorizable.isGroup()) {
-            Group group = ((Group) authorizable);
-            String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
-                + group.getID();
+  /**
+   * Update the group membership based on the ":member" request parameters. If the
+   * ":member" value ends with @Delete it is removed from the group membership, otherwise
+   * it is added to the group membership.
+   * 
+   * @param request
+   * @param authorizable
+   * @throws RepositoryException
+   */
+  protected void updateGroupMembership(SlingHttpServletRequest request,
+      Authorizable authorizable, List<Modification> changes) throws RepositoryException {
+    if (authorizable.isGroup()) {
+      Group group = ((Group) authorizable);
+      String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+          + group.getID();
 
-            ResourceResolver resolver = request.getResourceResolver();
-            Resource baseResource = request.getResource();
-            boolean changed = false;
-            
-            UserManager userManager = AccessControlUtil.getUserManager(resolver.adaptTo(Session.class));
-
-            // first remove any members posted as ":member@Delete"
-            String[] membersToDelete = request.getParameterValues(SlingPostConstants.RP_PREFIX
-                + "member" + SlingPostConstants.SUFFIX_DELETE);
-            if (membersToDelete != null) {
-                for (String member : membersToDelete) {
-                    Authorizable memberAuthorizable = getAuthorizable(baseResource, member,userManager,resolver);
-                    if (memberAuthorizable != null) {
-                        group.removeMember(memberAuthorizable);
-                        changed = true;
-                    }
-
-                }
-            }
-
-            // second add any members posted as ":member"
-            String[] membersToAdd = request.getParameterValues(SlingPostConstants.RP_PREFIX
-                + "member");
-            if (membersToAdd != null) {
-                for (String member : membersToAdd) {
-                    Authorizable memberAuthorizable = getAuthorizable(baseResource, member,userManager,resolver);
-                    if (memberAuthorizable != null) {
-                        group.addMember(memberAuthorizable);
-                        changed = true;
-                    }
-                }
-            }
-
-            if (changed) {
-                // add an entry to the changes list to record the membership
-                // change
-                changes.add(Modification.onModified(groupPath + "/members"));
-            }
-        }
-    }
-
-    /**
-     * Gets the member, assuming its a principal name, failing that it assumes it a path to the resource.
-     * @param member the token pointing to the member, either a name or a uri
-     * @param userManager the user manager for this request.
-     * @param resolver the resource resolver for this request.
-     * @return the authorizable, or null if no authorizable was found.
-     */
-    private Authorizable getAuthorizable(Resource baseResource, String member, UserManager userManager,
-        ResourceResolver resolver) {
-      Authorizable memberAuthorizable = null;
-      try {
-        memberAuthorizable = userManager.getAuthorizable(member);
-      } catch (RepositoryException e) {
-        // if we can't find the members then it may be resolvable as a resource.
-      }
-      if ( memberAuthorizable == null ) {
-          Resource res = resolver.getResource(baseResource, member);
-          if (res != null) {
-              memberAuthorizable = res.adaptTo(Authorizable.class);
-          }
-      }
-      return memberAuthorizable;
-    }
-
-    /**
-     * @param session the session used to create the group
-     * @param request the request
-     * @param group the group
-     * @param principalChange a list of principals who are allowed to admin the group.
-     * @param changes changes made
-     * @throws RepositoryException 
-     */
-    protected void updateOwnership(SlingHttpServletRequest request,
-        Group group, String[] principalChange, List<Modification> changes) throws RepositoryException {
-      Set<String> adminPrincipals = new HashSet<String>();
-      if (group.hasProperty(UserConstants.PROP_GROUP_MANAGERS)) {
-        Value[] adminPrincipalsProperties = group
-            .getProperty(UserConstants.PROP_GROUP_MANAGERS);
-        for (Value adminPricipal : adminPrincipalsProperties) {
-          adminPrincipals.add(adminPricipal.toString());
-        }
-      }
+      ResourceResolver resolver = request.getResourceResolver();
+      Resource baseResource = request.getResource();
       boolean changed = false;
-      for (String principal : principalChange) {
-        if (principal.startsWith("delete@")) {
-          String principalToDelete = principal.substring("delete@".length());
-          if (adminPrincipals.contains(principalToDelete)) {
-            adminPrincipals.remove(principalToDelete);
+
+      UserManager userManager = AccessControlUtil.getUserManager(resolver
+          .adaptTo(Session.class));
+
+      // first remove any members posted as ":member@Delete"
+      String[] membersToDelete = request.getParameterValues(SlingPostConstants.RP_PREFIX
+          + "member" + SlingPostConstants.SUFFIX_DELETE);
+      if (membersToDelete != null) {
+        for (String member : membersToDelete) {
+          Authorizable memberAuthorizable = getAuthorizable(baseResource, member,
+              userManager, resolver);
+          if (memberAuthorizable != null) {
+            group.removeMember(memberAuthorizable);
             changed = true;
           }
 
-        } else {
+        }
+      }
 
-          if (!adminPrincipals.contains(principal)) {
-            adminPrincipals.add(principal);
+      // second add any members posted as ":member"
+      String[] membersToAdd = request.getParameterValues(SlingPostConstants.RP_PREFIX
+          + "member");
+      if (membersToAdd != null) {
+        for (String member : membersToAdd) {
+          Authorizable memberAuthorizable = getAuthorizable(baseResource, member,
+              userManager, resolver);
+          if (memberAuthorizable != null) {
+            group.addMember(memberAuthorizable);
             changed = true;
           }
         }
       }
+
       if (changed) {
-        ValueFactory valueFactory = request.getResourceResolver().adaptTo(Session.class).getValueFactory();
-        Value[] newAdminPrincipals = new Value[adminPrincipals.size()];
-        int i = 0;
-        for (String adminPrincipalName : adminPrincipals) {
-          newAdminPrincipals[i++] = valueFactory.createValue(adminPrincipalName);
-        }
-        group.setProperty(UserConstants.PROP_GROUP_MANAGERS,
-            newAdminPrincipals);
+        // add an entry to the changes list to record the membership
+        // change
+        changes.add(Modification.onModified(groupPath + "/members"));
       }
     }
+  }
+
+  /**
+   * Gets the member, assuming its a principal name, failing that it assumes it a path to
+   * the resource.
+   * 
+   * @param member
+   *          the token pointing to the member, either a name or a uri
+   * @param userManager
+   *          the user manager for this request.
+   * @param resolver
+   *          the resource resolver for this request.
+   * @return the authorizable, or null if no authorizable was found.
+   */
+  private Authorizable getAuthorizable(Resource baseResource, String member,
+      UserManager userManager, ResourceResolver resolver) {
+    Authorizable memberAuthorizable = null;
+    try {
+      memberAuthorizable = userManager.getAuthorizable(member);
+    } catch (RepositoryException e) {
+      // if we can't find the members then it may be resolvable as a resource.
+    }
+    if (memberAuthorizable == null) {
+      Resource res = resolver.getResource(baseResource, member);
+      if (res != null) {
+        memberAuthorizable = res.adaptTo(Authorizable.class);
+      }
+    }
+    return memberAuthorizable;
+  }
+
+  /**
+   * @param session
+   *          the session used to create the group
+   * @param request
+   *          the request
+   * @param group
+   *          the group
+   * @param managers
+   *          a list of principals who are allowed to admin the group.
+   * @param changes
+   *          changes made
+   * @throws RepositoryException
+   */
+  protected void updateOwnership(SlingHttpServletRequest request, Group group,
+      String[] managers, List<Modification> changes) throws RepositoryException {
+
+    handleAuthorizablesOnProperty(request, group, UserConstants.PROP_GROUP_MANAGERS,
+        SlingPostConstants.RP_PREFIX + "manager", managers);
+    handleAuthorizablesOnProperty(request, group, UserConstants.PROP_GROUP_VIEWERS,
+        SlingPostConstants.RP_PREFIX + "viewer", null);
+  }
+
+  /**
+   * @param request
+   *          The request that contains the authorizables.
+   * @param group
+   *          The group that should be modified.
+   * @param propAuthorizables
+   *          The name of the property on the group where the authorizable IDs should be
+   *          added/deleted.
+   * @param paramName
+   *          The name of the parameter that contains the authorizable IDs. ie: :manager
+   *          or :viewer. If :manager is specified, :manager@Delete will be used for
+   *          deletes.
+   * @param extraPrincipalsToAdd
+   *          An array of authorizable IDs that should be added as well.
+   * @throws RepositoryException
+   */
+  protected void handleAuthorizablesOnProperty(SlingHttpServletRequest request,
+      Group group, String propAuthorizables, String paramName,
+      String[] extraPrincipalsToAdd) throws RepositoryException {
+    Set<String> principals = new HashSet<String>();
+    if (group.hasProperty(propAuthorizables)) {
+      Value[] existingPrincipals = group.getProperty(propAuthorizables);
+      for (Value principal : existingPrincipals) {
+        principals.add(principal.getString());
+      }
+    }
+
+    boolean changed = false;
+
+    // Remove all the managers that are in the :manager@Delete request parameter.
+    String[] principalsToDelete = request.getParameterValues(paramName
+        + SlingPostConstants.SUFFIX_DELETE);
+    if (principalsToDelete != null) {
+      for (String principal : principalsToDelete) {
+        principals.remove(principal);
+        changed = true;
+      }
+    }
+
+    // Add the new ones (if any)
+    String[] principalsToAdd = request.getParameterValues(paramName);
+    if (principalsToAdd != null) {
+      for (String principal : principalsToAdd) {
+        principals.add(principal);
+        changed = true;
+      }
+    }
+
+    // Add the extra ones (if any.)
+    if (extraPrincipalsToAdd != null) {
+      for (String principal : extraPrincipalsToAdd) {
+        principals.add(principal);
+        changed = true;
+      }
+    }
+
+    // Write the property.
+    if (changed) {
+      ValueFactory valueFactory = request.getResourceResolver().adaptTo(Session.class)
+          .getValueFactory();
+      Value[] newPrincipals = new Value[principals.size()];
+      int i = 0;
+      for (String principal : principals) {
+        newPrincipals[i++] = valueFactory.createValue(principal);
+      }
+      group.setProperty(propAuthorizables, newPrincipals);
+    }
+  }
 
 }

@@ -20,9 +20,9 @@ package org.sakaiproject.nakamura.util.osgi;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  *
@@ -44,7 +44,7 @@ public abstract class AbstractOrderedService<T> implements BoundService {
   /**
    * The set of services, to be ordered.
    */
-  private Set<T> serviceSet = new HashSet<T>();
+  private Map<T, Map<String, Object>> serviceSet = new HashMap<T, Map<String, Object>>();
 
   /**
    * A list of listeners that have actions that need to be performed when processors are
@@ -92,9 +92,9 @@ public abstract class AbstractOrderedService<T> implements BoundService {
    * 
    * @param service
    */
-  protected void addService(T service) {
+  protected void addService(T service, Map<String, Object> properties) {
     synchronized (serviceSet) {
-      serviceSet.add(service);
+      serviceSet.put(service, properties);
       createNewSortedList();
       notifyNewList();
     }
@@ -105,7 +105,8 @@ public abstract class AbstractOrderedService<T> implements BoundService {
    * 
    * @param service
    */
-  protected void removeService(T service) {
+  protected void removeService(T service, Map<String, Object> properties) {
+    
     synchronized (serviceSet) {
       serviceSet.remove(service);
       createNewSortedList();
@@ -117,8 +118,8 @@ public abstract class AbstractOrderedService<T> implements BoundService {
    * Generate a new sorted list.
    */
   private void createNewSortedList() {
-    List<T> serviceList = new ArrayList<T>(serviceSet);
-    Collections.sort(serviceList, getComparitor());
+    List<T> serviceList = new ArrayList<T>(serviceSet.keySet());
+    Collections.sort(serviceList, getComparator(serviceSet)); 
     saveArray(serviceList);
   }
 
@@ -130,6 +131,5 @@ public abstract class AbstractOrderedService<T> implements BoundService {
   /**
    * @return a compartator suitable for sorting the list of services.
    */
-  protected abstract Comparator<? super T> getComparitor();
-
+  protected abstract Comparator<? super T> getComparator(final Map<T, Map<String, Object>> propertiesMap);
 }

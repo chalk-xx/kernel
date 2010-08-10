@@ -17,13 +17,14 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
+import static org.sakaiproject.nakamura.api.files.FilesConstants.REQUIRED_MIXIN;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_LINK;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_LINK;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
-import static org.sakaiproject.nakamura.api.files.FilesConstants.REQUIRED_MIXIN;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_LINK;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_LINK;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.commons.json.JSONException;
@@ -32,8 +33,9 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.site.SiteService;
-import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.files.pool.CreateContentPoolServlet;
+import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
@@ -47,6 +49,7 @@ import java.util.List;
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
@@ -131,7 +134,10 @@ public class FileUtils {
 
     // Create the link
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
-    linkNode.addMixin(REQUIRED_MIXIN);
+    if (!"sling:Folder".equals(linkNode.getPrimaryNodeType().getName())) {
+      // sling folder allows single and multiple properties, no need for the mixin.
+      linkNode.addMixin(REQUIRED_MIXIN);
+    }
     linkNode
         .setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, RT_SAKAI_LINK);
     linkNode.setProperty(SAKAI_LINK, fileNode.getIdentifier());
@@ -263,6 +269,7 @@ public class FileUtils {
    * @throws RepositoryException
    * @throws JSONException
    */
+  @SuppressWarnings(justification = "Need to trap subsystem errors ", value = { "REC_CATCH_EXCEPTION" })
   private static void getSites(Node node, JSONWriter write, SiteService siteService)
       throws RepositoryException, JSONException {
 
@@ -297,7 +304,8 @@ public class FileUtils {
     } catch (Exception e) {
       // We ignore every exception it has when looking up sites.
       // it is dirty ..
-      log.info("Catched exception when looking up used sites for a file.");
+      log.info("Catched exception when looking up used sites for a file. "
+          + e.getMessage());
     }
     write.endArray();
     write.key("total");
@@ -352,6 +360,11 @@ public class FileUtils {
    */
   public static void addTag(Session adminSession, Node fileNode, Node tagNode)
       throws RepositoryException {
+    if (tagNode == null || fileNode == null) {
+      throw new RuntimeException(
+          "Cant tag non existant nodes, sorry, both must exist prior to tagging. File:"
+              + fileNode + " Node To Tag:" + tagNode);
+    }
     // Grab the node via the adminSession
     String path = fileNode.getPath();
     fileNode = (Node) adminSession.getItem(path);
@@ -374,4 +387,54 @@ public class FileUtils {
         PropertyType.STRING);
 
   }
+
+  /**
+   * Resolves a Node given one of three possible passed parameters: 1) A fully qualified
+   * path to a Node (e.g. "/foo/bar/baz"), 2) a Node's UUID, or 3) the PoolId from a
+   * ContentPool.
+   * 
+   * @param pathOrIdentifier
+   *          One of three possible parameters: 1) A fully qualified path to a Node (e.g.
+   *          "/foo/bar/baz"), 2) a Node's UUID, or 3) the PoolId from a ContentPool.
+   * @param session
+   * @return If the Node cannot be resolved, <code>null</code> will be returned.
+   * @throws IllegalArgumentException
+   */
+  public static Node resolveNode(final String pathOrIdentifier, final Session session) {
+    if (pathOrIdentifier == null || "".equals(pathOrIdentifier)) {
+      throw new IllegalArgumentException("Passed argument was null or empty");
+    }
+    if (session == null) {
+      throw new IllegalArgumentException("Session cannot be null");
+    }
+    Node node = null;
+    try {
+      if (pathOrIdentifier.startsWith("/")) { // it is a path specification
+        node = session.getNode(pathOrIdentifier);
+      } else {
+        // assume we have a UUID and try to resolve
+        node = session.getNodeByIdentifier(pathOrIdentifier);
+      }
+    } catch (PathNotFoundException e) {
+      // Normal execution path - ignore
+    } catch (ItemNotFoundException e) {
+      // Normal execution path - ignore
+    } catch (Throwable e) {
+      log.error(e.getLocalizedMessage(), e);
+    }
+    if (node == null) {
+      // must not have been a UUID; resolve via poolId
+      try {
+        // 
+        final String poolPath = CreateContentPoolServlet.hash(pathOrIdentifier);
+        node = session.getNode(poolPath);
+      } catch (PathNotFoundException e) {
+        // Normal execution path - ignore
+      } catch (Throwable e) {
+        log.error(e.getLocalizedMessage(), e);
+      }
+    }
+    return node;
+  }
+
 }

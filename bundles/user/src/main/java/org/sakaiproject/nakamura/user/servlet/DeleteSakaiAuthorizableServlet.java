@@ -24,6 +24,7 @@ import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.post.DeleteAuthorizableServlet;
 import org.apache.sling.servlets.post.Modification;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -33,11 +34,18 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -127,6 +135,11 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
   protected transient AuthorizablePostProcessService postProcessorService;
 
   /**
+   * @scr.reference
+   */
+  protected transient EventAdmin eventAdmin;
+
+  /**
    * {@inheritDoc}
    * @see org.apache.sling.jackrabbit.usermanager.post.CreateUserServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
@@ -135,6 +148,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
       List<Modification> changes) throws RepositoryException {
 
     Iterator<Resource> res = getApplyToResources(request);
+    Map<String, Boolean> authorizables = new HashMap<String, Boolean>();
     if (res == null) {
         Resource resource = request.getResource();
         Authorizable item = resource.adaptTo(Authorizable.class);
@@ -144,6 +158,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND, msg);
             throw new ResourceNotFoundException(msg);
         }
+        authorizables.put(item.getID(), item.isGroup());
         changes.add(Modification.onDeleted(resource.getPath()));
     } else {
         while (res.hasNext()) {
@@ -151,6 +166,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
             Authorizable item = resource.adaptTo(Authorizable.class);
             if (item != null) {
                 changes.add(Modification.onDeleted(resource.getPath()));
+                authorizables.put(item.getID(), item.isGroup());
             }
         }
     }
@@ -168,6 +184,23 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
       for( int i = 0; i < endOfChanges; i++ ) {
         changes.remove(0);
       }
+
+      // Launch an OSGi event for each authorizable.
+      for (Entry<String, Boolean> entry : authorizables.entrySet()) {
+        try {
+          Dictionary<String, String> properties = new Hashtable<String, String>();
+          properties.put(UserConstants.EVENT_PROP_USERID, entry.getKey());
+          String topic = UserConstants.TOPIC_USER_DELETED;
+          if (entry.getValue()) {
+            topic = UserConstants.TOPIC_GROUP_DELETED;
+          }
+          EventUtils.sendOsgiEvent(properties, topic, eventAdmin);
+        } catch (Exception e) {
+          // Trap all exception so we don't disrupt the normal behaviour.
+          LOGGER.error("Failed to launch an OSGi event for creating a user.", e);
+        }
+      }
+      
     } catch (Exception e) {
       // undo any changes
       LOGGER.warn(e.getMessage(),e);

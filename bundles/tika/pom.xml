@@ -23,7 +23,7 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.tika</artifactId>
   <packaging>bundle</packaging>
-  <version>0.6-0.7-SNAPSHOT</version>
+  <version>0.7-0.7-SNAPSHOT</version>
   <name>Sakai Nakamura :: Tika Bundle</name>
   <description>Wraps the Tika functionality but uses a slightly different tika-mimetypes.xml for extracting HTML.</description>
   <build>
@@ -84,12 +84,12 @@
     <dependency>
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-core</artifactId>
-      <version>0.6</version>
+      <version>0.7</version>
     </dependency>
     <dependency>
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-parsers</artifactId>
-      <version>0.6</version>
+      <version>0.7</version>
     </dependency>
   </dependencies>
 </project>

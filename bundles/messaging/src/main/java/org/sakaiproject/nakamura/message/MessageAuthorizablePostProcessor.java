@@ -52,9 +52,10 @@ import javax.jcr.Session;
 @Service
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Creates the message stores for users and groups.") })
+    @Property(name = "service.description", value = "Creates the message stores for users and groups."),
+    @Property(name = "service.ranking", intValue=10)})
 public class MessageAuthorizablePostProcessor implements AuthorizablePostProcessor {
-
+  
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessageAuthorizablePostProcessor.class);
 
@@ -90,14 +91,6 @@ public class MessageAuthorizablePostProcessor implements AuthorizablePostProcess
       replaceAccessControlEntry(session, path, anon, null, deniedPrivs, null, null);
       replaceAccessControlEntry(session, path, everyone, null, deniedPrivs, null, null);
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#getSequence()
-   */
-  public int getSequence() {
-    return 10;
   }
 
 }

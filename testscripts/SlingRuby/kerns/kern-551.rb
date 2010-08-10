@@ -354,17 +354,30 @@ class TC_Kern551Test < Test::Unit::TestCase
     res = @s.execute_get(@s.url_for("/system/sling/membership.json"))
     @log.debug res.body
     memberships = JSON.parse(res.body)
-    assert_equal("/sites/#{siteid}", memberships.first["siteref"], "Expected user to have Collaborator membership")
+    # Since KERN-916 each user has his own site.
+    # The order is completely random.
+    # That's why we loop over all of them.
+    assert_value(memberships, "siteref", "/sites/#{siteid}", "Expected user to have Collaborator membership")
     @s.switch_user(viewer)
     res = @s.execute_get(@s.url_for("/system/sling/membership.json"))
     @log.debug res.body
     memberships = JSON.parse(res.body)
-    assert_equal("/sites/#{siteid}", memberships.first["siteref"], "Expected user to have Viewer membership")
+    assert_value(memberships, "siteref", "/sites/#{siteid}", "Expected user to have Viewer membership")
     @s.switch_user(nonmember)
     res = @s.execute_get(@s.url_for("/system/sling/membership.json"))
     @log.debug res.body
     memberships = JSON.parse(res.body)
-    assert(memberships.empty?, "Expected user to have no membership")
+    assert_equal(1, memberships.size, "Expected user to have one site. (his own)")
+  end
+
+  def assert_value(hash, key, value, message)
+    found = false
+    hash.each {|o|
+      if (o[key] == value)
+        found = true
+      end
+    }
+    assert(found, message)
   end
 
   def test_site_name_duplication

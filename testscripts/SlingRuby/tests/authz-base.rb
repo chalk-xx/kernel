@@ -14,6 +14,7 @@ module AuthZBase
 # all are granted read
 # 
   def updateAcl(path, principal, readGrant, writeGrant)
+      @log.info("Updating #{path} for #{principal} with read #{readGrant} and write #{writeGrant} ")
       if ( readGrant ) then
          @authz.grant(path,principal,"jcr:read" => "granted")
       else
@@ -40,12 +41,12 @@ module AuthZBase
 	ace = acl[principal]
 	if ( readGranted || writeGranted ) then
 	  assert_not_nil(ace["granted"],"Expected ace for #{principal} to have granted something granted ace was nil "+@authz.hashToString(acl))
-	  @log.info("ACE for user #{principal} was "+@authz.hashToString(ace)+":"+ace["granted"].to_s)
+	  @log.info("ACE for user #{principal} was "+@authz.hashToString(ace)+": Granted Priv "+ace["granted"].to_s)
 	end
 	if ( !readGranted || !writeGranted ) then
-      assert_not_nil(ace["denied"],"Expected ace for #{principal} to have denied something, denied was nil "+@authz.hashToString(acl))
-      @log.info("ACE for user #{principal} was "+@authz.hashToString(ace)+":"+ace["denied"].to_s)
-     end
+          assert_not_nil(ace["denied"],"Expected ace for #{principal} to have denied something, denied was nil "+@authz.hashToString(acl))
+          @log.info("ACE for user #{principal} was "+@authz.hashToString(ace)+": Denied Priv  "+ace["denied"].to_s)
+        end
 
         if ( readGranted ) then
           assert_equal(true,ace["granted"].include?("jcr:read"),"Expected ace for #{principal} to have jcr:read granted ace was "+@authz.hashToString(ace))

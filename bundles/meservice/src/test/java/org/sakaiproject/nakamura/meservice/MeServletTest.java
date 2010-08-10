@@ -19,6 +19,10 @@ package org.sakaiproject.nakamura.meservice;
 
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_STATE;
+import static org.sakaiproject.nakamura.api.connections.ConnectionState.ACCEPTED;
+import static org.sakaiproject.nakamura.api.connections.ConnectionState.INVITED;
+import static org.sakaiproject.nakamura.api.connections.ConnectionState.PENDING;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -28,7 +32,12 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.commons.testing.jcr.MockNode;
+import org.easymock.EasyMock;
+import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.message.MessagingException;
+import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
@@ -49,6 +58,10 @@ import javax.jcr.PathNotFoundException;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Workspace;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -57,17 +70,44 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class MeServletTest extends AbstractEasyMockTest {
 
+  private ByteArrayOutputStream baos;
+  private PrintWriter w;
+  private JackrabbitSession session;
+  private SlingHttpServletRequest request;
+  private SlingHttpServletResponse response;
+  private MessagingService messagingService;
+  private MeServlet servlet;
+
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+
+    baos = new ByteArrayOutputStream();
+    w = new PrintWriter(baos);
+
+    request = createMock(SlingHttpServletRequest.class);
+    response = createMock(SlingHttpServletResponse.class);
+    session = createMock(JackrabbitSession.class);
+    ResourceResolver resolver = createMock(ResourceResolver.class);
+    messagingService = createMock(MessagingService.class);
+
+    expect(resolver.adaptTo(Session.class)).andReturn(session);
+    expect(request.getResourceResolver()).andReturn(resolver).anyTimes();
+    expect(response.getWriter()).andReturn(w);
+
+    servlet = new MeServlet();
+    servlet.messagingService = messagingService;
+  }
+
   @Test
-  public void testGeneralInfoAdmin() throws JSONException, UnsupportedEncodingException, RepositoryException {
-
-    MeServlet servlet = new MeServlet();
-
+  public void testGeneralInfoAdmin() throws JSONException, UnsupportedEncodingException,
+      RepositoryException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter w = new PrintWriter(baos);
     ExtendedJSONWriter write = new ExtendedJSONWriter(w);
 
     Authorizable user = createAuthorizable("admin", false, true);
-    
+
     Set<String> subjects = new HashSet<String>();
     subjects.add("administrators");
     Map<String, Object> properties = new HashMap<String, Object>();
@@ -88,8 +128,6 @@ public class MeServletTest extends AbstractEasyMockTest {
 
   @Test
   public void testWriteLocale() throws JSONException, UnsupportedEncodingException {
-    MeServlet servlet = new MeServlet();
-
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter w = new PrintWriter(baos);
     ExtendedJSONWriter write = new ExtendedJSONWriter(w);
@@ -117,18 +155,11 @@ public class MeServletTest extends AbstractEasyMockTest {
   @Test
   public void testAnon() throws RepositoryException, JSONException, ServletException,
       IOException {
-
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintWriter w = new PrintWriter(baos);
-
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    ResourceResolver resolver = createMock(ResourceResolver.class);
     Node profileNode = createMock(Node.class);
-    
+
     Authorizable au = createAuthorizable(UserConstants.ANON_USERID, false, true);
     UserManager um = createUserManager(null, true, au);
-    
+
     String profilePath = PersonalUtils.getProfilePath(au);
     PropertyIterator propIterator = createMock(PropertyIterator.class);
     NodeIterator nodeIterator = createMock(NodeIterator.class);
@@ -139,50 +170,38 @@ public class MeServletTest extends AbstractEasyMockTest {
     expect(profileNode.getName()).andReturn("authprofile").anyTimes();
     expect(profileNode.getPath()).andReturn("/path/to/authprofile").anyTimes();
 
-    JackrabbitSession session = createMock(JackrabbitSession.class);
     expect(session.getItem(profilePath)).andReturn(profileNode).anyTimes();
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
     expect(session.getUserManager()).andReturn(um).anyTimes();
 
-    expect(resolver.adaptTo(Session.class)).andReturn(session);
-    expect(request.getResourceResolver()).andReturn(resolver).anyTimes();
-    expect(response.getWriter()).andReturn(w);
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
     replay();
 
-    MeServlet servlet = new MeServlet();
-
     servlet.doGet(request, response);
     w.flush();
     String s = baos.toString("UTF-8");
-    JSONObject j = new JSONObject(s).getJSONObject("user");
+    JSONObject json = new JSONObject(s);
+    JSONObject user = json.getJSONObject("user");
 
-    assertEquals(true, j.getBoolean("anon"));
-    assertEquals(false, j.getBoolean("superUser"));
-    assertEquals(0, j.getJSONArray("subjects").length());
+    assertEquals(true, user.getBoolean("anon"));
+    assertEquals(false, user.getBoolean("superUser"));
+    assertEquals(0, user.getJSONArray("subjects").length());
+    assertEquals(0, json.getJSONObject("messages").get("unread"));
   }
 
   @Test
   public void testExceptions() throws IOException, ServletException,
       PathNotFoundException, RepositoryException {
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintWriter w = new PrintWriter(baos);
-
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    Session session = createMock(Session.class);
-    ResourceResolver resolver = createMock(ResourceResolver.class);
-    expect(resolver.adaptTo(Session.class)).andReturn(session);
-    expect(request.getResourceResolver()).andReturn(resolver);
     Authorizable au = createAuthorizable(UserConstants.ANON_USERID, false, true);
     String profilePath = PersonalUtils.getProfilePath(au);
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
     expect(session.getItem(profilePath)).andThrow(new RepositoryException());
 
-    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    expect(response.getWriter()).andReturn(w);
+    UserManager um = createUserManager(null, true, au);
+    expect(session.getUserManager()).andReturn(um).anyTimes();
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
@@ -190,8 +209,82 @@ public class MeServletTest extends AbstractEasyMockTest {
         "Failed to get the profile node.");
     replay();
 
-    MeServlet servlet = new MeServlet();
-
     servlet.doGet(request, response);
+  }
+
+  @Test
+  public void testMessages() throws MessagingException, JSONException,
+      RepositoryException {
+
+    MeServlet servlet = new MeServlet();
+    servlet.messagingService = messagingService;
+
+    Authorizable au = createAuthorizable("jack", false, true);
+    expect(messagingService.getFullPathToStore("jack", session)).andReturn(
+        "/path/to/store");
+
+    // Mock the query.
+    Workspace workSpace = createMock(Workspace.class);
+    QueryManager qm = createMock(QueryManager.class);
+    Query q = createMock(Query.class);
+    QueryResult qr = createMock(QueryResult.class);
+    NodeIterator iterator = createMock(NodeIterator.class);
+    expect(session.getWorkspace()).andReturn(workSpace);
+    expect(workSpace.getQueryManager()).andReturn(qm);
+    expect(
+        qm.createQuery(EasyMock.matches(".*\\/path\\/to\\/store.*"), EasyMock
+            .eq("xpath"))).andReturn(q);
+    expect(q.execute()).andReturn(qr);
+    expect(qr.getNodes()).andReturn(iterator);
+    expect(iterator.hasNext()).andReturn(true).times(2).andReturn(false);
+    expect(iterator.next()).andReturn(null).times(2);
+
+    replay();
+    servlet.writeMessageCounts(new ExtendedJSONWriter(w), session, au);
+
+    w.flush();
+    JSONObject o = new JSONObject(baos.toString());
+    assertEquals(2, o.get("unread"));
+  }
+
+  @Test
+  public void testContactCounts() throws MessagingException, JSONException,
+      RepositoryException {
+
+    Authorizable au = createAuthorizable("jack", false, true);
+
+    // Mock the query.
+    Workspace workSpace = createMock(Workspace.class);
+    QueryManager qm = createMock(QueryManager.class);
+    Query q = createMock(Query.class);
+    QueryResult qr = createMock(QueryResult.class);
+    NodeIterator iterator = createMock(NodeIterator.class);
+    expect(session.getWorkspace()).andReturn(workSpace);
+    expect(workSpace.getQueryManager()).andReturn(qm);
+    expect(
+        qm.createQuery(EasyMock.matches(".*\\/_user\\/j\\/ja\\/jack\\/contacts.*"),
+            EasyMock.eq("xpath"))).andReturn(q);
+    expect(q.execute()).andReturn(qr);
+    expect(qr.getNodes()).andReturn(iterator);
+
+    MockNode pendingNode = new MockNode("/path/to/node");
+    pendingNode.setProperty(SAKAI_CONNECTION_STATE, PENDING.toString());
+    MockNode acceptedNode = new MockNode("/path/to/node");
+    acceptedNode.setProperty(SAKAI_CONNECTION_STATE, ACCEPTED.toString());
+    MockNode invitedNode = new MockNode("/path/to/node");
+    invitedNode.setProperty(SAKAI_CONNECTION_STATE, INVITED.toString());
+
+    expect(iterator.hasNext()).andReturn(true).times(4).andReturn(false);
+    expect(iterator.nextNode()).andReturn(pendingNode).andReturn(invitedNode).andReturn(
+        acceptedNode).andReturn(invitedNode);
+
+    replay();
+    servlet.writeContactCounts(new ExtendedJSONWriter(w), session, au);
+
+    w.flush();
+    JSONObject o = new JSONObject(baos.toString());
+    assertEquals(2, o.get("invited"));
+    assertEquals(1, o.get("accepted"));
+    assertEquals(1, o.get("pending"));
   }
 }

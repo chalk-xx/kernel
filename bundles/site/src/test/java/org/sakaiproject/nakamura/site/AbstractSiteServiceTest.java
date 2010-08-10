@@ -38,7 +38,7 @@ import java.util.List;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 
-public class AbstractSiteServiceTest extends AbstractEasyMockTest {
+public abstract class AbstractSiteServiceTest extends AbstractEasyMockTest {
 
   protected EventAdmin eventAdmin;
   protected UserManager userManager;
@@ -115,12 +115,11 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
     replay();
     siteService = new SiteServiceImpl();
     siteService.bindEventAdmin(eventAdmin);
-    siteService.bindSlingRepository(slingRepository);
+    siteService.slingRepository = slingRepository;
   }
 
   protected void postRequest() {
     siteService.unbindEventAdmin(eventAdmin);
-    siteService.unbindSlingRepository(slingRepository);
     verify();
   }
 

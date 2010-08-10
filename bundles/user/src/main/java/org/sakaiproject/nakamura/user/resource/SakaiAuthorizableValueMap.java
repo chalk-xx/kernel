@@ -16,6 +16,12 @@
  */
 package org.sakaiproject.nakamura.user.resource;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.jcr.resource.JcrResourceUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -31,12 +37,6 @@ import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
-
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.sling.api.resource.ValueMap;
-import org.apache.sling.jcr.resource.JcrResourceUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * ValueMap implementation for Authorizable Resources
@@ -184,7 +184,7 @@ public class SakaiAuthorizableValueMap implements ValueMap {
         }
     }
 
-    @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
     protected void readFully() {
         if (!fullyRead) {
             try {

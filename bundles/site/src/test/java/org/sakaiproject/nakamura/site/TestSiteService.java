@@ -35,7 +35,7 @@ public class TestSiteService extends AbstractEasyMockTest {
     UserManager userManager = createMock(UserManager.class);
     SlingRepository slingRepository = createMock(SlingRepository.class);
     SiteServiceImpl siteService = new SiteServiceImpl();
-    siteService.bindSlingRepository(slingRepository);
+    siteService.slingRepository = slingRepository;
     Node siteNode = createMock(Node.class);
     JackrabbitSession session = createMock(JackrabbitSession.class);
     expect(siteNode.getSession()).andReturn(session).anyTimes();

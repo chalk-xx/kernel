@@ -28,7 +28,6 @@ import static org.sakaiproject.nakamura.api.site.SiteService.SITE_RESOURCE_TYPE;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -40,7 +39,6 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -51,15 +49,13 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.site.SiteAuthz;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
-import org.sakaiproject.nakamura.version.VersionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,12 +66,10 @@ import java.util.Hashtable;
 import java.util.Set;
 
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
-import javax.jcr.Workspace;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -138,16 +132,10 @@ public class CreateSiteServlet extends AbstractSiteServlet {
   private static final String SITE_CREATE_PRIVILEGE = "sakai:sitegroupcreate";
 
   @Reference
-  private transient SlingRepository slingRepository;
+  protected transient SlingRepository slingRepository;
 
   @Reference
-  private transient VersionService versionService;
-
-  @Reference
-  private transient AuthorizablePostProcessService postProcessService;
-
-  @Reference
-  private transient EventAdmin eventAdmin;
+  protected transient EventAdmin eventAdmin;
 
   /**
    * {@inheritDoc}
@@ -248,19 +236,24 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
       // Perform the actual creation or move.
       try {
-        Node siteNode;
-        if (templatePath != null) {
-          siteNode = createSiteFromTemplate(createSession, templatePath, sitePath, currentUser, sakaiSiteType);
-        } else if (copyFromPath != null) {
-          siteNode = copySite(createSession, copyFromPath, sitePath, currentUser);
+        if (copyFromPath != null) {
+          getSiteService().copySite(createSession, currentUser, sitePath, copyFromPath);
         } else if (moveFromPath != null) {
-          siteNode = moveSite(createSession, moveFromPath, sitePath, currentUser);
+          getSiteService().moveSite(createSession, currentUser, sitePath, moveFromPath);
         } else {
-          siteNode = createSiteWithoutTemplate(createSession, sitePath, currentUser, sakaiSiteType);
+          getSiteService().createSite(createSession, currentUser, sitePath, templatePath,
+              sakaiSiteType);
+        }
+
+        // Save all the changes.
+        // We have to save it because the siteService doesn't persist changes.
+        if (createSession.hasPendingChanges()) {
+          createSession.save();
         }
 
         if (LOGGER.isDebugEnabled()) {
           try {
+            Node siteNode = createSession.getNode(sitePath);
             JcrUtils.logItem(LOGGER, siteNode);
           } catch (JSONException e) {
             LOGGER.warn(e.getMessage(), e);
@@ -274,6 +267,9 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         eventAdmin.postEvent(new Event(SiteService.SiteEvent.created.getTopic(),
             eventProps));
 
+      } catch (SiteException e) {
+        response.sendError(e.getStatusCode(), e.getMessage());
+        return;
       } finally {
         if (adminSession != null) {
           adminSession.logout();
@@ -316,8 +312,8 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
     Node firstRealNode = null;
     for (String firstRealNodePath = sitePath;
-      (firstRealNode == null) && (firstRealNodePath != null);
-      firstRealNodePath = PathUtils.getParentReference(firstRealNodePath)) {
+        (firstRealNode == null) && (!"/".equals(firstRealNodePath));
+        firstRealNodePath = PathUtils.getParentReference(firstRealNodePath)) {
       if (adminSession.itemExists(firstRealNodePath)) {
         firstRealNode = (Node)adminSession.getItem(firstRealNodePath);
       }
@@ -368,132 +364,6 @@ public class CreateSiteServlet extends AbstractSiteServlet {
   }
 
   /**
-   * Create a site from a template node and its children.
-   *
-   * @param session
-   * @param templatePath
-   * @param sitePath
-   * @return the new site node
-   * @throws RepositoryException
-   */
-  private Node createSiteFromTemplate(Session session, String templatePath, String sitePath, Authorizable creator, String sakaiSiteType) throws RepositoryException {
-    ensureParent(session, sitePath);
-
-    // Copy the template files in the new folder.
-    LOGGER.debug("Copying template ({}) to new dir ({})", templatePath,
-        sitePath);
-    Workspace workspace = session.getWorkspace();
-    workspace.copy(templatePath, sitePath);
-    Node siteNode = (Node) session.getItem(sitePath);
-    if (siteNode.hasProperty(SAKAI_IS_SITE_TEMPLATE)) {
-      if (siteNode.getProperty(SAKAI_IS_SITE_TEMPLATE).getBoolean()) {
-        siteNode.setProperty(SAKAI_IS_SITE_TEMPLATE, false);
-      }
-    }
-    session.save();
-
-    initializeAccess(session, siteNode, creator);
-    initializeNewSite(session, siteNode, sakaiSiteType);
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-    versionNodeAndChildren(siteNode, creator.getID(), session);
-    LOGGER.debug("Finished copying");
-    return siteNode;
-  }
-
-  private Node createSiteWithoutTemplate(Session session, String sitePath, Authorizable creator, String sakaiSiteType) throws RepositoryException {
-    Node siteNode = JcrUtils.deepGetOrCreateNode(session, sitePath);
-    session.save();
-
-    initializeAccess(session, siteNode, creator);
-    initializeNewSite(session, siteNode, sakaiSiteType);
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-    versionNodeAndChildren(siteNode, creator.getID(), session);
-    LOGGER.debug("Finished copying");
-    return siteNode;
-  }
-
-  private Node copySite(Session session, String fromPath, String sitePath, Authorizable creator) throws RepositoryException {
-    ensureParent(session, sitePath);
-
-    // Copy the template files in the new folder.
-    LOGGER.debug("Copying site ({}) to new dir ({})", fromPath,
-        sitePath);
-    Workspace workspace = session.getWorkspace();
-    workspace.copy(fromPath, sitePath);
-    Node siteNode = (Node) session.getItem(sitePath);
-    session.save();
-
-    initializeAccess(session, siteNode, creator);
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-    versionNodeAndChildren(siteNode, creator.getID(), session);
-    LOGGER.debug("Finished copying");
-    return siteNode;
-  }
-
-  private Node moveSite(Session session, String fromPath, String sitePath, Authorizable creator) throws RepositoryException {
-    ensureParent(session, sitePath);
-
-    // Copy the template files in the new folder.
-    LOGGER.debug("Moving site ({}) to new dir ({})", fromPath,
-        sitePath);
-    Workspace workspace = session.getWorkspace();
-    workspace.move(fromPath, sitePath);
-    Node siteNode = (Node) session.getItem(sitePath);
-    session.save();
-
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-    versionService.saveNode(siteNode, creator.getID());
-    LOGGER.debug("Finished move");
-    return siteNode;
-  }
-
-  /**
-   * Workspace copy/move needs the destination's parent to exist and be saved.
-   * @param session
-   * @param sitePath
-   * @throws RepositoryException
-   */
-  private void ensureParent(Session session, String sitePath) throws RepositoryException {
-    String parentPath = PathUtils.getParentReference(sitePath);
-    JcrUtils.deepGetOrCreateNode(session, parentPath);
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-  }
-
-  private void initializeAccess(Session session, Node site, Authorizable creator) throws RepositoryException {
-    // Give the creator full rights on the site tree.
-    AccessControlUtil.replaceAccessControlEntry(session, site.getPath(), creator.getPrincipal(),
-        new String[] {"jcr:all"}, null, null, null);
-
-    // Handle authz configuration via a helper.
-    SiteAuthz authzHelper = new SiteAuthz(site, postProcessService);
-    authzHelper.initAccess(creator.getID());
-  }
-
-  private void initializeNewSite(Session session, Node site, String sakaiSiteType) throws RepositoryException {
-    site.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-        SiteService.SITE_RESOURCE_TYPE);
-
-    if ( sakaiSiteType != null )
-        site.setProperty(SiteService.SAKAI_SITE_TYPE, sakaiSiteType );
-
-    // Add a message store to this site.
-    // TODO Is there any reason this can't be handled by site templates?
-    Node storeNode = site.addNode("store");
-    storeNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-        "sakai/messagestore");
-  }
-
-  /**
    * Parse the request to get the destination of the new or moved site.
    * @param request
    * @param response
@@ -518,50 +388,12 @@ public class CreateSiteServlet extends AbstractSiteServlet {
             + PARAM_SITE_PATH + " must be set to a relative path ");
         return null;
       }
-      if (sitePath.startsWith("/")) {
+      if (relativePath.startsWith("/")) {
         sitePath = sitePath + relativePath;
       } else {
         sitePath = sitePath + "/" + relativePath;
       }
     }
     return sitePath;
-  }
-
-  /**
-   * Versions a node and all its child nodes.
-   *
-   * @param n
-   * @param userID
-   * @param createSession
-   */
-  private void versionNodeAndChildren(Node n, String userID, Session createSession) {
-    try {
-      // TODO do better check
-      if (n.isNode() && !n.getName().startsWith("rep:") && !n.getName().startsWith("jcr:") && n.hasProperties() && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(JcrConstants.NT_RESOURCE)) {
-        versionService.saveNode((Node) createSession.getItem(n.getPath()), userID);
-        NodeIterator it = n.getNodes();
-        // Version the childnodes
-        while (it.hasNext()) {
-          Node childNode = it.nextNode();
-          versionNodeAndChildren(childNode, userID, createSession);
-        }
-      }
-    } catch (RepositoryException re) {
-      LOGGER.warn("Unable to save copied node", re);
-    }
-  }
-
-  /**
-   * @param slingRepository
-   */
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  /**
-   * @param slingRepository
-   */
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
   }
 }

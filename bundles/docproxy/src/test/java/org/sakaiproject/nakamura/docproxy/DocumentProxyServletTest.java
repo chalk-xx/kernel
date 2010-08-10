@@ -20,10 +20,9 @@ package org.sakaiproject.nakamura.docproxy;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_LOCATION;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_PROCESSOR;
-import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_REF;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
-import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -82,6 +81,7 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
         .andThrow(new PathNotFoundException());
     expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
+    expect(session.getUserID()).andReturn("zach");
 
     // Request
     expect(request.getRequestURI()).andReturn("/docproxy/disk/README");
@@ -113,16 +113,24 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
 
-    Node documentNode = new MockNode("/docproxy/disk/README");
+    Node documentNode = new MockNode("/docproxy/disk");
     documentNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY,
-        RT_EXTERNAL_REPOSITORY_DOCUMENT);
-    documentNode.setProperty(REPOSITORY_REF, "proxyUUID");
+        RT_EXTERNAL_REPOSITORY);
+    documentNode.setProperty(REPOSITORY_PROCESSOR, "disk");
+    String readmePath = getClass().getClassLoader().getResource("README").getPath();
+    currPath = readmePath.substring(0, readmePath.lastIndexOf("/"));
+    documentNode.setProperty(REPOSITORY_LOCATION, currPath);
 
     // Session
     expect(session.getItem("/docproxy/disk/README")).andReturn(documentNode);
     expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
+/*
+    --- removed to match changed servlet
+
     expect(session.getNodeByIdentifier("proxyUUID")).andReturn(proxyNode);
+*/
     expect(resolver.adaptTo(Session.class)).andReturn(session);
+    expect(session.getUserID()).andReturn("zach");
 
     // Request
     expect(request.getRequestURI()).andReturn("/docproxy/disk/README");

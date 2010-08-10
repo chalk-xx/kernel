@@ -256,6 +256,9 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
 
     session.logout();
     EasyMock.expectLastCall().anyTimes();
+    
+    int port = getSafePort(8025);
+    properties.put("smtp.port",new Integer(port));
 
     EasyMock.expect(componentContext.getProperties()).andReturn(properties).anyTimes();
     EasyMock.expect(slingRepository.loginAdministrative(null)).andReturn(session)
@@ -271,7 +274,6 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     EasyMock.expect(messagingService.expandAliases("bob")).andReturn(senders).anyTimes();
     EasyMock.expect(messagingService.getFullPathToStore("bob", session)).andReturn(
         "/messagestore/bob").anyTimes();
-    System.setProperty("org.sakaiproject.nakamura.SMTPServerPort", "9025");
     InputStream dataStream = new ByteArrayInputStream(TESTMESSAGE_GOOD.getBytes("UTF-8"));
 
 
@@ -337,6 +339,8 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     Property property = createMock(Property.class);
 
     Dictionary<String, Object> properties = new Hashtable<String, Object>();
+    int port = getSafePort(8025);
+    properties.put("smtp.port",new Integer(port));
 
     session.logout();
     EasyMock.expectLastCall().anyTimes();
@@ -355,7 +359,6 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     EasyMock.expect(messagingService.expandAliases("bob")).andReturn(senders).anyTimes();
     EasyMock.expect(messagingService.getFullPathToStore("bob", session)).andReturn(
         "/messagestore/bob").anyTimes();
-    System.setProperty("org.sakaiproject.nakamura.SMTPServerPort", "9025");
     InputStream dataStream = this.getClass().getResourceAsStream("testmultipartgood.txt");
 
 
@@ -427,6 +430,8 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     ValueFactory valueFactory = createNiceMock(ValueFactory.class);
 
     Dictionary<String, Object> properties = new Hashtable<String, Object>();
+    int port = getSafePort(8025);
+    properties.put("smtp.port",new Integer(port));
 
     session.logout();
     EasyMock.expectLastCall().anyTimes();
@@ -445,7 +450,6 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     EasyMock.expect(messagingService.expandAliases("bob")).andReturn(senders).anyTimes();
     EasyMock.expect(messagingService.getFullPathToStore("bob", session)).andReturn(
         "/messagestore/bob").anyTimes();
-    System.setProperty("org.sakaiproject.nakamura.SMTPServerPort", "9025");
     InputStream dataStream = this.getClass().getResourceAsStream("testmultipartbinarygood.txt");
 
 

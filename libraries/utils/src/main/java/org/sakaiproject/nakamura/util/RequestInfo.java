@@ -144,4 +144,8 @@ public class RequestInfo {
     return method;
   }
 
+  public boolean isSafe() {
+    return ("GET|HEAD".indexOf(method) >= 0);
+  }
+
 }

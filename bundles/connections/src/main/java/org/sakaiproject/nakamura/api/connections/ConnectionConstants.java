@@ -57,4 +57,10 @@ public interface ConnectionConstants {
    */
   public static final String PARAM_TO_RELATIONSHIPS = "toRelationships";
 
+  /**
+   * The base of the connections event topic. It should be appended by one of the
+   * {@link ConnectionOperation}.
+   */
+  public static final String EVENT_TOPIC_BASE = "org/sakaiproject/nakamura/connections/";
+
 }

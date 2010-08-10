@@ -60,6 +60,9 @@ public class RestPrivacyFilter implements Filter {
   private static final String ADMIN_USER = "admin";
   private static final Logger LOGGER = LoggerFactory.getLogger(RestPrivacyFilter.class);
 
+  /** Selector value copied from JsonRendererServlet */
+  public static final String INFINITY = "infinity";
+
   @Reference
   public SlingRepository repository;
 
@@ -80,9 +83,9 @@ public class RestPrivacyFilter implements Filter {
   }
 
   /**
-   * 
+   *
    * If the path is /, /_user, /_group then access is protected.
-   * 
+   *
    * @param srequest
    * @param resourceNode
    * @return
@@ -103,8 +106,8 @@ public class RestPrivacyFilter implements Filter {
       if ( node == null ) {
         return false; // webdav
       }
-      if ( "GET".equals(srequest.getMethod()) ) {
-        LOGGER.info("Root Node is protected from GET operations ");
+      if (isRecursiveGet(srequest)) {
+        LOGGER.info("Root Node is protected from recursive GET operations");
         return true;
       }
       return false;
@@ -144,4 +147,30 @@ public class RestPrivacyFilter implements Filter {
   public void destroy() {
   }
 
+  /**
+   * The recursion level is extracted from request selectors as in Sling's
+   * JsonRendererServlet.
+   *
+   * @param request
+   * @return
+   */
+  private boolean isRecursiveGet(SlingHttpServletRequest request) {
+    if ("GET".equals(request.getMethod())) {
+      final String[] selectors = request.getRequestPathInfo().getSelectors();
+      if (selectors != null && selectors.length > 0) {
+        final String level = selectors[selectors.length - 1];
+        if (INFINITY.equals(level)) {
+          return true;
+        } else {
+          try {
+            Integer.parseInt(level);
+            return true;
+          } catch (NumberFormatException e) {
+            // We will let the target servlet worry about this.
+          }
+        }
+      }
+    }
+    return false;
+  }
 }

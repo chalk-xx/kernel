@@ -26,6 +26,13 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
@@ -45,8 +52,17 @@ import javax.jcr.query.QueryManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+@ServiceDocumentation(name = "TagServlet", shortDescription = "Get information about a tag.", description = {
+    "This servlet is able to give all the necessary information about tags.",
+    "It's able to give json feeds for the childtags, parent tags or give a dump of the files who are tagged with this tag." }, bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/tag" }, extensions = @ServiceExtension(name = "json", description = "This servlet outputs JSON data."), selectors = {
+    @ServiceSelector(name = "children", description = "Will dump all the children of this tag."),
+    @ServiceSelector(name = "parents", description = "Will dump all the parents of this tag."),
+    @ServiceSelector(name = "tagged", description = "Will dump all the files who are tagged with this tag.") }) }, methods = { @ServiceMethod(name = "GET", description = { "This servlet only responds to GET requests." }, parameters = {}, response = {
+    @ServiceResponse(code = 200, description = "Succesfull request, json can be found in the body"),
+    @ServiceResponse(code = 500, description = "Failure to retrieve tags or files, an explanation can be found in the HTMl.") }) }
+)
 @SlingServlet(extensions = { "json" }, generateComponent = true, generateService = true, methods = { "GET" }, resourceTypes = { "sakai/tag" }, selectors = {
-    "children", "parents", "tagged", "createtag" })
+    "children", "parents", "tagged" })
 @Properties(value = {
     @Property(name = "service.description", value = "Provides support for file tagging."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
@@ -57,7 +73,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
   @Reference
   protected transient SiteService siteService;
 
-  private FileSearchBatchResultProcessor proc;
+  private transient FileSearchBatchResultProcessor proc;
 
   /**
    * {@inheritDoc}
@@ -137,10 +153,6 @@ public class TagServlet extends SlingSafeMethodsServlet {
   protected void sendParents(Node tag, JSONWriter write) throws JSONException,
       RepositoryException {
     write.object();
-    write.key("jcr:name");
-    write.value(tag.getName());
-    write.key("jcr:path");
-    write.value(tag.getPath());
     ExtendedJSONWriter.writeNodeContentsToWriter(write, tag);
     write.key("parent");
     try {
@@ -171,10 +183,6 @@ public class TagServlet extends SlingSafeMethodsServlet {
       RepositoryException {
 
     write.object();
-    write.key("jcr:name");
-    write.value(tag.getName());
-    write.key("jcr:path");
-    write.value(tag.getPath());
     ExtendedJSONWriter.writeNodeContentsToWriter(write, tag);
     write.key("children");
     write.array();

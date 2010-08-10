@@ -18,6 +18,10 @@
  */
 package org.apache.sling.jcr.webdav.impl.servlets;
 
+import org.apache.jackrabbit.webdav.simple.SimpleWebdavServlet;
+import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.webdav.impl.helper.SlingResourceConfig;
+
 import java.io.IOException;
 
 import javax.jcr.Repository;
@@ -25,16 +29,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.jackrabbit.webdav.simple.SimpleWebdavServlet;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.webdav.impl.helper.SlingResourceConfig;
-
 /**
  * The <code>SlingSimpleWebDavServlet</code> extends the
  * JCR <code>SimpleWebdavServlet</code> with some
  * Sling-specific features
  */
 public class SlingSimpleWebDavServlet extends SimpleWebdavServlet {
+
+  private static final long serialVersionUID = 5939628500719202930L;
 
     private final SlingResourceConfig resourceConfig;
 

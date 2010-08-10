@@ -8,7 +8,7 @@
     <version>0.7-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
-  <artifactId>org.sakaiproject.nakamura.opnesso</artifactId>
+  <artifactId>org.sakaiproject.nakamura.opensso</artifactId>
   <version>0.7-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Open SSO Authenticator</name>
@@ -24,35 +24,13 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <Export-Package> org.sakaiproject.nakamura.api.opnesso.* </Export-Package>
+            <Bundle-Category>sakai-nakamura</Bundle-Category>
             <Embed-Transitive>true</Embed-Transitive>
-            <!--
-            The following items have been excluded,
-            although they may require libraries
-             !com.sun.xml.rpc.encoding.*,
-             !javax.xml.rpc.*,
-             !sun.security.util.*, 
-             !com.sun.xml.rpc.*,
-             !sun.security.x509.*,
-             -->
             <Import-Package>
-             !com.iplanet.*,
-             !com.sun.identity.*,
-             !netscape.ldap.*,
-             !com.sun.xml.rpc.encoding.*,
-             !javax.xml.rpc.*,
-             !sun.security.util.*, 
-             !com.sun.xml.rpc.*,
-             !sun.security.x509.*,
+             org.apache.jackrabbit.api.*;version=0.0,
              *
             </Import-Package>
-            <Private-Package>
-              org.sakaiproject.nakamura.opensso.*
-            </Private-Package>
-            <Embed-Dependency>
-               opensso
-            </Embed-Dependency>
+            <Private-Package>org.sakaiproject.nakamura.opensso.*</Private-Package>
           </instructions>
         </configuration>
       </plugin>
@@ -71,12 +49,13 @@
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.compendium</artifactId>
     </dependency>
+
     <dependency>
-      <groupId>opensso</groupId>
-      <artifactId>opensso</artifactId>
-      <version>20070905-nightly</version>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <version>3.1</version>
     </dependency>
-    
+
     <dependency>
       <groupId>javax.jcr</groupId>
       <artifactId>jcr</artifactId>
@@ -86,7 +65,7 @@
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.api</artifactId>
-      <version>2.0.4-incubator</version>
+      <version>2.0.9-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -138,16 +117,8 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>1.8.4</version>
+      <version>1.8.5</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
-    
-  <repositories>
-    <repository>
-      <name>jboss</name>
-      <id>jboss</id>
-      <url>http://repository.jboss.com/maven2</url>
-    </repository>
-  </repositories>
 </project>

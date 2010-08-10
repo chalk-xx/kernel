@@ -2,7 +2,6 @@
 
 #Sakai 3 Demo
 export K2_TAG="HEAD"
-export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.7-SNAPSHOT.jar"
 export UX_TAG="0.4.0"
 
 # Treat unset variables as an error when performing parameter expansion
@@ -43,13 +42,19 @@ echo "Building Nakamura@$K2_TAG UX@$UX_TAG..."
 cd $BUILD_DIR
 mkdir sakai3
 cd sakai3
-git clone -q git://github.com/ieb/open-experiments.git
-cd open-experiments
+git clone -q git://github.com/sakaiproject/nakamura.git
+cd nakamura
 mvn -B -e clean install -Dmaven.test.skip=true -Dux=$UX_TAG
 
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
 cd app/target/
+K2_ARTIFACT=`find . -name "org.sakaiproject.nakamura.app*[^sources].jar"`
+mkdir -p sling/config/org/sakaiproject/nakamura/captcha
+echo 'service.pid="org.sakaiproject.nakamura.captcha.ReCaptchaService"' > sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
+echo 'org.sakaiproject.nakamura.captcha.key_private="6Lef4bsSAAAAAId09ufqqs89SwdWpa9t7htW1aRc"' >> sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
+echo 'org.sakaiproject.nakamura.captcha.key_public="6Lef4bsSAAAAAJOwQE-qwkAOzGG3DizFP7GYYng-"' >> sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
+echo 'org.sakaiproject.nakamura.captcha.endpoint="http://www.google.com/recaptcha/api/verify"' >> sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
 java $K2_OPTS -jar $K2_ARTIFACT -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # final cleanup

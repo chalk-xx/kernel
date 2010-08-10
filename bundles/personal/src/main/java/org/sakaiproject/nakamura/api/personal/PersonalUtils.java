@@ -43,16 +43,16 @@ import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 
 /**
- * 
+ *
  */
 public class PersonalUtils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PersonalUtils.class);
 
   /**
-   * A wrapper around writeUserInfoContent. It will put the output of that method in
-   * another object.
-   * 
+   * Writes userinfo out for a property in a node. Make sure that the resultNode has a
+   * property with propertyName that contains a userid.
+   *
    * @param session
    *          The JCR Session
    * @param user
@@ -126,15 +126,16 @@ public class PersonalUtils {
           .warn(
               "Authorizable {} has no path property set on it, grabbing hash from ItemBasedPrincipal!",
               au);
-      ItemBasedPrincipal principal = (ItemBasedPrincipal) au;
+      ItemBasedPrincipal principal = (ItemBasedPrincipal) au.getPrincipal();
       hash = principal.getPath();
     }
     return hash;
   }
 
   /**
-   * Wrapper around writeCompactUserInfoContent that places the output in a JSON object.
-   * 
+   * Write a small bit of information from an authprofile. userid, firstName, lastName,
+   * picture.
+   *
    * @param session
    *          The {@link Session session} to access the authprofile.
    * @param user
@@ -166,29 +167,81 @@ public class PersonalUtils {
   public static void writeCompactUserInfoContent(Session session, String user,
       JSONWriter write) {
     try {
-      Authorizable au = getAuthorizable(session, user);
-      String profilePath = PersonalUtils.getProfilePath(au);
-      String hash = getUserHashedPath(au);
       write.key("userid");
       write.value(user);
-      write.key("hash");
-      write.value(hash);
       try {
+        Authorizable au = getAuthorizable(session, user);
+        String profilePath = PersonalUtils.getProfilePath(au);
+        String hash = getUserHashedPath(au);
+        write.key("hash");
+        write.value(hash);
+
         Node profileNode = (Node) session.getItem(profilePath);
         write.key("jcr:path");
-        write.value(profileNode.getPath());
+        write.value(ExtendedJSONWriter.translateAuthorizablePath(profileNode.getPath()));
         write.key("jcr:name");
         write.value(profileNode.getName());
         writeValue("firstName", profileNode, write);
         writeValue("lastName", profileNode, write);
         writeValue("picture", profileNode, write);
-      } catch (RepositoryException e) {
+      } catch (Exception e) {
         // The provided user-string is probably not a user id.
-        LOGGER.error(e.getMessage(), e);
+        LOGGER.warn(e.getMessage(), e);
       }
     } catch (JSONException e) {
       LOGGER.error(e.getMessage(), e);
-    } catch (RepositoryException e) {
+    }
+  }
+  
+  /**
+   * Write a small bit of information from a group authprofile. 
+   *
+   * @param session
+   *          The {@link Session session} to access the authprofile.
+   * @param group
+   *          The group ID to look up
+   * @param write
+   *          The {@link JSONWriter writer} to write to.
+   */
+  public static void writeCompactGroupInfo(Session session, String group, JSONWriter write) {
+    try {
+      write.object();
+      writeCompactGroupInfoContent(session, group, write);
+      write.endObject();
+    } catch (JSONException e) {
+      LOGGER.error(e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Write a small bit of information from a group authprofile
+   * 
+   * @param session
+   *          The {@link Session session} to access the authprofile.
+   * @param group
+   *          The group ID to look up
+   * @param write
+   *          The {@link JSONWriter writer} to write to.
+   */
+  public static void writeCompactGroupInfoContent(Session session, String group,
+      JSONWriter write) {
+    try {
+      write.key("groupid");
+      write.value(group);
+      try {
+        Authorizable au = getAuthorizable(session, group);
+        String profilePath = PersonalUtils.getProfilePath(au);
+        Node profileNode = (Node) session.getItem(profilePath);
+        write.key("jcr:path");
+        write.value(ExtendedJSONWriter.translateAuthorizablePath(profileNode.getPath()));
+        write.key("jcr:name");
+        write.value(profileNode.getName());
+        writeValue("name", profileNode, write);
+      } catch (Exception e) {
+        // The provided user-string is probably not a user id.
+        LOGGER.warn(e.getMessage(), e);
+      }
+    } catch (JSONException e) {
       LOGGER.error(e.getMessage(), e);
     }
   }
@@ -196,7 +249,7 @@ public class PersonalUtils {
   /**
    * Write the value of a property form the profileNode. If the property doesn't exist it
    * outputs "name": false.
-   * 
+   *
    * @param string
    * @param profileNode
    * @throws RepositoryException
@@ -215,7 +268,7 @@ public class PersonalUtils {
   /**
    * Writes userinfo out for a property in a node. Make sure that the resultNode has a
    * property with propertyName that contains a userid.
-   * 
+   *
    * @param resultNode
    *          The node to look on
    * @param write
@@ -303,7 +356,7 @@ public class PersonalUtils {
   /**
    * Get the home folder for an authorizable. If the authorizable is a user, this might
    * return: /_user/t/te/tes/test/testuser
-   * 
+   *
    * @param au
    *          The authorizable to get the home folder for.
    * @return The absolute path in JCR to the home folder for an authorizable.

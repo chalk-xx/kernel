@@ -22,24 +22,30 @@ import static javax.jcr.security.Privilege.JCR_READ;
 import static javax.jcr.security.Privilege.JCR_WRITE;
 
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.PropertyOption;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.sling.jcr.contentloader.ContentImporter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.api.user.AuthorizableEventUtil;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -48,11 +54,8 @@ import org.slf4j.LoggerFactory;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -62,40 +65,43 @@ import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.security.AccessControlEntry;
-import javax.jcr.security.AccessControlList;
-import javax.jcr.security.AccessControlManager;
-import javax.jcr.security.AccessControlPolicy;
-import javax.jcr.security.Privilege;
 import javax.jcr.version.VersionException;
 
 /**
  * This PostProcessor listens to post operations on User objects and processes the
  * changes.
- * 
- * @scr.service interface="org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.component immediate="true" label="SitePostProcessor"
- *                description="Post Processor for User and Group operations" metatype="no"
- * @scr.property name="service.description"
- *               value="Post Processes User and Group operations"
- * 
+ *
  */
-@Component(immediate=true, description="Post Processor for User and Group operations", metatype=false, label="PersonalAuthorizablePostProcessor")
-@Service(value=AuthorizablePostProcessor.class)
-@Properties(value={
-  @org.apache.felix.scr.annotations.Property(name="service.vendor", value="The Sakai Foundation"),
-  @org.apache.felix.scr.annotations.Property(name="service.description", value="Post Processes User and Group operations")
-})
+@Component(immediate = true, description = "Post Processor for User and Group operations", metatype = true, label = "PersonalAuthorizablePostProcessor")
+@Service(value = AuthorizablePostProcessor.class)
+@Properties(value = {
+    @org.apache.felix.scr.annotations.Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @org.apache.felix.scr.annotations.Property(name = "service.description", value = "Post Processes User and Group operations"),
+    @org.apache.felix.scr.annotations.Property(name = "service.ranking", intValue=0)})
 public class PersonalAuthorizablePostProcessor implements AuthorizablePostProcessor {
+
+  @org.apache.felix.scr.annotations.Property(name = "org.sakaiproject.nakamura.personal.profile.preference", description = "What the default behaviour for the ACL on an authprofile should be when an authorizable gets created.", options = {
+      @PropertyOption(name = "private", value = "The profile is completely private."),
+      @PropertyOption(name = "semi", value = "The profile is private to anonymous users, logged in users can see it."),
+      @PropertyOption(name = "public", value = "The profile is completely public.") })
+  static final String PROFILE_PREFERENCE = "org.sakaiproject.nakamura.personal.profile.preference";
+  static final String PROFILE_PREFERENCE_DEFAULT = "semi";
+
+  @Reference
+  private EventAdmin eventAdmin;
+
+  @Reference(policy=ReferencePolicy.DYNAMIC, cardinality=ReferenceCardinality.OPTIONAL_UNARY)
+  protected ContentImporter contentImporter;
+
+  private String profilePreference;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PersonalAuthorizablePostProcessor.class);
 
-  /**
-   */
-  @Reference
-  private EventAdmin eventAdmin;
+  @Modified
+  protected void modified(Map<?, ?> props) {
+    profilePreference = OsgiUtil.toString(props.get(PROFILE_PREFERENCE), PROFILE_PREFERENCE_DEFAULT);
+  }
 
   /**
    * @param request
@@ -150,8 +156,11 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       return;
     }
 
-    // build a blacklist set of properties that should be kept private
+    // This awful hack is a workaround for KERN-929.
+    // TODO DO NOT LET THIS BECOME PERMANENT.
+    ProfileImporter.importFromAuthorizable(profileNode, athorizable, contentImporter, session);
 
+    // build a blacklist set of properties that should be kept private
     Set<String> privateProperties = new HashSet<String>();
     if (profileNode.hasProperty(UserConstants.PRIVATE_PROPERTIES)) {
       Value[] pp = profileNode.getProperty(UserConstants.PRIVATE_PROPERTIES).getValues();
@@ -161,8 +170,8 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     }
     // copy the non blacklist set of properties into the users profile.
     if (athorizable != null) {
-      // explicitly add protected properties form the authorizable
-      if (!profileNode.hasProperty("rep:userId")) {
+      // explicitly add protected properties form the user authorizable
+      if (!athorizable.isGroup() && !profileNode.hasProperty("rep:userId")) {
         profileNode.setProperty("rep:userId", athorizable.getID());
       }
       Iterator<?> inames = athorizable.getPropertyNames();
@@ -192,7 +201,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   /**
    * Creates the home folder for a {@link User user} or a {@link Group group}. It will
    * also create all the subfolders such as private, public, ..
-   * 
+   *
    * @param session
    * @param authorizable
    * @param isGroup
@@ -255,78 +264,6 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   }
 
   /**
-   * @param session
-   * @param homeFolderPath
-   * @throws RepositoryException
-   */
-  private void dumpAccessControlList(Session session, String resourcePath)
-      throws RepositoryException {
-    AccessControlEntry[] declaredAccessControlEntries = getDeclaredAccessControlEntries(
-        session, resourcePath);
-    Map<String, Map<String, Set<String>>> aclMap = new LinkedHashMap<String, Map<String, Set<String>>>();
-    for (AccessControlEntry ace : declaredAccessControlEntries) {
-      Principal principal = ace.getPrincipal();
-      Map<String, Set<String>> map = aclMap.get(principal.getName());
-      if (map == null) {
-        map = new LinkedHashMap<String, Set<String>>();
-        aclMap.put(principal.getName(), map);
-      }
-
-      boolean allow = AccessControlUtil.isAllow(ace);
-      if (allow) {
-        Set<String> grantedSet = map.get("granted");
-        if (grantedSet == null) {
-          grantedSet = new LinkedHashSet<String>();
-          map.put("granted", grantedSet);
-        }
-        Privilege[] privileges = ace.getPrivileges();
-        for (Privilege privilege : privileges) {
-          grantedSet.add(privilege.getName());
-        }
-      } else {
-        Set<String> deniedSet = map.get("denied");
-        if (deniedSet == null) {
-          deniedSet = new LinkedHashSet<String>();
-          map.put("denied", deniedSet);
-        }
-        Privilege[] privileges = ace.getPrivileges();
-        for (Privilege privilege : privileges) {
-          deniedSet.add(privilege.getName());
-        }
-      }
-    }
-
-    StringBuilder sb = new StringBuilder();
-    for (Entry<String, Map<String, Set<String>>> acl : aclMap.entrySet()) {
-      sb.append("Principal ").append(acl.getKey()).append("\n");
-      for (Entry<String, Set<String>> ace : acl.getValue().entrySet()) {
-        sb.append("\t").append(ace.getKey());
-        for (String perm : ace.getValue()) {
-          sb.append("[").append(perm).append("]");
-        }
-        sb.append("\n");
-      }
-    }
-
-    LOGGER.info("Permissions at {} are \n {} ", resourcePath, sb.toString());
-  }
-
-  private AccessControlEntry[] getDeclaredAccessControlEntries(Session session,
-      String absPath) throws RepositoryException {
-    AccessControlManager accessControlManager = AccessControlUtil
-        .getAccessControlManager(session);
-    AccessControlPolicy[] policies = accessControlManager.getPolicies(absPath);
-    for (AccessControlPolicy accessControlPolicy : policies) {
-      if (accessControlPolicy instanceof AccessControlList) {
-        AccessControlEntry[] accessControlEntries = ((AccessControlList) accessControlPolicy)
-            .getAccessControlEntries();
-        return accessControlEntries;
-      }
-    }
-    return new AccessControlEntry[0];
-  }
-
-  /**
    * @param principalManager
    * @param managerSettings
    * @return
@@ -367,6 +304,9 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       if (profileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
         profileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
       }
+      if ( !UserConstants.ANON_USERID.equals(authorizable.getID()) ) {
+        makePrivate(profileNode, session, authorizable);
+      }
     } else {
       profileNode = session.getNode(path);
     }
@@ -375,7 +315,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
   /**
    * Creates the private folder in the user his home space.
-   * 
+   *
    * @param session
    *          The session to create the node
    * @param athorizable
@@ -391,7 +331,15 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     }
     LOGGER.debug("creating or replacing ACLs for private at {} ", privatePath);
     Node privateNode = JcrUtils.deepGetOrCreateNode(session, privatePath);
+    makePrivate(privateNode, session, authorizable);
+
+    LOGGER.debug("Done creating private at {} ", privatePath);
+    return privateNode;
+  }
+
+  private void makePrivate(Node privateNode, Session session, Authorizable authorizable) throws RepositoryException {
     // Make sure that this folder is completely private.
+    String privatePath = privateNode.getPath();
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
     Principal everyone = principalManager.getEveryone();
     Principal anon = new Principal() {
@@ -401,18 +349,29 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     };
     AccessControlUtil.replaceAccessControlEntry(session, privatePath, authorizable
         .getPrincipal(), new String[] { JCR_ALL }, null, null, null);
-    AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon, null,
-        new String[] { JCR_READ, JCR_WRITE }, null, null);
-    AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone, null,
-        new String[] { JCR_READ, JCR_WRITE }, null, null);
 
-    LOGGER.debug("Done creating private at {} ", privatePath);
-    return privateNode;
+    // KERN-886 : Depending on the profile preference we set some ACL's on the profile.
+    if ("public".equals(profilePreference)) {
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon,
+          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone,
+          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
+    } else if ("semi".equals(profilePreference)) {
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon, null,
+          new String[] { JCR_READ, JCR_WRITE }, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone,
+          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
+    } else if ("private".equals(profilePreference)) {
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon, null,
+          new String[] { JCR_READ, JCR_WRITE }, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone, null,
+          new String[] { JCR_READ, JCR_WRITE }, null, null);
+    }
   }
 
   /**
    * Creates the public folder in the user his home space.
-   * 
+   *
    * @param session
    *          The session to create the node
    * @param athorizable
@@ -456,7 +415,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
   /**
    * Fire events, into OSGi, one synchronous one asynchronous.
-   * 
+   *
    * @param operation
    *          the operation being performed.
    * @param session
@@ -534,19 +493,10 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   }
 
   /**
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#getSequence()
-   */
-  public int getSequence() {
-    return 0;
-  }
-
-  /**
    * Decide whether post-processing this user or group would be redundant because it has
    * already been done. The current logic uses the existence of a profile node of the
    * correct type as a marker.
-   * 
+   *
    * @param session
    * @param authorizable
    * @return true if there is evidence that post-processing has already occurred for this
@@ -569,4 +519,5 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     }
     return isProfileCreated;
   }
+
 }

@@ -53,6 +53,10 @@ public interface SiteService {
    */
   public static final String SAKAI_IS_SITE_TEMPLATE = "sakai:is-site-template";
   /**
+   * The property name for the name of a site.
+   */
+  public static final String SAKAI_SITE_NAME = "sakai:site-name";
+  /**
    * The property used to store the joinable status of the site.
    */
   public static final String JOINABLE = "sakai:joinable";
@@ -108,7 +112,7 @@ public interface SiteService {
      */
     no(),
     /**
-     * Is joinable.
+     * The site is joinable with approval.
      */
     withauth();
   }
@@ -150,6 +154,11 @@ public interface SiteService {
      * The target group of the request.
      */
     public static final String GROUP = "group";
+    
+    /**
+     * One of the maintainers of the request group
+     */
+    public static final String OWNER = "owner";
 
     /**
      * @return a topic ID for sites, bound to the operation being performed.
@@ -201,7 +210,7 @@ public interface SiteService {
    * @return the joinable status of the authorizable
    */
   Joinable getJoinable(Authorizable authorizable);
-
+  
   /**
    * Is the group a member of the site, either directly or implied.
    *
@@ -233,7 +242,7 @@ public interface SiteService {
    * @throws SiteException
    *           thrown if there was a problem initiating the join workflow.
    */
-  void startJoinWorkflow(Node site, Group group) throws SiteException;
+  void startJoinWorkflow(Node site, Group group, Authorizable owner) throws SiteException;
 
   /**
    * @param site
@@ -340,5 +349,59 @@ public interface SiteService {
    * @throws SiteException
    */
   public Node findSiteByURI(Session session, String uriPath) throws SiteException;
+
+  /**
+   * Create a site at a given path. This site can be based on a template (it doesn't have
+   * to be.) You will have to call session.save() explicitly.
+   * 
+   * @param session
+   *          A session that can create nodes at the specified sitePath.
+   * @param creator
+   *          The authorizable that requested this site.
+   * @param sitePath
+   *          The path where the site should be created.
+   * @param templatePath
+   *          [OPTIONAL] The path of the template that this site should be based on.
+   * @param siteType
+   *          The type of this site.
+   * @return The top node of the new site.
+   * @throws SiteException
+   */
+  public Node createSite(Session session, Authorizable creator, String sitePath,
+      String templatePath, String sakaiSiteType) throws SiteException;
+
+  /**
+   * Copy a site from one location to another.
+   * 
+   * @param session
+   *          The session that has write access on the destination.
+   * @param creator
+   *          The authorizable that represents the creator.
+   * @param sitePath
+   *          The destination where the site should be created.
+   * @param fromPath
+   *          The original site that should be copied.
+   * @return The new node for the copied site.
+   * @throws SiteException
+   */
+  public Node copySite(Session session, Authorizable creator, String sitePath,
+      String fromPath) throws SiteException;
+
+  /**
+   * Move a site from one location to another
+   * 
+   * @param session
+   *          The site that has write access on BOTH locations.
+   * @param creator
+   *          The authorizable that represents the creator.
+   * @param sitePath
+   *          The path where the site should be moved too.
+   * @param fromPath
+   *          The path where the original site is located.
+   * @return The node that represents the new moved site.
+   * @throws SiteException
+   */
+  public Node moveSite(Session session, Authorizable creator, String sitePath,
+      String fromPath) throws SiteException;
 
 }

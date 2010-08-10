@@ -49,7 +49,7 @@ public abstract class AbstractSiteServiceServletTest extends AbstractSiteService
   public void setUp() throws Exception {
     super.setUp();
     request = createMock(SlingHttpServletRequest.class);
-    response = createMock(SlingHttpServletResponse.class);
+    response = createNiceMock(SlingHttpServletResponse.class);
     session = createMock(JackrabbitSession.class);
     expect(session.getUserManager()).andReturn(userManager).anyTimes();
     expect(slingRepository.loginAdministrative((String) eq(null))).andReturn(session).anyTimes();

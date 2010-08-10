@@ -32,9 +32,6 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.jcr.Node;
 
 /**
@@ -63,7 +60,6 @@ public class MessageAuthorizablePostProcessorTest {
     JackrabbitSession session = mock(JackrabbitSession.class);
     Node node = mock(Node.class);
     User user = mock(User.class);
-    List<Modification> changes = new ArrayList<Modification>();
 
     RequestPathInfo info = mock(RequestPathInfo.class);
     when(info.getResourcePath()).thenReturn(UserConstants.SYSTEM_USER_MANAGER_USER_PATH);

@@ -26,7 +26,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.osgi.OsgiUtil;
@@ -90,7 +89,7 @@ public class WidgetServiceImpl implements WidgetService {
   private List<String> validMimetypes;
   private Detector detector;
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Activate
   protected void activate(Map properties) {
     AutoDetectParser parser = new AutoDetectParser();
@@ -99,13 +98,13 @@ public class WidgetServiceImpl implements WidgetService {
     modified(properties);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Modified
   protected void modified(Map properties) {
     init(properties);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   private void init(Map props) {
     String[] names = OsgiUtil
         .toStringArray(props.get(WIDGET_IGNORE_NAMES), new String[0]);
@@ -147,7 +146,7 @@ public class WidgetServiceImpl implements WidgetService {
     }
 
     // Check if we have something in the cache.
-    String widgetName = ResourceUtil.getName(resource);
+    String widgetName = resource.getName();
     Cache<Map<String, ValueMap>> cache = cacheManagerService.getCache(
         CACHE_NAME_WIDGET_FILES, CacheScope.INSTANCE);
 
@@ -281,10 +280,10 @@ public class WidgetServiceImpl implements WidgetService {
     writer.endObject();
 
     // Output widget files
-    Iterator<Resource> children = ResourceUtil.listChildren(resource);
+    Iterator<Resource> children = resource.listChildren();
     while (children.hasNext()) {
       Resource child = children.next();
-      String childName = ResourceUtil.getName(child);
+      String childName = child.getName();
       // Check if we can output this resource.
       if (skipDirectories.contains(childName)) {
         continue;
@@ -380,10 +379,10 @@ public class WidgetServiceImpl implements WidgetService {
 
     } else {
       if (fetchChildren) {
-        Iterator<Resource> children = ResourceUtil.listChildren(resource);
+        Iterator<Resource> children = resource.listChildren();
         while (children.hasNext()) {
           Resource child = children.next();
-          String childName = ResourceUtil.getName(child);
+          String childName = child.getName();
           // Check if we can output this resource.
           if (skipDirectories.contains(childName)) {
             continue;
@@ -471,10 +470,10 @@ public class WidgetServiceImpl implements WidgetService {
 
     if (folderResource != null && !(folderResource instanceof NonExistingResource)) {
       // List all the subfolders (these should all be widgets.)
-      Iterator<Resource> widgets = ResourceUtil.listChildren(folderResource);
+      Iterator<Resource> widgets = folderResource.listChildren();
       while (widgets.hasNext()) {
         Resource widget = widgets.next();
-        String widgetName = ResourceUtil.getName(widget);
+        String widgetName = widget.getName();
         // Get the config for this widget.
         // If none is found or isn't valid JSON then it is ignored.
         String configPath = widget.getPath() + "/config.json";

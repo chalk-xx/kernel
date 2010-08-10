@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.basiclti;
 import static javax.jcr.security.Privilege.JCR_ALL;
 import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_ADMIN_NODE_NAME;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_ADDED;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.getInvalidUserPrivileges;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.isAdminUser;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.removeProperty;
@@ -43,17 +44,21 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostOperation;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemExistsException;
@@ -82,6 +87,9 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
   @Reference
   private transient SlingRepository slingRepository;
 
+  @Reference
+  protected transient EventAdmin eventAdmin;
+
   /**
    * {@inheritDoc}
    * 
@@ -98,8 +106,8 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
       node = JcrUtils.deepGetOrCreateNode(session, path);
     }
     try {
-      final Map<String, String> sensitiveData = new HashMap<String, String>(sensitiveKeys
-          .size());
+      final Map<String, String> sensitiveData = new HashMap<String, String>(
+          sensitiveKeys.size());
       // loop through request parameters
       final RequestParameterMap requestParameterMap = request.getRequestParameterMap();
       for (final Entry<String, RequestParameter[]> entry : requestParameterMap.entrySet()) {
@@ -144,7 +152,12 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
         session.save();
       }
       createSensitiveNode(node, session, sensitiveData);
-    } catch (Exception e) {
+
+      // Send an OSGi event.
+      Dictionary<String, String> properties = new Hashtable<String, String>();
+      properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
+      EventUtils.sendOsgiEvent(properties, TOPIC_BASICLTI_ADDED, eventAdmin);
+    } catch (Throwable e) {
       throw new RepositoryException(e);
     }
   }
@@ -164,7 +177,8 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
       throw new IllegalArgumentException("userSession == null");
     }
     if (sensitiveData == null || sensitiveData.isEmpty()) {
-      throw new IllegalArgumentException("sensitiveData is null or empty");
+      // do nothing - virtual tool use case
+      return;
     }
     final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
     // now let's elevate Privileges and do some admin modifications
@@ -192,10 +206,13 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
         final AccessControlManager acm = AccessControlUtil
             .getAccessControlManager(userSession);
         Privilege[] userPrivs = acm.getPrivileges(adminNodePath);
-        Set<Privilege> invalidUserPrivileges = getInvalidUserPrivileges(acm);
-        for (Privilege privilege : userPrivs) {
-          if (invalidUserPrivileges.contains(privilege)) {
-            invalidPrivileges = true;
+        if (userPrivs != null && userPrivs.length > 0) {
+          Set<Privilege> invalidUserPrivileges = getInvalidUserPrivileges(acm);
+          for (Privilege privilege : userPrivs) {
+            if (invalidUserPrivileges.contains(privilege)) {
+              invalidPrivileges = true;
+              break;
+            }
           }
         }
       } catch (PathNotFoundException e) { // This is to be expected

@@ -16,6 +16,10 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGERS;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWERS;
+import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
@@ -27,15 +31,16 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.core.security.SecurityConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
+import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -47,6 +52,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.NameSanitizer;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +60,7 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -94,26 +101,26 @@ import javax.servlet.http.HttpServletResponse;
  * <dd>Failure, including group already exists. HTML explains the failure.</dd>
  * </dl>
  * <h4>Example</h4>
- * 
+ *
  * <code>
  * curl -F:name=newGroupA  -Fproperty1=value1 http://localhost:8080/system/userManager/group.create.html
  * </code>
- * 
+ *
  * <h4>Notes</h4>
- * 
+ *
  * @scr.component immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sling/groups"
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="create"
- * 
+ *
  * @scr.property name="servlet.post.dateFormats"
  *               values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
  *               values.1="yyyy-MM-dd'T'HH:mm:ss.SSSZ" values.2="yyyy-MM-dd'T'HH:mm:ss"
  *               values.3="yyyy-MM-dd" values.4="dd.MM.yyyy HH:mm:ss"
  *               values.5="dd.MM.yyyy"
- * 
- * 
+ *
+ *
  */
 @ServiceDocumentation(name="Create Group Servlet",
     description="Creates a new group. Maps on to nodes of resourceType sling/groups like " +
@@ -135,12 +142,12 @@ import javax.servlet.http.HttpServletResponse;
         response={
         @ServiceResponse(code=200,description="Success, a redirect is sent to the groups resource locator with HTML describing status."),
         @ServiceResponse(code=500,description="Failure, including group already exists. HTML explains failure.")
-        }))   
+        }))
 
 public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet implements
     ManagedService {
 
-  
+
   /**
    *
    */
@@ -151,20 +158,27 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
 
   /**
    * Used to perform post processing.
-   * 
+   *
    * @scr.reference
    */
   protected transient AuthorizablePostProcessService postProcessorService;
 
   /**
    * The JCR Repository we access to resolve resources
-   * 
+   *
    * @scr.reference
    */
   protected transient SlingRepository repository;
 
   /**
-   * 
+   * Used to launch OSGi events.
+   *
+   * @scr.reference
+   */
+  protected transient EventAdmin eventAdmin;
+
+  /**
+   *
    * @scr.property value="authenticated,everyone" type="String"
    *               name="Groups who are allowed to create other groups" description=
    *               "A comma separated list of groups who area allowed to create other groups"
@@ -176,7 +190,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @seeorg.apache.sling.jackrabbit.usermanager.post.AbstractAuthorizablePostServlet#
    * handleOperation(org.apache.sling.api.SlingHttpServletRequest,
    * org.apache.sling.api.servlets.HtmlResponse, java.util.List)
@@ -184,8 +198,8 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
   @Override
   @edu.umd.cs.findbugs.annotations.SuppressWarnings(justification="If there is an exception, the user is certainly not admin", value={"REC_CATCH_EXCEPTION"})
 
-  protected void handleOperation(SlingHttpServletRequest request, 
-      HtmlResponse response, List<Modification> changes) 
+  protected void handleOperation(SlingHttpServletRequest request,
+      HtmlResponse response, List<Modification> changes)
       throws RepositoryException {
 
     // KERN-432 dont allow anon users to access create group.
@@ -274,7 +288,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                     "A principal already exists with the requested name: "
                         + principalName);
             } else {
-              
+
                 Group group = userManager.createGroup(new Principal() {
                   public String getName() {
                     return principalName;
@@ -287,7 +301,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
 
                 ItemBasedPrincipal p = (ItemBasedPrincipal) group.getPrincipal();
                 ValueFactory vf = session.getValueFactory();
-                group.setProperty("path", vf.createValue(p.getPath().substring(UserConstants.GROUP_REPO_LOCATION.length())));
+                group.setProperty(UserConstants.PROP_AUTHORIZABLE_PATH, vf.createValue(p.getPath().substring(UserConstants.GROUP_REPO_LOCATION.length())));
                 LOGGER.info("Group {} created at {} ",p.getName(), p.getPath());
 
                 response.setPath(groupPath);
@@ -295,6 +309,11 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                 response.setParentLocation(externalizePath(request,
                     AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PATH));
                 changes.add(Modification.onCreated(groupPath));
+
+                // It is not allowed to touch the rep:group-managers property directly.
+                String key = SYSTEM_USER_MANAGER_GROUP_PREFIX + principalName + "/";
+                reqProperties.remove(key + PROP_GROUP_MANAGERS);
+                reqProperties.remove(key + PROP_GROUP_VIEWERS);
 
                 // write content from form
                 writeContent(session, group, reqProperties, changes);
@@ -318,6 +337,16 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                     session.save();
                 }
 
+                // Launch an OSGi event for creating a group.
+                try {
+                  Dictionary<String, String> properties = new Hashtable<String, String>();
+                  properties.put(UserConstants.EVENT_PROP_USERID, principalName);
+                  EventUtils
+                      .sendOsgiEvent(properties, UserConstants.TOPIC_GROUP_CREATED, eventAdmin);
+                } catch (Exception e) {
+                  // Trap all exception so we don't disrupt the normal behaviour.
+                  LOGGER.error("Failed to launch an OSGi event for creating a user.", e);
+                }
             }
         } catch (RepositoryException re) {
             throw new RepositoryException("Failed to create new group.", re);
@@ -374,7 +403,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
    *
    * @see org.osgi.service.cm.ManagedService#updated(java.util.Dictionary)
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public void updated(Dictionary dictionary) throws ConfigurationException {
     String groupList = (String) dictionary.get(GROUP_AUTHORISED_TOCREATE);
     if (groupList != null) {

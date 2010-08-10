@@ -10,15 +10,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
-import java.security.Principal;
-import java.util.Map;
-import java.util.Set;
-
-import javax.jcr.Credentials;
-import javax.jcr.SimpleCredentials;
-import javax.jcr.Session;
-import javax.security.auth.callback.CallbackHandler;
-
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,9 +18,18 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import javax.jcr.Credentials;
+import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
+import javax.security.auth.callback.CallbackHandler;
+
 /**
  *
- * @author chall
  */
 @RunWith(MockitoJUnitRunner.class)
 public class LdapLoginModulePluginTest {
@@ -44,13 +44,14 @@ public class LdapLoginModulePluginTest {
 
   @Mock
   private Map<?, ?> options;
-  
+
   @Mock
   private LdapAuthenticationPlugin authPlugin;
 
   @Before
   public void setUp() {
     loginPlugin = new LdapLoginModulePlugin(authPlugin);
+    loginPlugin.activate(new HashMap<String, String>());
   }
 
   @Test
@@ -79,27 +80,55 @@ public class LdapLoginModulePluginTest {
   @Test
   public void getAuthPluginAsProvided() throws Exception {
     assertEquals(authPlugin, loginPlugin.getAuthentication(null, null));
-    
+
     verifyZeroInteractions(authPlugin);
   }
-  
+
   @Test
   public void canHandleSimpleCredentials() {
     assertTrue(loginPlugin.canHandle(simpleCredentials()));
   }
 
   @Test
-  public void canNotHandleOtherThanSimpleCredentials() {
+  public void cannotHandleOtherThanSimpleCredentials() {
     Credentials credentials = mock(Credentials.class);
     assertFalse(loginPlugin.canHandle(credentials));
   }
-  
+
+  @Test
+  public void cannotHandleEmptyUser() {
+    SimpleCredentials credentials = new SimpleCredentials(null, new char[] { 'a' });
+    assertFalse(loginPlugin.canHandle(credentials));
+
+    credentials = new SimpleCredentials("", new char[] { 'a' });
+    assertFalse(loginPlugin.canHandle(credentials));
+  }
+
+  @Test
+  public void cannotHandleEmptyPassword() {
+    SimpleCredentials credentials = new SimpleCredentials("admin", new char[] {});
+    assertFalse(loginPlugin.canHandle(credentials));
+  }
+
+  @Test
+  public void defaultUserFilteredOut() {
+    SimpleCredentials credentials = new SimpleCredentials("admin", new char[] { 'a' });
+    assertFalse(loginPlugin.canHandle(credentials));
+  }
+
+  @Test
+  public void customUserFilteredOut() {
+    HashMap<String, String> props = new HashMap<String, String>();
+    props.put(LdapLoginModulePlugin.USER_FILTER, "(^admin$|tstalex.+)");
+    loginPlugin.modified(props);
+  }
+
   @Test
   public void impersonateAsDefault() throws Exception {
     assertEquals(LoginModulePlugin.IMPERSONATION_DEFAULT, loginPlugin.impersonate(null,
         null));
   }
-  
+
   @Test
   public void returnsPrincipalWithSameNameAsCredentials() throws Exception {
     // given
@@ -114,7 +143,7 @@ public class LdapLoginModulePluginTest {
 
   /**
    * Instantiates SimpleCredentials.
-   * 
+   *
    * @return
    */
   private SimpleCredentials simpleCredentials() {

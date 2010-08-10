@@ -134,7 +134,7 @@
          on to the appropriate Host (virtual host). -->
 
     <!-- You should set jvmRoute to support load-balancing via AJP ie :
-    <Engine name="Standalone" defaultHost="localhost" jvmRoute="jvm1">         
+    <Engine name="Catalina" defaultHost="localhost" jvmRoute="jvm1">         
     --> 
          
     <!-- Define the top level container in our container hierarchy -->

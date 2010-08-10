@@ -32,7 +32,7 @@ import java.util.Enumeration;
 
 public class DummyBundle implements Bundle {
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public Enumeration findEntries(String arg0, String arg1, boolean arg2) {
     return null;
   }
@@ -49,17 +49,17 @@ public class DummyBundle implements Bundle {
     return null;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public Enumeration getEntryPaths(String arg0) {
     return null;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public Dictionary getHeaders() {
     return null;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public Dictionary getHeaders(String arg0) {
     return getHeaders();
   }
@@ -80,7 +80,7 @@ public class DummyBundle implements Bundle {
     return getClass().getClassLoader().getResource(resourceName);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public Enumeration getResources(String arg0) throws IOException {
     URL url = getResource(arg0);
     if (url != null) {
@@ -105,7 +105,7 @@ public class DummyBundle implements Bundle {
     return false;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public Class loadClass(String arg0) throws ClassNotFoundException {
     return null;
   }

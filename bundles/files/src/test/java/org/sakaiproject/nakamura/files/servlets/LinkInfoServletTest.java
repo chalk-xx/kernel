@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import static org.junit.Assert.assertEquals;
 
 import static org.mockito.Mockito.when;
@@ -46,6 +47,7 @@ import javax.servlet.ServletException;
  */
 public class LinkInfoServletTest {
 
+  @SuppressWarnings(value={"NP_ALWAYS_NULL"}, justification="Wierd, incorrect report, on System.err.println(s);")
   @Test
   public void test() throws IOException, ServletException, JSONException,
       RepositoryException {

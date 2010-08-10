@@ -25,13 +25,9 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.nodetype.PropertyDefinition;
 
@@ -43,16 +39,6 @@ public class ProviderSettingsFactoryImplTest {
   
   @Mock
   private Node node;
-  @Mock
-  private Property sourceProperty;
-  @Mock
-  private Session session;
-  @Mock
-  private Node settingsNode;
-  @Mock
-  private Property providerProperty;
-  @Mock
-  private Node configNode;
   @Mock
   private Property config1Property;
   @Mock

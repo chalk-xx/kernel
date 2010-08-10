@@ -95,12 +95,12 @@
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.api</artifactId>
-      <version>2.0.6</version>
+      <version>2.0.7-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.api</artifactId>
-      <version>2.0.8</version>
+      <version>2.0.9-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.jackrabbit</groupId>
@@ -123,10 +123,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.easymock</groupId>
-      <artifactId>easymock</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -157,11 +153,14 @@
       <artifactId>org.sakaiproject.nakamura.search</artifactId>
       <version>0.7-SNAPSHOT</version>
     </dependency>
+    <!--
+    this currently comes from the testutils bundle and is controlled there
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>1.8.3</version>
+      <version>1.8.5</version>
       <scope>test</scope>
     </dependency>
+    -->
   </dependencies>
 </project>

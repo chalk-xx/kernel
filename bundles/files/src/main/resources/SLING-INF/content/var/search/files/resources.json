@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "/{path}//*[{_resourceTypes}]",
+  "sakai:query-template": "/{path}//*[{_resourceTypes}] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Files",
   "sakai:propertyprovider": "Files",

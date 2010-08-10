@@ -30,7 +30,6 @@ import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.user.servlet.GroupModification;
 import org.sakaiproject.nakamura.user.servlet.UserModification;
 
-
 import javax.jcr.RepositoryException;
 
 
@@ -69,7 +68,7 @@ public class AuthorizableEventUtilTest extends AbstractEasyMockTest {
     EasyMock.expect(group.getID()).andReturn("g-ieb");
     replay();
     gm.setGroup(group);
-    Event e = AuthorizableEventUtil.newGroupEvent("ieb",gm);
+    AuthorizableEventUtil.newGroupEvent("ieb", gm);
     verify();
   }
   

@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -63,6 +64,7 @@ public class LinkOperationTest {
     assertEquals(403, response.getStatusCode());
   }
 
+  @SuppressWarnings(justification="its a mock", value={"UWF_UNWRITTEN_FIELD"})
   @Test
   public void testMissingResource() throws RepositoryException {
     // This shouldn't really happen, but hey!

@@ -142,6 +142,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
     /**
      * @see org.apache.jackrabbit.core.security.authorization.AccessControlProvider#init(Session, Map)
      */
+    @Override
     public void init(Session systemSession, Map configuration) throws RepositoryException {
         super.init(systemSession, configuration);
         if (systemSession instanceof SessionImpl) {
@@ -199,15 +200,11 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         if (isAdminOrSystem(principals)) {
             return getAdminPermissions();
         } else {
-            // determined the 'user' present in the given set of principals.
-            ItemBasedPrincipal userPrincipal = getUserPrincipal(principals);
-            NodeImpl userNode = getUserNode(userPrincipal);
-            if (userNode == null) {
-                // no 'user' within set of principals -> READ-only
-                return getReadOnlyPermissions();
-            } else {
-                return new CompiledPermissionsImpl(principals, userNode.getPath());
-            }
+          // determined the 'user' present in the given set of principals.
+          ItemBasedPrincipal userPrincipal = getUserPrincipal(principals);
+          NodeImpl userNode = getUserNode(userPrincipal);
+          String userNodePath = (userNode != null) ? userNode.getPath() : null;
+          return new CompiledPermissionsImpl(principals, userNodePath);
         }
     }
 
@@ -265,7 +262,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 } else {
                     pPath = Text.getRelativeParent(pPath, 1);
                 }
-            }         
+            }
             throw new ItemNotFoundException("Unable to determine permissions: No item and no existing parent for target path " + absPath);
         }
     }
@@ -313,7 +310,6 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
      */
     private class CompiledPermissionsImpl extends AbstractCompiledPermissions
             implements SynchronousEventListener {
-      
 
         private final String userNodePath;
 
@@ -322,6 +318,13 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
 
         private Set<Principal> principals;
 
+        /**
+         * @param principals
+         * @param userNodePath used to check for user self-edits and events that
+         *        modify the membership of the user or group administrators; null
+         *        if user is not an ItemBasedPrincipal
+         * @throws RepositoryException
+         */
         protected CompiledPermissionsImpl(Set<Principal> principals, String userNodePath) throws RepositoryException {
             this.principals = principals;
             this.userNodePath = userNodePath;
@@ -336,22 +339,24 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         /**
          * @see AbstractCompiledPermissions#buildResult(Path)
          */
+        @Override
         protected Result buildResult(Path path) throws RepositoryException {
             log.debug("Build Result Path Checking {} ",path.getString());
             NodeImpl userNode = null;
-            try {
+            if (userNodePath != null) {
+              try {
                 if (session.nodeExists(userNodePath)) {
                     userNode = (NodeImpl) session.getNode(userNodePath);
                 }
-            } catch (RepositoryException e) {
+              } catch (RepositoryException e) {
                 // ignore
-            }
-
-            if (userNode == null) {
+              }
+              if (userNode == null) {
                 // no Node corresponding to user for which the permissions are
                 // calculated -> no permissions/privileges.
                 log.debug("No node at " + userNodePath);
                 return new Result(Permission.NONE, Permission.NONE, PrivilegeRegistry.NO_PRIVILEGE, PrivilegeRegistry.NO_PRIVILEGE);
+              }
             }
 
             // no explicit denied permissions:
@@ -391,8 +396,9 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                     }
                 } else {
                     // rep:User node or some other custom node below an existing user.
-                    // as the auth-folder doesn't allow other residual child nodes.
-                    boolean editingOwnUser = node.isSame(userNode);
+                    // as the authorizable folder doesn't allow other residual
+                    // child nodes.
+                    boolean editingOwnUser = ((userNode != null) && node.isSame(userNode));
                     if (editingOwnUser) {
                         // user can only read && write his own props
                         allows |= (Permission.SET_PROPERTY | Permission.REMOVE_PROPERTY);
@@ -415,26 +421,26 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 - make sure group-admin cannot modify user-admin or administrators
                 - ... and cannot remove itself.
                 */
-              
+
                 // There are 2 protected properties on a group, potentially.
                 // A list of princiapls that are allowed to manage the group, if not present then the default is true.
-                
+
                 // A list of principals that are allowed to read the group, if check that the group is not private
-                // 
+                //
                 boolean isManager = false;
                 boolean isPrivate = false;
                 NodeImpl node = (NodeImpl) getExistingNode(path);
                 if ( node.isNodeType(NT_REP_GROUP) ) {
                   if ( node.hasProperty(NT_REP_GROUP_MANAGERS)) {
-                    log.info("Is Managed {} ", node.getPath());
+                    log.debug("Is Managed {} ", node.getPath());
                     Value[] managers = getValues(node.getProperty(NT_REP_GROUP_MANAGERS));
                     for ( Value manager : managers ) {
                       String m = manager.getString();
                       for ( Principal p : principals ) {
-                        log.info("Checking for Manager [{}] == [{}]", m, p.getName());
+                        log.debug("Checking for Manager [{}] == [{}]", m, p.getName());
                         if ( m.equals(p.getName())) {
                           isManager = true;
-                          log.info("Is a Manager [{}] == [{}]", m, p.getName());
+                          log.debug("Is a Manager [{}] == [{}]", m, p.getName());
                           break;
                         }
                       }
@@ -462,11 +468,11 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                               break;
                             }
                           }
-                          
+
                       }
                   }
                 }
-              
+
                 if (isGroupAdmin || isManager ) {
                     if (!jcrPath.startsWith(administratorsGroupPath) &&
                             !jcrPath.startsWith(userAdminGroupPath)) {
@@ -503,6 +509,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         /**
          * @see CompiledPermissions#close()
          */
+        @Override
         public void close() {
             try {
                 observationMgr.removeEventListener(this);
@@ -515,7 +522,13 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         /**
          * @see CompiledPermissions#grants(Path, int)
          */
+        @Override
         public boolean grants(Path absPath, int permissions) throws RepositoryException {
+            // Dont grant read by default.
+            //if (permissions == Permission.READ) {
+            //    // read is always granted
+            //    return true;
+            //}
             // otherwise: retrieve from cache (or build)
             return super.grants(absPath, permissions);
         }
@@ -523,8 +536,9 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         /**
          * @see CompiledPermissions#canReadAll()
          */
+        @Override
         public boolean canReadAll() throws RepositoryException {
-            return false;
+            return false; // in Sakai users cant read all
         }
 
         //--------------------------------------------------< EventListener >---
@@ -541,6 +555,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                     String evPath = ev.getPath();
                     String repMembers = session.getJCRName(UserConstants.P_MEMBERS);
                     if (repMembers.equals(Text.getName(evPath))) {
+                      if (userNodePath != null) {
                         // recalculate the is...Admin flags
                         Node userNode = session.getNode(userNodePath);
                         String nodePath = Text.getRelativeParent(evPath, 1);
@@ -565,6 +580,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                         clearCache();
                         // only need to clear the cache once. stop processing
                         break;
+                      }
                     }
                 } catch (RepositoryException e) {
                     // should never get here
@@ -577,7 +593,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
     /**
      * @param property
      * @return
-     * @throws RepositoryException 
+     * @throws RepositoryException
      */
     public Value[] getValues(Property property) throws RepositoryException {
       if ( property == null ) {

@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.docproxy;
 
-import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_REF;
-
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -46,7 +44,7 @@ import javax.servlet.http.HttpServletResponse;
  * This servlet provides access to the node metadata of an existing node.
  */
 @SlingServlet(selectors = "metadata", extensions = "json", resourceTypes = {
-    "sling/nonexisting", "sakai/external-repository-document" }, generateComponent = true, generateService = true, methods = {
+    "sling/nonexisting","sakai/external-repository" }, generateComponent = true, generateService = true, methods = {
     "GET", "POST" })
 public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
 
@@ -74,12 +72,15 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node node = JcrUtils.getFirstExistingNode(session, url);
 
+/*
+      --- this block removed because it yields an unusable path - zathomas
+
       if (DocProxyUtils.isExternalRepositoryDocument(node)) {
         // This document should reference the config node.
         String uuid = node.getProperty(REPOSITORY_REF).getString();
         node = session.getNodeByIdentifier(uuid);
       }
-
+*/
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
         response.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested resource does not exist here: " + url);
@@ -143,7 +144,7 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       }
 
       // Anonymous users can't do anything.
-      if (request.getRemoteUser().equals("anon")) {
+      if (request.getRemoteUser().equals("anonymous")) {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
             "Anonymous users can't post anything.");
         return;

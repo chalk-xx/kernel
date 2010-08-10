@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.doc.servlet;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.servlets.post.SlingPostOperation;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -48,14 +49,14 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
       .getLogger(ServletDocumentation.class);
   private ServiceDocumentation serviceDocumetation;
   private String serviceName;
-  private Servlet service;
+  private Object service;
   private ServiceReference reference;
 
   /**
    * @param reference
    * @param service
    */
-  public ServletDocumentation(ServiceReference reference, Servlet service) {
+  public ServletDocumentation(ServiceReference reference, Object service) {
     this.service = service;
     this.reference = reference;
     serviceDocumetation = (ServiceDocumentation) service.getClass()
@@ -101,7 +102,7 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
    * @return the service name.
    */
   private static String getServiceName(ServiceReference reference,
-      Servlet service, ServiceDocumentation serviceDocumetation) {
+      Object service, ServiceDocumentation serviceDocumetation) {
     String name = service.getClass().getName();
     int i = name.lastIndexOf('.');
     name = i > 0 ? name.substring(i + 1) : name;
@@ -211,8 +212,8 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
     writer.append("</ul><h2>Other Services</h2><ul>");
     for (ServiceReference k : reference.getBundle().getRegisteredServices()) {
       Object service = k.getBundle().getBundleContext().getService(k);
-      if (service instanceof Servlet) {
-        ServletDocumentation sd = new ServletDocumentation(k, (Servlet) service);
+      if (service instanceof Servlet || service instanceof SlingPostOperation) {
+        ServletDocumentation sd = new ServletDocumentation(k, service);
         String key = sd.getKey();
         if (key != null) {
           writer.append("<li><a href=\"");

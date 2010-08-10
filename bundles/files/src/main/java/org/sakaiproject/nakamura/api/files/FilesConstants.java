@@ -64,4 +64,13 @@ public interface FilesConstants {
 
   public static final String REG_PROCESSOR_NAMES = "sakai.files.handler";
 
+  /**
+   * The OSGi topic for tagging a file.
+   */
+  public static final String TOPIC_FILES_TAG = "org/sakaiproject/nakamura/files/tag";
+
+  /**
+   * The OSGi topic for linking a file.
+   */
+  public static final String TOPIC_FILES_LINK = "org/sakaiproject/nakamura/files/link";
 }

@@ -30,7 +30,6 @@ import org.sakaiproject.site.api.Site;
 import org.sakaiproject.tool.api.Placement;
 
 /**
- * @author ieb
  *
  */
 public class ToolHelperImpl

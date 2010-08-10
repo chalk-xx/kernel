@@ -31,7 +31,7 @@ public class SakaiPersistenceInitializationHelper extends PersistenceInitializat
     this.amalgamatedClassloader = amalgamatedClassloader;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Override
   public ClassLoader getClassLoader(String emName, Map properties) {
     if (properties != null) {

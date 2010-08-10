@@ -41,17 +41,16 @@ public class RequestWrapperTest {
     expect(request.getCharacterEncoding()).andReturn("UTF-8");
     replay(request);
 
-    RequestWrapper wrapper = new RequestWrapper(request);
-
     RequestInfo requestInfo = new RequestInfo();
     requestInfo.setMethod("POST");
     requestInfo.setUrl("/foo/bar");
+    RequestWrapper wrapper = new RequestWrapper(request, requestInfo);
+
 
     Hashtable<String, String[]> parameters = new Hashtable<String, String[]>();
     parameters.put("foo", new String[] { "bar" });
     parameters.put("alfabet", new String[] { "alfa", "beta" });
     requestInfo.setParameters(parameters);
-    wrapper.setRequestInfo(requestInfo);
 
     assertEquals("bar", wrapper.getRequestParameter("foo").getString());
     assertEquals("bar", wrapper.getParameter("foo"));

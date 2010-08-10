@@ -66,7 +66,8 @@ import javax.servlet.http.HttpServletResponse;
 @Properties( value={
     @Property(name="service.description",value="Form Authentication Handler"),
     @Property(name="service.vendor",value="The Sakai Foundation"),
-    @Property(name=AuthenticationHandler.PATH_PROPERTY, value="/" )
+    @Property(name=AuthenticationHandler.PATH_PROPERTY, value="/" ),
+    @Property(name=AuthenticationHandler.TYPE_PROPERTY, value="FormAuthenticationHandler" )
 })
 public final class FormAuthenticationHandler implements AuthenticationHandler {
 

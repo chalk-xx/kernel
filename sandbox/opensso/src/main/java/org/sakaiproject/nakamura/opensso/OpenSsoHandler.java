@@ -17,27 +17,26 @@
  */
 package org.sakaiproject.nakamura.opensso;
 
-import com.iplanet.sso.SSOException;
-import com.iplanet.sso.SSOToken;
-import com.iplanet.sso.SSOTokenManager;
-
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * A Handler class that encapsulates both extracting the userID from the request, and
  * formulating a redirect url to the central service.
- * 
- * 
+ *
+ *
  * The protocol is documented here
  * http://developers.sun.com/identity/reference/techart/troubleshooting2.html
- * 
+ *
  */
 public class OpenSsoHandler {
 
@@ -58,7 +57,7 @@ public class OpenSsoHandler {
 
   /**
    * @throws IOException
-   * 
+   *
    */
   public void sendAuthenticationFailed(String ssoServerUrl, String destination)
       throws IOException {
@@ -75,21 +74,41 @@ public class OpenSsoHandler {
    * @return
    */
   public String getUserName() {
-    try {
-      System.err.println("Trying to get User");
-      SSOTokenManager.debug.setDebug("ERROR");
-      SSOTokenManager manager = SSOTokenManager.getInstance();
-      SSOToken token = manager.createSSOToken(request);
-      System.err.println("Got Token ");
-      if (manager.isValidToken(token)) {
-        System.err.println("Token  Valid ");
-        return token.getPrincipal().getName();
+    String tokenId = null;
+    Cookie[] cookies = request.getCookies();
+    for (Cookie cookie : cookies) {
+      if ("iPlanetDirectoryPro".equals(cookie.getName())) {
+        tokenId = cookie.getValue();
+        break;
       }
-      System.err.println("Token Not Valid ");
-    } catch (SSOException e) {
-      LOGGER.warn(e.getMessage(),e);
     }
-    return null;
+    if (tokenId != null) {
+      try {
+        GetMethod get = new GetMethod("http://login.nyu.edu/sso/identity/isTokenValid?tokenid=" + tokenId);
+        HttpClient httpClient = new HttpClient();
+        int returnCode = httpClient.executeMethod(get);
+        String body = get.getResponseBodyAsString();
+        if (returnCode < 200 || returnCode >= 300) {
+          return null;
+        } else if ("boolean=true\n".equals(body)) {
+          get = new GetMethod("http://login.nyu.edu/sso/identity/attributes?attributes_names=uid&subjectid=" + tokenId);
+          returnCode = httpClient.executeMethod(get);
+          body = get.getResponseBodyAsString();
+          if (returnCode < 200 || returnCode >= 300) {
+            return null;
+          } else {
+            return body;
+          }
+        } else {
+          return null;
+        }
+      } catch (IOException e) {
+        LOGGER.error(e.getMessage(), e);
+        return null;
+      }
+    } else {
+      return null;
+    }
   }
 
 }
