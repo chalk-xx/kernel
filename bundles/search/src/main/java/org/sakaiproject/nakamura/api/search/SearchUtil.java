@@ -64,6 +64,7 @@ public class SearchUtil {
       SearchResultSet srs = new AbstractSearchResultSet(iterator, hits);
       return srs;
     } catch (RepositoryException e) {
+      LOGGER.error("Unable to perform query.", e);
       throw new SearchException(500, "Unable to perform query.");
     }
 

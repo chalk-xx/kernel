@@ -18,3 +18,8 @@
 
 // Node type for files
 [sakai:file] > nt:file, sakai:propertiesmix
+
+// Node type for pooled content
+['sakai:pooled-content'] > nt:file, sakai:propertiesmix
+  - sling:resourceType (string) = 'sakai/pooled-content' autocreated mandatory
+  + * (nt:base) = nt:unstructured multiple version

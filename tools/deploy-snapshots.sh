@@ -1,8 +1,10 @@
 #!/bin/bash
 # This script deploys snapshots to the local repo based on the current snapshot version and creates a tarball of the repo.
+# Pass it a version number to use to name the snapshots. We often use today's date, like this:
+# date +"%Y%m%d"
 
 version=$1
-repo=/Users/ieb/.m2/repository
+repo=~/.m2/repository
 function install {
    if [ -f $repo/org/apache/sling/${1}/${2}-${3}/${1}-${2}-${3}.jar ]
    then
@@ -21,7 +23,11 @@ function install_felix {
 }
 
 install "org.apache.sling.commons.auth" "0.9.0" $version
+install "org.apache.sling.commons.osgi" "2.0.7" $version
+install "org.apache.sling.commons.testing" "2.0.5" $version
+install "org.apache.sling.adapter" "2.0.5" $version
 install "org.apache.sling.api" "2.0.9" $version
+install "org.apache.sling.bundleresource.impl" "2.0.5" $version
 install "org.apache.sling.engine" "2.0.7" $version
 install "org.apache.sling.openidauth" "0.9.1" $version
 install "org.apache.sling.jcr.contentloader" "2.0.7" $version
@@ -33,6 +39,7 @@ install "org.apache.sling.scripting.jsp" "2.0.9" $version
 install "org.apache.sling.scripting.jsp.taglib" "2.0.7" $version
 install "org.apache.sling.servlets.get" "2.0.9" $version
 install "org.apache.sling.servlets.post" "2.0.5" $version
+install "org.apache.sling.servlets.resolver" "2.0.9" $version
 install "org.apache.sling.commons.log" "2.0.7" $version
 install "org.apache.sling.extensions.webconsolebranding" "0.0.1" $version
 install "org.apache.sling.jcr.webconsole" "1.0.0" $version

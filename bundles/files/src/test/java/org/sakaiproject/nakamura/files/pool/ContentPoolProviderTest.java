@@ -38,19 +38,20 @@ public class ContentPoolProviderTest {
   private ResourceResolver resourceResolver;
   @Mock
   private Resource resource;
+  private ContentPoolProvider cp;
 
   public ContentPoolProviderTest() {
     MockitoAnnotations.initMocks(this);
+    cp = new ContentPoolProvider();
   }
 
-  @SuppressWarnings(value={"DLS_DEAD_LOCAL_STORE"},justification="Unit testing fail mode")
+  @SuppressWarnings(value = { "DLS_DEAD_LOCAL_STORE" }, justification = "Unit testing fail mode")
   @Test
   public void testNonExisting() {
-    ContentPoolProvider cp = new ContentPoolProvider();
     Mockito.when(resourceResolver.resolve(Mockito.anyString())).thenReturn(resource);
     Mockito
-    .when(resourceResolver.resolve(Mockito.eq("/_p/j/yy/qe/u1/nonexisting")))
-    .thenReturn(new NonExistingResource(resourceResolver, "/_p/aa/bb/cc/nonexisting"));
+        .when(resourceResolver.resolve(Mockito.eq("/_p/j/yy/qe/u1/nonexisting")))
+        .thenReturn(new NonExistingResource(resourceResolver, "/_p/aa/bb/cc/nonexisting"));
     Mockito.when(resource.getPath()).thenReturn("/_p/AA/BB/CC/DD/testing");
     ResourceMetadata resourceMetadata = new ResourceMetadata();
     Mockito.when(resource.getResourceMetadata()).thenReturn(resourceMetadata);
@@ -68,11 +69,8 @@ public class ContentPoolProviderTest {
 
   }
 
-  
-
   @Test
   public void testNonMatching() {
-    ContentPoolProvider cp = new ContentPoolProvider();
     Mockito.when(resourceResolver.resolve(Mockito.anyString())).thenReturn(resource);
     Mockito.when(resource.getPath()).thenReturn("/_p/AA/BB/CC/DD/testing");
     ResourceMetadata resourceMetadata = new ResourceMetadata();
@@ -88,32 +86,22 @@ public class ContentPoolProviderTest {
   }
 
   public void testProviderWithId(String selectors, String extra) {
-    ContentPoolProvider cp = new ContentPoolProvider();
-
-    Mockito.when(resourceResolver.resolve(Mockito.matches("/_p/.*/testing" + selectors)))
-        .thenReturn(resource);
-    Mockito.when(resource.getPath()).thenReturn("/_p/AA/BB/CC/DD/testing");
-    ResourceMetadata resourceMetadata = new ResourceMetadata();
-    Mockito.when(resource.getResourceMetadata()).thenReturn(resourceMetadata);
-
     Resource result = cp.getResource(resourceResolver, "/p/testing" + selectors + extra);
-    Assert.assertEquals(resource, result);
-  }
-
-  @Test
-  public void testProviderBlank() {
-    testProviderWithId("", "");
-
+    Assert.assertEquals(null, result);
   }
 
   @Test
   public void testProviderExt() {
+    // A ResourceProvider should only return a resource when the full path to it matches
+    // the JCR path.
+    resource = null;
     testProviderWithId(".json", "");
 
   }
 
   @Test
   public void testProviderExtAndSelector() {
+
     testProviderWithId(".tidy.json", "");
 
   }
