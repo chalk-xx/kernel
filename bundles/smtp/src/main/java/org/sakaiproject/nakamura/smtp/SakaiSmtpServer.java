@@ -28,9 +28,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFactory;
 import javax.mail.BodyPart;
 import javax.mail.Header;
 import javax.mail.MessagingException;
@@ -208,8 +210,10 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     } else {
       Node node = messagingService.create(session, mapProperties);
       // set up to stream the body.
-      node.setProperty(MessageConstants.PROP_SAKAI_BODY, data);
-      node.save();
+      ValueFactory valueFactory = session.getValueFactory();
+      Binary bin = valueFactory.createBinary(data);
+      node.setProperty(MessageConstants.PROP_SAKAI_BODY, bin);
+      session.save();
       return node;
     }
   }
@@ -246,8 +250,10 @@ public class SakaiSmtpServer implements SimpleMessageListener {
 
     Node childNode = message.addNode(childName);
     writePartPropertiesToNode(part, childNode);
-    childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, part.getInputStream());
-    childNode.save();
+    ValueFactory valueFactory = session.getValueFactory();
+    Binary bin = valueFactory.createBinary(part.getInputStream());
+    childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, bin);
+    session.save();
   }
 
   private void writePartAsFile(Session session, BodyPart part, String nodeName,
@@ -255,8 +261,8 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     Node fileNode = parentNode.addNode(nodeName, "nt:file");
     Node resourceNode = fileNode.addNode("jcr:content", "nt:resource");
     resourceNode.setProperty("jcr:mimeType", part.getContentType());
-    resourceNode.setProperty("jcr:data", session.getValueFactory().createValue(
-        part.getInputStream()));
+    resourceNode.setProperty("jcr:data",
+        session.getValueFactory().createBinary(part.getInputStream()));
     resourceNode.setProperty("jcr:lastModified", Calendar.getInstance());
   }
 

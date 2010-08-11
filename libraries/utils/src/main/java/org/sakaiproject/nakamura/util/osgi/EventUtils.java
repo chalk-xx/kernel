@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.util.osgi;
 
 import org.apache.sling.api.SlingConstants;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceUtil;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 
@@ -63,7 +62,7 @@ public class EventUtils {
         if (node != null) {
           try {
             if (node.getParent().isNodeType("nt:file")) {
-              final Resource parentResource = ResourceUtil.getParent(resource);
+              final Resource parentResource = resource.getParent();
               if (parentResource != null) {
                 resource = parentResource;
               }

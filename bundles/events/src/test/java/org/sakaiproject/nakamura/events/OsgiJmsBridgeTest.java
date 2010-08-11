@@ -96,7 +96,7 @@ public class OsgiJmsBridgeTest {
    *
    * @throws JMSException
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Test
   public void testHandleEvent() throws Exception {
     // setup to do full processing
@@ -131,7 +131,7 @@ public class OsgiJmsBridgeTest {
    *
    * @throws JMSException
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Test
   public void testHandleEventExceptionClosing() throws Exception {
     // setup to do full processing

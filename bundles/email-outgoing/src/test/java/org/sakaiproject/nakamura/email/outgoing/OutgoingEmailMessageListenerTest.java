@@ -24,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.net.BindException;
 import java.util.Properties;
 
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.Property;
@@ -468,9 +469,11 @@ public class OutgoingEmailMessageListenerTest {
     expect(descProp.getString()).andReturn("Digital signature");
 
     Property contentProp = createMock(Property.class);
-    expect(contentProp.getStream()).andReturn(
+    Binary contentBin = createMock(Binary.class);
+    expect(contentBin.getStream()).andReturn(
         new ByteArrayInputStream("----BEGIN FAKE PGP SIGNATURE----".getBytes()))
         .anyTimes();
+    expect(contentProp.getBinary()).andReturn(contentBin).anyTimes();
 
     Property ctProp = createMock(Property.class);
     expect(ctProp.getString()).andReturn("applica/pgp-signat").anyTimes();
@@ -519,7 +522,7 @@ public class OutgoingEmailMessageListenerTest {
             MessageConstants.BOX_SENT)).andReturn(null);
 
     replay(message, messageNode, boxName, toProp, fromProp, descProp, contentProp,
-        ctProp, childNode, nodeType, nodeIterator);
+        contentBin, ctProp, childNode, nodeType, nodeIterator);
 
     oeml.onMessage(message);
 
