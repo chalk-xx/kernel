@@ -23,9 +23,9 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
-import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -61,8 +62,10 @@ public class SsoLoginServlet extends SlingAllMethodsServlet {
   public SsoLoginServlet() {
   }
 
-  protected SsoLoginServlet(SsoAuthenticationHandler ssoAuthHandler) {
+  protected SsoLoginServlet(SsoAuthenticationHandler ssoAuthHandler,
+      TrustedTokenService trustedTokenService) {
     this.ssoAuthnHandler = ssoAuthHandler;
+    this.trustedTokenService = trustedTokenService;
   }
 
   @Override
@@ -71,9 +74,7 @@ public class SsoLoginServlet extends SlingAllMethodsServlet {
     // Check for possible loop after authentication.
     // #1 just went through auth
     // #2 already passed auth
-    String handlerName = (String) request.getSession().getAttribute(
-        ArtifactHandler.HANDLER_NAME);
-    if (handlerName != null) {
+    if (request.getAuthType() != null) {
       AuthenticationInfo authnInfo = (AuthenticationInfo) request
           .getAttribute(SsoAuthenticationHandler.AUTHN_INFO);
       if (authnInfo != null) {
@@ -82,7 +83,7 @@ public class SsoLoginServlet extends SlingAllMethodsServlet {
         tokenServiceWrapper.addToken(request, response);
       }
 
-      String redirectTarget = ssoAuthnHandler.getReturnPath(request);
+      String redirectTarget = getReturnPath(request);
       if ((redirectTarget == null) || request.getRequestURI().equals(redirectTarget)) {
         redirectTarget = request.getContextPath() + "/";
       }
@@ -97,4 +98,33 @@ public class SsoLoginServlet extends SlingAllMethodsServlet {
       response.sendError(HttpServletResponse.SC_FORBIDDEN, "Cannot login");
     }
   }
+
+  /**
+   * In imitation of sling.formauth, use the "resource" parameter to determine
+   * where the browser should go after successful authentication.
+   * <p>
+   * TODO The "sling.auth.redirect" parameter seems to make more sense, but it
+   * currently causes a redirect to happen in SlingAuthenticator's
+   * getAnonymousResolver method before handlers get a chance to requestCredentials.
+   *
+   * @param request
+   * @return the path to which the browser should be directed after successful
+   * authentication, or null if no destination was specified
+   */
+  String getReturnPath(HttpServletRequest request) {
+    final String returnPath;
+    Object resObj = request.getAttribute(Authenticator.LOGIN_RESOURCE);
+    if ((resObj instanceof String) && ((String) resObj).length() > 0) {
+      returnPath = (String) resObj;
+    } else {
+      String resource = request.getParameter(Authenticator.LOGIN_RESOURCE);
+      if ((resource != null) && (resource.length() > 0)) {
+        returnPath = resource;
+      } else {
+        returnPath = null;
+      }
+    }
+    return returnPath;
+  }
+
 }

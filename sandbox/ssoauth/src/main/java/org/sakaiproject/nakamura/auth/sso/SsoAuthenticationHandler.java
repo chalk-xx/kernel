@@ -44,8 +44,6 @@ import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
-import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.Constants;
 import org.osgi.service.component.ComponentException;
@@ -67,14 +65,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.jcr.Credentials;
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 import javax.jcr.ValueFactory;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.login.FailedLoginException;
-import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -84,11 +77,10 @@ import javax.servlet.http.HttpSession;
  * The integration is needed only due to limitations on servlet filter
  * support in the OSGi / Sling environment.
  */
-@Component(metatype=true)
+@Component(metatype = true)
 @Services({
     @Service(value = SsoAuthenticationHandler.class),
     @Service(value = AuthenticationHandler.class),
-    @Service(value = LoginModulePlugin.class),
     @Service(value = AuthenticationFeedbackHandler.class)
 })
 @Properties(value = {
@@ -98,7 +90,7 @@ import javax.servlet.http.HttpSession;
     @Property(name = SsoAuthenticationHandler.SSO_AUTOCREATE_USER, boolValue = SsoAuthenticationHandler.DEFAULT_SSO_AUTOCREATE_USER)
 })
 public class SsoAuthenticationHandler implements AuthenticationHandler,
-    LoginModulePlugin, AuthenticationFeedbackHandler {
+    AuthenticationFeedbackHandler {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SsoAuthenticationHandler.class);
@@ -216,7 +208,7 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
     if (StringUtils.isNotBlank(logoutUrl)) {
 
       String target = (String) request.getAttribute(Authenticator.LOGIN_RESOURCE);
-      if (target == null || target.length() == 0) {
+      if (StringUtils.isBlank(target)) {
         target = request.getParameter(Authenticator.LOGIN_RESOURCE);
       }
 
@@ -241,12 +233,6 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
     // that of TrustedAuthenticationHandler
     AuthenticationInfo authnInfo = null;
     String handlerName = null;
-
-//    String handlerName = (String) request.getSession().getAttribute(
-//        ArtifactHandler.HANDLER_NAME);
-//    if (handlerName != null) {
-//      return null;
-//    }
 
     // go through artifact handler list to find one that can handle this request.
     ArtifactHandler handler = null;
@@ -323,36 +309,36 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
 
   //----------- LoginModulePlugin interface ----------------------------
 
-  @SuppressWarnings("rawtypes")
-  public void addPrincipals(Set principals) {
-  }
-
-  public boolean canHandle(Credentials credentials) {
-    return (getSsoPrincipal(credentials) != null);
-  }
-
-  @SuppressWarnings("rawtypes")
-  public void doInit(CallbackHandler callbackHandler, Session session, Map options)
-      throws LoginException {
-  }
-
-  public AuthenticationPlugin getAuthentication(Principal principal,
-      Credentials credentials) throws RepositoryException {
-    AuthenticationPlugin plugin = null;
-    if (canHandle(credentials)) {
-      plugin = new SsoAuthenticationPlugin(this);
-    }
-    return plugin;
-  }
-
-  public Principal getPrincipal(Credentials credentials) {
-    return getSsoPrincipal(credentials);
-  }
-
-  public int impersonate(Principal principal, Credentials credentials)
-      throws RepositoryException, FailedLoginException {
-    return LoginModulePlugin.IMPERSONATION_DEFAULT;
-  }
+//  @SuppressWarnings("rawtypes")
+//  public void addPrincipals(Set principals) {
+//  }
+//
+//  public boolean canHandle(Credentials credentials) {
+//    return (getSsoPrincipal(credentials) != null);
+//  }
+//
+//  @SuppressWarnings("rawtypes")
+//  public void doInit(CallbackHandler callbackHandler, Session session, Map options)
+//      throws LoginException {
+//  }
+//
+//  public AuthenticationPlugin getAuthentication(Principal principal,
+//      Credentials credentials) throws RepositoryException {
+//    AuthenticationPlugin plugin = null;
+//    if (canHandle(credentials)) {
+//      plugin = new SsoAuthenticationPlugin(this);
+//    }
+//    return plugin;
+//  }
+//
+//  public Principal getPrincipal(Credentials credentials) {
+//    return getSsoPrincipal(credentials);
+//  }
+//
+//  public int impersonate(Principal principal, Credentials credentials)
+//      throws RepositoryException, FailedLoginException {
+//    return LoginModulePlugin.IMPERSONATION_DEFAULT;
+//  }
 
   //----------- AuthenticationFeedbackHandler interface ----------------------------
 
@@ -386,6 +372,10 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
    * CreateUserServlet, and the resulting user will not be associated with a valid
    * profile.
    * <p>
+   * Note: do not try to inject the token here.  The request has not had the authenticated
+   * user added to it so request.getUserPrincipal() and request.getRemoteUser() both
+   * return null.
+   * <p>
    * TODO This really needs to be dropped to allow for user pull, person directory
    * integrations, etc. See SLING-1563 for the related issue of user population via
    * OpenID.
@@ -417,36 +407,6 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
     return DefaultAuthenticationFeedbackHandler.handleRedirect(request, response);
   }
 
-  //----------- Package ----------------------------
-
-  /**
-   * In imitation of sling.formauth, use the "resource" parameter to determine
-   * where the browser should go after successful authentication.
-   * <p>
-   * TODO The "sling.auth.redirect" parameter seems to make more sense, but it
-   * currently causes a redirect to happen in SlingAuthenticator's
-   * getAnonymousResolver method before handlers get a chance to requestCredentials.
-   *
-   * @param request
-   * @return the path to which the browser should be directed after successful
-   * authentication, or null if no destination was specified
-   */
-  String getReturnPath(HttpServletRequest request) {
-    final String returnPath;
-    Object resObj = request.getAttribute(Authenticator.LOGIN_RESOURCE);
-    if ((resObj instanceof String) && ((String) resObj).length() > 0) {
-      returnPath = (String) resObj;
-    } else {
-      String resource = request.getParameter(Authenticator.LOGIN_RESOURCE);
-      if ((resource != null) && (resource.length() > 0)) {
-        returnPath = resource;
-      } else {
-        returnPath = null;
-      }
-    }
-    return returnPath;
-  }
-
   //----------- Internal ----------------------------
   private AuthenticationInfo createAuthnInfo(final String username) {
     final SsoPrincipal principal = new SsoPrincipal(username);
@@ -473,18 +433,6 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
         .toString();
     String encodedUrl = URLEncoder.encode(url.toString(), "UTF-8");
     return encodedUrl;
-  }
-
-  private SsoPrincipal getSsoPrincipal(Credentials credentials) {
-    SsoPrincipal ssoPrincipal = null;
-    if (credentials instanceof SimpleCredentials) {
-      SimpleCredentials simpleCredentials = (SimpleCredentials) credentials;
-      Object attribute = simpleCredentials.getAttribute(SsoPrincipal.class.getName());
-      if (attribute instanceof SsoPrincipal) {
-        ssoPrincipal = (SsoPrincipal) attribute;
-      }
-    }
-    return ssoPrincipal;
   }
 
   private boolean findOrCreateUser(AuthenticationInfo authInfo) {
@@ -531,18 +479,6 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
       authzPostProcessService.process(user, session, Modification.onCreated(userPath));
     }
     return user;
-  }
-
-  private StringBuilder getServerName(HttpServletRequest request) {
-    StringBuilder serverName = new StringBuilder();
-    String scheme = request.getScheme();
-    int port = request.getServerPort();
-    serverName.append(scheme).append("://").append(request.getServerName());
-    if ((port > 0) && (!"http".equals(scheme) || port != 80)
-        && (!"https".equals(scheme) || port != 443)) {
-      serverName.append(':').append(port);
-    }
-    return serverName;
   }
 
   private ArtifactHandler getHandler(HttpServletRequest request) {

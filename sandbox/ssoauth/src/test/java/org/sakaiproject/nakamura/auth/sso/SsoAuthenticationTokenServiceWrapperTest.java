@@ -17,46 +17,56 @@
  */
 package org.sakaiproject.nakamura.auth.sso;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.when;
-
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import javax.jcr.Credentials;
+import org.sakaiproject.nakamura.auth.trusted.TrustedTokenServiceImpl;
 
 /**
  *
  */
 @RunWith(value = MockitoJUnitRunner.class)
-public class SsoAuthenticationPluginTest {
-  SsoAuthenticationPlugin plugin;
+public class SsoAuthenticationTokenServiceWrapperTest {
+
+  SsoLoginServlet servlet;
+
+  TrustedTokenServiceImpl delegate;
 
   @Mock
-  SsoLoginModulePlugin loginModulePlugin;
+  SsoLoginServlet mockedServlet;
 
   @Mock
-  Credentials credentials;
+  SlingHttpServletRequest request;
+
+  @Mock
+  SlingHttpServletResponse response;
+
+  SsoAuthenticationTokenServiceWrapper wrapper;
 
   @Before
-  public void setUp() {
-    plugin = new SsoAuthenticationPlugin(loginModulePlugin);
+  public void setUp() throws Exception {
+    servlet = new SsoLoginServlet();
+    delegate = new TrustedTokenServiceImpl();
+    delegate.activateForTesting();
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void validateFailure() throws Exception {
+    wrapper = new SsoAuthenticationTokenServiceWrapper(mockedServlet, delegate);
   }
 
   @Test
-  public void authenticateTrue() throws Exception {
-    when(loginModulePlugin.canHandle(isA(Credentials.class))).thenReturn(true);
-    assertTrue(plugin.authenticate(credentials));
+  public void validateSuccess() {
+    wrapper = new SsoAuthenticationTokenServiceWrapper(servlet, delegate);
   }
 
   @Test
-  public void authenticateFalse() throws Exception {
-    when(loginModulePlugin.canHandle(isA(Credentials.class))).thenReturn(false);
-    assertFalse(plugin.authenticate(credentials));
+  public void addToken() throws Exception {
+    validateSuccess();
+    wrapper.addToken(request, response);
   }
 }

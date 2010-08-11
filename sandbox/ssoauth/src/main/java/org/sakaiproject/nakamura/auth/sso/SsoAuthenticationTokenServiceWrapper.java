@@ -37,7 +37,7 @@ class SsoAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrapper {
    */
   private static TrustedTokenService validate(SsoLoginServlet servlet, TrustedTokenService delegate) {
     if ( !SsoLoginServlet.class.equals(servlet.getClass()) ) {
-      throw new IllegalArgumentException("Invalid use of FormAuthenticationTonkenService");
+      throw new IllegalArgumentException("Invalid use of SsoAuthenticationTonkenService");
     }
     return delegate;
   }

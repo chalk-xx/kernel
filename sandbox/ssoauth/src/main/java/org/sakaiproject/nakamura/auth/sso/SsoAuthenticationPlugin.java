@@ -23,10 +23,10 @@ import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 
 public class SsoAuthenticationPlugin implements AuthenticationPlugin {
-  private SsoAuthenticationHandler ssoAuthnHandler;
+  private SsoLoginModulePlugin loginModulePlugin;
 
-  public SsoAuthenticationPlugin(SsoAuthenticationHandler ssoAuthnHandler) {
-    this.ssoAuthnHandler = ssoAuthnHandler;
+  public SsoAuthenticationPlugin(SsoLoginModulePlugin loginModulePlugin) {
+    this.loginModulePlugin = loginModulePlugin;
   }
 
   /**
@@ -39,7 +39,7 @@ public class SsoAuthenticationPlugin implements AuthenticationPlugin {
    * @see org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin#authenticate(javax.jcr.Credentials)
    */
   public boolean authenticate(Credentials credentials) throws RepositoryException {
-    if (ssoAuthnHandler.canHandle(credentials)) {
+    if (loginModulePlugin.canHandle(credentials)) {
       return true;
     } else {
       return false;
