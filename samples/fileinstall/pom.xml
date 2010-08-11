@@ -15,13 +15,13 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.8-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.samples.fileinstall</artifactId>
   <packaging>pom</packaging>
   <name>Felix FileInstall on Sling Sample</name>
-  <version>0.7-SNAPSHOT</version>
+  <version>0.8-SNAPSHOT</version>
   <modules>
 	<module>slingrunner</module>
 	<module>hellofromfileinstall</module>

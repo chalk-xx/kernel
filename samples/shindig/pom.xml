@@ -3,14 +3,14 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.8-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>org.sakaiproject.nakamura.shindig</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Shindig Bundle</name>
   <description>Apache Shindig Social API and Gadget Server bundle.</description>
-  <version>0.7-SNAPSHOT</version>
+  <version>0.8-SNAPSHOT</version>
   <properties>
     <shindig.version>1.0-incubating</shindig.version>
   </properties>

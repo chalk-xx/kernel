@@ -21,13 +21,13 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.8-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>org.sakaiproject.nakamura.specs.jms</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Java Messaging Service (JMS) Bundle</name>
-  <version>0.7-SNAPSHOT</version>
+  <version>0.8-SNAPSHOT</version>
   <build>
     <plugins>
       <plugin>
