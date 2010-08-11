@@ -20,12 +20,12 @@
   <parent>
     <artifactId>org.sakaiproject.nakamura.samples.fileinstall</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.8-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.samples.fileinstall.hellofromfileinstall</artifactId>
-  <version>0.7-SNAPSHOT</version>
+  <version>0.8-SNAPSHOT</version>
   <name>Sakai Nakamura :: Sample Installation to FileInstall Directory</name>
   <packaging>bundle</packaging>
   <build>

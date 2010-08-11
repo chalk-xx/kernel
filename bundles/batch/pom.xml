@@ -16,12 +16,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.8-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.batch</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Batch Bundle</name>
-  <version>0.7-SNAPSHOT</version>
+  <version>0.8-SNAPSHOT</version>
   <description>Batch operations such as batch GET, POST, DELETE and tree...</description>
   <build>
     <plugins>
@@ -61,7 +61,7 @@
   	<dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.8-SNAPSHOT</version>
     </dependency>
   	<dependency>
       <groupId>org.apache.sling</groupId>
@@ -88,7 +88,7 @@
   	<dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.8-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   	<dependency>
@@ -105,37 +105,37 @@
   	<dependency>
     	<groupId>org.sakaiproject.nakamura</groupId>
     	<artifactId>org.sakaiproject.nakamura.resource</artifactId>
-    	<version>0.7-SNAPSHOT</version>
+    	<version>0.8-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.tika</artifactId>
-      <version>0.7-0.7-SNAPSHOT</version>
+      <version>0.7-0.8-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.8-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
        <groupId>org.sakaiproject.nakamura</groupId>
        <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-       <version>0.7-SNAPSHOT</version>
+       <version>0.8-SNAPSHOT</version>
     </dependency>
   	<dependency>
        <groupId>org.sakaiproject.nakamura</groupId>
        <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
-       <version>0.7-SNAPSHOT</version>
+       <version>0.8-SNAPSHOT</version>
     </dependency>
     
     <!-- Test dependencies -->
     <dependency>
        <groupId>org.sakaiproject.nakamura</groupId>
        <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-       <version>0.7-SNAPSHOT</version>
+       <version>0.8-SNAPSHOT</version>
        <scope>test</scope>
     </dependency>
     <dependency>

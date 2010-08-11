@@ -26,7 +26,7 @@ import java.io.InputStream;
 public class BundleLoaderRuleSet implements RulePackageLoader{
 
   public InputStream getPackageInputStream() {
-   return  this.getClass().getResourceAsStream("/SLING-INF/content/var/rules/org.sakaiproject.nakamura.rules/org.sakaiproject.nakamura.rules.example/0.7-SNAPSHOT/org.sakaiproject.nakamura.rules.example-0.7-SNAPSHOT.pkg");
+   return  this.getClass().getResourceAsStream("/SLING-INF/content/var/rules/org.sakaiproject.nakamura.rules/org.sakaiproject.nakamura.rules.example/0.8-SNAPSHOT/org.sakaiproject.nakamura.rules.example-0.7-SNAPSHOT.pkg");
   }
 
   public ClassLoader getPackageClassLoader() {

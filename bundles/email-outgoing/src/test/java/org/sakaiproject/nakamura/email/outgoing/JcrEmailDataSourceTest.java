@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
@@ -143,8 +144,10 @@ public class JcrEmailDataSourceTest {
 
     String messageText = "Lorem ipsum dolor sit amet.";
 
+    Binary contentBin = createMock(Binary.class);
     Property content = createMock(Property.class);
-    expect(content.getStream()).andReturn(
+    expect(content.getBinary()).andReturn(contentBin);
+    expect(contentBin.getStream()).andReturn(
         new ByteArrayInputStream(messageText.getBytes()));
 
     Node node = createMock(Node.class);
@@ -152,7 +155,7 @@ public class JcrEmailDataSourceTest {
     expect(node.getProperty(MessageConstants.PROP_SAKAI_ATTACHMENT_CONTENT)).andReturn(
         content);
 
-    replay(nodeType, content, node);
+    replay(nodeType, contentBin, content, node);
 
     JcrEmailDataSource jeds = new JcrEmailDataSource(node);
     InputStream is = jeds.getInputStream();
@@ -168,8 +171,10 @@ public class JcrEmailDataSourceTest {
 
     String messageText = "Lorem ipsum dolor sit amet.";
 
+    Binary contentBin = createMock(Binary.class);
     Property content = createMock(Property.class);
-    expect(content.getStream()).andReturn(
+    expect(content.getBinary()).andReturn(contentBin);
+    expect(contentBin.getStream()).andReturn(
         new ByteArrayInputStream(messageText.getBytes()));
 
     Node contentNode = createMock(Node.class);
@@ -179,7 +184,7 @@ public class JcrEmailDataSourceTest {
     expect(node.getPrimaryNodeType()).andReturn(nodeType);
     expect(node.getNode(JcrConstants.JCR_CONTENT)).andReturn(contentNode);
 
-    replay(nodeType, content, contentNode, node);
+    replay(nodeType, contentBin, content, contentNode, node);
 
     JcrEmailDataSource jeds = new JcrEmailDataSource(node);
     InputStream is = jeds.getInputStream();

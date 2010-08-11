@@ -5,11 +5,11 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.8-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura.maven</groupId>
   <artifactId>drools-maven-plugin</artifactId>
-  <version>0.7-SNAPSHOT</version>
+  <version>0.8-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
   <name>Sakai Nakamura :: Drools Maven Plugin</name>
   <dependencies>
@@ -58,7 +58,6 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>1.8.4</version>
     </dependency>
   </dependencies>
   <repositories>

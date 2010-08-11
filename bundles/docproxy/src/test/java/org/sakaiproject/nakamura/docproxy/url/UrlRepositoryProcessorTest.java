@@ -15,31 +15,31 @@
 package org.sakaiproject.nakamura.docproxy.url;
 
 import static junit.framework.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
-
-import org.apache.http.localserver.LocalTestServer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.internal.stubbing.defaultanswers.Answers;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
-import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
-import org.sakaiproject.nakamura.docproxy.url.requestHandlers.MetadataRequestHandler;
-import org.sakaiproject.nakamura.docproxy.url.requestHandlers.DocumentRequestHandler;
-import org.sakaiproject.nakamura.docproxy.url.requestHandlers.RemoveRequestHandler;
-import org.sakaiproject.nakamura.docproxy.url.requestHandlers.SearchRequestHandler;
-import org.sakaiproject.nakamura.docproxy.url.requestHandlers.UpdateRequestHandler;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Properties;
 
 import javax.jcr.Node;
+
+import org.apache.http.localserver.LocalTestServer;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
+import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
+import org.sakaiproject.nakamura.docproxy.url.requestHandlers.DocumentRequestHandler;
+import org.sakaiproject.nakamura.docproxy.url.requestHandlers.MetadataRequestHandler;
+import org.sakaiproject.nakamura.docproxy.url.requestHandlers.RemoveRequestHandler;
+import org.sakaiproject.nakamura.docproxy.url.requestHandlers.SearchRequestHandler;
+import org.sakaiproject.nakamura.docproxy.url.requestHandlers.UpdateRequestHandler;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UrlRepositoryProcessorTest {
