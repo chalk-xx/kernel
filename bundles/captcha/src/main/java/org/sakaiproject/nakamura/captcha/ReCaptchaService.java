@@ -42,10 +42,10 @@ import javax.servlet.http.HttpServletRequest;
     @Property(name = "service.description", value = "An implementation for the CaptchaService that uses the Google reCAPTCHA webservice.") })
 public class ReCaptchaService implements CaptchaService {
 
-  @Property(value = "6LemN7sSAAAAANILfj4y0QzbCTb6rV3U3__E1NF2", description = "Your public key for the reCAPTCHA service")
+  @Property(value = "6Lef4bsSAAAAAJOwQE-qwkAOzGG3DizFP7GYYng-", description = "Your public key for the reCAPTCHA service")
   static final String KEY_PUBLIC = "org.sakaiproject.nakamura.captcha.key_public";
 
-  @Property(value = "6LemN7sSAAAAAKjBRl_mJqMqX_4CsyrIp9p6qr-R", description = "Your private key for the reCAPTCHA service.")
+  @Property(value = "6Lef4bsSAAAAAId09ufqqs89SwdWpa9t7htW1aRc", description = "Your private key for the reCAPTCHA service.")
   static final String KEY_PRIVATE = "org.sakaiproject.nakamura.captcha.key_private";
 
   @Property(value = "http://www.google.com/recaptcha/api/verify", description = "The REST endpoint for the reCAPTCHA service.")

@@ -174,7 +174,6 @@ public class FilesUtilsTest {
     Session adminSession = mock(Session.class);
     SlingRepository slingRepository = mock(SlingRepository.class);
     String linkPath = "/path/to/link";
-    String sitePath = "/path/to/site";
 
     when(session.getUserID()).thenReturn("alice");
     when(fileNode.getSession()).thenReturn(session);

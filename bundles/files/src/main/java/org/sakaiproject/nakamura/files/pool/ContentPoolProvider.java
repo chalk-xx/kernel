@@ -90,7 +90,6 @@ public class ContentPoolProvider implements ResourceProvider {
 
     if (path.startsWith("/p/")) {
       poolId = path.substring("/p/".length());
-    } else if (path.length() == 2) {
     }
     if (poolId != null && poolId.length() > 0) {
       int i = poolId.indexOf('/');

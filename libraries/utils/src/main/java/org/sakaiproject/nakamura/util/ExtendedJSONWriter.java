@@ -201,8 +201,28 @@ public class ExtendedJSONWriter extends JSONWriter {
    */
   public static void writeNodeTreeToWriter(JSONWriter write, Node node)
       throws RepositoryException, JSONException {
+      writeNodeTreeToWriter(write, node, Boolean.FALSE);
+  }
+  
+  /**
+   * Represent an entire JCR tree in JSON format.
+   * 
+   * @param write
+   *          The {@link JSONWriter writer} to send the data to.
+   * @param node
+   *          The node and it's subtree to output. Note: The properties of this node will
+   *          be outputted as well.
+   * @param objectInProgress
+   *          use true if you don't want the method to enclose the output in fresh object braces
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  public static void writeNodeTreeToWriter(JSONWriter write, Node node, boolean objectInProgress)
+      throws RepositoryException, JSONException {
     // Write this node's properties.
-    write.object();
+    if(!objectInProgress) {
+        write.object();
+    }
     writeNodeContentsToWriter(write, node);
 
     // Write all the child nodes.
@@ -212,7 +232,9 @@ public class ExtendedJSONWriter extends JSONWriter {
       write.key(childNode.getName());
       writeNodeTreeToWriter(write, childNode);
     }
-    write.endObject();
+    if(!objectInProgress) {
+        write.endObject();
+    }
   }
 
 }

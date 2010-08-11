@@ -72,7 +72,7 @@ public class UserSearchResultProcessor implements SearchResultProcessor {
 
     write.object();
     Node node = row.getNode();
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
+    ExtendedJSONWriter.writeNodeTreeToWriter(write, node, true);
     String userID = node.getProperty("rep:userId").getString();
     PresenceUtils.makePresenceJSON(write, userID, presenceService, true);
     write.endObject();
