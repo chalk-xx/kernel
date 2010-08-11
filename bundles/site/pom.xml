@@ -153,14 +153,5 @@
       <artifactId>org.sakaiproject.nakamura.search</artifactId>
       <version>0.8-SNAPSHOT</version>
     </dependency>
-    <!--
-    this currently comes from the testutils bundle and is controlled there
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>1.8.5</version>
-      <scope>test</scope>
-    </dependency>
-    -->
   </dependencies>
 </project>
