@@ -96,10 +96,10 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   @Property(value ="localhost;127.0.0.1", description="A ; seperated list of hosts that this instance trusts to make server connections.")
   public static final String SERVER_TOKEN_SAFE_HOSTS = "sakai.auth.trusted.server.safe-hosts";
 
-  @Property(value ="org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper", description="A ; seperated list of fully qualified class names that are allowed to extend the Wrapper Class.")
+  private static final String DEFAULT_WRAPPERS = "org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.auth.sso.SsoAuthenticationTokenServiceWrapper";
+  @Property(value = DEFAULT_WRAPPERS, description="A ; seperated list of fully qualified class names that are allowed to extend the Wrapper Class.")
   public static final String SERVER_TOKEN_SAFE_WRAPPERS = "sakai.auth.trusted.wrapper.class.names";
 
-  private static final String DEFAULT_WRAPPERS = "org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.auth.sso.SsoAuthenticationTokenServiceWrapper";
   /**
    * If True, sessions will be used, if false cookies.
    */
@@ -367,6 +367,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
       // send an async event to indicate that the user has been trusted, things that want to create users can hook into this.
       eventAdmin.sendEvent(new Event(TrustedTokenService.TRUST_USER_TOPIC,eventDictionary));
+    } else {
+      LOG.warn("Unable to inject token; unable to determine user from request.");
     }
   }
 
