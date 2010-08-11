@@ -24,6 +24,9 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +53,10 @@ public class SsoLoginServlet extends SlingAllMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(SsoLoginServlet.class);
 
   @Reference
-  protected transient SsoAuthenticationHandler ssoAuthnHandler;
+  private SsoAuthenticationHandler ssoAuthnHandler;
+
+  @Reference
+  private TrustedTokenService trustedTokenService;
 
   public SsoLoginServlet() {
   }
@@ -63,7 +69,19 @@ public class SsoLoginServlet extends SlingAllMethodsServlet {
   protected void service(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
     // Check for possible loop after authentication.
-    if (request.getAuthType() != null) {
+    // #1 just went through auth
+    // #2 already passed auth
+    String handlerName = (String) request.getSession().getAttribute(
+        ArtifactHandler.HANDLER_NAME);
+    if (handlerName != null) {
+      AuthenticationInfo authnInfo = (AuthenticationInfo) request
+          .getAttribute(SsoAuthenticationHandler.AUTHN_INFO);
+      if (authnInfo != null) {
+        SsoAuthenticationTokenServiceWrapper tokenServiceWrapper = new SsoAuthenticationTokenServiceWrapper(
+            this, trustedTokenService);
+        tokenServiceWrapper.addToken(request, response);
+      }
+
       String redirectTarget = ssoAuthnHandler.getReturnPath(request);
       if ((redirectTarget == null) || request.getRequestURI().equals(redirectTarget)) {
         redirectTarget = request.getContextPath() + "/";

@@ -35,8 +35,6 @@ import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationHandler;
@@ -49,11 +47,10 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.apache.sling.servlets.post.Modification;
+import org.osgi.framework.Constants;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
 import org.sakaiproject.nakamura.api.auth.sso.SsoAuthConstants;
-import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
-import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenServiceWrapper;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
@@ -95,6 +92,7 @@ import javax.servlet.http.HttpSession;
     @Service(value = AuthenticationFeedbackHandler.class)
 })
 @Properties(value = {
+    @Property(name = Constants.SERVICE_RANKING, intValue = -5),
     @Property(name = AuthenticationHandler.PATH_PROPERTY, value = "/"),
     @Property(name = AuthenticationHandler.TYPE_PROPERTY, value = SsoAuthConstants.SSO_AUTH_TYPE, propertyPrivate = true),
     @Property(name = SsoAuthenticationHandler.SSO_AUTOCREATE_USER, boolValue = SsoAuthenticationHandler.DEFAULT_SSO_AUTOCREATE_USER)
@@ -108,6 +106,7 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
   /** Represents the constant for where the assertion will be located in memory. */
   static final String SSO_AUTOCREATE_USER = "sakai.auth.sso.user.autocreate";
 
+  static final String AUTHN_INFO = "org.sakaiproject.nakamura.auth.sso.SsoAuthnInfo";
   public static final boolean DEFAULT_SSO_AUTOCREATE_USER = false;
   private boolean autoCreateUser;
 
@@ -117,9 +116,6 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
 
   @Reference
   protected AuthorizablePostProcessService authzPostProcessService;
-
-  @Reference
-  protected TrustedTokenService trustedTokenService;
 
   @Reference(referenceInterface = ArtifactHandler.class, cardinality = MANDATORY_MULTIPLE)
   protected Map<String, ArtifactHandler> artifactHandlers = new HashMap<String, ArtifactHandler>();
@@ -239,11 +235,21 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
       HttpServletResponse response) {
     LOGGER.debug("extractCredentials called");
 
+    // don't have to check for previous validations as the SSO cycle results in a token
+    // being added to the request and found by the trusted authentication handler before
+    // this handler is called as long as the service ranking of this class is higher than
+    // that of TrustedAuthenticationHandler
     AuthenticationInfo authnInfo = null;
+    String handlerName = null;
+
+//    String handlerName = (String) request.getSession().getAttribute(
+//        ArtifactHandler.HANDLER_NAME);
+//    if (handlerName != null) {
+//      return null;
+//    }
 
     // go through artifact handler list to find one that can handle this request.
     ArtifactHandler handler = null;
-    String handlerName = null;
     String artifact = null;
     for (Entry<String, ArtifactHandler> handlerEntry : artifactHandlers.entrySet()) {
       ArtifactHandler h = handlerEntry.getValue();
@@ -271,6 +277,7 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
             // found some credentials; proceed
             authnInfo = createAuthnInfo(credentials);
 
+            request.setAttribute(AUTHN_INFO, authnInfo);
             // store the handler name to session for use during logout
             // TODO store this somewhere besides session; possibly a cookie or JCR
             request.getSession().setAttribute(ArtifactHandler.HANDLER_NAME, handlerName);
@@ -395,12 +402,7 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
     // check that now.
     if (this.autoCreateUser) {
       boolean isUserValid = findOrCreateUser(authInfo);
-      if (isUserValid) {
-        SsoAuthenticationTokenServiceWrapper tokenServiceWrapper = new SsoAuthenticationTokenServiceWrapper(
-            trustedTokenService);
-        tokenServiceWrapper.addToken((SlingHttpServletRequest) request,
-            (SlingHttpServletResponse) response);
-      } else {
+      if (!isUserValid) {
         LOGGER.warn("SSO authentication succeeded but corresponding user not found or created");
         try {
           dropCredentials(request, response);
@@ -448,7 +450,8 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
   //----------- Internal ----------------------------
   private AuthenticationInfo createAuthnInfo(final String username) {
     final SsoPrincipal principal = new SsoPrincipal(username);
-    AuthenticationInfo authnInfo = new AuthenticationInfo(SsoAuthConstants.SSO_AUTH_TYPE);
+    AuthenticationInfo authnInfo = new AuthenticationInfo(SsoAuthConstants.SSO_AUTH_TYPE,
+        username);
     SimpleCredentials credentials = new SimpleCredentials(principal.getName(),
         new char[] {});
     credentials.setAttribute(SsoPrincipal.class.getName(), principal);
@@ -466,33 +469,10 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
    */
   private String constructServiceParameter(HttpServletRequest request)
       throws UnsupportedEncodingException {
-    StringBuilder serviceUrl = getServerName(request);
-    String requestedReturnPath = getReturnPath(request);
-    if (requestedReturnPath != null && requestedReturnPath.length() > 0) {
-      serviceUrl.append(requestedReturnPath);
-    } else {
-      serviceUrl.append(request.getRequestURI());
-      String queryString = request.getQueryString();
-      if (queryString != null) {
-        boolean noQueryString = true;
-        String[] parameters = queryString.split("&");
-        for (String parameter : parameters) {
-          String[] keyAndValue = parameter.split("=", 2);
-          String key = keyAndValue[0];
-          if (!filteredQueryStrings.contains(key)) {
-            if (noQueryString) {
-              serviceUrl.append("?");
-              noQueryString = false;
-            } else {
-              serviceUrl.append("&");
-            }
-            serviceUrl.append(parameter);
-          }
-        }
-      }
-    }
-    String url = URLEncoder.encode(serviceUrl.toString(), "UTF-8");
-    return url;
+    String url = request.getRequestURL().append("?").append(request.getQueryString())
+        .toString();
+    String encodedUrl = URLEncoder.encode(url.toString(), "UTF-8");
+    return encodedUrl;
   }
 
   private SsoPrincipal getSsoPrincipal(Credentials credentials) {
@@ -593,26 +573,6 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
      */
     public String getName() {
       return principalName;
-    }
-  }
-
-  private static final class SsoAuthenticationTokenServiceWrapper extends
-      TrustedTokenServiceWrapper {
-    /**
-     * @param delegate
-     */
-    SsoAuthenticationTokenServiceWrapper(TrustedTokenService delegate) {
-      super(delegate);
-    }
-
-    /**
-     * @param request
-     * @param response
-     */
-    @Override
-    public final void addToken(SlingHttpServletRequest request,
-        SlingHttpServletResponse response) {
-      injectToken(request, response);
     }
   }
 }
