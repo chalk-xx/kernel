@@ -35,6 +35,8 @@ import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationHandler;
@@ -50,6 +52,8 @@ import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
 import org.sakaiproject.nakamura.api.auth.sso.SsoAuthConstants;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenServiceWrapper;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
@@ -102,7 +106,6 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
       .getLogger(SsoAuthenticationHandler.class);
 
   /** Represents the constant for where the assertion will be located in memory. */
-  static final String CONST_SSO_ASSERTION = "_const_sso_assertion_";
   static final String SSO_AUTOCREATE_USER = "sakai.auth.sso.user.autocreate";
 
   public static final boolean DEFAULT_SSO_AUTOCREATE_USER = false;
@@ -115,8 +118,11 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
   @Reference
   protected AuthorizablePostProcessService authzPostProcessService;
 
+  @Reference
+  protected TrustedTokenService trustedTokenService;
+
   @Reference(referenceInterface = ArtifactHandler.class, cardinality = MANDATORY_MULTIPLE)
-  protected HashMap<String, ArtifactHandler> artifactHandlers = new HashMap<String, ArtifactHandler>();
+  protected Map<String, ArtifactHandler> artifactHandlers = new HashMap<String, ArtifactHandler>();
   protected ArtifactHandler defaultHandler = null;
 
   /**
@@ -131,7 +137,7 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
 
   protected SsoAuthenticationHandler(SlingRepository repository,
       AuthorizablePostProcessService authzPostProcessService,
-      HashMap<String, ArtifactHandler> artifactHandlers) {
+      Map<String, ArtifactHandler> artifactHandlers) {
     this.repository = repository;
     this.authzPostProcessService = authzPostProcessService;
     if (artifactHandlers != null) {
@@ -183,51 +189,49 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
 
   public void dropCredentials(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
+    ArtifactHandler handler = null;
+
     final HttpSession session = request.getSession(false);
     if (session != null) {
-
-      final SsoPrincipal principal = getSsoPrincipal(session);
-      if (principal != null) {
-
-        LOGGER.debug("SSO Authentication attribute will be removed");
-        session.removeAttribute(CONST_SSO_ASSERTION);
+      String handlerName = (String) session.getAttribute(ArtifactHandler.HANDLER_NAME);
+      if (handlerName != null) {
+        LOGGER.debug("SSO handler name attribute will be removed");
+        session.removeAttribute(ArtifactHandler.HANDLER_NAME);
 
         // If we are also supposed to redirect to the SSO server to log out
-        ArtifactHandler handler = artifactHandlers.get(principal.getHandlerName());
+        handler = artifactHandlers.get(handlerName);
         if (handler == null) {
-
-          LOGGER.warn("Unable to find handler for principal [handler=" +
-              principal.getHandlerName());
-
-          if (defaultHandler != null) {
-
-            LOGGER.info("Using default handler to logout.");
-            handler = defaultHandler;
-          } else {
-
-            return;
-          }
-        }
-
-        String logoutUrl = handler.getLogoutUrl(request);
-        if (StringUtils.isNotBlank(logoutUrl)) {
-
-          String target = (String) request.getAttribute(Authenticator.LOGIN_RESOURCE);
-          if (target == null || target.length() == 0) {
-
-            target = request.getParameter(Authenticator.LOGIN_RESOURCE);
-          }
-
-          if (target != null && target.length() > 0 && !("/".equals(target))) {
-            LOGGER.info(
-                "SSO logout about to override requested redirect to {} and instead redirect to {}",
-                target, logoutUrl);
-          } else {
-            LOGGER.debug("SSO logout will request redirect to {}", logoutUrl);
-          }
-          request.setAttribute(Authenticator.LOGIN_RESOURCE, logoutUrl);
+          LOGGER.warn("Unable to find handler for principal [handler=" + handlerName);
         }
       }
+    }
+
+    if (handler == null) {
+      if (defaultHandler != null) {
+        LOGGER.info("Using default handler to logout.");
+        handler = defaultHandler;
+      } else {
+        LOGGER.info("No handler for the principal and default not set.");
+        return;
+      }
+    }
+
+    String logoutUrl = handler.getLogoutUrl(request);
+    if (StringUtils.isNotBlank(logoutUrl)) {
+
+      String target = (String) request.getAttribute(Authenticator.LOGIN_RESOURCE);
+      if (target == null || target.length() == 0) {
+        target = request.getParameter(Authenticator.LOGIN_RESOURCE);
+      }
+
+      if (target != null && target.length() > 0 && !("/".equals(target))) {
+        LOGGER.info(
+            "SSO logout about to override requested redirect to {} and instead redirect to {}",
+            target, logoutUrl);
+      } else {
+        LOGGER.debug("SSO logout will request redirect to {}", logoutUrl);
+      }
+      request.setAttribute(Authenticator.LOGIN_RESOURCE, logoutUrl);
     }
   }
 
@@ -237,51 +241,47 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
 
     AuthenticationInfo authnInfo = null;
 
-    final HttpSession session = request.getSession(false);
-    SsoPrincipal principal = getSsoPrincipal(session);
-    if (principal != null) {
-      LOGGER.debug("assertion found");
-      authnInfo = createAuthnInfo(principal);
-    } else {
-      // go through artifact handler list to find one that can handle this request.
-      ArtifactHandler handler = null;
-      String handlerName = null;
-      String artifact = null;
-      for (Entry<String, ArtifactHandler> handlerEntry : artifactHandlers.entrySet()) {
-        ArtifactHandler h = handlerEntry.getValue();
-        artifact = h.extractArtifact(request);
-        if (artifact != null) {
-          handlerName = handlerEntry.getKey();
-          request.setAttribute(ArtifactHandler.HANDLER_NAME, handlerName);
-          handler = h;
-          break;
-        }
+    // go through artifact handler list to find one that can handle this request.
+    ArtifactHandler handler = null;
+    String handlerName = null;
+    String artifact = null;
+    for (Entry<String, ArtifactHandler> handlerEntry : artifactHandlers.entrySet()) {
+      ArtifactHandler h = handlerEntry.getValue();
+      artifact = h.extractArtifact(request);
+      if (artifact != null) {
+        handlerName = handlerEntry.getKey();
+        handler = h;
+        break;
       }
+    }
 
-      if (handler != null) {
+    if (handler != null) {
+      try {
         // make REST call to validate artifact
-        try {
-          // validate URL
-          String validateUrl = handler.getValidateUrl(artifact, request);
-          GetMethod get = new GetMethod(validateUrl);
-          HttpClient httpClient = new HttpClient();
-          int returnCode = httpClient.executeMethod(get);
-          if (returnCode >= 200 && returnCode < 300) {
-            String body = get.getResponseBodyAsString();
-            String credentials = handler.extractCredentials(artifact, body, request);
-            if (credentials != null) {
-              principal = new SsoPrincipal(credentials, artifact, handlerName);
-              request.getSession().setAttribute(CONST_SSO_ASSERTION, principal);
-              authnInfo = createAuthnInfo(principal);
-            } else {
-              LOGGER.warn("Unable to extract credentials.");
-            }
+        String validateUrl = handler.getValidateUrl(artifact, request);
+        GetMethod get = new GetMethod(validateUrl);
+        HttpClient httpClient = new HttpClient();
+        int returnCode = httpClient.executeMethod(get);
+
+        if (returnCode >= 200 && returnCode < 300) {
+          // successful call; test for valid response
+          String body = get.getResponseBodyAsString();
+          String credentials = handler.extractCredentials(artifact, body, request);
+          if (credentials != null) {
+            // found some credentials; proceed
+            authnInfo = createAuthnInfo(credentials);
+
+            // store the handler name to session for use during logout
+            // TODO store this somewhere besides session; possibly a cookie or JCR
+            request.getSession().setAttribute(ArtifactHandler.HANDLER_NAME, handlerName);
           } else {
-            LOGGER.error("Failed response from validation server: [" + returnCode + "]");
+            LOGGER.warn("Unable to extract credentials.");
           }
-        } catch (Exception e) {
-          LOGGER.error(e.getMessage(), e);
+        } else {
+          LOGGER.error("Failed response from validation server: [" + returnCode + "]");
         }
+      } catch (Exception e) {
+        LOGGER.error(e.getMessage(), e);
       }
     }
 
@@ -358,15 +358,15 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
    */
   public void authenticationFailed(HttpServletRequest request,
       HttpServletResponse response, AuthenticationInfo authInfo) {
-    LOGGER.debug("authenticationFailed called");
-    final HttpSession session = request.getSession(false);
-    if (session != null) {
-      final SsoPrincipal principal = (SsoPrincipal) session
-          .getAttribute(CONST_SSO_ASSERTION);
-      if (principal != null) {
-        LOGGER.warn("SSO assertion is set", new Exception());
-      }
-    }
+//    LOGGER.debug("authenticationFailed called");
+//    final HttpSession session = request.getSession(false);
+//    if (session != null) {
+//      final SsoPrincipal principal = (SsoPrincipal) session
+//          .getAttribute(CONST_SSO_ASSERTION);
+//      if (principal != null) {
+//        LOGGER.warn("SSO assertion is set", new Exception());
+//      }
+//    }
   }
 
   /**
@@ -395,14 +395,17 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
     // check that now.
     if (this.autoCreateUser) {
       boolean isUserValid = findOrCreateUser(authInfo);
-      if (!isUserValid) {
-        LOGGER
-            .warn("SSO authentication succeeded but corresponding user not found or created");
+      if (isUserValid) {
+        SsoAuthenticationTokenServiceWrapper tokenServiceWrapper = new SsoAuthenticationTokenServiceWrapper(
+            trustedTokenService);
+        tokenServiceWrapper.addToken((SlingHttpServletRequest) request,
+            (SlingHttpServletResponse) response);
+      } else {
+        LOGGER.warn("SSO authentication succeeded but corresponding user not found or created");
         try {
           dropCredentials(request, response);
         } catch (IOException e) {
-          LOGGER.error(
-              "Failed to drop credentials after SSO authentication by invalid user", e);
+          LOGGER.error("Failed to drop credentials after SSO authentication by invalid user", e);
         }
         return true;
       }
@@ -443,37 +446,8 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
   }
 
   //----------- Internal ----------------------------
-  private static final class SsoPrincipal implements Principal {
-    private static final long serialVersionUID = -6232157660434175773L;
-    private String principalName;
-    private String artifact;
-    private String handlerName;
-
-    public SsoPrincipal(String principalName, String artifact, String handlerName) {
-      this.principalName = principalName;
-      this.artifact = artifact;
-      this.handlerName = handlerName;
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @see java.security.Principal#getName()
-     */
-    public String getName() {
-      return principalName;
-    }
-
-    public String getArtifact() {
-      return artifact;
-    }
-
-    public String getHandlerName() {
-      return handlerName;
-    }
-  }
-
-  private AuthenticationInfo createAuthnInfo(final SsoPrincipal principal) {
+  private AuthenticationInfo createAuthnInfo(final String username) {
+    final SsoPrincipal principal = new SsoPrincipal(username);
     AuthenticationInfo authnInfo = new AuthenticationInfo(SsoAuthConstants.SSO_AUTH_TYPE);
     SimpleCredentials credentials = new SimpleCredentials(principal.getName(),
         new char[] {});
@@ -521,17 +495,6 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
     return url;
   }
 
-  private SsoPrincipal getSsoPrincipal(HttpSession session) {
-    SsoPrincipal prin = null;
-    if (session != null) {
-      Object obj = session.getAttribute(CONST_SSO_ASSERTION);
-      if (obj != null && obj instanceof SsoPrincipal) {
-        prin = (SsoPrincipal) obj;
-      }
-    }
-    return prin;
-  }
-
   private SsoPrincipal getSsoPrincipal(Credentials credentials) {
     SsoPrincipal ssoPrincipal = null;
     if (credentials instanceof SimpleCredentials) {
@@ -546,27 +509,23 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
 
   private boolean findOrCreateUser(AuthenticationInfo authInfo) {
     boolean isUserValid = false;
-    final SsoPrincipal principal = getSsoPrincipal((Credentials) authInfo
-        .get(AuthenticationInfo.CREDENTIALS));
-    if (principal != null) {
-      final String principalName = principal.getName();
-      // Check for a matching Authorizable. If one isn't found, create
-      // a new user.
-      Session session = null;
-      try {
-        session = repository.loginAdministrative(null); // usage checked and ok KERN-577
-        UserManager userManager = AccessControlUtil.getUserManager(session);
-        Authorizable authorizable = userManager.getAuthorizable(principalName);
-        if (authorizable == null) {
-          createUser(principalName, session);
-        }
-        isUserValid = true;
-      } catch (Exception e) {
-        LOGGER.error(e.getMessage(), e);
-      } finally {
-        if (session != null) {
-          session.logout();
-        }
+    final String username = authInfo.getUser();
+    // Check for a matching Authorizable. If one isn't found, create
+    // a new user.
+    Session session = null;
+    try {
+      session = repository.loginAdministrative(null); // usage checked and ok KERN-577
+      UserManager userManager = AccessControlUtil.getUserManager(session);
+      Authorizable authorizable = userManager.getAuthorizable(username);
+      if (authorizable == null) {
+        createUser(username, session);
+      }
+      isUserValid = true;
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
+    } finally {
+      if (session != null) {
+        session.logout();
       }
     }
     return isUserValid;
@@ -617,5 +576,43 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
     }
 
     return handler;
+  }
+
+  static final class SsoPrincipal implements Principal {
+    private static final long serialVersionUID = -6232157660434175773L;
+    private String principalName;
+
+    public SsoPrincipal(String principalName) {
+      this.principalName = principalName;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @see java.security.Principal#getName()
+     */
+    public String getName() {
+      return principalName;
+    }
+  }
+
+  private static final class SsoAuthenticationTokenServiceWrapper extends
+      TrustedTokenServiceWrapper {
+    /**
+     * @param delegate
+     */
+    SsoAuthenticationTokenServiceWrapper(TrustedTokenService delegate) {
+      super(delegate);
+    }
+
+    /**
+     * @param request
+     * @param response
+     */
+    @Override
+    public final void addToken(SlingHttpServletRequest request,
+        SlingHttpServletResponse response) {
+      injectToken(request, response);
+    }
   }
 }

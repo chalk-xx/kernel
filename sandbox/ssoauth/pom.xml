@@ -36,7 +36,6 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
-            <Import-Package>!org.jasig.cas.client.*,!org.opensaml,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>
@@ -121,6 +120,11 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
+      <version>0.7-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
       <version>0.7-SNAPSHOT</version>
     </dependency>
     <dependency>

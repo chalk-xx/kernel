@@ -52,13 +52,13 @@ import javax.servlet.http.HttpServletRequest;
  */
 @RunWith(value = MockitoJUnitRunner.class)
 public class OpenSsoArtifactHandlerTest {
-  private OpenSsoArtifactHandler handler;
+  OpenSsoArtifactHandler handler;
 
   @Mock
   HttpServletRequest request;
 
-  private static final String ARTIFACT = "some-great-token-id";
-  private static final String SERVICE_URL = "http://localhost:8080/system/sling/sso/login%3Fsakaiauth:login%3D2%26resource%3D/dev/my_sakai.html";
+  static final String ARTIFACT = "some-great-token-id";
+  static final String SERVICE_URL = "http://localhost:8080/system/sling/sso/login%3Fsakaiauth:login%3D2%26resource%3D/dev/my_sakai.html";
 
   HashMap<String, String> props = new HashMap<String, String>();
   LocalTestServer server;

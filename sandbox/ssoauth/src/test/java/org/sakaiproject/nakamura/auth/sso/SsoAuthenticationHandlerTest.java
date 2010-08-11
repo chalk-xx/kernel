@@ -26,9 +26,9 @@ import org.apache.sling.servlets.post.Modification;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
@@ -48,9 +48,10 @@ import javax.servlet.http.HttpSession;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SsoAuthenticationHandlerTest {
-  private SsoAuthenticationHandler ssoAuthenticationHandler;
-  private SsoAuthenticationPlugin ssoAuthenticationPlugin;
-  private SimpleCredentials ssoCredentials;
+  SsoAuthenticationHandler ssoAuthenticationHandler;
+  SsoAuthenticationPlugin ssoAuthenticationPlugin;
+  SimpleCredentials ssoCredentials;
+
   @Mock
   HttpServletRequest request;
   @Mock
@@ -60,13 +61,15 @@ public class SsoAuthenticationHandlerTest {
   @Mock
   ValueFactory valueFactory;
   @Mock
-  private Principal ssoPrincipal;
+  Principal ssoPrincipal;
   @Mock
-  private SlingRepository repository;
+  SlingRepository repository;
   @Mock
-  private JackrabbitSession adminSession;
+  JackrabbitSession adminSession;
   @Mock
-  private UserManager userManager;
+  UserManager userManager;
+  @Mock
+  ArtifactHandler artifactHandler;
 
   @Before
   public void setUp() throws RepositoryException {
@@ -90,33 +93,44 @@ public class SsoAuthenticationHandlerTest {
 
   @Test
   public void testDropNoAssertion() throws IOException {
-    when(session.getAttribute(SsoAuthenticationHandler.CONST_SSO_ASSERTION)).thenReturn(null);
+    when(session.getAttribute(ArtifactHandler.HANDLER_NAME)).thenReturn(null);
     when(request.getSession(false)).thenReturn(session);
     ssoAuthenticationHandler.dropCredentials(request, response);
   }
 
   @Test
   public void testDropWithAssertion() throws IOException {
-    setUpSsoCredentials();
     when(request.getSession(false)).thenReturn(session);
+    when(session.getAttribute(ArtifactHandler.HANDLER_NAME)).thenReturn("someHandler");
     ssoAuthenticationHandler.dropCredentials(request, response);
-    verify(session).removeAttribute(SsoAuthenticationHandler.CONST_SSO_ASSERTION);
+    verify(session).removeAttribute(ArtifactHandler.HANDLER_NAME);
   }
 
   private void setUpSsoCredentials() {
-    ArgumentCaptor<Object> sessionCaptor = ArgumentCaptor.forClass(Object.class);
+//    ArgumentCaptor<String> sessionCaptor = ArgumentCaptor.forClass(String.class);
 
-    session.setAttribute(eq(SsoAuthenticationHandler.CONST_SSO_ASSERTION), sessionCaptor.capture());
+//    verify(session).setAttribute(eq(ArtifactHandler.HANDLER_NAME),
+//        sessionCaptor.capture());
+    HashMap<String, String> props = new HashMap<String, String>();
+    props.put(ArtifactHandler.HANDLER_NAME, "someHandler");
+    when(artifactHandler.extractArtifact(request)).thenReturn("artifact");
+    ssoAuthenticationHandler.bindArtifactHandlers(artifactHandler, props);
     when(ssoPrincipal.getName()).thenReturn("joe");
-    when(session.getAttribute(SsoAuthenticationHandler.CONST_SSO_ASSERTION)).thenReturn(sessionCaptor.getValue());
     when(request.getSession(false)).thenReturn(session);
-    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(request, response);
-    ssoCredentials = (SimpleCredentials) authenticationInfo.get(AuthenticationInfo.CREDENTIALS);
+    when(session.getAttribute(ArtifactHandler.HANDLER_NAME)).thenReturn("someHandler");
+    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(
+        request, response);
+    ssoCredentials = (SimpleCredentials) authenticationInfo
+        .get(AuthenticationInfo.CREDENTIALS);
   }
 
   @Test
   public void testExtractCredentialsFromAssertion() {
     setUpSsoCredentials();
+    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(
+        request, response);
+    ssoCredentials = (SimpleCredentials) authenticationInfo
+        .get(AuthenticationInfo.CREDENTIALS);
     assertEquals(ssoCredentials.getUserID(), "joe");
   }
 
@@ -142,7 +156,8 @@ public class SsoAuthenticationHandlerTest {
 
   @Test
   public void testImpersonate() throws FailedLoginException, RepositoryException {
-    assertEquals(LoginModulePlugin.IMPERSONATION_DEFAULT, ssoAuthenticationHandler.impersonate(null, null));
+    assertEquals(LoginModulePlugin.IMPERSONATION_DEFAULT,
+        ssoAuthenticationHandler.impersonate(null, null));
   }
 
   // AuthenticationPlugin tests.
@@ -169,36 +184,47 @@ public class SsoAuthenticationHandlerTest {
   }
 
   @Test
-  public void testUnknownUserNoCreation() throws AuthorizableExistsException, RepositoryException {
+  public void testUnknownUserNoCreation() throws AuthorizableExistsException,
+      RepositoryException {
     setAutocreateUser("false");
     setUpSsoCredentials();
-    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(request, response);
-    boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
+    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(
+        request, response);
+    boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request,
+        response, authenticationInfo);
     assertFalse(actionTaken);
     verify(userManager, never()).createUser(anyString(), anyString());
-    verify(userManager, never()).createUser(anyString(), anyString(), any(Principal.class), anyString());
+    verify(userManager, never()).createUser(anyString(), anyString(),
+        any(Principal.class), anyString());
   }
 
   @Test
-  public void testUnknownUserWithFailedCreation() throws AuthorizableExistsException, RepositoryException {
+  public void testUnknownUserWithFailedCreation() throws AuthorizableExistsException,
+      RepositoryException {
     setAutocreateUser("true");
-    doThrow(new AuthorizableExistsException("Hey Joe")).when(userManager).createUser(anyString(), anyString());
+    doThrow(new AuthorizableExistsException("Hey Joe")).when(userManager).createUser(
+        anyString(), anyString());
     setUpSsoCredentials();
-    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(request, response);
-    boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
+    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(
+        request, response);
+    boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request,
+        response, authenticationInfo);
     assertTrue(actionTaken);
     verify(userManager).createUser(eq("joe"), anyString());
   }
 
   @Test
-  public void testKnownUserWithCreation() throws AuthorizableExistsException, RepositoryException {
+  public void testKnownUserWithCreation() throws AuthorizableExistsException,
+      RepositoryException {
     setAutocreateUser("true");
     User jcrUser = mock(User.class);
     when(jcrUser.getID()).thenReturn("joe");
     when(userManager.getAuthorizable("joe")).thenReturn(jcrUser);
     setUpSsoCredentials();
-    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(request, response);
-    boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
+    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(
+        request, response);
+    boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request,
+        response, authenticationInfo);
     assertFalse(actionTaken);
     verify(userManager, never()).createUser(eq("joe"), anyString());
   }
@@ -217,8 +243,10 @@ public class SsoAuthenticationHandlerTest {
     setAutocreateUser("true");
     setUpSsoCredentials();
     setUpPseudoCreateUserService();
-    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(request, response);
-    boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
+    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(
+        request, response);
+    boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request,
+        response, authenticationInfo);
     assertFalse(actionTaken);
     verify(userManager).createUser(eq("joe"), anyString());
   }
@@ -230,9 +258,12 @@ public class SsoAuthenticationHandlerTest {
     setAutocreateUser("true");
     setUpSsoCredentials();
     setUpPseudoCreateUserService();
-    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(request, response);
-    boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
+    AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(
+        request, response);
+    boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request,
+        response, authenticationInfo);
     assertFalse(actionTaken);
-    verify(postProcessService).process(any(Authorizable.class), any(Session.class), any(Modification.class));
+    verify(postProcessService).process(any(Authorizable.class), any(Session.class),
+        any(Modification.class));
   }
 }

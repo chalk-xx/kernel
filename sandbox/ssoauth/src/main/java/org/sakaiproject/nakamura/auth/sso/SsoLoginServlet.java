@@ -33,16 +33,16 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Helper servlet for CAS authentication. The servlet simply redirects to
- * the configured CAS server via AuthenticationHandler requestCredentials.
+ * Helper servlet for SSO authentication. The servlet simply redirects to
+ * the configured SSO server via AuthenticationHandler requestCredentials.
  * To avoid a loop, if the request is already authenticated, the servlet redirects to
  * the path specified by the request parameter "resource", or to the root
  * path.
  * <p>
  * Once all authentication modules use Sling's authtype approach to trigger
- * requestCredentials, it should also be possible to reach CAS through any servlet
+ * requestCredentials, it should also be possible to reach SSO through any servlet
  * (including sling.commons.auth's LoginServlet) by setting the
- * sling:authRequestLogin request parameter to "CAS".
+ * sling:authRequestLogin request parameter to "SSO".
  */
 @SlingServlet(paths = { SSO_LOGIN_PATH }, methods = { "GET", "POST" })
 public class SsoLoginServlet extends SlingAllMethodsServlet {
