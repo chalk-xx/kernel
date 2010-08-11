@@ -123,6 +123,7 @@ public class CasArtifactHandler implements ArtifactHandler {
     String username = null;
     String failureCode = null;
     String failureMessage = null;
+
     try {
       XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
       xmlInputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
@@ -170,13 +171,17 @@ public class CasArtifactHandler implements ArtifactHandler {
           </cas:serviceResponse>
           */
           if ("authenticationSuccess".equalsIgnoreCase(startElLocalName)) {
-            // skip the user tag start
-            event = eventReader.nextEvent();
+            // skip to the user tag start
+            event = eventReader.nextTag();
             assert event.isStartElement();
-
-            // move on to the start of the user tag
-            event = eventReader.nextEvent();
-            assert event.isStartElement();
+            startEl = event.asStartElement();
+            startElName = startEl.getName();
+            startElLocalName = startElName.getLocalPart();
+            if (!"user".equals(startElLocalName)) {
+              logger.error("Found unexpected element [" + startElName
+                  + "] while inside 'authenticationSuccess'");
+              break;
+            }
 
             // move on to the body of the user tag
             event = eventReader.nextEvent();

@@ -161,19 +161,22 @@ public class CasArtifactHandlerTest {
 
   @Test
   public void extractCredentialsFailureRespnose() throws Exception {
-    String response = " <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>"
-        + "  <cas:authenticationFailure code='INVALID_REQUEST'>"
-        + "    &#039;service&#039; and &#039;ticket&#039; parameters are both required"
-        + "  </cas:authenticationFailure>" + "</cas:serviceResponse>";
+    String response = " <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>\n"
+        + "  <cas:authenticationFailure code='INVALID_REQUEST'>\n"
+        + "    &#039;service&#039; and &#039;ticket&#039; parameters are both required\n"
+        + "  </cas:authenticationFailure>\n"
+        + "</cas:serviceResponse>\n";
     String credentials = handler.extractCredentials(ARTIFACT, response, request);
     assertNull(credentials);
   }
 
   @Test
   public void extractCredentialsSuccessfulResponse() {
-    String response = "<cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>"
-        + "  <cas:authenticationSuccess>" + "    <cas:user>NetID</cas:user>"
-        + "  </cas:authenticationSuccess>" + "</cas:serviceResponse>";
+    String response = "<cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>\n"
+        + "  <cas:authenticationSuccess>\n"
+        + "    <cas:user>NetID</cas:user>\n"
+        + "  </cas:authenticationSuccess>\n"
+        + "</cas:serviceResponse>\n";
     String credentials = handler.extractCredentials(ARTIFACT, response, request);
     assertEquals("NetID", credentials);
   }
