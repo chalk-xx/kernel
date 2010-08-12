@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.auth.sso.handlers;
 
+import com.ctc.wstx.stax.WstxInputFactory;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.ConfigurationPolicy;
@@ -30,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -63,8 +67,6 @@ public class CasArtifactHandler implements ArtifactHandler {
   protected static final String DEFAULT_SERVER_URL = "https://localhost:8443/cas";
   protected static final boolean DEFAULT_RENEW = false;
   protected static final boolean DEFAULT_GATEWAY = false;
-  protected static final String VALIDATE_URL_TMPL = "%s/serviceValidate?%s=%s";
-  protected static final String LOGIN_URL_TMPL = "%s?service=%s";
 
   private String loginUrl = null;
   private String logoutUrl = null;
@@ -125,7 +127,7 @@ public class CasArtifactHandler implements ArtifactHandler {
     String failureMessage = null;
 
     try {
-      XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+      XMLInputFactory xmlInputFactory = new WstxInputFactory();
       xmlInputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
       xmlInputFactory.setProperty(XMLInputFactory.IS_VALIDATING, false);
       xmlInputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
@@ -197,7 +199,7 @@ public class CasArtifactHandler implements ArtifactHandler {
     }
 
     if (failureCode != null || failureMessage != null) {
-      logger.error("Error parsing response from server [code=" + failureCode
+      logger.error("Error response from server [code=" + failureCode
           + ", message=" + failureMessage);
     }
     return username;
@@ -209,8 +211,9 @@ public class CasArtifactHandler implements ArtifactHandler {
    * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getValidateUrl(java.lang.String,
    *      javax.servlet.http.HttpServletRequest)
    */
-  public String getValidateUrl(String artifact, HttpServletRequest request) {
-    String url = String.format(VALIDATE_URL_TMPL, serverUrl, getArtifactName(), artifact);
+  public String getValidateUrl(String artifact, String service, HttpServletRequest request) {
+    String url = serverUrl + "/serviceValidate?service=" + service + "&"
+        + getArtifactName() + "=" + artifact;
     return url;
   }
 
@@ -219,13 +222,16 @@ public class CasArtifactHandler implements ArtifactHandler {
    *
    * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#constructRedirectUrl()
    */
-  public String getLoginUrl(String serviceUrl, HttpServletRequest request) {
-    String urlToRedirectTo = String.format(LOGIN_URL_TMPL, loginUrl, serviceUrl);
+  public String getLoginUrl(String service, HttpServletRequest request) {
+    ArrayList<String> params = new ArrayList<String>();
 
     String renewParam = request.getParameter("renew");
     boolean renew = this.renew;
     if (renewParam != null) {
       renew = Boolean.parseBoolean(renewParam);
+    }
+    if (renew) {
+      params.add("renew=true");
     }
 
     String gatewayParam = request.getParameter("gateway");
@@ -233,8 +239,12 @@ public class CasArtifactHandler implements ArtifactHandler {
     if (gatewayParam != null) {
       gateway = Boolean.parseBoolean(gatewayParam);
     }
+    if (gateway) {
+      params.add("gateway=true");
+    }
 
-    urlToRedirectTo += (renew ? "&renew=true" : "") + (gateway ? "&gateway=true" : "");
+    params.add("service=" + service);
+    String urlToRedirectTo = loginUrl + "?" + StringUtils.join(params, '&');
     return urlToRedirectTo;
   }
 

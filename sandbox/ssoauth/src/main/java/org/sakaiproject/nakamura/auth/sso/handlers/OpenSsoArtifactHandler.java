@@ -62,12 +62,6 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
   public static final String DEFAULT_ATTRIBUTE_NAME = "uid";
 
   protected static final String DEFAULT_HANDLER_NAME = "openSso";
-//  protected static final String VALIDATE_URL_TMPL = "${server}/identity/isTokenValid?tokenid=${token}";
-//  protected static final String LOGIN_URL_TMPL = "${server}?goto=${service}";
-//  protected static final String ATTRS_URL_TMPL = "${server}/identity/attributes?attributes_names=${attribute}&subjectid=${subject}";
-  protected static final String VALIDATE_URL_TMPL = "%s/identity/isTokenValid?tokenid=%s";
-  protected static final String LOGIN_URL_TMPL = "%s?goto=%s";
-  protected static final String ATTRS_URL_TMPL = "%s/identity/attributes?attributes_names=%s&subjectid=%s";
   protected static final String USRDTLS_ATTR_NAME_STUB = "userdetails.attribute.name=";
   protected static final String USRDTLS_ATTR_VAL_STUB = "userdetails.attribute.value=";
 
@@ -141,8 +135,7 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
 
     try {
       if (DEFAULT_SUCCESSFUL_BODY.equals(responseBody)) {
-        String url = String
-            .format(ATTRS_URL_TMPL, serverUrl, attributeName, artifact);
+        String url = serverUrl + "/identity/attributes?attributes_names=" + attributeName + "&subjectid=" + artifact;
         GetMethod get = new GetMethod(url);
         HttpClient httpClient = new HttpClient();
         int returnCode = httpClient.executeMethod(get);
@@ -175,11 +168,8 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
    * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#getValidateUrl(java.lang.String,
    *      javax.servlet.http.HttpServletRequest)
    */
-  public String getValidateUrl(String artifact, HttpServletRequest request) {
-//    String url = StringUtils.replaceEach(VALIDATE_URL_TMPL,
-//        new String[] { "server", "token" },
-//        new String[] { serverUrl, artifact });
-    String url = String.format(VALIDATE_URL_TMPL, serverUrl, artifact);
+  public String getValidateUrl(String artifact, String service, HttpServletRequest request) {
+    String url = serverUrl + "/identity/isTokenValid?tokenid=" + artifact;
     return url;
   }
 
@@ -188,8 +178,8 @@ public class OpenSsoArtifactHandler implements ArtifactHandler {
    *
    * @see org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler#decorateRedirectUrl(java.util.Map)
    */
-  public String getLoginUrl(String serviceUrl, HttpServletRequest request) {
-    String url = String.format(LOGIN_URL_TMPL, loginUrl, serviceUrl);
+  public String getLoginUrl(String service, HttpServletRequest request) {
+    String url = loginUrl + "?goto=" + service;
     return url;
   }
 

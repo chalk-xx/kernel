@@ -28,7 +28,7 @@ class SsoAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrapper {
    */
   SsoAuthenticationTokenServiceWrapper(SsoLoginServlet servlet,
       TrustedTokenService delegate) {
-    super(validate(servlet,delegate));
+    super(validate(servlet, delegate));
   }
 
   /**

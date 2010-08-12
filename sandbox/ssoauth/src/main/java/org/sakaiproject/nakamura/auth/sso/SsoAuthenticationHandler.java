@@ -227,10 +227,11 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
       HttpServletResponse response) {
     LOGGER.debug("extractCredentials called");
 
-    // don't have to check for previous validations as the SSO cycle results in a token
-    // being added to the request and found by the trusted authentication handler before
-    // this handler is called as long as the service ranking of this class is higher than
-    // that of TrustedAuthenticationHandler
+    HttpSession session = request.getSession(false);
+    if (session != null && session.getAttribute(ArtifactHandler.HANDLER_NAME) != null) {
+      return null;
+    }
+
     AuthenticationInfo authnInfo = null;
     String handlerName = null;
 
@@ -250,7 +251,8 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
     if (handler != null) {
       try {
         // make REST call to validate artifact
-        String validateUrl = handler.getValidateUrl(artifact, request);
+        String service = constructServiceParameter(request);
+        String validateUrl = handler.getValidateUrl(artifact, service, request);
         GetMethod get = new GetMethod(validateUrl);
         HttpClient httpClient = new HttpClient();
         int returnCode = httpClient.executeMethod(get);
@@ -298,7 +300,7 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
     if (handler != null) {
       final String serviceUrl = constructServiceParameter(request);
       LOGGER.debug("Service URL = \"{}\"", serviceUrl);
-      String urlToRedirectTo = handler.getLoginUrl(serviceUrl, request);
+      final String urlToRedirectTo = handler.getLoginUrl(serviceUrl, request);
       LOGGER.debug("Redirecting to: \"{}\"", urlToRedirectTo);
       response.sendRedirect(urlToRedirectTo);
       return true;
@@ -306,39 +308,6 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
       return false;
     }
   }
-
-  //----------- LoginModulePlugin interface ----------------------------
-
-//  @SuppressWarnings("rawtypes")
-//  public void addPrincipals(Set principals) {
-//  }
-//
-//  public boolean canHandle(Credentials credentials) {
-//    return (getSsoPrincipal(credentials) != null);
-//  }
-//
-//  @SuppressWarnings("rawtypes")
-//  public void doInit(CallbackHandler callbackHandler, Session session, Map options)
-//      throws LoginException {
-//  }
-//
-//  public AuthenticationPlugin getAuthentication(Principal principal,
-//      Credentials credentials) throws RepositoryException {
-//    AuthenticationPlugin plugin = null;
-//    if (canHandle(credentials)) {
-//      plugin = new SsoAuthenticationPlugin(this);
-//    }
-//    return plugin;
-//  }
-//
-//  public Principal getPrincipal(Credentials credentials) {
-//    return getSsoPrincipal(credentials);
-//  }
-//
-//  public int impersonate(Principal principal, Credentials credentials)
-//      throws RepositoryException, FailedLoginException {
-//    return LoginModulePlugin.IMPERSONATION_DEFAULT;
-//  }
 
   //----------- AuthenticationFeedbackHandler interface ----------------------------
 
@@ -427,10 +396,27 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
    * A request attribute or parameter can be used to specify a different
    * return path.
    */
-  private String constructServiceParameter(HttpServletRequest request)
+  protected String constructServiceParameter(HttpServletRequest request)
       throws UnsupportedEncodingException {
-    String url = request.getRequestURL().append("?").append(request.getQueryString())
-        .toString();
+    StringBuffer url = request.getRequestURL().append("?");
+
+    String queryString = request.getQueryString();
+    String tryLogin = SsoLoginServlet.TRY_LOGIN + "=2";
+    if (queryString == null || queryString.indexOf(tryLogin) == -1) {
+      url.append(tryLogin).append("&");
+    }
+
+    if (queryString != null) {
+      String[] parameters = StringUtils.split(queryString, '&');
+      for (String parameter : parameters) {
+        String[] keyAndValue = StringUtils.split(parameter, "=", 2);
+        String key = keyAndValue[0];
+        if (!filteredQueryStrings.contains(key)) {
+          url.append(parameter).append("&");
+        }
+      }
+    }
+
     String encodedUrl = URLEncoder.encode(url.toString(), "UTF-8");
     return encodedUrl;
   }

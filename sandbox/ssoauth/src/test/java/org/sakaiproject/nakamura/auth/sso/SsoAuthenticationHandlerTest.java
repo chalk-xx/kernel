@@ -302,8 +302,9 @@ public class SsoAuthenticationHandlerTest {
     String validateUrl = setupValidateHandler();
 
     when(artifactHandler.extractArtifact(request)).thenReturn("artifact");
-    when(artifactHandler.getValidateUrl(isA(String.class), isA(HttpServletRequest.class)))
-        .thenReturn(validateUrl);
+    when(
+        artifactHandler.getValidateUrl(isA(String.class), isA(String.class),
+            isA(HttpServletRequest.class))).thenReturn(validateUrl);
     when(
         artifactHandler.extractCredentials(isA(String.class), isA(String.class),
             isA(HttpServletRequest.class))).thenReturn("someUser");

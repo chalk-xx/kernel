@@ -53,6 +53,8 @@ public class SsoLoginServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -1894135945816269913L;
   private static final Logger LOGGER = LoggerFactory.getLogger(SsoLoginServlet.class);
 
+  public static final String TRY_LOGIN = "sakaiauth:login";
+
   @Reference
   private SsoAuthenticationHandler ssoAuthnHandler;
 
@@ -93,7 +95,9 @@ public class SsoLoginServlet extends SlingAllMethodsServlet {
     }
 
     // Pass control to the handler.
-    if (!ssoAuthnHandler.requestCredentials(request, response)) {
+    if ("2".equals(request.getParameter(TRY_LOGIN))) {
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication Failed");
+    } else if (!ssoAuthnHandler.requestCredentials(request, response)) {
       LOGGER.error("Unable to request credentials from handler");
       response.sendError(HttpServletResponse.SC_FORBIDDEN, "Cannot login");
     }

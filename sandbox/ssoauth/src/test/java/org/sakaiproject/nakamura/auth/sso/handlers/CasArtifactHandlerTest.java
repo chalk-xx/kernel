@@ -125,7 +125,7 @@ public class CasArtifactHandlerTest {
 
   @Test
   public void getValidateUrl() throws Exception {
-    String url = handler.getValidateUrl(ARTIFACT, request);
+    String url = handler.getValidateUrl(ARTIFACT, "service", request);
     new URL(url);
     assertTrue(url.startsWith(CasArtifactHandler.DEFAULT_SERVER_URL));
 
@@ -133,7 +133,7 @@ public class CasArtifactHandlerTest {
     props.put(ArtifactHandler.SERVER_URL, otherServer);
     handler.modified(props);
 
-    url = handler.getValidateUrl(ARTIFACT, request);
+    url = handler.getValidateUrl(ARTIFACT, "service", request);
     new URL(url);
     assertTrue(url.startsWith(otherServer));
   }

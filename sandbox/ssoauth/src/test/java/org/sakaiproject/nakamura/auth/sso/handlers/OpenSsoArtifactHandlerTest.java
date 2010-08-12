@@ -93,7 +93,7 @@ public class OpenSsoArtifactHandlerTest {
 
   @Test
   public void getValidateUrl() throws Exception {
-    String url = handler.getValidateUrl(ARTIFACT, request);
+    String url = handler.getValidateUrl(ARTIFACT, "service", request);
     new URL(url);
     assertTrue(url.startsWith(OpenSsoArtifactHandler.DEFAULT_SERVER_URL));
 
@@ -101,7 +101,7 @@ public class OpenSsoArtifactHandlerTest {
     props.put(ArtifactHandler.SERVER_URL, otherServer);
     handler.modified(props);
 
-    url = handler.getValidateUrl(ARTIFACT, request);
+    url = handler.getValidateUrl(ARTIFACT, "service", request);
     new URL(url);
     assertTrue(url.startsWith(otherServer));
   }
@@ -155,11 +155,11 @@ public class OpenSsoArtifactHandlerTest {
   public void extractCredentialsAttrsServerErrors() throws Exception {
     setupLocalServer();
 
-    int start = OpenSsoArtifactHandler.ATTRS_URL_TMPL.indexOf('/');
-    int end = OpenSsoArtifactHandler.ATTRS_URL_TMPL.indexOf('?');
-    String url = OpenSsoArtifactHandler.ATTRS_URL_TMPL.substring(start, end);
+//    int start = OpenSsoArtifactHandler.ATTRS_URL_TMPL.indexOf('/');
+//    int end = OpenSsoArtifactHandler.ATTRS_URL_TMPL.indexOf('?');
+//    String url = OpenSsoArtifactHandler.ATTRS_URL_TMPL.substring(start, end);
 
-    server.register(url, new HttpRequestHandler() {
+    server.register("*", new HttpRequestHandler() {
 
       public void handle(HttpRequest request, HttpResponse response, HttpContext context)
           throws HttpException, IOException {
@@ -176,11 +176,7 @@ public class OpenSsoArtifactHandlerTest {
   public void extractCredentialsAttrsServerBadResponse() throws Exception {
     setupLocalServer();
 
-    int start = OpenSsoArtifactHandler.ATTRS_URL_TMPL.indexOf('/');
-    int end = OpenSsoArtifactHandler.ATTRS_URL_TMPL.indexOf('?');
-    String url = OpenSsoArtifactHandler.ATTRS_URL_TMPL.substring(start, end);
-
-    server.register(url, new HttpRequestHandler() {
+    server.register("*", new HttpRequestHandler() {
 
       public void handle(HttpRequest request, HttpResponse response, HttpContext context)
           throws HttpException, IOException {
@@ -199,11 +195,7 @@ public class OpenSsoArtifactHandlerTest {
   public void extractCredentials() throws Exception {
     setupLocalServer();
 
-    int start = OpenSsoArtifactHandler.ATTRS_URL_TMPL.indexOf('/');
-    int end = OpenSsoArtifactHandler.ATTRS_URL_TMPL.indexOf('?');
-    String url = OpenSsoArtifactHandler.ATTRS_URL_TMPL.substring(start, end);
-
-    server.register(url, new HttpRequestHandler() {
+    server.register("*", new HttpRequestHandler() {
 
       public void handle(HttpRequest request, HttpResponse response, HttpContext context)
           throws HttpException, IOException {

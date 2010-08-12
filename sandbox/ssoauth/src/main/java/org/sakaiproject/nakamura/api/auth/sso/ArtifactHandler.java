@@ -63,10 +63,11 @@ public interface ArtifactHandler {
   /**
    * Get the URL the user should be directed to for logging in.
    *
-   * @param reqeust
+   * @param returnUrl
+   * @param request
    * @return
    */
-  String getLoginUrl(String returnUrl, HttpServletRequest reqeust);
+  String getLoginUrl(String returnUrl, HttpServletRequest request);
 
   /**
    *
@@ -78,8 +79,10 @@ public interface ArtifactHandler {
   /**
    * Decorate the URL used to validate an artifact.
    *
+   * @param artifact
+   * @param service
    * @param request
    * @return
    */
-  String getValidateUrl(String artifact, HttpServletRequest request);
+  String getValidateUrl(String artifact, String service, HttpServletRequest request);
 }
