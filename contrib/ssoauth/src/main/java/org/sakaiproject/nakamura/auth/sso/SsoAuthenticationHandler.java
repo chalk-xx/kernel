@@ -271,10 +271,12 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
             // TODO store this somewhere besides session; possibly a cookie or JCR
             request.getSession().setAttribute(ArtifactHandler.HANDLER_NAME, handlerName);
           } else {
-            LOGGER.warn("Unable to extract credentials.");
+            LOGGER.warn("Unable to extract credentials from validation server.");
+            authnInfo = AuthenticationInfo.FAIL_AUTH;
           }
         } else {
           LOGGER.error("Failed response from validation server: [" + returnCode + "]");
+          authnInfo = AuthenticationInfo.FAIL_AUTH;
         }
       } catch (Exception e) {
         LOGGER.error(e.getMessage(), e);

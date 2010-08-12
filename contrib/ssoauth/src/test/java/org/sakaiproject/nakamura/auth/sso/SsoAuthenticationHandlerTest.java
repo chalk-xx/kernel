@@ -59,7 +59,6 @@ import javax.servlet.http.HttpSession;
 @RunWith(MockitoJUnitRunner.class)
 public class SsoAuthenticationHandlerTest {
   SsoAuthenticationHandler ssoAuthenticationHandler;
-  SsoAuthenticationPlugin ssoAuthenticationPlugin;
   SimpleCredentials ssoCredentials;
 
   @Mock
@@ -70,8 +69,6 @@ public class SsoAuthenticationHandlerTest {
   HttpSession session;
   @Mock
   ValueFactory valueFactory;
-  @Mock
-  Principal ssoPrincipal;
   @Mock
   SlingRepository repository;
   @Mock
