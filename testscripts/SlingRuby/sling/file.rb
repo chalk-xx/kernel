@@ -32,7 +32,7 @@ module SlingFile
     def tag(url, tagUuid)
       props = {
         ":operation" => "tag",
-        "uuid" => tagUuid
+        "key" => tagUuid
       }
       return @sling.execute_post(@sling.url_for(url), props)
     end
