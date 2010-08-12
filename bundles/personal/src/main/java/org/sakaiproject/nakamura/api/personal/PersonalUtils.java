@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.api.personal;
 
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants.AUTH_PROFILE;
+import static org.sakaiproject.nakamura.api.personal.PersonalConstants.GROUP_TITLE_PROPERTY;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants.PRIVATE;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants.PUBLIC;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants._GROUP;
@@ -82,7 +83,7 @@ public class PersonalUtils {
   /**
    * Writes userinfo out for a property in a node. Make sure that the resultNode has a
    * property with propertyName that contains a userid.
-   * 
+   *
    * @param session
    *          The JCR Session
    * @param user
@@ -103,7 +104,7 @@ public class PersonalUtils {
       // We can't have anymore exceptions from now on.
       write.key("hash");
       write.value(hash);
-      ExtendedJSONWriter.writeNodeContentsToWriter(write, userNode);
+      ExtendedJSONWriter.writeNodeTreeToWriter(write, userNode, true);
     } catch (PathNotFoundException pnfe) {
       LOGGER.warn("Profile path not found for this user.");
     } catch (Exception ex) {
@@ -156,7 +157,7 @@ public class PersonalUtils {
   /**
    * Write a small bit of information from an authprofile. userid, firstName, lastName,
    * picture.
-   * 
+   *
    * @param session
    *          The {@link Session session} to access the authprofile.
    * @param user
@@ -192,9 +193,9 @@ public class PersonalUtils {
       LOGGER.error(e.getMessage(), e);
     }
   }
-  
+
   /**
-   * Write a small bit of information from a group authprofile. 
+   * Write a small bit of information from a group authprofile.
    *
    * @param session
    *          The {@link Session session} to access the authprofile.
@@ -215,7 +216,7 @@ public class PersonalUtils {
 
   /**
    * Write a small bit of information from a group authprofile
-   * 
+   *
    * @param session
    *          The {@link Session session} to access the authprofile.
    * @param group
@@ -236,7 +237,7 @@ public class PersonalUtils {
         write.value(ExtendedJSONWriter.translateAuthorizablePath(profileNode.getPath()));
         write.key("jcr:name");
         write.value(profileNode.getName());
-        writeValue("name", profileNode, write);
+        writeValue(GROUP_TITLE_PROPERTY, profileNode, write);
       } catch (Exception e) {
         // The provided user-string is probably not a user id.
         LOGGER.warn(e.getMessage(), e);

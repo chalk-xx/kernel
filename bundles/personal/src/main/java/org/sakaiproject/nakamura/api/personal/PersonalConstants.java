@@ -83,4 +83,12 @@ public interface PersonalConstants {
    */
   public static final String PROFILE_JSON_IMPORT_PROPERTY = "sakai:authprofile_import";
 
+  /**
+   * Property name for the full title/name of a group.
+   * ie:
+   * Title: The 2010 Mathematics 101 class.
+   * Authorizable id: the-2010-mathematics-101-class
+   */
+  public static final String GROUP_TITLE_PROPERTY = "sakai:group-title";
+
 }
