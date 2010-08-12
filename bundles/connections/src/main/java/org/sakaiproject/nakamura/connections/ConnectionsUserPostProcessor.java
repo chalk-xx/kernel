@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
@@ -45,10 +46,11 @@ import java.security.Principal;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
 
 /**
  * This PostProcessor listens to post operations on User objects and creates a connection
- * store. 
+ * store.
  */
 @Component(immediate = true, description = "Post Processor for User and Group operations to create a connection store", label = "ConnectionsAuthorizablePostProcessor")
 @Properties(value = {
@@ -111,7 +113,9 @@ public class ConnectionsUserPostProcessor implements AuthorizablePostProcessor {
       }
     };
     if (um.getAuthorizable(p) == null) {
-      um.createGroup(p);
+      Group g = um.createGroup(p);
+      Value[] viewers = (Value[]) JcrUtils.createValue(new String[] { userID }, session);
+      g.setProperty(UserConstants.PROP_GROUP_VIEWERS, viewers);
     }
   }
 

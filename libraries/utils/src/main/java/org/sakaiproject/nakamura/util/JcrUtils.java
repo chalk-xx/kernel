@@ -52,7 +52,7 @@ public class JcrUtils {
 
   /**
    * Deep creates a path.
-   * 
+   *
    * @param session
    * @param path
    * @param nodeType
@@ -114,7 +114,7 @@ public class JcrUtils {
 
   /**
    * Deep creates a path.
-   * 
+   *
    * @param session
    * @param path
    * @return
@@ -127,7 +127,7 @@ public class JcrUtils {
 
   /**
    * @throws RepositoryException
-   * 
+   *
    */
   public static Node getFirstExistingNode(Session session, String absRealPath)
       throws RepositoryException {
@@ -239,7 +239,7 @@ public class JcrUtils {
 
   /**
    * Add a value to a property. This property will always be multi-valued.
-   * 
+   *
    * @param session
    *          The session to use.
    * @param node
@@ -269,7 +269,7 @@ public class JcrUtils {
 
   /**
    * Add a value on a multi-valued property. Only when it's not already in there.
-   * 
+   *
    * @param session
    *          The session to create the {@link Value value}.
    * @param node
@@ -306,7 +306,7 @@ public class JcrUtils {
 
   /**
    * Checks if a node has a specified mixin.
-   * 
+   *
    * @param node
    *          The node in question
    * @param mixin
@@ -338,7 +338,7 @@ public class JcrUtils {
    * <li>{@link JSONArray JSONArray}</li>
    * </ul>
    * If the object could not be changed to a Value object, this method will return null.
-   * 
+   *
    * @param o
    *          The value (or array of) that needs to be created. {@link Node Nodes} are not
    *          supported.
@@ -359,6 +359,7 @@ public class JcrUtils {
       for (int i = 0; i < l; i++) {
         vals[i] = (Value) createValue(arr[i], session);
       }
+      return vals;
     }
     if (o instanceof JSONArray) {
       JSONArray arr = (JSONArray) o;
