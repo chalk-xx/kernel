@@ -21,7 +21,6 @@ import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWER
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -49,7 +48,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
+import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.NameSanitizer;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
@@ -67,7 +66,6 @@ import java.util.Set;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.ValueFactory;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -157,13 +155,6 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
       .getLogger(CreateSakaiGroupServlet.class);
 
   /**
-   * Used to perform post processing.
-   *
-   * @scr.reference
-   */
-  protected transient AuthorizablePostProcessService postProcessorService;
-
-  /**
    * The JCR Repository we access to resolve resources
    *
    * @scr.reference
@@ -176,6 +167,13 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
    * @scr.reference
    */
   protected transient EventAdmin eventAdmin;
+
+  /**
+   * Used to create the group.
+   *
+   * @scr.reference
+   */
+  protected transient SakaiAuthorizableService sakaiAuthorizableService;
 
   /**
    *
@@ -299,11 +297,6 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                 Map<String, RequestProperty> reqProperties = collectContent(
                     request, response, groupPath);
 
-                ItemBasedPrincipal p = (ItemBasedPrincipal) group.getPrincipal();
-                ValueFactory vf = session.getValueFactory();
-                group.setProperty(UserConstants.PROP_AUTHORIZABLE_PATH, vf.createValue(p.getPath().substring(UserConstants.GROUP_REPO_LOCATION.length())));
-                LOGGER.info("Group {} created at {} ",p.getName(), p.getPath());
-
                 response.setPath(groupPath);
                 response.setLocation(externalizePath(request, groupPath));
                 response.setParentLocation(externalizePath(request,
@@ -326,16 +319,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                 updateOwnership(request, group, new String[] {currentUser.getID()},
                     changes);
 
-                try {
-                  postProcessorService.process(group, session, Modification.onCreated(groupPath));
-                } catch (Exception e) {
-                    LOGGER.warn(e.getMessage(), e);
-                    response
-                       .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-                }
-                if (session.hasPendingChanges()) {
-                    session.save();
-                }
+                sakaiAuthorizableService.postprocess(group, session);
 
                 // Launch an OSGi event for creating a group.
                 try {

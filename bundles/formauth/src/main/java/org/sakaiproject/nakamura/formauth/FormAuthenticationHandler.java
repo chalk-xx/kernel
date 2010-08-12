@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.auth.spi.AuthenticationHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.sakaiproject.nakamura.auth.trusted.TrustedAuthenticationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -158,7 +159,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
     if (authentication.isValid()) {
       // authenticate
       AuthenticationInfo authenticatioInfo = new AuthenticationInfo(SESSION_AUTH);
-      authenticatioInfo.put(AuthenticationInfo.CREDENTIALS, authentication.getCredentials());
+      authenticatioInfo.put(TrustedAuthenticationHandler.TRUSTED_AUTH, authentication.getCredentials());
       // put the form authentication into the request so that it can be checked by the servlet and saved to session if valid.
       request.setAttribute(FORM_AUTHENTICATION, authentication);
       return authenticatioInfo;

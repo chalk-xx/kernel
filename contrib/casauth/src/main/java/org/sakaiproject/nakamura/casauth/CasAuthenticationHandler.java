@@ -87,6 +87,7 @@ import javax.servlet.http.HttpSession;
   @Service(value=AuthenticationFeedbackHandler.class)
 })
 public final class CasAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin, AuthenticationFeedbackHandler {
+  public static final String DEFAULT_AUTH_NAME = "auth.cas";
 
   @Property(value="https://localhost:8443")
   protected static final String CAS_SERVER_NAME = "auth.cas.server.name";
@@ -355,6 +356,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
     public CasPrincipal(AttributePrincipal principal) {
       this.principal = principal;
     }
+    @Override
     public boolean equals(Object another) {
       return principal.equals(another);
     }
@@ -368,9 +370,11 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
     public String getProxyTicketFor(String service) {
       return principal.getProxyTicketFor(service);
     }
+    @Override
     public int hashCode() {
       return principal.hashCode();
     }
+    @Override
     public String toString() {
       return principal.toString();
     }
@@ -382,7 +386,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
     authnInfo = new AuthenticationInfo(CasAuthConstants.CAS_AUTH_TYPE);
     SimpleCredentials credentials = new SimpleCredentials(principal.getName(), new char[] {});
     credentials.setAttribute(CasPrincipal.class.getName(), new CasPrincipal(principal));
-    authnInfo.put(AuthenticationInfo.CREDENTIALS, credentials);
+    authnInfo.put(DEFAULT_AUTH_NAME, credentials);
     return authnInfo;
   }
 
@@ -453,7 +457,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
 
   private boolean findOrCreateUser(AuthenticationInfo authInfo) {
     boolean isUserValid = false;
-    final CasPrincipal casPrincipal = getCasPrincipal((Credentials)authInfo.get(AuthenticationInfo.CREDENTIALS));
+    final CasPrincipal casPrincipal = getCasPrincipal((Credentials)authInfo.get(DEFAULT_AUTH_NAME));
     if (casPrincipal != null) {
       final String principalName = casPrincipal.getName();
       // Check for a matching Authorizable. If one isn't found, create

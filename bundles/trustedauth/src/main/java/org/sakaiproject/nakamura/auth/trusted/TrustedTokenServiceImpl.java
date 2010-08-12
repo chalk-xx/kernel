@@ -96,10 +96,10 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   @Property(value ="localhost;127.0.0.1", description="A ; seperated list of hosts that this instance trusts to make server connections.")
   public static final String SERVER_TOKEN_SAFE_HOSTS = "sakai.auth.trusted.server.safe-hosts";
 
-  @Property(value ="org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper", description="A ; seperated list of fully qualified class names that are allowed to extend the Wrapper Class.")
+  private static final String DEFAULT_WRAPPERS = "org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.auth.sso.SsoAuthenticationTokenServiceWrapper";
+  @Property(value = DEFAULT_WRAPPERS, description="A ; seperated list of fully qualified class names that are allowed to extend the Wrapper Class.")
   public static final String SERVER_TOKEN_SAFE_WRAPPERS = "sakai.auth.trusted.wrapper.class.names";
 
-  private static final String DEFAULT_WRAPPERS = "org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper";
   /**
    * If True, sessions will be used, if false cookies.
    */
@@ -164,13 +164,13 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * @throws InvalidKeyException
    * @throws UnsupportedEncodingException
    * @throws IllegalStateException
-   * 
+   *
    */
   public TrustedTokenServiceImpl() throws NoSuchAlgorithmException, InvalidKeyException,
       IllegalStateException, UnsupportedEncodingException {
-      tokenStore = new TokenStore(); 
+      tokenStore = new TokenStore();
   }
-  
+
 
   @SuppressWarnings("rawtypes")
   protected void activate(ComponentContext context) {
@@ -187,7 +187,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       wrappers = DEFAULT_WRAPPERS;
     }
     safeWrappers = StringUtils.split(wrappers, ";");
-    
+
     String tokenFile = (String) props.get(TOKEN_FILE_NAME);
     String serverId = clusterTrackingService.getCurrentServerId();
     tokenStore.doInit(cacheManager, tokenFile, serverId, ttl);
@@ -198,7 +198,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     calls = new ArrayList<Object[]>();
     safeWrappers = StringUtils.split(DEFAULT_WRAPPERS,";");
   }
-  
+
   /**
    * @return the calls used in testing.
    */
@@ -208,7 +208,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   /**
    * Extract credentials from the request.
-   * 
+   *
    * @param req
    * @return credentials associated with the request.
    */
@@ -300,7 +300,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     if (userId != null) {
       LOG.debug("Trusted Authentication for {} with credentials {}  ", userId, cred);
     }
-    
+
     return cred;
   }
 
@@ -329,7 +329,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * Inject a token into the request/response, this assumes htat the getUserPrincipal() of the request
    * or the request.getRemoteUser() contain valid user ID's from which to generate the request.
    *
-   * 
+   *
    * @param req
    * @param resp
    */
@@ -367,6 +367,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
       // send an async event to indicate that the user has been trusted, things that want to create users can hook into this.
       eventAdmin.sendEvent(new Event(TrustedTokenService.TRUST_USER_TOPIC,eventDictionary));
+    } else {
+      LOG.warn("Unable to inject token; unable to determine user from request.");
     }
   }
 
@@ -395,7 +397,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   /**
    * Refresh the token, assumes that the cookie is valid.
-   * 
+   *
    * @param req
    * @param value
    * @param userId
@@ -413,7 +415,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   /**
    * Encode the user ID in a secure cookie.
-   * 
+   *
    * @param userId
    * @return
    */
@@ -446,7 +448,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   /**
    * Decode the user ID.
-   * 
+   *
    * @param value
    * @return
    */
@@ -471,7 +473,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   /**
    * Create credentials from a validated userId.
-   * 
+   *
    * @param req
    *          The request to sniff for a user.
    * @return
@@ -494,7 +496,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
     /**
      * Constructor.
-     * 
+     *
      * @param user
      *          The user to represent.
      */
@@ -504,7 +506,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
     /**
      * Get the user that is being represented.
-     * 
+     *
      * @return The represented user.
      */
     String getUser() {

@@ -27,6 +27,17 @@
   <name>Sakai Nakamura :: Documentation Support bundle</name>
   <description>Sakai Documentation Support bundle</description>
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
+    <filters>
+      <filter>${basedir}/target/scm-version.properties</filter>
+    </filters>
+
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>
@@ -42,8 +53,31 @@
             <Export-Package> org.sakaiproject.nakamura.api.doc </Export-Package>
             <Private-Package> org.sakaiproject.nakamura.doc.* </Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
+            <_include>${basedir}/target/scm-version.properties</_include>
           </instructions>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <configuration>
+              <tasks>
+                <exec outputproperty="git.version" executable="git">
+                  <arg line="describe" />
+                </exec>
+                <echo file="${basedir}/target/scm-version.properties">
+                  scm.version=${git.version}
+                </echo>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

@@ -105,6 +105,7 @@
         <module>contrib/sitejoin</module>
         <module>contrib/foreignprincipal</module>
         <module>contrib/rootconfig</module>
+        <module>contrib/ssoauth</module>
        </modules>
     </profile>
     <profile>

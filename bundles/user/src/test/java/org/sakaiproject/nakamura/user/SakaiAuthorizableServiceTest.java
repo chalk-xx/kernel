@@ -77,7 +77,7 @@ public class SakaiAuthorizableServiceTest {
   public void userCreated() throws RepositoryException {
     setUpUserCreation();
     when(userManager.createUser("joe", "")).thenReturn(user);
-    User returned = sakaiAuthorizableService.createUser("joe", "", null, session);
+    User returned = sakaiAuthorizableService.createUser("joe", "", session);
     assertEquals(user, returned);
     verify(userManager).createUser("joe", "");
   }
@@ -87,7 +87,7 @@ public class SakaiAuthorizableServiceTest {
     AuthorizablePostProcessService postProcessService = mock(AuthorizablePostProcessService.class);
     when(userManager.createUser("joe", "")).thenThrow(new AuthorizableExistsException("Hey Joe"));
     try {
-      sakaiAuthorizableService.createUser("joe", "", null, session);
+      sakaiAuthorizableService.createUser("joe", "", session);
     } catch (AuthorizableExistsException e) {
       verify(postProcessService, never()).process(any(Authorizable.class), any(Session.class), any(Modification.class));
       return;

@@ -42,20 +42,6 @@ public interface SakaiAuthorizableService {
   User createUser(String userId, String password, Session session) throws RepositoryException;
 
   /**
-   * Convenience routine to create a new Jackrabbit User, followed by any initialization
-   * needed to use it in Sakai 3.
-   *
-   * @param userId
-   * @param password
-   * @param extraProperties - Available so that user properties can be initialized for
-   *        use by post-processors; null if not needed
-   * @param session
-   * @return
-   * @throws RepositoryException
-   */
-  User createUser(String userId, String password, Map<String, Object> extraProperties, Session session) throws RepositoryException;
-
-  /**
    * Do whatever is needed to make the specified Jackrabbit User or Group suited to the Sakai 3
    * environment.
    *
