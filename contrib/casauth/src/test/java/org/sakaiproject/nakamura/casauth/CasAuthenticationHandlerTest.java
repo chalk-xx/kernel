@@ -113,7 +113,7 @@ public class CasAuthenticationHandlerTest {
         assertion);
     when(request.getSession(false)).thenReturn(session);
     AuthenticationInfo authenticationInfo = casAuthenticationHandler.extractCredentials(request, response);
-    casCredentials = (SimpleCredentials) authenticationInfo.get(AuthenticationInfo.CREDENTIALS);
+    casCredentials = (SimpleCredentials) authenticationInfo.get(CasAuthenticationHandler.DEFAULT_AUTH_NAME);
   }
 
   @Test

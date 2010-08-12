@@ -51,6 +51,7 @@ import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
 import org.sakaiproject.nakamura.api.auth.sso.SsoAuthConstants;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.auth.trusted.TrustedAuthenticationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -384,7 +385,7 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
     SimpleCredentials credentials = new SimpleCredentials(principal.getName(),
         new char[] {});
     credentials.setAttribute(SsoPrincipal.class.getName(), principal);
-    authnInfo.put(AuthenticationInfo.CREDENTIALS, credentials);
+    authnInfo.put(TrustedAuthenticationHandler.TRUSTED_AUTH, credentials);
     return authnInfo;
   }
 

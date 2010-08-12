@@ -45,8 +45,8 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
   /**
    * Authentication type name
    */
-  public static final String TRUSTED_AUTH = TrustedAuthenticationHandler.class.getName();
 
+  public static final String TRUSTED_AUTH = TrustedAuthenticationHandler.class.getName();
   /**
    * Attribute name for storage of the TrustedAuthentication object in the requests
    */
@@ -72,7 +72,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
   static final String VENDOR_PROPERTY = "service.vendor";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TrustedAuthenticationHandler.class);
-  
+
   @Reference
   protected TrustedTokenService trustedTokenService;
 
@@ -81,13 +81,13 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
   public AuthenticationInfo extractCredentials(HttpServletRequest request,
       HttpServletResponse response) {
-    
+
     LOGGER.debug("Calling TrustedAuthenticationHandler extractCredentials ");
     // check for existing authentication information in the request
     Object auth = request.getAttribute(RA_AUTHENTICATION_TRUST);
@@ -97,7 +97,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
         Object authInfo = request.getAttribute(RA_AUTHENTICATION_INFO);
         if ( authInfo instanceof AuthenticationInfo ) {
           AuthenticationInfo authenticationInfo = (AuthenticationInfo) authInfo;
-          Credentials credentials = (Credentials)authenticationInfo.get(AuthenticationInfo.CREDENTIALS);
+          Credentials credentials = (Credentials)authenticationInfo.get(TRUSTED_AUTH);
           if ( credentials instanceof SimpleCredentials ) {
             LOGGER.debug("Got AuthInfo {} credentials {} ",authInfo, credentials);
             return authenticationInfo;
@@ -106,7 +106,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
           }
         } else {
           LOGGER.debug("Authentication Info not AuthenticationInfo :{} ",authInfo);
-          
+
         }
       } else {
         LOGGER.debug("Authentication not trusted {} ", auth);
@@ -121,7 +121,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
 
       // construct the authentication info and store credentials on the request
       AuthenticationInfo authInfo = new AuthenticationInfo(TRUSTED_AUTH);
-      authInfo.put(AuthenticationInfo.CREDENTIALS, trustedAuthentication.getCredentials());
+      authInfo.put(TRUSTED_AUTH, trustedAuthentication.getCredentials());
       request.setAttribute(RA_AUTHENTICATION_INFO, authInfo);
       LOGGER.debug("Trusted Authentication is valid {} ",trustedAuthentication);
       return authInfo;
@@ -134,7 +134,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
@@ -151,7 +151,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
@@ -189,8 +189,8 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
     Credentials getCredentials() {
       return cred;
     }
-    
-    
+
+
 
     boolean isValid() {
       return cred != null;
