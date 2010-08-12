@@ -23,12 +23,14 @@ public interface SsoAuthConstants {
    * handler as the authentication type of the <code>AuthenticationInfo</code>
    * object returned from the <code>extractCredentials</code> method.
    * <p>
-   * To explicitly request CAS authentication handling, this should be used
+   * To explicitly request SSO authentication handling, this should be used
    * as the value of the <code>sling:authRequestLogin</code> request
    * parameter.
    */
   String SSO_AUTH_TYPE = "SSO";
 
+  /**
+   * The login path used to reach this authentication handler.
+   */
   String SSO_LOGIN_PATH = "/system/sling/sso/login";
-  String SSO_LOGOUT_PATH = "/system/sling/sso/logout";
 }

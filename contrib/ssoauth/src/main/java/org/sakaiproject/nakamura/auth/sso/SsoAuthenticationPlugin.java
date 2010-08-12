@@ -22,6 +22,11 @@ import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 
+/**
+ * Authentication plugin used during the JCR authentication cycle. Is returned by
+ * {@link SsoLoginModulePlugin#getAuthentication(java.security.Principal, Credentials) to
+ * be injected into the authentication cycle.
+ */
 public class SsoAuthenticationPlugin implements AuthenticationPlugin {
   private SsoLoginModulePlugin loginModulePlugin;
 

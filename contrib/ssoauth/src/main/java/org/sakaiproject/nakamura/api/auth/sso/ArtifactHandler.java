@@ -20,7 +20,9 @@ package org.sakaiproject.nakamura.api.auth.sso;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- *
+ * Handler for identifying and extracting an artifact from an SSO server, as well as
+ * extracting the credentials associated to an artifact. Object is also responsible for
+ * providing URLs for the server, logging in and logging out.
  */
 public interface ArtifactHandler {
   String HANDLER_NAME = "sakai.auth.sso.name";
@@ -31,7 +33,7 @@ public interface ArtifactHandler {
   String SERVER_URL = "sakai.auth.sso.url.server";
 
   /**
-   * Get the name of the artifact that is looked for by this handler. This is to make sure
+   * Get the name of the artifact that is extracted by this handler. This is to make sure
    * URLs are filtered properly in the authentication handler.
    */
   String getArtifactName();
@@ -70,6 +72,7 @@ public interface ArtifactHandler {
   String getLoginUrl(String returnUrl, HttpServletRequest request);
 
   /**
+   * Get the URL the user should be directed to for logging out.
    *
    * @param request
    * @return
@@ -77,7 +80,7 @@ public interface ArtifactHandler {
   String getLogoutUrl(HttpServletRequest request);
 
   /**
-   * Decorate the URL used to validate an artifact.
+   * Get the URL to be used to get a validation response for an artifact.
    *
    * @param artifact
    * @param service

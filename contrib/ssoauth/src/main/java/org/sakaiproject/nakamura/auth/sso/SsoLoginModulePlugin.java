@@ -36,7 +36,7 @@ import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
 
 /**
- *
+ * Plugin for interacting with the JCR authentication cycle.
  */
 @Component
 @Service
