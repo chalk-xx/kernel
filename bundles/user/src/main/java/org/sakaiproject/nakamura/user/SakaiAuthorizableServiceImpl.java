@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.user;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_REPO_LOCATION;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_AUTHORIZABLE_PATH;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_REPO_LOCATION;
 
@@ -30,7 +31,6 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.apache.sling.jcr.resource.JcrResourceUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
@@ -39,13 +39,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
 import javax.jcr.ValueFactory;
 
 /**
@@ -61,31 +57,15 @@ public class SakaiAuthorizableServiceImpl implements SakaiAuthorizableService {
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.user.SakaiAuthorizableService#createUser(java.lang.String, java.lang.String, java.util.Map, javax.jcr.Session)
-   */
-  public User createUser(String userId, String password,
-      Map<String, Object> extraProperties, Session session) throws RepositoryException {
-    LOGGER.info("Creating user {}", userId);
-    UserManager userManager = AccessControlUtil.getUserManager(session);
-    User user = userManager.createUser(userId, password);
-    if (extraProperties != null) {
-      Set<Entry<String, Object>> entrySet = extraProperties.entrySet();
-      for (Entry<String, Object> entry : entrySet) {
-        Value value = JcrResourceUtil.createValue(entry.getValue(), session);
-        user.setProperty(entry.getKey(), value);
-      }
-    }
-    postprocess(user, session);
-    return user;
-  }
-
-  /**
-   * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.user.SakaiAuthorizableService#createUser(java.lang.String, java.lang.String, javax.jcr.Session)
    */
   public User createUser(String userId, String password, Session session)
       throws RepositoryException {
-    return createUser(userId, password, null, session);
+    LOGGER.info("Creating user {}", userId);
+    UserManager userManager = AccessControlUtil.getUserManager(session);
+    User user = userManager.createUser(userId, password);
+    postprocess(user, session);
+    return user;
   }
 
   /**
@@ -93,10 +73,7 @@ public class SakaiAuthorizableServiceImpl implements SakaiAuthorizableService {
    * @see org.sakaiproject.nakamura.api.user.SakaiAuthorizableService#postprocess(Authorizable, javax.jcr.Session)
    */
   public void postprocess(Authorizable authorizable, Session session) throws RepositoryException {
-    if (!authorizable.isGroup()) {
-      ensurePath((User) authorizable, session);
-    }
-
+    ensurePath(authorizable, session);
     if (authorizablePostProcessService != null) {
       try {
         authorizablePostProcessService.process(authorizable, session, Modification.onCreated(authorizable.getID()));
@@ -131,17 +108,19 @@ public class SakaiAuthorizableServiceImpl implements SakaiAuthorizableService {
    * @param session
    * @throws RepositoryException
    */
-  private void ensurePath(User user, Session session) throws RepositoryException {
-    if (!user.hasProperty(PROP_AUTHORIZABLE_PATH)) {
-      Principal principal = user.getPrincipal();
+  private void ensurePath(Authorizable authorizable, Session session) throws RepositoryException {
+    if (!authorizable.hasProperty(PROP_AUTHORIZABLE_PATH)) {
+      Principal principal = authorizable.getPrincipal();
       if (principal instanceof ItemBasedPrincipal) {
         String itemPath = ((ItemBasedPrincipal) principal).getPath();
-        String path = itemPath.substring(USER_REPO_LOCATION.length());
+        int prefixLength = authorizable.isGroup() ?
+            GROUP_REPO_LOCATION.length() : USER_REPO_LOCATION.length();
+        String path = itemPath.substring(prefixLength);
         ValueFactory valueFactory = session.getValueFactory();
-        user.setProperty(PROP_AUTHORIZABLE_PATH, valueFactory.createValue(path));
-        LOGGER.info("User {} path set to {} ",user.getID(), path);
+        authorizable.setProperty(PROP_AUTHORIZABLE_PATH, valueFactory.createValue(path));
+        LOGGER.info("Authorizable {} path set to {} ",authorizable.getID(), path);
       } else {
-        LOGGER.warn("User {} has no available path", user.getID());
+        LOGGER.warn("Authorizable {} has no available path", authorizable.getID());
       }
     }
   }
