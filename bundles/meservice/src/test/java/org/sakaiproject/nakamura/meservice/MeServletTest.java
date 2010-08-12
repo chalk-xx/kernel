@@ -40,6 +40,7 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.profile.ProfileServiceImpl;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
@@ -55,7 +56,6 @@ import java.util.Set;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
-import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Workspace;
@@ -97,6 +97,7 @@ public class MeServletTest extends AbstractEasyMockTest {
 
     servlet = new MeServlet();
     servlet.messagingService = messagingService;
+    servlet.profileService = new ProfileServiceImpl();
   }
 
   @Test
@@ -155,22 +156,15 @@ public class MeServletTest extends AbstractEasyMockTest {
   @Test
   public void testAnon() throws RepositoryException, JSONException, ServletException,
       IOException {
-    Node profileNode = createMock(Node.class);
 
     Authorizable au = createAuthorizable(UserConstants.ANON_USERID, false, true);
     UserManager um = createUserManager(null, true, au);
 
     String profilePath = PersonalUtils.getProfilePath(au);
-    PropertyIterator propIterator = createMock(PropertyIterator.class);
-    NodeIterator nodeIterator = createMock(NodeIterator.class);
-    expect(propIterator.hasNext()).andReturn(false);
-    expect(nodeIterator.hasNext()).andReturn(false);
-    expect(profileNode.getNodes()).andReturn(nodeIterator);
-    expect(profileNode.getProperties()).andReturn(propIterator);
-    expect(profileNode.getName()).andReturn("authprofile").anyTimes();
-    expect(profileNode.getPath()).andReturn("/path/to/authprofile").anyTimes();
+    Node profileNode = new MockNode(profilePath);
 
     expect(session.getItem(profilePath)).andReturn(profileNode).anyTimes();
+    expect(session.getNode(profilePath)).andReturn(profileNode).anyTimes();
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
     expect(session.getUserManager()).andReturn(um).anyTimes();
 
@@ -198,7 +192,8 @@ public class MeServletTest extends AbstractEasyMockTest {
     Authorizable au = createAuthorizable(UserConstants.ANON_USERID, false, true);
     String profilePath = PersonalUtils.getProfilePath(au);
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
-    expect(session.getItem(profilePath)).andThrow(new RepositoryException());
+    expect(session.getItem(profilePath)).andThrow(new RepositoryException()).anyTimes();
+    expect(session.getNode(profilePath)).andThrow(new RepositoryException()).anyTimes();
 
     UserManager um = createUserManager(null, true, au);
     expect(session.getUserManager()).andReturn(um).anyTimes();
@@ -232,8 +227,9 @@ public class MeServletTest extends AbstractEasyMockTest {
     expect(session.getWorkspace()).andReturn(workSpace);
     expect(workSpace.getQueryManager()).andReturn(qm);
     expect(
-        qm.createQuery(EasyMock.matches(".*\\/path\\/to\\/store.*"), EasyMock
-            .eq("xpath"))).andReturn(q);
+        qm
+            .createQuery(EasyMock.matches(".*\\/path\\/to\\/store.*"), EasyMock
+                .eq("xpath"))).andReturn(q);
     expect(q.execute()).andReturn(qr);
     expect(qr.getNodes()).andReturn(iterator);
     expect(iterator.hasNext()).andReturn(true).times(2).andReturn(false);

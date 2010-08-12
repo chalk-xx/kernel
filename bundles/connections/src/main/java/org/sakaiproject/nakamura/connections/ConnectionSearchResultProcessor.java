@@ -3,14 +3,16 @@ package org.sakaiproject.nakamura.connections;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
@@ -21,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.Query;
@@ -36,6 +37,9 @@ import javax.jcr.query.Row;
 @Service(value = SearchResultProcessor.class)
 public class ConnectionSearchResultProcessor implements SearchResultProcessor {
 
+  @Reference
+  protected transient ProfileService profileService;
+
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ConnectionSearchResultProcessor.class);
 
@@ -47,34 +51,30 @@ public class ConnectionSearchResultProcessor implements SearchResultProcessor {
       aggregator.add(node);
     }
     String targetUser = node.getName();
-    
+
     UserManager um = AccessControlUtil.getUserManager(session);
     Authorizable au = um.getAuthorizable(targetUser);
-    
+
     write.object();
     write.key("target");
     write.value(targetUser);
     write.key("profile");
     LOGGER.info("Getting info for {} ", targetUser);
-    try {
-      Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(au));
-      ExtendedJSONWriter.writeNodeToWriter(write, profileNode);
-    } catch (PathNotFoundException ex) {
-      write.value("no-profile");
-    }
+    ValueMap map = profileService.getProfileMap(au, session);
+    ((ExtendedJSONWriter) write).valueMap(map);
     write.key("details");
     ExtendedJSONWriter.writeNodeToWriter(write, node);
     write.endObject();
   }
-  
+
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      Query query) throws SearchException {
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
+      throws SearchException {
     return SearchUtil.getSearchResultSet(request, query);
   }
 }

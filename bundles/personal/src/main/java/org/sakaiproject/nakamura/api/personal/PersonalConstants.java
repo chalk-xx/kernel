@@ -91,4 +91,9 @@ public interface PersonalConstants {
    */
   public static final String GROUP_TITLE_PROPERTY = "sakai:group-title";
 
+  /**
+   * Property name for the description of a group.
+   */
+  public static final String GROUP_DESCRIPTION_PROPERTY = "sakai:group-description";
+
 }

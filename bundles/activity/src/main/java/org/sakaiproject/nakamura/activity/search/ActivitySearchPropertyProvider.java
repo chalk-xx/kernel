@@ -22,12 +22,13 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.activity.ActivityUtils;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
@@ -47,7 +48,7 @@ public class ActivitySearchPropertyProvider implements SearchPropertyProvider {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchPropertyProvider#loadUserProperties(org.apache.sling.api.SlingHttpServletRequest,
    *      java.util.Map)
    */
@@ -62,7 +63,8 @@ public class ActivitySearchPropertyProvider implements SearchPropertyProvider {
     Authorizable au;
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
-      au = PersonalUtils.getAuthorizable(session, user);
+      UserManager um = AccessControlUtil.getUserManager(session);
+      au = um.getAuthorizable(user);
     } catch (RepositoryException e) {
       throw new RuntimeException(e);
     }

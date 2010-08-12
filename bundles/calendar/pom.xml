@@ -75,7 +75,7 @@
         <enabled>true</enabled>
       </snapshots>
     </repository>
-  </repositories>  
+  </repositories>
   <dependencies>
     <dependency>
       <groupId>javax.jcr</groupId>
@@ -140,7 +140,7 @@
       <version>0.8-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
-    
+
     <!--  Tests -->
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>

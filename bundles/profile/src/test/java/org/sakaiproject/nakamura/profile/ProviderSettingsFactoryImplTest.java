@@ -28,6 +28,7 @@ import org.sakaiproject.nakamura.api.profile.ProviderSettings;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.nodetype.PropertyDefinition;
 
@@ -36,7 +37,9 @@ import javax.jcr.nodetype.PropertyDefinition;
  */
 public class ProviderSettingsFactoryImplTest {
 
-  
+
+  @Mock
+  private Session session;
   @Mock
   private Node node;
   @Mock
@@ -49,46 +52,48 @@ public class ProviderSettingsFactoryImplTest {
   private Property settings1Property;
 
   /**
-   * 
+   *
    */
   public ProviderSettingsFactoryImplTest() {
    MockitoAnnotations.initMocks(this);
   }
-  
+
   @Test
   public void testFactory() throws RepositoryException {
     ProviderSettingsFactory pf = new ProviderSettingsFactory();
-    
+
     String nodeName = "externalnode";
     String path = "testpath";
     String providerName = "testprovider";
     String providerConfigPath = "/var/profile/ldapconfig";
-    
+
+    Mockito.when(node.getSession()).thenReturn(session);
+
     ExternalNodeConfig e = ExternalNodeConfig.configExternal(node, nodeName, path, providerName, providerConfigPath);
     Mockito.when(e.getConfigNode().hasProperty("config1")).thenReturn(true);
     Mockito.when(e.getConfigNode().getProperty("config1")).thenReturn(config1Property);
     Mockito.when(config1Property.getDefinition()).thenReturn(propertyDefinition);
     Mockito.when(propertyDefinition.isMultiple()).thenReturn(true);
     Mockito.when(config1Property.getValues()).thenReturn(new Value[]{ value, value });
-    
-    
+
+
 
     Mockito.when(e.getSettingsNode().hasProperty("settings1")).thenReturn(true);
     Mockito.when(e.getSettingsNode().getProperty("settings1")).thenReturn(settings1Property);
     Mockito.when(settings1Property.getDefinition()).thenReturn(propertyDefinition);
     Mockito.when(propertyDefinition.isMultiple()).thenReturn(true);
     Mockito.when(settings1Property.getValues()).thenReturn(new Value[]{ value, value });
-    
+
     Mockito.when(value.getString()).thenReturn("test1", "test2", "test3", "test4");
 
     ProviderSettings settings = pf.newProviderSettings("testpath/externalnode", node);
-    
+
     Assert.assertEquals("testprovider", settings.getProvider());
     Assert.assertArrayEquals(new String[]{"test1","test2"}, settings.getProviderConfigProperty("config1"));
     Assert.assertArrayEquals(new String[]{}, settings.getProviderConfigProperty("config2"));
     Assert.assertArrayEquals(new String[]{"test3","test4"}, settings.getProfileSettingsProperty("settings1"));
     Assert.assertArrayEquals(new String[]{}, settings.getProviderConfigProperty("settings2"));
-    
+
   }
 
 }

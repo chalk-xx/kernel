@@ -17,13 +17,12 @@
  */
 package org.sakaiproject.nakamura.api.profile;
 
-import org.apache.sling.commons.json.JSONException;
-
-import java.io.Writer;
-import java.util.concurrent.ExecutionException;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.sling.api.resource.ValueMap;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 /**
  *
@@ -31,15 +30,79 @@ import javax.jcr.RepositoryException;
 public interface ProfileService {
 
   /**
-   * Stream a profile out to a writer expanding external references efficiently.
-   * @param baseNode
-   * @param w
-   * @throws JSONException
-   * @throws RepositoryException
-   * @throws InterruptedException
-   * @throws ExecutionException
+   * @param authorizable
+   *          The authorizable for which the home folder should be looked up.
+   * @return The JCR path that represents the home folder of an authorizable.
    */
-  void writeProfileMap(Node baseNode, Writer w) throws JSONException,
-      RepositoryException, InterruptedException, ExecutionException;
+  String getHomePath(Authorizable authorizable);
 
+  /**
+   * @param authorizable
+   *          The authorizable for which the public folder should be looked up.
+   * @return The JCR path that represents the public folder of an authorizable.
+   */
+  String getPublicPath(Authorizable authorizable);
+
+  /**
+   * @param authorizable
+   *          The authorizable for which the private folder should be looked up.
+   * @return The JCR path that represents the private folder of an authorizable.
+   */
+  String getPrivatePath(Authorizable authorizable);
+
+  /**
+   * @param authorizable
+   *          The authorizable for which the private folder should be looked up.
+   * @return The JCR path that represents the profile of an authorizable.
+   */
+
+  String getProfilePath(Authorizable authorizable);
+
+  /**
+   * Gets profile information from JCR and expands external resources efficiently.
+   *
+   * @param authorizable
+   *          The profile of this authorizable will be written out.
+   * @param session
+   *          A JCR Session that can be used to access the necessary nodes.
+   *
+   * @return A Map that represents the profile.
+   */
+  ValueMap getProfileMap(Authorizable authorizable, Session session)
+      throws RepositoryException;
+
+  /**
+   * Gets profile information from JCR and expands external resources efficiently.
+   *
+   * @param profileNode
+   *          The node that represents the top level profile node.
+   *
+   * @return A Map that represents the profile.
+   */
+  ValueMap getProfileMap(Node profileNode) throws RepositoryException;
+
+  /**
+   * Gets the compact profile information from JCR and expands external resources
+   * efficiently.
+   *
+   * @param authorizable
+   *          The profile of this authorizable will be written out.
+   * @param session
+   *          A JCR Session that can be used to access the necessary nodes.
+   *
+   * @return A Map that represents the profile.
+   */
+  ValueMap getCompactProfileMap(Authorizable authorizable, Session session)
+      throws RepositoryException;
+
+  /**
+   * Gets the compact profile information from JCR and expands external resources
+   * efficiently.
+   *
+   * @param profileNode
+   *          The node that represents the top level profile node.
+   *
+   * @return A Map that represents the profile.
+   */
+  ValueMap getCompactProfileMap(Node profileNode) throws RepositoryException;
 }

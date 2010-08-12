@@ -22,6 +22,7 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 
 import java.io.Writer;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.jcr.Node;
@@ -39,7 +40,7 @@ public class ExtendedJSONWriter extends JSONWriter {
     super(w);
   }
 
-  public void valueMap(ValueMap valueMap) throws JSONException {
+  public void valueMap(Map<String, Object> valueMap) throws JSONException {
     object();
     valueMapInternals(valueMap);
     endObject();
@@ -49,13 +50,14 @@ public class ExtendedJSONWriter extends JSONWriter {
    * This will output the key value pairs of a value map as JSON without opening and
    * closing braces, you will need to call object() and endObject() yourself but you can
    * use this to allow appending onto the end of the existing data
-   * 
+   *
    * @param valueMap
    *          any ValueMap (cannot be null)
    * @throws JSONException
    *           on failure
    */
-  public void valueMapInternals(ValueMap valueMap) throws JSONException {
+  @SuppressWarnings("unchecked")
+  public void valueMapInternals(Map<String, Object> valueMap) throws JSONException {
     for (Entry<String, Object> entry : valueMap.entrySet()) {
       key(entry.getKey());
       Object entryValue = entry.getValue();
@@ -66,7 +68,10 @@ public class ExtendedJSONWriter extends JSONWriter {
           value(object);
         }
         endArray();
-      } else {
+      } else if (entryValue instanceof ValueMap || entryValue instanceof Map<?, ?>) {
+        valueMap((Map<String, Object>) entryValue);
+      }
+      else {
         value(entry.getValue());
       }
     }
@@ -190,7 +195,7 @@ public class ExtendedJSONWriter extends JSONWriter {
 
   /**
    * Represent an entire JCR tree in JSON format.
-   * 
+   *
    * @param write
    *          The {@link JSONWriter writer} to send the data to.
    * @param node
@@ -203,10 +208,10 @@ public class ExtendedJSONWriter extends JSONWriter {
       throws RepositoryException, JSONException {
       writeNodeTreeToWriter(write, node, Boolean.FALSE);
   }
-  
+
   /**
    * Represent an entire JCR tree in JSON format.
-   * 
+   *
    * @param write
    *          The {@link JSONWriter writer} to send the data to.
    * @param node

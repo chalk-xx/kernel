@@ -47,6 +47,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -106,6 +107,9 @@ public class MeServlet extends SlingSafeMethodsServlet {
   @Reference
   protected transient ConnectionManager connectionManager;
 
+  @Reference
+  protected transient ProfileService profileService;
+
   /**
    * {@inheritDoc}
    *
@@ -130,9 +134,8 @@ public class MeServlet extends SlingSafeMethodsServlet {
 
       // Dump this user his info
       writer.key("profile");
-      String profilePath = PersonalUtils.getProfilePath(au);
-      Node profileNode = (Node) session.getItem(profilePath);
-      ExtendedJSONWriter.writeNodeTreeToWriter(writer, profileNode);
+      ValueMap profile = profileService.getProfileMap(au, session);
+      writer.valueMap(profile);
 
       // Dump this user his number of unread messages.
       writer.key("messages");
@@ -176,7 +179,8 @@ public class MeServlet extends SlingSafeMethodsServlet {
       Iterator<Group> groups = au.memberOf();
       while (groups.hasNext()) {
         Group group = groups.next();
-        PersonalUtils.writeCompactGroupInfo(session, group.getID(), writer);
+        ValueMap groupProfile = profileService.getCompactProfileMap(group, session);
+        writer.valueMap(groupProfile);
       }
     }
     writer.endArray();

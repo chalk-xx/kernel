@@ -26,13 +26,27 @@ import javax.jcr.RepositoryException;
 public interface ProviderSettings {
 
   /**
+   * The property name of the profile provider. This can usually be found on nodes under
+   * /var/search/profile/providersByName/***
+   */
+  static final String PROFILE_PROVIDER = "sakai:profile-provider";
+
+  /**
+   * The property name of the profile provider settings. This will hold the path to the
+   * settings for a provider.
+   */
+  static final String PROFILE_PROVIDER_SETTINGS = "sakai:profile-provider-settings";
+
+  /**
    * @return
    */
   String getProvider();
 
   /**
    * Get a property, as String[] from the configuration for this provider in the JCR.
-   * @param propertyName the name of the property
+   *
+   * @param propertyName
+   *          the name of the property
    * @return an array of values, if there are none it will be an array of length 0.
    * @throws RepositoryException
    */
@@ -40,13 +54,14 @@ public interface ProviderSettings {
 
   /**
    * Get the settings for this profile node.
-   * @param propertyName the name of the property.
+   *
+   * @param propertyName
+   *          the name of the property.
    * @return an array of values, if there are none it will be an array of length 0.
    * @throws RepositoryException
    */
   String[] getProfileSettingsProperty(String propertyName) throws RepositoryException;
-  
-  
+
   /**
    * @return the node that this setting relates to.
    */

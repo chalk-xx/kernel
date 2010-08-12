@@ -67,6 +67,11 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.profile</artifactId>
+      <version>0.8-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
       <version>0.8-SNAPSHOT</version>
     </dependency>
@@ -130,7 +135,7 @@
       <artifactId>org.sakaiproject.nakamura.site</artifactId>
       <version>0.8-SNAPSHOT</version>
     </dependency>
-	
+
     <!--  JMS/ActiveMQ -->
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>

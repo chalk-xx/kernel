@@ -37,11 +37,13 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
@@ -81,6 +83,9 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
   @Reference
   protected transient SlingRepository slingRepository;
 
+  @Reference
+  protected transient ProfileService profileService;
+
   /**
    * Retrieves the list of members.
    *
@@ -101,6 +106,8 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       // This node contains a list of managers and viewers.
       Map<String, Boolean> users = getMembers(node);
 
+      UserManager um = AccessControlUtil.getUserManager(session);
+
       // Loop over the sets and output it.
       ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
       writer.object();
@@ -108,7 +115,9 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       writer.array();
       for (Entry<String, Boolean> entry : users.entrySet()) {
         if (entry.getValue()) {
-          PersonalUtils.writeCompactUserInfo(session, entry.getKey(), writer);
+          Authorizable au = um.getAuthorizable(entry.getKey());
+          ValueMap profileMap = profileService.getCompactProfileMap(au, session);
+          writer.valueMap(profileMap);
         }
       }
       writer.endArray();
@@ -116,7 +125,9 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       writer.array();
       for (Entry<String, Boolean> entry : users.entrySet()) {
         if (!entry.getValue()) {
-          PersonalUtils.writeCompactUserInfo(session, entry.getKey(), writer);
+          Authorizable au = um.getAuthorizable(entry.getKey());
+          ValueMap profileMap = profileService.getCompactProfileMap(au, session);
+          writer.valueMap(profileMap);
         }
       }
       writer.endArray();

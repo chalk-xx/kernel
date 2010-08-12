@@ -23,6 +23,7 @@ import org.sakaiproject.nakamura.util.JcrUtils;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 
@@ -37,63 +38,76 @@ public class ProviderSettingsImpl implements ProviderSettings {
   private Node providerNode;
 
   /**
-   * @param node 
    * @param node
-   * @throws RepositoryException 
-   * @throws PathNotFoundException 
-   * @throws ValueFormatException 
+   * @param node
+   * @throws RepositoryException
+   * @throws PathNotFoundException
+   * @throws ValueFormatException
    */
-  public ProviderSettingsImpl(Node profileNode, Node settingsNode) throws RepositoryException {
+  public ProviderSettingsImpl(Node profileNode, Node settingsNode)
+      throws RepositoryException {
     this.profileNode = profileNode;
     this.settingsNode = settingsNode;
-    provider = settingsNode.getProperty("sakai:provider").getString();
-    String providerSettings = settingsNode.getProperty("sakai:provider-settings").getString();
-    this.providerNode = profileNode.getSession().getNode(providerSettings);    
+    if (settingsNode.hasProperty(ProviderSettings.PROFILE_PROVIDER)) {
+      provider = settingsNode.getProperty(ProviderSettings.PROFILE_PROVIDER).getString();
+    }
+    if (settingsNode.hasProperty(ProviderSettings.PROFILE_PROVIDER_SETTINGS)) {
+      String providerSettingsPath = settingsNode.getProperty(
+          ProviderSettings.PROFILE_PROVIDER_SETTINGS).getString();
+      Session session = profileNode.getSession();
+      if (session.nodeExists(providerSettingsPath)) {
+        this.providerNode = session.getNode(providerSettingsPath);
+      }
+    }
   }
 
   /**
    * {@inheritDoc}
+   *
    * @see org.sakaiproject.nakamura.api.profile.ProviderSettings#getProvider()
    */
   public String getProvider() {
     return provider;
   }
-  
-  
-  public String[] getProfileSettingsProperty(String propertyName) throws RepositoryException {
+
+  public String[] getProfileSettingsProperty(String propertyName)
+      throws RepositoryException {
     return getStringProperty(settingsNode, propertyName);
   }
-  
+
   /**
    * @param settingsNode2
    * @param propertyName
    * @return
    */
-  private String[] getStringProperty(Node node, String propertyName) throws RepositoryException {
-    Value[] v = JcrUtils.getValues(node, propertyName);
-    if ( v == null || v.length == 0 ) {
+  private String[] getStringProperty(Node node, String propertyName)
+      throws RepositoryException {
+    if (node == null) {
       return new String[0];
-    } 
+    }
+    Value[] v = JcrUtils.getValues(node, propertyName);
+    if (v == null || v.length == 0) {
+      return new String[0];
+    }
     String[] s = new String[v.length];
-    for ( int i = 0; i < s.length; i++ ) {
+    for (int i = 0; i < s.length; i++) {
       s[i] = v[i].getString();
     }
     return s;
   }
 
-  public String[] getProviderConfigProperty(String propertyName) throws RepositoryException {
+  public String[] getProviderConfigProperty(String propertyName)
+      throws RepositoryException {
     return getStringProperty(providerNode, propertyName);
   }
 
   /**
    * {@inheritDoc}
+   *
    * @see org.sakaiproject.nakamura.api.profile.ProviderSettings#getNode()
    */
   public Node getNode() {
     return profileNode;
   }
-  
-  
-  
 
 }

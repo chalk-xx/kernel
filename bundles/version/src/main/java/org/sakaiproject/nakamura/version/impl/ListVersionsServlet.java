@@ -17,15 +17,20 @@
  */
 package org.sakaiproject.nakamura.version.impl;
 
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -34,8 +39,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
-import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.version.VersionService;
 import org.slf4j.Logger;
@@ -58,30 +62,21 @@ import javax.servlet.http.HttpServletResponse;
  * Gets a version
  */
 
-@ServiceDocumentation(name="List Versions Servlet",
-    description="Lists versions of a resource in json format",
-    shortDescription="List versions of a resource",
-    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/servlet/default"},
-    selectors=@ServiceSelector(name="versions", description="Retrieves a paged list of versions for the resource"),
-    extensions=@ServiceExtension(name="json", description="A list over versions in json format")),
-    methods=@ServiceMethod(name="GET",
-        description={"Lists previous versions of a resource. The url is of the form " +
-            "http://host/resource.versions.json ",
-            "Example<br>" +
-            "<pre>curl http://localhost:8080/sresource/resource.versions.json</pre>"},
-        parameters={
-        @ServiceParameter(name="items", description="The number of items per page"),
-        @ServiceParameter(name="page", description="The page to of items to return")
-    },
-    response={
-    @ServiceResponse(code=200,description="Success a body is returned containing a json tree"),
-    @ServiceResponse(code=404,description="Resource was not found."),
-    @ServiceResponse(code=500,description="Failure with HTML explanation.")}
-    )) 
-        
-
+@ServiceDocumentation(name = "List Versions Servlet", description = "Lists versions of a resource in json format", shortDescription = "List versions of a resource", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = { "sling/servlet/default" }, selectors = @ServiceSelector(name = "versions", description = "Retrieves a paged list of versions for the resource"), extensions = @ServiceExtension(name = "json", description = "A list over versions in json format")), methods = @ServiceMethod(name = "GET", description = {
+    "Lists previous versions of a resource. The url is of the form "
+        + "http://host/resource.versions.json ",
+    "Example<br>"
+        + "<pre>curl http://localhost:8080/sresource/resource.versions.json</pre>" }, parameters = {
+    @ServiceParameter(name = "items", description = "The number of items per page"),
+    @ServiceParameter(name = "page", description = "The page to of items to return") }, response = {
+    @ServiceResponse(code = 200, description = "Success a body is returned containing a json tree"),
+    @ServiceResponse(code = 404, description = "Resource was not found."),
+    @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }))
 @SlingServlet(resourceTypes = "sling/servlet/default", methods = "GET", selectors = "versions", extensions = "json")
 public class ListVersionsServlet extends SlingSafeMethodsServlet {
+
+  @Reference
+  protected transient ProfileService profileService;
 
   /**
    *
@@ -125,26 +120,25 @@ public class ListVersionsServlet extends SlingSafeMethodsServlet {
       path = node.getPath();
       int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
       int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
-      
+
       VersionManager versionManager = node.getSession().getWorkspace()
           .getVersionManager();
       VersionHistory versionHistory = versionManager.getVersionHistory(node.getPath());
       VersionIterator versionIterator = versionHistory.getAllVersions();
-      
+
       long total = versionIterator.getSize();
-      long[] range = getInvertedRange(total,offset,nitems);
-      nitems = (int)(range[1] - range[0]);
+      long[] range = getInvertedRange(total, offset, nitems);
+      nitems = (int) (range[1] - range[0]);
       Version[] versions = new Version[nitems];
       versionIterator.skip(range[0]);
-      
+
       int i = 0;
       while (i < nitems && versionIterator.hasNext()) {
         versions[i++] = versionIterator.nextVersion();
-      }   
+      }
 
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
-
 
       Writer writer = response.getWriter();
       ExtendedJSONWriter write = new ExtendedJSONWriter(writer);
@@ -158,13 +152,11 @@ public class ListVersionsServlet extends SlingSafeMethodsServlet {
       write.key(JSON_VERSIONS);
       write.object();
       versionIterator.skip(offset);
-      for ( int j = versions.length-1;  j >=0; j-- ) {
+      for (int j = versions.length - 1; j >= 0; j--) {
         write.key(versions[j].getName());
         write.object();
         Node vnode = versions[j].getNode(JcrConstants.JCR_FROZENNODE);
-        if (!writeEditorDetails(vnode, VersionService.SAVED_BY, VersionService.SAVED_BY, write)) {
-          writeEditorDetails(vnode, UserConstants.JCR_CREATED_BY, VersionService.SAVED_BY, write);
-        }
+        writeEditorDetails(vnode, write);
         ExtendedJSONWriter.writeNodeContentsToWriter(write, versions[j]);
         write.endObject();
       }
@@ -208,12 +200,19 @@ public class ListVersionsServlet extends SlingSafeMethodsServlet {
     }
   }
 
-  private boolean writeEditorDetails(Node node, String propertySource, String outputName, ExtendedJSONWriter write) {
-    try {
-      PersonalUtils.writeUserInfo(node, write, propertySource, outputName);
-      return true;
-    } catch (Exception e) {
-      return false;
+  private void writeEditorDetails(Node node, ExtendedJSONWriter write)
+      throws RepositoryException, JSONException {
+    String user = null;
+    if (node.hasProperty(VersionService.SAVED_BY)) {
+      user = node.getProperty(VersionService.SAVED_BY).getString();
+    }
+
+    if (user != null) {
+      UserManager m = AccessControlUtil.getUserManager(node.getSession());
+      Authorizable authorizable = m.getAuthorizable(user);
+      ValueMap map = profileService.getProfileMap(authorizable, node.getSession());
+      write.key(VersionService.SAVED_BY);
+      write.valueMap(map);
     }
   }
 
@@ -225,22 +224,22 @@ public class ListVersionsServlet extends SlingSafeMethodsServlet {
    */
   protected long[] getInvertedRange(long total, int offset, int nitems) {
     long[] range = new long[2];
-    if ( total < 0 || nitems < 0 ) {
+    if (total < 0 || nitems < 0) {
       range[0] = 0;
       range[1] = 0;
       return range;
     }
-    if ( offset < 0 ) {
+    if (offset < 0) {
       offset = 0;
     }
-    range[1] = total-offset;
+    range[1] = total - offset;
     range[0] = 0;
-    if ( range[1] < 0 ) {
+    if (range[1] < 0) {
       range[1] = 0;
       range[0] = 0;
     } else {
       range[0] = range[1] - nitems;
-      if ( range[0] < 0 ) {
+      if (range[0] < 0) {
         range[0] = 0;
       }
     }

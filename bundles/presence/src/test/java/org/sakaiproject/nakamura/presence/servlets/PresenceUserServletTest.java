@@ -25,16 +25,18 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.presence.PresenceServiceImplTest;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
@@ -61,6 +63,7 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
   private PresenceService presenceService;
   private PresenceUserServlet servlet;
   private ConnectionManager connectionManager;
+  private ProfileService profileService;
 
   @Before
   public void setUp() throws Exception {
@@ -69,10 +72,15 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     PresenceServiceImplTest test = new PresenceServiceImplTest();
     test.setUp();
     presenceService = test.getPresenceService();
+    profileService = Mockito.mock(ProfileService.class);
+    Mockito.when(
+        profileService.getProfileMap(Mockito.any(Authorizable.class), Mockito
+            .any(Session.class))).thenReturn(ValueMap.EMPTY);
 
     servlet = new PresenceUserServlet();
     servlet.presenceService = presenceService;
     servlet.connectionManager = connectionManager;
+    servlet.profileService = profileService;
   }
 
   @After
@@ -126,8 +134,6 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     expect(profileNode.getProperties()).andReturn(propertyIterator);
     expect(profileNode.getPath()).andReturn("/profile/node/path").anyTimes();
     expect(profileNode.getName()).andReturn("profile_node_name").anyTimes();
-    expect(session.getItem(PersonalUtils.getProfilePath(au))).andReturn(
-        profileNode);
     expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resourceResolver);
 
