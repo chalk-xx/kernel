@@ -385,9 +385,7 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
     authnInfo.put(ArtifactHandler.HANDLER_NAME, handlerName);
     SimpleCredentials credentials = new SimpleCredentials(principal.getName(),
         new char[] {});
-    // these get copied to the credentials by Sling
-    // https://issues.apache.org/jira/browse/SLING-1647?focusedCommentId=12897753&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#action_12897753
-    authnInfo.put(SsoPrincipal.class.getName(), principal);
+    credentials.setAttribute(SsoPrincipal.class.getName(), principal);
     authnInfo.put(AUTHENTICATION_INFO_CREDENTIALS, credentials);
     return authnInfo;
   }
