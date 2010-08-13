@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.auth.trusted;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS;
+
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -26,7 +28,6 @@ import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
-import org.sakaiproject.nakamura.api.auth.trusted.TrustedAuthenticationConstants;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.Cache;
@@ -161,7 +162,7 @@ public class TrustedAuthenticationHandlerTest {
 
     AuthenticationInfo info = trustedAuthenticationHandler.extractCredentials(request, response);
     Assert.assertNotNull(info);
-    Credentials authCredentials = (Credentials)info.get(TrustedAuthenticationConstants.CREDENTIALS);
+    Credentials authCredentials = (Credentials)info.get(AUTHENTICATION_INFO_CREDENTIALS);
     Assert.assertTrue(authCredentials instanceof SimpleCredentials);
     SimpleCredentials simpleCredentials = (SimpleCredentials) authCredentials;
     Object o = simpleCredentials.getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);
@@ -196,7 +197,7 @@ public class TrustedAuthenticationHandlerTest {
 
     trustedAuthenticationHandler.extractCredentials(request, response);
     Assert.assertNotNull(info);
-    authCredentials = (Credentials)info.get(TrustedAuthenticationConstants.CREDENTIALS);
+    authCredentials = (Credentials)info.get(AUTHENTICATION_INFO_CREDENTIALS);
     Assert.assertTrue(authCredentials instanceof SimpleCredentials);
     simpleCredentials = (SimpleCredentials) authCredentials;
     o = simpleCredentials.getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);

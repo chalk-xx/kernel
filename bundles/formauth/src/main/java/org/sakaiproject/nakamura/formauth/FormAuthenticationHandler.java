@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.nakamura.formauth;
 
-import static org.sakaiproject.nakamura.api.auth.trusted.TrustedAuthenticationConstants.CREDENTIALS;
+import static org.apache.sling.jcr.resource.JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -160,7 +160,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
     if (authentication.isValid()) {
       // authenticate
       AuthenticationInfo authenticatioInfo = new AuthenticationInfo(SESSION_AUTH);
-      authenticatioInfo.put(CREDENTIALS, authentication.getCredentials());
+      authenticatioInfo.put(AUTHENTICATION_INFO_CREDENTIALS, authentication.getCredentials());
       // put the form authentication into the request so that it can be checked by the servlet and saved to session if valid.
       request.setAttribute(FORM_AUTHENTICATION, authentication);
       return authenticatioInfo;

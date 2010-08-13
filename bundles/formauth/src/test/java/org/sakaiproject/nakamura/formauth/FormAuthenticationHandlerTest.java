@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.formauth;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -30,7 +31,6 @@ import static org.junit.Assert.assertNotNull;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.easymock.Capture;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.auth.trusted.TrustedAuthenticationConstants;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
@@ -79,7 +79,7 @@ public class FormAuthenticationHandlerTest {
         captured.getValue().getClass().getName());
     assertNotNull(authenticationInfo);
     assertEquals(FormAuthenticationHandler.SESSION_AUTH, authenticationInfo.getAuthType());
-    Credentials credentials = (Credentials) authenticationInfo.get(TrustedAuthenticationConstants.CREDENTIALS);
+    Credentials credentials = (Credentials) authenticationInfo.get(AUTHENTICATION_INFO_CREDENTIALS);
     assertNotNull(credentials);
     SimpleCredentials sc = (SimpleCredentials) credentials;
     assertEquals("user",sc.getUserID());

@@ -18,7 +18,7 @@
 package org.sakaiproject.nakamura.auth.sso;
 
 import static org.apache.felix.scr.annotations.ReferenceCardinality.MANDATORY_MULTIPLE;
-import static org.sakaiproject.nakamura.api.auth.trusted.TrustedAuthenticationConstants.CREDENTIALS;
+import static org.apache.sling.jcr.resource.JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -388,7 +388,7 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
     // these get copied to the credentials by Sling
     // https://issues.apache.org/jira/browse/SLING-1647?focusedCommentId=12897753&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#action_12897753
     authnInfo.put(SsoPrincipal.class.getName(), principal);
-    authnInfo.put(CREDENTIALS, credentials);
+    authnInfo.put(AUTHENTICATION_INFO_CREDENTIALS, credentials);
     return authnInfo;
   }
 

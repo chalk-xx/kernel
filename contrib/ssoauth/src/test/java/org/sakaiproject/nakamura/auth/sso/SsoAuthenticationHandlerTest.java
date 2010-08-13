@@ -30,6 +30,7 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.junit.After;
 import org.junit.Before;
@@ -39,7 +40,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
-import org.sakaiproject.nakamura.api.auth.trusted.TrustedAuthenticationConstants;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
@@ -187,7 +187,7 @@ public class SsoAuthenticationHandlerTest {
         request, response);
 
     ssoCredentials = (SimpleCredentials) authenticationInfo
-        .get(TrustedAuthenticationConstants.CREDENTIALS);
+        .get(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS);
 
     assertEquals("someUser", authenticationInfo.getUser());
     assertEquals("someUser", ssoCredentials.getUserID());
