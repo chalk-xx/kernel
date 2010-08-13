@@ -37,6 +37,8 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableMap;
@@ -50,11 +52,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Notes: This servlet resides in the personal bundle because it needs the PersonalUtil
- * functionality. It should be in the user bundle, but that would create a cyclic
- * dependency. This can probably be improved with the dynamic profileService once it's
- * ready.
- *
  * Also, when KERN-949 is fixed, we should change the getManagers() method.
  *
  *
@@ -101,22 +98,24 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
     ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
     writer.setTidy(selectors.contains("tidy"));
 
+    // Get the sorting order, default is ascending or the natural sorting order (which is
+    // null for a TreeMap.)
+    Comparator<String> comparator = null;
+    String order = "ascending";
+    if (request.getRequestParameter("sortOrder") != null) {
+      order = request.getRequestParameter("sortOrder").getString();
+      if (order.equals("descending")) {
+        comparator = Collections.reverseOrder();
+      }
+    }
+
     try {
-      NavigableMap<String, Authorizable> map = null;
+      TreeMap<String, Authorizable> map = null;
       if (selectors.contains("managers")) {
-        map = getManagers(request, group, writer);
+        map = getManagers(request, group, comparator);
       } else {
         // Members is the default.
-        map = getMembers(request, group, writer);
-      }
-
-      // Get the sorting order and re-order the map (if neccesary).
-      String order = "ascending";
-      if (request.getRequestParameter("sortOrder") != null) {
-        order = request.getRequestParameter("sortOrder").getString();
-        if (order.equals("descending")) {
-          map = map.descendingMap();
-        }
+        map = getMembers(request, group, comparator);
       }
 
       // Do some paging.
@@ -185,8 +184,9 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
    * @throws JSONException
    */
   protected TreeMap<String, Authorizable> getMembers(SlingHttpServletRequest request,
-      Group group, ExtendedJSONWriter writer) throws RepositoryException, JSONException {
-    TreeMap<String, Authorizable> map = new TreeMap<String, Authorizable>();
+      Group group, Comparator<String> comparator) throws RepositoryException,
+      JSONException {
+    TreeMap<String, Authorizable> map = new TreeMap<String, Authorizable>(comparator);
 
     // Only the direct members are required.
     // If we would do group.getMembers() that would also retrieve all the indirect ones.
@@ -210,8 +210,9 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
    * @throws JSONException
    */
   protected TreeMap<String, Authorizable> getManagers(SlingHttpServletRequest request,
-      Group group, ExtendedJSONWriter writer) throws RepositoryException, JSONException {
-    TreeMap<String, Authorizable> map = new TreeMap<String, Authorizable>();
+      Group group, Comparator<String> comparator) throws RepositoryException,
+      JSONException {
+    TreeMap<String, Authorizable> map = new TreeMap<String, Authorizable>(comparator);
 
     // KERN-949 will probably change this.
     Session session = request.getResourceResolver().adaptTo(Session.class);
