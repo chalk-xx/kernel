@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.auth.trusted;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -122,6 +124,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
       // construct the authentication info and store credentials on the request
       AuthenticationInfo authInfo = new AuthenticationInfo(TRUSTED_AUTH);
       authInfo.put(TRUSTED_AUTH, trustedAuthentication.getCredentials());
+      authInfo.put(AUTHENTICATION_INFO_CREDENTIALS, trustedAuthentication.getCredentials());
       request.setAttribute(RA_AUTHENTICATION_INFO, authInfo);
       LOGGER.debug("Trusted Authentication is valid {} ",trustedAuthentication);
       return authInfo;
