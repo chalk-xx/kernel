@@ -215,9 +215,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     if (authorizable.isGroup()) {
       // For a group we just dump it's title and description.
-      compactProfile.put(GROUP_TITLE_PROPERTY, profile.get(GROUP_TITLE_PROPERTY, false));
-      compactProfile.put(GROUP_DESCRIPTION_PROPERTY, profile.get(
-          GROUP_DESCRIPTION_PROPERTY, false));
+      compactProfile.put(GROUP_TITLE_PROPERTY, profile.get(GROUP_TITLE_PROPERTY));
+      compactProfile.put(GROUP_DESCRIPTION_PROPERTY, profile
+          .get(GROUP_DESCRIPTION_PROPERTY));
     } else {
 
       /**
