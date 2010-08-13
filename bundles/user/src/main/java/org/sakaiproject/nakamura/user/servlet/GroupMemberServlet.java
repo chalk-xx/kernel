@@ -41,7 +41,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
@@ -163,7 +162,7 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
    * @return
    */
   private Iterator<Entry<String, Authorizable>> getInPlaceIterator(
-      SlingHttpServletRequest request, NavigableMap<String, Authorizable> map,
+      SlingHttpServletRequest request, TreeMap<String, Authorizable> map,
       long items, long page) {
     Iterator<Entry<String, Authorizable>> iterator = map.entrySet().iterator();
     long skipNum = items * page;
