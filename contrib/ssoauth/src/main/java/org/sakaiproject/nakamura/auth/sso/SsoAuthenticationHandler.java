@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.auth.sso;
 
 import static org.apache.felix.scr.annotations.ReferenceCardinality.MANDATORY_MULTIPLE;
+import static org.sakaiproject.nakamura.api.auth.trusted.TrustedAuthenticationConstants.CREDENTIALS;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -51,7 +52,6 @@ import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
 import org.sakaiproject.nakamura.api.auth.sso.SsoAuthConstants;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.auth.trusted.TrustedAuthenticationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -264,12 +264,9 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
           String credentials = handler.extractCredentials(artifact, body, request);
           if (credentials != null) {
             // found some credentials; proceed
-            authnInfo = createAuthnInfo(credentials);
+            authnInfo = createAuthnInfo(credentials, handlerName);
 
             request.setAttribute(AUTHN_INFO, authnInfo);
-            // store the handler name to session for use during logout
-            // TODO store this somewhere besides session; possibly a cookie or JCR
-            request.getSession().setAttribute(ArtifactHandler.HANDLER_NAME, handlerName);
           } else {
             LOGGER.warn("Unable to extract credentials from validation server.");
             authnInfo = AuthenticationInfo.FAIL_AUTH;
@@ -380,14 +377,18 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
   }
 
   //----------- Internal ----------------------------
-  private AuthenticationInfo createAuthnInfo(final String username) {
+  private AuthenticationInfo createAuthnInfo(final String username,
+      final String handlerName) {
     final SsoPrincipal principal = new SsoPrincipal(username);
     AuthenticationInfo authnInfo = new AuthenticationInfo(SsoAuthConstants.SSO_AUTH_TYPE,
         username);
+    authnInfo.put(ArtifactHandler.HANDLER_NAME, handlerName);
     SimpleCredentials credentials = new SimpleCredentials(principal.getName(),
         new char[] {});
-    credentials.setAttribute(SsoPrincipal.class.getName(), principal);
-    authnInfo.put(TrustedAuthenticationHandler.TRUSTED_AUTH, credentials);
+    // these get copied to the credentials by Sling
+    // https://issues.apache.org/jira/browse/SLING-1647?focusedCommentId=12897753&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#action_12897753
+    authnInfo.put(SsoPrincipal.class.getName(), principal);
+    authnInfo.put(CREDENTIALS, credentials);
     return authnInfo;
   }
 

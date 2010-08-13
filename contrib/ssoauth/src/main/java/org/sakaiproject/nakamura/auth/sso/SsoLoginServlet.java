@@ -26,6 +26,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +84,11 @@ public class SsoLoginServlet extends SlingAllMethodsServlet {
         SsoAuthenticationTokenServiceWrapper tokenServiceWrapper = new SsoAuthenticationTokenServiceWrapper(
             this, trustedTokenService);
         tokenServiceWrapper.addToken(request, response);
+
+        // store the handler name to session for use during logout
+        // TODO store this somewhere besides session; possibly a cookie or JCR
+        String handlerName = (String) authnInfo.get(ArtifactHandler.HANDLER_NAME);
+        request.getSession().setAttribute(ArtifactHandler.HANDLER_NAME, handlerName);
       }
 
       String redirectTarget = getReturnPath(request);

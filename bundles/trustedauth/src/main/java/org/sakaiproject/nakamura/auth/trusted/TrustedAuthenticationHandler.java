@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.auth.trusted;
 
+import static org.sakaiproject.nakamura.api.auth.trusted.TrustedAuthenticationConstants.CREDENTIALS;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -97,7 +99,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
         Object authInfo = request.getAttribute(RA_AUTHENTICATION_INFO);
         if ( authInfo instanceof AuthenticationInfo ) {
           AuthenticationInfo authenticationInfo = (AuthenticationInfo) authInfo;
-          Credentials credentials = (Credentials)authenticationInfo.get(TRUSTED_AUTH);
+          Credentials credentials = (Credentials)authenticationInfo.get(CREDENTIALS);
           if ( credentials instanceof SimpleCredentials ) {
             LOGGER.debug("Got AuthInfo {} credentials {} ",authInfo, credentials);
             return authenticationInfo;
@@ -121,7 +123,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
 
       // construct the authentication info and store credentials on the request
       AuthenticationInfo authInfo = new AuthenticationInfo(TRUSTED_AUTH);
-      authInfo.put(TRUSTED_AUTH, trustedAuthentication.getCredentials());
+      authInfo.put(CREDENTIALS, trustedAuthentication.getCredentials());
       request.setAttribute(RA_AUTHENTICATION_INFO, authInfo);
       LOGGER.debug("Trusted Authentication is valid {} ",trustedAuthentication);
       return authInfo;

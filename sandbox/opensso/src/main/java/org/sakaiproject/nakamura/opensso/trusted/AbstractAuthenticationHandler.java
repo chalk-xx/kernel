@@ -24,6 +24,7 @@ import org.apache.sling.commons.auth.spi.AuthenticationHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedAuthenticationConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
   public static final Logger LOGGER = LoggerFactory.getLogger(AbstractAuthenticationHandler.class);
   public static final String AUTHENTICATION_OBJECT = "authentication-object";
- 
+
 
   /**
    * {@inheritDoc}
@@ -56,7 +57,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
   /**
    * @param request
-   * @throws RepositoryException 
+   * @throws RepositoryException
    */
   protected final void doCreateUser(String userName) throws RepositoryException {
     Session session = null;
@@ -70,7 +71,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         // create user
         LOGGER.debug("Createing user {}", userName);
         userManager.createUser(userName, RandomStringUtils.random(32));
-        
+
       }
     } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);
@@ -96,7 +97,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
     if (authentication.isValid()) {
       // authenticate
       AuthenticationInfo authenticatioInfo = new AuthenticationInfo(getAuthType());
-      authenticatioInfo.put(AuthenticationInfo.CREDENTIALS, authentication.getCredentials());
+      authenticatioInfo.put(TrustedAuthenticationConstants.CREDENTIALS, authentication.getCredentials());
       // put the form authentication into the request so that it can be checked by the servlet and saved to session if valid.
       request.setAttribute(AUTHENTICATION_OBJECT, authentication);
       return authenticatioInfo;

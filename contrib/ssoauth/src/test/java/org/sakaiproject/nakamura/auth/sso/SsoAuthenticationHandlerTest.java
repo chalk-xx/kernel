@@ -39,9 +39,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedAuthenticationConstants;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.auth.trusted.TrustedAuthenticationHandler;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -187,7 +187,7 @@ public class SsoAuthenticationHandlerTest {
         request, response);
 
     ssoCredentials = (SimpleCredentials) authenticationInfo
-        .get(TrustedAuthenticationHandler.TRUSTED_AUTH);
+        .get(TrustedAuthenticationConstants.CREDENTIALS);
 
     assertEquals("someUser", authenticationInfo.getUser());
     assertEquals("someUser", ssoCredentials.getUserID());

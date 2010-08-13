@@ -30,7 +30,7 @@ import static org.junit.Assert.assertNotNull;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.easymock.Capture;
 import org.junit.Test;
-import org.sakaiproject.nakamura.auth.trusted.TrustedAuthenticationHandler;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedAuthenticationConstants;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
@@ -79,7 +79,7 @@ public class FormAuthenticationHandlerTest {
         captured.getValue().getClass().getName());
     assertNotNull(authenticationInfo);
     assertEquals(FormAuthenticationHandler.SESSION_AUTH, authenticationInfo.getAuthType());
-    Credentials credentials = (Credentials) authenticationInfo.get(TrustedAuthenticationHandler.TRUSTED_AUTH);
+    Credentials credentials = (Credentials) authenticationInfo.get(TrustedAuthenticationConstants.CREDENTIALS);
     assertNotNull(credentials);
     SimpleCredentials sc = (SimpleCredentials) credentials;
     assertEquals("user",sc.getUserID());
