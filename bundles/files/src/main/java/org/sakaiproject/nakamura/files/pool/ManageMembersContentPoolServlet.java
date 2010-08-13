@@ -271,6 +271,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       // files associated with a user/group.
       String newPath = path + PersonalUtils.getUserHashedPath(au);
       Node node = JcrUtils.deepGetOrCreateNode(session, newPath);
+      node.setProperty(SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_USER_RT);
       node.setProperty(property, au.getID());
 
       // Nobody can read this node except managers.

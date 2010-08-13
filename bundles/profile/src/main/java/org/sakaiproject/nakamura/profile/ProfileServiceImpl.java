@@ -233,11 +233,9 @@ public class ProfileServiceImpl implements ProfileService {
        *        value
        * </pre>
        */
-      compactProfile.put(USER_FIRSTNAME_PROPERTY, profile.get(USER_LASTNAME_PROPERTY,
-          false));
-      compactProfile.put(USER_LASTNAME_PROPERTY, profile.get(GROUP_DESCRIPTION_PROPERTY,
-          false));
-      compactProfile.put(USER_EMAIL_PROPERTY, profile.get(USER_EMAIL_PROPERTY, false));
+      compactProfile.put(USER_FIRSTNAME_PROPERTY, profile.get(USER_FIRSTNAME_PROPERTY));
+      compactProfile.put(USER_LASTNAME_PROPERTY, profile.get(USER_LASTNAME_PROPERTY));
+      compactProfile.put(USER_EMAIL_PROPERTY, profile.get(USER_EMAIL_PROPERTY));
       // Backward compatible reasons.
       compactProfile.put("userid", authorizable.getID());
       compactProfile.put("hash", getUserHashedPath(authorizable));
