@@ -2,14 +2,15 @@ package org.sakaiproject.nakamura.email.outgoing;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.resource.JcrResourceResolverFactory;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -22,6 +23,7 @@ import org.subethamail.wiser.WiserMessage;
 
 import java.io.ByteArrayInputStream;
 import java.net.BindException;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.jcr.Binary;
@@ -77,13 +79,13 @@ public class OutgoingEmailMessageListenerTest {
     ResourceResolver rr = createMock(ResourceResolver.class);
     expect(rr.getResource(PATH)).andReturn(res);
 
-    JcrResourceResolverFactory jrrf = createMock(JcrResourceResolverFactory.class);
-    expect(jrrf.getResourceResolver(adminSession)).andReturn(rr);
+    ResourceResolverFactory rrf = createMock(ResourceResolverFactory.class);
+    expect(rrf.getResourceResolver(isA(Map.class))).andReturn(rr);
 
-    oeml.bindJcrResourceResolverFactory(jrrf);
+    oeml.bindResourceResolverFactory(rrf);
     oeml.bindRepository(repository);
 
-    replay(ctx, adminSession, res, rr, jrrf, repository);
+    replay(ctx, adminSession, res, rr, rrf, repository);
 
     connFactoryService.activateForTest(ctx);
     oeml.activate(ctx);
