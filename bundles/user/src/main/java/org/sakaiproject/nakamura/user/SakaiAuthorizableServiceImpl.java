@@ -19,6 +19,10 @@ package org.sakaiproject.nakamura.user;
 
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_REPO_LOCATION;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_AUTHORIZABLE_PATH;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGERS;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWERS;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGED_GROUP;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGERS_GROUP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_REPO_LOCATION;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -28,6 +32,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
@@ -42,6 +47,7 @@ import java.security.Principal;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
 import javax.jcr.ValueFactory;
 
 /**
@@ -57,15 +63,23 @@ public class SakaiAuthorizableServiceImpl implements SakaiAuthorizableService {
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.user.SakaiAuthorizableService#createUser(java.lang.String, java.lang.String, javax.jcr.Session)
+   * @see org.sakaiproject.nakamura.api.user.SakaiAuthorizableService#createProcessedUser(java.lang.String, java.lang.String, javax.jcr.Session)
    */
-  public User createUser(String userId, String password, Session session)
+  public User createProcessedUser(String userId, String password, Session session)
       throws RepositoryException {
     LOGGER.info("Creating user {}", userId);
     UserManager userManager = AccessControlUtil.getUserManager(session);
     User user = userManager.createUser(userId, password);
     postprocess(user, session);
     return user;
+  }
+
+  public Group createGroup(String groupId, Session session) throws RepositoryException {
+    LOGGER.info("Creating group {}", groupId);
+    UserManager userManager = AccessControlUtil.getUserManager(session);
+    Group group = userManager.createGroup(getPrincipal(groupId));
+    createManagersGroup(group, session);
+    return group;
   }
 
   /**
@@ -81,11 +95,6 @@ public class SakaiAuthorizableServiceImpl implements SakaiAuthorizableService {
         LOGGER.error("Postprocessing for user " + authorizable.getID() + " failed", e);
       }
     }
-  }
-
-  public void notifyBinding() {
-    // TODO Auto-generated method stub
-
   }
 
   @Activate
@@ -123,5 +132,42 @@ public class SakaiAuthorizableServiceImpl implements SakaiAuthorizableService {
         LOGGER.warn("Authorizable {} has no available path", authorizable.getID());
       }
     }
+  }
+
+  private Principal getPrincipal(final String principalId) {
+    return new Principal() {
+      public String getName() {
+        return principalId;
+      }
+    };
+  }
+
+  /**
+   * Generate a private self-managed Jackrabbit Group to hold Sakai group
+   * members with the Manager role. Such members have all access
+   * rights over the Sakai group itself and may be given special access
+   * rights to content.
+   */
+  private void createManagersGroup(Group group, Session session) throws RepositoryException {
+    UserManager userManager = AccessControlUtil.getUserManager(session);
+    // TODO Generate this to avoid possible name collisions.
+    String managersGroupId = group.getID() + "-managers";
+
+    // Create the private self-managed managers group.
+    Group managersGroup = userManager.createGroup(getPrincipal(managersGroupId));
+    ValueFactory valueFactory = session.getValueFactory();
+    Value managersGroupValue = valueFactory.createValue(managersGroupId);
+    managersGroup.setProperty(PROP_GROUP_MANAGERS, new Value[] {managersGroupValue});
+    managersGroup.setProperty(PROP_GROUP_VIEWERS, new Value[0]);
+
+    // Add the managers group to its Sakai group.
+    group.addMember(managersGroup);
+
+    // Have the managers group manage the Sakai group.
+    group.setProperty(PROP_GROUP_MANAGERS, new Value[] {managersGroupValue});
+
+    // Set the association between the two groups.
+    group.setProperty(PROP_MANAGERS_GROUP, managersGroupValue);
+    managersGroup.setProperty(PROP_MANAGED_GROUP, valueFactory.createValue(group.getID()));
   }
 }

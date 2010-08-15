@@ -65,6 +65,9 @@ public interface UserConstants {
 
   public static final String PROP_GROUP_VIEWERS = "rep:group-viewers";
 
+  public static final String PROP_MANAGERS_GROUP = "sakai:managers-group";
+  public static final String PROP_MANAGED_GROUP = "sakai:managed-group";
+
   /**
    * The Authorizable node's subpath within the repository's user or group tree.
    */

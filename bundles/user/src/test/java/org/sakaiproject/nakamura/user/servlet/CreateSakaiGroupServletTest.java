@@ -1,6 +1,6 @@
 package org.sakaiproject.nakamura.user.servlet;
 
-import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.*;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
@@ -156,21 +156,23 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
 
     expect(request.getResourceResolver()).andReturn(rr).anyTimes();
     expect(rr.adaptTo(Session.class)).andReturn(session).anyTimes();
-    expect(session.getUserManager()).andReturn(userManager);
+    expect(session.getUserManager()).andReturn(userManager).anyTimes();
     expect(session.getUserID()).andReturn("admin");
     expect(userManager.getAuthorizable("admin")).andReturn(user);
     expect(user.isAdmin()).andReturn(true);
 
     expect(repository.loginAdministrative(null)).andReturn(session);
-    expect(session.getUserManager()).andReturn(userManager);
 
     session.logout();
     expectLastCall().anyTimes();
 
     expect(userManager.getAuthorizable("g-foo")).andReturn(null);
-    expect(userManager.createGroup((Principal) EasyMock.anyObject())).andReturn(group);
-    expect(session.getUserManager()).andReturn(userManager).times(1);
-    expect(group.getID()).andReturn("g-foo").times(2);
+
+    SakaiAuthorizableService sakaiAuthorizableService =
+      createMock(SakaiAuthorizableService.class);
+    expect(sakaiAuthorizableService.createGroup(eq("g-foo"), (Session) EasyMock.anyObject())).andReturn(group);
+
+    expect(group.getID()).andReturn("g-foo").anyTimes();
     expect(group.isGroup()).andReturn(true);
     expect(session.getValueFactory()).andReturn(valueFactory);
 
@@ -195,27 +197,22 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(request.getParameterValues(":manager")).andReturn(new String[] {});
     expect(request.getParameterValues(":viewer@Delete")).andReturn(new String[] {});
     expect(request.getParameterValues(":viewer")).andReturn(new String[] {});
-
     expect(user.getID()).andReturn("admin");
-    // might need to adjust here
     expect(group.hasProperty(UserConstants.PROP_GROUP_MANAGERS)).andReturn(false);
     expect(group.hasProperty(UserConstants.PROP_GROUP_VIEWERS)).andReturn(false);
+    expect(group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)).andReturn(false);
+
     Capture<String> valueCapture = new Capture<String>();
-
     expect(valueFactory.createValue(capture(valueCapture))).andReturn(value);
-
     Capture<Value[]> valuesCapture = new Capture<Value[]>();
     Capture<String> propertyName = new Capture<String>();
     group.setProperty(capture(propertyName), capture(valuesCapture));
     expectLastCall();
 
-    List<Modification> changes = new ArrayList<Modification>();
-
-    SakaiAuthorizableService sakaiAuthorizableService =
-      createMock(SakaiAuthorizableService.class);
     sakaiAuthorizableService.postprocess((Authorizable) EasyMock.anyObject(), (Session) EasyMock.anyObject());
     expectLastCall();
 
+    List<Modification> changes = new ArrayList<Modification>();
     HtmlResponse response = new HtmlResponse();
 
     replay();

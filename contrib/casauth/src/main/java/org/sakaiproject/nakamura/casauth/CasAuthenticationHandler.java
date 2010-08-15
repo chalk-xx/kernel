@@ -468,7 +468,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
         UserManager userManager = AccessControlUtil.getUserManager(session);
         Authorizable authorizable = userManager.getAuthorizable(principalName);
         if (authorizable == null) {
-          sakaiAuthorizableService.createUser(principalName, RandomStringUtils.random(32), session);
+          sakaiAuthorizableService.createProcessedUser(principalName, RandomStringUtils.random(32), session);
         }
         isUserValid = true;
       } catch (Exception e) {
