@@ -150,8 +150,7 @@ public class SakaiAuthorizableServiceImpl implements SakaiAuthorizableService {
    */
   private void createManagersGroup(Group group, Session session) throws RepositoryException {
     UserManager userManager = AccessControlUtil.getUserManager(session);
-    // TODO Generate this to avoid possible name collisions.
-    String managersGroupId = group.getID() + "-managers";
+    String managersGroupId = getUniqueAuthorizableId(group.getID() + "-managers", userManager);
 
     // Create the private self-managed managers group.
     Group managersGroup = userManager.createGroup(getPrincipal(managersGroupId));
@@ -169,5 +168,25 @@ public class SakaiAuthorizableServiceImpl implements SakaiAuthorizableService {
     // Set the association between the two groups.
     group.setProperty(PROP_MANAGERS_GROUP, managersGroupValue);
     managersGroup.setProperty(PROP_MANAGED_GROUP, valueFactory.createValue(group.getID()));
+  }
+
+  /**
+   * Inspired by Sling's AbstractCreateOperation ensureUniquePath.
+   * @param startId
+   * @param userManager
+   * @return
+   * @throws RepositoryException
+   */
+  private String getUniqueAuthorizableId(String startId, UserManager userManager) throws RepositoryException {
+    String newAuthorizableId = startId;
+    int idx = 0;
+    while (userManager.getAuthorizable(newAuthorizableId) != null) {
+      if (idx > 100) {
+        throw new RepositoryException("Too much contention on authorizable ID " + startId);
+      } else {
+        newAuthorizableId = startId + "_" + idx++;
+      }
+    }
+    return newAuthorizableId;
   }
 }
