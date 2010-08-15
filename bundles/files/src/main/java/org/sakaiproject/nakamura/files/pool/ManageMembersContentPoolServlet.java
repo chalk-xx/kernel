@@ -354,7 +354,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       Node memberNode = iterator.nextNode();
       if (memberNode.hasProperty(POOLED_CONTENT_USER_MANAGER)) {
         users.put(memberNode.getName(), true);
-      } else {
+      } else if (memberNode.hasProperty(POOLED_CONTENT_USER_VIEWER)) {
         users.put(memberNode.getName(), false);
       }
     }
