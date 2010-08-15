@@ -167,14 +167,16 @@ public class LdapPersonProvider implements PersonProvider {
     }
   }
 
-  private String findUserId(Node node) throws RepositoryException {
+  private String findUserId(Node node) throws RepositoryException, PersonProviderException {
     if (node.hasProperty(SLING_RESOURCE_TYPE)
-        && SAKAI_USER_PROFILE.equals(node.getProperty(SLING_RESOURCE_TYPE).toString())
+        && SAKAI_USER_PROFILE.equals(node.getProperty(SLING_RESOURCE_TYPE).getString())
         && node.hasProperty(REP_USER_ID)) {
-      javax.jcr.Property prop = node.getProperty(REP_USER_ID);
-      return prop.toString();
+      return node.getProperty(REP_USER_ID).getString();
     } else {
-      return findUserId(node.getParent());
+      if (!"/".equals(node.getPath())) {
+        return findUserId(node.getParent());
+      }
+      throw new PersonProviderException("Could not retrieve userid.");
     }
   }
 }

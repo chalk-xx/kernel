@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
+import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_RT;
+
 import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static org.apache.jackrabbit.JcrConstants.JCR_CONTENT;
@@ -207,6 +209,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
     // who can view a file.
     String newPath = fileNode.getPath() + PersonalUtils.getUserHashedPath(au);
     Node userNode = JcrUtils.deepGetOrCreateNode(session, newPath);
+    userNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_USER_RT);
     userNode.setProperty(POOLED_CONTENT_USER_MANAGER, new String[] { userPrincipal
         .getName() });
 

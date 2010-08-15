@@ -27,14 +27,15 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONObject;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.presence.PresenceServiceImplTest;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
@@ -58,6 +59,7 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
   private PresenceService presenceService;
   private PresenceContactsServlet servlet;
   private ConnectionManager connectionManager;
+  private ProfileService profileService;
 
   @Before
   public void setUp() throws Exception {
@@ -66,15 +68,14 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
     PresenceServiceImplTest test = new PresenceServiceImplTest();
     test.setUp();
     presenceService = test.getPresenceService();
+    profileService = Mockito.mock(ProfileService.class);
+    Mockito.when(
+        profileService.getProfileMap(Mockito.any(Authorizable.class), Mockito
+            .any(Session.class))).thenReturn(ValueMap.EMPTY);
 
     servlet = new PresenceContactsServlet();
     servlet.presenceService = presenceService;
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    servlet.presenceService = null;
-    servlet.connectionManager = null;
+    servlet.profileService = profileService;
   }
 
   @Test
@@ -105,7 +106,7 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
     List<String> contacts = new ArrayList<String>();
     connectionManager = createMock(ConnectionManager.class);
 
-    List<Authorizable> authorizables = new ArrayList<Authorizable>();    
+    List<Authorizable> authorizables = new ArrayList<Authorizable>();
     for (int i = 0; i < 50; i++) {
       String uuid = "user-" + i;
       contacts.add(uuid);
@@ -118,11 +119,6 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
       expect(profileNode.getName()).andReturn("profile"+i+"nodename").anyTimes();
       Authorizable au = createAuthorizable(uuid, false, true);
       authorizables.add(au);
-      expect(session.itemExists(PersonalUtils.getProfilePath(au))).andReturn(
-          true);
-
-      expect(session.getItem(PersonalUtils.getProfilePath(au))).andReturn(
-          profileNode);
     }
 
     Authorizable[] auths = new Authorizable[authorizables.size()];

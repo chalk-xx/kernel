@@ -28,12 +28,14 @@ import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.Post;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.RowUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,9 +68,12 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
 
   @Property(value = "DiscussionThreaded")
   static final String SEARCH_BATCHPROCESSOR = "sakai.search.batchprocessor";
-  
+
   @Reference
   protected transient PresenceService presenceService;
+
+  @Reference
+  protected transient ProfileService profileService;
 
   public void writeNodes(SlingHttpServletRequest request, JSONWriter writer,
       Aggregator aggregator, RowIterator iterator) throws JSONException,
@@ -89,8 +94,7 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       Node n = allNodes.get(i);
 
       if (n.hasProperty(DiscussionConstants.PROP_REPLY_ON)) {
-        String replyon = n.getProperty(DiscussionConstants.PROP_REPLY_ON)
-            .getString();
+        String replyon = n.getProperty(DiscussionConstants.PROP_REPLY_ON).getString();
         // This post is a reply on another post.
         // Find that post and add it.
         addPost(basePosts, n, replyon);
@@ -104,18 +108,18 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
     // The posts are sorted, now return them as json.
 
     for (Post p : basePosts) {
-      p.outputPostAsJSON(writer, presenceService);
+      p.outputPostAsJSON((ExtendedJSONWriter) writer, presenceService, profileService);
     }
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      Query query) throws SearchException {
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
+      throws SearchException {
     try {
       // Perform the query
       QueryResult qr = query.execute();
@@ -133,7 +137,7 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
 
   /**
    * Adds the post to the list at the correct place.
-   * 
+   *
    * @param basePosts
    * @param n
    * @return

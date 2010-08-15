@@ -27,11 +27,13 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.discussion.Post;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.RowUtils;
 
 import javax.jcr.Node;
@@ -56,6 +58,17 @@ public class CommentSearchResultProcessor implements SearchResultProcessor {
   @Reference
   protected transient PresenceService presenceService;
 
+  @Reference
+  protected transient ProfileService profileService;
+
+  /**
+   *
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#writeNode(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.commons.json.io.JSONWriter,
+   *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.Row)
+   */
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
@@ -64,17 +77,17 @@ public class CommentSearchResultProcessor implements SearchResultProcessor {
       aggregator.add(node);
     }
     Post p = new Post(node);
-    p.outputPostAsJSON(write, presenceService);
+    p.outputPostAsJSON((ExtendedJSONWriter) write, presenceService, profileService);
   }
-  
+
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      Query query) throws SearchException {
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
+      throws SearchException {
     return SearchUtil.getSearchResultSet(request, query);
   }
 }

@@ -26,9 +26,12 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageProfileWriter;
@@ -36,9 +39,9 @@ import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingService;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -76,6 +79,9 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
   @Reference
   protected transient PresenceService presenceService;
 
+  @Reference
+  protected transient ProfileService profileService;
+
   /**
    * Default constructor
    */
@@ -84,7 +90,7 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.MessageTransport#send(org.sakaiproject.nakamura.api.message.MessageRoutes,
    *      org.osgi.service.event.Event, javax.jcr.Node)
    */
@@ -128,7 +134,7 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
 
   /**
    * Determines what type of messages this handler will process. {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.MessageHandler#getType()
    */
   public String getType() {
@@ -137,7 +143,7 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.MessageProfileWriter#writeProfileInformation(javax.jcr.Session,
    *      java.lang.String, org.apache.sling.commons.json.io.JSONWriter)
    */
@@ -150,10 +156,12 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
         ExtendedJSONWriter.writeNodeToWriter(write, siteNode);
       } else {
         // Look up the recipient and check if it is an authorizable.
-        Authorizable au = PersonalUtils.getAuthorizable(session, recipient);
+        UserManager um = AccessControlUtil.getUserManager(session);
+        Authorizable au = um.getAuthorizable(recipient);
         if (au != null) {
           write.object();
-          PersonalUtils.writeCompactUserInfoContent(session, recipient, write);
+          ValueMap map = profileService.getCompactProfileMap(au, session);
+          ((ExtendedJSONWriter)write).valueMapInternals(map);
           if (au instanceof User) {
             // Pass in the presence.
             PresenceUtils.makePresenceJSON(write, au.getID(), presenceService, true);

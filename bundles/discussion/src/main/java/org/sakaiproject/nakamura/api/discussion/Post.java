@@ -22,13 +22,15 @@ import static javax.jcr.security.Privilege.JCR_REMOVE_CHILD_NODES;
 import static javax.jcr.security.Privilege.JCR_REMOVE_NODE;
 import static javax.jcr.security.Privilege.JCR_WRITE;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
@@ -90,7 +92,7 @@ public class Post {
 
   /**
    * Checks if the current user can or cannot edit this post.
-   * 
+   *
    * @return
    */
   public boolean checkEdit() {
@@ -116,7 +118,7 @@ public class Post {
 
   /**
    * Checks if the current user can or cannot delete this post.
-   * 
+   *
    * @return
    */
   public boolean checkDelete() {
@@ -142,8 +144,9 @@ public class Post {
     return false;
   }
 
-  public void outputPostAsJSON(JSONWriter writer, PresenceService presenceService) throws JSONException,
-      RepositoryException {
+  public void outputPostAsJSON(ExtendedJSONWriter writer,
+      PresenceService presenceService, ProfileService profileService)
+      throws JSONException, RepositoryException {
     boolean canEdit = checkEdit();
     boolean canDelete = checkDelete();
 
@@ -157,7 +160,7 @@ public class Post {
     if (isDeleted && !canDelete) {
       // This post has been deleted and we dont have sufficient rights to edit, so we just
       // show the replies.
-      outputChildrenAsJSON(writer, presenceService);
+      outputChildrenAsJSON(writer, presenceService, profileService);
     } else {
       writer.object();
 
@@ -173,7 +176,7 @@ public class Post {
       writer.value(canDelete);
 
       Session session = node.getSession();
-
+      UserManager um = AccessControlUtil.getUserManager(session);
       // Show profile of editters.
       if (node.hasProperty(DiscussionConstants.PROP_EDITEDBY)) {
 
@@ -184,7 +187,9 @@ public class Post {
         writer.array();
         for (int i = 0; i < edittedBy.length; i++) {
           writer.object();
-          PersonalUtils.writeCompactUserInfoContent(session, edittedBy[i], writer);
+          Authorizable au = um.getAuthorizable(edittedBy[i]);
+          ValueMap profile = profileService.getCompactProfileMap(au, session);
+          writer.valueMapInternals(profile);
           PresenceUtils.makePresenceJSON(writer, edittedBy[i], presenceService, true);
           writer.endObject();
         }
@@ -198,7 +203,9 @@ public class Post {
       writer.array();
       for (String sender : senders) {
         writer.object();
-        PersonalUtils.writeCompactUserInfoContent(session, sender, writer);
+        Authorizable au = um.getAuthorizable(sender);
+        ValueMap profile = profileService.getCompactProfileMap(au, session);
+        writer.valueMapInternals(profile);
         PresenceUtils.makePresenceJSON(writer, sender, presenceService, true);
         writer.endObject();
       }
@@ -208,18 +215,19 @@ public class Post {
       // All the replies on this post.
       writer.key("replies");
       writer.array();
-      outputChildrenAsJSON(writer, presenceService);
+      outputChildrenAsJSON(writer, presenceService, profileService);
       writer.endArray();
 
       writer.endObject();
     }
   }
 
-  public void outputChildrenAsJSON(JSONWriter writer, PresenceService presenceService) throws JSONException,
-      RepositoryException {
+  public void outputChildrenAsJSON(ExtendedJSONWriter writer,
+      PresenceService presenceService, ProfileService profileService)
+      throws JSONException, RepositoryException {
     LOG.info("this post {} has {} children", getPostId(), getChildren().size());
     for (Post p : children) {
-      p.outputPostAsJSON(writer, presenceService);
+      p.outputPostAsJSON(writer, presenceService, profileService);
     }
   }
 

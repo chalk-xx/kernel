@@ -25,16 +25,18 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.testutils.easymock.MockRowIterator;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -63,7 +65,7 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest#setUp()
    */
   @Override
@@ -81,11 +83,18 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
-    
+
+    ProfileService profileService = createMock(ProfileService.class);
+    processor.profileService = profileService;
+
     AccessControlManager accessControlManager = createNiceMock(AccessControlManager.class);
     expect(session.getAccessControlManager()).andReturn(accessControlManager).anyTimes();
     Authorizable adminUser = createAuthorizable("admin", false, true);
     Authorizable anonUser = createAuthorizable("anonymous", false, true);
+    expect(profileService.getCompactProfileMap(adminUser, session)).andReturn(
+        ValueMap.EMPTY).anyTimes();
+    expect(profileService.getCompactProfileMap(anonUser, session)).andReturn(
+        ValueMap.EMPTY).anyTimes();
     UserManager um = createUserManager(null, true, adminUser, anonUser);
     expect(session.getUserManager()).andReturn(um).anyTimes();
     ResourceResolver resolver = createMock(ResourceResolver.class);
@@ -94,7 +103,7 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Writer w = new PrintWriter(baos);
-    JSONWriter writer = new JSONWriter(w);
+    ExtendedJSONWriter writer = new ExtendedJSONWriter(w);
 
     // 4 nodes
     // a
@@ -103,8 +112,7 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     // - c
 
     MockNode profileNode = new MockNode("/_user/a/ad/admin/public/authprofile");
-    MockNode anonProfileNode = new MockNode(
-        "/_user/a/an/anonymous/public/authprofile");
+    MockNode anonProfileNode = new MockNode("/_user/a/an/anonymous/public/authprofile");
 
     MockNode nodeA = new MockNode("/msg/a");
     nodeA.setSession(session);
@@ -140,8 +148,8 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     expect(session.getItem("/msg/b")).andReturn(nodeB);
     expect(session.getItem("/msg/c")).andReturn(nodeC);
     expect(session.getItem("/msg/d")).andReturn(nodeD);
-    expect(session.getItem("/_user/a/ad/admin/public/authprofile")).andReturn(
-        profileNode).anyTimes();
+    expect(session.getItem("/_user/a/ad/admin/public/authprofile"))
+        .andReturn(profileNode).anyTimes();
     expect(session.getItem("/_user/a/an/anonymous/public/authprofile")).andReturn(
         anonProfileNode).anyTimes();
 
@@ -161,5 +169,4 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     assertEquals("b", json.getJSONArray("replies").getJSONObject(0).getJSONObject("post")
         .get("sakai:id"));
   }
-
 }

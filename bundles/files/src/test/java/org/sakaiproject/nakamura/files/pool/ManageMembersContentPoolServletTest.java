@@ -42,6 +42,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.sakaiproject.nakamura.profile.ProfileServiceImpl;
 import org.sakaiproject.nakamura.testutils.mockito.MockitoTestUtils;
 
 import java.io.PrintWriter;
@@ -105,14 +106,18 @@ public class ManageMembersContentPoolServletTest {
     MockitoAnnotations.initMocks(this);
     servlet = new ManageMembersContentPoolServlet();
     servlet.slingRepository = slingRepository;
+    servlet.profileService = new ProfileServiceImpl();
 
     // Mock the request and the filenode.
     when(request.getResource()).thenReturn(resource);
     when(resource.adaptTo(Node.class)).thenReturn(fileNode);
-    when(fileNode.getSession()).thenReturn(session).thenReturn(adminSession);
+    when(fileNode.getSession()).thenReturn(session, adminSession);
     when(fileNode.getPath()).thenReturn("/path/to/pooled/content/file");
     when(session.getPrincipalManager()).thenReturn(principalManager);
     when(session.getAccessControlManager()).thenReturn(acm);
+    when(session.getUserManager()).thenReturn(userManager);
+    when(session.getNode("/_user/a/al/alice/public/authprofile")).thenReturn(new MockNode("/_user/a/al/alice/public/authprofile"));
+    when(session.getNode("/_user/b/bo/bob/public/authprofile")).thenReturn(new MockNode("/_user/b/bo/bob/public/authprofile"));
 
     // Handle setting ACLs.
     when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
