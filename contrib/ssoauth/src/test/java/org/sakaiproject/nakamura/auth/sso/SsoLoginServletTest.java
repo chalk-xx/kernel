@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.auth.Authenticator;
-import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

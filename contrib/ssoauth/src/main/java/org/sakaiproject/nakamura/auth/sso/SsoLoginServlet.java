@@ -25,7 +25,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.sakaiproject.nakamura.api.auth.sso.ArtifactHandler;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.slf4j.Logger;
