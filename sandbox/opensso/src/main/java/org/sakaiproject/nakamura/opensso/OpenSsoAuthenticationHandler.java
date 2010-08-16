@@ -21,7 +21,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.auth.spi.AuthenticationHandler;
+import org.apache.sling.auth.core.spi.AuthenticationHandler;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.sakaiproject.nakamura.opensso.trusted.AbstractAuthentication;
 import org.sakaiproject.nakamura.opensso.trusted.AbstractAuthenticationHandler;
@@ -63,7 +63,7 @@ public final class OpenSsoAuthenticationHandler extends AbstractAuthenticationHa
 
     /**
      * Construct a new OpenSsoAuthencitation object from the request and response.
-     * 
+     *
      * @param request
      * @param response
      */
@@ -74,7 +74,7 @@ public final class OpenSsoAuthenticationHandler extends AbstractAuthenticationHa
 
     /**
      * {@inheritDoc} Creates a user in the repository by invoking the handler.
-     * 
+     *
      * @throws RepositoryException
      * @see org.sakaiproject.nakamura.opensso.AbstractAuthentication#createUser(java.lang.String)
      */
@@ -85,7 +85,7 @@ public final class OpenSsoAuthenticationHandler extends AbstractAuthenticationHa
 
     /**
      * {@inheritDoc} Get the Username from the request vial the AuthenciationHandler.
-     * 
+     *
      * @see org.sakaiproject.nakamura.opensso.AbstractAuthentication#getUserName(javax.servlet.http.HttpServletRequest)
      */
     @Override
@@ -110,7 +110,7 @@ public final class OpenSsoAuthenticationHandler extends AbstractAuthenticationHa
 
   /**
    * Create a new used, using the parent implementation.
-   * 
+   *
    * @param userName
    * @throws RepositoryException
    */
@@ -121,7 +121,7 @@ public final class OpenSsoAuthenticationHandler extends AbstractAuthenticationHa
   /**
    * Extract the user name from the request if there are sufficient credentials encoded in
    * the request.
-   * 
+   *
    * @param request
    * @param response
    * @return
@@ -133,7 +133,7 @@ public final class OpenSsoAuthenticationHandler extends AbstractAuthenticationHa
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.opensso.AbstractAuthenticationHandler#getAuthType()
    */
   @Override
@@ -155,15 +155,15 @@ public final class OpenSsoAuthenticationHandler extends AbstractAuthenticationHa
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.opensso.AbstractAuthenticationHandler#getRespository()
    */
   @Override
   protected SlingRepository getRespository() {
     return repository;
   }
-  
-  
-  
+
+
+
 
 }

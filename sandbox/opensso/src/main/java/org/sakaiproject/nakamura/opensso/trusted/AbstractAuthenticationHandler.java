@@ -20,11 +20,11 @@ package org.sakaiproject.nakamura.opensso.trusted;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.sling.commons.auth.spi.AuthenticationHandler;
-import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.apache.sling.auth.core.spi.AuthenticationHandler;
+import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.sakaiproject.nakamura.api.auth.trusted.TrustedAuthenticationConstants;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +97,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
     if (authentication.isValid()) {
       // authenticate
       AuthenticationInfo authenticatioInfo = new AuthenticationInfo(getAuthType());
-      authenticatioInfo.put(TrustedAuthenticationConstants.CREDENTIALS, authentication.getCredentials());
+      authenticatioInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS, authentication.getCredentials());
       // put the form authentication into the request so that it can be checked by the servlet and saved to session if valid.
       request.setAttribute(AUTHENTICATION_OBJECT, authentication);
       return authenticatioInfo;

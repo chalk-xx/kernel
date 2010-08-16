@@ -28,7 +28,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.easymock.Capture;
 import org.junit.Test;
 

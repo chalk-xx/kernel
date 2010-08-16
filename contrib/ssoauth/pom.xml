@@ -82,7 +82,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.commons.auth</artifactId>
+      <artifactId>org.apache.sling.auth.corertifactId>
       <version>0.9.0-SNAPSHOT</version>
     </dependency>
     <dependency>

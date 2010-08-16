@@ -19,7 +19,7 @@ package org.sakaiproject.nakamura.auth.trusted;
 
 import static org.apache.sling.jcr.resource.JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS;
 
-import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;

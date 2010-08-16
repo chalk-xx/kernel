@@ -105,11 +105,11 @@
       <scope>provided</scope>
       <exclusions>
       	<exclusion>
-	<!-- org.apache.sling.commons.auth is excluded bc it brings in a version
+	<!-- org.apache.sling.auth.core excluded bc it brings in a version
 		of org.apache.sling.commons.osgi that doesn't have getComparableForServiceRanking()
 		(v.1.0.6 and greater). If this changes, remove this exclusion (not needed) -->
       		<groupId>org.apache.sling</groupId>
-      		<artifactId>org.apache.sling.commons.auth</artifactId>
+      		<artifactId>orgorg.apache.sling.auth.core</artifactId>
       	</exclusion>
       </exclusions>
     </dependency>
