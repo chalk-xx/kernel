@@ -88,6 +88,13 @@ public class AuthorizablePostProcessorServiceImpl extends AbstractOrderedService
   public void process(Authorizable authorizable, Session session, Modification change) throws Exception {
     for ( AuthorizablePostProcessor processor : orderedServices ) {
        processor.process(authorizable, session, change);
+       // Allowing a dirty session to pass between post-processor components
+       // can trigger InvalidItemStateException after a Workspace.copy.
+       // TODO Check to see if this is still a problem after we upgrade to
+       // Jackrabbit 2.1.1
+       if (session.hasPendingChanges()) {
+         session.save();
+       }
     }
   }
 
@@ -121,7 +128,7 @@ public class AuthorizablePostProcessorServiceImpl extends AbstractOrderedService
       public int compare(AuthorizablePostProcessor o1, AuthorizablePostProcessor o2) {
         Map<String, Object> props1 = propertiesMap.get(o1);
         Map<String, Object> props2 = propertiesMap.get(o2);
-        
+
         return OsgiUtil.getComparableForServiceRanking(props1).compareTo(props2);
       }
     };

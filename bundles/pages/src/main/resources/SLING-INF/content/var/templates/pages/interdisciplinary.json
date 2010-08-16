@@ -1,0 +1,10 @@
+{
+        "description": "This is an interdisciplinary research site template!",
+        "id": "interdisciplinary",
+        "sakai:site-template": "/templates/pages/interdisciplinary",
+        "sakai:skin": "/dev/_skins/original/original.html",
+        "sling:resourceType": "sakai/site",
+        "jcr:primaryType": "nt:unstructured",
+        "jcr:mixinTypes": ["rep:AccessControllable"],
+        "name": "interdisciplinary"
+}
