@@ -49,13 +49,19 @@ public abstract class AbstractSakaiGroupPostServlet extends
    * Update the group membership based on the ":member" request parameters. If the
    * ":member" value ends with @Delete it is removed from the group membership, otherwise
    * it is added to the group membership.
-   * 
+   *
    * @param request
    * @param authorizable
    * @throws RepositoryException
    */
   protected void updateGroupMembership(SlingHttpServletRequest request,
       Authorizable authorizable, List<Modification> changes) throws RepositoryException {
+    updateGroupMembership(request, authorizable,
+        SlingPostConstants.RP_PREFIX + "member", changes);
+  }
+
+  protected void updateGroupMembership(SlingHttpServletRequest request,
+      Authorizable authorizable, String paramName, List<Modification> changes) throws RepositoryException {
     if (authorizable.isGroup()) {
       Group group = ((Group) authorizable);
       String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
@@ -69,8 +75,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
           .adaptTo(Session.class));
 
       // first remove any members posted as ":member@Delete"
-      String[] membersToDelete = request.getParameterValues(SlingPostConstants.RP_PREFIX
-          + "member" + SlingPostConstants.SUFFIX_DELETE);
+      String[] membersToDelete = request.getParameterValues(paramName + SlingPostConstants.SUFFIX_DELETE);
       if (membersToDelete != null) {
         for (String member : membersToDelete) {
           Authorizable memberAuthorizable = getAuthorizable(baseResource, member,
@@ -84,8 +89,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
       }
 
       // second add any members posted as ":member"
-      String[] membersToAdd = request.getParameterValues(SlingPostConstants.RP_PREFIX
-          + "member");
+      String[] membersToAdd = request.getParameterValues(paramName);
       if (membersToAdd != null) {
         for (String member : membersToAdd) {
           Authorizable memberAuthorizable = getAuthorizable(baseResource, member,
@@ -108,7 +112,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
   /**
    * Gets the member, assuming its a principal name, failing that it assumes it a path to
    * the resource.
-   * 
+   *
    * @param member
    *          the token pointing to the member, either a name or a uri
    * @param userManager
@@ -135,8 +139,6 @@ public abstract class AbstractSakaiGroupPostServlet extends
   }
 
   /**
-   * @param session
-   *          the session used to create the group
    * @param request
    *          the request
    * @param group
@@ -154,6 +156,22 @@ public abstract class AbstractSakaiGroupPostServlet extends
         SlingPostConstants.RP_PREFIX + "manager", managers);
     handleAuthorizablesOnProperty(request, group, UserConstants.PROP_GROUP_VIEWERS,
         SlingPostConstants.RP_PREFIX + "viewer", null);
+
+  }
+
+  protected void updateManagersGroup(SlingHttpServletRequest request, Group group,
+      Session session, List<Modification> changes) throws RepositoryException {
+    if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
+      UserManager userManager = AccessControlUtil.getUserManager(session);
+      Value values[] = group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
+      String managersGroupId = values[0].getString();
+      Group managersGroup = (Group) userManager.getAuthorizable(managersGroupId);
+      // It is possible to have ":manage" rights to the main Sakai Group without
+      // having access to its managers group.
+      if (managersGroup != null) {
+        updateGroupMembership(request, managersGroup, SlingPostConstants.RP_PREFIX + "sakai:manager", changes);
+      }
+    }
   }
 
   /**

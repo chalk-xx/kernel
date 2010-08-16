@@ -18,9 +18,8 @@
 package org.sakaiproject.nakamura.api.user;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
-
-import java.util.Map;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -39,7 +38,17 @@ public interface SakaiAuthorizableService {
    * @return
    * @throws RepositoryException
    */
-  User createUser(String userId, String password, Session session) throws RepositoryException;
+  User createProcessedUser(String userId, String password, Session session) throws RepositoryException;
+
+  /**
+   * Create a Sakai Group entity. Does not include post-processing.
+   *
+   * @param groupId
+   * @param session
+   * @return the Jackrabbit Group which holds memberships and other properties of the new Sakai Group
+   * @throws RepositoryException
+   */
+  Group createGroup(String groupId, Session session) throws RepositoryException;
 
   /**
    * Do whatever is needed to make the specified Jackrabbit User or Group suited to the Sakai 3

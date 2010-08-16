@@ -311,7 +311,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     Authorizable auth = um.getAuthorizable(userId);
     if (auth == null && createAccount) {
       String password = RandomStringUtils.random(8);
-      auth = sakaiAuthorizableService.createUser(userId, password, session);
+      auth = sakaiAuthorizableService.createProcessedUser(userId, password, session);
     }
     return auth;
   }

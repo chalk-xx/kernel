@@ -208,6 +208,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
         if (authorizable.isGroup()) {
           updateGroupMembership(request, authorizable, changes);
           updateOwnership(request, (Group)authorizable, new String[0], changes);
+          updateManagersGroup(request, (Group)authorizable, session, changes);
         }
       } catch (RepositoryException re) {
         throw new RepositoryException("Failed to update group.", re);

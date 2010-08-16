@@ -286,12 +286,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                     "A principal already exists with the requested name: "
                         + principalName);
             } else {
-
-                Group group = userManager.createGroup(new Principal() {
-                  public String getName() {
-                    return principalName;
-                  }
-                });
+              Group group = sakaiAuthorizableService.createGroup(principalName, session);
                 String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
                    + group.getID();
                 Map<String, RequestProperty> reqProperties = collectContent(
@@ -316,8 +311,10 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                 // does so for finding authorizables, so its ok that we are using an admin session
                 // here.
                 updateGroupMembership(request, group, changes);
-                updateOwnership(request, group, new String[] {currentUser.getID()},
-                    changes);
+                // TODO We should probably let the client decide whether the
+                // current user belongs in the managers list or not.
+                updateOwnership(request, group, new String[] {currentUser.getID()}, changes);
+                updateManagersGroup(request, group, session, changes);
 
                 sakaiAuthorizableService.postprocess(group, session);
 

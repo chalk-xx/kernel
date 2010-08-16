@@ -177,18 +177,18 @@ public class CasAuthenticationHandlerTest {
     AuthenticationInfo authenticationInfo = casAuthenticationHandler.extractCredentials(request, response);
     boolean actionTaken = casAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
     assertFalse(actionTaken);
-    verify(sakaiAuthorizableService, never()).createUser(anyString(), anyString(), any(Session.class));
+    verify(sakaiAuthorizableService, never()).createProcessedUser(anyString(), anyString(), any(Session.class));
   }
 
   @Test
   public void testUnknownUserWithFailedCreation() throws AuthorizableExistsException, RepositoryException {
     setAutocreateUser("true");
-    doThrow(new AuthorizableExistsException("Hey Joe")).when(sakaiAuthorizableService).createUser(anyString(), anyString(), any(Session.class));
+    doThrow(new AuthorizableExistsException("Hey Joe")).when(sakaiAuthorizableService).createProcessedUser(anyString(), anyString(), any(Session.class));
     setUpCasCredentials();
     AuthenticationInfo authenticationInfo = casAuthenticationHandler.extractCredentials(request, response);
     boolean actionTaken = casAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
     assertTrue(actionTaken);
-    verify(sakaiAuthorizableService).createUser(eq("joe"), anyString(), any(Session.class));
+    verify(sakaiAuthorizableService).createProcessedUser(eq("joe"), anyString(), any(Session.class));
   }
 
   @Test
@@ -201,13 +201,13 @@ public class CasAuthenticationHandlerTest {
     AuthenticationInfo authenticationInfo = casAuthenticationHandler.extractCredentials(request, response);
     boolean actionTaken = casAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
     assertFalse(actionTaken);
-    verify(sakaiAuthorizableService, never()).createUser(anyString(), anyString(), any(Session.class));
+    verify(sakaiAuthorizableService, never()).createProcessedUser(anyString(), anyString(), any(Session.class));
   }
 
   private void setUpPseudoCreateUserService() throws Exception {
     User jcrUser = mock(User.class);
     when(jcrUser.getID()).thenReturn("joe");
-    when(sakaiAuthorizableService.createUser(eq("joe"), anyString(), eq(adminSession))).thenReturn(jcrUser);
+    when(sakaiAuthorizableService.createProcessedUser(eq("joe"), anyString(), eq(adminSession))).thenReturn(jcrUser);
   }
 
   @Test
@@ -218,6 +218,6 @@ public class CasAuthenticationHandlerTest {
     AuthenticationInfo authenticationInfo = casAuthenticationHandler.extractCredentials(request, response);
     boolean actionTaken = casAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
     assertFalse(actionTaken);
-    verify(sakaiAuthorizableService).createUser(eq("joe"), anyString(), any(Session.class));
+    verify(sakaiAuthorizableService).createProcessedUser(eq("joe"), anyString(), any(Session.class));
   }
 }

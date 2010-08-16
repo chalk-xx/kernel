@@ -390,13 +390,13 @@ public class LdapAuthenticationPluginTest {
     when(entry.getAttribute(isA(String.class))).thenReturn(attr);
 
     User user = mock(User.class);
-    when(sakaiAuthorizableService.createUser(isA(String.class), isA(String.class), isA(Session.class))).thenReturn(user);
+    when(sakaiAuthorizableService.createProcessedUser(isA(String.class), isA(String.class), isA(Session.class))).thenReturn(user);
 
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
         .toCharArray())));
 
-    verify(sakaiAuthorizableService).createUser(eq(USER), isA(String.class), isA(Session.class));
+    verify(sakaiAuthorizableService).createProcessedUser(eq(USER), isA(String.class), isA(Session.class));
   }
 
   @Test
