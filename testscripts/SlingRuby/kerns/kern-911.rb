@@ -30,7 +30,7 @@ class TC_Kern911Test < Test::Unit::TestCase
     }
     res = @s.execute_get(@s.url_for("system/batch"), parameters)
     @log.info(res.body)
-    jsonRes = JSON.parse(res.body)
+    jsonRes = JSON.parse(res.body)["results"]
     assert_equal(jsonRes[0]["url"], "/#{fileName}", "Expected the requested URL")
     assert_equal(jsonRes[0]["status"], 200, "Expected to get a successful statuscode. #{jsonRes[0]["body"]} ")
     innerBody = jsonRes[0]["body"]

@@ -52,7 +52,7 @@ class TC_Kern909Test < Test::Unit::TestCase
 
     res = @s.execute_post(@s.url_for("system/batch"), parameters)
 
-    jsonRes = JSON.parse(res.body)
+    jsonRes = JSON.parse(res.body)["results"]
 
     assert_equal(jsonRes[0]["url"], "#{path}/test/b")
     assert_equal(jsonRes[0]["status"], 200, "Expexted to get a created statuscode.")

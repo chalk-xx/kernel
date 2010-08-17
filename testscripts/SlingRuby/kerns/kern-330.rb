@@ -66,7 +66,7 @@ class TC_Kern330Test < Test::Unit::TestCase
     
     res = @s.execute_post(@s.url_for("system/batch"), parameters)
     
-    jsonRes = JSON.parse(res.body)
+    jsonRes = JSON.parse(res.body)["results"]
     
     assert_equal(jsonRes[0]["url"], "#{path}/test/a")
     assert_equal(jsonRes[0]["status"], 201, "Expexted to get a created statuscode.")
@@ -117,7 +117,7 @@ class TC_Kern330Test < Test::Unit::TestCase
     
     res = @s.execute_post(@s.url_for("system/batch"), parameters)
     
-    jsonRes = JSON.parse(res.body)
+    jsonRes = JSON.parse(res.body)["results"]
     
     assert_equal("#{adminHome}/public/foo/bar", jsonRes[0]["url"])
     stat = jsonRes[0]["status"]
@@ -163,7 +163,7 @@ class TC_Kern330Test < Test::Unit::TestCase
     res = @s.execute_post(@s.url_for("system/batch"), parameters)
     
     # Check batch post response
-    jsonRes = JSON.parse(res.body)
+    jsonRes = JSON.parse(res.body)["results"]
     assert_equal(jsonRes[0]["url"], "#{homefolder}/private/foo/bar/a")
     assert_equal(jsonRes[0]["status"], 201, "Expexted to get a created statuscode.")
     assert_equal(jsonRes[1]["url"], "#{homefolder}/private/foo/bar/b")
@@ -210,7 +210,7 @@ class TC_Kern330Test < Test::Unit::TestCase
     }
     res = @s.execute_post(@s.url_for("system/batch"), parameters)
     assert_equal(200, res.code.to_i, "Batch servlet should always return a 200 (with good parameters) #{res.body} ")
-    result = JSON.parse(res.body)
+    result = JSON.parse(res.body)["results"]
     assert_equal(201, result[0]["status"], "Expected a created status code.")
     assert_equal(404, result[1]["status"], "Expected a not found status code.")
   end

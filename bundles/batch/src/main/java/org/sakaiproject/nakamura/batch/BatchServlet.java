@@ -176,12 +176,15 @@ public class BatchServlet extends SlingAllMethodsServlet {
     try {
       StringWriter sw = new StringWriter();
       JSONWriter write = new JSONWriter(sw);
+      write.object();
+      write.key("results");
       write.array();
 
       for (RequestInfo r : batchedRequests) {
         doRequest(request, response, r, write);
       }
       write.endArray();
+      write.endObject();
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
       response.getWriter().write(sw.getBuffer().toString());
