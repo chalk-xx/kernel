@@ -1,5 +1,16 @@
 {
-  "email": "anon@doesntexist.domainname",
-  "firstName": "Anonymous",
-  "lastName": "User"
+  "basic": {
+    "access": "everybody",
+    "elements": {
+      "email": {
+        "value": "anon@sakai.invalid"
+      },
+      "firstName": {
+        "value": "Anonymous"
+      },
+      "lastName": {
+        "value": "User"
+      }
+    }
+  }
 }

@@ -1,5 +1,16 @@
 {
-	"email": "admin@doesntexist.domainname",
-	"firstName": "Admin",
-	"lastName": "User"
+  "basic": {
+    "access": "everybody",
+    "elements": {
+      "email": {
+        "value": "admin@sakai.invalid"
+      },
+      "firstName": {
+        "value": "Admin"
+      },
+      "lastName": {
+        "value": "User"
+      }
+    }
+  }
 }
