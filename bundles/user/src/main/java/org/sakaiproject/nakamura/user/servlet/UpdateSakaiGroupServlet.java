@@ -194,12 +194,14 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
       Map<String, RequestProperty> reqProperties = collectContent(request, htmlResponse, groupPath);
       try {
         // cleanup any old content (@Delete parameters)
+        // This is the only way to make a private group (one with a "rep:group-viewers"
+        // property) no longer private.
         processDeletes(authorizable, reqProperties, changes);
 
-        // It is not allowed to touch the rep:group-managers property directly.
-        String key = SYSTEM_USER_MANAGER_GROUP_PREFIX + authorizable.getID() + "/";
-        reqProperties.remove(key + PROP_GROUP_MANAGERS);
-        reqProperties.remove(key + PROP_GROUP_VIEWERS);
+        // It is not allowed to touch the rep:group-managers and rep:group-viewers
+        // properties directly except to delete them.
+        reqProperties.remove(groupPath + "/" + PROP_GROUP_MANAGERS);
+        reqProperties.remove(groupPath + "/" + PROP_GROUP_VIEWERS);
 
         // write content from form
         writeContent(session, authorizable, reqProperties, changes);
