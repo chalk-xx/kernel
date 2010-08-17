@@ -135,6 +135,7 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceParameter(name = LTI_KEY, description = "The opaque key given by the LTI provider."),
         @ServiceParameter(name = LTI_SECRET, description = "The shared secret given by the LTI provider."),
         @ServiceParameter(name = LTI_URL, description = "The LTI end point of the LTI provider."),
+        @ServiceParameter(name = LTI_VTOOL_ID, description = "The virtualToolId if acting as a virtual tool."),
         @ServiceParameter(name = RELEASE_EMAIL, description = "Controls privacy of email address in launch data."),
         @ServiceParameter(name = RELEASE_NAMES, description = "Controls privacy of first/last name in launch data."),
         @ServiceParameter(name = RELEASE_PRINCIPAL_NAME, description = "Controls privacy of username in launch data."),
@@ -328,6 +329,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     }
     final Node node = resource.adaptTo(Node.class);
     final Session session = request.getResourceResolver().adaptTo(Session.class);
+    // determine virtual toolId
     try {
       String vtoolId = null;
       if (node.hasProperty(LTI_VTOOL_ID)) {
@@ -336,18 +338,29 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         vtoolId = "basiclti";
       }
 
+      // grab admin settings from /var/basiclti/* if they exist...
       final String adminNodePath = ADMIN_CONFIG_PATH + "/" + vtoolId;
       Map<String, Object> adminSettings = null;
-      if (session.itemExists(adminNodePath)) {
-        LOG.debug("Found administrative settings for virtual tool: " + vtoolId);
-        final Node adminNode = (Node) session.getItem(adminNodePath);
-        adminSettings = getLaunchSettings(adminNode);
-      } else {
-        LOG.debug(
-            "No administrative settings found for virtual tool: {}. No policy to apply.",
-            vtoolId);
-        adminSettings = Collections.emptyMap();
-      }
+      // begin admin elevation
+      Session adminSession = null;
+      try {
+        adminSession = slingRepository.loginAdministrative(null);
+        if (adminSession.itemExists(adminNodePath)) {
+          LOG.debug("Found administrative settings for virtual tool: " + vtoolId);
+          final Node adminNode = (Node) adminSession.getItem(adminNodePath);
+          adminSettings = getLaunchSettings(adminNode);
+        } else {
+          LOG.debug(
+              "No administrative settings found for virtual tool: {}. No policy to apply.",
+              vtoolId);
+          adminSettings = Collections.emptyMap();
+        }
+      } finally {
+        if (adminSession != null) {
+          adminSession.logout();
+        }
+      } // end admin elevation
+      // grab user settings
       final Map<String, Object> userSettings = getLaunchSettings(node);
 
       // merge admin and user properties
