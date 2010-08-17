@@ -350,17 +350,17 @@ class TC_Kern551Test < Test::Unit::TestCase
     @s.switch_user(collaborator)
     res = @s.execute_get(@s.url_for("/system/sling/membership.json"))
     @log.debug res.body
-    memberships = JSON.parse(res.body)
+    memberships = JSON.parse(res.body)["results"]
     assert_value(memberships, "siteref", "/sites/#{siteid}", "Expected user to have Collaborator membership")
     @s.switch_user(viewer)
     res = @s.execute_get(@s.url_for("/system/sling/membership.json"))
     @log.debug res.body
-    memberships = JSON.parse(res.body)
+    memberships = JSON.parse(res.body)["results"]
     assert_value(memberships, "siteref", "/sites/#{siteid}", "Expected user to have Viewer membership")
     @s.switch_user(nonmember)
     res = @s.execute_get(@s.url_for("/system/sling/membership.json"))
     @log.debug res.body
-    memberships = JSON.parse(res.body)
+    memberships = JSON.parse(res.body)["results"]
     assert_equal(0, memberships.size, "Expected non-member to have no site memberships")
   end
 

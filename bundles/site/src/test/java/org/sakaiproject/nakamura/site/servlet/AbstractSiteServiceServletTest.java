@@ -17,8 +17,8 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
-import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -68,14 +68,6 @@ public abstract class AbstractSiteServiceServletTest extends AbstractSiteService
     makeRequest();
     writer.flush();
     return baos.toByteArray();
-  }
-
-  public JSONArray makeGetRequestReturningJSON() throws IOException, ServletException, JSONException
-  {
-    response.setContentType("application/json");
-    response.setCharacterEncoding("UTF-8");
-    String jsonString = new String(makeGetRequestReturningBytes());
-    return new JSONArray(jsonString);
   }
   
   public JSONArray makeGetRequestReturningJSONresults() throws IOException, ServletException, JSONException

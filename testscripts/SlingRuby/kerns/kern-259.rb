@@ -38,7 +38,7 @@ class TC_Kern259Test < Test::Unit::TestCase
     assert_equal(test_user.name, members["results"][0]["rep:userId"], "Expected user to match")
 
 
-    membership = @sm.get_membership()
+    membership = @sm.get_membership()["results"]
     @log.info("Got membership as #{membership} ")
     assert_equal(1, membership.size, "Expected one member")
     assert_value(membership, 'siteref', "/" + test_site.path, "Expected site path to match")
