@@ -135,6 +135,7 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceParameter(name = LTI_KEY, description = "The opaque key given by the LTI provider."),
         @ServiceParameter(name = LTI_SECRET, description = "The shared secret given by the LTI provider."),
         @ServiceParameter(name = LTI_URL, description = "The LTI end point of the LTI provider."),
+        @ServiceParameter(name = LTI_VTOOL_ID, description = "The virtualToolId if acting as a virtual tool."),
         @ServiceParameter(name = RELEASE_EMAIL, description = "Controls privacy of email address in launch data."),
         @ServiceParameter(name = RELEASE_NAMES, description = "Controls privacy of first/last name in launch data."),
         @ServiceParameter(name = RELEASE_PRINCIPAL_NAME, description = "Controls privacy of username in launch data."),
