@@ -1,16 +1,21 @@
 {
-  "basic": {
-    "access": "everybody",
-    "elements": {
-      "email": {
-        "value": "anon@sakai.invalid"
-      },
-      "firstName": {
-        "value": "Anonymous"
-      },
-      "lastName": {
-        "value": "User"
-      }
+    "email": "anon@sakai.invalid",
+    "firstName": "Anonymous",
+    "lastName": "User",
+    "sakai:authprofile_import": {
+        "basic": {
+            "access": "everybody",
+            "elements": {
+                "email": {
+                    "value": "anon@sakai.invalid"
+                },
+                "firstName": {
+                    "value": "Anonymous"
+                },
+                "lastName": {
+                    "value": "User"
+                }
+            }
+        }
     }
-  }
 }
