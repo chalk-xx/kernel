@@ -57,7 +57,7 @@ import javax.servlet.http.HttpServletResponse;
  * Provides a listing for the members and managers of this group.
  */
 @SlingServlet(resourceTypes = { "sling/group" }, methods = { "GET" }, selectors = {
-    "members", "managers" }, extensions = { "json" })
+    "members", "managers", "detailed" }, extensions = { "json" })
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Renders the members or managers for a group") })
@@ -138,7 +138,12 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
       while (iterator.hasNext() && i < items) {
         Entry<String, Authorizable> entry = iterator.next();
         Authorizable au = entry.getValue();
-        ValueMap profile = profileService.getCompactProfileMap(au, session);
+        ValueMap profile = null;
+        if(selectors.contains("detailed")){
+          profile = profileService.getProfileMap(au, session);
+        }else{
+          profile = profileService.getCompactProfileMap(au, session);
+        }
         writer.valueMap(profile);
         i++;
       }

@@ -82,4 +82,24 @@ public interface ProfileConstants {
    * The property name that holds the email of a user.
    */
   public static final String USER_EMAIL_PROPERTY = "email";
+  
+  /**
+   * The property name that holds the picture location for a user.
+   */
+  public static final String USER_PICTURE = "picture";
+  
+  /**
+   * The property name that holds the basic nodes for a user.
+   */
+  public static final String USER_BASIC = "basic";
+  
+  /**
+   * The property name that holds the basic nodes for a user.
+   */
+  public static final String USER_BASIC_ELEMENTS = "elements";
+  
+  /**
+   * The property name that holds the access information for a user.
+   */
+  public static final String USER_BASIC_ACCESS = "access";
 }
