@@ -94,8 +94,6 @@ public class TrustedAuthenticationServletTest {
     EasyMock.expect(request.getUserPrincipal()).andReturn(null);
     EasyMock.expect(request.getRemoteUser()).andReturn(null);
     EasyMock.expect(request.getParameter("d")).andReturn("/test");
-    EasyMock.expect(request.getHeader(TrustedTokenServiceImpl.TRUSTED_HEADER_NAME))
-        .andReturn(null);
     response.sendRedirect("/test");
     EasyMock.expectLastCall();
 

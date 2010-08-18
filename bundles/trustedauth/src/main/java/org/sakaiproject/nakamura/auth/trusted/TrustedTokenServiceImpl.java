@@ -56,7 +56,7 @@ import javax.servlet.http.HttpSession;
 /**
  *
  */
-@Component(immediate = true)
+@Component(immediate = true, metatype = true)
 @Service
 public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
@@ -111,7 +111,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   private boolean usingSession = false;
 
   /**
-   * Shoudl the cookies go over ssl.
+   * Should the cookies go over ssl.
    */
   private boolean secureCookie = false;
 
@@ -197,7 +197,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     String serverId = clusterTrackingService.getCurrentServerId();
     tokenStore.doInit(cacheManager, tokenFile, serverId, ttl);
 
-    trustedHeaderName = OsgiUtil.toString(TRUSTED_HEADER_NAME, "");
+    trustedHeaderName = OsgiUtil.toString(props.get(TRUSTED_HEADER_NAME), "");
   }
 
   public void activateForTesting() {

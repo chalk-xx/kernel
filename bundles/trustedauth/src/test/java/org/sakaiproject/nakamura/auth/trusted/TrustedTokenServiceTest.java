@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.auth.trusted;
 
-import static org.sakaiproject.nakamura.auth.trusted.TrustedTokenServiceImpl.TRUSTED_HEADER_NAME;
-
 import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -109,6 +107,7 @@ public class TrustedTokenServiceTest {
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS, ";localhost;");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
+    dict.put(TrustedTokenServiceImpl.TRUSTED_HEADER_NAME, "remote_user");
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -336,7 +335,7 @@ public class TrustedTokenServiceTest {
     EasyMock.expect(request.getUserPrincipal()).andReturn(principal);
     EasyMock.expect(principal.getName()).andReturn(null);
     EasyMock.expect(request.getRemoteUser()).andReturn(null);
-    EasyMock.expect(request.getHeader(TRUSTED_HEADER_NAME)).andReturn("ieb").anyTimes();
+    EasyMock.expect(request.getHeader("remote_user")).andReturn("ieb").anyTimes();
     HttpServletResponse response = createMock(HttpServletResponse.class);
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
