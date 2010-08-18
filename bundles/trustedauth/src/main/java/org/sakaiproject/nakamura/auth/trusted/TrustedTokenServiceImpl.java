@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
@@ -99,6 +100,10 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   private static final String DEFAULT_WRAPPERS = "org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.auth.sso.SsoAuthenticationTokenServiceWrapper";
   @Property(value = DEFAULT_WRAPPERS, description="A ; seperated list of fully qualified class names that are allowed to extend the Wrapper Class.")
   public static final String SERVER_TOKEN_SAFE_WRAPPERS = "sakai.auth.trusted.wrapper.class.names";
+
+  @Property
+  static final String TRUSTED_HEADER_NAME = "sakai.auth.trusted.header";
+  private String trustedHeaderName;
 
   /**
    * If True, sessions will be used, if false cookies.
@@ -191,6 +196,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     String tokenFile = (String) props.get(TOKEN_FILE_NAME);
     String serverId = clusterTrackingService.getCurrentServerId();
     tokenStore.doInit(cacheManager, tokenFile, serverId, ttl);
+
+    trustedHeaderName = OsgiUtil.toString(TRUSTED_HEADER_NAME, "");
   }
 
   public void activateForTesting() {
@@ -350,6 +357,15 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       userId = request.getRemoteUser();
       if ( userId != null ) {
         LOG.info("Injecting Trusted Token from request: Remote User indicated user was [{}] ", userId);
+      }
+    }
+    if (userId == null && trustedHeaderName.length() > 0
+        && request.getHeader(trustedHeaderName) != null) {
+      userId = request.getHeader(trustedHeaderName);
+      if ( userId != null ) {
+        LOG.info(
+            "Injecting Trusted Token from request: Header [{}] indicated user was [{}] ",
+            trustedHeaderName, userId);
       }
     }
     if (userId != null) {

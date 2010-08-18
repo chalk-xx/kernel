@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.auth.trusted;
 
+import static org.sakaiproject.nakamura.auth.trusted.TrustedTokenServiceImpl.TRUSTED_HEADER_NAME;
+
 import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -309,6 +311,32 @@ public class TrustedTokenServiceTest {
     EasyMock.expect(request.getUserPrincipal()).andReturn(principal);
     EasyMock.expect(principal.getName()).andReturn(null);
     EasyMock.expect(request.getRemoteUser()).andReturn("ieb");
+    HttpServletResponse response = createMock(HttpServletResponse.class);
+    Capture<Cookie> cookieCapture = new Capture<Cookie>();
+    response.addCookie(EasyMock.capture(cookieCapture));
+    EasyMock.expectLastCall();
+
+    replay();
+    trustedTokenService.activate(context);
+    trustedTokenService.injectToken(request, response);
+    Assert.assertTrue(cookieCapture.hasCaptured());
+    Cookie cookie = cookieCapture.getValue();
+    Assert.assertNotNull(cookie);
+    Assert.assertEquals("secure-cookie", cookie.getName());
+    String user = trustedTokenService.decodeCookie(cookie.getValue());
+    Assert.assertEquals("ieb", user);
+    verify();
+  }
+
+  @Test
+  public void testInjectCookieHeader() {
+    ComponentContext context = configureForCookie();
+    HttpServletRequest request = createMock(HttpServletRequest.class);
+    Principal principal = createMock(Principal.class);
+    EasyMock.expect(request.getUserPrincipal()).andReturn(principal);
+    EasyMock.expect(principal.getName()).andReturn(null);
+    EasyMock.expect(request.getRemoteUser()).andReturn(null);
+    EasyMock.expect(request.getHeader(TRUSTED_HEADER_NAME)).andReturn("ieb").anyTimes();
     HttpServletResponse response = createMock(HttpServletResponse.class);
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
