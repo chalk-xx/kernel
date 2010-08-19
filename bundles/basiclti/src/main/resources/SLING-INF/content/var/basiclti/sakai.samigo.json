@@ -1,5 +1,5 @@
 {
-    "ltiurl":"http://localhost/imsblti/provider/sakai.resources",
+    "ltiurl":"http://localhost/imsblti/provider/sakai.samigo",
     "ltiurl_lock":true,
     "ltikey_lock":true,
     "ltisecret_lock":true,
