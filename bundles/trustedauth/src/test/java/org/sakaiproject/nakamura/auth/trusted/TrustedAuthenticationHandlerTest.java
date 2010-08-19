@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.auth.trusted;
 
 import static org.apache.sling.jcr.resource.JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS;
+import static org.junit.Assert.assertFalse;
 
 import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.easymock.Capture;
@@ -93,6 +94,12 @@ public class TrustedAuthenticationHandlerTest {
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
+  }
+
+  @Test
+  public void testRequestCredentials() throws Exception {
+    TrustedAuthenticationHandler handler = new TrustedAuthenticationHandler();
+    assertFalse(handler.requestCredentials(null, null));
   }
 
   @Test
@@ -182,7 +189,7 @@ public class TrustedAuthenticationHandlerTest {
 
     trustedAuthenticationHandler.dropCredentials(request, response);
 
-
+    // nothing to find in the request or sesion so we should get a null response
     AuthenticationInfo info2 = trustedAuthenticationHandler.extractCredentials(request, response);
 
     Assert.assertNull(info2);
@@ -191,8 +198,8 @@ public class TrustedAuthenticationHandlerTest {
 
     EasyMock.expect(request.getAttribute(TrustedAuthenticationHandler.RA_AUTHENTICATION_TRUST)).andReturn(ta);
     EasyMock.expect(request.getAttribute(TrustedAuthenticationHandler.RA_AUTHENTICATION_INFO)).andReturn(info);
-    // this time extract credentials from the request
 
+    // this time extract credentials from the request attributes as listed above
     replay();
 
     trustedAuthenticationHandler.extractCredentials(request, response);

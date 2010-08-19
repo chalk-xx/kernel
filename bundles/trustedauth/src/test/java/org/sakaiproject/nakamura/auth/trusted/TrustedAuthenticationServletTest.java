@@ -52,7 +52,7 @@ public class TrustedAuthenticationServletTest {
   public void before() throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException, UnsupportedEncodingException {
     mocks.clear();
     trustedTokenService = new TrustedTokenServiceImpl();
-    
+
     ClusterTrackingService clusterTrackingService = createMock(ClusterTrackingService.class);
     CacheManagerService cacheManagerService = createMock(CacheManagerService.class);
 
@@ -81,28 +81,28 @@ public class TrustedAuthenticationServletTest {
 
   @Test
   public void testDoGet() throws ServletException, IOException, NamespaceException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException {
-    
+
     ComponentContext context = configureForSession();
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
     WebContainer webContainer = createMock(WebContainer.class);
-    
+
     TrustedAuthenticationServlet trustedAuthenticationServlet = new TrustedAuthenticationServlet();
     webContainer.registerServlet(null, trustedAuthenticationServlet, null, trustedAuthenticationServlet);
     EasyMock.expectLastCall();
-    
+
     EasyMock.expect(request.getUserPrincipal()).andReturn(null);
     EasyMock.expect(request.getRemoteUser()).andReturn(null);
     EasyMock.expect(request.getParameter("d")).andReturn("/test");
     response.sendRedirect("/test");
     EasyMock.expectLastCall();
-    
+
     replay();
     trustedAuthenticationServlet.trustedTokenService = trustedTokenService;
     trustedAuthenticationServlet.webContainer = webContainer;
     trustedTokenService.activate(context);
     trustedAuthenticationServlet.activate(context);
-    
+
     trustedAuthenticationServlet.doGet(request, response);
 
 
