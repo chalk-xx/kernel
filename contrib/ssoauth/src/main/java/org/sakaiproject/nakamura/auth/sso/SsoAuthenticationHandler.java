@@ -289,7 +289,7 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
    *
    * {@inheritDoc}
    *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest,
+   * @see org.apache.sling.auth.corei.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
   public boolean requestCredentials(HttpServletRequest request,
@@ -314,9 +314,9 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
   /**
    * {@inheritDoc}
    *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationFailed(javax.servlet.http.HttpServletRequest,
+   * @see orgorg.apache.sling.auth.coreuthenticationFeedbackHandler#authenticationFailed(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse,
-   *      org.apache.sling.commons.auth.spi.AuthenticationInfo)
+   *      org.aporg.apache.sling.auth.coreenticationInfo)
    */
   public void authenticationFailed(HttpServletRequest request,
       HttpServletResponse response, AuthenticationInfo authInfo) {
@@ -349,9 +349,9 @@ public class SsoAuthenticationHandler implements AuthenticationHandler,
    * integrations, etc. See SLING-1563 for the related issue of user population via
    * OpenID.
    *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
+   * @see org.apachorg.apache.sling.auth.coreicationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse,
-   *      org.apache.sling.commons.auth.spi.AuthenticationInfo)
+   *      org.apache.sorg.apache.sling.auth.coretionInfo)
    */
   public boolean authenticationSucceeded(HttpServletRequest request,
       HttpServletResponse response, AuthenticationInfo authInfo) {

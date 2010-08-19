@@ -46,7 +46,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   * @see org.apache.sling.auth.corei.AuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public void dropCredentials(HttpServletRequest arg0, HttpServletResponse arg1)
       throws IOException {
@@ -86,7 +86,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   * @see orgorg.apache.sling.auth.coreuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public AuthenticationInfo extractCredentials(HttpServletRequest request,
       HttpServletResponse response) {
@@ -124,7 +124,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   * @see org.aporg.apache.sling.auth.coreenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public boolean requestCredentials(HttpServletRequest request, HttpServletResponse response)
       throws IOException {

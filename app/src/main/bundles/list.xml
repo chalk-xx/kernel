@@ -55,7 +55,7 @@
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
-            <artifactId>org.apache.sling.openidauth</artifactId>
+            <artifactId>org.apache.sling.auth.openid</artifactId>
             <version>0.9.1-SNAPSHOT</version>
         </bundle>
         <bundle>

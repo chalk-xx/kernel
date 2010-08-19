@@ -84,7 +84,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
   /**
    * {@inheritDoc}
    *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest,
+   * @see org.apache.sling.auth.corei.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
   public AuthenticationInfo extractCredentials(HttpServletRequest request,
@@ -137,7 +137,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
   /**
    * {@inheritDoc}
    *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest,
+   * @see orgorg.apache.sling.auth.coreuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
   @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="BC_VACUOUS_INSTANCEOF",justification="Could be injected from annother bundle")
@@ -154,7 +154,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
   /**
    * {@inheritDoc}
    *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest,
+   * @see org.aporg.apache.sling.auth.coreenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
   public boolean requestCredentials(HttpServletRequest arg0, HttpServletResponse arg1)

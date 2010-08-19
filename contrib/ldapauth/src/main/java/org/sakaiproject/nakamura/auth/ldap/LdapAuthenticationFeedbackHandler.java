@@ -116,9 +116,9 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
   /**
    * {@inheritDoc}
    *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationFailed(javax.servlet.http.HttpServletRequest,
+   * @see org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler#authenticationFailed(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse,
-   *      org.apache.sling.commons.auth.spi.AuthenticationInfo)
+   *      org.apache.sling.auth.core.spi.AuthenticationInfo)
    */
   public void authenticationFailed(HttpServletRequest arg0, HttpServletResponse arg1,
       AuthenticationInfo arg2) {
@@ -128,9 +128,9 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
   /**
    * {@inheritDoc}
    *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
+   * @see org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse,
-   *      org.apache.sling.commons.auth.spi.AuthenticationInfo)
+   *      org.apache.sling.auth.core.spi.AuthenticationInfo)
    */
   public boolean authenticationSucceeded(HttpServletRequest req,
       HttpServletResponse resp, AuthenticationInfo authInfo) {

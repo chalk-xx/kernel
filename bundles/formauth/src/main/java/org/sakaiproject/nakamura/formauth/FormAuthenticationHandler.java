@@ -149,7 +149,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   * @see org.apache.sling.auth.corei.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public AuthenticationInfo extractCredentials(HttpServletRequest request,
       HttpServletResponse response) {
@@ -172,7 +172,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   * @see orgorg.apache.sling.auth.coreuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public void dropCredentials(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
@@ -183,7 +183,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   * @see org.aporg.apache.sling.auth.coreenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public boolean requestCredentials(HttpServletRequest request,
       HttpServletResponse response) throws IOException {

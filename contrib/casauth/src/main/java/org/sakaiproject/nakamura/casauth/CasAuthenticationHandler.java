@@ -247,7 +247,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationFailed(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.apache.sling.commons.auth.spi.AuthenticationInfo)
+   * @see org.apache.sling.auth.corei.AuthenticationFeedbackHandler#authenticationFailed(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, orgorg.apache.sling.auth.coreuthenticationInfo)
    */
   public void authenticationFailed(HttpServletRequest request,
       HttpServletResponse response, AuthenticationInfo authInfo) {
@@ -274,7 +274,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
    * TODO This really needs to be dropped to allow for user pull, person directory
    * integrations, etc. See SLING-1563 for the related issue of user population via OpenID.
    *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.apache.sling.commons.auth.spi.AuthenticationInfo)
+   * @see org.aporg.apache.sling.auth.coreenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.apachorg.apache.sling.auth.coreicationInfo)
    */
   public boolean authenticationSucceeded(HttpServletRequest request,
       HttpServletResponse response, AuthenticationInfo authInfo) {
