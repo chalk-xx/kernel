@@ -65,8 +65,8 @@ public class ReCaptchaRequestTrustValidatorTest {
     server.setResponseBody("true");
     server.setStatus(200);
 
-    when(request.getParameter("recaptcha-challenge")).thenReturn("12345");
-    when(request.getParameter("recaptcha-response")).thenReturn("some word");
+    when(request.getParameter(":recaptcha-challenge")).thenReturn("12345");
+    when(request.getParameter(":recaptcha-response")).thenReturn("some word");
     when(request.getRemoteAddr()).thenReturn("127.0.0.1");
 
     assertTrue(trustValidator.isTrusted(request));
@@ -81,8 +81,8 @@ public class ReCaptchaRequestTrustValidatorTest {
   public void testWrongStatusCode() {
     server.setStatus(401);
 
-    when(request.getParameter("recaptcha-challenge")).thenReturn("12345");
-    when(request.getParameter("recaptcha-response")).thenReturn("some word");
+    when(request.getParameter(":recaptcha-challenge")).thenReturn("12345");
+    when(request.getParameter(":recaptcha-response")).thenReturn("some word");
     when(request.getRemoteAddr()).thenReturn("127.0.0.1");
 
     assertFalse(trustValidator.isTrusted(request));
@@ -93,8 +93,8 @@ public class ReCaptchaRequestTrustValidatorTest {
     server.setResponseBody("false because of foobar");
     server.setStatus(200);
 
-    when(request.getParameter("recaptcha-challenge")).thenReturn("12345");
-    when(request.getParameter("recaptcha-response")).thenReturn("some word");
+    when(request.getParameter(":recaptcha-challenge")).thenReturn("12345");
+    when(request.getParameter(":recaptcha-response")).thenReturn("some word");
     when(request.getRemoteAddr()).thenReturn("127.0.0.1");
 
     assertFalse(trustValidator.isTrusted(request));

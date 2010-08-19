@@ -85,8 +85,8 @@ public class ReCaptchaService implements CaptchaService {
     // - The challenge (challenge)
     // - The response (response)
 
-    String challenge = request.getParameter("recaptcha-challenge");
-    String response = request.getParameter("recaptcha-response");
+    String challenge = request.getParameter(":recaptcha-challenge");
+    String response = request.getParameter(":recaptcha-response");
 
     // No point in doing a request when this one is false.
     if (challenge == null || response == null) {
