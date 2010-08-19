@@ -303,6 +303,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           if (canManageSettings(node.getPath(), session)) {
             settings.putAll(readSensitiveNode(node));
           }
+          final Map<String, Object> adminSettings = getAdminSettings(node, false);
+          settings.putAll(adminSettings);
           renderJson(response.getWriter(), settings);
         } catch (Exception e) {
           sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -331,35 +333,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     final Session session = request.getResourceResolver().adaptTo(Session.class);
     // determine virtual toolId
     try {
-      String vtoolId = null;
-      if (node.hasProperty(LTI_VTOOL_ID)) {
-        vtoolId = node.getProperty(LTI_VTOOL_ID).getString();
-      } else {
-        vtoolId = "basiclti";
-      }
-
-      // grab admin settings from /var/basiclti/* if they exist...
-      final String adminNodePath = ADMIN_CONFIG_PATH + "/" + vtoolId;
-      Map<String, Object> adminSettings = null;
-      // begin admin elevation
-      Session adminSession = null;
-      try {
-        adminSession = slingRepository.loginAdministrative(null);
-        if (adminSession.itemExists(adminNodePath)) {
-          LOG.debug("Found administrative settings for virtual tool: " + vtoolId);
-          final Node adminNode = (Node) adminSession.getItem(adminNodePath);
-          adminSettings = getLaunchSettings(adminNode);
-        } else {
-          LOG.debug(
-              "No administrative settings found for virtual tool: {}. No policy to apply.",
-              vtoolId);
-          adminSettings = Collections.emptyMap();
-        }
-      } finally {
-        if (adminSession != null) {
-          adminSession.logout();
-        }
-      } // end admin elevation
+      // grab admin settings
+      final Map<String, Object> adminSettings = getAdminSettings(node, true);
       // grab user settings
       final Map<String, Object> userSettings = getLaunchSettings(node);
 
@@ -533,6 +508,54 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     final Map<String, String> sensitiveData = readSensitiveNode(node);
     settings.putAll(sensitiveData);
     return settings;
+  }
+
+  /**
+   * Helper method to read the policy settings from /var/basiclti/* virtual tools.
+   * 
+   * @param vtoolId
+   *          The virtual tool id (e.g. <code>sakai.resources</code>)
+   * @param launchMode
+   *          true if sensitive settings should be included; false if not to include
+   *          sesitive settings.
+   * @return An empty Map if no settings could be found.
+   * @throws RepositoryException
+   */
+  private Map<String, Object> getAdminSettings(final Node node, final boolean launchMode)
+      throws RepositoryException {
+    // grab admin settings from /var/basiclti/* if they exist...
+    String vtoolId = null;
+    if (node.hasProperty(LTI_VTOOL_ID)) {
+      vtoolId = node.getProperty(LTI_VTOOL_ID).getString();
+    } else {
+      vtoolId = "basiclti";
+    }
+    final String adminNodePath = ADMIN_CONFIG_PATH + "/" + vtoolId;
+    Map<String, Object> adminSettings = null;
+    // begin admin elevation
+    Session adminSession = null;
+    try {
+      adminSession = slingRepository.loginAdministrative(null);
+      if (adminSession.itemExists(adminNodePath)) {
+        LOG.debug("Found administrative settings for virtual tool: " + vtoolId);
+        final Node adminNode = (Node) adminSession.getItem(adminNodePath);
+        if (launchMode) {
+          adminSettings = getLaunchSettings(adminNode);
+        } else {
+          adminSettings = readProperties(adminNode);
+        }
+      } else {
+        LOG.debug(
+            "No administrative settings found for virtual tool: {}. No policy to apply.",
+            vtoolId);
+        adminSettings = Collections.emptyMap();
+      }
+    } finally {
+      if (adminSession != null) {
+        adminSession.logout();
+      }
+    } // end admin elevation
+    return adminSettings;
   }
 
   /**
