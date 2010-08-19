@@ -23,11 +23,15 @@ import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_IDENT
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_JCR_PATH_PREFIX;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_PROFILE_RT;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_TITLE_PROPERTY;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_BASIC;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_BASIC_ACCESS;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_BASIC_ELEMENTS;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_EMAIL_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_FIRSTNAME_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_IDENTIFIER_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_JCR_PATH_PREFIX;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_LASTNAME_PROPERTY;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_PICTURE;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_PROFILE_RT;
 
 import org.apache.felix.scr.annotations.Component;
@@ -48,6 +52,8 @@ import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -73,7 +79,7 @@ public class ProfileServiceImpl implements ProfileService {
 
   private Map<String, ProfileProvider> providers = new ConcurrentHashMap<String, ProfileProvider>();
   private ProviderSettingsFactory providerSettingsFactory = new ProviderSettingsFactory();
-
+  public static final Logger LOG = LoggerFactory.getLogger(ProfileServiceImpl.class);
   /**
    * {@inheritDoc}
    *
@@ -220,23 +226,17 @@ public class ProfileServiceImpl implements ProfileService {
       compactProfile.put(GROUP_DESCRIPTION_PROPERTY, profile
           .get(GROUP_DESCRIPTION_PROPERTY));
     } else {
+      compactProfile.put(USER_PICTURE, profile.get(USER_PICTURE));
 
-      /**
-       * This authorizable is a user, we go looking for the firstName, lastName and mail.
-       * TODO With the dynamic profile spec these will be located at:
-       *
-       * <pre>
-       * basic
-       *   elements
-       *      firstName
-       *        value
-       *      lastName
-       *        value
-       * </pre>
-       */
-      compactProfile.put(USER_FIRSTNAME_PROPERTY, profile.get(USER_FIRSTNAME_PROPERTY));
-      compactProfile.put(USER_LASTNAME_PROPERTY, profile.get(USER_LASTNAME_PROPERTY));
-      compactProfile.put(USER_EMAIL_PROPERTY, profile.get(USER_EMAIL_PROPERTY));
+      try{
+        ValueMap basicMap =(ValueMap) profile.get(USER_BASIC);
+        ValueMap elementsMap = (ValueMap) basicMap.get(USER_BASIC_ELEMENTS);
+        compactProfile.put(USER_FIRSTNAME_PROPERTY, ((ValueMap) elementsMap.get(USER_FIRSTNAME_PROPERTY)).get("value"));
+        compactProfile.put(USER_LASTNAME_PROPERTY, ((ValueMap) elementsMap.get(USER_LASTNAME_PROPERTY)).get("value"));
+        compactProfile.put(USER_EMAIL_PROPERTY, ((ValueMap) elementsMap.get(USER_EMAIL_PROPERTY)).get("value"));
+      }catch(Exception e){
+        LOG.warn("Can't get authprofile basic information.", e);
+      }
       // Backward compatible reasons.
       compactProfile.put("userid", authorizable.getID());
       compactProfile.put("hash", getUserHashedPath(authorizable));
