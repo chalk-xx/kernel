@@ -36,6 +36,7 @@ import org.apache.james.imap.jcr.GlobalMailboxSessionJCRRepository;
 import org.apache.james.imap.jcr.JCRMailboxManager;
 import org.apache.james.imap.jcr.JCRMailboxSessionMapperFactory;
 import org.apache.james.imap.jcr.JCRSubscriptionManager;
+import org.apache.james.imap.jcr.JCRVmNodeLocker;
 import org.apache.james.imap.mailbox.MailboxManager;
 import org.apache.james.imap.mailbox.MailboxSession;
 import org.apache.james.imap.main.DefaultImapDecoderFactory;
@@ -43,10 +44,11 @@ import org.apache.james.imap.main.ImapRequestStreamHandler;
 import org.apache.james.imap.processor.main.DefaultImapProcessorFactory;
 import org.apache.james.imap.store.Authenticator;
 import org.apache.james.imapserver.netty.ImapStreamChannelUpstreamHandler;
-import org.apache.james.socket.netty.AbstractAsyncServer;
+import org.apache.james.socket.netty.AbstractConfigurableAsyncServer;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.connection.ConnectionLimitUpstreamHandler;
 import org.jboss.netty.handler.connection.ConnectionPerIpLimitUpstreamHandler;
 import org.jboss.netty.handler.ssl.SslHandler;
@@ -58,15 +60,15 @@ import java.net.URL;
  *
  */
 @Component
-public class NakamuraNioImapServer extends AbstractAsyncServer implements ImapConstants {
+public class NakamuraNioImapServer extends AbstractConfigurableAsyncServer implements ImapConstants {
 
   private static final Log jcLog = SLF4JLogFactory.getLog(NakamuraNioImapServer.class);
-  
+
   @Reference
   private SlingRepository slingRepository;
 
   private DNSServer dnsServer;
-  
+
   private static final String softwaretype = "JAMES/Sakai Nakamura "+VERSION+" Server "; //+ Constants.SOFTWARE_VERSION;
 
   private String hello;
@@ -87,23 +89,26 @@ public class NakamuraNioImapServer extends AbstractAsyncServer implements ImapCo
     dnsServer.setLog(jcLog);
     dnsServer.configure(dnsConfig);
     dnsServer.init();
-    
+
     GlobalMailboxSessionJCRRepository sessionRepos = new GlobalMailboxSessionJCRRepository(slingRepository, null, "admin", "admin");
-    
+
     // Register imap cnd file org/apache/james/imap/jcr/imap.cnd when the bundle starts up
     // JCRUtils.registerCnd(repository, workspace, user, pass);
-    
+
     Authenticator userManager = new Authenticator() {
-      
+
       public boolean isAuthentic(String userid, CharSequence passwd) {
         System.err.println("Said "+userid+" with password "+passwd+" was Ok");
-        return true; // delegate authentication to JCR, the JCR session should use the same user as the imap session. We might want to 
+        return true; // delegate authentication to JCR, the JCR session should use the same user as the imap session. We might want to
         // integrate this with the sling authentication handlers.
       }
     };
 
     //TODO: Fix the scaling stuff so the tests will pass with max scaling too
-    JCRMailboxSessionMapperFactory jcrMailboxSessionMapperFactory = new JCRMailboxSessionMapperFactory(sessionRepos);
+    // TODO: this node locker will only work with non-clustered jcr per the developer's
+    // notes in the class
+    JCRVmNodeLocker nodeLocker = new JCRVmNodeLocker();
+    JCRMailboxSessionMapperFactory jcrMailboxSessionMapperFactory = new JCRMailboxSessionMapperFactory(sessionRepos, nodeLocker);
     JCRSubscriptionManager jcrSubscriptionManager = new JCRSubscriptionManager(jcrMailboxSessionMapperFactory);
     MailboxManager mailboxManager = new JCRMailboxManager( jcrMailboxSessionMapperFactory, userManager, jcrSubscriptionManager );
 
@@ -113,9 +118,9 @@ public class NakamuraNioImapServer extends AbstractAsyncServer implements ImapCo
     //mailboxManager.deleteEverything(session);
     mailboxManager.endProcessingRequest(session);
     mailboxManager.logout(session, false);
-    
+
     defaultImapProcessorFactory.configure(mailboxManager);
-    
+
     decoder = new DefaultImapDecoderFactory().buildImapDecoder();
     encoder = new DefaultImapEncoderFactory().buildImapEncoder();
     processor = defaultImapProcessorFactory.buildImapProcessor();
@@ -130,25 +135,26 @@ public class NakamuraNioImapServer extends AbstractAsyncServer implements ImapCo
     configure(config);
     init();
   }
-  
-  
+
+
   public void deactivate(ComponentContext componentContext) {
-    
+
     destroy();
   }
-  
-  
+
+
   @Override
   public void doConfigure( final HierarchicalConfiguration configuration ) throws ConfigurationException {
       super.doConfigure(configuration);
       hello  = softwaretype + " Server " + getHelloName() + " is ready.";
   }
-  
-  
+
+
   /*
    * (non-Javadoc)
    * @see org.apache.james.socket.mina.AbstractAsyncServer#getDefaultPort()
    */
+  @Override
   public int getDefaultPort() {
       return 143;
   }
@@ -158,12 +164,13 @@ public class NakamuraNioImapServer extends AbstractAsyncServer implements ImapCo
    * (non-Javadoc)
    * @see org.apache.james.socket.mina.AbstractAsyncServer#getServiceType()
    */
+  @Override
   public String getServiceType() {
       return "IMAP Service";
   }
 
   @Override
-  protected ChannelPipelineFactory createPipelineFactory() {
+  protected ChannelPipelineFactory createPipelineFactory(ChannelGroup channelGroup) {
       return new ChannelPipelineFactory() {
 
           public ChannelPipeline getPipeline() throws Exception {
@@ -176,11 +183,11 @@ public class NakamuraNioImapServer extends AbstractAsyncServer implements ImapCo
                   pipeline.addFirst("sslHandler", new SslHandler(getSSLContext().createSSLEngine()));
               }
               final ImapRequestStreamHandler handler = new ImapRequestStreamHandler(decoder, processor, encoder);
-              
+
               pipeline.addLast("coreHandler",  new ImapStreamChannelUpstreamHandler(hello, handler, getLogger(), NakamuraNioImapServer.this.getTimeout()));
               return pipeline;
           }
-         
+
       };
   }
 
