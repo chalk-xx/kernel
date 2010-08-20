@@ -46,10 +46,10 @@ import javax.jcr.Session;
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Provides some extra properties for the PooledContent searches."),
     @Property(name = "sakai.search.provider", value = "PooledContent") })
-public class ContentPoolSearchProvertyProvider implements SearchPropertyProvider {
+public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider {
 
   public static final Logger LOGGER = LoggerFactory
-      .getLogger(ContentPoolSearchProvertyProvider.class);
+      .getLogger(ContentPoolSearchPropertyProvider.class);
 
   /**
    * {@inheritDoc}
