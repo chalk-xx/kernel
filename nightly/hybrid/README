@@ -6,8 +6,7 @@ server.xml: The tomcat5.5.x config used to bind tomcat to non-default ports to a
 
 Notes
 -----
-1) For nightly.sh to work, you must have apache-tomcat-5.5.30.tar.gz in $BUILD_DIR.  I a copy you can download from here:
-https://www.slashtmp.iu.edu/public/download.php?FILE=lance/61215FNL7uy
+1) For nightly.sh to work, you must have apache-tomcat-5.5.30.tar.gz in $BUILD_DIR.
 
 2) To install apache2.2 on Mac OS X, I used MacPorts; see:
 http://confluence.sakaiproject.org/display/KERNDOC/Installing+git
