@@ -224,21 +224,71 @@ public class ExtendedJSONWriter extends JSONWriter {
    */
   public static void writeNodeTreeToWriter(JSONWriter write, Node node, boolean objectInProgress)
       throws RepositoryException, JSONException {
+    writeNodeTreeToWriter(write, node, objectInProgress, -1, -1);
+  }
+
+  /**
+   * Represent an entire JCR tree in JSON format.
+   *
+   * @param write
+   *          The {@link JSONWriter writer} to send the data to.
+   * @param node
+   *          The node and it's subtree to output. Note: The properties of this node will
+   *          be outputted as well.
+   * @param objectInProgress
+   *          use true if you don't want the method to enclose the output in fresh object
+   *          braces
+   * @param maxDepth
+   *          Maximum depth of subnodes to traverse. The properties on {@link node} are
+   *          processed before this is taken into account.
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  public static void writeNodeTreeToWriter(JSONWriter write, Node node,
+      boolean objectInProgress, int maxDepth) throws RepositoryException, JSONException {
+    writeNodeTreeToWriter(write, node, objectInProgress, maxDepth, 0);
+  }
+
+  /**
+   * Represent an entire JCR tree in JSON format.
+   *
+   * @param write
+   *          The {@link JSONWriter writer} to send the data to.
+   * @param node
+   *          The node and it's subtree to output. Note: The properties of this node will
+   *          be outputted as well.
+   * @param objectInProgress
+   *          use true if you don't want the method to enclose the output in fresh object
+   *          braces
+   * @param maxDepth
+   *          Maximum depth of subnodes to traverse. The properties on {@link node} are
+   *          processed before this is taken into account.
+   * @param currentLevel
+   *          Internal parameter to track the current processing level.
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  protected static void writeNodeTreeToWriter(JSONWriter write, Node node,
+      boolean objectInProgress, int maxDepth, int currentLevel)
+      throws RepositoryException, JSONException {
     // Write this node's properties.
-    if(!objectInProgress) {
-        write.object();
+    if (!objectInProgress) {
+      write.object();
     }
     writeNodeContentsToWriter(write, node);
 
-    // Write all the child nodes.
-    NodeIterator iterator = node.getNodes();
-    while (iterator.hasNext()) {
-      Node childNode = iterator.nextNode();
-      write.key(childNode.getName());
-      writeNodeTreeToWriter(write, childNode);
+    if (maxDepth == -1 || currentLevel < maxDepth) {
+      // Write all the child nodes.
+      NodeIterator iterator = node.getNodes();
+      while (iterator.hasNext()) {
+        Node childNode = iterator.nextNode();
+        write.key(childNode.getName());
+        writeNodeTreeToWriter(write, childNode, false, maxDepth, currentLevel + 1);
+      }
     }
-    if(!objectInProgress) {
-        write.endObject();
+
+    if (!objectInProgress) {
+      write.endObject();
     }
   }
 
