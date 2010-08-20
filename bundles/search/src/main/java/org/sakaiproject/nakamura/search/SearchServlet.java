@@ -103,7 +103,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>SearchServlet</code> uses nodes from the
- * 
+ *
  */
 @ServiceDocumentation(name = "Search Servlet", shortDescription = "The Search servlet provides search results.", description = {
     "The Search Servlet responds with search results in json form in response to GETs on search urls. Those URLs are resolved "
@@ -192,6 +192,8 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = 4130126304725079596L;
   private static final Logger LOGGER = LoggerFactory.getLogger(SearchServlet.class);
 
+  public static final String TIDY = "tidy";
+
   private Map<String, SearchBatchResultProcessor> batchProcessors = new ConcurrentHashMap<String, SearchBatchResultProcessor>();
   private Map<Long, SearchBatchResultProcessor> batchProcessorsById = new ConcurrentHashMap<Long, SearchBatchResultProcessor>();
 
@@ -230,7 +232,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
             "Search templates can only be executed if they are located under " + SEARCH_PATH_PREFIX);
         return;
       }
-      
+
       Node node = resource.adaptTo(Node.class);
       if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
         String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE).getString();
@@ -324,6 +326,8 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         response.setCharacterEncoding("UTF-8");
 
         ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
+        write.setTidy(isTidy(request));
+
         write.object();
         write.key(PARAMS_ITEMS_PER_PAGE);
         write.value(nitems);
@@ -384,7 +388,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   /**
    * Processes a template of the form select * from y where x = {q} so that strings
    * enclosed in { and } are replaced by the same property in the request.
-   * 
+   *
    * @param request
    *          the request.
    * @param queryTemplate
@@ -687,6 +691,19 @@ public class SearchServlet extends SlingSafeMethodsServlet {
     }
 
     maximumResults = (Long) componentContext.getProperties().get("maximumResults");
+  }
+
+  /**
+   * True if our request wants the "tidy" pretty-printed format
+   * Copied from org.apache.sling.servlets.get.impl.helpers.JsonRendererServlet
+   */
+  protected boolean isTidy(SlingHttpServletRequest req) {
+      for(String selector : req.getRequestPathInfo().getSelectors()) {
+          if(TIDY.equals(selector)) {
+              return true;
+          }
+      }
+      return false;
   }
 
 }

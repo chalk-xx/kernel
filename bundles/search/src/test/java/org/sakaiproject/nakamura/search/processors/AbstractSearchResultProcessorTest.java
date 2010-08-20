@@ -3,6 +3,7 @@ package org.sakaiproject.nakamura.search.processors;
 import static org.easymock.EasyMock.expect;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
@@ -34,7 +35,11 @@ public abstract class AbstractSearchResultProcessorTest extends AbstractEasyMock
     Node dummyNode = createMock(Node.class);
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     expect(row.getNode()).andReturn(dummyNode).anyTimes();
-    
+
+    RequestPathInfo info = createMock(RequestPathInfo.class);
+    expect(request.getRequestPathInfo()).andReturn(info).anyTimes();
+    expect(info.getSelectors()).andReturn(new String[] {"tidy"}).anyTimes();
+
     expect(dummyNode.getProperties()).andReturn(propertyIterator).anyTimes();
     expect(dummyNode.getPath()).andReturn("/apath").anyTimes();
     expect(dummyNode.getName()).andReturn("apath").anyTimes();
