@@ -115,8 +115,11 @@ public class NodeDocumentation {
    * @return the description
    */
   public String[] getDescription() {
-    String[] r = new String[description.length];
-    System.arraycopy(description, 0, r, 0, description.length);
+    String[] r = null;
+    if (description != null) {
+      r = new String[description.length];
+      System.arraycopy(description, 0, r, 0, description.length);
+    }
     return r;
   }
 
@@ -156,8 +159,11 @@ public class NodeDocumentation {
    * @return the response
    */
   public String[] getResponse() {
-    String[] r = new String[response.length];
-    System.arraycopy(response, 0, r, 0, response.length);
+    String[] r = null;
+    if (response != null) {
+      r = new String[response.length];
+      System.arraycopy(response, 0, r, 0, response.length);
+    }
     return r;
   }
 
