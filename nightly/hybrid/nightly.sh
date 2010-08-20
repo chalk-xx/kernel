@@ -2,7 +2,6 @@
 
 #Sakai 2+3 Hybrid Nightly
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
-# and svn info https://source.caret.cam.ac.uk/camtools
 
 export K2_TAG="HEAD"
 export S2_TAG="tags/sakai-2.7.0-rc01"
@@ -23,6 +22,7 @@ export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=tru
 export K2_OPTS="-server -Xmx512m -XX:MaxPermSize=128m -Djava.awt.headless=true"
 BUILD_DATE=`date "+%D %R"`
 
+# get some shell scripting setup out of the way...
 # resolve links - $0 may be a softlink
 PRG="$0"
 
@@ -85,6 +85,7 @@ fi
 echo "Starting sakai3 instance..."
 cd app/target/
 K2_ARTIFACT=`find . -name "org.sakaiproject.nakamura.app*[^sources].jar"`
+# configure TrustedLoginTokenProxyPreProcessor the hackish way...
 mkdir -p sling/config/org/sakaiproject/nakamura/proxy
 echo 'port=I"8080"' > sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
 echo 'sharedSecret="e2KS54H35j6vS5Z38nK40"' >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
@@ -118,6 +119,7 @@ else
     mvn -B -e clean install sakai:deploy -Dmaven.test.skip=true -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
     # configure sakai 2 instance
     cd $BUILD_DIR
+    # change default tomcat listener port numbers
     cp -f server.xml sakai2-demo/conf/server.xml 
     echo "ui.service = trunk+SAK-17223+KERN-360 on HSQLDB" >> sakai2-demo/sakai/sakai.properties
     echo "version.sakai = $REPO_REV" >> sakai2-demo/sakai/sakai.properties
@@ -125,7 +127,7 @@ else
     echo "serverName=sakai23-hybrid.sakaiproject.org" >> sakai2-demo/sakai/sakai.properties
     echo "webservices.allowlogin=true" >> sakai2-demo/sakai/sakai.properties
     echo "webservice.portalsecret=nightly" >> sakai2-demo/sakai/sakai.properties
-    echo "samigo.answerUploadRepositoryPath= /tmp/sakai2-hybrid/" >> sakai2-demo/sakai/sakai.properties
+    echo "samigo.answerUploadRepositoryPath=/tmp/sakai2-hybrid/" >> sakai2-demo/sakai/sakai.properties
     # enable SAK-17223 K2AuthenticationFilter
     echo "top.login=false" >> sakai2-demo/sakai/sakai.properties
     echo "container.login=true" >> sakai2-demo/sakai/sakai.properties
