@@ -163,9 +163,7 @@ public class ExtendedJSONWriter extends JSONWriter {
 
   public static void writeNodeToWriter(JSONWriter write, Node node) throws JSONException,
       RepositoryException {
-    write.object();
-    writeNodeContentsToWriter(write, node);
-    write.endObject();
+    writeNodeTreeToWriter(write, node, false, 0);
   }
 
   private static Object stringValue(Value value) throws ValueFormatException,
@@ -190,12 +188,12 @@ public class ExtendedJSONWriter extends JSONWriter {
   }
 
   public void node(Node node) throws JSONException, RepositoryException {
-    writeNodeToWriter(this, node);
+    ExtendedJSONWriter.writeNodeToWriter(this, node);
   }
 
   /**
    * Represent an entire JCR tree in JSON format. Convenience method for
-   * writeNodeTreeToWriter(write, node, false).
+   * writeNodeTreeToWriter(write, node, false, -1, -1).
    *
    * @param write
    *          The {@link JSONWriter writer} to send the data to.
@@ -207,7 +205,7 @@ public class ExtendedJSONWriter extends JSONWriter {
    */
   public static void writeNodeTreeToWriter(JSONWriter write, Node node)
       throws RepositoryException, JSONException {
-      writeNodeTreeToWriter(write, node, Boolean.FALSE);
+      writeNodeTreeToWriter(write, node, false, -1, -1);
   }
 
   /**
@@ -251,6 +249,12 @@ public class ExtendedJSONWriter extends JSONWriter {
 
   /**
    * Represent an entire JCR tree in JSON format.
+   * <p>
+   * if maxDepth == 0 and objectInProgress == false, same as calling
+   * {@link #writeNodeToWriter(JSONWriter, Node).
+   * <p>
+   * if maxDepth == 0 and objectInfProgress == true, same as calling
+   * {@link #writeNodeContentsToWriter(JSONWriter, Node).
    *
    * @param write
    *          The {@link JSONWriter writer} to send the data to.

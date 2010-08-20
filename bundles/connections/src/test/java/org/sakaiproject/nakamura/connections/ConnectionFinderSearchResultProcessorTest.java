@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.connections;
 
 import static org.junit.Assert.assertEquals;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +25,7 @@ import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -84,6 +84,9 @@ public class ConnectionFinderSearchResultProcessorTest {
     MockNode contactNode = new MockNode("/_user/alice/contacts/bob");
     contactNode.setProperty("sling:resourceType", "sakai/contact");
     when(session.getItem("/_user/alice/contacts/bob")).thenReturn(contactNode);
+
+    RequestPathInfo pathInfo = mock(RequestPathInfo.class);
+    when(request.getRequestPathInfo()).thenReturn(pathInfo);
 
     processor.writeNode(request, write, null, row);
 

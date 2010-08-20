@@ -25,14 +25,12 @@ import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.profile.ProfileServiceImpl;
@@ -91,6 +89,9 @@ public class ConnectionSearchResultProcessorTest {
     when(row.getNode()).thenReturn(contactNode);
     ProfileService profileService = new ProfileServiceImpl();
     processor.profileService = profileService;
+
+    RequestPathInfo pathInfo = mock(RequestPathInfo.class);
+    when(request.getRequestPathInfo()).thenReturn(pathInfo);
 
     processor.writeNode(request, write, null, row);
 

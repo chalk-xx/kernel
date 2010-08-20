@@ -16,17 +16,15 @@ import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.RowUtils;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 
 /**
  * Formats user profile node search results
- * 
+ *
  */
 @Component(immediate = true, label = "PagecontentSearchResultProcessor", description = "Formatter for pagecontent search results.")
 @Properties(value = {
@@ -54,14 +52,13 @@ public class PagecontentSearchResultProcessor implements SearchResultProcessor {
 
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
-    Session session = request.getResourceResolver().adaptTo(Session.class);
-    Node node = RowUtils.getNode(row, session);
+    Node node = row.getNode();
     Node parentNode = node.getParent();
     if (parentNode.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
       String type = parentNode.getProperty(SLING_RESOURCE_TYPE_PROPERTY)
           .getString();
       if (type.equals("sakai/page")) {
-        PageSearchResultProcessor proc = new PageSearchResultProcessor(searchServiceFactory);
+        NodeSearchResultProcessor proc = new NodeSearchResultProcessor(searchServiceFactory;
         proc.writeNode(request, write, aggregator, row);
         return;
       }
@@ -69,12 +66,13 @@ public class PagecontentSearchResultProcessor implements SearchResultProcessor {
     if (aggregator != null) {
       aggregator.add(node);
     }
-    ExtendedJSONWriter.writeNodeToWriter(write, node);
+    int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
+    ExtendedJSONWriter.writeNodeTreeToWriter(write, node, maxTraversalDepth);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */

@@ -41,7 +41,7 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
-import org.sakaiproject.nakamura.search.processors.PageSearchResultProcessor;
+import org.sakaiproject.nakamura.search.processors.NodeSearchResultProcessor;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.StringWriter;
@@ -60,6 +60,7 @@ import javax.jcr.query.RowIterator;
  */
 public class SiteContentSearchResultProcessorTest extends AbstractEasyMockTest {
 
+  @Override
   @Before
   public void setUp() throws Exception {
     super.setUp();
@@ -129,7 +130,7 @@ public class SiteContentSearchResultProcessorTest extends AbstractEasyMockTest {
 
     SearchResultProcessorTracker tracker = new SearchResultProcessorTracker(
         bundleContext);
-    SearchResultProcessor proc = new PageSearchResultProcessor();
+    SearchResultProcessor proc = new NodeSearchResultProcessor();
     tracker.putProcessor(proc, new String[] { "sakai/page" });
     siteContentSearchResultProcessor.tracker = tracker;
 

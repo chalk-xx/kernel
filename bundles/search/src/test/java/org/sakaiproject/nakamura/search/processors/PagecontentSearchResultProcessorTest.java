@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.search.processors;
 import junit.framework.Assert;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -38,7 +39,6 @@ import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.query.Row;
 
@@ -48,46 +48,50 @@ import javax.jcr.query.Row;
  */
 public class PagecontentSearchResultProcessorTest extends AbstractEasyMockTest {
 
-  
+
   @Test
   public void test() throws SearchException, JSONException, RepositoryException {
     SlingHttpServletRequest request = createNiceMock(SlingHttpServletRequest.class);
     ResourceResolver resourceResolver = createNiceMock(ResourceResolver.class);
-    Session session = createNiceMock(Session.class);
+//    Session session = createNiceMock(Session.class);
     Value value = createNiceMock(Value.class);
     Node node = createNiceMock(Node.class);
     Property property = createNiceMock(Property.class);
     PropertyIterator propertyIterator = createNiceMock(PropertyIterator.class);
-    
+
     Row row = createNiceMock(Row.class);
+    EasyMock.expect(row.getNode()).andReturn(node).anyTimes();
     EasyMock.expect(request.getResourceResolver()).andReturn(resourceResolver).anyTimes();
-    EasyMock.expect(resourceResolver.adaptTo(Session.class)).andReturn(session).anyTimes();
+//    EasyMock.expect(resourceResolver.adaptTo(Session.class)).andReturn(session).anyTimes();
     EasyMock.expect(row.getValue("jcr:path")).andReturn(value).anyTimes();
     EasyMock.expect(value.getString()).andReturn("/test").anyTimes();
-    EasyMock.expect(session.getItem("/test")).andReturn(node).anyTimes();
+//    EasyMock.expect(session.getItem("/test")).andReturn(node).anyTimes();
     EasyMock.expect(node.getParent()).andReturn(node);
     EasyMock.expect(node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)).andReturn(true);
     EasyMock.expect(node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)).andReturn(property);
     EasyMock.expect(property.getString()).andReturn("sakai/page");
     EasyMock.expect(node.getProperties()).andReturn(propertyIterator);
-    
+
+    RequestPathInfo pathInfo = createNiceMock(RequestPathInfo.class);
+    EasyMock.expect(request.getRequestPathInfo()).andReturn(pathInfo);
+
     replay();
     AggregateCount aggregator = new AggregateCount(new String[] { "test" }, false);
-    
-    
+
+
     StringWriter stringWriter = new StringWriter();
     JSONWriter write = new JSONWriter(stringWriter);
-    
+
     PagecontentSearchResultProcessor pagecontentSearchResultProcessor = new PagecontentSearchResultProcessor(new SearchServiceFactoryImpl());
     pagecontentSearchResultProcessor.writeNode(request, write, aggregator, row);
-    
+
     String output = stringWriter.toString();
     Assert.assertTrue(output.length() > 0);
     // Make sure that the output is valid JSON.
     new JSONObject(output);
-    
-    
+
+
     verify();
-    
+
   }
 }

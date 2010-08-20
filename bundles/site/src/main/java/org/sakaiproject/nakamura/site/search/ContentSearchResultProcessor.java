@@ -92,7 +92,7 @@ public class ContentSearchResultProcessor implements SearchResultProcessor {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
@@ -115,7 +115,8 @@ public class ContentSearchResultProcessor implements SearchResultProcessor {
     write.key("excerpt");
     write.value(RowUtils.getDefaultExcerpt(row));
     write.key("data");
-    ExtendedJSONWriter.writeNodeToWriter(write, node);
+    int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
+    ExtendedJSONWriter.writeNodeTreeToWriter(write, node, maxTraversalDepth);
     write.endObject();
   }
 

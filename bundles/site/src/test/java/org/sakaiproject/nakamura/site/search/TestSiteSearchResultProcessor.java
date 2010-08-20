@@ -6,13 +6,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.site.SiteService;
-import org.sakaiproject.nakamura.site.search.SiteSearchResultProcessor;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.ByteArrayOutputStream;
@@ -37,6 +37,7 @@ public class TestSiteSearchResultProcessor extends AbstractEasyMockTest {
     siteSearchResultProcessor.bindSiteService(siteService);
     expect(siteService.isSite(isA(Item.class))).andReturn(true).anyTimes();
     expect(siteService.getMemberCount(isA(Node.class))).andReturn(20).anyTimes();
+
     simpleResultCountCheck(siteSearchResultProcessor);
   }
 
@@ -66,7 +67,7 @@ public class TestSiteSearchResultProcessor extends AbstractEasyMockTest {
       assertEquals("Unable to write non-site node result", e.getMessage());
     }
   }
-  
+
   protected void simpleResultCountCheck(SearchResultProcessor processor) throws RepositoryException, JSONException
   {
     int itemCount = 12;
@@ -81,7 +82,7 @@ public class TestSiteSearchResultProcessor extends AbstractEasyMockTest {
     expect(results.nextRow()).andReturn(dummyRow).times(itemCount);
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    Session session = createMock(Session.class);    
+    Session session = createMock(Session.class);
     Node resultNode = createMock(Node.class);
     expect(resultNode.getPath()).andReturn("/path/to/node").anyTimes();
     expect(resultNode.getName()).andReturn("node").anyTimes();
@@ -91,7 +92,10 @@ public class TestSiteSearchResultProcessor extends AbstractEasyMockTest {
     PropertyIterator propIterator = createMock(PropertyIterator.class);
     expect(propIterator.hasNext()).andReturn(false).anyTimes();
     expect(resultNode.getProperties()).andReturn(propIterator).anyTimes();
-    
+
+    RequestPathInfo pathInfo = createNiceMock(RequestPathInfo.class);
+    expect(request.getRequestPathInfo()).andReturn(pathInfo).anyTimes();
+
     replay();
     JSONWriter write = new JSONWriter(new PrintWriter(new ByteArrayOutputStream()));
     write.array();

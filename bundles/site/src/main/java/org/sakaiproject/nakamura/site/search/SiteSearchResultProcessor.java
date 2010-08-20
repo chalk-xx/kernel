@@ -79,21 +79,22 @@ public class SiteSearchResultProcessor implements SearchResultProcessor {
     if (aggregator != null) {
       aggregator.add(resultNode);
     }
-    writeNode(write, resultNode);
+    writeNode(request, write, resultNode);
   }
 
-  public void writeNode(JSONWriter write, Node resultNode)
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node resultNode)
       throws JSONException, RepositoryException {
     write.object();
     write.key("member-count");
     write.value(String.valueOf(siteService.getMemberCount(resultNode)));
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, resultNode);
+    int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
+    ExtendedJSONWriter.writeNodeTreeToWriter(write, resultNode, true, maxTraversalDepth);
     write.endObject();
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */

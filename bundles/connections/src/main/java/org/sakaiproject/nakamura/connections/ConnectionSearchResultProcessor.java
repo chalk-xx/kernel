@@ -66,7 +66,8 @@ public class ConnectionSearchResultProcessor implements SearchResultProcessor {
     ValueMap map = profileService.getProfileMap(au, session);
     ((ExtendedJSONWriter) write).valueMap(map);
     write.key("details");
-    ExtendedJSONWriter.writeNodeToWriter(write, node);
+    int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
+    ExtendedJSONWriter.writeNodeTreeToWriter(write, node, maxTraversalDepth);
     write.endObject();
   }
 

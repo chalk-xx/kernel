@@ -69,18 +69,20 @@ public class ConnectionFinderSearchResultProcessor implements SearchResultProces
       aggregator.add(node);
     }
 
+    int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
+
     write.object();
     write.key("target");
     write.value(targetUser);
     write.key("profile");
-    ExtendedJSONWriter.writeNodeToWriter(write, profileNode);
+    ExtendedJSONWriter.writeNodeTreeToWriter(write, profileNode, maxTraversalDepth);
     write.key("details");
-    ExtendedJSONWriter.writeNodeToWriter(write, node);
+    ExtendedJSONWriter.writeNodeTreeToWriter(write, node, maxTraversalDepth);
     write.endObject();
   }
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
