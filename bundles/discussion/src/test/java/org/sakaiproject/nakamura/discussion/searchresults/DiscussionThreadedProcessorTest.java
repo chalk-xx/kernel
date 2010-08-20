@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.testutils.easymock.MockRowIterator;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -73,6 +74,7 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     super.setUp();
 
     processor = new DiscussionThreadedSearchBatchResultProcessor();
+    processor.searchServiceFactory = createNiceMock(SearchServiceFactory.class);
     presenceService = createNiceMock(PresenceService.class);
     processor.presenceService = presenceService;
   }

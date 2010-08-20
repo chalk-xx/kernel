@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.site.join.search;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
@@ -30,6 +31,7 @@ import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
@@ -49,6 +51,9 @@ import javax.jcr.query.Row;
     @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "JoinRequest") })
 public class JoinRequestSearchResultProcessor implements SearchResultProcessor {
 
+  @Reference
+  protected transient SearchServiceFactory searchServiceFactory;
+
   public void writeNode(SlingHttpServletRequest request, JSONWriter writer,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Node resultNode = row.getNode();
@@ -60,7 +65,7 @@ public class JoinRequestSearchResultProcessor implements SearchResultProcessor {
 
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
       throws SearchException {
-    return SearchUtil.getSearchResultSet(request, query);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
 }

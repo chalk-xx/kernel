@@ -29,11 +29,11 @@ import org.sakaiproject.nakamura.api.discussion.Post;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.RowUtils;
@@ -74,6 +74,10 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
 
   @Reference
   protected transient ProfileService profileService;
+  
+  @Reference
+  protected transient SearchServiceFactory searchServiceFactory;
+
 
   public void writeNodes(SlingHttpServletRequest request, JSONWriter writer,
       Aggregator aggregator, RowIterator iterator) throws JSONException,
@@ -129,7 +133,7 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       long hits = SearchUtil.getHits(qr);
 
       // Return the result set.
-      return new AbstractSearchResultSet(iterator, hits);
+      return searchServiceFactory.getSearchResultSet(iterator, hits);
     } catch (RepositoryException e) {
       throw new SearchException(500, "Unable to execute query.");
     }

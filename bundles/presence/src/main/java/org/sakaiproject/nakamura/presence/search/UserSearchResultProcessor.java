@@ -36,7 +36,7 @@ import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import javax.jcr.Node;
@@ -56,6 +56,10 @@ public class UserSearchResultProcessor implements SearchResultProcessor {
 
   @Reference
   protected transient ProfileService profileService;
+  
+  
+  @Reference 
+  protected transient SearchServiceFactory searchServiceFactory;
 
   /**
    * {@inheritDoc}
@@ -65,7 +69,7 @@ public class UserSearchResultProcessor implements SearchResultProcessor {
    */
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
       throws SearchException {
-    return SearchUtil.getSearchResultSet(request, query);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
   /**

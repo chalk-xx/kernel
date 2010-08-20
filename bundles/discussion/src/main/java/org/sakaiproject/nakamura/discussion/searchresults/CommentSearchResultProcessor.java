@@ -32,7 +32,7 @@ import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.RowUtils;
 
@@ -60,6 +60,10 @@ public class CommentSearchResultProcessor implements SearchResultProcessor {
 
   @Reference
   protected transient ProfileService profileService;
+  
+  @Reference
+  protected transient SearchServiceFactory searchServiceFactory;
+  
 
   /**
    *
@@ -88,6 +92,6 @@ public class CommentSearchResultProcessor implements SearchResultProcessor {
    */
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
       throws SearchException {
-    return SearchUtil.getSearchResultSet(request, query);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 }
