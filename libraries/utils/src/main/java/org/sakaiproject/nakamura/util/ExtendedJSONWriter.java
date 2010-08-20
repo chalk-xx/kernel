@@ -194,7 +194,8 @@ public class ExtendedJSONWriter extends JSONWriter {
   }
 
   /**
-   * Represent an entire JCR tree in JSON format.
+   * Represent an entire JCR tree in JSON format. Convenience method for
+   * writeNodeTreeToWriter(write, node, false).
    *
    * @param write
    *          The {@link JSONWriter writer} to send the data to.
@@ -210,7 +211,8 @@ public class ExtendedJSONWriter extends JSONWriter {
   }
 
   /**
-   * Represent an entire JCR tree in JSON format.
+   * Represent an entire JCR tree in JSON format. Convenience method for
+   * writeNodeTreeToWriter(write, node, objectInProgress, -1, -1).
    *
    * @param write
    *          The {@link JSONWriter writer} to send the data to.
@@ -225,6 +227,26 @@ public class ExtendedJSONWriter extends JSONWriter {
   public static void writeNodeTreeToWriter(JSONWriter write, Node node, boolean objectInProgress)
       throws RepositoryException, JSONException {
     writeNodeTreeToWriter(write, node, objectInProgress, -1, -1);
+  }
+
+  /**
+   * Represent an entire JCR tree in JSON format. Convenience method for
+   * writeNodeTreeToWriter(write, node, false, maxDepth, 0).
+   *
+   * @param write
+   *          The {@link JSONWriter writer} to send the data to.
+   * @param node
+   *          The node and it's subtree to output. Note: The properties of this node will
+   *          be outputted as well.
+   * @param maxDepth
+   *          Maximum depth of subnodes to traverse. The properties on {@link node} are
+   *          processed before this is taken into account.
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  public static void writeNodeTreeToWriter(JSONWriter write, Node node, int maxDepth)
+      throws RepositoryException, JSONException {
+    writeNodeTreeToWriter(write, node, false, maxDepth, 0);
   }
 
   /**
