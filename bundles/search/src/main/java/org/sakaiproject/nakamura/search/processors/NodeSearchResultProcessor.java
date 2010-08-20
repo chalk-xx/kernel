@@ -31,10 +31,7 @@ import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
-import org.sakaiproject.nakamura.search.SearchServlet;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -63,8 +60,6 @@ public class NodeSearchResultProcessor implements SearchResultProcessor {
     this.searchServiceFactory = searchServiceFactory;
   }
   
-  public NodeSearchResultProcessor() {
-  }
   private static final Logger LOG = LoggerFactory.getLogger(NodeSearchResultProcessor.class);
 
   public static final String INFINITY = "infinity";
@@ -82,8 +77,9 @@ public class NodeSearchResultProcessor implements SearchResultProcessor {
     if (aggregator != null) {
       aggregator.add(node);
     }
-    ExtendedJSONWriter.writeNodeToWriter(write, node);
-    int maxRecursionLevel = getRecursionLevel(request);
+
+    int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
+    ExtendedJSONWriter.writeNodeTreeToWriter(write, node, maxTraversalDepth);
   }
 
   /**
@@ -95,25 +91,5 @@ public class NodeSearchResultProcessor implements SearchResultProcessor {
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
       Query query) throws SearchException {
     return searchServiceFactory.getSearchResultSet(request, query);
-  }
-
-  private int getRecursionLevel(SlingHttpServletRequest req) {
-    int maxRecursionLevels = 0;
-    final String[] selectors = req.getRequestPathInfo().getSelectors();
-    if (selectors != null && selectors.length > 0) {
-      final String level = selectors[selectors.length - 1];
-      if (!SearchServlet.TIDY.equals(level)) {
-        if (INFINITY.equals(level)) {
-          maxRecursionLevels = -1;
-        } else {
-          try {
-            maxRecursionLevels = Integer.parseInt(level);
-          } catch (NumberFormatException nfe) {
-            LOG.warn("Invalid recursion selector value '" + level + "'; defaulting to 0");
-          }
-        }
-      }
-    }
-    return maxRecursionLevels;
   }
 }

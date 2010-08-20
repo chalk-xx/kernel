@@ -194,6 +194,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(SearchServlet.class);
 
   public static final String TIDY = "tidy";
+  public static final String INFINITY = "infinity";
 
   private Map<String, SearchBatchResultProcessor> batchProcessors = new ConcurrentHashMap<String, SearchBatchResultProcessor>();
   private Map<Long, SearchBatchResultProcessor> batchProcessorsById = new ConcurrentHashMap<Long, SearchBatchResultProcessor>();
