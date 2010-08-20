@@ -15,13 +15,14 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.search;
+package org.sakaiproject.nakamura.search;
 
 import org.apache.sling.api.resource.ValueMap;
+import org.sakaiproject.nakamura.api.search.SearchResultSet;
 
 import javax.jcr.query.RowIterator;
 
-public class AbstractSearchResultSet implements SearchResultSet {
+public class SearchResultSetImpl implements SearchResultSet {
 
   /**
    * The size of the result set.
@@ -38,7 +39,7 @@ public class AbstractSearchResultSet implements SearchResultSet {
    */
   private ValueMap properties;
 
-  public AbstractSearchResultSet(RowIterator rowIterator, long size) {
+  public SearchResultSetImpl(RowIterator rowIterator, long size) {
     setRowIterator(rowIterator);
     setSize(size);
   }
@@ -73,12 +74,10 @@ public class AbstractSearchResultSet implements SearchResultSet {
   }
 
   /**
-   * 
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.nakamura.api.search.SearchResultSet#setRowIterator(javax.jcr.query.RowIterator)
+   * This is protected because I only want the creator to be able to set, but extensions
+   * can override the storage.
    */
-  public void setRowIterator(RowIterator rowIterator) {
+  protected void setRowIterator(RowIterator rowIterator) {
     this.rowIterator = rowIterator;
   }
 

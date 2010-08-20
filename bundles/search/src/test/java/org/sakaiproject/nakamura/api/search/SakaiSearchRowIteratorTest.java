@@ -25,6 +25,7 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_EXCLUDE
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.nakamura.search.SakaiSearchRowIterator;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.testutils.easymock.MockRowIterator;
 

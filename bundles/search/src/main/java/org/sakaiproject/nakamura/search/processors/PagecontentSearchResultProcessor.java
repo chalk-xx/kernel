@@ -5,6 +5,7 @@ import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
@@ -13,7 +14,7 @@ import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.RowUtils;
 
@@ -36,6 +37,21 @@ import javax.jcr.query.Row;
 @Service(value = SearchResultProcessor.class)
 public class PagecontentSearchResultProcessor implements SearchResultProcessor {
 
+  @Reference
+  protected SearchServiceFactory searchServiceFactory;
+  
+  public PagecontentSearchResultProcessor(SearchServiceFactory searchServiceFactory) {
+    if ( searchServiceFactory == null ) {
+      throw new NullPointerException("Search Service Factory Must be set when not using as a component");
+    }
+
+    this.searchServiceFactory = searchServiceFactory;
+  }
+
+  
+  public PagecontentSearchResultProcessor() {
+  }
+
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
@@ -45,7 +61,7 @@ public class PagecontentSearchResultProcessor implements SearchResultProcessor {
       String type = parentNode.getProperty(SLING_RESOURCE_TYPE_PROPERTY)
           .getString();
       if (type.equals("sakai/page")) {
-        PageSearchResultProcessor proc = new PageSearchResultProcessor();
+        PageSearchResultProcessor proc = new PageSearchResultProcessor(searchServiceFactory);
         proc.writeNode(request, write, aggregator, row);
         return;
       }
@@ -64,7 +80,7 @@ public class PagecontentSearchResultProcessor implements SearchResultProcessor {
    */
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
       Query query) throws SearchException {
-    return SearchUtil.getSearchResultSet(request, query);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
 }

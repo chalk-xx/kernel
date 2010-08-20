@@ -17,13 +17,13 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_EXCLUDE_TREE;
-
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_EXCLUDE_TREE;
+
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.core.query.lucene.MultiColumnQueryResult;
@@ -42,6 +42,8 @@ import org.apache.sling.commons.testing.jcr.MockPropertyIterator;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
+import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.testutils.easymock.MockRowIterator;
 
 import java.io.ByteArrayOutputStream;
@@ -182,6 +184,14 @@ public class TagServletTest {
     when(q.execute()).thenReturn(result);
 
     TagServlet servlet = new TagServlet();
+    SearchServiceFactory searchServiceFactory = mock(SearchServiceFactory.class);
+    SearchResultSet searchResultSet = mock(SearchResultSet.class);
+    when(searchServiceFactory.getSearchResultSet(Mockito.any(RowIterator.class), Mockito.anyLong())).thenReturn(searchResultSet);
+    RowIterator rowIterator = new MockRowIterator(nodes);
+    
+    
+    when(searchResultSet.getRowIterator()).thenReturn(rowIterator);
+    servlet.searchServiceFactory = searchServiceFactory;
     servlet.doGet(request, response);
     w.flush();
 

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.nakamura.api.search;
+package org.sakaiproject.nakamura.search;
 
 import java.util.NoSuchElementException;
 

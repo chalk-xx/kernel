@@ -32,6 +32,7 @@ import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
@@ -50,6 +51,8 @@ public class ConnectionFinderSearchResultProcessorTest {
   public void test() throws RepositoryException, JSONException,
       UnsupportedEncodingException {
     ConnectionFinderSearchResultProcessor processor = new ConnectionFinderSearchResultProcessor();
+    SearchServiceFactory searchServiceFactory = mock(SearchServiceFactory.class);
+    processor.searchServiceFactory = searchServiceFactory;
 
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     ResourceResolver resolver = mock(ResourceResolver.class);

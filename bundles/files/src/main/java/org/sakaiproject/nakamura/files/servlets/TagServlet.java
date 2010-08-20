@@ -36,6 +36,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.files.search.FileSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -74,6 +75,9 @@ public class TagServlet extends SlingSafeMethodsServlet {
   protected transient SiteService siteService;
 
   private transient FileSearchBatchResultProcessor proc;
+
+  @Reference
+  protected SearchServiceFactory searchServiceFactory;
 
   /**
    * {@inheritDoc}
@@ -131,7 +135,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
     // For good measurement
     if (proc == null) {
-      proc = new FileSearchBatchResultProcessor(siteService);
+      proc = new FileSearchBatchResultProcessor(siteService, searchServiceFactory);
     }
 
     SearchResultSet rs = proc.getSearchResultSet(request, query);

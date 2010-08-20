@@ -22,7 +22,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import java.util.Map;
 
 /**
- * Components that impliment this interface are available as property providers for the search query.
+ * Components that implement this interface are available as property providers for the search query.
  */
 public interface SearchPropertyProvider {
 

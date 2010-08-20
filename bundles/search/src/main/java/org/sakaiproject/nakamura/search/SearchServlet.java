@@ -74,6 +74,7 @@ import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.search.processors.NodeSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.search.processors.NodeSearchResultProcessor;
@@ -214,12 +215,16 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   // Default processors
   protected transient SearchBatchResultProcessor defaultSearchBatchProcessor;
   protected transient SearchResultProcessor defaultSearchProcessor;
+  
+  @Reference
+  protected SearchServiceFactory searchServiceFactory;
 
   @Override
   public void init() throws ServletException {
     super.init();
-    defaultSearchBatchProcessor = new NodeSearchBatchResultProcessor();
-    defaultSearchProcessor = new NodeSearchResultProcessor();
+    
+    defaultSearchBatchProcessor = new NodeSearchBatchResultProcessor(searchServiceFactory);
+    defaultSearchProcessor = new NodeSearchResultProcessor(searchServiceFactory);
   }
 
   @Override

@@ -15,9 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.search;
-
-import org.apache.commons.lang.NotImplementedException;
+package org.sakaiproject.nakamura.search;
 
 import java.util.Iterator;
 import java.util.List;
@@ -32,12 +30,15 @@ import javax.jcr.query.RowIterator;
 public class RowIteratorImpl implements RowIterator {
 
   private Iterator<Row> iterator;
+  private long possition;
+  private long size;
 
   /**
    * 
    */
   public RowIteratorImpl(List<Row> rows) {
     this.iterator = rows.iterator();
+    this.size = rows.size();
   }
 
   /**
@@ -46,7 +47,7 @@ public class RowIteratorImpl implements RowIterator {
    * @see javax.jcr.query.RowIterator#nextRow()
    */
   public Row nextRow() {
-    return iterator.next();
+    return (Row) next();
   }
 
   /**
@@ -55,7 +56,7 @@ public class RowIteratorImpl implements RowIterator {
    * @see javax.jcr.RangeIterator#getPosition()
    */
   public long getPosition() {
-    throw new NotImplementedException();
+    return possition;
   }
 
   /**
@@ -64,7 +65,7 @@ public class RowIteratorImpl implements RowIterator {
    * @see javax.jcr.RangeIterator#getSize()
    */
   public long getSize() {
-    throw new NotImplementedException();
+    return size;
   }
 
   /**
@@ -74,8 +75,9 @@ public class RowIteratorImpl implements RowIterator {
    */
   public void skip(long skipNum) {
     while (skipNum > 0) {
-      iterator.next();
+      next();
       skipNum--;
+      possition++;
     }
   }
 
@@ -94,7 +96,9 @@ public class RowIteratorImpl implements RowIterator {
    * @see java.util.Iterator#next()
    */
   public Object next() {
-    return iterator.next();
+    Object o = iterator.next();
+    possition++;
+    return o;
   }
 
   /**

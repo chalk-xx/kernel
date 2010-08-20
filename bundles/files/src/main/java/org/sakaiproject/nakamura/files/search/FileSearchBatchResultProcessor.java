@@ -31,16 +31,16 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
-import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
 import org.sakaiproject.nakamura.api.search.Aggregator;
-import org.sakaiproject.nakamura.api.search.RowIteratorImpl;
-import org.sakaiproject.nakamura.api.search.SakaiSearchRowIterator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.search.RowIteratorImpl;
+import org.sakaiproject.nakamura.search.SakaiSearchRowIterator;
 import org.sakaiproject.nakamura.util.RowUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,11 +74,15 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
   @Reference
   protected transient SiteService siteService;
 
+  @Reference
+  private SearchServiceFactory searchServiceFactory;
+
   /**
    * @param siteService
    */
-  public FileSearchBatchResultProcessor(SiteService siteService) {
+  public FileSearchBatchResultProcessor(SiteService siteService, SearchServiceFactory searchServiceFactory) {
     this.siteService = siteService;
+    this.searchServiceFactory = searchServiceFactory;
   }
 
   public FileSearchBatchResultProcessor() {
@@ -145,7 +149,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       RowIterator newIterator = new RowIteratorImpl(savedRows);
 
       // Return the result set.
-      SearchResultSet srs = new AbstractSearchResultSet(newIterator, hits);
+      SearchResultSet srs = searchServiceFactory.getSearchResultSet(newIterator, hits);
       return srs;
     } catch (RepositoryException e) {
       throw new SearchException(500, "Unable to perform query.");

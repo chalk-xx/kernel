@@ -29,6 +29,7 @@ import org.easymock.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.search.AggregateCount;
+import org.sakaiproject.nakamura.search.SearchServiceFactoryImpl;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.StringWriter;
@@ -77,7 +78,7 @@ public class PagecontentSearchResultProcessorTest extends AbstractEasyMockTest {
     StringWriter stringWriter = new StringWriter();
     JSONWriter write = new JSONWriter(stringWriter);
     
-    PagecontentSearchResultProcessor pagecontentSearchResultProcessor = new PagecontentSearchResultProcessor();
+    PagecontentSearchResultProcessor pagecontentSearchResultProcessor = new PagecontentSearchResultProcessor(new SearchServiceFactoryImpl());
     pagecontentSearchResultProcessor.writeNode(request, write, aggregator, row);
     
     String output = stringWriter.toString();

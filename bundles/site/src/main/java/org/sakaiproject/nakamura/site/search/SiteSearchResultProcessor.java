@@ -29,6 +29,7 @@ import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -51,6 +52,9 @@ public class SiteSearchResultProcessor implements SearchResultProcessor {
 
   @Reference
   private SiteService siteService;
+
+  @Reference
+  private SearchServiceFactory searchServiceFactory;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SiteSearchResultProcessor.class);
@@ -95,7 +99,7 @@ public class SiteSearchResultProcessor implements SearchResultProcessor {
    */
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
       Query query) throws SearchException {
-    return SearchUtil.getSearchResultSet(request, query);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
   protected void bindSiteService(SiteService siteService) {

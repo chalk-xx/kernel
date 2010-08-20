@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.nakamura.search.MergedRowIterator;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import javax.jcr.RepositoryException;

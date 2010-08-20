@@ -34,10 +34,10 @@ import org.apache.sling.commons.testing.jcr.MockValue;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
-import org.sakaiproject.nakamura.api.search.RowIteratorImpl;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.search.RowIteratorImpl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;

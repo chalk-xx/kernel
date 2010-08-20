@@ -23,6 +23,7 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_ITEMS_
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
@@ -31,6 +32,7 @@ import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
@@ -48,6 +50,27 @@ import javax.jcr.query.RowIterator;
 @Service(value = SearchBatchResultProcessor.class)
 public class NodeSearchBatchResultProcessor implements
     SearchBatchResultProcessor {
+
+  @Reference
+  protected SearchServiceFactory searchServiceFactory;
+  
+  /**
+   * The non component constructor
+   * @param searchServiceFactory
+   */
+  public NodeSearchBatchResultProcessor(SearchServiceFactory searchServiceFactory) {
+    if ( searchServiceFactory == null ) {
+      throw new NullPointerException("Search Service Factory Must be set when not using as a component");
+    }
+    this.searchServiceFactory = searchServiceFactory;
+  }
+
+  
+  /**
+   * Component Constructor. 
+   */
+  public NodeSearchBatchResultProcessor() {
+  }
 
   public void writeNodes(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, RowIterator iterator) throws JSONException,
@@ -84,7 +107,7 @@ public class NodeSearchBatchResultProcessor implements
    */
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
       Query query) throws SearchException {
-    return SearchUtil.getSearchResultSet(request, query);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
 }

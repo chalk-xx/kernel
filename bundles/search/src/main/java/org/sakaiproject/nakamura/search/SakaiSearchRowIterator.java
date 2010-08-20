@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.search;
+package org.sakaiproject.nakamura.search;
 
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_EXCLUDE_TREE;
 
@@ -110,6 +110,7 @@ public class SakaiSearchRowIterator implements RowIterator {
     while (skipNum > 0) {
       nextRow();
       skipNum--;
+      position++;
     }
   }
 

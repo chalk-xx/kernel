@@ -39,11 +39,6 @@ public interface SearchResultSet {
    */
   public RowIterator getRowIterator();
 
-  /**
-   * @param rowIterator
-   *          the rowIterator to set
-   */
-  public void setRowIterator(RowIterator rowIterator);
 
   /**
    * @param properties

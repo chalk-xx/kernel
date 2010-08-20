@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.search.processors;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
@@ -28,7 +29,7 @@ import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import javax.jcr.Node;
@@ -48,6 +49,18 @@ import javax.jcr.query.Row;
 @Service(value = SearchResultProcessor.class)
 public class NodeSearchResultProcessor implements SearchResultProcessor {
 
+  @Reference
+  protected SearchServiceFactory searchServiceFactory;
+
+  public NodeSearchResultProcessor(SearchServiceFactory searchServiceFactory) {
+    if ( searchServiceFactory == null ) {
+      throw new NullPointerException("Search Service Factory Must be set when not using as a component");
+    }
+    this.searchServiceFactory = searchServiceFactory;
+  }
+  
+  public NodeSearchResultProcessor() {
+  }
   /**
    * {@inheritDoc}
    * 
@@ -72,6 +85,6 @@ public class NodeSearchResultProcessor implements SearchResultProcessor {
    */
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
       Query query) throws SearchException {
-    return SearchUtil.getSearchResultSet(request, query);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 }

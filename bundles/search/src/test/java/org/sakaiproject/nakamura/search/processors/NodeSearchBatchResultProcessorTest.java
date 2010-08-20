@@ -27,6 +27,7 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.easymock.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.search.AggregateCount;
+import org.sakaiproject.nakamura.search.SearchServiceFactoryImpl;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.StringWriter;
@@ -78,7 +79,7 @@ public class NodeSearchBatchResultProcessorTest extends AbstractEasyMockTest {
     StringWriter stringWriter = new StringWriter();
     JSONWriter write = new JSONWriter(stringWriter);
 
-    NodeSearchBatchResultProcessor nodeSearchBatchResultProcessor = new NodeSearchBatchResultProcessor();
+    NodeSearchBatchResultProcessor nodeSearchBatchResultProcessor = new NodeSearchBatchResultProcessor(new SearchServiceFactoryImpl());
     nodeSearchBatchResultProcessor.writeNodes(request, write, aggregator, iterator);
     
     String output = stringWriter.toString();

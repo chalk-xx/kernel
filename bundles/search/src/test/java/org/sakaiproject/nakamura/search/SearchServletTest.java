@@ -23,7 +23,6 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
@@ -63,6 +62,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
   public void setUp() throws Exception {
     super.setUp();
     searchServlet = new SearchServlet();
+    searchServlet.searchServiceFactory = new SearchServiceFactoryImpl();
     searchServlet.init();
   }
 
@@ -257,7 +257,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
       public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
           Query query) throws SearchException {
-        return new AbstractSearchResultSet(iterator, 0);
+        return new SearchResultSetImpl(iterator, 0);
       }
     };
 
