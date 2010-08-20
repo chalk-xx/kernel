@@ -30,7 +30,11 @@ import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.search.SearchServlet;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -39,7 +43,7 @@ import javax.jcr.query.Row;
 
 /**
  * Formats user profile node search results
- * 
+ *
  */
 
 @Component(immediate = true, label = "NodeSearchResultProcessor", description = "Formatter for user search results.")
@@ -61,9 +65,13 @@ public class NodeSearchResultProcessor implements SearchResultProcessor {
   
   public NodeSearchResultProcessor() {
   }
+  private static final Logger LOG = LoggerFactory.getLogger(NodeSearchResultProcessor.class);
+
+  public static final String INFINITY = "infinity";
+
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#writeNode(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.commons.json.io.JSONWriter,
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.Row)
@@ -75,16 +83,37 @@ public class NodeSearchResultProcessor implements SearchResultProcessor {
       aggregator.add(node);
     }
     ExtendedJSONWriter.writeNodeToWriter(write, node);
+    int maxRecursionLevel = getRecursionLevel(request);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
       Query query) throws SearchException {
     return searchServiceFactory.getSearchResultSet(request, query);
+  }
+
+  private int getRecursionLevel(SlingHttpServletRequest req) {
+    int maxRecursionLevels = 0;
+    final String[] selectors = req.getRequestPathInfo().getSelectors();
+    if (selectors != null && selectors.length > 0) {
+      final String level = selectors[selectors.length - 1];
+      if (!SearchServlet.TIDY.equals(level)) {
+        if (INFINITY.equals(level)) {
+          maxRecursionLevels = -1;
+        } else {
+          try {
+            maxRecursionLevels = Integer.parseInt(level);
+          } catch (NumberFormatException nfe) {
+            LOG.warn("Invalid recursion selector value '" + level + "'; defaulting to 0");
+          }
+        }
+      }
+    }
+    return maxRecursionLevels;
   }
 }
