@@ -43,10 +43,11 @@ class TC_UserManagerTest < Test::Unit::TestCase
     assert_nil(g, "Expected group not to be created")
   end
   
-  def test_invalid_user_create
+  def test_create_email_username
     m = Time.now.to_i.to_s
-    u = @um.create_user("g-testuser"+m)
-    assert_nil(u, "Expected user not to be created")
+    u = create_user("testuser@gmail.com"+m)
+	details = @um.get_user_props(u.name)
+    assert_equal("testuser@gmail.com"+m, details["rep:principalName"], "Expected username to match")
   end
 
 end

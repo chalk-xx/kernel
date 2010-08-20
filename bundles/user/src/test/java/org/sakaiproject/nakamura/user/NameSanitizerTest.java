@@ -40,17 +40,17 @@ public class NameSanitizerTest {
   }
   
   @Test
-  public void testInvalidCharacters() {
-    String name = "g%2Dbob";
+  public void testEmailAsUsername() {
+    String name = "g-man@gmail.com";
     boolean result = testName(name, true);
-    assertEquals(name + " is an incorrect name. This should fail.", false, result);
+    assertEquals(name + " is a correct name. This should pass.", true, result);
   }
   
   @Test
   public void testInvalidCharactersGroup() {
     String name = "g-foo%$*bar";
     boolean result = testName(name, true);
-    assertEquals(name + " is an incorrect name. This should fail.", false, result);
+    assertEquals(name + " is a correct name. This should pass.", true, result);
   }
   
   private boolean testName(String name, boolean isUser) {
