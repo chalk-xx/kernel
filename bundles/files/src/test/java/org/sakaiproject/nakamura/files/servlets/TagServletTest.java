@@ -192,6 +192,8 @@ public class TagServletTest {
     
     when(searchResultSet.getRowIterator()).thenReturn(rowIterator);
     servlet.searchServiceFactory = searchServiceFactory;
+    RowIterator pathIterator = new MockRowIterator(nodes);
+    when(searchServiceFactory.getPathFilteredRowIterator(Mockito.any(RowIterator.class))).thenReturn(pathIterator);
     servlet.doGet(request, response);
     w.flush();
 

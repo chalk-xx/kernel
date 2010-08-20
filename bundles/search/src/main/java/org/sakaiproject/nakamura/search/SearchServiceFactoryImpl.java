@@ -28,9 +28,12 @@ import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 import javax.jcr.RepositoryException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
+import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
 
 @Service(value = SearchServiceFactory.class)
@@ -101,6 +104,10 @@ public class SearchServiceFactoryImpl implements SearchServiceFactory {
    */
   public SearchResultSet getSearchResultSet(RowIterator rowIterator, long size) {
     return new SearchResultSetImpl(rowIterator, size);
+  }
+
+  public RowIterator getRowIteratorFromList(List<Row> savedRows) {
+    return new RowIteratorImpl(savedRows);
   }
 
 

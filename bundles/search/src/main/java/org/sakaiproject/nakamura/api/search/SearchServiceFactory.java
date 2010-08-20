@@ -20,7 +20,10 @@ package org.sakaiproject.nakamura.api.search;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 
+import java.util.List;
+
 import javax.jcr.query.Query;
+import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
 
 public interface SearchServiceFactory {
@@ -61,5 +64,7 @@ public interface SearchServiceFactory {
    */
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
       throws SearchException;
+
+  public RowIterator getRowIteratorFromList(List<Row> savedRows);
 
 }

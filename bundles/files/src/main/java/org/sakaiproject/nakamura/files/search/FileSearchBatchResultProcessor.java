@@ -39,8 +39,6 @@ import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.site.SiteService;
-import org.sakaiproject.nakamura.search.RowIteratorImpl;
-import org.sakaiproject.nakamura.search.SakaiSearchRowIterator;
 import org.sakaiproject.nakamura.util.RowUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +105,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
           SearchConstants.DEFAULT_PAGED_ITEMS);
 
       // Do the paging on the iterator.
-      SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(rs.getRows());
+      RowIterator iterator = searchServiceFactory.getPathFilteredRowIterator(rs.getRows());
       long start = SearchUtil.getPaging(request, hits);
       iterator.skip(start);
 
@@ -146,7 +144,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
         i++;
       }
 
-      RowIterator newIterator = new RowIteratorImpl(savedRows);
+      RowIterator newIterator = searchServiceFactory.getRowIteratorFromList(savedRows);
 
       // Return the result set.
       SearchResultSet srs = searchServiceFactory.getSearchResultSet(newIterator, hits);
