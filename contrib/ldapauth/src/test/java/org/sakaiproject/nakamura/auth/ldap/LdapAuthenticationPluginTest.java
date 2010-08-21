@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.auth.ldap;
 
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
@@ -30,7 +31,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConnection;
@@ -48,12 +48,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
-import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 
 import java.util.HashMap;
 
 import javax.jcr.Credentials;
-import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 import javax.jcr.Value;
 
@@ -80,7 +79,7 @@ public class LdapAuthenticationPluginTest {
   private LDAPSearchResults results;
 
   @Mock
-  private SakaiAuthorizableService sakaiAuthorizableService;
+  private AuthorizablePostProcessService authorizablePostProcessService;
 
   @Mock
   private SlingRepository slingRepository;
@@ -101,7 +100,7 @@ public class LdapAuthenticationPluginTest {
     when(session.getUserManager()).thenReturn(userManager);
 
     ldapAuthenticationPlugin = new LdapAuthenticationPlugin(connMgr,
-        sakaiAuthorizableService, slingRepository);
+        authorizablePostProcessService, slingRepository);
   }
 
   @Test
@@ -390,13 +389,13 @@ public class LdapAuthenticationPluginTest {
     when(entry.getAttribute(isA(String.class))).thenReturn(attr);
 
     User user = mock(User.class);
-    when(sakaiAuthorizableService.createProcessedUser(isA(String.class), isA(String.class), isA(Session.class))).thenReturn(user);
+    when(userManager.createUser(isA(String.class), isA(String.class))).thenReturn(user);
 
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
         .toCharArray())));
 
-    verify(sakaiAuthorizableService).createProcessedUser(eq(USER), isA(String.class), isA(Session.class));
+    verify(userManager).createUser(eq(USER), isA(String.class));
   }
 
   @Test

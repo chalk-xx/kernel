@@ -39,9 +39,10 @@ import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
+import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapUtil;
-import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,7 +97,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   private LdapConnectionManager connMgr;
 
   @Reference
-  private SakaiAuthorizableService sakaiAuthorizableService;
+  private AuthorizablePostProcessService authorizablePostProcessService;
 
   @Reference
   private SlingRepository slingRepository;
@@ -105,10 +106,10 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   }
 
   LdapAuthenticationPlugin(LdapConnectionManager connMgr,
-      SakaiAuthorizableService sakaiAuthorizableService,
+      AuthorizablePostProcessService authorizablePostProcessService,
       SlingRepository slingRepository) {
     this.connMgr = connMgr;
-    this.sakaiAuthorizableService = sakaiAuthorizableService;
+    this.authorizablePostProcessService = authorizablePostProcessService;
     this.slingRepository = slingRepository;
   }
 
@@ -311,7 +312,8 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     Authorizable auth = um.getAuthorizable(userId);
     if (auth == null && createAccount) {
       String password = RandomStringUtils.random(8);
-      auth = sakaiAuthorizableService.createProcessedUser(userId, password, session);
+      auth = um.createUser(userId, password);
+      authorizablePostProcessService.process(auth, session, ModificationType.CREATE);
     }
     return auth;
   }

@@ -29,6 +29,7 @@ import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourc
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.osgi.service.component.ComponentContext;
@@ -43,7 +44,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.NameSanitizer;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
@@ -185,11 +186,11 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
     protected transient EventAdmin eventAdmin;
 
     /**
-     * Used to create the user.
+     * Used to post process authorizable creation request.
      *
      * @scr.reference
      */
-    protected transient SakaiAuthorizableService sakaiAuthorizableService;
+    private transient AuthorizablePostProcessService postProcessorService;
 
     private String adminUserId = null;
 
@@ -346,7 +347,14 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
           if (selfRegSession.hasPendingChanges()) {
             selfRegSession.save();
           }
-          sakaiAuthorizableService.postprocess(user, selfRegSession);
+          try {
+            postProcessorService.process(user, selfRegSession, ModificationType.CREATE,
+                request);
+          } catch (Exception e) {
+            log.warn(e.getMessage(), e);
+            response
+            .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+          }
 
           // Launch an OSGi event for creating a user.
           try {

@@ -68,7 +68,8 @@ public class PagesAuthorizablePostProcessor implements AuthorizablePostProcessor
   public static final String DEFAULT_GROUP_PAGES_TEMPLATE = "default.group.template";
   private String defaultGroupPagesTemplate;
 
-  public void process(Authorizable authorizable, Session session, Modification change) {
+  public void process(Authorizable authorizable, Session session, Modification change,
+      Map<String, Object[]> parameters) throws Exception {
     if (ModificationType.CREATE.equals(change.getType())) {
       String home = PersonalUtils.getHomeFolder(authorizable);
       String pagesPath = home + "/pages";

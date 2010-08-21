@@ -38,6 +38,7 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
+import org.apache.sling.servlets.post.ModificationType;
 import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.jasig.cas.client.authentication.DefaultGatewayResolverImpl;
 import org.jasig.cas.client.authentication.GatewayResolver;
@@ -46,7 +47,7 @@ import org.jasig.cas.client.validation.Assertion;
 import org.jasig.cas.client.validation.Cas20ServiceTicketValidator;
 import org.jasig.cas.client.validation.TicketValidationException;
 import org.sakaiproject.nakamura.api.casauth.CasAuthConstants;
-import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,9 +120,9 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
 
   // TODO Only needed for the automatic user creation.
   @Reference
-  protected transient SlingRepository repository;
+  protected SlingRepository repository;
   @Reference
-  protected transient SakaiAuthorizableService sakaiAuthorizableService;
+  protected AuthorizablePostProcessService authorizablePostProcessService;
 
   /**
    * Define the set of authentication-related query parameters which should
@@ -468,7 +469,8 @@ public final class CasAuthenticationHandler implements AuthenticationHandler, Lo
         UserManager userManager = AccessControlUtil.getUserManager(session);
         Authorizable authorizable = userManager.getAuthorizable(principalName);
         if (authorizable == null) {
-          sakaiAuthorizableService.createProcessedUser(principalName, RandomStringUtils.random(32), session);
+          authorizable = userManager.createUser(principalName, RandomStringUtils.random(32));
+          authorizablePostProcessService.process(authorizable, session, ModificationType.CREATE);
         }
         isUserValid = true;
       } catch (Exception e) {

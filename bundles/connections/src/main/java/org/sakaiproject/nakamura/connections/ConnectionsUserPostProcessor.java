@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
+import java.util.Map;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -63,7 +64,9 @@ public class ConnectionsUserPostProcessor implements AuthorizablePostProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ConnectionsUserPostProcessor.class);
 
-  public void process(Authorizable authorizable, Session session, Modification change) throws Exception {
+
+  public void process(Authorizable authorizable, Session session, Modification change,
+      Map<String, Object[]> parameters) throws Exception {
     if (authorizable != null && !authorizable.isGroup()) {
       PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
       String path = ConnectionUtils.getConnectionPathBase(authorizable);

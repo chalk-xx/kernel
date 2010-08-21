@@ -20,6 +20,8 @@ package org.sakaiproject.nakamura.api.user;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.servlets.post.Modification;
 
+import java.util.Map;
+
 import javax.jcr.Session;
 
 /**
@@ -34,9 +36,11 @@ public interface AuthorizablePostProcessor {
    * @param authorizable
    * @param session
    * @param change describes what sort of change has occurred (or is about to occur)
+   * @param parameters a map of non-persisted optional properties for whatever use
+   *        the processing service sees fit
    * @throws Exception
    */
-  void process(Authorizable authorizable, Session session, Modification change)
+  void process(Authorizable authorizable, Session session, Modification change, Map<String, Object[]> parameters)
       throws Exception;
 
 }

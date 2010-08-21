@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.user.servlet;
 
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGERS;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWERS;
-import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
@@ -30,6 +29,7 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -210,15 +210,13 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
         if (authorizable.isGroup()) {
           updateGroupMembership(request, authorizable, changes);
           updateOwnership(request, (Group)authorizable, new String[0], changes);
-          updateManagersGroup(request, (Group)authorizable, session, changes);
         }
       } catch (RepositoryException re) {
         throw new RepositoryException("Failed to update group.", re);
       }
 
       try {
-        postProcessorService.process(authorizable, session, Modification.onModified(AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
-                + authorizable.getID()));
+        postProcessorService.process(authorizable, session, ModificationType.MODIFY, request);
       } catch (Exception e) {
         LOGGER.warn(e.getMessage(), e);
 

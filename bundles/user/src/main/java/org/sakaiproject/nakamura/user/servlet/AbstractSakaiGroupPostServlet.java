@@ -159,21 +159,6 @@ public abstract class AbstractSakaiGroupPostServlet extends
 
   }
 
-  protected void updateManagersGroup(SlingHttpServletRequest request, Group group,
-      Session session, List<Modification> changes) throws RepositoryException {
-    if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-      UserManager userManager = AccessControlUtil.getUserManager(session);
-      Value values[] = group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
-      String managersGroupId = values[0].getString();
-      Group managersGroup = (Group) userManager.getAuthorizable(managersGroupId);
-      // It is possible to have ":manage" rights to the main Sakai Group without
-      // having access to its managers group.
-      if (managersGroup != null) {
-        updateGroupMembership(request, managersGroup, SlingPostConstants.RP_PREFIX + "sakai:manager", changes);
-      }
-    }
-  }
-
   /**
    * @param request
    *          The request that contains the authorizables.

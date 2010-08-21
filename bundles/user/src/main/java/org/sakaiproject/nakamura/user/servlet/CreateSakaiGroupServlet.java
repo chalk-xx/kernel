@@ -34,6 +34,7 @@ import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourc
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.osgi.service.cm.ConfigurationException;
@@ -48,7 +49,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.NameSanitizer;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
@@ -173,7 +174,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
    *
    * @scr.reference
    */
-  protected transient SakaiAuthorizableService sakaiAuthorizableService;
+  protected transient AuthorizablePostProcessService postProcessorService;
 
   /**
    *
@@ -286,7 +287,11 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                     "A principal already exists with the requested name: "
                         + principalName);
             } else {
-              Group group = sakaiAuthorizableService.createGroup(principalName, session);
+                Group group = userManager.createGroup(new Principal() {
+                  public String getName() {
+                      return principalName;
+                  }
+                });
                 String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
                    + group.getID();
                 Map<String, RequestProperty> reqProperties = collectContent(
@@ -314,9 +319,14 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                 // TODO We should probably let the client decide whether the
                 // current user belongs in the managers list or not.
                 updateOwnership(request, group, new String[] {currentUser.getID()}, changes);
-                updateManagersGroup(request, group, session, changes);
 
-                sakaiAuthorizableService.postprocess(group, session);
+                try {
+                  postProcessorService.process(group, session, ModificationType.CREATE, request);
+                } catch (Exception e) {
+                  LOGGER.warn(e.getMessage(), e);
+                  response
+                     .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+                }
 
                 // Launch an OSGi event for creating a group.
                 try {

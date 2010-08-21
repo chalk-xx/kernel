@@ -14,12 +14,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
+import org.apache.sling.servlets.post.ModificationType;
 import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.jasig.cas.client.validation.Assertion;
 import org.junit.Before;
@@ -27,7 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -66,13 +68,13 @@ public class CasAuthenticationHandlerTest {
   @Mock
   private UserManager userManager;
   @Mock
-  private SakaiAuthorizableService sakaiAuthorizableService;
+  private AuthorizablePostProcessService authorizablePostProcessService;
 
   @Before
   public void setUp() throws RepositoryException {
     casAuthenticationHandler = new CasAuthenticationHandler();
     casAuthenticationHandler.repository = repository;
-    casAuthenticationHandler.sakaiAuthorizableService = sakaiAuthorizableService;
+    casAuthenticationHandler.authorizablePostProcessService = authorizablePostProcessService;
     when(adminSession.getUserManager()).thenReturn(userManager);
     when(adminSession.getValueFactory()).thenReturn(valueFactory);
     when(repository.loginAdministrative(null)).thenReturn(adminSession);
@@ -177,18 +179,19 @@ public class CasAuthenticationHandlerTest {
     AuthenticationInfo authenticationInfo = casAuthenticationHandler.extractCredentials(request, response);
     boolean actionTaken = casAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
     assertFalse(actionTaken);
-    verify(sakaiAuthorizableService, never()).createProcessedUser(anyString(), anyString(), any(Session.class));
+    verify(userManager, never()).createUser(anyString(), anyString());
   }
 
   @Test
-  public void testUnknownUserWithFailedCreation() throws AuthorizableExistsException, RepositoryException {
+  public void testUnknownUserWithFailedCreation() throws Exception {
     setAutocreateUser("true");
-    doThrow(new AuthorizableExistsException("Hey Joe")).when(sakaiAuthorizableService).createProcessedUser(anyString(), anyString(), any(Session.class));
+    doThrow(new AuthorizableExistsException("Hey Joe")).when(userManager).createUser(anyString(), anyString());
     setUpCasCredentials();
     AuthenticationInfo authenticationInfo = casAuthenticationHandler.extractCredentials(request, response);
     boolean actionTaken = casAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
     assertTrue(actionTaken);
-    verify(sakaiAuthorizableService).createProcessedUser(eq("joe"), anyString(), any(Session.class));
+    verify(userManager).createUser(eq("joe"), anyString());
+    verify(authorizablePostProcessService, never()).process(any(Authorizable.class), any(Session.class), any(ModificationType.class));
   }
 
   @Test
@@ -201,13 +204,14 @@ public class CasAuthenticationHandlerTest {
     AuthenticationInfo authenticationInfo = casAuthenticationHandler.extractCredentials(request, response);
     boolean actionTaken = casAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
     assertFalse(actionTaken);
-    verify(sakaiAuthorizableService, never()).createProcessedUser(anyString(), anyString(), any(Session.class));
+    verify(userManager, never()).createUser(anyString(), anyString());
   }
 
   private void setUpPseudoCreateUserService() throws Exception {
     User jcrUser = mock(User.class);
+    when(jcrUser.isGroup()).thenReturn(false);
     when(jcrUser.getID()).thenReturn("joe");
-    when(sakaiAuthorizableService.createProcessedUser(eq("joe"), anyString(), eq(adminSession))).thenReturn(jcrUser);
+    when(userManager.createUser(eq("joe"), anyString())).thenReturn(jcrUser);
   }
 
   @Test
@@ -218,6 +222,7 @@ public class CasAuthenticationHandlerTest {
     AuthenticationInfo authenticationInfo = casAuthenticationHandler.extractCredentials(request, response);
     boolean actionTaken = casAuthenticationHandler.authenticationSucceeded(request, response, authenticationInfo);
     assertFalse(actionTaken);
-    verify(sakaiAuthorizableService).createProcessedUser(eq("joe"), anyString(), any(Session.class));
+    verify(userManager).createUser(eq("joe"), anyString());
+    verify(authorizablePostProcessService).process(any(Authorizable.class), any(Session.class), eq(ModificationType.CREATE));
   }
 }

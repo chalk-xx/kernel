@@ -25,11 +25,10 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceUtil;
-import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -347,14 +346,13 @@ public class SiteAuthz {
         return principalName;
       }
     });
-    
+
     try {
-      postProcessService.process(group, session, Modification.onCreated( AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
-                      + group.getID()));
+      postProcessService.process(group, session, ModificationType.CREATE);
     } catch (Exception e) {
       throw new RepositoryException(e.getMessage(),e);
     }
-    
+
     return group;
   }
 
@@ -389,7 +387,7 @@ public class SiteAuthz {
           // Add site-related properties to the group.
           group.setProperty(GROUP_SITE_PROPERTY, valueFactory.createValue(siteRef));
           group.setProperty(GROUP_ROLE_PROPERTY, valueFactory.createValue(role));
-          
+
           // Make groups joinable
           group.setProperty(GROUP_JOINABLE_PROPERTY, valueFactory.createValue(JOINABLE));
 
@@ -417,13 +415,12 @@ public class SiteAuthz {
         membershipGroup.setProperty(UserConstants.PROP_GROUP_MANAGERS,
             adminPrincipals);
         try {
-          postProcessService.process(membershipGroup,session, Modification.onCreated(AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
-              + membershipGroup.getID()));
+          postProcessService.process(membershipGroup,session, ModificationType.CREATE);
         } catch (Exception e) {
           throw new RepositoryException(e.getMessage(),e);
         }
       }
-            
+
     }
     return roleToGroupMap;
   }
@@ -449,7 +446,7 @@ public class SiteAuthz {
     }
     return isMaintainer;
   }
-  
+
   public boolean isUserPendingApproval() {
     boolean isPending = false;
     Session session;

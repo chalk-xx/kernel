@@ -104,12 +104,11 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   }
 
   /**
-   * @param request
-   * @param changes
-   * @throws Exception
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#process(org.apache.jackrabbit.api.security.user.Authorizable, javax.jcr.Session, org.apache.sling.servlets.post.Modification, java.util.Map)
    */
-  public void process(Authorizable authorizable, Session session, Modification change)
-      throws Exception {
+  public void process(Authorizable authorizable, Session session, Modification change,
+      Map<String, Object[]> parameters) throws Exception {
     if (!ModificationType.DELETE.equals(change.getType())) {
       LOGGER.debug("Processing  {} ", authorizable.getID());
       try {

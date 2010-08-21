@@ -22,8 +22,8 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.post.UpdateUserServlet;
-import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -80,11 +80,11 @@ import javax.servlet.http.HttpServletResponse;
  * <dd>Failure</dd>
  * </dl>
  * <h4>Example</h4>
- * 
+ *
  * <code>
  * curl -Fprop1=value2 -Fproperty1=value1 http://localhost:8080/system/userManager/user/ieb.update.html
  * </code>
- * 
+ *
  *
  *
  * @scr.component metatype="no" immediate="true"
@@ -92,7 +92,7 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.resourceTypes" value="sling/user"
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="update"
- * 
+ *
  */
 @ServiceDocumentation(name="Update User Servlet",
     description="Updates a user's properties. Maps on to nodes of resourceType sling/user " +
@@ -116,7 +116,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code=200,description="Success, a redirect is sent to the user's resource locator with HTML describing status."),
           @ServiceResponse(code=404,description="User was not found."),
           @ServiceResponse(code=500,description="Failure with HTML explanation.")}
-        ))   
+        ))
 
 public class UpdateSakaiUserServlet extends UpdateUserServlet {
 
@@ -135,14 +135,14 @@ public class UpdateSakaiUserServlet extends UpdateUserServlet {
 
   /**
    * Used to launch OSGi events.
-   * 
+   *
    * @scr.reference
    */
   protected transient EventAdmin eventAdmin;
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.jackrabbit.usermanager.post.CreateUserServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
@@ -154,14 +154,14 @@ public class UpdateSakaiUserServlet extends UpdateUserServlet {
     Authorizable authorizable = resource.adaptTo(Authorizable.class);
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
-      postProcessorService.process(authorizable, session, Modification.onModified(AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
-                + authorizable.getID()));
+      postProcessorService.process(authorizable, session, ModificationType.MODIFY,
+          request);
     } catch (Exception e) {
       LOGGER.warn(e.getMessage(), e);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
-    
+
     // Launch an OSGi event for updating a user.
     try {
       Dictionary<String, String> properties = new Hashtable<String, String>();

@@ -1,6 +1,6 @@
 package org.sakaiproject.nakamura.user.servlet;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
@@ -19,11 +19,12 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
@@ -167,11 +168,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     expectLastCall().anyTimes();
 
     expect(userManager.getAuthorizable("g-foo")).andReturn(null);
-
-    SakaiAuthorizableService sakaiAuthorizableService =
-      createMock(SakaiAuthorizableService.class);
-    expect(sakaiAuthorizableService.createGroup(eq("g-foo"), (Session) EasyMock.anyObject())).andReturn(group);
-
+    expect(userManager.createGroup((Principal) EasyMock.anyObject())).andReturn(group);
     expect(group.getID()).andReturn("g-foo").anyTimes();
     expect(group.isGroup()).andReturn(true);
     expect(session.getValueFactory()).andReturn(valueFactory);
@@ -200,7 +197,6 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(user.getID()).andReturn("admin");
     expect(group.hasProperty(UserConstants.PROP_GROUP_MANAGERS)).andReturn(false);
     expect(group.hasProperty(UserConstants.PROP_GROUP_VIEWERS)).andReturn(false);
-    expect(group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)).andReturn(false);
 
     Capture<String> valueCapture = new Capture<String>();
     expect(valueFactory.createValue(capture(valueCapture))).andReturn(value);
@@ -209,7 +205,10 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     group.setProperty(capture(propertyName), capture(valuesCapture));
     expectLastCall();
 
-    sakaiAuthorizableService.postprocess((Authorizable) EasyMock.anyObject(), (Session) EasyMock.anyObject());
+    AuthorizablePostProcessService authorizablePostProcessService = createMock(AuthorizablePostProcessService.class);
+    authorizablePostProcessService.process((Authorizable) EasyMock.anyObject(),
+        (Session) EasyMock.anyObject(), (ModificationType) EasyMock.anyObject(),
+        (SlingHttpServletRequest) EasyMock.anyObject());
     expectLastCall();
 
     List<Modification> changes = new ArrayList<Modification>();
@@ -217,7 +216,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
 
     replay();
 
-    csgs.sakaiAuthorizableService = sakaiAuthorizableService;
+    csgs.postProcessorService = authorizablePostProcessService;
 
     try {
       csgs.handleOperation(request, response, changes);

@@ -33,7 +33,7 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.api.user.AuthorizableEventUtil;
-import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +103,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
   protected EventAdmin eventAdmin;
 
   @Reference
-  protected SakaiAuthorizableService sakaiAuthorizableService;
+  protected AuthorizablePostProcessService authorizablePostProcessService;;
 
   /**
    * List of currently updated bundles.
@@ -178,7 +178,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
 
 
     this.slingId = this.settingsService.getSlingId();
-    this.initialSecurityLoader = new Loader(this, sakaiAuthorizableService);
+    this.initialSecurityLoader = new Loader(this, authorizablePostProcessService);
 
     componentContext.getBundleContext().addBundleListener(this);
     Dictionary<?, ?> props = componentContext.getProperties();

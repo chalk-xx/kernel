@@ -24,6 +24,7 @@ import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.post.DeleteAuthorizableServlet;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -39,8 +40,10 @@ import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -52,7 +55,7 @@ import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Sling Post Operation implementation for deleting one or more users and/or groups from the 
+ * Sling Post Operation implementation for deleting one or more users and/or groups from the
  * jackrabbit UserManager.
 
  * <h2>Rest Service Description</h2>
@@ -82,7 +85,7 @@ import javax.servlet.http.HttpServletResponse;
  * <dd>Failure</dd>
  * </dl>
  * <h4>Example</h4>
- * 
+ *
  * <code>
  * curl -Fgo=1 http://localhost:8080/system/userManager/user/ieb.delete.html
  * </code>
@@ -91,9 +94,9 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" values.0="sling/user" values.1="sling/group" values.2="sling/userManager"
- * @scr.property name="sling.servlet.methods" value="POST" 
- * @scr.property name="sling.servlet.selectors" value="delete" 
- * 
+ * @scr.property name="sling.servlet.methods" value="POST"
+ * @scr.property name="sling.servlet.selectors" value="delete"
+ *
  *
  */
 @ServiceDocumentation(name="Delete Authorizable (Group and User) Servlet",
@@ -117,7 +120,7 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceResponse(code=200,description="Success, a redirect is sent to the group's resource locator with HTML describing status."),
     @ServiceResponse(code=404,description="Group or User was not found."),
     @ServiceResponse(code=500,description="Failure with HTML explanation.")
-        })) 
+        }))
 public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
 
   /**
@@ -128,7 +131,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeleteSakaiAuthorizableServlet.class);
 
-  
+
   /**
    * @scr.reference
    */
@@ -148,7 +151,8 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
       List<Modification> changes) throws RepositoryException {
 
     Iterator<Resource> res = getApplyToResources(request);
-    Map<String, Boolean> authorizables = new HashMap<String, Boolean>();
+    Collection<Authorizable> authorizables = new HashSet<Authorizable>();
+
     if (res == null) {
         Resource resource = request.getResource();
         Authorizable item = resource.adaptTo(Authorizable.class);
@@ -158,35 +162,29 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND, msg);
             throw new ResourceNotFoundException(msg);
         }
-        authorizables.put(item.getID(), item.isGroup());
-        changes.add(Modification.onDeleted(resource.getPath()));
+        authorizables.add(item);
     } else {
         while (res.hasNext()) {
             Resource resource = res.next();
             Authorizable item = resource.adaptTo(Authorizable.class);
             if (item != null) {
-                changes.add(Modification.onDeleted(resource.getPath()));
-                authorizables.put(item.getID(), item.isGroup());
+              authorizables.add(item);
             }
         }
     }
-    int endOfChanges = changes.size();
-
 
     Session session = request.getResourceResolver().adaptTo(Session.class);
+    Map<String, Boolean> authorizableEvents = new HashMap<String, Boolean>();
     try {
-      for ( Modification m : changes) {
-        postProcessorService.process(null, session, m);
+      for ( Authorizable authorizable : authorizables) {
+        authorizableEvents.put(authorizable.getID(), authorizable.isGroup());
+        postProcessorService.process(authorizable, session, ModificationType.DELETE, request);
       }
       // delete the user objects
       super.handleOperation(request, response, changes);
 
-      for( int i = 0; i < endOfChanges; i++ ) {
-        changes.remove(0);
-      }
-
       // Launch an OSGi event for each authorizable.
-      for (Entry<String, Boolean> entry : authorizables.entrySet()) {
+      for (Entry<String, Boolean> entry : authorizableEvents.entrySet()) {
         try {
           Dictionary<String, String> properties = new Hashtable<String, String>();
           properties.put(UserConstants.EVENT_PROP_USERID, entry.getKey());
@@ -200,7 +198,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
           LOGGER.error("Failed to launch an OSGi event for creating a user.", e);
         }
       }
-      
+
     } catch (Exception e) {
       // undo any changes
       LOGGER.warn(e.getMessage(),e);
@@ -209,7 +207,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
       return;
     }
   }
-  
+
 
 
 }

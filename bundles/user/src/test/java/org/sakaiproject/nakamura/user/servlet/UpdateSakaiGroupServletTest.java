@@ -15,6 +15,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.easymock.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
@@ -45,7 +46,6 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(authorizable.getID()).andReturn("g-foo").anyTimes();
     expect(authorizable.hasProperty(UserConstants.PROP_GROUP_MANAGERS)).andReturn(false);
     expect(authorizable.hasProperty(UserConstants.PROP_GROUP_VIEWERS)).andReturn(false);
-    expect(authorizable.hasProperty(UserConstants.PROP_MANAGERS_GROUP)).andReturn(false);
 
     Resource resource = createMock(Resource.class);
     expect(resource.adaptTo(Authorizable.class)).andReturn(authorizable);
@@ -84,7 +84,8 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(request.getParameterValues(":viewer@Delete")).andReturn(new String[] {});
     expect(request.getParameterValues(":viewer")).andReturn(new String[] {});
 
-    authorizablePostProcessService.process((Authorizable)EasyMock.anyObject(),(Session)EasyMock.anyObject(),(Modification)EasyMock.anyObject());
+    authorizablePostProcessService.process((Authorizable)EasyMock.anyObject(),(Session)EasyMock.anyObject(),
+        (ModificationType)EasyMock.anyObject(), (SlingHttpServletRequest)EasyMock.anyObject());
     expectLastCall();
 
     HtmlResponse response = new HtmlResponse();

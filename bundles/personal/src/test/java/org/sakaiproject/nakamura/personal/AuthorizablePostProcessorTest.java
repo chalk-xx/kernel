@@ -40,7 +40,7 @@ public class AuthorizablePostProcessorTest extends AbstractEasyMockTest {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     replay();
     PersonalAuthorizablePostProcessor postProcessor = new PersonalAuthorizablePostProcessor();
-    postProcessor.process(authorizable, session, Modification.onModified("path-to-request-id"));
+    postProcessor.process(authorizable, session, Modification.onModified("path-to-request-id"), null);
     verify();
   }
 }
