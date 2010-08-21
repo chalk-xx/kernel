@@ -1,4 +1,5 @@
 <sakai = 'http://www.sakaiproject.org/nakamura/2.0'>
+<sling = 'http://sling.apache.org/jcr/sling/1.0'>
 <nt  = 'http://www.jcp.org/jcr/nt/1.0'>
 
 // Add a mixin that allows nodes to accept other properties, (eg nt:file)
