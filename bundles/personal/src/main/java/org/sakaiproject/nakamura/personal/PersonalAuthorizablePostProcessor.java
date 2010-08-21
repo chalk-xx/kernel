@@ -110,9 +110,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   public void process(Authorizable authorizable, Session session, Modification change)
       throws Exception {
-    if (ModificationType.DELETE.equals(change.getType())) {
-      deleteHomeNode(session, authorizable);
-    } else {
+    if (!ModificationType.DELETE.equals(change.getType())) {
       LOGGER.debug("Processing  {} ", authorizable.getID());
       try {
         createHomeFolder(session, authorizable, change);
@@ -389,17 +387,6 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     LOGGER.debug("Creating Public  for {} at   {} ", athorizable.getID(), publicPath);
     Node publicNode = JcrUtils.deepGetOrCreateNode(session, publicPath);
     return publicNode;
-  }
-
-  private void deleteHomeNode(Session session, Authorizable athorizable)
-      throws RepositoryException {
-    if (athorizable != null) {
-      String path = PersonalUtils.getHomeFolder(athorizable);
-      if (session.itemExists(path)) {
-        Node node = (Node) session.getItem(path);
-        node.remove();
-      }
-    }
   }
 
   private String nodeTypeForAuthorizable(boolean isGroup) {
