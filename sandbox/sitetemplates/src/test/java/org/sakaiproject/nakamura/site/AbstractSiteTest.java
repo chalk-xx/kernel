@@ -36,9 +36,10 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.RepositoryBase;
 import org.mockito.Mockito;
 import org.osgi.framework.BundleContext;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -207,7 +208,7 @@ public class AbstractSiteTest extends TestCase {
     ValueFactory vf = session.getValueFactory();
     Value firstName = vf.createValue(name);
     Value lastName = vf.createValue(name);
-    String path = PersonalUtils.getProfilePath(au);
+    String path = PathUtils.normalizePath(ProfileConstants.USER_JCR_PATH_PREFIX+PathUtils.getSubPath(au)+"/public/authprofile");
     Node profile = JcrUtils.deepGetOrCreateNode(session, path);
     profile.setProperty("name", name);
     profile.setProperty("firstName", firstName);
