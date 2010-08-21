@@ -275,9 +275,9 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         // If we wouldn't do this, the user could ask for the 1000th page
         // This would result in iterating over (at least) 25.000 lucene indexes and
         // checking if the user has READ access on it.
-        long nitems = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+        long nitems = SearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
             DEFAULT_PAGED_ITEMS);
-        long page = SearchUtil.intRequestParameter(request, PARAMS_PAGE, 0);
+        long page = SearchUtil.longRequestParameter(request, PARAMS_PAGE, 0);
         long offset = page * nitems;
         if (limitResults && offset > maximumResults) {
           response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE,

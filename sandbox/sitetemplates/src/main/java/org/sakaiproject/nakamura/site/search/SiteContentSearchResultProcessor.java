@@ -78,7 +78,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
 
     long toSkip = SearchUtil.getPaging(request, -1);
     iterator.skip(toSkip);
-    long items = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+    long items = SearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
         SearchConstants.DEFAULT_PAGED_ITEMS);
 
     long i = 0;

@@ -61,7 +61,7 @@ public class SearchUtil {
    *          The default value in case the parameter is not found or is not an integer
    * @return The long value.
    */
-  public static long intRequestParameter(SlingHttpServletRequest request,
+  public static long longRequestParameter(SlingHttpServletRequest request,
       String paramName, long defaultVal) {
     RequestParameter param = request.getRequestParameter(paramName);
     if (param != null) {
@@ -84,9 +84,9 @@ public class SearchUtil {
    */
   public static long getPaging(SlingHttpServletRequest request, long total) {
 
-    long nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+    long nitems = longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
         SearchConstants.DEFAULT_PAGED_ITEMS);
-    long offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
+    long offset = longRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
     if (total < 0) {
       total = Long.MAX_VALUE;
@@ -105,7 +105,7 @@ public class SearchUtil {
    *          Look at {@link Query Query}.
    * @return
    */
-  @SuppressWarnings("deprecation")
+  @SuppressWarnings("deprecation") // Suppressed because we need to check depreciated methods just in case.
   public static String escapeString(String value, String queryLanguage) {
     String escaped = null;
     if (value != null) {
@@ -141,4 +141,5 @@ public class SearchUtil {
     }
     return maxRecursionLevels;
   }
+
 }

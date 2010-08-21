@@ -101,7 +101,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
 
       // Extract the total hits from lucene
       long hits = SearchUtil.getHits(rs);
-      long nitems = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+      long nitems = SearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
           SearchConstants.DEFAULT_PAGED_ITEMS);
 
       // Do the paging on the iterator.
