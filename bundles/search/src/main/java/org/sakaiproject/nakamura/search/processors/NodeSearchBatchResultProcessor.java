@@ -53,21 +53,21 @@ public class NodeSearchBatchResultProcessor implements
 
   @Reference
   protected SearchServiceFactory searchServiceFactory;
-  
+
   /**
    * The non component constructor
    * @param searchServiceFactory
    */
   public NodeSearchBatchResultProcessor(SearchServiceFactory searchServiceFactory) {
     if ( searchServiceFactory == null ) {
-      throw new NullPointerException("Search Service Factory Must be set when not using as a component");
+      throw new IllegalArgumentException("Search Service Factory must be set when not using as a component");
     }
     this.searchServiceFactory = searchServiceFactory;
   }
 
-  
+
   /**
-   * Component Constructor. 
+   * Component Constructor.
    */
   public NodeSearchBatchResultProcessor() {
   }
@@ -81,7 +81,7 @@ public class NodeSearchBatchResultProcessor implements
     // TODO Get size from somewhere else.
     long total = iterator.getSize();
     long start = SearchUtil.getPaging(request, total);
-    
+
     long nitems = SearchUtil.intRequestParameter(request,
         PARAMS_ITEMS_PER_PAGE, DEFAULT_PAGED_ITEMS);
 
@@ -101,7 +101,7 @@ public class NodeSearchBatchResultProcessor implements
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */

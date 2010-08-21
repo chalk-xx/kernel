@@ -53,7 +53,7 @@ import org.sakaiproject.nakamura.api.connections.ConnectionOperation;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,8 +64,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.jcr.InvalidItemStateException;
 import javax.jcr.Node;
@@ -93,6 +93,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
   @Reference
   protected transient SlingRepository slingRepository;
+
+  @Reference
+  protected ProfileService profileService;
 
   private static Map<TransitionKey, StatePair> stateMap = new HashMap<TransitionKey, StatePair>();
 
@@ -140,7 +143,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
   /**
    * Check to see if a userId is actually a valid one
-   * 
+   *
    * @param session
    *          the JCR session
    * @param userId
@@ -172,7 +175,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
   /**
    * Get the connection state from a node
-   * 
+   *
    * @param userContactNode
    *          the node to check (should be a user contact node)
    * @return the connection state (may be NONE)
@@ -200,7 +203,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.connections.ConnectionManager#connect(org.apache.sling.api.resource.Resource,
    *      java.lang.String,
    *      org.sakaiproject.nakamura.api.connections.ConnectionConstants.ConnectionOperation,
@@ -326,7 +329,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.connections.ConnectionManager#getConnectedUsers(java.lang.String,
    *      org.sakaiproject.nakamura.api.connections.ConnectionState)
    */
@@ -393,7 +396,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
         node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             ConnectionConstants.SAKAI_CONTACT_RT);
         // Place a reference to the authprofile of the user.
-        Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(toUser));
+        Node profileNode = (Node) session.getItem(profileService.getProfilePath(toUser));
         node.setProperty("jcr:reference", profileNode.getIdentifier(),
             PropertyType.REFERENCE);
       }
@@ -432,7 +435,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
   /**
    * Add property values as individual strings or as string arrays.
-   * 
+   *
    * @param node
    * @param properties
    */

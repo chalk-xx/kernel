@@ -55,12 +55,13 @@ public class NodeSearchResultProcessor implements SearchResultProcessor {
 
   public NodeSearchResultProcessor(SearchServiceFactory searchServiceFactory) {
     if ( searchServiceFactory == null ) {
-      throw new NullPointerException("Search Service Factory Must be set when not using as a component");
+      throw new IllegalArgumentException("Search Service Factory must be set when not using as a component");
     }
     this.searchServiceFactory = searchServiceFactory;
   }
-  
-  private static final Logger LOG = LoggerFactory.getLogger(NodeSearchResultProcessor.class);
+
+  public NodeSearchResultProcessor() {
+  }
 
   public static final String INFINITY = "infinity";
 

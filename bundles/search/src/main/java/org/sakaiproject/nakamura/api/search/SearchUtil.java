@@ -23,7 +23,6 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_PAGE;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.jcr.jackrabbit.server.index.QueryHitsExtractor;
-import org.sakaiproject.nakamura.search.MergedRowIterator;
 import org.sakaiproject.nakamura.search.SakaiSearchRowIterator;
 import org.sakaiproject.nakamura.search.SearchResultSetImpl;
 import org.sakaiproject.nakamura.search.SearchServlet;
@@ -33,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import javax.jcr.RepositoryException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
-import javax.jcr.query.RowIterator;
 
 /**
  *
@@ -66,7 +64,7 @@ public class SearchUtil {
       iterator.skip(start);
 
       // Return the result set.
-      SearchResultSet srs = new AbstractSearchResultSet(iterator, hits);
+      SearchResultSet srs = new SearchResultSetImpl(iterator, hits);
       return srs;
     } catch (RepositoryException e) {
       LOGGER.error("Unable to perform query.", e);

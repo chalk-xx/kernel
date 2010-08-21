@@ -15,6 +15,7 @@ import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import javax.jcr.Node;
@@ -37,7 +38,7 @@ public class PagecontentSearchResultProcessor implements SearchResultProcessor {
 
   @Reference
   protected SearchServiceFactory searchServiceFactory;
-  
+
   public PagecontentSearchResultProcessor(SearchServiceFactory searchServiceFactory) {
     if ( searchServiceFactory == null ) {
       throw new NullPointerException("Search Service Factory Must be set when not using as a component");
@@ -46,7 +47,7 @@ public class PagecontentSearchResultProcessor implements SearchResultProcessor {
     this.searchServiceFactory = searchServiceFactory;
   }
 
-  
+
   public PagecontentSearchResultProcessor() {
   }
 
@@ -58,7 +59,8 @@ public class PagecontentSearchResultProcessor implements SearchResultProcessor {
       String type = parentNode.getProperty(SLING_RESOURCE_TYPE_PROPERTY)
           .getString();
       if (type.equals("sakai/page")) {
-        NodeSearchResultProcessor proc = new NodeSearchResultProcessor(searchServiceFactory;
+        NodeSearchResultProcessor proc = new NodeSearchResultProcessor(
+            searchServiceFactory);
         proc.writeNode(request, write, aggregator, row);
         return;
       }
