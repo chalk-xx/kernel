@@ -43,7 +43,7 @@ public interface SearchConstants {
   public static final String JSON_COUNT = "count";
   
   /**
-   * The maximum number of results to cound before indicating that there are more than this number.
+   * The maximum number of results to count before indicating that there are more than this number.
    */
   public static final String PARAM_MAX_RESULT_SET_COUNT = "maxcount";
 
