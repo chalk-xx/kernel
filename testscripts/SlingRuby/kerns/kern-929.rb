@@ -7,7 +7,7 @@ class TC_Kern929Test < Test::Unit::TestCase
   include SlingTest
 
   def test_import_content_from_json_to_profile
-    m = "1"+Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '')
     userid = "testuser-#{m}"
     hobby = "#{m}-Card Draw Poker"
     lastname = "Doe"

@@ -7,7 +7,7 @@ class TC_Kern993Test < Test::Unit::TestCase
   include SlingTest
 
   def test_profile_set_by_user_creation
-    m = "1"+Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '')
     userid = "testuser-#{m}"
     firstname = "Thurston"
     lastname = "Howell #{m}"
