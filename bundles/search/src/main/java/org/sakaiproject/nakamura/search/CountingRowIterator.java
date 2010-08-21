@@ -21,6 +21,7 @@ package org.sakaiproject.nakamura.search;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
@@ -43,11 +44,17 @@ public class CountingRowIterator implements RowIterator {
   public CountingRowIterator(RowIterator underlyingIterator, int max) {
     this.underlyingIterator = underlyingIterator;
     count = 0;
-    while (count < max && underlyingIterator.hasNext()) {
-      count++;
-      rows.add(underlyingIterator.nextRow());
+    boolean hasMore = true;
+    while (count < max ) {
+      if ( underlyingIterator.hasNext() ) {
+        count++;
+        rows.add(underlyingIterator.nextRow());
+      } else {
+        hasMore = false;
+        break;
+      }
     }
-    if (underlyingIterator.hasNext()) {
+    if ( hasMore ) {
       count *= -1;
     }
     preloadedIterator = new RowIteratorImpl(rows);
@@ -72,7 +79,7 @@ public class CountingRowIterator implements RowIterator {
   public boolean hasNext() {
     if (preloadedIterator.hasNext()) {
       iterator = preloadedIterator;
-    } else if (underlyingIterator.hasNext()) {
+    } else if (count < 0 && underlyingIterator.hasNext()) {
       iterator = underlyingIterator;
     } else {
       iterator = null;
@@ -81,19 +88,29 @@ public class CountingRowIterator implements RowIterator {
   }
 
   public Object next() {
-    hasNext();
+    if ( iterator == null ) {
+      if ( !hasNext()) {
+        throw new NoSuchElementException();
+      }
+    }
     Object o = null;
     if (iterator != null) {
       o = iterator.next();
       position++;
+      iterator = null; // force evaluation of hasNext
     }
     return o;
   }
 
   public void remove() {
-    hasNext();
+    if ( iterator == null ) {
+      if (!hasNext() ) {
+        throw new NoSuchElementException();
+      }
+    }
     if (iterator != null) {
       iterator.remove();
+      iterator = null; // force evaluation of hasNext
     }
   }
 

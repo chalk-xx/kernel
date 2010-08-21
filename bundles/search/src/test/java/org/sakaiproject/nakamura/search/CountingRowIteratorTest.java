@@ -72,7 +72,8 @@ public class CountingRowIteratorTest {
       rows.add(row);
     }
     CountingRowIterator cri = new CountingRowIterator(new RowIteratorImpl(rows), 20);
-    Assert.assertEquals(20, cri.getSize());
+    // without testing if there is another item out there we can only say that we got to the max cound before the sequence ended.
+    Assert.assertEquals(-20, cri.getSize());
     for ( int i = 0; i < 20; i++ ) {
       Assert.assertTrue(cri.hasNext());
       Assert.assertSame(row, cri.next());
