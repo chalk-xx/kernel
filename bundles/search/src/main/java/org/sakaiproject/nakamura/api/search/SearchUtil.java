@@ -23,13 +23,10 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_PAGE;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.jcr.jackrabbit.server.index.QueryHitsExtractor;
-import org.sakaiproject.nakamura.search.SakaiSearchRowIterator;
-import org.sakaiproject.nakamura.search.SearchResultSetImpl;
 import org.sakaiproject.nakamura.search.SearchServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jcr.RepositoryException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
 
@@ -40,38 +37,7 @@ public class SearchUtil {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(SearchUtil.class);
 
-  /**
-   * This method will return a SearchResultSet that contains a paged rowIterator and the
-   * total hit count from Lucene.
-   *
-   * @param request
-   * @param query
-   * @return
-   * @throws SearchException
-   */
-  public static SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      Query query) throws SearchException {
-    try {
-      // Get the query result.
-      QueryResult rs = query.execute();
 
-      // Extract the total hits from lucene
-      long hits = getHits(rs);
-
-      // Do the paging on the iterator.
-      SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(rs.getRows());
-      long start = getPaging(request, hits);
-      iterator.skip(start);
-
-      // Return the result set.
-      SearchResultSet srs = new SearchResultSetImpl(iterator, hits);
-      return srs;
-    } catch (RepositoryException e) {
-      LOGGER.error("Unable to perform query.", e);
-      throw new SearchException(500, "Unable to perform query.");
-    }
-
-  }
 
   /**
    * Get the hits from a Lucene queryResult.
@@ -139,6 +105,7 @@ public class SearchUtil {
    *          Look at {@link Query Query}.
    * @return
    */
+  @SuppressWarnings("deprecation")
   public static String escapeString(String value, String queryLanguage) {
     String escaped = null;
     if (value != null) {
