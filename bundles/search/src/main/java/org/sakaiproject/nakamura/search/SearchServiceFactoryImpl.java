@@ -19,8 +19,10 @@
 package org.sakaiproject.nakamura.search;
 
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
@@ -41,6 +43,9 @@ import javax.jcr.query.RowIterator;
 public class SearchServiceFactoryImpl implements SearchServiceFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SearchServiceFactoryImpl.class);
+  
+  @Property(name = "defaultMaxResults", description="%searchservicefactory.defaultMaxResultsDescription", intValue=100)
+  private int defaultMaxResults = 100; // set to 100 to allow testing
 
   /**
    * Creates a merged Row Iterator from 2 iterators.
@@ -80,14 +85,15 @@ public class SearchServiceFactoryImpl implements SearchServiceFactory {
 
       // Extract the total hits from lucene
       long hits = SearchUtil.getHits(rs);
-
+      int maxResults = (int) SearchUtil.longRequestParameter(request, SearchConstants.PARAM_MAX_RESULT_SET_COUNT, defaultMaxResults);
+      
       // Do the paging on the iterator.
       SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(rs.getRows());
       long start = SearchUtil.getPaging(request, hits);
       iterator.skip(start);
 
       // Return the result set.
-      SearchResultSet srs = new SearchResultSetImpl(iterator, hits);
+      SearchResultSet srs = new SearchResultSetImpl(iterator, hits, maxResults);
       return srs;
     } catch (RepositoryException e) {
       LOGGER.error("Unable to perform query.", e);
@@ -103,7 +109,7 @@ public class SearchServiceFactoryImpl implements SearchServiceFactory {
    * @return
    */
   public SearchResultSet getSearchResultSet(RowIterator rowIterator, long size) {
-    return new SearchResultSetImpl(rowIterator, size);
+    return new SearchResultSetImpl(rowIterator, size, defaultMaxResults);
   }
 
   public RowIterator getRowIteratorFromList(List<Row> savedRows) {

@@ -39,8 +39,8 @@ public class SearchResultSetImpl implements SearchResultSet {
    */
   private ValueMap properties;
 
-  public SearchResultSetImpl(RowIterator rowIterator, long size) {
-    setRowIterator(rowIterator);
+  public SearchResultSetImpl(RowIterator rowIterator, long size, int maxResults) {
+    setRowIterator(rowIterator, maxResults);
     setSize(size);
   }
 
@@ -77,8 +77,8 @@ public class SearchResultSetImpl implements SearchResultSet {
    * This is protected because I only want the creator to be able to set, but extensions
    * can override the storage.
    */
-  protected void setRowIterator(RowIterator rowIterator) {
-    this.rowIterator = rowIterator;
+  protected void setRowIterator(RowIterator rowIterator, int maxResults) {
+    this.rowIterator = new CountingRowIterator(rowIterator, maxResults);
   }
 
   /**
