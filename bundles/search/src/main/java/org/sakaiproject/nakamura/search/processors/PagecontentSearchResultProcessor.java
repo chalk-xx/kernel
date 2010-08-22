@@ -11,6 +11,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.search.Aggregator;
+import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
@@ -30,20 +31,25 @@ import javax.jcr.query.Row;
 @Component(immediate = true, label = "PagecontentSearchResultProcessor", description = "Formatter for pagecontent search results.")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "sakai.search.processor", value = "Pagecontent"),
+    @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "Pagecontent"),
     @Property(name = "sakai.seach.resourcetype", value = "sakai/pagecontent")
-    })
+})
 @Service(value = SearchResultProcessor.class)
 public class PagecontentSearchResultProcessor implements SearchResultProcessor {
+
+  private static final String DEFAULT_SEARCH_PROC_TARGET = "(&(" + SearchConstants.REG_PROCESSOR_NAMES + "=Node))";
+  @Reference(target = DEFAULT_SEARCH_PROC_TARGET)
+  private SearchResultProcessor searchResultProcessor;
 
   @Reference
   protected SearchServiceFactory searchServiceFactory;
 
-  public PagecontentSearchResultProcessor(SearchServiceFactory searchServiceFactory) {
+  PagecontentSearchResultProcessor(SearchServiceFactory searchServiceFactory,
+      SearchResultProcessor searchResultProcessor) {
     if ( searchServiceFactory == null ) {
       throw new NullPointerException("Search Service Factory Must be set when not using as a component");
     }
-
+    this.searchResultProcessor = searchResultProcessor;
     this.searchServiceFactory = searchServiceFactory;
   }
 
@@ -59,9 +65,7 @@ public class PagecontentSearchResultProcessor implements SearchResultProcessor {
       String type = parentNode.getProperty(SLING_RESOURCE_TYPE_PROPERTY)
           .getString();
       if (type.equals("sakai/page")) {
-        NodeSearchResultProcessor proc = new NodeSearchResultProcessor(
-            searchServiceFactory);
-        proc.writeNode(request, write, aggregator, row);
+        searchResultProcessor.writeNode(request, write, aggregator, row);
         return;
       }
     }

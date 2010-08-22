@@ -82,7 +82,9 @@ public class PagecontentSearchResultProcessorTest extends AbstractEasyMockTest {
     StringWriter stringWriter = new StringWriter();
     JSONWriter write = new JSONWriter(stringWriter);
 
-    PagecontentSearchResultProcessor pagecontentSearchResultProcessor = new PagecontentSearchResultProcessor(new SearchServiceFactoryImpl());
+    SearchServiceFactoryImpl fact = new SearchServiceFactoryImpl();
+    NodeSearchResultProcessor proc = new NodeSearchResultProcessor(fact);
+    PagecontentSearchResultProcessor pagecontentSearchResultProcessor = new PagecontentSearchResultProcessor(fact, proc);
     pagecontentSearchResultProcessor.writeNode(request, write, aggregator, row);
 
     String output = stringWriter.toString();

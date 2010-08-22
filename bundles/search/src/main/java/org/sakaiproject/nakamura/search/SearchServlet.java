@@ -76,8 +76,6 @@ import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
-import org.sakaiproject.nakamura.search.processors.NodeSearchBatchResultProcessor;
-import org.sakaiproject.nakamura.search.processors.NodeSearchResultProcessor;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
@@ -214,18 +212,28 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   protected long maximumResults;
 
   // Default processors
-  protected transient SearchBatchResultProcessor defaultSearchBatchProcessor;
-  protected transient SearchResultProcessor defaultSearchProcessor;
-  
+  /**
+   * Reference uses property set on NodeSearchResultProcessor. Other processors can become
+   * the default by setting {@link SearchResultProcessor.DEFAULT_PROCESOR_PROP} to true.
+   */
+  private static final String DEFAULT_BATCH_SEARCH_PROC_TARGET = "(&(" + SearchBatchResultProcessor.DEFAULT_BATCH_PROCESSOR_PROP + "=true))";
+  @Reference(target = DEFAULT_BATCH_SEARCH_PROC_TARGET)
+  protected SearchBatchResultProcessor defaultSearchBatchProcessor;
+
+  /**
+   * Reference uses property set on NodeSearchResultProcessor. Other processors can become
+   * the default by setting {@link SearchResultProcessor.DEFAULT_PROCESOR_PROP} to true.
+   */
+  private static final String DEFAULT_SEARCH_PROC_TARGET = "(&(" + SearchResultProcessor.DEFAULT_PROCESSOR_PROP + "=true))";
+  @Reference(target = DEFAULT_SEARCH_PROC_TARGET)
+  protected SearchResultProcessor defaultSearchProcessor;
+
   @Reference
   protected SearchServiceFactory searchServiceFactory;
 
   @Override
   public void init() throws ServletException {
     super.init();
-    
-    defaultSearchBatchProcessor = new NodeSearchBatchResultProcessor(searchServiceFactory);
-    defaultSearchProcessor = new NodeSearchResultProcessor(searchServiceFactory);
   }
 
   @Override

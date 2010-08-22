@@ -26,6 +26,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.search.Aggregator;
+import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
@@ -46,14 +47,16 @@ import javax.jcr.query.Row;
 @Component(immediate = true, label = "NodeSearchResultProcessor", description = "Formatter for user search results.")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "sakai.search.processor", value = "Node") })
-@Service(value = SearchResultProcessor.class)
+    @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "Node"),
+    @Property(name = SearchResultProcessor.DEFAULT_PROCESSOR_PROP, boolValue = true)
+})
+@Service
 public class NodeSearchResultProcessor implements SearchResultProcessor {
 
   @Reference
-  protected SearchServiceFactory searchServiceFactory;
+  private SearchServiceFactory searchServiceFactory;
 
-  public NodeSearchResultProcessor(SearchServiceFactory searchServiceFactory) {
+  NodeSearchResultProcessor(SearchServiceFactory searchServiceFactory) {
     if ( searchServiceFactory == null ) {
       throw new IllegalArgumentException("Search Service Factory must be set when not using as a component");
     }

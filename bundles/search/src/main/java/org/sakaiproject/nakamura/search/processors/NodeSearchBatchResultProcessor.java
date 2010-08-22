@@ -30,6 +30,7 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
+import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
@@ -46,19 +47,21 @@ import javax.jcr.query.RowIterator;
 @Component(immediate = true, label = "NodeSearchBatchResultProcessor", description = "Formatter for batch search results.")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "sakai.search.batchprocessor", value = "Node") })
+    @Property(name = SearchConstants.REG_BATCH_PROCESSOR_NAMES, value = "Node"),
+    @Property(name = SearchBatchResultProcessor.DEFAULT_BATCH_PROCESSOR_PROP, boolValue = true)
+})
 @Service(value = SearchBatchResultProcessor.class)
 public class NodeSearchBatchResultProcessor implements
     SearchBatchResultProcessor {
 
   @Reference
-  protected SearchServiceFactory searchServiceFactory;
+  private SearchServiceFactory searchServiceFactory;
 
   /**
    * The non component constructor
    * @param searchServiceFactory
    */
-  public NodeSearchBatchResultProcessor(SearchServiceFactory searchServiceFactory) {
+  NodeSearchBatchResultProcessor(SearchServiceFactory searchServiceFactory) {
     if ( searchServiceFactory == null ) {
       throw new IllegalArgumentException("Search Service Factory must be set when not using as a component");
     }

@@ -26,13 +26,15 @@ import javax.jcr.query.Query;
 import javax.jcr.query.RowIterator;
 
 /**
- * 
+ *
  */
 public interface SearchBatchResultProcessor {
 
+  String DEFAULT_BATCH_PROCESSOR_PROP = "sakai.search.processor.batch.default";
+
   /**
    * Process an entire result set for a query.
-   * 
+   *
    * @param request
    *          The request associated with this search.
    * @param write
@@ -52,7 +54,7 @@ public interface SearchBatchResultProcessor {
 
   /**
    * Prepare the resultset
-   * 
+   *
    * @param request
    *          The request that triggered the search.
    * @param query
