@@ -413,7 +413,12 @@ public class FileUtils {
         node = session.getNode(pathOrIdentifier);
       } else {
         // assume we have a UUID and try to resolve
-        node = session.getNodeByIdentifier(pathOrIdentifier);
+        try {
+          node = session.getNodeByIdentifier(pathOrIdentifier);
+        } catch (RepositoryException e) {
+          log.debug("Swallowed exception; i.e. normal operation: {}",
+              e.getLocalizedMessage(), e);
+        }
       }
     } catch (PathNotFoundException e) {
       // Normal execution path - ignore
@@ -425,7 +430,7 @@ public class FileUtils {
     if (node == null) {
       // must not have been a UUID; resolve via poolId
       try {
-        // 
+        //
         final String poolPath = CreateContentPoolServlet.hash(pathOrIdentifier);
         node = session.getNode(poolPath);
       } catch (PathNotFoundException e) {
