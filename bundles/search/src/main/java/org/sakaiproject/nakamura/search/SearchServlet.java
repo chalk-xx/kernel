@@ -168,20 +168,21 @@ import javax.servlet.http.HttpServletResponse;
 }) })
 
 @SlingServlet(extensions={"json"}, methods={"GET"}, resourceTypes={"sakai/search"} )
-@Properties( value={
-    @Property(name="service.description", value={"Perfoms searchs based on the associated node."}),
-    @Property(name="service.vendor", value={"The Sakai Foundation"})
+@Properties(value = {
+    @Property(name = "service.description", value = { "Perfoms searchs based on the associated node." }),
+    @Property(name = "service.vendor", value = { "The Sakai Foundation" }),
+    @Property(name = "maximumResults", longValue = 2500L)
 })
-@References(value={
-    @Reference(name="SearchResultProcessor", referenceInterface=SearchResultProcessor.class,
-        bind="bindSearchResultProcessor", unbind="unbindSearchResultProcessor",
-        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC),
-    @Reference(name="SearchBatchResultProcessor", referenceInterface=SearchBatchResultProcessor.class,
-        bind="bindSearchBatchResultProcessor", unbind="unbindSearchBatchResultProcessor",
-        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC),
-    @Reference(name="SearchPropertyProvider", referenceInterface=SearchPropertyProvider.class,
-        bind="bindSearchPropertyProvider", unbind="unbindSearchPropertyProvider",
-        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC)
+@References(value = {
+    @Reference(name = "SearchResultProcessor", referenceInterface = SearchResultProcessor.class,
+        bind = "bindSearchResultProcessor", unbind = "unbindSearchResultProcessor",
+        cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
+    @Reference(name = "SearchBatchResultProcessor", referenceInterface = SearchBatchResultProcessor.class,
+        bind = "bindSearchBatchResultProcessor", unbind = "unbindSearchBatchResultProcessor",
+        cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
+    @Reference(name = "SearchPropertyProvider", referenceInterface = SearchPropertyProvider.class,
+        bind = "bindSearchPropertyProvider", unbind = "unbindSearchPropertyProvider",
+        cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 })
 public class SearchServlet extends SlingSafeMethodsServlet {
 
@@ -208,7 +209,6 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedBatchReferences = new ArrayList<ServiceReference>();
 
-  @Property(name = "maximumResults", longValue = 2500L)
   protected long maximumResults;
 
   // Default processors
@@ -586,6 +586,15 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       for (String r : toRemove) {
         processors.remove(r);
       }
+
+      // bit of a kludge until I can figure out why felix doesn't wire up the default
+      // processor even though it finds a matching service.
+      boolean defaultProcessor = OsgiUtil.toBoolean(
+          serviceReference.getProperty(SearchResultProcessor.DEFAULT_PROCESSOR_PROP),
+          false);
+      if (defaultProcessor) {
+        defaultSearchProcessor = null;
+      }
     }
   }
 
@@ -604,6 +613,15 @@ public class SearchServlet extends SlingSafeMethodsServlet {
     for (String processorName : processorNames) {
       processors.put(processorName, processor);
     }
+
+    // bit of a kludge until I can figure out why felix doesn't wire up the default
+    // processor even though it finds a matching service.
+    boolean defaultProcessor = OsgiUtil.toBoolean(
+            serviceReference.getProperty(SearchResultProcessor.DEFAULT_PROCESSOR_PROP),
+            false);
+    if (defaultProcessor) {
+      defaultSearchProcessor = processor;
+    }
   }
 
   /**
@@ -621,6 +639,14 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       }
       for (String r : toRemove) {
         processors.remove(r);
+      }
+
+      // bit of a kludge until I can figure out why felix doesn't wire up the default
+      // processor even though it finds a matching service.
+      boolean defaultBatchProcessor = OsgiUtil.toBoolean(serviceReference
+          .getProperty(SearchBatchResultProcessor.DEFAULT_BATCH_PROCESSOR_PROP), false);
+      if (defaultBatchProcessor) {
+        defaultSearchBatchProcessor = null;
       }
     }
   }
@@ -641,6 +667,14 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       for (String processorName : processorNames) {
         batchProcessors.put(processorName, processor);
       }
+    }
+
+    // bit of a kludge until I can figure out why felix doesn't wire up the default
+    // processor even though it finds a matching service.
+    boolean defaultBatchProcessor = OsgiUtil.toBoolean(serviceReference
+        .getProperty(SearchBatchResultProcessor.DEFAULT_BATCH_PROCESSOR_PROP), false);
+    if (defaultBatchProcessor) {
+      defaultSearchBatchProcessor = processor;
     }
   }
 
