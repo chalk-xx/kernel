@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -162,6 +163,20 @@ public class CanModifyServletTest {
     verify(response).setContentType("application/json");
     verify(writer, atLeastOnce()).write(anyString());
     verify(response).setStatus(HttpServletResponse.SC_OK);
+  }
+
+  @Test
+  public void testRuntimeError() throws ServletException, IOException,
+      UnsupportedRepositoryOperationException, RepositoryException {
+    when(node.getPath()).thenThrow(
+        new Error("bogus Throwable to test runtime error handling"));
+    try {
+      servlet.doGet(request, response);
+    } catch (Throwable e) {
+      assertNull("No exception should be thrown", e);
+    }
+    verify(response).sendError(eq(HttpServletResponse.SC_INTERNAL_SERVER_ERROR),
+        anyString());
   }
 
 }
