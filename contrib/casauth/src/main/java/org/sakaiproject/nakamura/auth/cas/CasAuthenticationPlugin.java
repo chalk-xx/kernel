@@ -15,18 +15,23 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.casauth;
+package org.sakaiproject.nakamura.auth.cas;
 
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 
+/**
+ * Authentication plugin used during the JCR authentication cycle. Is returned by
+ * {@link OpenSsoLoginModulePlugin#getAuthentication(java.security.Principal, Credentials) to
+ * be injected into the authentication cycle.
+ */
 public class CasAuthenticationPlugin implements AuthenticationPlugin {
-  private CasAuthenticationHandler casAuthenticationHandler;
+  private CasLoginModulePlugin loginModulePlugin;
 
-  public CasAuthenticationPlugin(CasAuthenticationHandler casAuthenticationHandler) {
-    this.casAuthenticationHandler = casAuthenticationHandler;
+  public CasAuthenticationPlugin(CasLoginModulePlugin loginModulePlugin) {
+    this.loginModulePlugin = loginModulePlugin;
   }
 
   /**
@@ -39,7 +44,7 @@ public class CasAuthenticationPlugin implements AuthenticationPlugin {
    * @see org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin#authenticate(javax.jcr.Credentials)
    */
   public boolean authenticate(Credentials credentials) throws RepositoryException {
-    if (casAuthenticationHandler.canHandle(credentials)) {
+    if (loginModulePlugin.canHandle(credentials)) {
       return true;
     } else {
       return false;
