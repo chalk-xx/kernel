@@ -400,8 +400,8 @@ public class DynamicACLProvider extends ACLProvider {
         Authorizable principal = manager.getAuthorizable(principalName);
         if ( principal == null ) {
           return false;
-        } else if (principal.hasProperty("dynamic")) {
-          Value[] dyn = principal.getProperty("dynamic");
+        } else if (principal.hasProperty(PrincipalProperties.DYNAMIC)) {
+          Value[] dyn = principal.getProperty(PrincipalProperties.DYNAMIC);
           if (dyn != null && dyn.length > 0 && ("true".equals(dyn[0].getString()))) {
             LOG.debug("Found dynamic principal {} ",principalName);
             dynamic = true;
