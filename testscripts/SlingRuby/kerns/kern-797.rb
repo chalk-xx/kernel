@@ -46,6 +46,7 @@ class TC_MyFileTest < Test::Unit::TestCase
     # terse output
     url = "/p/#{poolId}.canModify.json";
     resp = @s.execute_get(@s.url_for(url));
+    assert_equal(200, resp.code.to_i, "Should be OK");
     json = JSON.parse(resp.body)
     # creator canModify own file
     assert_equal(true, json["/p/#{poolId}"])
@@ -54,6 +55,7 @@ class TC_MyFileTest < Test::Unit::TestCase
     # verbose output
     url = "/p/#{poolId}.canModify.json?verbose=true";
     resp = @s.execute_get(@s.url_for(url));
+    assert_equal(200, resp.code.to_i, "Should be OK");
     json = JSON.parse(resp.body)
     # creator canModify own file
     assert_equal(true, json["/p/#{poolId}"])
@@ -65,6 +67,7 @@ class TC_MyFileTest < Test::Unit::TestCase
     # terse output
     url = "/var.canModify.json";
     resp = @s.execute_get(@s.url_for(url));
+    assert_equal(200, resp.code.to_i, "Should be OK");
     json = JSON.parse(resp.body)
     # creator cannot modify /var
     assert_equal(false, json["/var"])
@@ -73,6 +76,7 @@ class TC_MyFileTest < Test::Unit::TestCase
     # verbose output
     url = "/var.canModify.json?verbose=true";
     resp = @s.execute_get(@s.url_for(url));
+    assert_equal(200, resp.code.to_i, "Should be OK");
     json = JSON.parse(resp.body)
     # creator cannot modify /var
     assert_equal(false, json["/var"])
@@ -85,11 +89,18 @@ class TC_MyFileTest < Test::Unit::TestCase
     @s.switch_user(SlingUsers::User.admin_user())
     url = "/.canModify.json?verbose=true";
     resp = @s.execute_get(@s.url_for(url));
+    assert_equal(200, resp.code.to_i, "Should be OK");
     json = JSON.parse(resp.body)
     # admin can modify /
     assert_equal(true, json["/"])
     assert_not_nil(json["privileges"])
     assert_equal(true, json["privileges"]["jcr:all"])
+    
+    # verify 404 not found
+    url = "/p/foo.canModify.json?verbose=true";
+    resp = @s.execute_get(@s.url_for(url));
+    assert_equal(404, resp.code.to_i, "Should be not found");
+    
 
     # cleanup
     @s.switch_user(SlingUsers::User.admin_user())
