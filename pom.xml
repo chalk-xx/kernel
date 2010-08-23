@@ -100,13 +100,13 @@
         <module>contrib/persondirectory</module>
         <module>contrib/casauth</module>
         <module>contrib/ldapauth</module>
+        <module>contrib/openssoauth</module>
         <module>contrib/ldap</module>
         <module>contrib/remotefiles</module>
         <!-- to build oracle you must download and install oracle.jar first  <module>contrib/oracle-jdbc</module> -->
         <module>contrib/sitejoin</module>
         <module>contrib/foreignprincipal</module>
         <module>contrib/rootconfig</module>
-        <module>contrib/ssoauth</module>
        </modules>
     </profile>
     <profile>
