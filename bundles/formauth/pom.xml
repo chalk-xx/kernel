@@ -52,7 +52,7 @@
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.auth.core</artifactId>
-      <version>0.9.0-SNAPSHOT</version>
+      <version>0.9.0-20100823</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>

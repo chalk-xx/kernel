@@ -34,7 +34,7 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.classloader</artifactId>
-            <version>1.1.5-SNAPSHOT</version>
+            <version>1.1.5-20100823</version>
         </bundle>
 
         <!-- Dependencies for Default Start Level -->
@@ -46,17 +46,17 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.auth.core</artifactId>
-            <version>0.9.0-SNAPSHOT</version>
+            <version>0.9.0-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.engine</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.0.7-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.auth.openid</artifactId>
-            <version>0.9.1-SNAPSHOT</version>
+            <version>0.9.1-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -66,22 +66,22 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.servlets.resolver</artifactId>
-            <version>2.0.9-SNAPSHOT</version>
+            <version>2.0.9-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.servlets.post</artifactId>
-            <version>2.0.5-SNAPSHOT</version>
+            <version>2.0.5-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.contentloader</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.0.7-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.resource</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.0.7-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -91,7 +91,7 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.classloader</artifactId>
-            <version>3.1.1-SNAPSHOT</version> <!-- I have a feeling this is needed 20100521 -->
+            <version>3.1.1-20100823</version> <!-- I have a feeling this is needed 20100521 -->
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -101,14 +101,14 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.fsresource</artifactId>
-            <version>1.0.1-SNAPSHOT</version>
+            <version>1.0.1-20100823</version>
         </bundle>
 
         <!-- Launchpad initial content -->
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.launchpad.content</artifactId>
-            <version>2.0.5-SNAPSHOT</version>
+            <version>2.0.5-20100823</version>
         </bundle>
 
         <!-- scripting -->
@@ -120,7 +120,7 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.scripting.core</artifactId>
-            <version>2.0.11-SNAPSHOT</version>
+            <version>2.0.11-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -130,17 +130,17 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.settings</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
+            <version>0.1.0-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.scripting.jsp</artifactId>
-            <version>2.0.9-SNAPSHOT</version>
+            <version>2.0.9-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.scripting.jsp.taglib</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.0.7-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.codehaus.groovy</groupId>
@@ -171,12 +171,12 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.servlets.get</artifactId>
-            <version>2.0.9-SNAPSHOT</version>
+            <version>2.0.9-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.log</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.0.7-20100823</version>
         </bundle>
     </startLevel>
     <startLevel level="5">
@@ -184,7 +184,7 @@
             <!-- to update to  1.0.0 TODO before 0.8 -->
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.extensions.webconsolebranding</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.felix</groupId>
@@ -204,7 +204,7 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.json</artifactId>
-            <version>2.0.5-SNAPSHOT</version>
+            <version>2.0.5-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.felix</groupId>
@@ -219,12 +219,12 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.webconsole</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.extensions.groovy</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0-20100823</version>
         </bundle>
     </startLevel>
 
@@ -260,12 +260,12 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.api</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.0.7-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.base</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.0.7-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.jackrabbit</groupId>
@@ -285,7 +285,7 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.jackrabbit.accessmanager</artifactId>
-            <version>2.0.5-SNAPSHOT</version>
+            <version>2.0.5-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.jackrabbit</groupId>
