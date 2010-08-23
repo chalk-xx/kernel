@@ -13,18 +13,18 @@ class TC_Kern566Test < Test::Unit::TestCase
   
   def test_basiclti
     # We create a test site.
-    m = Time.now.to_i;
+    m = Time.now.to_f.to_s.gsub('.', '');
     @siteid = "testsite#{m}";
     @sitename = "Test Site #{m}";
     creator = create_user("creator-test#{m}");
     user = create_user("user-test#{m}");
-    admin = User.new("admin","admin");
-    @s.switch_user(creator);
-    sitetemplate = "/var/templates/site/systemtemplate";
+    admin = SlingUsers::User.admin_user();
     
+    # create test site
+    @s.switch_user(creator);
     @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{@siteid}",
-      "sakai:site-template" => sitetemplate,
+      "sakai:site-template" => "/var/templates/site/systemtemplate",
       "name" => @sitename,
       "description" => @sitename,
       "id" => @siteid);
@@ -131,7 +131,137 @@ class TC_Kern566Test < Test::Unit::TestCase
     assert_equal(200, launch.code.to_i, "200 Expected on launch.");
     assert_equal(false, launch.body.empty?);
     validateHtml(launch.body);
+    end
+
+  def test_basiclti_virtualTool
+    m = Time.now.to_f.to_s.gsub('.', '');
+    @siteid = "testsite#{m}";
+    @sitename = "Test Site #{m}";
+    creator = create_user("creator-test#{m}");
+    user = create_user("user-test#{m}");
+    admin = SlingUsers::User.admin_user();
+    anonymous = SlingUsers::User.anonymous();
     
+    # verify anonymous user cannot read /var/basiclti
+    @s.switch_user(anonymous);
+    resp = @s.execute_get(@s.url_for("/var.json"));
+    assert_equal(200, resp.code.to_i, "Should be able to read /var.");
+    resp = @s.execute_get(@s.url_for("/var/basiclti.json"));
+    assert_equal(404, resp.code.to_i, "Should NOT be able to read /var/basiclti.");
+    resp = @s.execute_get(@s.url_for("/var/basiclti/sakai.singleuser.json"));
+    assert_equal(404, resp.code.to_i, "Should NOT be able to read /var/basiclti/sakai.singleuser.");
+    resp = @s.execute_get(@s.url_for("/var/basiclti/sakai.singleuser/ltiKeys.json"));
+    assert_equal(404, resp.code.to_i, "Should NOT be able to read /var/basiclti/sakai.singleuser/ltiKeys.json.");
+    
+    # verify normal user cannot read /var/basiclti
+    @s.switch_user(creator);
+    resp = @s.execute_get(@s.url_for("/var.json"));
+    assert_equal(200, resp.code.to_i, "Should be able to read /var.");
+    resp = @s.execute_get(@s.url_for("/var/basiclti.json"));
+    assert_equal(404, resp.code.to_i, "Should NOT be able to read /var/basiclti.");
+    resp = @s.execute_get(@s.url_for("/var/basiclti/sakai.singleuser.json"));
+    assert_equal(404, resp.code.to_i, "Should NOT be able to read /var/basiclti/sakai.singleuser.");
+    resp = @s.execute_get(@s.url_for("/var/basiclti/sakai.singleuser/ltiKeys.json"));
+    assert_equal(404, resp.code.to_i, "Should NOT be able to read /var/basiclti/sakai.singleuser/ltiKeys.json.");
+    
+    # verify admin user can read /var/basiclti
+    @s.switch_user(admin);
+    resp = @s.execute_get(@s.url_for("/var.json"));
+    assert_equal(200, resp.code.to_i, "Admin should be able to read /var.");
+    resp = @s.execute_get(@s.url_for("/var/basiclti.json"));
+    assert_equal(200, resp.code.to_i, "Admin should be able to read /var/basiclti.");
+    resp = @s.execute_get(@s.url_for("/var/basiclti/sakai.singleuser.json"));
+    assert_equal(200, resp.code.to_i, "Admin should be able to read /var/basiclti/sakai.singleuser.");
+    resp = @s.execute_get(@s.url_for("/var/basiclti/sakai.singleuser/ltiKeys.json"));
+    assert_equal(200, resp.code.to_i, "Admin should be able to read /var/basiclti/sakai.singleuser/ltiKeys.json.");
+    
+    # create test site
+    @s.switch_user(creator);
+    @s.execute_post(@s.url_for("/sites.createsite.json"),
+      ":sitepath" => "/#{@siteid}",
+      "sakai:site-template" => "/var/templates/site/systemtemplate",
+      "name" => @sitename,
+      "description" => @sitename,
+      "id" => @siteid);
+      
+    # create a sakai/basiclti VirtualTool node
+    @saveUrl = "/sites/#{@siteid}/_widgets/id#{m}/basiclti";
+    @ltiurl = "http://localhost/imsblti/provider/sakai.singleuser"; # in the policy file
+    @ltikey = "12345"; # in the policy file
+    postData = {
+      "lti_virtual_tool_id" => "sakai.singleuser",
+      ":operation" => "basiclti",
+      "sling:resourceType" => "sakai/basiclti"
+    };
+    resp = @s.execute_post(@s.url_for("#{@saveUrl}"), postData);
+    assert_equal(200, resp.code.to_i, "Expected to be able to create a sakai/basiclti node.");
+    
+    # verify the creator can read all the properties
+    resp = @s.execute_get(@s.url_for("#{@saveUrl}"));
+    assert_equal(200, resp.code.to_i, "Expected to be able to retrieve sakai/basiclti node.");
+    props = JSON.parse(resp.body);
+    assert_equal("sakai/basiclti", props["sling:resourceType"]);
+    assert_equal(false, props.empty?);
+    
+    # expect normal launch from creator
+    launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
+    assert_equal(200, launch.code.to_i, "200 Expected on launch.");
+    assert_equal(false, launch.body.empty?);
+    validateHtml(launch.body);
+    
+    # verify creator cannot access data contained in sensitive node
+    sensitive = @s.execute_get(@s.url_for("#{@saveUrl}/ltiKeys.json"));
+    assert_equal(404, sensitive.code.to_i, "404 Expected on sensitive node.");
+    
+    # switch to regular user
+    @s.switch_user(user);
+    resp = @s.execute_get(@s.url_for("#{@saveUrl}"));
+    assert_equal(200, resp.code.to_i, "Expected to be able to retrieve sakai/basiclti node.");
+    props = JSON.parse(resp.body);
+    assert_equal("sakai/basiclti", props["sling:resourceType"]);
+    assert_equal(false, props.empty?);
+    assert_equal(@ltiurl, props["ltiurl"]);
+    # normal user should not be able to read ltiurl value
+    assert_equal(nil, props["ltikey"]);
+    # normal user should not be able to read ltikey value
+    assert_equal(nil, props["ltisecret"]);
+    assert_equal(false, props["debug"]);
+    assert_equal(true, props["release_names"]);
+    assert_equal(true, props["release_principal_name"]);
+    assert_equal(true, props["release_email"]);
+
+    # expect normal launch from user
+    launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
+    assert_equal(200, launch.code.to_i, "200 Expected on launch.");
+    assert_equal(false, launch.body.empty?);
+    validateHtml(launch.body);
+    
+    # verify user cannot access data contained in sensitive node
+    sensitive = @s.execute_get(@s.url_for("#{@saveUrl}/ltiKeys.json"));
+    assert_equal(404, sensitive.code.to_i, "404 Expected on sensitive node.");
+
+    # switch to admin user
+    @s.switch_user(admin);
+    resp = @s.execute_get(@s.url_for("#{@saveUrl}"));
+    assert_equal(200, resp.code.to_i, "Expected to be able to retrieve sakai/basiclti node.");
+    props = JSON.parse(resp.body);
+    assert_equal("sakai/basiclti", props["sling:resourceType"]);
+    assert_equal(false, props.empty?);
+    assert_equal(@ltiurl, props["ltiurl"]);
+    assert_equal(false, props["debug"]);
+    assert_equal(true, props["release_names"]);
+    assert_equal(true, props["release_principal_name"]);
+    assert_equal(true, props["release_email"]);
+
+    # verify 404 on sensitive node
+    sensitive = @s.execute_get(@s.url_for("#{@saveUrl}/ltiKeys.json"));
+    assert_equal(404, sensitive.code.to_i, "There should be no sensitive node for a virtual tool.");
+
+    # expect normal launch from admin
+    launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
+    assert_equal(200, launch.code.to_i, "200 Expected on launch.");
+    assert_equal(false, launch.body.empty?);
+    validateHtml(launch.body);
   end
   
   def validateHtml(html)
