@@ -38,6 +38,42 @@ class TC_Kern939Test < Test::Unit::TestCase
     assert_equal(json["index.html"]["jcr:primaryType"], "nt:file", "Default home page is not a file")
   end
 
+  def test_override_default_template
+    m = Time.now.to_f.to_s.gsub('.', '')
+    @s.switch_user(User.admin_user())
+    templatepath = "/test/template-#{m}"
+    res = @s.execute_post(@s.url_for(templatepath), {
+      ":operation" => "import",
+      ":contentType" => "json",
+      ":content" => "{nondefaultpage: {pageproperty: pagevalue}, nondefaultproperty: nondefaultvalue}"
+    })
+    # Check some assumptions before proceeding to the real test.
+    assert_equal("201", res.code, "Did not successfully create test template")
+    res = @s.execute_get(@s.url_for("#{templatepath}.2.json"))
+    assert_equal("200", res.code, "New page content is missing")
+    props = JSON.parse(res.body)
+    assert_equal("nondefaultvalue", props["nondefaultproperty"], "Top-level property is missing")
+    assert_equal("pagevalue", props["nondefaultpage"]["pageproperty"], "Sub-page is missing")
+    # And now for the real test...
+    userid = "testuser-#{m}"
+    password = "testuser"
+    res = @s.execute_post(@s.url_for("#{$USER_URI}"), {
+      ":name" => userid,
+      "pwd" => password,
+      "pwdConfirm" => password,
+      ":sakai:pages-template" => templatepath,
+      "_charset_" => "UTF-8"
+    })
+    assert_equal("200", res.code, "Should have created user as admin")
+    user = User.new(userid)
+    @s.switch_user(user)
+    res = @s.execute_get(@s.url_for("#{user.home_path_for(@s)}/pages.2.json"))
+    assert_equal("200", res.code, "New page content is missing")
+    props = JSON.parse(res.body)
+    assert_equal("nondefaultvalue", props["nondefaultproperty"], "Top-level property is missing")
+    assert_equal("pagevalue", props["nondefaultpage"]["pageproperty"], "Sub-page is missing")
+  end
+
   def test_default_user_access
     m = Time.now.to_f.to_s.gsub('.', '')
     @s.switch_user(User.admin_user())

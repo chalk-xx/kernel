@@ -68,24 +68,25 @@ public class PagesAuthorizablePostProcessor implements AuthorizablePostProcessor
   public static final String DEFAULT_GROUP_PAGES_TEMPLATE = "default.group.template";
   private String defaultGroupPagesTemplate;
 
+  /**
+   * Path of the pages under a user or group's home folder.
+   */
+  public static final String PAGES_PATH = "pages";
+
+  /**
+   * Optional parameter containing the path of a Pages source that should be used instead of
+   * the default template.
+   */
+  public static final String PAGES_TEMPLATE_PARAMETER = ":sakai:pages-template";
+
   public void process(Authorizable authorizable, Session session, Modification change,
       Map<String, Object[]> parameters) throws Exception {
     if (ModificationType.CREATE.equals(change.getType())) {
-      String home = PersonalUtils.getHomeFolder(authorizable);
-      String pagesPath = home + "/pages";
+      final String pagesPath = PersonalUtils.getHomeFolder(authorizable) + "/" + PAGES_PATH;
       try {
+        // Do not overwrite existing pages.
         if (!session.nodeExists(pagesPath)) {
-          String templatePath = null;
-          if (authorizable.isGroup()) {
-            // Create the new group's pages.
-            templatePath = defaultGroupPagesTemplate;
-          } else {
-            // Create the new user's pages.
-            templatePath = defaultUserPagesTemplate;
-          }
-          Workspace workspace = session.getWorkspace();
-          workspace.copy(templatePath, pagesPath);
-          LOGGER.info("Copied template from {} to {}", templatePath, pagesPath);
+          intitializeContent(authorizable, session, pagesPath, parameters);
           initializeAccess(authorizable, session, pagesPath);
         }
       } catch (RepositoryException e) {
@@ -111,6 +112,38 @@ public class PagesAuthorizablePostProcessor implements AuthorizablePostProcessor
   private void init(Map<?, ?> properties) {
     defaultUserPagesTemplate = OsgiUtil.toString(properties.get(DEFAULT_USER_PAGES_TEMPLATE), "");
     defaultGroupPagesTemplate = OsgiUtil.toString(properties.get(DEFAULT_GROUP_PAGES_TEMPLATE), "");
+  }
+
+  private void intitializeContent(Authorizable authorizable, Session session,
+      String pagesPath, Map<String, Object[]> parameters) throws RepositoryException {
+    String templatePath = null;
+
+    // Check for an explicit pages template path.
+    Object[] templateParameterValues = parameters.get(PAGES_TEMPLATE_PARAMETER);
+    if (templateParameterValues != null) {
+      if (templateParameterValues instanceof String[] && (templateParameterValues.length == 1)) {
+        String templateParameterValue = (String) templateParameterValues[0];
+        if (templateParameterValue.length() > 0) {
+          templatePath = templateParameterValue;
+        }
+      } else {
+        LOGGER.warn("Unexpected {} value = {}. Using defaults instead.", PAGES_TEMPLATE_PARAMETER, templateParameterValues);
+      }
+    }
+
+    // If no template was specified, use the default.
+    if (templatePath == null) {
+      if (authorizable.isGroup()) {
+        templatePath = defaultGroupPagesTemplate;
+      } else {
+        templatePath = defaultUserPagesTemplate;
+      }
+    }
+
+    // Create pages based on the template.
+    Workspace workspace = session.getWorkspace();
+    workspace.copy(templatePath, pagesPath);
+    LOGGER.info("Copied template pages from {} to {}", templatePath, pagesPath);
   }
 
   private void initializeAccess(Authorizable authorizable, Session session, String pagesPath) throws RepositoryException {
