@@ -20,7 +20,7 @@ Export-Package: org.apache.sling.jcr.jackrabbit.server;uses:="javax.jc
  mmons.iterator";version="2.1.0",org.apache.sling.jcr.jackrabbit.serve
  r.security.dynamic,org.apache.sling.jcr.jackrabbit.server.index
 Ignore-Package: org.apache.jackrabbit.test
-Bundle-ClassPath: .,jackrabbit-core-2.1.0.jar,lucene-core-2.4.1.jar,co
+Bundle-ClassPath: .,jackrabbit-core-2.1.1.jar,lucene-core-2.4.1.jar,co
  ncurrent-1.3.4.jar,commons-dbcp-1.2.2.jar,commons-pool-1.3.jar
 Bundle-Category: sling,jcr,jackrabbit
 Tool: Bnd-0.0.357
@@ -55,7 +55,7 @@ Import-Package: javax.imageio.spi,javax.jcr;version="2.0.0",javax.jcr.
  2.1",org.apache.commons.collections.map;version="3.2.1",org.apache.co
  mmons.io;version="1.4.0",org.apache.commons.io.input;version="1.4.0",
  org.apache.derby.jdbc;resolution:=optional,org.apache.jackrabbit.api;
- version="2.1.0",org.apache.jackrabbit.api.management;version="2.1.0",
+ version="2.1.1",org.apache.jackrabbit.api.management;version="2.1.0",
  org.apache.jackrabbit.api.observation;version="2.1.0",org.apache.jack
  rabbit.api.security;version="2.1.0",org.apache.jackrabbit.api.securit
  y.principal;version="2.1.0",org.apache.jackrabbit.api.security.user;v
