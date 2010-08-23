@@ -32,6 +32,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.Services;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
@@ -82,7 +83,11 @@ import javax.xml.stream.events.XMLEvent;
  * support in the OSGi / Sling environment.
  */
 @Component(metatype = true)
-@Service
+@Services({
+    @Service(value = CasAuthenticationHandler.class),
+    @Service(value = AuthenticationHandler.class),
+    @Service(value = AuthenticationFeedbackHandler.class)
+})
 @Properties(value = {
     @Property(name = Constants.SERVICE_RANKING, intValue = -5),
     @Property(name = AuthenticationHandler.PATH_PROPERTY, value = "/"),
@@ -93,7 +98,6 @@ import javax.xml.stream.events.XMLEvent;
     @Property(name = CasAuthenticationHandler.SERVER_URL, value = CasAuthenticationHandler.DEFAULT_SERVER_URL),
     @Property(name = CasAuthenticationHandler.RENEW, boolValue = CasAuthenticationHandler.DEFAULT_RENEW),
     @Property(name = CasAuthenticationHandler.GATEWAY, boolValue = CasAuthenticationHandler.DEFAULT_GATEWAY)
-
 })
 public class CasAuthenticationHandler implements AuthenticationHandler,
     AuthenticationFeedbackHandler {
@@ -104,19 +108,15 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
       .getLogger(CasAuthenticationHandler.class);
 
   static final String DEFAULT_ARTIFACT_NAME = "ticket";
-  static final boolean DEFAULT_RENEW = false;
-  static final boolean DEFAULT_GATEWAY = false;
-
   static final String DEFAULT_LOGIN_URL = "http://localhost/cas/login";
   static final String DEFAULT_LOGOUT_URL = "http://localhost/cas/logout";
   static final String DEFAULT_SERVER_URL = "http://localhost/cas";
+  static final boolean DEFAULT_RENEW = false;
+  static final boolean DEFAULT_GATEWAY = false;
+  static final boolean DEFAULT_SSO_AUTOCREATE_USER = false;
 
   /** Represents the constant for where the assertion will be located in memory. */
-  static final String AUTOCREATE_USER = "sakai.auth.cas.user.autocreate";
-
   static final String AUTHN_INFO = "org.sakaiproject.nakamura.auth.cas.SsoAuthnInfo";
-  public static final boolean DEFAULT_SSO_AUTOCREATE_USER = false;
-  private boolean autoCreateUser;
 
   // needed for the automatic user creation.
   @Reference
@@ -134,23 +134,26 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
   static final String SERVER_URL = "sakai.auth.cas.url.server";
   private String serverUrl;
 
-  static final String RENEW = "sakai.auth.sso.cas.prop.renew";
+  static final String RENEW = "sakai.auth.cas.prop.renew";
   private boolean renew;
 
-  static final String GATEWAY = "sakai.auth.sso.cas.prop.gateway";
+  static final String GATEWAY = "sakai.auth.cas.prop.gateway";
   private boolean gateway;
+
+  static final String AUTOCREATE_USER = "sakai.auth.cas.user.autocreate";
+  private boolean autoCreateUser;
 
   /**
    * Define the set of authentication-related query parameters which should
    * be removed from the "service" URL sent to the SSO server.
    */
-  Set<String> filteredQueryStrings = new HashSet<String>(
-      Arrays.asList(REQUEST_LOGIN_PARAMETER));
+  Set<String> filteredQueryStrings = new HashSet<String>(Arrays.asList(
+      REQUEST_LOGIN_PARAMETER, DEFAULT_ARTIFACT_NAME));
 
   public CasAuthenticationHandler() {
   }
 
-  protected CasAuthenticationHandler(SlingRepository repository,
+  CasAuthenticationHandler(SlingRepository repository,
       AuthorizablePostProcessService authzPostProcessService) {
     this.repository = repository;
     this.authzPostProcessService = authzPostProcessService;

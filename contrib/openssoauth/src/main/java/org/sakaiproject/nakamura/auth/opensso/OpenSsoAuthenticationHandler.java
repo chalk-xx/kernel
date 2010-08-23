@@ -30,6 +30,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.Services;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
@@ -73,7 +74,11 @@ import javax.servlet.http.HttpServletResponse;
  * support in the OSGi / Sling environment.
  */
 @Component(metatype = true)
-@Service
+@Services({
+    @Service(value = OpenSsoAuthenticationHandler.class),
+    @Service(value = AuthenticationHandler.class),
+    @Service(value = AuthenticationFeedbackHandler.class)
+})
 @Properties(value = {
     @Property(name = Constants.SERVICE_RANKING, intValue = -5),
     @Property(name = AuthenticationHandler.PATH_PROPERTY, value = "/"),
@@ -139,7 +144,7 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
   public OpenSsoAuthenticationHandler() {
   }
 
-  protected OpenSsoAuthenticationHandler(SlingRepository repository,
+  OpenSsoAuthenticationHandler(SlingRepository repository,
       AuthorizablePostProcessService authzPostProcessService) {
     this.repository = repository;
     this.authzPostProcessService = authzPostProcessService;

@@ -62,7 +62,7 @@ public class CasLoginServlet extends SlingAllMethodsServlet {
   public CasLoginServlet() {
   }
 
-  protected CasLoginServlet(CasAuthenticationHandler ssoAuthHandler,
+  CasLoginServlet(CasAuthenticationHandler ssoAuthHandler,
       TrustedTokenService trustedTokenService) {
     this.ssoAuthnHandler = ssoAuthHandler;
     this.trustedTokenService = trustedTokenService;

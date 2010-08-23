@@ -46,7 +46,7 @@ import javax.servlet.http.HttpServletResponse;
  * (including sling.commons.auth's LoginServlet) by setting the
  * sling:authRequestLogin request parameter to "SSO".
  */
-@SlingServlet(paths = { "/system/sling/sso/login" }, methods = { "GET", "POST" })
+@SlingServlet(paths = { "/system/sling/opensso/login" }, methods = { "GET", "POST" })
 public class OpenSsoLoginServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -1894135945816269913L;
   private static final Logger LOGGER = LoggerFactory.getLogger(OpenSsoLoginServlet.class);
@@ -62,7 +62,7 @@ public class OpenSsoLoginServlet extends SlingAllMethodsServlet {
   public OpenSsoLoginServlet() {
   }
 
-  protected OpenSsoLoginServlet(OpenSsoAuthenticationHandler ssoAuthHandler,
+  OpenSsoLoginServlet(OpenSsoAuthenticationHandler ssoAuthHandler,
       TrustedTokenService trustedTokenService) {
     this.ssoAuthnHandler = ssoAuthHandler;
     this.trustedTokenService = trustedTokenService;
