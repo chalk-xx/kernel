@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.nakamura.auth.opensso</artifactId>
   <packaging>bundle</packaging>
   <version>0.8-SNAPSHOT</version>
-  <name>Sakai Nakamura :: SSO Authentication Bundle</name>
+  <name>Sakai Nakamura :: OpenSSO Authentication Bundle</name>
   <description>Provides OpenSSO based authentication support to the request cycle.</description>
   <build>
     <plugins>

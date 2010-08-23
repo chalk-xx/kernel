@@ -30,7 +30,6 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Services;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
@@ -45,7 +44,6 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.framework.Constants;
-import org.sakaiproject.nakamura.api.auth.opensso.SsoAuthConstants;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
@@ -75,15 +73,11 @@ import javax.servlet.http.HttpServletResponse;
  * support in the OSGi / Sling environment.
  */
 @Component(metatype = true)
-@Services({
-    @Service(value = OpenSsoAuthenticationHandler.class),
-    @Service(value = AuthenticationHandler.class),
-    @Service(value = AuthenticationFeedbackHandler.class)
-})
+@Service
 @Properties(value = {
     @Property(name = Constants.SERVICE_RANKING, intValue = -5),
     @Property(name = AuthenticationHandler.PATH_PROPERTY, value = "/"),
-    @Property(name = AuthenticationHandler.TYPE_PROPERTY, value = SsoAuthConstants.SSO_AUTH_TYPE, propertyPrivate = true),
+    @Property(name = AuthenticationHandler.TYPE_PROPERTY, value = OpenSsoAuthenticationHandler.AUTH_TYPE, propertyPrivate = true),
     @Property(name = OpenSsoAuthenticationHandler.SSO_AUTOCREATE_USER, boolValue = OpenSsoAuthenticationHandler.DEFAULT_SSO_AUTOCREATE_USER),
     @Property(name = OpenSsoAuthenticationHandler.LOGIN_URL, value = OpenSsoAuthenticationHandler.DEFAULT_LOGIN_URL),
     @Property(name = OpenSsoAuthenticationHandler.LOGOUT_URL, value = OpenSsoAuthenticationHandler.DEFAULT_LOGOUT_URL),
@@ -92,6 +86,8 @@ import javax.servlet.http.HttpServletResponse;
 })
 public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
     AuthenticationFeedbackHandler {
+
+  public static final String AUTH_TYPE = "SSO";
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(OpenSsoAuthenticationHandler.class);
@@ -317,8 +313,7 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
   //----------- Internal ----------------------------
   private AuthenticationInfo createAuthnInfo(final String username) {
     final SsoPrincipal principal = new SsoPrincipal(username);
-    AuthenticationInfo authnInfo = new AuthenticationInfo(SsoAuthConstants.SSO_AUTH_TYPE,
-        username);
+    AuthenticationInfo authnInfo = new AuthenticationInfo(AUTH_TYPE, username);
     SimpleCredentials credentials = new SimpleCredentials(principal.getName(),
         new char[] {});
     credentials.setAttribute(SsoPrincipal.class.getName(), principal);

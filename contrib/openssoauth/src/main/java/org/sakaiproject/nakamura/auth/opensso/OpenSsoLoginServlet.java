@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.auth.opensso;
 
-import static org.sakaiproject.nakamura.api.auth.opensso.SsoAuthConstants.SSO_LOGIN_PATH;
-
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -48,7 +46,7 @@ import javax.servlet.http.HttpServletResponse;
  * (including sling.commons.auth's LoginServlet) by setting the
  * sling:authRequestLogin request parameter to "SSO".
  */
-@SlingServlet(paths = { SSO_LOGIN_PATH }, methods = { "GET", "POST" })
+@SlingServlet(paths = { "/system/sling/sso/login" }, methods = { "GET", "POST" })
 public class OpenSsoLoginServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -1894135945816269913L;
   private static final Logger LOGGER = LoggerFactory.getLogger(OpenSsoLoginServlet.class);

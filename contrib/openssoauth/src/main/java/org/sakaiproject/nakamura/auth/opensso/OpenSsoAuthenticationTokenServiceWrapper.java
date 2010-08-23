@@ -37,7 +37,7 @@ class OpenSsoAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrappe
    */
   private static TrustedTokenService validate(OpenSsoLoginServlet servlet, TrustedTokenService delegate) {
     if ( !OpenSsoLoginServlet.class.equals(servlet.getClass()) ) {
-      throw new IllegalArgumentException("Invalid use of SsoAuthenticationTonkenService");
+      throw new IllegalArgumentException("Invalid use of OpenSsoAuthenticationTokenService");
     }
     return delegate;
   }

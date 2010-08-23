@@ -33,7 +33,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sakaiproject.nakamura.api.auth.opensso.SsoAuthConstants;
 import org.sakaiproject.nakamura.auth.trusted.TrustedTokenServiceImpl;
 
 import javax.servlet.http.HttpSession;
@@ -83,7 +82,7 @@ public class OpenSsoLoginServletTest {
 
   @Test
   public void redirectWithoutTarget() throws Exception {
-    when(request.getAuthType()).thenReturn(SsoAuthConstants.SSO_AUTH_TYPE);
+    when(request.getAuthType()).thenReturn(OpenSsoAuthenticationHandler.AUTH_TYPE);
 
     ArgumentCaptor<String> redirectCaptor = ArgumentCaptor.forClass(String.class);
 
@@ -99,7 +98,7 @@ public class OpenSsoLoginServletTest {
 
   @Test
   public void redirectWithTarget() throws Exception {
-    when(request.getAuthType()).thenReturn(SsoAuthConstants.SSO_AUTH_TYPE);
+    when(request.getAuthType()).thenReturn(OpenSsoAuthenticationHandler.AUTH_TYPE);
 
     ArgumentCaptor<String> redirectCaptor = ArgumentCaptor.forClass(String.class);
 
@@ -116,7 +115,7 @@ public class OpenSsoLoginServletTest {
 
   @Test
   public void redirectWithTargetEqualsRequestURI() throws Exception {
-    when(request.getAuthType()).thenReturn(SsoAuthConstants.SSO_AUTH_TYPE);
+    when(request.getAuthType()).thenReturn(OpenSsoAuthenticationHandler.AUTH_TYPE);
 
     ArgumentCaptor<String> redirectCaptor = ArgumentCaptor.forClass(String.class);
 
@@ -133,7 +132,7 @@ public class OpenSsoLoginServletTest {
 
   @Test
   public void authAndAddToken() throws Exception {
-    when(request.getAuthType()).thenReturn(SsoAuthConstants.SSO_AUTH_TYPE);
+    when(request.getAuthType()).thenReturn(OpenSsoAuthenticationHandler.AUTH_TYPE);
 
     ArgumentCaptor<String> redirectCaptor = ArgumentCaptor.forClass(String.class);
 
