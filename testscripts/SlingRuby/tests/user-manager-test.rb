@@ -36,12 +36,6 @@ class TC_UserManagerTest < Test::Unit::TestCase
     res = @s.execute_get(@s.url_for(Group.url_for(g.name + ".json")))
     assert_equal("404", res.code, "Expected no group node")
   end
-
-  def test_invalid_group_create
-    m = Time.now.to_i.to_s
-    g = @um.create_group("testgroup"+m)
-    assert_nil(g, "Expected group not to be created")
-  end
   
   def test_create_email_username
     m = Time.now.to_i.to_s
