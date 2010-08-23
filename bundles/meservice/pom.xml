@@ -134,12 +134,12 @@
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.base</artifactId>
-      <version>2.0.7-SNAPSHOT</version>
+      <version>2.0.7-20100823</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.resource</artifactId>
-      <version>2.0.7-SNAPSHOT</version>
+      <version>2.0.7-20100823</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
@@ -153,8 +153,15 @@
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.commons.testing</artifactId>
-      <version>2.0.5-SNAPSHOT</version>
+      <version>2.0.5-20100823</version>
       <scope>test</scope>
+    </dependency>
+    
+    <!--  the following dependencies are only required whne SNAPSHOTs have been captured -->
+    <dependency>
+      <groupId>org.apache.jackrabbit</groupId>
+      <artifactId>jackrabbit-api</artifactId>
+      <version>2.1.1</version>
     </dependency>
   </dependencies>
 </project>
