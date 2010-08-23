@@ -2,7 +2,7 @@
   "sakai:query-language": "xpath",
   "sakai:query-template": "//element(*, sakai:pooled-content)[members/@sakai:managers='{group}' or members/@sakai:viewers='{group}'] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
-  "sakai:batchresultprocessor": "PooledComtemt",
+  "sakai:batchresultprocessor": "PooledComtent",
   "sakai:propertyprovider": "PooledContent",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",
