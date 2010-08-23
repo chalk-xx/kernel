@@ -181,6 +181,7 @@
     </startLevel>
     <startLevel level="5">
         <bundle>
+            <!-- to update to  1.0.0 TODO before 0.8 -->
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.extensions.webconsolebranding</artifactId>
             <version>0.0.1-SNAPSHOT</version>
