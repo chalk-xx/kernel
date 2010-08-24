@@ -90,7 +90,7 @@ public class TrustedLoginModulePluginTest {
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
     dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
-    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS, ";localhost;");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS_ADDR, "127.0.0.1");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
@@ -106,7 +106,8 @@ public class TrustedLoginModulePluginTest {
     JackrabbitSession jackrabbitSession = createMock(JackrabbitSession.class);
     PrincipalManager principalManager = createMock(PrincipalManager.class);
     EasyMock.expect(request.getSession(true)).andReturn(session);
-    
+    EasyMock.expect(request.getRemoteAddr()).andReturn("192.168.0.200"); // not trusted.
+
     
     Principal principal = createMock(Principal.class);
     EasyMock.expect(request.getUserPrincipal()).andReturn(principal);
