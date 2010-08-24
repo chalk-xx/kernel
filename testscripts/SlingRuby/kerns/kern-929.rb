@@ -11,7 +11,6 @@ class TC_Kern929Test < Test::Unit::TestCase
     userid = "testuser-#{m}"
     hobby = "#{m}-Card Draw Poker"
     lastname = "Doe"
-    importprop = "sakai:authprofile_import"
     profilecontent = "{\"basic\": {\"elements\": {\"hobby\":\"#{hobby}\"}}}"
     password = "testuser"
     @s.switch_user(User.admin_user())
@@ -19,7 +18,7 @@ class TC_Kern929Test < Test::Unit::TestCase
       ":name" => userid,
       "pwd" => password,
       "pwdConfirm" => password,
-      importprop => profilecontent,
+      ":sakai:profile-import" => profilecontent,
       "_charset_" => "UTF-8"
     })
     assert_equal("200", res.code, "Should have created user as admin")
@@ -28,7 +27,7 @@ class TC_Kern929Test < Test::Unit::TestCase
 
     res = @s.execute_get(@s.url_for("#{public}/authprofile.json"))
     json = JSON.parse(res.body)
-    assert_nil(json[importprop], "Import directive should not be stored as authprofile property")
+    assert_nil(json[":sakai:profile-import"], "Import directive should not be stored as authprofile property")
 
     res = @s.execute_get(@s.url_for("#{public}/authprofile/basic/elements.json"))
     assert_equal("200", res.code, "Should have imported authprofile contents in postprocessing")
@@ -38,7 +37,7 @@ class TC_Kern929Test < Test::Unit::TestCase
     userpath = User.url_for(userid)
     res = @s.execute_get(@s.url_for("#{userpath}.json"))
     json = JSON.parse(res.body)
-    assert_nil(json[importprop], "Import directive should not be stored as user property")
+    assert_nil(json[":sakai:profile-import"], "Import directive should not be stored as user property")
 
   end
 

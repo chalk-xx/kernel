@@ -17,9 +17,8 @@
  */
 package org.sakaiproject.nakamura.personal;
 
-import static org.sakaiproject.nakamura.api.personal.PersonalConstants.PROFILE_JSON_IMPORT_PROPERTY;
+import static org.sakaiproject.nakamura.api.personal.PersonalConstants.PROFILE_JSON_IMPORT_PARAMETER;
 
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.contentloader.ContentImporter;
 import org.apache.sling.jcr.contentloader.ImportOptions;
 import org.slf4j.Logger;
@@ -27,11 +26,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Map;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
 
 /**
  * Helper class to use a JSON string to initialize the contents of an authprofile
@@ -64,24 +63,22 @@ public class ProfileImporter {
     }
   };
 
-  public static void importFromAuthorizable(Node profileNode, Authorizable authorizable, ContentImporter contentImporter,
+  public static void importFromParameters(Node profileNode, Map<String, Object[]> parameters, ContentImporter contentImporter,
       Session session) {
-    try {
-      if (authorizable.hasProperty(PROFILE_JSON_IMPORT_PROPERTY)) {
-        Value[] values = authorizable.getProperty(PROFILE_JSON_IMPORT_PROPERTY);
-        if (values.length == 1) {
-          String json = values[0].getString();
+    Object[] profileParameterValues = parameters.get(PROFILE_JSON_IMPORT_PARAMETER);
+    if (profileParameterValues != null) {
+      if ((profileParameterValues.length == 1) && (profileParameterValues instanceof String[])) {
+        String json = (String) profileParameterValues[0];
+        try {
           importFromJsonString(profileNode, json, contentImporter, session);
-        } else {
-          LOGGER.warn("Improperly formatted profile import property: {}", values);
+        } catch (RepositoryException e) {
+          LOGGER.error("Unable to import content for profile node " + profileNode, e);
+        } catch (IOException e) {
+          LOGGER.error("Unable to import content for profile node " + profileNode, e);
         }
-        // The property's hackish work is done.
-        authorizable.removeProperty(PROFILE_JSON_IMPORT_PROPERTY);
+      } else {
+        LOGGER.warn("Improperly formatted profile import parameter: {}", profileParameterValues);
       }
-    } catch (RepositoryException e) {
-      LOGGER.error("Unable to import content for profile node " + profileNode, e);
-    } catch (IOException e) {
-      LOGGER.error("Unable to import content for profile node " + profileNode, e);
     }
   }
 
