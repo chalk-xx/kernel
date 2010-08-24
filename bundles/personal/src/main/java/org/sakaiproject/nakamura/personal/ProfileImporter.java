@@ -67,7 +67,7 @@ public class ProfileImporter {
       Session session) {
     Object[] profileParameterValues = parameters.get(PROFILE_JSON_IMPORT_PARAMETER);
     if (profileParameterValues != null) {
-      if ((profileParameterValues.length == 1) && (profileParameterValues instanceof String[])) {
+      if ((profileParameterValues.length == 1) && (profileParameterValues[0] instanceof String)) {
         String json = (String) profileParameterValues[0];
         try {
           importFromJsonString(profileNode, json, contentImporter, session);
