@@ -22,7 +22,6 @@ import junit.framework.Assert;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.auth.Authenticator;
 import org.easymock.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.auth.trusted.TrustedTokenServiceImpl;
@@ -45,42 +44,18 @@ public class FormLoginServletTest {
 
   private List<Object> mocks = new ArrayList<Object>();
 
-
-  
-  @Test
-  public void testDoPostDrop() throws ServletException, IOException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException {
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    SlingHttpServletResponse response = createNiceMock(SlingHttpServletResponse.class);
-    Authenticator authenticator = createNiceMock(Authenticator.class);
-    FormLoginServlet formLoginServlet = new FormLoginServlet();
-    TrustedTokenServiceImpl trustedTokenServiceImpl = new TrustedTokenServiceImpl();
-    formLoginServlet.trustedTokenService = trustedTokenServiceImpl;
-    formLoginServlet.authenticator = authenticator;
-
-    EasyMock.expect(request.getParameter(FormLoginServlet.FORCE_LOGOUT)).andReturn("1");
-    EasyMock.expect(request.getParameter("d")).andReturn("/test");
-    request.setAttribute(Authenticator.LOGIN_RESOURCE, "/test");
-    EasyMock.expectLastCall();
-    authenticator.logout(request, response);
-    EasyMock.expectLastCall();    
-
-    replay();
-    formLoginServlet.doPost(request, response);
-    verify();
-  }
-
   @Test
   public void testDoPostLogin() throws ServletException, IOException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException {
     SlingHttpServletRequest requestIn = EasyMock.createMock(SlingHttpServletRequest.class);
 
-    
+
     FormAuthenticationHandler handler = new FormAuthenticationHandler();
     EasyMock.expect(requestIn.getMethod()).andReturn("POST");
     EasyMock.expect(requestIn.getParameter(FormLoginServlet.TRY_LOGIN)).andReturn("1");
     EasyMock.expect(requestIn.getParameter(FormLoginServlet.USERNAME)).andReturn("ieb").times(2);
     EasyMock.expect(requestIn.getParameter(FormLoginServlet.PASSWORD)).andReturn("pass");
     EasyMock.replay(requestIn);
-    
+
 
     FormLoginServlet formLoginServlet = new FormLoginServlet();
     TrustedTokenServiceImpl trustedTokenServiceImpl = new TrustedTokenServiceImpl();
@@ -93,38 +68,37 @@ public class FormLoginServletTest {
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     Session session = createMock(Session.class);
 
-    
-    EasyMock.expect(request.getParameter(FormLoginServlet.FORCE_LOGOUT)).andReturn(null);
+
     EasyMock.expect(request.getAttribute(FormAuthenticationHandler.FORM_AUTHENTICATION)).andReturn(formAuthentication);
-    
+
     EasyMock.expect(request.getResourceResolver()).andReturn(resourceResolver);
     EasyMock.expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
     EasyMock.expect(session.getUserID()).andReturn("ieb");
-    
-    
+
+
     EasyMock.expect(request.getParameter("d")).andReturn("/test");
     response.sendRedirect("/test");
     EasyMock.expectLastCall();
     replay();
-   
+
     trustedTokenServiceImpl.activateForTesting();
-    
-   
+
+
     formLoginServlet.doPost(request, response);
-    
+
     List<Object[]> calls = trustedTokenServiceImpl.getCalls();
     Assert.assertEquals(1, calls.size());
     Assert.assertEquals("injectToken", calls.get(0)[0]);
     Assert.assertEquals(request, calls.get(0)[1]);
     Assert.assertEquals(response, calls.get(0)[2]);
-    
+
     verify();
   }
 
   @Test
   public void testDoPostLoginAuthFailed() throws ServletException, IOException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException {
 
-    
+
     FormLoginServlet formLoginServlet = new FormLoginServlet();
     TrustedTokenServiceImpl trustedTokenServiceImpl = new TrustedTokenServiceImpl();
     formLoginServlet.trustedTokenService = trustedTokenServiceImpl;
@@ -133,25 +107,24 @@ public class FormLoginServletTest {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
 
-    
-    EasyMock.expect(request.getParameter(FormLoginServlet.FORCE_LOGOUT)).andReturn(null);
+
     EasyMock.expect(request.getAttribute(FormAuthenticationHandler.FORM_AUTHENTICATION)).andReturn(null);
-    
-    
+
+
     response.setContentType("text/plain");
     EasyMock.expectLastCall();
     response.setCharacterEncoding("UTF-8");
     EasyMock.expectLastCall();
     replay();
-   
+
     trustedTokenServiceImpl.activateForTesting();
-    
-   
+
+
     formLoginServlet.doPost(request, response);
-    
+
     List<Object[]> calls = trustedTokenServiceImpl.getCalls();
     Assert.assertEquals(0, calls.size());
-    
+
     verify();
   }
 
@@ -159,14 +132,14 @@ public class FormLoginServletTest {
   public void testDoPostLoginInvalid() throws ServletException, IOException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException {
     SlingHttpServletRequest requestIn = EasyMock.createMock(SlingHttpServletRequest.class);
 
-    
+
     FormAuthenticationHandler handler = new FormAuthenticationHandler();
     EasyMock.expect(requestIn.getMethod()).andReturn("POST");
     EasyMock.expect(requestIn.getParameter(FormLoginServlet.TRY_LOGIN)).andReturn("1");
     EasyMock.expect(requestIn.getParameter(FormLoginServlet.USERNAME)).andReturn("ieb").times(2);
     EasyMock.expect(requestIn.getParameter(FormLoginServlet.PASSWORD)).andReturn("pass");
     EasyMock.replay(requestIn);
-    
+
 
     FormLoginServlet formLoginServlet = new FormLoginServlet();
     TrustedTokenServiceImpl trustedTokenServiceImpl = new TrustedTokenServiceImpl();
@@ -179,27 +152,26 @@ public class FormLoginServletTest {
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     Session session = createMock(Session.class);
 
-    
-    EasyMock.expect(request.getParameter(FormLoginServlet.FORCE_LOGOUT)).andReturn(null);
+
     EasyMock.expect(request.getAttribute(FormAuthenticationHandler.FORM_AUTHENTICATION)).andReturn(formAuthentication);
-    
+
     EasyMock.expect(request.getResourceResolver()).andReturn(resourceResolver);
     EasyMock.expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
     EasyMock.expect(session.getUserID()).andReturn("crossedoversession");
-    
-    
+
+
     response.setStatus(401);
     EasyMock.expectLastCall();
     replay();
-   
+
     trustedTokenServiceImpl.activateForTesting();
-    
-   
+
+
     formLoginServlet.doPost(request, response);
-    
+
     List<Object[]> calls = trustedTokenServiceImpl.getCalls();
     Assert.assertEquals(0, calls.size());
-    
+
     verify();
   }
 
@@ -214,25 +186,19 @@ public class FormLoginServletTest {
     return m;
   }
 
-  private <T> T createNiceMock(Class<T> class1) {
-    T m = EasyMock.createNiceMock(class1);
-    mocks.add(m);
-    return m;
-  }
-
   /**
-   * 
+   *
    */
   private void replay() {
     EasyMock.replay(mocks.toArray());
   }
 
   /**
-   * 
+   *
    */
   private void verify() {
     EasyMock.verify(mocks.toArray());
   }
-  
-  
+
+
 }

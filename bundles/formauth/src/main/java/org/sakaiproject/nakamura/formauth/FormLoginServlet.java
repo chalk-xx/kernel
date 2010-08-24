@@ -48,7 +48,7 @@ import javax.servlet.ServletException;
  * will response with the remote username of the logged in user or "anonymous" if there is
  * no logged in user. On POST, the FormAutenticationHandler will be invoked. see
  * {@link FormAuthenticationHandler} to see the parameters.
- * 
+ *
  */
 
 @ServiceDocumentation(name = "Form Login Servlet", shortDescription = "", description = {
@@ -62,9 +62,8 @@ import javax.servlet.ServletException;
         + "outside the request scope until the user POSTs to this servlet. For anyone reading this documentation in the code, they should look at FormAuthenticatonHandler "
         + "for more informtion on the protocol, but for those reading this documentation online that information is reproduced here." }, bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/sling/formlogin"), methods = {
     @ServiceMethod(name = "GET", description = "Simply respond with the ID of the current user."),
-    @ServiceMethod(name = "POST", description = "Performs the login or logout operations usign form data If sakai:login is set a username and password are required, which, "
+    @ServiceMethod(name = "POST", description = "Performs the login operation using form data If sakai:login is set a username and password are required, which, "
         + "for a sucessfull login must be valid JCR session credentials", parameters = {
-        @ServiceParameter(name = "sakaiauth:logout", description = "Perform a logout operation removing all state related to the user"),
         @ServiceParameter(name = "sakaiauth:login", description = "Perform a login operartion based on the username and password supplied."),
         @ServiceParameter(name = "sakaiauth:un", description = "The Username for the login attempt"),
         @ServiceParameter(name = "sakaiauth:pw", description = "The Password for the login attempt") }, response = {
@@ -88,7 +87,6 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
    */
   private static final long serialVersionUID = -6303432993222973296L;
   private static final String PARAM_DESTINATION = "d";
-  public static final String FORCE_LOGOUT = "sakaiauth:logout";
   public static final String TRY_LOGIN = "sakaiauth:login";
   public static final String USERNAME = "sakaiauth:un";
   public static final String PASSWORD = "sakaiauth:pw";
@@ -97,7 +95,7 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -112,7 +110,7 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -120,67 +118,44 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     try {
-      if ("1".equals(request.getParameter(FORCE_LOGOUT))) {
-        LOGGER.debug("logout");
-        
-        // TODO This closely mimics Sling's LogoutServlet. Once all clients switch their
-        // logout links to "/system/sling/logout", we can remove this code.
-        final Authenticator authenticator = this.authenticator;
-        if (authenticator != null) {
-            try {
-                final String resourcePath = request.getParameter(PARAM_DESTINATION);
-                if (resourcePath != null) {
-                  request.setAttribute(Authenticator.LOGIN_RESOURCE, resourcePath);
-                }
-                authenticator.logout(request, response);
-                return;
-            } catch (IllegalStateException ise) {
-              LOGGER.error("service: Response already committed, cannot logout");
-              return;
-            }
-        }
-        LOGGER.error("service: Authenticator service missing, cannot logout");
-      } else {
+      // was the request just authenticated ?
+      // If the Formauthentication object got to this point, a session was created and
+      // logged in, therefore the
+      // username and password have been checked by logging into the JCR. We can safely
+      // capture the FormAuthentication
+      // object in session. (or we could use the secure token at this point to avoid
+      // session usage.)
+      FormAuthentication authenticaton = (FormAuthentication) request
+      .getAttribute(FormAuthenticationHandler.FORM_AUTHENTICATION);
+      if (authenticaton != null) {
+        if (authenticaton.isValid()) {
 
-        // was the request just authenticated ?
-        // If the Formauthentication object got to this point, a session was created and
-        // logged in, therefore the
-        // username and password have been checked by logging into the JCR. We can safely
-        // capture the FormAuthentication
-        // object in session. (or we could use the secure token at this point to avoid
-        // session usage.)
-        FormAuthentication authenticaton = (FormAuthentication) request
-            .getAttribute(FormAuthenticationHandler.FORM_AUTHENTICATION);
-        if (authenticaton != null) {
-          if (authenticaton.isValid()) {
-
-            // the request has now been authenticated, hence its valid.
-            // just check that session userID is the same as the login user ID.
-            Session session = request.getResourceResolver().adaptTo(Session.class);
-            String userId = session.getUserID();
-            String authUser = authenticaton.getUserId();
-            if (userId.equals(authUser)) {
-              FormAuthenticationTokenServiceWrapper formAuthenticationTokenService = new FormAuthenticationTokenServiceWrapper(
-                  this, trustedTokenService);
-              formAuthenticationTokenService.addToken(request, response);
-            } else {
-              LOGGER.warn("Authentication failed for {} session user was {}", authUser, userId);
-              response.setStatus(401);
-              return;
-            }
-          }
-
-          String destination = request.getParameter(PARAM_DESTINATION);
-
-          if (destination != null) {
-            // ensure that the redirect is safe and not susceptible to hacking
-            response.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
+          // the request has now been authenticated, hence its valid.
+          // just check that session userID is the same as the login user ID.
+          Session session = request.getResourceResolver().adaptTo(Session.class);
+          String userId = session.getUserID();
+          String authUser = authenticaton.getUserId();
+          if (userId.equals(authUser)) {
+            FormAuthenticationTokenServiceWrapper formAuthenticationTokenService = new FormAuthenticationTokenServiceWrapper(
+                this, trustedTokenService);
+            formAuthenticationTokenService.addToken(request, response);
+          } else {
+            LOGGER.warn("Authentication failed for {} session user was {}", authUser, userId);
+            response.setStatus(401);
             return;
           }
-
-        } else {
-          LOGGER.debug("No Authentication Provided ");
         }
+
+        String destination = request.getParameter(PARAM_DESTINATION);
+
+        if (destination != null) {
+          // ensure that the redirect is safe and not susceptible to hacking
+          response.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
+          return;
+        }
+
+      } else {
+        LOGGER.debug("No Authentication Provided ");
       }
       doGet(request, response);
       return;
