@@ -255,13 +255,16 @@ module SlingUsers
       return create_user("testuser#{@date}-#{id}")
     end
 
-    def create_user(username)
+    def create_user(username, firstname = nil, lastname = nil)
       @log.info "Creating user: #{username}"
       user = User.new(username)
-      result = @sling.execute_post(@sling.url_for("#{$USER_URI}"),
-                            { ":name" => user.name,
-                              "pwd" => user.password,
-                              "pwdConfirm" => user.password })
+      data = { ":name" => user.name,
+              "pwd" => user.password,
+              "pwdConfirm" => user.password }
+      if (!firstname.nil? and !lastname.nil?)
+        data[":sakai:profile-import"] = "{'basic': {'access': 'everybody', 'elements': {'email': {'value': '#{username}@sakai.invalid'}, 'firstName': {'value': '#{firstname}'}, 'lastName': {'value': '#{lastname}'}}}}"
+      end
+      result = @sling.execute_post(@sling.url_for("#{$USER_URI}"), data)
       if (result.code.to_i > 299)
         @log.info "Error creating user"
         return nil

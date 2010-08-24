@@ -32,17 +32,8 @@ public class NameSanitizer {
   public void validate() throws RepositoryException {
     String name = this.name;
 
-    // Group names HAVE to start with a g-
-    if (isGroup() && !name.startsWith("g-")) {
-      throw new RepositoryException("Group names must begin with 'g-'");
-    }
-
-    if (isGroup() && name.startsWith("g-")) {
-      name = name.substring(2);
-    }
-
     // At least 3 chars.
-    if (name.length() < 3) {
+    if (isUser() && name.length() < 3) {
       throw new RepositoryException("Name must be bigger than 3 chars.");
     }
 

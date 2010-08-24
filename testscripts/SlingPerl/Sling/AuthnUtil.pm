@@ -102,8 +102,7 @@ the system via a form based mechanism.
 sub form_logout_setup {
     my ( $baseURL ) = @_;
     die "No base url defined!" unless defined $baseURL;
-    my $postVariables = "\$postVariables = ['sakaiauth:logout','1']";
-    return "post $baseURL/system/sling/formlogin $postVariables";
+    return "get $baseURL/system/sling/logout";
 }
 #}}}
 

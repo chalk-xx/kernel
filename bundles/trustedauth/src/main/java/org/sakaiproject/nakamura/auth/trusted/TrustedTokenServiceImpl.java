@@ -44,7 +44,9 @@ import java.security.Principal;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
@@ -94,17 +96,39 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   public static final String SERVER_TOKEN_ENABLED = "sakai.auth.trusted.server.enabled";
 
   /** A list of all the known safe hosts to trust as servers */
-  @Property(value ="localhost;127.0.0.1", description="A ; seperated list of hosts that this instance trusts to make server connections.")
-  public static final String SERVER_TOKEN_SAFE_HOSTS = "sakai.auth.trusted.server.safe-hosts";
+  @Property(value ="127.0.0.1", description="A ; seperated list of hosts IP addresses that this instance trusts to make direct server to server connections. For Hosts that should be trusted for header or request parameter information see ")
+  public static final String SERVER_TOKEN_SAFE_HOSTS_ADDR = "sakai.auth.trusted.server.safe-hostsaddress";
 
-  private static final String DEFAULT_WRAPPERS = "org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.auth.sso.SsoAuthenticationTokenServiceWrapper";
+  private static final String DEFAULT_WRAPPERS = "org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.auth.opensso.OpenSsoAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.auth.cas.CasAuthenticationTokenServiceWrapper";
   @Property(value = DEFAULT_WRAPPERS, description="A ; seperated list of fully qualified class names that are allowed to extend the Wrapper Class.")
   public static final String SERVER_TOKEN_SAFE_WRAPPERS = "sakai.auth.trusted.wrapper.class.names";
 
-  @Property
-  static final String TRUSTED_HEADER_NAME = "sakai.auth.trusted.header";
+  @Property(value="", description="The name of the header to trust, if not set or empty then headers are not trusted, by default headers are not trusted.")
+  public static final String TRUSTED_HEADER_NAME = "sakai.auth.trusted.header";
+
+  @Property(value="", description="The name of the request parameter to trust, if not set or empty then request parameters are not trusted. By default request parameters are not trusted.")
+  public static final String TRUSTED_PARAMETER_NAME = "sakai.auth.trusted.request-parameter";
+
+  /** A list of all the known safe hosts to trust for authentication purposes, ie front end proxies */
+  @Property(value ="", description="A ; seperated list of hosts IP addresses that this instance trusts to provide headers or request parameters that can be trusted for authentication. This MUST be set for header or request parameter trusted authentication, should only be used where the getRemoteAddr is listed as the proxy server. If uing AJP DO NOT set this parameter.")
+  public static final String TRUSTED_PROXY_SERVER_ADDR = "sakai.auth.trusted.server.safe-authentication-addresses";
+
+  /**
+   * the name of the header to be trusted, if null or "" then don't trust headers. 
+   */
   private String trustedHeaderName;
 
+  /**
+   * the name of the parameter to be trusted, if null or "" then don't trust request parameters. 
+   */
+  private String trustedParameterName;
+
+  /**
+   * set of trusted IP address to use as proxies.
+   */
+  private Set<String> trustedProxyServerAddrSet = new HashSet<String>(5);
+
+  
   /**
    * If True, sessions will be used, if false cookies.
    */
@@ -159,8 +183,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   private String sharedSecret;
 
   private boolean trustedTokenEnabled;
-
-  private String safeHosts;
+  
+  private Set<String> safeHostAddrSet = new HashSet<String>(16); // 16 way cluster is about as big as we will get.
 
   private String[] safeWrappers;
 
@@ -186,7 +210,21 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     trustedAuthCookieName = (String) props.get(COOKIE_NAME);
     sharedSecret = (String) props.get(SERVER_TOKEN_SHARED_SECRET);
     trustedTokenEnabled = (Boolean) props.get(SERVER_TOKEN_ENABLED);
-    safeHosts = (String) props.get(SERVER_TOKEN_SAFE_HOSTS);
+    
+    String safeHostsAddr = OsgiUtil.toString(props.get(SERVER_TOKEN_SAFE_HOSTS_ADDR), "");
+    safeHostAddrSet.clear();
+    if ( safeHostsAddr != null) {
+      for ( String address : StringUtils.split(safeHostsAddr,';')) {
+        safeHostAddrSet.add(address);
+      }
+    }
+    String trustedProxyServerAddr = OsgiUtil.toString(props.get(TRUSTED_PROXY_SERVER_ADDR), "");
+    trustedProxyServerAddrSet.clear();
+    if ( trustedProxyServerAddr != null) {
+      for ( String address : StringUtils.split(trustedProxyServerAddr,';')) {
+        trustedProxyServerAddrSet.add(address);
+      }
+    }
     String wrappers = (String)props.get(SERVER_TOKEN_SAFE_WRAPPERS);
     if ( wrappers == null || wrappers.length() == 0 ) {
       wrappers = DEFAULT_WRAPPERS;
@@ -198,6 +236,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     tokenStore.doInit(cacheManager, tokenFile, serverId, ttl);
 
     trustedHeaderName = OsgiUtil.toString(props.get(TRUSTED_HEADER_NAME), "");
+    trustedParameterName = OsgiUtil.toString(props.get(TRUSTED_PARAMETER_NAME), "");
   }
 
   public void activateForTesting() {
@@ -229,8 +268,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     String sakaiTrustedHeader = req.getHeader("x-sakai-token");
     if (trustedTokenEnabled && sakaiTrustedHeader != null
         && sakaiTrustedHeader.trim().length() > 0) {
-      String host = req.getRemoteHost();
-      if (safeHosts.indexOf(host) < 0) {
+      String host = req.getRemoteAddr();
+      if (!safeHostAddrSet.contains(host)) {
         LOG.warn("Ignoring Trusted Token request from {} ", host);
       } else {
         // we have a HMAC based token, we should see if it is valid against the key we
@@ -346,11 +385,34 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       return;
     }
     String userId = null;
-    Principal p = request.getUserPrincipal();
-    if (p != null) {
-      userId = p.getName();
-      if ( userId != null ) {
-        LOG.info("Injecting Trusted Token from request: User Principal indicated user was [{}] ", userId);
+    String remoteAddress = request.getRemoteAddr();
+    if (trustedProxyServerAddrSet.contains(remoteAddress)) {
+      if (trustedHeaderName.length() > 0) {
+        userId = request.getHeader(trustedHeaderName);
+        if (userId != null) {
+          LOG.info(
+              "Injecting Trusted Token from request: Header [{}] indicated user was [{}] ",
+              trustedHeaderName, userId);
+        }
+      }
+      if (userId == null && trustedParameterName.length() > 0) {
+        userId = request.getParameter(trustedParameterName);
+        if (userId != null) {
+          LOG.info(
+              "Injecting Trusted Token from request: Parameter [{}] indicated user was [{}] ",
+              trustedParameterName, userId);
+        }
+      }
+    }
+    if (userId == null) {
+      Principal p = request.getUserPrincipal();
+      if (p != null) {
+        userId = p.getName();
+        if (userId != null) {
+          LOG.info(
+              "Injecting Trusted Token from request: User Principal indicated user was [{}] ",
+              userId);
+        }
       }
     }
     if (userId == null) {
@@ -359,15 +421,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
         LOG.info("Injecting Trusted Token from request: Remote User indicated user was [{}] ", userId);
       }
     }
-    if (userId == null && trustedHeaderName.length() > 0
-        && request.getHeader(trustedHeaderName) != null) {
-      userId = request.getHeader(trustedHeaderName);
-      if ( userId != null ) {
-        LOG.info(
-            "Injecting Trusted Token from request: Header [{}] indicated user was [{}] ",
-            trustedHeaderName, userId);
-      }
-    }
+    
+    
     if (userId != null) {
       if (usingSession) {
         HttpSession session = request.getSession(true);

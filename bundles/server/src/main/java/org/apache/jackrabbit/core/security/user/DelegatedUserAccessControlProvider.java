@@ -34,17 +34,17 @@ import org.apache.jackrabbit.core.security.authorization.Permission;
 import org.apache.jackrabbit.core.security.authorization.PrivilegeRegistry;
 import org.apache.jackrabbit.core.security.principal.PrincipalImpl;
 import org.apache.jackrabbit.core.security.SecurityConstants;
-import org.apache.jackrabbit.spi.Name;
-import org.apache.jackrabbit.spi.NameFactory;
+import org.apache.jackrabbit.spi.Name; // Nakamura Change
+import org.apache.jackrabbit.spi.NameFactory; // Nakamura Change
 import org.apache.jackrabbit.spi.Path;
-import org.apache.jackrabbit.spi.commons.name.NameFactoryImpl;
+import org.apache.jackrabbit.spi.commons.name.NameFactoryImpl; // Nakamura Change
 import org.apache.jackrabbit.util.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
-import javax.jcr.Property;
+import javax.jcr.Property; // Nakamura Change
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
@@ -57,6 +57,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * NB This class is based closely on org.apache.jackrabbit.core.security.user.UserAccessControlProvider
+ * DO NOT REFORMAT, and please mark any changes.
+ * DO NOT run Findbugs or remove warnings from not Nakamura code.
+ * 
  * Implementation of the <code>AccessControlProvider</code> interface that
  * is used to protected the 'security workspace' containing the user and
  * group data. It applies special care to make sure that modifying user data
@@ -91,12 +95,13 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
 
     private static Logger log = LoggerFactory.getLogger(DelegatedUserAccessControlProvider.class);
 
-    private static final NameFactory NF = NameFactoryImpl.getInstance();
-
+    // Start Nakamura Change
+    private static final NameFactory NF = NameFactoryImpl.getInstance(); 
 
     private static final Name NT_REP_GROUP_MANAGERS = NF.create(Name.NS_REP_URI, "group-managers");
 
     private static final Name NT_REP_GROUP_VIEWERS = NF.create(Name.NS_REP_URI, "group-viewers");
+    // End Nakamura Change
 
     private final AccessControlPolicy policy;
 
@@ -200,11 +205,13 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         if (isAdminOrSystem(principals)) {
             return getAdminPermissions();
         } else {
-          // determined the 'user' present in the given set of principals.
-          ItemBasedPrincipal userPrincipal = getUserPrincipal(principals);
-          NodeImpl userNode = getUserNode(userPrincipal);
-          String userNodePath = (userNode != null) ? userNode.getPath() : null;
-          return new CompiledPermissionsImpl(principals, userNodePath);
+            // determined the 'user' present in the given set of principals.
+            ItemBasedPrincipal userPrincipal = getUserPrincipal(principals);
+            NodeImpl userNode = getUserNode(userPrincipal);
+            // Start Nakamura Change, never assume readonly.
+            String userNodePath = (userNode != null) ? userNode.getPath() : null;
+            return new CompiledPermissionsImpl(principals, userNodePath);
+            // End Nakamura Change
         }
     }
 
@@ -262,7 +269,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 } else {
                     pPath = Text.getRelativeParent(pPath, 1);
                 }
-            }
+            }         
             throw new ItemNotFoundException("Unable to determine permissions: No item and no existing parent for target path " + absPath);
         }
     }
@@ -316,7 +323,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         private boolean isUserAdmin;
         private boolean isGroupAdmin;
 
-        private Set<Principal> principals;
+        private Set<Principal> principals; // Nakamura Change
 
         /**
          * @param principals
@@ -326,7 +333,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
          * @throws RepositoryException
          */
         protected CompiledPermissionsImpl(Set<Principal> principals, String userNodePath) throws RepositoryException {
-            this.principals = principals;
+            this.principals = principals; // Nakamura Change
             this.userNodePath = userNodePath;
             isUserAdmin = containsGroup(principals, userAdminGroup);
             isGroupAdmin = containsGroup(principals, groupAdminGroup);
@@ -341,23 +348,23 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
          */
         @Override
         protected Result buildResult(Path path) throws RepositoryException {
-            log.debug("Build Result Path Checking {} ",path.getString());
+            log.debug("Build Result Path Checking {} ",path.getString()); // Nakamura Chnage
             NodeImpl userNode = null;
-            if (userNodePath != null) {
-              try {
-                if (session.nodeExists(userNodePath)) {
-                    userNode = (NodeImpl) session.getNode(userNodePath);
+            if (userNodePath != null) { // Nakamura Change
+                try {
+                  if (session.nodeExists(userNodePath)) {
+                      userNode = (NodeImpl) session.getNode(userNodePath);
+                  }
+                } catch (RepositoryException e) {
+                  // ignore
                 }
-              } catch (RepositoryException e) {
-                // ignore
-              }
-              if (userNode == null) {
-                // no Node corresponding to user for which the permissions are
-                // calculated -> no permissions/privileges.
-                log.debug("No node at " + userNodePath);
-                return new Result(Permission.NONE, Permission.NONE, PrivilegeRegistry.NO_PRIVILEGE, PrivilegeRegistry.NO_PRIVILEGE);
-              }
-            }
+                if (userNode == null) {
+                  // no Node corresponding to user for which the permissions are
+                  // calculated -> no permissions/privileges.
+                  log.debug("No node at " + userNodePath);
+                  return new Result(Permission.NONE, Permission.NONE, PrivilegeRegistry.NO_PRIVILEGE, PrivilegeRegistry.NO_PRIVILEGE);
+                }
+            } // Nakamura Change
 
             // no explicit denied permissions:
             int denies = Permission.NONE;
@@ -398,7 +405,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                     // rep:User node or some other custom node below an existing user.
                     // as the authorizable folder doesn't allow other residual
                     // child nodes.
-                    boolean editingOwnUser = ((userNode != null) && node.isSame(userNode));
+                    boolean editingOwnUser = ((userNode != null) && node.isSame(userNode)); // Nakamura Change
                     if (editingOwnUser) {
                         // user can only read && write his own props
                         allows |= (Permission.SET_PROPERTY | Permission.REMOVE_PROPERTY);
@@ -421,7 +428,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 - make sure group-admin cannot modify user-admin or administrators
                 - ... and cannot remove itself.
                 */
-
+                // Start Nakamura Change
                 // There are 2 protected properties on a group, potentially.
                 // A list of princiapls that are allowed to manage the group, if not present then the default is true.
 
@@ -472,8 +479,9 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                       }
                   }
                 }
+                // End Nakamura Change
 
-                if (isGroupAdmin || isManager ) {
+                if (isGroupAdmin || isManager ) { // Nakamura Change
                     if (!jcrPath.startsWith(administratorsGroupPath) &&
                             !jcrPath.startsWith(userAdminGroupPath)) {
                         if (jcrPath.equals(groupAdminGroupPath)) {
@@ -491,7 +499,8 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                             }
                         }
                     }
-                 } else if ( isPrivate ) {
+                // Start Nakamura Change               
+                } else if ( isPrivate ) {
                     // no permission to read or anything
                    allows = Permission.NONE;
                    denies = Permission.NONE;
@@ -500,8 +509,9 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                  } else {
                    log.debug("Default permissions ie read on {} ", node.getPath());
                  }
+                // End Nakamura Change
             } // else outside of user/group tree -> read only.
-            log.debug("Granted {} allows {} denied {} privs {} ", new Object[]{ path.getString(), allows, denies, privs});
+            log.debug("Granted {} allows {} denied {} privs {} ", new Object[]{ path.getString(), allows, denies, privs}); // Nakamura Change
             return new Result(allows, denies, privs, PrivilegeRegistry.NO_PRIVILEGE);
         }
 
@@ -524,7 +534,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
          */
         @Override
         public boolean grants(Path absPath, int permissions) throws RepositoryException {
-            // Dont grant read by default.
+            // Dont grant read by default. Nakamura Change
             //if (permissions == Permission.READ) {
             //    // read is always granted
             //    return true;
@@ -555,14 +565,14 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                     String evPath = ev.getPath();
                     String repMembers = session.getJCRName(UserConstants.P_MEMBERS);
                     if (repMembers.equals(Text.getName(evPath))) {
-                      if (userNodePath != null) {
+                      if (userNodePath != null) { // Nakamura Change
                         // recalculate the is...Admin flags
                         Node userNode = session.getNode(userNodePath);
                         String nodePath = Text.getRelativeParent(evPath, 1);
                         if (userAdminGroupPath.equals(nodePath)) {
                             isUserAdmin = false;
                             if (ev.getType() != Event.PROPERTY_REMOVED) {
-                                Value[] vs = getValues(session.getProperty(evPath));
+                                Value[] vs = getValues(session.getProperty(evPath)); // Nakamura Change
                                 for (int i = 0; i < vs.length && !isUserAdmin; i++) {
                                     isUserAdmin = userNode.getIdentifier().equals(vs[i].getString());
                                 }
@@ -570,7 +580,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                         } else if (groupAdminGroupPath.equals(nodePath)) {
                             isGroupAdmin = false;
                             if (ev.getType() != Event.PROPERTY_REMOVED) {
-                                Value[] vs = getValues(session.getProperty(evPath));
+                                Value[] vs = getValues(session.getProperty(evPath)); // Nakamura Change
                                 for (int i = 0; i < vs.length && !isGroupAdmin; i++) {
                                     isGroupAdmin = userNode.getIdentifier().equals(vs[i].getString());
                                 }
@@ -580,7 +590,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                         clearCache();
                         // only need to clear the cache once. stop processing
                         break;
-                      }
+                      } // Nakamura Change
                     }
                 } catch (RepositoryException e) {
                     // should never get here
@@ -589,7 +599,8 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
             }
         }
     }
-
+    
+    // Start Nakamura Change
     /**
      * @param property
      * @return
@@ -606,4 +617,5 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         }
       }
     }
+    // End Nakamura Change
 }

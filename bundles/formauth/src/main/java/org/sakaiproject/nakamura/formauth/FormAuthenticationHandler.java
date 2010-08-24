@@ -48,9 +48,8 @@ import javax.servlet.http.HttpServletResponse;
  * used to authenticate the request against the JCR.
  * </p>
  * <p>
- * On POST, if sakaiauth:login = 1, authentication will take place. If
- * sakaiauth:logout = 1, then logout will take place. If sakaiauth:login = 1
- * then the request parameter "sakaiauth:un" will be used for the username and
+ * On POST, if sakaiauth:login = 1, authentication will take place.
+ * The request parameter "sakaiauth:un" will be used for the username and
  * "sakaiauth:pw" for the password.
  * </p>
  * <p>
@@ -84,7 +83,6 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
      *
      */
     private static final long serialVersionUID = 8019850707623762839L;
-    private boolean forceLogout;
     private boolean valid;
     private SimpleCredentials credentials;
 
@@ -92,7 +90,6 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
      * @param request
      */
     FormAuthentication(HttpServletRequest request) {
-      forceLogout = false;
       valid = false;
       if ("POST".equals(request.getMethod())) {
         if ("1".equals(request.getParameter(FormLoginServlet.TRY_LOGIN))) {
@@ -117,13 +114,6 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
      */
     boolean isValid() {
       return valid;
-    }
-
-    /**
-     * @return
-     */
-    boolean isForceLogout() {
-      return forceLogout;
     }
 
     /**

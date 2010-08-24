@@ -47,11 +47,6 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     handleBadGroupName(null, "Group name was not submitted");
   }
 
-  @Test
-  public void testWrongPrefix() {
-    handleBadGroupName("foo", "Group names must begin with 'g-'");
-  }
-
   private void handleBadGroupName(String name, String expectedMessage) {
     CreateSakaiGroupServlet csgs = new CreateSakaiGroupServlet();
 

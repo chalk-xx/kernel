@@ -33,9 +33,16 @@ public class NameSanitizerTest {
   }
 
   @Test
-  public void testInvalidGroup() {
+  public void testAnotherValidGroup() {
     String name = "mygroup-foo";
     boolean result = testName(name, false);
+    assertEquals(name + " is an correct name. This should pass.", true, result);
+  }
+  
+  @Test
+  public void testShortUserName() {
+    String name = "CD";
+    boolean result = testName(name, true);
     assertEquals(name + " is an incorrect name. This should fail.", false, result);
   }
   

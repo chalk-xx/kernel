@@ -55,8 +55,8 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -115,9 +115,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       writer.array();
       for (Entry<String, Boolean> entry : users.entrySet()) {
         if (entry.getValue()) {
-          Authorizable au = um.getAuthorizable(entry.getKey());
-          ValueMap profileMap = profileService.getCompactProfileMap(au, session);
-          writer.valueMap(profileMap);
+          writeProfileMap(session, um, writer, entry);
         }
       }
       writer.endArray();
@@ -125,9 +123,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       writer.array();
       for (Entry<String, Boolean> entry : users.entrySet()) {
         if (!entry.getValue()) {
-          Authorizable au = um.getAuthorizable(entry.getKey());
-          ValueMap profileMap = profileService.getCompactProfileMap(au, session);
-          writer.valueMap(profileMap);
+          writeProfileMap(session, um, writer, entry);
         }
       }
       writer.endArray();
@@ -138,6 +134,19 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       response.sendError(SC_INTERNAL_SERVER_ERROR, "Failed to generate proper JSON.");
     }
 
+  }
+
+  private void writeProfileMap(Session session, UserManager um,
+      ExtendedJSONWriter writer, Entry<String, Boolean> entry)
+      throws RepositoryException, JSONException {
+    Authorizable au = um.getAuthorizable(entry.getKey());
+    if (au != null) {
+      ValueMap profileMap = profileService.getCompactProfileMap(au, session);
+      writer.valueMap(profileMap);
+    } else {
+      writer.key(entry.getKey());
+      writer.value(null);
+    }
   }
 
   /**

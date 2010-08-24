@@ -78,10 +78,9 @@ public interface PersonalConstants {
   public static final String PREFERRED_MESSAGE_TRANSPORT = "preferredMessageTransport";
 
   /**
-   * Hackish way to deliver a JSON string to a content importer for a new profile.
-   * TODO Replace with something more maintainable.
+   * Parameter which can deliver a JSON string to a content importer to configure a new profile.
    */
-  public static final String PROFILE_JSON_IMPORT_PROPERTY = "sakai:authprofile_import";
+  public static final String PROFILE_JSON_IMPORT_PARAMETER = ":sakai:profile-import";
 
   /**
    * Property name for the full title/name of a group.

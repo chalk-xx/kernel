@@ -90,7 +90,7 @@ public class TrustedTokenServiceTest {
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
     dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
-    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS, ";localhost;");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS_ADDR, "127.0.0.1");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
@@ -105,9 +105,27 @@ public class TrustedTokenServiceTest {
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
     dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
-    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS, ";localhost;");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS_ADDR, "127.0.0.1");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
     dict.put(TrustedTokenServiceImpl.TRUSTED_HEADER_NAME, "remote_user");
+    dict.put(TrustedTokenServiceImpl.TRUSTED_PROXY_SERVER_ADDR, "192.168.0.123;192.168.1.123");
+    EasyMock.expect(context.getProperties()).andReturn(dict);
+    return context;
+  }
+
+  public ComponentContext configureForCookieParameter() {
+    ComponentContext context = createMock(ComponentContext.class);
+    Hashtable<String, Object> dict = new Hashtable<String, Object>();
+    dict.put(TrustedTokenServiceImpl.USE_SESSION, false);
+    dict.put(TrustedTokenServiceImpl.COOKIE_NAME, "secure-cookie");
+    dict.put(TrustedTokenServiceImpl.TTL, 1200000L);
+    dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
+    dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS_ADDR, "127.0.0.1");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
+    dict.put(TrustedTokenServiceImpl.TRUSTED_PARAMETER_NAME, "remote_user_parameter");
+    dict.put(TrustedTokenServiceImpl.TRUSTED_PROXY_SERVER_ADDR, "192.168.0.123;192.168.1.123");
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -121,7 +139,7 @@ public class TrustedTokenServiceTest {
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
     dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/fast-cookie-token.bin");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
-    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS, ";localhost;");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS_ADDR, "127.0.0.1");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
 
     EasyMock.expect(context.getProperties()).andReturn(dict);
@@ -283,6 +301,8 @@ public class TrustedTokenServiceTest {
     ComponentContext context = configureForCookie();
     HttpServletRequest request = createMock(HttpServletRequest.class);
     Principal principal = createMock(Principal.class);
+    EasyMock.expect(request.getRemoteAddr()).andReturn("192.168.0.123");
+    EasyMock.expect(request.getHeader("remote_user")).andReturn(null);
     EasyMock.expect(request.getUserPrincipal()).andReturn(principal);
     EasyMock.expect(principal.getName()).andReturn("ieb");
     HttpServletResponse response = createMock(HttpServletResponse.class);
@@ -307,6 +327,8 @@ public class TrustedTokenServiceTest {
     ComponentContext context = configureForCookie();
     HttpServletRequest request = createMock(HttpServletRequest.class);
     Principal principal = createMock(Principal.class);
+    EasyMock.expect(request.getRemoteAddr()).andReturn("192.168.0.127"); // not a trusted proxy
+
     EasyMock.expect(request.getUserPrincipal()).andReturn(principal);
     EasyMock.expect(principal.getName()).andReturn(null);
     EasyMock.expect(request.getRemoteUser()).andReturn("ieb");
@@ -332,10 +354,32 @@ public class TrustedTokenServiceTest {
     ComponentContext context = configureForCookie();
     HttpServletRequest request = createMock(HttpServletRequest.class);
     Principal principal = createMock(Principal.class);
-    EasyMock.expect(request.getUserPrincipal()).andReturn(principal);
-    EasyMock.expect(principal.getName()).andReturn(null);
-    EasyMock.expect(request.getRemoteUser()).andReturn(null);
+    EasyMock.expect(request.getRemoteAddr()).andReturn("192.168.0.123");
     EasyMock.expect(request.getHeader("remote_user")).andReturn("ieb").anyTimes();
+    HttpServletResponse response = createMock(HttpServletResponse.class);
+    Capture<Cookie> cookieCapture = new Capture<Cookie>();
+    response.addCookie(EasyMock.capture(cookieCapture));
+    EasyMock.expectLastCall();
+
+    replay();
+    trustedTokenService.activate(context);
+    trustedTokenService.injectToken(request, response);
+    Assert.assertTrue(cookieCapture.hasCaptured());
+    Cookie cookie = cookieCapture.getValue();
+    Assert.assertNotNull(cookie);
+    Assert.assertEquals("secure-cookie", cookie.getName());
+    String user = trustedTokenService.decodeCookie(cookie.getValue());
+    Assert.assertEquals("ieb", user);
+    verify();
+  }
+
+  @Test
+  public void testInjectCookieParameter() {
+    ComponentContext context = configureForCookieParameter();
+    HttpServletRequest request = createMock(HttpServletRequest.class);
+    EasyMock.expect(request.getRemoteAddr()).andReturn("192.168.0.123");
+    EasyMock.expect(request.getHeader("remote_user")).andReturn("").anyTimes();
+    EasyMock.expect(request.getParameter("remote_user_parameter")).andReturn("ieb").anyTimes();
     HttpServletResponse response = createMock(HttpServletResponse.class);
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
@@ -440,6 +484,7 @@ public class TrustedTokenServiceTest {
     ComponentContext context = configureForSession();
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpSession session = createMock(HttpSession.class);
+    EasyMock.expect(request.getRemoteAddr()).andReturn("127.0.0.1");
     EasyMock.expect(request.getHeader("x-sakai-token")).andReturn(null).anyTimes();
     EasyMock.expect(request.getSession(true)).andReturn(session);
 
