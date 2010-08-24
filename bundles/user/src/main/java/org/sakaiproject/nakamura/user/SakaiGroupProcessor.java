@@ -63,6 +63,7 @@ public class SakaiGroupProcessor extends AbstractAuthorizableProcessor implement
     if (authorizable.isGroup()) {
       Group group = (Group) authorizable;
       if (change.getType() == ModificationType.DELETE) {
+        deleteManagersGroup(group, session);
       } else {
         ensurePath(authorizable, session, UserConstants.GROUP_REPO_LOCATION);
         if (change.getType() == ModificationType.CREATE) {
@@ -189,6 +190,15 @@ public class SakaiGroupProcessor extends AbstractAuthorizableProcessor implement
           }
         }
       }
+    }
+  }
+
+  private void deleteManagersGroup(Group group, Session session) throws RepositoryException {
+    UserManager userManager = AccessControlUtil.getUserManager(session);
+    Group managersGroup = getManagersGroup(group, userManager);
+    if (managersGroup != null) {
+      LOGGER.debug("Deleting managers group {} as part of deleting {}", managersGroup.getID(), group.getID());
+      managersGroup.remove();
     }
   }
 }

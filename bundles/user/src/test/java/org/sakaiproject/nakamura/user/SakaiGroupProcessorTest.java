@@ -147,6 +147,18 @@ public class SakaiGroupProcessorTest {
   }
 
   @Test
+  public void managersGroupDeleted() throws Exception {
+    when(group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)).thenReturn(true);
+    Value mgrsValue = mock(Value.class);
+    when(mgrsValue.getString()).thenReturn("mgrs");
+    when(group.getProperty(UserConstants.PROP_MANAGERS_GROUP)).thenReturn(new Value[] {mgrsValue});
+    when(userManager.getAuthorizable("mgrs")).thenReturn(managersGroup);
+    sakaiGroupProcessor.process(group, session, new Modification(ModificationType.DELETE, "", ""),
+        new HashMap<String, Object[]>());
+    verify(managersGroup).remove();
+  }
+
+  @Test
   public void pathIsSetOnCreation() throws Exception {
     sakaiGroupProcessor.process(group, session, new Modification(ModificationType.CREATE, "", ""), new HashMap<String, Object[]>());
     verify(group).setProperty(UserConstants.PROP_AUTHORIZABLE_PATH, pathValue);
