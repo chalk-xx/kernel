@@ -230,7 +230,7 @@ public class WidgetServiceImpl implements WidgetService {
     // Find the name of the widget.
     String widget = null;
     for (String folder : getWidgetFolders()) {
-      if (path.startsWith(folder)) {
+      if (!path.equals(folder) && path.startsWith(folder)) {
         widget = path.substring(folder.length() + 1);
         int lastIndex = widget.indexOf("/");
         if (lastIndex != -1) {
@@ -485,8 +485,7 @@ public class WidgetServiceImpl implements WidgetService {
             JsonValueMap map = new JsonValueMap(stream);
             validWidgets.put(widgetName, map);
           } catch (Exception e) {
-            LOGGER.warn("Exception when trying to parse the 'config.json' for "
-                + widgetName, e);
+            LOGGER.warn("Exception when trying to parse the 'config.json' for {}, Error Message {} ", widgetName, e.getMessage());
           }
         }
       }
