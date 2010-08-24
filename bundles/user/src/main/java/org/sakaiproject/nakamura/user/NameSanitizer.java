@@ -32,10 +32,6 @@ public class NameSanitizer {
   public void validate() throws RepositoryException {
     String name = this.name;
 
-    if (isGroup() && name.startsWith("g-")) {
-      name = name.substring(2);
-    }
-    
     // At least 3 chars.
     if (isUser() && name.length() < 3) {
       throw new RepositoryException("Name must be bigger than 3 chars.");
