@@ -97,7 +97,8 @@ public class NodeSearchBatchResultProcessor implements
       if (aggregator != null) {
         aggregator.add(node);
       }
-      ExtendedJSONWriter.writeNodeToWriter(write, node);
+      int maxDepth = SearchUtil.getTraversalDepth(request);
+      ExtendedJSONWriter.writeNodeTreeToWriter(write, node, maxDepth);
     }
 
   }
