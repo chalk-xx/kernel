@@ -19,7 +19,7 @@ sudo gem install curb
 
 If you are running OS X 10.6, the following commands work:
 sudo gem update --system
-sudo gem update
+sudo env ARCHFLAGS="-arch x86_64" gem update
 sudo gem install json
 sudo env ARCHFLAGS="-arch x86_64" gem install curb
 
