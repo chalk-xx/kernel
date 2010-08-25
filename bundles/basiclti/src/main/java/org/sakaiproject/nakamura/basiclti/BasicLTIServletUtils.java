@@ -17,8 +17,8 @@
  */
 package org.sakaiproject.nakamura.basiclti;
 
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_KEY;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_SECRET;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_KEY;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_SECRET;
 
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 
