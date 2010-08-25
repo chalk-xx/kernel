@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.version.impl;
 
-import static org.junit.Assert.assertEquals;
-
 import junit.framework.Assert;
 
 import org.apache.jackrabbit.JcrConstants;
@@ -74,12 +72,6 @@ public class GetVersionServletTest  extends AbstractEasyMockTest {
   public void tearDown() throws Exception {
   }
 
-  @Test
-  public void testGetVersionName() {
-    assertEquals("1.1", getVersionServlet.getVersionName("version.,1.1,.tidy.json"));
-    assertEquals("1", getVersionServlet.getVersionName("version.1.tidy.json"));
-    assertEquals("1.1.tidy.json", getVersionServlet.getVersionName("version.,1.1.tidy.json"));
-  }
 
   @SuppressWarnings("unchecked")
   @Test
