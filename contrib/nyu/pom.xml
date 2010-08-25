@@ -60,7 +60,7 @@
                 </bundle>
                 <bundle>
                   <groupId>org.sakaiproject.nakamura</groupId>
-                  <artifactId>org.sakaiproject.nakamura.auth.sso</artifactId>
+                  <artifactId>org.sakaiproject.nakamura.auth.opensso</artifactId>
                   <version>${nakamura.version}</version>
                   <startLevel>30</startLevel>
                 </bundle>
