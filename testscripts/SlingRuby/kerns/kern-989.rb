@@ -36,10 +36,10 @@ class TC_Kern989Test < Test::Unit::TestCase
     res = @s.execute_post(url, { "testing" => "value1" })
     assert_equal("200", res.code)
     res = @s.execute_post(url+".save.json")
-    @log.error("File is #{url}")
+    @log.info("File is #{url}")
     res = @fm.upload_pooled_file('random.txt', '22', 'text/plain', id)
     assert_equal("200",res.code,res.body)
-    @log.error("Update File said #{res.body}")
+    @log.info("Update File said #{res.body}")
     res = @s.execute_post(url, { "testing" => "value2" })
     assert_equal("200", res.code)
     res = @s.execute_post(url+".save.json")
@@ -49,7 +49,7 @@ class TC_Kern989Test < Test::Unit::TestCase
     
     # Check that versions is working as expected. 
     res = @s.execute_get(url+".versions.json")
-    @log.error(res.body)
+    @log.info(res.body)
     versionHistory = JSON.parse(res.body)
     versions = versionHistory['versions']
     assert_not_nil(versions)
@@ -61,35 +61,35 @@ class TC_Kern989Test < Test::Unit::TestCase
     
     # Check that the properties of a node are working as expected
     res = @s.execute_get(url+".version.,1.1,.json")
-    @log.error(res.body)
+    @log.info(res.body)
     version1 = JSON.parse(res.body)
     assert_equal("value2",version1['testing'])
 
     res = @s.execute_get(url+".version.,1.0,.json")
-    @log.error(res.body)
+    @log.info(res.body)
     version1 = JSON.parse(res.body)
     assert_equal("value1",version1['testing'])
     
     res = @s.execute_get(url+".version.,jcr:rootVersion,.json")
-    @log.error(res.body)
+    @log.info(res.body)
     versionCurrent = JSON.parse(res.body)
     assert_nil(versionCurrent['testing'])
 
     # check that the body of a file is ok
     res = @s.execute_get(url+".version.,1.1")
-    @log.error(res.body)
+    @log.info(res.body)
    assert_equal("22",res.body)
 
     res = @s.execute_get(url+".version.,1.0")
-    @log.error(res.body)
+    @log.info(res.body)
    assert_equal("1",res.body)
     
     res = @s.execute_get(url+".version.,jcr:rootVersion")
-    @log.error(res.body)
+    @log.info(res.body)
 
  
     res = @s.execute_get(url)
-    @log.error(res.body)
+    @log.info(res.body)
    assert_equal("22", res.body)
 
   end
