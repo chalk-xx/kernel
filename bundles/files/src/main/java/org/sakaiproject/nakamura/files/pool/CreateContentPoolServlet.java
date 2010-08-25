@@ -46,6 +46,12 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
@@ -73,6 +79,30 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Allows for uploading files to the pool.") })
+@ServiceDocumentation(name="Create Content Pool Servlet",
+    description="Creates and Updates files in the pool",
+    shortDescription="Creates and Updates files in the pool",
+    bindings=@ServiceBinding(type=BindingType.PATH,bindings={"/system/pool/createfile"},
+    extensions=@ServiceExtension(name="*", description="If an extension is provided it is assumed to be the PoolID which is to be updated.")),
+    methods=@ServiceMethod(name="POST",
+        description={"A normal file post. If this is to create files, each file in the multipart file will create a new file in the pool. If a PoolID is supplied only the first file in the upload is used to overwrite the file." +
+        		"If versioning is required, then a POST must be performed to /p/poolID.save ",
+            "Example<br>" +
+            "<pre>A Multipart file upload to http://localhost:8080/system/pool/createfile will create one Pool file per file in the upload</pre>",
+            "Example<br>" +
+            "<pre>A Multipart file upload to http://localhost:8080/system/pool/createfile.3sd23a4QW4WD will update the file content for PoolID 3sd23a4QW4WD </pre>",
+            "Response is of the form " +
+            "<pre>" +
+            "   { \"file1\" : \"3sd23a4QW4WD\", \"file2\" : \"3sd23a4QW4ZS\" } " +
+            "</pre>"
+          },
+          response={
+          @ServiceResponse(code=201,description="Where files are created"),
+          @ServiceResponse(code=400,description="Where the request is invalid"),
+          @ServiceResponse(code=200,description="Where the file is updated"),
+          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+
+        )) 
 public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
   @Reference
