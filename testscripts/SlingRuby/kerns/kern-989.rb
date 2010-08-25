@@ -78,20 +78,19 @@ class TC_Kern989Test < Test::Unit::TestCase
     # check that the body of a file is ok
     res = @s.execute_get(url+".version.,1.1")
     @log.error(res.body)
-   # assert_equal("VERSION2",res.body)
+   assert_equal("22",res.body)
 
     res = @s.execute_get(url+".version.,1.0")
     @log.error(res.body)
-   # assert_equal("VERSION1",res.body)
+   assert_equal("1",res.body)
     
     res = @s.execute_get(url+".version.,jcr:rootVersion")
     @log.error(res.body)
-   # assert_equal("VERSION1", res.body)
 
  
     res = @s.execute_get(url)
     @log.error(res.body)
-   # assert_equal("VERSION2", res.body)
+   assert_equal("22", res.body)
 
   end
 
