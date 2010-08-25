@@ -96,11 +96,20 @@ module SlingInterface
     end
     
     def file_to_multipart(key,filename,mime_type,content)
-      return "Content-Disposition: form-data; name=\"*\"; filename=\"#{filename}\"\r\n" +
+      if ( filename != nil ) 
+        return "Content-Disposition: form-data; name=\"*\"; filename=\"#{filename}\"\r\n" +
              "Content-Transfer-Encoding: binary\r\n" +
              "Content-Type: #{mime_type}\r\n" + 
              "\r\n" + 
              "#{content}\r\n"
+      else 
+        return "Content-Disposition: form-data; name=\"jcr:content\"\r\n" +
+             "Content-Transfer-Encoding: binary\r\n" +
+             "Content-Type: #{mime_type}\r\n" + 
+             "\r\n" + 
+             "#{content}\r\n"
+      end
+
     end
     
     def execute_file_post(path, fieldname, filename, data, content_type)

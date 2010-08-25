@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_RT;
-
 import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static org.apache.jackrabbit.JcrConstants.JCR_CONTENT;
@@ -29,6 +27,7 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_NT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_RT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_RT;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Properties;
@@ -40,6 +39,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -105,6 +105,9 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
     String userId = request.getRemoteUser();
 
+    RequestPathInfo rpi = request.getRequestPathInfo();
+    String poolId = rpi.getExtension();
+
     // Anonymous users cannot upload files.
     if (UserConstants.ANON_USERID.equals(userId)) {
       response.sendError(HttpServletResponse.SC_FORBIDDEN,
@@ -122,6 +125,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
       // Loop over all the parameters
       // All the ones that are files will be stored.
+      int statusCode = HttpServletResponse.SC_BAD_REQUEST;
       Map<String, String> results = new HashMap<String, String>();
       for (Entry<String, RequestParameter[]> e : request.getRequestParameterMap()
           .entrySet()) {
@@ -129,11 +133,23 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
           if (!p.isFormField()) {
             // This is a file upload.
             // Generate an ID and store it.
-            String poolId = generatePoolId();
-            createFile(hash(poolId), adminSession, p, au);
+            if ( poolId == null ) {
+              String createPoolId = generatePoolId();
+              createFile(hash(createPoolId), adminSession, p, au, true);
+              results.put(p.getFileName(), createPoolId);
+              statusCode = HttpServletResponse.SC_CREATED;
+            } else {
+              Session session = request.getResourceResolver().adaptTo(Session.class);
+              createFile(hash(poolId), session, p, au, false);
+              if ( session.hasPendingChanges() ) {
+                session.save();
+              }
+              // Add it to the map so we can output something to the UI.
+              results.put(p.getFileName(), poolId);
+              statusCode = HttpServletResponse.SC_OK;
+              break;
+            }
 
-            // Add it to the map so we can output something to the UI.
-            results.put(p.getFileName(), poolId);
           }
         }
       }
@@ -144,13 +160,17 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       }
 
       // Make sure we're outputting proper json.
-      response.setStatus(HttpServletResponse.SC_CREATED);
-      response.setContentType("application/json");
-      response.setCharacterEncoding("UTF-8");
+      if ( statusCode == HttpServletResponse.SC_BAD_REQUEST ) {
+        response.setStatus(statusCode);
+      } else {
+        response.setStatus(statusCode);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
-      // Output some JSON.
-      JSONObject jsonObject = new JSONObject(results);
-      response.getWriter().write(jsonObject.toString());
+        // Output some JSON.
+        JSONObject jsonObject = new JSONObject(results);
+        response.getWriter().write(jsonObject.toString());
+      }
     } catch (RepositoryException e) {
       LOGGER.warn(e.getMessage(), e);
       throw new ServletException(e.getMessage(), e);
@@ -164,59 +184,71 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
   }
 
   private void createFile(String path, Session session, RequestParameter value,
-      Authorizable au) throws RepositoryException, IOException {
+      Authorizable au, boolean create) throws RepositoryException, IOException {
     // Get the content type.
     String contentType = getContentType(value);
+    if ( create ) {
 
-    // Create a proper nt:file node in jcr with some properties on it to make it possible
-    // to locate this pool file without having to use the path.
-    Node fileNode = JcrUtils.deepGetOrCreateNode(session, path, POOLED_CONTENT_NT);
-    fileNode.setProperty(POOLED_CONTENT_FILENAME, value.getFileName());
-    fileNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_RT);
-    Node resourceNode = fileNode.addNode(JCR_CONTENT, NT_RESOURCE);
-    resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
-    resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
-    resourceNode.setProperty(JcrConstants.JCR_DATA, session.getValueFactory()
-        .createBinary(value.getInputStream()));
+      // Create a proper nt:file node in jcr with some properties on it to make it possible
+      // to locate this pool file without having to use the path.
+      Node fileNode = JcrUtils.deepGetOrCreateNode(session, path, POOLED_CONTENT_NT);
+      fileNode.setProperty(POOLED_CONTENT_FILENAME, value.getFileName());
+      fileNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_RT);
+      Node resourceNode = fileNode.addNode(JCR_CONTENT, NT_RESOURCE);
+      resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+      resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
+      resourceNode.setProperty(JcrConstants.JCR_DATA, session.getValueFactory()
+          .createBinary(value.getInputStream()));
 
-    // The current user will be a manager and thus gets the JCR_ALL privilege on the file.
-    Principal userPrincipal = au.getPrincipal();
-    AccessControlUtil.replaceAccessControlEntry(session, path, userPrincipal,
-        new String[] { JCR_ALL }, null, null, null);
+      // The current user will be a manager and thus gets the JCR_ALL privilege on the file.
+      Principal userPrincipal = au.getPrincipal();
+      AccessControlUtil.replaceAccessControlEntry(session, path, userPrincipal,
+          new String[] { JCR_ALL }, null, null, null);
 
-    // Other people can't see or do anything.
-    Principal anon = new Principal() {
-      public String getName() {
-        return UserConstants.ANON_USERID;
-      }
-    };
-    Principal everyone = new Principal() {
-      public String getName() {
-        return "everyone";
-      }
-    };
-    AccessControlUtil.replaceAccessControlEntry(session, path, anon, null,
-        new String[] { JCR_ALL }, null, null);
-    AccessControlUtil.replaceAccessControlEntry(session, path, everyone, null,
-        new String[] { JCR_ALL }, null, null);
+      // Other people can't see or do anything.
+      Principal anon = new Principal() {
+        public String getName() {
+          return UserConstants.ANON_USERID;
+        }
+      };
+      Principal everyone = new Principal() {
+        public String getName() {
+          return "everyone";
+        }
+      };
+      AccessControlUtil.replaceAccessControlEntry(session, path, anon, null,
+          new String[] { JCR_ALL }, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, path, everyone, null,
+          new String[] { JCR_ALL }, null, null);
+      // Create a users node under this node.
+      // We do this so we're still able to query the repository and find the files where a
+      // user/group is viewer/manager of.
+      // These nodes will be stored at /_p/a1/b2/c3/d4/FILENODE/e5/f6/g7/h8/USERNODE so we
+      // can keep full ACL permissions on them.
+      // We want to ACL control these user nodes because sometimes it's not allowed to see
+      // who can view a file.
+      String newPath = fileNode.getPath() + PersonalUtils.getUserHashedPath(au);
+      Node userNode = JcrUtils.deepGetOrCreateNode(session, newPath);
+      userNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_USER_RT);
+      userNode.setProperty(POOLED_CONTENT_USER_MANAGER, new String[] { userPrincipal
+          .getName() });
 
-    // Create a users node under this node.
-    // We do this so we're still able to query the repository and find the files where a
-    // user/group is viewer/manager of.
-    // These nodes will be stored at /_p/a1/b2/c3/d4/FILENODE/e5/f6/g7/h8/USERNODE so we
-    // can keep full ACL permissions on them.
-    // We want to ACL control these user nodes because sometimes it's not allowed to see
-    // who can view a file.
-    String newPath = fileNode.getPath() + PersonalUtils.getUserHashedPath(au);
-    Node userNode = JcrUtils.deepGetOrCreateNode(session, newPath);
-    userNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_USER_RT);
-    userNode.setProperty(POOLED_CONTENT_USER_MANAGER, new String[] { userPrincipal
-        .getName() });
+      // These nodes can only be modified by an admin/manager.
+      // Other people cannot even see it.
+      replaceAccessControlEntry(session, userNode.getPath(), everyone, null, new String[] {
+          JCR_READ, JCR_ALL }, null, null);
+    } else {
+      Node fileNode = session.getNode(path);
+      Node resourceNode = fileNode.getNode(JCR_CONTENT);
+      resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+      resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
+      resourceNode.setProperty(JcrConstants.JCR_DATA, session.getValueFactory()
+          .createBinary(value.getInputStream()));
 
-    // These nodes can only be modified by an admin/manager.
-    // Other people cannot even see it.
-    replaceAccessControlEntry(session, userNode.getPath(), everyone, null, new String[] {
-        JCR_READ, JCR_ALL }, null, null);
+
+      LOGGER.info("Updating Resource Node with new Content ");
+
+    }
 
   }
 

@@ -44,11 +44,40 @@ public class VersionRequestPathInfo implements RequestPathInfo {
 
     resourcePath = sourceRequestPathInfo.getResourcePath();
     suffix = sourceRequestPathInfo.getSuffix();
-    extension = sourceRequestPathInfo.getExtension();
 
-    selectorString = removeVersionName(sourceRequestPathInfo.getSelectorString());
+    selectorString = getSelectorString(sourceRequestPathInfo.getSelectorString(), sourceRequestPathInfo.getExtension());
+    extension = getExtension(sourceRequestPathInfo.getSelectorString(), sourceRequestPathInfo.getExtension());
+
+
+
     selectors = StringUtils.split(selectorString, '.');
 
+  }
+
+  private static String getExtension(String selector, String extension) {
+    String suffix = removeVersionName(selector, extension);
+    if ( suffix == null ) {
+      return null;
+    }
+    int i = suffix.lastIndexOf('.');
+    if (i > 0) {
+      return suffix.substring(i+1);
+    } else {
+      return suffix;
+    }
+  }
+
+  private String getSelectorString(String selector, String extension) {
+    String suffix = removeVersionName(selector, extension);
+    if ( suffix == null ) {
+      return null;
+    }
+    int i = suffix.lastIndexOf('.');
+    if (i > 0) {
+      return suffix.substring(0, i);
+    } else {
+      return null;
+    }
   }
 
   private VersionRequestPathInfo(String resourcePath, String selectorString,
@@ -145,7 +174,15 @@ public class VersionRequestPathInfo implements RequestPathInfo {
    * @param suffix
    * @return
    */
-  protected static String removeVersionName(String suffix) {
+  protected static String removeVersionName(String selector, String extension) {
+    String suffix = "";
+    if ( selector != null ) {
+      suffix = selector;
+    }
+    if ( extension != null ) {
+      suffix = suffix + "." + extension;
+    }
+
     if (suffix != null && suffix.startsWith("version.")) {
       char[] sc = suffix.toCharArray();
       int i = "version.".length();
@@ -170,6 +207,42 @@ public class VersionRequestPathInfo implements RequestPathInfo {
       }
     }
     return suffix;
+  }
+
+  /**
+   * @param suffix
+   * @return
+   */
+  protected static String getVersionName(String selector, String extension) {
+    String suffix = "";
+    if ( selector != null ) {
+      suffix = selector;
+    }
+    if ( extension != null ) {
+      suffix = suffix + "." + extension;
+    }
+
+    if (suffix.startsWith("version.")) {
+      char[] ca = suffix.toCharArray();
+      int i = "version.".length();
+      int j = i;
+      if (i < ca.length && ca[i] == '.') {
+        i++;
+      }
+
+      if (i < ca.length && ca[i] == ',') {
+        i++;
+        j = i;
+        while (i < ca.length && ca[i] != ',')
+          i++;
+      } else {
+        j = i;
+        while (i < ca.length && ca[i] != '.')
+          i++;
+      }
+      return new String(ca, j, i - j);
+    }
+    return null;
   }
 
 }
