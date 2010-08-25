@@ -50,7 +50,7 @@ public class DefaultContextIdResolver implements BasicLTIContextIdResolver {
   @Property(value = "lti_context_id", name = "LTI_CONTEXT_ID", label = "key", description = "The Node property key used to store an LTI context_id.")
   public static final String LTI_CONTEXT_ID = DefaultContextIdResolver.class.getName()
       + ".key";
-  private String key;
+  private String key = "lti_context_id";
 
   /**
    * {@inheritDoc}
@@ -79,9 +79,8 @@ public class DefaultContextIdResolver implements BasicLTIContextIdResolver {
   protected void activate(ComponentContext context) {
     @SuppressWarnings("rawtypes")
     final Dictionary props = context.getProperties();
-    key = (String) props.get(LTI_CONTEXT_ID);
-    if (key == null) {
-      throw new IllegalStateException();
+    if (props.get(LTI_CONTEXT_ID) != null) {
+      key = (String) props.get(LTI_CONTEXT_ID);
     }
   }
 }
