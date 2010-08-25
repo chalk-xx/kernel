@@ -28,6 +28,13 @@ class TC_MySearchTest < Test::Unit::TestCase
     m = Time.now.to_i.to_s
     username = "unusualuser#{m}"
     create_user(username, "#{username}-firstname", "#{username}-lastname")
+
+    result = @sm.search_for_user("#{username}")
+    assert_not_nil(result, "Expected result back")
+    users = result["results"]
+    assert_equal(1, users.size, "Expected one matching user [username]")
+    assert_equal(username, users[0]["rep:userId"], "Expected user to match username")
+
     result = @sm.search_for_user("#{username}-firstname")
     assert_not_nil(result, "Expected result back")
     users = result["results"]
