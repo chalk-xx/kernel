@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.search.processors;
 import junit.framework.Assert;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -56,22 +57,22 @@ public class NodeSearchBatchResultProcessorTest extends AbstractEasyMockTest {
     PropertyIterator propertyIterator = createNiceMock(PropertyIterator.class);
 
     Row row = createNiceMock(Row.class);
-    
+
     EasyMock.expect(request.getResourceResolver()).andReturn(resourceResolver).anyTimes();
     EasyMock.expect(resourceResolver.adaptTo(Session.class)).andReturn(session)
         .anyTimes();
     EasyMock.expect(row.getValue("jcr:path")).andReturn(value).anyTimes();
     EasyMock.expect(value.getString()).andReturn("/test").anyTimes();
     EasyMock.expect(session.getItem("/test")).andReturn(node).anyTimes();
-    
+
     EasyMock.expect(iterator.hasNext()).andReturn(true);
     EasyMock.expect(iterator.nextRow()).andReturn(row);
-    
+
     EasyMock.expect(node.getProperties()).andReturn(propertyIterator);
 
-    
-    
-    
+    RequestPathInfo pathInfo = createNiceMock(RequestPathInfo.class);
+    EasyMock.expect(request.getRequestPathInfo()).andReturn(pathInfo);
+
 
     replay();
     AggregateCount aggregator = new AggregateCount(new String[] { "test" }, false);
@@ -81,7 +82,7 @@ public class NodeSearchBatchResultProcessorTest extends AbstractEasyMockTest {
 
     NodeSearchBatchResultProcessor nodeSearchBatchResultProcessor = new NodeSearchBatchResultProcessor(new SearchServiceFactoryImpl());
     nodeSearchBatchResultProcessor.writeNodes(request, write, aggregator, iterator);
-    
+
     String output = stringWriter.toString();
     Assert.assertTrue(output.length() > 0);
     // Make sure that the output is valid JSON.

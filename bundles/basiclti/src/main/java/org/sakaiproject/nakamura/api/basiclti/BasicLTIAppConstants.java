@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.nakamura.api.basiclti;
 
-public class BasicLtiAppConstants {
+public class BasicLTIAppConstants {
   // local service/widget semantics
   public static final String LTI_VTOOL_ID = "lti_virtual_tool_id";
   public static final String LTI_URL = "ltiurl";

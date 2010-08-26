@@ -34,6 +34,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestParameterMap;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Assert;
@@ -109,6 +110,8 @@ public class CreateContentPoolServletTest {
   private RequestParameter requestParameter2;
   @Mock
   private RequestParameter requestParameterNot;
+  @Mock
+  private RequestPathInfo requestPathInfo;
 
   public CreateContentPoolServletTest() {
     MockitoAnnotations.initMocks(this);
@@ -120,6 +123,10 @@ public class CreateContentPoolServletTest {
     // activate
     when(clusterTrackingService.getCurrentServerId()).thenReturn("serverID");
     when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
+    
+    
+    when(request.getRequestPathInfo()).thenReturn(requestPathInfo);
+    when(requestPathInfo.getExtension()).thenReturn(null);
 
     when(adminSession.getUserManager()).thenReturn(userManager);
     when(adminSession.getAccessControlManager()).thenReturn(accessControlManager);

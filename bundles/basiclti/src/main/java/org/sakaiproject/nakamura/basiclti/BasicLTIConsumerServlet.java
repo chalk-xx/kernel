@@ -30,30 +30,30 @@ import static org.imsglobal.basiclti.BasicLTIConstants.LIS_PERSON_NAME_GIVEN;
 import static org.imsglobal.basiclti.BasicLTIConstants.RESOURCE_LINK_ID;
 import static org.imsglobal.basiclti.BasicLTIConstants.ROLES;
 import static org.imsglobal.basiclti.BasicLTIConstants.USER_ID;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.ADMIN_CONFIG_PATH;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.DEBUG;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.DEBUG_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.FRAME_HEIGHT;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.FRAME_HEIGHT_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.GLOBAL_SETTINGS;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_ADMIN_NODE_NAME;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_KEY;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_KEY_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_SECRET;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_SECRET_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_URL;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_URL_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_VTOOL_ID;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_EMAIL;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_EMAIL_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_NAMES;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_NAMES_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_ACCESSED;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_CHANGED;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_LAUNCHED;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_REMOVED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.ADMIN_CONFIG_PATH;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.DEBUG;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.DEBUG_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.FRAME_HEIGHT;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.FRAME_HEIGHT_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.GLOBAL_SETTINGS;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_ADMIN_NODE_NAME;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_KEY;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_KEY_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_SECRET;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_SECRET_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_URL;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_URL_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_VTOOL_ID;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_EMAIL;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_EMAIL_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_NAMES;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_NAMES_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_PRINCIPAL_NAME;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_PRINCIPAL_NAME_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.TOPIC_BASICLTI_ACCESSED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.TOPIC_BASICLTI_CHANGED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.TOPIC_BASICLTI_LAUNCHED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.TOPIC_BASICLTI_REMOVED;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.getInvalidUserPrivileges;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.isAdminUser;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.removeProperty;
@@ -76,6 +76,7 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.imsglobal.basiclti.BasicLTIConstants;
 import org.imsglobal.basiclti.BasicLTIUtil;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.basiclti.BasicLTIContextIdResolver;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -173,6 +174,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
 
   @Reference
   protected transient EventAdmin eventAdmin;
+
+  @Reference
+  protected transient BasicLTIContextIdResolver contextIdResolver;
 
   // global properties used for every tool launch
   /**
@@ -392,7 +396,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         return;
       }
       final String sitePath = siteNode.getPath();
-      launchProps.put(CONTEXT_ID, sitePath);
+      final String contextId = contextIdResolver.resolveContextId(siteNode);
+      if (contextId == null) {
+        throw new IllegalStateException("Could not resolve context_id!");
+      }
+      launchProps.put(CONTEXT_ID, contextId);
       launchProps.put(CONTEXT_TITLE, siteNode.getProperty("name").getString());
       launchProps.put(CONTEXT_LABEL, siteNode.getProperty("id").getString());
 
