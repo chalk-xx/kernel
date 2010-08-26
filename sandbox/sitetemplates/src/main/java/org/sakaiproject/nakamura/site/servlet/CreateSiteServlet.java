@@ -48,6 +48,7 @@ import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourc
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -62,6 +63,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -415,7 +417,8 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
         group.setProperty(SITES, (Value) JcrUtils.createValue(siteID, session));
         String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
             + group.getID();
-        postProcessService.process(group, session, Modification.onCreated(groupPath));
+        
+        postProcessService.process(group, session, ModificationType.CREATE);
       } catch (Exception e) {
         LOGGER.warn("Failed to process the group creation.", e);
       }
