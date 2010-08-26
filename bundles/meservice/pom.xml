@@ -22,11 +22,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.8-SNAPSHOT</version>
+    <version>0.8</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.meservice</artifactId>
   <packaging>bundle</packaging>
-  <version>0.8-SNAPSHOT</version>
+  <version>0.8</version>
   <name>Sakai Nakamura :: Me Service Bundle</name>
   <description>Me service to provide information on the current user.</description>
   <build>
@@ -88,47 +88,47 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.jcr</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.8</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.8</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.8</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.profile</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.8</version>
 	  <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.8</version>
 	  <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.8</version>
 	  <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.messaging</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.8</version>
 	  <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.connections</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.8</version>
 	  <scope>provided</scope>
     </dependency>
     <dependency>

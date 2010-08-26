@@ -1,4 +1,4 @@
-~/dev/zathomas-open-experiments/testscripts/SlingRuby/kerns ~/dev/zathomas-open-experiments
+~/timefields/open-experiments/testscripts/SlingRuby/kerns ~/timefields/open-experiments
 kern-254.rb 1 tests, 5 assertions, 0 failures, 0 errors
 kern-259.rb 1 tests, 10 assertions, 0 failures, 0 errors
 kern-270.rb 1 tests, 3 assertions, 0 failures, 0 errors
@@ -11,7 +11,7 @@ kern-289.rb 1 tests, 7 assertions, 0 failures, 0 errors
 kern-292.rb 3 tests, 24 assertions, 0 failures, 0 errors
 kern-293.rb 1 tests, 5 assertions, 0 failures, 0 errors
 kern-294.rb 2 tests, 4 assertions, 0 failures, 0 errors
-kern-296.rb 1 tests, 7 assertions, 0 failures, 0 errors
+kern-296.rb 1 tests, 8 assertions, 0 failures, 0 errors
 kern-307.rb 2 tests, 18 assertions, 0 failures, 0 errors
 kern-308.rb 2 tests, 18 assertions, 0 failures, 0 errors
 kern-309.rb 1 tests, 10 assertions, 0 failures, 0 errors
@@ -44,19 +44,25 @@ kern-734.rb 4 tests, 26 assertions, 0 failures, 0 errors
 kern-740.rb 4 tests, 34 assertions, 0 failures, 0 errors
 kern-759.rb 1 tests, 12 assertions, 0 failures, 0 errors
 kern-763.rb 1 tests, 6 assertions, 0 failures, 0 errors
+kern-797.rb 1 tests, 23 assertions, 0 failures, 0 errors
 kern-854.rb 1 tests, 7 assertions, 0 failures, 0 errors
 kern-857.rb 1 tests, 8 assertions, 0 failures, 0 errors
 kern-891.rb 1 tests, 14 assertions, 0 failures, 0 errors
 kern-892.rb 1 tests, 1 assertions, 0 failures, 0 errors
 kern-909.rb 1 tests, 12 assertions, 0 failures, 0 errors
 kern-911.rb 1 tests, 4 assertions, 0 failures, 0 errors
+kern-926.rb 2 tests, 24 assertions, 0 failures, 0 errors
 kern-929.rb 1 tests, 5 assertions, 0 failures, 0 errors
 kern-933.rb 1 tests, 4 assertions, 0 failures, 0 errors
 kern-935.rb 1 tests, 6 assertions, 0 failures, 0 errors
-~/dev/zathomas-open-experiments
-~/dev/zathomas-open-experiments/testscripts/SlingRuby/tests ~/dev/zathomas-open-experiments
+kern-939.rb 5 tests, 36 assertions, 0 failures, 0 errors
+kern-949.rb 3 tests, 19 assertions, 0 failures, 0 errors
+kern-959.rb 1 tests, 5 assertions, 0 failures, 0 errors
+kern-989.rb 1 tests, 16 assertions, 0 failures, 0 errors
+~/timefields/open-experiments
+~/timefields/open-experiments/testscripts/SlingRuby/tests ~/timefields/open-experiments
 authz-test.rb 4 tests, 212 assertions, 0 failures, 0 errors
-basiclti-test.rb 1 tests, 87 assertions, 0 failures, 0 errors
+basiclti-test.rb 2 tests, 174 assertions, 0 failures, 0 errors
 contact-test.rb 1 tests, 23 assertions, 0 failures, 0 errors
 form-auth-test.rb 1 tests, 8 assertions, 0 failures, 0 errors
 message-test.rb 1 tests, 45 assertions, 0 failures, 0 errors
@@ -65,7 +71,7 @@ owner-authz-test.rb 1 tests, 25 assertions, 0 failures, 0 errors
 owner-principal-test.rb 1 tests, 7 assertions, 0 failures, 0 errors
 private-store-test.rb 1 tests, 8 assertions, 0 failures, 0 errors
 rss-test.rb 4 tests, 4 assertions, 0 failures, 0 errors
-sling-search-test.rb 2 tests, 8 assertions, 0 failures, 0 errors
+sling-search-test.rb 2 tests, 14 assertions, 0 failures, 0 errors
 sling-site-test.rb 7 tests, 43 assertions, 0 failures, 0 errors
-user-manager-test.rb 5 tests, 12 assertions, 0 failures, 0 errors
-~/dev/zathomas-open-experiments
+user-manager-test.rb 4 tests, 12 assertions, 0 failures, 0 errors
+~/timefields/open-experiments
