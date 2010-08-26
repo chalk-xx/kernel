@@ -67,6 +67,11 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
   DefaultAuthorizablesLoader defaultAuthorizablesLoader;
   private AuthorizablePostProcessor[] orderedServices = new AuthorizablePostProcessor[0];
 
+  public AuthorizablePostProcessServiceImpl() {
+    this.sakaiUserProcessor = new SakaiUserProcessor();
+    this.sakaiGroupProcessor = new SakaiGroupProcessor();
+  }
+
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService#process(org.apache.jackrabbit.api.security.user.Authorizable, javax.jcr.Session, org.apache.sling.servlets.post.Modification)
@@ -131,6 +136,7 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
   /**
    * @return
    */
+  @Override
   protected Comparator<AuthorizablePostProcessor> getComparator(final Map<AuthorizablePostProcessor, Map<String, Object>> propertiesMap) {
     return new Comparator<AuthorizablePostProcessor>() {
       public int compare(AuthorizablePostProcessor o1, AuthorizablePostProcessor o2) {
@@ -167,8 +173,6 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
 
   @Activate
   protected void activate(ComponentContext componentContext) {
-    this.sakaiUserProcessor = new SakaiUserProcessor();
-    this.sakaiGroupProcessor = new SakaiGroupProcessor();
     this.defaultAuthorizablesLoader = new DefaultAuthorizablesLoader(this,
         componentContext, repository);
     defaultAuthorizablesLoader.initDefaultUsers();
@@ -176,8 +180,6 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
 
   @Deactivate
   protected void deactivate(ComponentContext componentContext) {
-    this.sakaiUserProcessor = null;
-    this.sakaiGroupProcessor = null;
     this.defaultAuthorizablesLoader = null;
   }
 
