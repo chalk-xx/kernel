@@ -10,18 +10,33 @@ include SlingUsers
 
 class TC_Kern566Test < Test::Unit::TestCase
   include SlingTest
+
+  def setup
+    super;
+    @now = Time.now.to_f.to_s.gsub('.', '');
+    @creator = create_user("creator-test#{@now}");
+    @user = create_user("user-test#{@now}");
+    @admin = SlingUsers::User.admin_user();
+    @anonymous = SlingUsers::User.anonymous();
+  end
+  
+  def teardown
+    super;
+#    @s.switch_user(@admin);
+#    @created_users.each do |user|
+#      @log.info(user);
+#      puts @um.delete_user("#{user}");
+#    end
+  end
   
   def test_basiclti
     # We create a test site.
-    m = Time.now.to_f.to_s.gsub('.', '');
-    @siteid = "testsite#{m}";
-    @sitename = "Test Site #{m}";
-    creator = create_user("creator-test#{m}");
-    user = create_user("user-test#{m}");
-    admin = SlingUsers::User.admin_user();
+    @now = Time.now.to_f.to_s.gsub('.', '');
+    @siteid = "testsite#{@now}";
+    @sitename = "Test Site #{@now}";
     
     # create test site
-    @s.switch_user(creator);
+    @s.switch_user(@creator);
     @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{@siteid}",
       "sakai:site-template" => "/var/templates/site/systemtemplate",
@@ -30,7 +45,7 @@ class TC_Kern566Test < Test::Unit::TestCase
       "id" => @siteid);
       
     # create a sakai/basiclti node
-    @saveUrl = "/sites/#{@siteid}/_widgets/id#{m}/basiclti";
+    @saveUrl = "/sites/#{@siteid}/_widgets/id#{@now}/basiclti";
     @ltiurl = "http://dr-chuck.com/ims/php-simple/tool.php";
     @ltikey = "12345";
     ltisecret = "secret";
@@ -77,7 +92,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     assert_equal(404, sensitive.code.to_i, "404 Expected on sensitive node.");
     
     # switch to regular user
-    @s.switch_user(user);
+    @s.switch_user(@user);
     resp = @s.execute_get(@s.url_for("#{@saveUrl}"));
     assert_equal(200, resp.code.to_i, "Expected to be able to retrieve sakai/basiclti node.");
     props = JSON.parse(resp.body);
@@ -104,7 +119,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     assert_equal(404, sensitive.code.to_i, "404 Expected on sensitive node.");
 
     # switch to admin user
-    @s.switch_user(admin);
+    @s.switch_user(@admin);
     resp = @s.execute_get(@s.url_for("#{@saveUrl}"));
     assert_equal(200, resp.code.to_i, "Expected to be able to retrieve sakai/basiclti node.");
     props = JSON.parse(resp.body);
@@ -134,16 +149,12 @@ class TC_Kern566Test < Test::Unit::TestCase
     end
 
   def test_basiclti_virtualTool
-    m = Time.now.to_f.to_s.gsub('.', '');
-    @siteid = "testsite#{m}";
-    @sitename = "Test Site #{m}";
-    creator = create_user("creator-test#{m}");
-    user = create_user("user-test#{m}");
-    admin = SlingUsers::User.admin_user();
-    anonymous = SlingUsers::User.anonymous();
+    @now = Time.now.to_f.to_s.gsub('.', '');
+    @siteid = "testsite#{@now}";
+    @sitename = "Test Site #{@now}";
     
     # verify anonymous user cannot read /var/basiclti
-    @s.switch_user(anonymous);
+    @s.switch_user(@anonymous);
     resp = @s.execute_get(@s.url_for("/var.json"));
     assert_equal(200, resp.code.to_i, "Should be able to read /var.");
     resp = @s.execute_get(@s.url_for("/var/basiclti.json"));
@@ -154,7 +165,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     assert_equal(404, resp.code.to_i, "Should NOT be able to read /var/basiclti/sakai.singleuser/ltiKeys.json.");
     
     # verify normal user cannot read /var/basiclti
-    @s.switch_user(creator);
+    @s.switch_user(@creator);
     resp = @s.execute_get(@s.url_for("/var.json"));
     assert_equal(200, resp.code.to_i, "Should be able to read /var.");
     resp = @s.execute_get(@s.url_for("/var/basiclti.json"));
@@ -165,7 +176,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     assert_equal(404, resp.code.to_i, "Should NOT be able to read /var/basiclti/sakai.singleuser/ltiKeys.json.");
     
     # verify admin user can read /var/basiclti
-    @s.switch_user(admin);
+    @s.switch_user(@admin);
     resp = @s.execute_get(@s.url_for("/var.json"));
     assert_equal(200, resp.code.to_i, "Admin should be able to read /var.");
     resp = @s.execute_get(@s.url_for("/var/basiclti.json"));
@@ -176,7 +187,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     assert_equal(200, resp.code.to_i, "Admin should be able to read /var/basiclti/sakai.singleuser/ltiKeys.json.");
     
     # create test site
-    @s.switch_user(creator);
+    @s.switch_user(@creator);
     @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{@siteid}",
       "sakai:site-template" => "/var/templates/site/systemtemplate",
@@ -185,7 +196,7 @@ class TC_Kern566Test < Test::Unit::TestCase
       "id" => @siteid);
       
     # create a sakai/basiclti VirtualTool node
-    @saveUrl = "/sites/#{@siteid}/_widgets/id#{m}/basiclti";
+    @saveUrl = "/sites/#{@siteid}/_widgets/id#{@now}/basiclti";
     @ltiurl = "http://localhost/imsblti/provider/sakai.singleuser"; # in the policy file
     @ltikey = "12345"; # in the policy file
     postData = {
@@ -214,7 +225,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     assert_equal(404, sensitive.code.to_i, "404 Expected on sensitive node.");
     
     # switch to regular user
-    @s.switch_user(user);
+    @s.switch_user(@user);
     resp = @s.execute_get(@s.url_for("#{@saveUrl}"));
     assert_equal(200, resp.code.to_i, "Expected to be able to retrieve sakai/basiclti node.");
     props = JSON.parse(resp.body);
@@ -241,7 +252,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     assert_equal(404, sensitive.code.to_i, "404 Expected on sensitive node.");
 
     # switch to admin user
-    @s.switch_user(admin);
+    @s.switch_user(@admin);
     resp = @s.execute_get(@s.url_for("#{@saveUrl}"));
     assert_equal(200, resp.code.to_i, "Expected to be able to retrieve sakai/basiclti node.");
     props = JSON.parse(resp.body);
@@ -267,15 +278,12 @@ class TC_Kern566Test < Test::Unit::TestCase
   def test_basicltiTrustedContextId
     # We create a test site.
     m = Time.now.to_f.to_s.gsub('.', '');
-    @siteid = "testsite#{m}";
-    @sitename = "Test Site #{m}";
-    creator = create_user("creator-test#{m}");
-    user = create_user("user-test#{m}");
-    admin = SlingUsers::User.admin_user();
+    @siteid = "testsite#{@now}";
+    @sitename = "Test Site #{@now}";
     
     # create test site
-    @s.switch_user(creator);
-    lti_context_id = "#{m}";
+    @s.switch_user(@creator);
+    lti_context_id = "#{@now}";
     @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{@siteid}",
       "sakai:site-template" => "/var/templates/site/systemtemplate",
@@ -285,7 +293,7 @@ class TC_Kern566Test < Test::Unit::TestCase
       "lti_context_id" => lti_context_id);
       
     # create a sakai/basiclti node
-    @saveUrl = "/sites/#{@siteid}/_widgets/id#{m}/basiclti";
+    @saveUrl = "/sites/#{@siteid}/_widgets/id#{@now}/basiclti";
     @ltiurl = "http://dr-chuck.com/ims/php-simple/tool.php";
     @ltikey = "12345";
     ltisecret = "secret";
@@ -314,7 +322,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     validateHtml(launch.body, lti_context_id);
     
     # switch to regular user
-    @s.switch_user(user);
+    @s.switch_user(@user);
     # expect normal launch from user
     launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
     assert_equal(200, launch.code.to_i, "200 Expected on launch.");
@@ -322,7 +330,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     validateHtml(launch.body, lti_context_id);
     
     # switch to admin user
-    @s.switch_user(admin);
+    @s.switch_user(@admin);
     # expect normal launch from admin
     launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
     assert_equal(200, launch.code.to_i, "200 Expected on launch.");
