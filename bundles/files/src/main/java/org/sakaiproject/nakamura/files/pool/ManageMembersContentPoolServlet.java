@@ -130,8 +130,10 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       writer.endObject();
     } catch (RepositoryException e) {
       response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not lookup ACL list.");
+      LOGGER.error(e.getMessage(), e);
     } catch (JSONException e) {
       response.sendError(SC_INTERNAL_SERVER_ERROR, "Failed to generate proper JSON.");
+      LOGGER.error(e.getMessage(), e);
     }
 
   }
@@ -140,12 +142,14 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       ExtendedJSONWriter writer, Entry<String, Boolean> entry)
       throws RepositoryException, JSONException {
     Authorizable au = um.getAuthorizable(entry.getKey());
-    if (au != null) {
+    if (au != null && !"everyone".equals(au.getPrincipal().getName())) {
       ValueMap profileMap = profileService.getCompactProfileMap(au, session);
       writer.valueMap(profileMap);
     } else {
-      writer.key(entry.getKey());
-      writer.value(null);
+      writer.object();
+      writer.key("userid");
+      writer.value(entry.getKey());
+      writer.endObject();
     }
   }
 
