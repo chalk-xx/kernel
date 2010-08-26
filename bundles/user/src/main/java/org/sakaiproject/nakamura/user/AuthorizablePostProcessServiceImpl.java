@@ -64,7 +64,6 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
 
   AuthorizablePostProcessor sakaiUserProcessor;
   AuthorizablePostProcessor sakaiGroupProcessor;
-  DefaultAuthorizablesLoader defaultAuthorizablesLoader;
   private AuthorizablePostProcessor[] orderedServices = new AuthorizablePostProcessor[0];
 
   public AuthorizablePostProcessServiceImpl() {
@@ -150,16 +149,10 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
 
   protected void bindAuthorizablePostProcessor(AuthorizablePostProcessor service, Map<String, Object> properties) {
     addService(service, properties);
-    if (defaultAuthorizablesLoader != null) {
-      defaultAuthorizablesLoader.initDefaultUsers();
-    }
   }
 
   protected void unbindAuthorizablePostProcessor(AuthorizablePostProcessor service, Map<String, Object> properties) {
     removeService(service, properties);
-    if (defaultAuthorizablesLoader != null) {
-      defaultAuthorizablesLoader.initDefaultUsers();
-    }
   }
 
   /**
@@ -173,14 +166,14 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
 
   @Activate
   protected void activate(ComponentContext componentContext) {
-    this.defaultAuthorizablesLoader = new DefaultAuthorizablesLoader(this,
-        componentContext, repository);
-    defaultAuthorizablesLoader.initDefaultUsers();
+    this.sakaiUserProcessor = new SakaiUserProcessor();
+    this.sakaiGroupProcessor = new SakaiGroupProcessor();
   }
 
   @Deactivate
   protected void deactivate(ComponentContext componentContext) {
-    this.defaultAuthorizablesLoader = null;
+    this.sakaiUserProcessor = null;
+    this.sakaiGroupProcessor = null;
   }
 
   private void doInternalProcessing(Authorizable authorizable, Session session,
