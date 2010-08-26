@@ -29,7 +29,7 @@ import java.util.Dictionary;
 
 import javax.jms.ConnectionFactory;
 
-@Component(immediate=true, metatype=true, name = "org.sakaiproject.nakamura.activemq.ActiveMQConnectionFactoryService", label="%amqf.name", description="%amqf.description")
+@Component(immediate=true, metatype=true, label="%amqf.name", description="%amqf.description")
 @Service(value=ConnectionFactoryService.class)
 public class ActiveMQConnectionFactoryService implements ConnectionFactoryService {
 
@@ -37,9 +37,9 @@ public class ActiveMQConnectionFactoryService implements ConnectionFactoryServic
 
   private PooledConnectionFactory pooledConnectionFactory;
 
-  @Property(value = "vm://localhost:61616" , description="%amqf.jms.brokerUrl")
+  @Property(value = "vm://localhost:61616")
   public static final String BROKER_URL = "jms.brokerUrl";
-  
+
   public void activateForTest(ComponentContext componentContext) {
     activate(componentContext);
   }
@@ -56,7 +56,7 @@ public class ActiveMQConnectionFactoryService implements ConnectionFactoryServic
   protected void deactivate(ComponentContext ctx) {
     pooledConnectionFactory.stop();
   }
-  
+
 
   public ConnectionFactory createFactory(String brokerURL) {
     return new ActiveMQConnectionFactory(brokerURL);
@@ -74,7 +74,7 @@ public class ActiveMQConnectionFactoryService implements ConnectionFactoryServic
   public ConnectionFactory getDefaultPooledConnectionFactory() {
     return pooledConnectionFactory;
   }
-  
+
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService#getDefaultConnectionFactory()
