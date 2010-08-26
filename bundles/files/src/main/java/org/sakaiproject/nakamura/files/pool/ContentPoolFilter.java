@@ -50,7 +50,7 @@ import javax.servlet.http.HttpServletResponse;
  * </p>
  */
 @Service(value = Filter.class)
-@Component(name = "org.sakaiproject.nakamura.files.pool.ContentPoolFilter", immediate = true, metatype = true, description = "%contentfilter.description", label = "%contentfilter.name")
+@Component(immediate = true, description = "%contentfilter.description", label = "%contentfilter.name")
 @Properties(value = { @Property(name = "service.description", value = "Content Filter"),
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "filter.scope", value = "request", propertyPrivate = true),
@@ -80,9 +80,9 @@ public class ContentPoolFilter implements Filter {
   }
 
   /**
-   * 
+   *
    * If the path is /, /_user, /_group then access is protected.
-   * 
+   *
    * @param srequest
    * @param resourceNode
    * @return

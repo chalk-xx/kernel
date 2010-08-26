@@ -46,7 +46,7 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.Topic;
 
-@Component(label = "ActivityListener", description = "Listens for new activities", immediate = true, metatype = true)
+@Component(immediate = true)
 public class ActivityListener implements MessageListener {
 
   // References/properties need for JMS
