@@ -89,6 +89,7 @@
         <module>bundles/webdav</module>
         <module>bundles/privacy</module>
         <module>bundles/pages</module>
+        <module>bundles/userinitializer</module>
       </modules>
     </profile>
     <profile>

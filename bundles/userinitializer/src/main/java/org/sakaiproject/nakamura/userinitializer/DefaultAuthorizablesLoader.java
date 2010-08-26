@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.user;
+package org.sakaiproject.nakamura.userinitializer;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -27,7 +27,6 @@ import org.apache.sling.jcr.resource.JcrResourceUtil;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.framework.Bundle;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.util.IOUtils;
 import org.slf4j.Logger;
@@ -51,18 +50,9 @@ import javax.jcr.Value;
  */
 public class DefaultAuthorizablesLoader {
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultAuthorizablesLoader.class);
-  private AuthorizablePostProcessService authorizablePostProcessService;
-  private Bundle bundle;
-  private SlingRepository repository;
 
-  public DefaultAuthorizablesLoader(AuthorizablePostProcessService authorizablePostProcessService,
-      ComponentContext componentContext, SlingRepository repository) {
-    this.authorizablePostProcessService = authorizablePostProcessService;
-    this.bundle = componentContext.getBundleContext().getBundle();
-    this.repository = repository;
-  }
-
-  public void initDefaultUsers() {
+  public void initDefaultUsers(AuthorizablePostProcessService authorizablePostProcessService,
+      Bundle bundle, SlingRepository repository) {
     Session session = null;
     try {
       session = repository.loginAdministrative(null);
@@ -79,7 +69,7 @@ public class DefaultAuthorizablesLoader {
         String authorizableId = fileNamePattern.matcher(jsonFileName).replaceAll("");
         Authorizable authorizable = userManager.getAuthorizable(authorizableId);
         if (authorizable != null) {
-          applyJsonToAuthorizable(jsonUrl, authorizable, session);
+          applyJsonToAuthorizable(authorizablePostProcessService, jsonUrl, authorizable, session);
           LOGGER.info("Initialized default authorizable {}", authorizableId);
         } else {
           LOGGER.warn("Configured default authorizable {} not found", authorizableId);
@@ -96,7 +86,8 @@ public class DefaultAuthorizablesLoader {
     }
   }
 
-  private void applyJsonToAuthorizable(URL url, Authorizable authorizable, Session session) throws IOException, RepositoryException {
+  private void applyJsonToAuthorizable(AuthorizablePostProcessService authorizablePostProcessService,
+      URL url, Authorizable authorizable, Session session) throws IOException, RepositoryException {
     String jsonString = IOUtils.readFully(url.openStream(), "UTF-8");
     if (jsonString != null) {
       Map<String, Object[]> postprocessParameters = new HashMap<String, Object[]>();
