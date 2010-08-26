@@ -68,58 +68,58 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   private static final Logger LOG = LoggerFactory.getLogger(TrustedTokenServiceImpl.class);
 
   /** Property to indivate if the session should be used. */
-  @Property(boolValue = false, description = "If True the session will be used to track authentication of the user, otherwise a cookie will be used.")
+  @Property(boolValue = false)
   public static final String USE_SESSION = "sakai.auth.trusted.token.usesession";
 
   /** Property to indicate if only cookies should be secure */
-  @Property(boolValue = false, description = "If true and cookies are bieng used, then only secure cookies will be accepted.")
+  @Property(boolValue = false)
   public static final String SECURE_COOKIE = "sakai.auth.trusted.token.securecookie";
 
   /** Property to indicate the TTL on cookies */
-  @Property(longValue = 1200000, description = "The TTL of a cookie based token, in ms")
+  @Property(longValue = 1200000)
   public static final String TTL = "sakai.auth.trusted.token.ttl";
 
   /** Property to indicate the name of the cookie. */
-  @Property(value = "sakai-trusted-authn", description = "The name of the token")
+  @Property(value = "sakai-trusted-authn")
   public static final String COOKIE_NAME = "sakai.auth.trusted.token.name";
 
   /** Property to point to keystore file */
-  @Property(value = "sling/cookie-keystore.bin", description = "The name of the token store")
+  @Property(value = "sling/cookie-keystore.bin")
   public static final String TOKEN_FILE_NAME = "sakai.auth.trusted.token.storefile";
 
   /** Property to contain the shared secret used by all trusted servers */
-  @Property(value = "default-setting-change-before-use", description= "The shared secret used for server to server trusted tokens")
+  @Property(value = "default-setting-change-before-use")
   public static final String SERVER_TOKEN_SHARED_SECRET = "sakai.auth.trusted.server.secret";
 
   /** True if server tokens are enabled. */
-  @Property(boolValue=true, description = "If true, trusted tokens from servers are accepted considered" )
+  @Property(boolValue=true)
   public static final String SERVER_TOKEN_ENABLED = "sakai.auth.trusted.server.enabled";
 
   /** A list of all the known safe hosts to trust as servers */
-  @Property(value ="127.0.0.1", description="A ; seperated list of hosts IP addresses that this instance trusts to make direct server to server connections. For Hosts that should be trusted for header or request parameter information see ")
+  @Property(value ="127.0.0.1")
   public static final String SERVER_TOKEN_SAFE_HOSTS_ADDR = "sakai.auth.trusted.server.safe-hostsaddress";
 
   private static final String DEFAULT_WRAPPERS = "org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.auth.opensso.OpenSsoAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.auth.cas.CasAuthenticationTokenServiceWrapper";
-  @Property(value = DEFAULT_WRAPPERS, description="A ; seperated list of fully qualified class names that are allowed to extend the Wrapper Class.")
+  @Property(value = DEFAULT_WRAPPERS)
   public static final String SERVER_TOKEN_SAFE_WRAPPERS = "sakai.auth.trusted.wrapper.class.names";
 
-  @Property(value="", description="The name of the header to trust, if not set or empty then headers are not trusted, by default headers are not trusted.")
+  @Property(value="")
   public static final String TRUSTED_HEADER_NAME = "sakai.auth.trusted.header";
 
-  @Property(value="", description="The name of the request parameter to trust, if not set or empty then request parameters are not trusted. By default request parameters are not trusted.")
+  @Property(value="")
   public static final String TRUSTED_PARAMETER_NAME = "sakai.auth.trusted.request-parameter";
 
   /** A list of all the known safe hosts to trust for authentication purposes, ie front end proxies */
-  @Property(value ="", description="A ; seperated list of hosts IP addresses that this instance trusts to provide headers or request parameters that can be trusted for authentication. This MUST be set for header or request parameter trusted authentication, should only be used where the getRemoteAddr is listed as the proxy server. If uing AJP DO NOT set this parameter.")
+  @Property(value ="")
   public static final String TRUSTED_PROXY_SERVER_ADDR = "sakai.auth.trusted.server.safe-authentication-addresses";
 
   /**
-   * the name of the header to be trusted, if null or "" then don't trust headers. 
+   * the name of the header to be trusted, if null or "" then don't trust headers.
    */
   private String trustedHeaderName;
 
   /**
-   * the name of the parameter to be trusted, if null or "" then don't trust request parameters. 
+   * the name of the parameter to be trusted, if null or "" then don't trust request parameters.
    */
   private String trustedParameterName;
 
@@ -128,7 +128,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    */
   private Set<String> trustedProxyServerAddrSet = new HashSet<String>(5);
 
-  
+
   /**
    * If True, sessions will be used, if false cookies.
    */
@@ -183,7 +183,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   private String sharedSecret;
 
   private boolean trustedTokenEnabled;
-  
+
   private Set<String> safeHostAddrSet = new HashSet<String>(16); // 16 way cluster is about as big as we will get.
 
   private String[] safeWrappers;
@@ -210,7 +210,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     trustedAuthCookieName = (String) props.get(COOKIE_NAME);
     sharedSecret = (String) props.get(SERVER_TOKEN_SHARED_SECRET);
     trustedTokenEnabled = (Boolean) props.get(SERVER_TOKEN_ENABLED);
-    
+
     String safeHostsAddr = OsgiUtil.toString(props.get(SERVER_TOKEN_SAFE_HOSTS_ADDR), "");
     safeHostAddrSet.clear();
     if ( safeHostsAddr != null) {
@@ -421,8 +421,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
         LOG.info("Injecting Trusted Token from request: Remote User indicated user was [{}] ", userId);
       }
     }
-    
-    
+
+
     if (userId != null) {
       if (usingSession) {
         HttpSession session = request.getSession(true);
