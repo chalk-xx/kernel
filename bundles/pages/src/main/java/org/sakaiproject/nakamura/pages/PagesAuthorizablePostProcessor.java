@@ -121,7 +121,7 @@ public class PagesAuthorizablePostProcessor implements AuthorizablePostProcessor
     // Check for an explicit pages template path.
     Object[] templateParameterValues = parameters.get(PAGES_TEMPLATE_PARAMETER);
     if (templateParameterValues != null) {
-      if (templateParameterValues instanceof String[] && (templateParameterValues.length == 1)) {
+      if ((templateParameterValues.length == 1) && templateParameterValues[0] instanceof String) {
         String templateParameterValue = (String) templateParameterValues[0];
         if (templateParameterValue.length() > 0) {
           templatePath = templateParameterValue;
