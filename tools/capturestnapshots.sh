@@ -9,9 +9,18 @@ function install {
      echo Version ${1}-${2}-${3} exists.
    else
      pushd tools
-     mvn install:install-file -DgroupId=org.apache.sling -DartifactId=${1} -Dversion=${2}-${3} -Dpackaging=jar -Dfile=$repo/org/apache/sling/${1}/${2}-SNAPSHOT/${1}-${2}-SNAPSHOT.jar
+     mvn install:install-file -DgroupId=org.apache.sling -DartifactId=${1} -Dversion=${2}-${3} -Dpackaging=jar -DcreateChecksum=true -DgeneratePom=true -Dfile=$repo/org/apache/sling/${1}/${2}-SNAPSHOT/${1}-${2}-SNAPSHOT.jar
      popd 
    fi
+   if [ -f $repo/org/apache/sling/${1}/${2}-${3}/${1}-${2}-${3}-sources.jar ]
+   then
+     echo Version ${1}-${2}-${3}-sources exists.
+   else
+     pushd tools
+     mvn install:install-file -DgroupId=org.apache.sling -DartifactId=${1} -Dversion=${2}-${3} -Dpackaging=jar -DcreateChecksum=true -Dfile=$repo/org/apache/sling/${1}/${2}-SNAPSHOT/${1}-${2}-SNAPSHOT-sources.jar
+     popd
+   fi
+
 }
 
 
@@ -74,16 +83,11 @@ git stash apply
 
 git diff > last-release/captured-snapshots.patch
 
-versionstocapture=`git diff | awk '/artifactId/ { artifact=$1 }; /groupId/ { group=$1 }; /SNAPSHOT/ { if ( artifact ) print substr(group,10,length(group)-19) ":" substr(artifact,13,length(artifact)-25) ":"  substr($2,10,length($2)-28) }; ' | sort -u `
+git commit -a -m "Bound source tree to captured snapshots $capture "
 
-for i in $versionstocapture
-do
-  echo $i
-   group=`echo $i | cut -d':' -f1`
-   artifact=`echo $i | cut -d':' -f2`
-   version=`echo $i | cut -d':' -f3`
-   install "$artifact" "$version" "$capture"
-done
+echo "All done, to save the snapshots run "
+echo tools/savesnapshots.sh $capture shaid
+echo where shaid is the commit sha above.
 
 
   
