@@ -55,7 +55,13 @@ public class PrincipalProviderRegistryManagerImpl extends ServiceTracker impleme
    * @see org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.PrincipalProviderRegistryManager#getPrincipalProvider(org.apache.jackrabbit.core.security.principal.PrincipalProvider)
    */
   public PrincipalProviderRegistry getPrincipalProvider(PrincipalProvider defaultPrincipalProvider) {
-    DynamicProviderRegistryImpl dpp = new DynamicProviderRegistryImpl(defaultPrincipalProvider, (PrincipalProvider[]) getServices(), testServices);
+    Object[] services = getServices();
+    PrincipalProvider[] providers = null;
+    if (services != null) {
+      providers = new PrincipalProvider[services.length];
+      System.arraycopy(services, 0, providers, 0, services.length);
+    }
+    DynamicProviderRegistryImpl dpp = new DynamicProviderRegistryImpl(defaultPrincipalProvider, providers, testServices);
     LOGGER.info("Creating Principal provider registry and keeping reference, if there are lots of these messages in the log, there is a memory leak in progress.");
     serviceListeners .put(dpp,dpp);
     return dpp;
