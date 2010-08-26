@@ -39,7 +39,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetHeaders;
 import javax.mail.internet.MimeMultipart;
 
-@Component(immediate = true, metatype = true, label = "Receives incoming mail.", name = "org.sakaiproject.nakamura.smtp.SmtpServer")
+@Component(immediate = true, metatype = true)
 public class SakaiSmtpServer implements SimpleMessageListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SakaiSmtpServer.class);
@@ -55,7 +55,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
 
   @Property
   private static String LOCAL_DOMAINS = "smtp.localdomains";
-  
+
   @Property(intValue=8025)
   private static String SMTP_SERVER_PORT = "smtp.port";
 
@@ -89,9 +89,9 @@ public class SakaiSmtpServer implements SimpleMessageListener {
   }
 
   /**
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.subethamail.smtp.helper.SimpleMessageListener#accept(java.lang.String,
    *      java.lang.String)
    */
@@ -166,7 +166,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
         if (session.hasPendingChanges()) {
           session.save();
         }
-        
+
       }
     } catch (RepositoryException e) {
       LOGGER.error("Unable to write message", e);
@@ -194,7 +194,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
         if ( values.length == 1 ) {
           mapProperties.put("sakai:"+name.toLowerCase(), values[0]);
         } else {
-          mapProperties.put("sakai:"+name.toLowerCase(), values);       
+          mapProperties.put("sakai:"+name.toLowerCase(), values);
         }
       }
     }
