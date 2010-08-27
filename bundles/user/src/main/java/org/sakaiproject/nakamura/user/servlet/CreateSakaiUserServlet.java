@@ -146,7 +146,7 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceParameter(name="pwd", description="The password of the new user (required)"),
         @ServiceParameter(name="pwdConfirm", description="The password of the new user (required)"),
         @ServiceParameter(name="",description="Additional parameters become user node properties, " +
-        		"anything starting with : does not get added (optional)"),
+        		"except for parameters starting with ':', which are only forwarded to post-processors (optional)"),
         @ServiceParameter(name=":create-auth", description="The name of a per request authentication " +
         		"mechanism eg capatcha, callers will also need to add parameters to satisfy the " +
         		"authentication method,  (optional)")
