@@ -98,4 +98,10 @@ public interface FilesConstants {
    * The name of the property that holds the filename.
    */
   public static final String POOLED_CONTENT_FILENAME = "sakai:pooled-content-file-name";
+  
+  /**
+   * Property on the file node indicating who the content was created for.
+   */
+  public static final String POOLED_CONTENT_CREATED_FOR = "sakai:pool-content-created-for";
+
 }
