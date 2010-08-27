@@ -145,7 +145,11 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceParameter(name=":name", description="The name of the new user (required)"),
         @ServiceParameter(name="pwd", description="The password of the new user (required)"),
         @ServiceParameter(name="pwdConfirm", description="The password of the new user (required)"),
-        @ServiceParameter(name="",description="Additional parameters become user node properties (optional)")
+        @ServiceParameter(name="",description="Additional parameters become user node properties, " +
+        		"anything starting with : does not get added (optional)"),
+        @ServiceParameter(name=":create-auth", description="The name of a per request authentication " +
+        		"mechanism eg capatcha, callers will also need to add parameters to satisfy the " +
+        		"authentication method,  (optional)")
     },
     response={
     @ServiceResponse(code=200,description="Success, a redirect is sent to the users resource locator with HTML describing status."),
