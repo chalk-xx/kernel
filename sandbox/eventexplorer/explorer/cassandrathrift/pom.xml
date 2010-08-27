@@ -61,7 +61,7 @@
     <dependency>
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
-      <version>r917130</version>
+      <version>0.4.0</version>
     </dependency>
 
     <!-- We also need slf4j -->
