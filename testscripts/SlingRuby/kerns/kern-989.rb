@@ -45,6 +45,8 @@ class TC_Kern989Test < Test::Unit::TestCase
     res = @s.execute_post(url+".save.json")
     res = @s.execute_post(url, { "testing" => "value3" })
     assert_equal("200", res.code)
+    res = @fm.upload_pooled_file('random.txt', '333', 'text/plain', id)
+    assert_equal("200",res.code,res.body)
     
     
     # Check that versions is working as expected. 
@@ -90,7 +92,7 @@ class TC_Kern989Test < Test::Unit::TestCase
  
     res = @s.execute_get(url)
     @log.info(res.body)
-   assert_equal("22", res.body)
+   assert_equal("333", res.body)
 
   end
 
