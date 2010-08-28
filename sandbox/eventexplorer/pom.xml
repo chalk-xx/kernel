@@ -11,8 +11,8 @@
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>eventexplorer</artifactId>
   <modules>
-    <module>explorer</module>
     <module>ui</module>
+    <module>explorer</module>
   </modules>
   <dependencyManagement>
     <dependencies>
