@@ -17,12 +17,12 @@
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </parent>
 
     <artifactId>org.sakaiproject.nakamura.app</artifactId>
     <packaging>jar</packaging>
-    <version>0.8-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
 
     <name>Sakai Nakamura :: Launchpad Standalone Java Application</name>
     <description> Standalone Launchpad Java Application. Everything needed to run the Launchpad is
@@ -49,7 +49,7 @@
                             <jarWebSupport>
                                  <groupId>org.sakaiproject.nakamura</groupId>
                                  <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
-                                 <version>0.8-SNAPSHOT</version>
+                                 <version>0.9-SNAPSHOT</version>
                                  <startLevel>5</startLevel>
                            </jarWebSupport>
                            <additionalBundles>

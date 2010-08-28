@@ -110,7 +110,8 @@ import javax.servlet.http.HttpServletResponse;
             "<pre>curl -Fproperty1@Delete -Fproperty2=value2 http://localhost:8080/system/userManager/user/username.update.html</pre>"},
         parameters={
         @ServiceParameter(name="propertyName@Delete", description="Delete property, eg property1@Delete means delete property1 (optional)"),
-        @ServiceParameter(name="",description="Additional parameters become user node properties (optional)")
+        @ServiceParameter(name="",description="Additional parameters become user node properties, " +
+            "except for parameters starting with ':', which are only forwarded to post-processors (optional)")
         },
         response={
           @ServiceResponse(code=200,description="Success, a redirect is sent to the user's resource locator with HTML describing status."),

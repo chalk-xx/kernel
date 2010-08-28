@@ -22,11 +22,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.8-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.lifecycle</artifactId>
   <packaging>bundle</packaging>
-  <version>0.8-SNAPSHOT</version>
+  <version>0.9-SNAPSHOT</version>
   <name>Sakai Nakamura :: Initialization Bundle</name>
   <description>Provides lifecycle support to Sakai Nakamura bundles outside OSGi.</description>
   <build>
@@ -70,19 +70,19 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.registry</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.guice</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

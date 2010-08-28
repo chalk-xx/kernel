@@ -100,8 +100,10 @@ public class DefaultAuthorizablesLoader {
           if (key.startsWith(SlingPostConstants.RP_PREFIX)) {
             postprocessParameters.put(key, new Object[] {jsonValue});
           } else {
-            Value value = JcrResourceUtil.createValue(jsonValue, session);
-            authorizable.setProperty(key, value);
+            if (!authorizable.hasProperty(key)) {
+              Value value = JcrResourceUtil.createValue(jsonValue, session);
+              authorizable.setProperty(key, value);
+            }
           }
         }
       } catch (JSONException e) {

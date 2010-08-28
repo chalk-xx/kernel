@@ -5,11 +5,11 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.8-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura.maven</groupId>
   <artifactId>drools-maven-plugin</artifactId>
-  <version>0.8-SNAPSHOT</version>
+  <version>0.9-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
   <name>Sakai Nakamura :: Drools Maven Plugin</name>
   <dependencies>
