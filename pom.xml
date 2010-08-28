@@ -117,8 +117,10 @@
         <module>sandbox/scriptrunner</module>
         <module>sandbox/sessiontest</module>
         <module>sandbox/sitetemplates</module>
-        <!-- <module>sandbox/imap</module>  DISABLED TO MAKE THE 0.8 RELEASE -->
+        <module>sandbox/imap</module>
         <!-- <module>sandbox/drools</module> DISABLED TO MAKE THE 0.8 RELEASE -->
+        <!-- follow the setup in sandbox/eventexplorer/README.txt before enabling this -->
+        <!-- <module>sandbox/eventexplorer</module> -->
        </modules>
     </profile>
     <profile>
