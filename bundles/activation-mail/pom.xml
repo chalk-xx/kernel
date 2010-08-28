@@ -15,11 +15,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.8-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
   <artifactId>javax.activation-mail</artifactId>
   <packaging>bundle</packaging>
-  <version>${javax.activation.version}-${javax.mail.version}-0.8-SNAPSHOT</version>
+  <version>${javax.activation.version}-${javax.mail.version}-0.9-SNAPSHOT</version>
   <name>Sakai Nakamura :: Javax Activation and Mail Bundle</name>
   <description>Provides javax.activation, javax.mail and implementation libraries </description>
   <properties>

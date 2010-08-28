@@ -5,11 +5,11 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.8-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.drools-engine</artifactId>
-  <version>0.8-SNAPSHOT</version>
+  <version>0.9-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Drools Engine</name>
   <build>
@@ -64,7 +64,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -102,7 +102,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura.rules</groupId>
       <artifactId>org.sakaiproject.nakamura.rules.example</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -93,7 +93,7 @@ public class KnowledgeBaseHolderTest {
     Mockito.when(binary.getStream()).thenAnswer(new Answer<InputStream>() {
 
       public InputStream answer(InvocationOnMock invocation) throws Throwable {
-        return  this.getClass().getResourceAsStream("/SLING-INF/content/var/rules/org.sakaiproject.nakamura.rules/org.sakaiproject.nakamura.rules.example/0.8-SNAPSHOT/org.sakaiproject.nakamura.rules.example-0.7-SNAPSHOT.pkg");
+        return  this.getClass().getResourceAsStream("/SLING-INF/content/var/rules/org.sakaiproject.nakamura.rules/org.sakaiproject.nakamura.rules.example/0.9-SNAPSHOT/org.sakaiproject.nakamura.rules.example-0.7-SNAPSHOT.pkg");
       }
     });
     

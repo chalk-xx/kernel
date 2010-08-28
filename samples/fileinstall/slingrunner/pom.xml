@@ -14,18 +14,18 @@
   <parent>
     <artifactId>org.sakaiproject.nakamura.samples.fileinstall</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.8-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.samples.fileinstall.slingrunner</artifactId>
-  <version>0.8-SNAPSHOT</version>
+  <version>0.9-SNAPSHOT</version>
   <name>Clean Start for Sling</name>
   <dependencies>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.app</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <build>

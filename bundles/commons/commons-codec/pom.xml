@@ -22,11 +22,11 @@
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>org.sakaiproject.nakamura.commons.commons-codec</artifactId>
-    <version>1.4-0.8-SNAPSHOT</version>
+    <version>1.4-0.9-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Sakai Nakamura :: Apache Commons Codec bundle</name>
     <description>
