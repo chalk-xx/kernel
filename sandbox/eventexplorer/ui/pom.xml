@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <artifactId>base</artifactId>
+    <artifactId>eventexplorer</artifactId>
     <version>0.8-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
@@ -39,6 +39,14 @@
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.eventexplorer.cassandra-thrift</artifactId>
       <version>0.8-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cassandra.thrift</groupId>
+      <artifactId>apache-cassandra</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libthrift</artifactId>
     </dependency>
 
     <!-- We also need slf4j -->

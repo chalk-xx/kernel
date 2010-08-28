@@ -14,5 +14,21 @@
     <module>explorer</module>
     <module>ui</module>
   </modules>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>libthrift</artifactId>
+        <version>r917130</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.cassandra.thrift</groupId>
+        <artifactId>apache-cassandra</artifactId>
+        <version>0.6.5</version>
+        <scope>provided</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 </project>
 

@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <artifactId>base</artifactId>
+    <artifactId>eventexplorer</artifactId>
     <version>0.8-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
@@ -34,6 +34,15 @@
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>org.apache.cassandra.thrift</groupId>
+      <artifactId>apache-cassandra</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libthrift</artifactId>
+    </dependency>
+
     <!--  We're running in Felix's OSGi container -->
     <dependency>
       <groupId>org.apache.felix</groupId>
