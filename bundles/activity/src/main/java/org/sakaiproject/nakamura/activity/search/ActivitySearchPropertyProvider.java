@@ -37,7 +37,7 @@ import java.util.Map;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-@Component(immediate = true, enabled = true, name = "ActivitySearchPropertyProvider", label = "ActivitySearchPropertyProvider")
+@Component(immediate = true, enabled = true, label = "ActivitySearchPropertyProvider")
 @Properties(value = {
     @Property(name = "sakai.search.provider", value = "Activity"),
     @Property(name = "sakai.search.resourceType", value = "sakai/page"),
