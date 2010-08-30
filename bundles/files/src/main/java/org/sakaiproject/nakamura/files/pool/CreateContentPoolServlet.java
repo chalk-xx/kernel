@@ -23,12 +23,12 @@ import static org.apache.jackrabbit.JcrConstants.JCR_CONTENT;
 import static org.apache.jackrabbit.JcrConstants.NT_RESOURCE;
 import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_CREATED_FOR;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_FILENAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_NT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_RT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_RT;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_CREATED_FOR;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Properties;
@@ -36,6 +36,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -73,6 +74,7 @@ import java.util.Map.Entry;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.security.Privilege;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -103,7 +105,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code=200,description="Where the file is updated"),
           @ServiceResponse(code=500,description="Failure with HTML explanation.")}
 
-        )) 
+        ))
 public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
   @Reference
@@ -117,6 +119,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       .toCharArray();
   public static final char[] HASHENCODING = "abcdefghijklmnopqrstuvwxyz1234567890"
       .toCharArray();
+  public static final String POOLED_CONTENT_ROOT = "/_p";
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateContentPoolServlet.class);
@@ -219,6 +222,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
     // Get the content type.
     String contentType = getContentType(value);
     if ( create ) {
+      ensurePoolRoot(session);
 
       // Create a proper nt:file node in jcr with some properties on it to make it possible
       // to locate this pool file without having to use the path.
@@ -315,7 +319,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
     String encodedId = StringUtils.encode(md.digest(poolId.getBytes("UTF-8")),
         HASHENCODING);
     LOGGER.info("Hashing [{}] gave [{}] ", poolId, encodedId);
-    return "/_p/" + encodedId.charAt(0) + "/" + encodedId.substring(1, 3) + "/"
+    return POOLED_CONTENT_ROOT + "/" + encodedId.charAt(0) + "/" + encodedId.substring(1, 3) + "/"
         + encodedId.substring(3, 5) + "/" + encodedId.substring(5, 7) + "/" + poolId;
   }
 
@@ -325,6 +329,23 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       String newId = String.valueOf(startingPoint++) + "-" + serverId;
       MessageDigest md = MessageDigest.getInstance("SHA-1");
       return StringUtils.encode(md.digest(newId.getBytes("UTF-8")), ENCODING);
+    }
+  }
+
+  /**
+   * Ensure that the root of pooled content exists with the proper access controls.
+   * @param session
+   * @throws RepositoryException
+   */
+  private void ensurePoolRoot(Session session) throws RepositoryException {
+    if (!session.nodeExists(POOLED_CONTENT_ROOT)) {
+      JcrUtils.deepGetOrCreateNode(session, POOLED_CONTENT_ROOT);
+      PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
+      Principal everyone = principalManager.getEveryone();
+      String[] grants = { Privilege.JCR_REMOVE_CHILD_NODES };
+      AccessControlUtil.replaceAccessControlEntry(session, POOLED_CONTENT_ROOT, everyone,
+          grants, new String[0], new String[0], null);
+      LOGGER.debug("Created pooled content root at {}", POOLED_CONTENT_ROOT);
     }
   }
 

@@ -27,6 +27,7 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.kahadb.util.ByteArrayInputStream;
@@ -74,6 +75,8 @@ public class CreateContentPoolServletTest {
   private JackrabbitSession adminSession;
   @Mock
   private UserManager userManager;
+  @Mock
+  private PrincipalManager principalManager;
   @Mock
   private ItemBasedPrincipal iebPrincipal;
   @Mock
@@ -123,12 +126,13 @@ public class CreateContentPoolServletTest {
     // activate
     when(clusterTrackingService.getCurrentServerId()).thenReturn("serverID");
     when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
-    
-    
+
+
     when(request.getRequestPathInfo()).thenReturn(requestPathInfo);
     when(requestPathInfo.getExtension()).thenReturn(null);
 
     when(adminSession.getUserManager()).thenReturn(userManager);
+    when(adminSession.getPrincipalManager()).thenReturn(principalManager);
     when(adminSession.getAccessControlManager()).thenReturn(accessControlManager);
     when(request.getRemoteUser()).thenReturn("ieb");
     when(iebPrincipal.getPath()).thenReturn("/i/ie/ieb");
