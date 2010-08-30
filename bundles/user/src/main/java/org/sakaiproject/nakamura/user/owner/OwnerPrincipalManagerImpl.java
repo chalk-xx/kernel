@@ -31,12 +31,9 @@ import javax.jcr.RepositoryException;
 
 /**
  * The <code>OwnerPrincipalManager</code>
- * Note, nodes must have mix:created or be a hierachy node (nt:file, nt:folder) to get jcr:createdBy 
- * 
- * @scr.component immediate="true" label="OwnerPrincipalManagerImpl"
- *                description="Implementation of the Dynamic Principal Manager Service"
- *                name=
- *                "org.sakaiproject.nakamura.ownerprincipalmanager.OwnerPrincipalManagerImpl"
+ * Note, nodes must have mix:created or be a hierachy node (nt:file, nt:folder) to get jcr:createdBy
+ *
+ * @scr.component immediate="true" metatype="false"
  * @scr.service interface=
  *              "org.apache.sling.jcr.jackrabbit.server.security.dynamic.DynamicPrincipalManager"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
@@ -55,7 +52,7 @@ public class OwnerPrincipalManagerImpl implements DynamicPrincipalManager {
         return false;
       }
       if ("owner".equals(principalName)) {
-        
+
         LOG.debug("Granting .owner privs to node owner {} ",contextNode.getPath());
         if (contextNode.hasProperty(JCR_CREATED_BY)) {
           Property owner = contextNode.getProperty(JCR_CREATED_BY);

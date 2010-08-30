@@ -3,13 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <artifactId>base</artifactId>
-    <version>0.8-SNAPSHOT</version>
+    <artifactId>eventexplorer</artifactId>
+    <version>0.9-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.eventexplorer.listeners</artifactId>
   <packaging>bundle</packaging>
-  <version>0.8-SNAPSHOT</version>
+  <version>0.9-SNAPSHOT</version>
   <name>Sakai Nakamura :: Sakai JMS Listeners</name>
   <description>Listeners for Nakamura messages</description>
 
@@ -34,6 +34,15 @@
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>org.apache.cassandra.thrift</groupId>
+      <artifactId>apache-cassandra</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libthrift</artifactId>
+    </dependency>
+
     <!--  We're running in Felix's OSGi container -->
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -72,7 +81,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
-      <version>5.3.0-0.8-SNAPSHOT</version>
+      <version>5.3.0-0.9-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
 
@@ -81,7 +90,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.eventexplorer.cassandra-thrift</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

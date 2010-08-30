@@ -72,7 +72,7 @@ import javax.jcr.version.VersionException;
  * changes.
  *
  */
-@Component(immediate = true, description = "Post Processor for User and Group operations", metatype = true, label = "PersonalAuthorizablePostProcessor")
+@Component(immediate = true, metatype = true)
 @Service(value = AuthorizablePostProcessor.class)
 @Properties(value = {
     @org.apache.felix.scr.annotations.Property(name = "service.vendor", value = "The Sakai Foundation"),

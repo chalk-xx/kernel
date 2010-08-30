@@ -3,13 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <artifactId>base</artifactId>
-    <version>0.8-SNAPSHOT</version>
+    <artifactId>org.sakaiproject.nakamura.eventexplorer</artifactId>
+    <version>0.9-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.eventexplorer.cassandra-thrift</artifactId>
   <packaging>bundle</packaging>
-  <version>0.8-SNAPSHOT</version>
+  <version>0.9-SNAPSHOT</version>
   <name>Sakai Nakamura :: Sakai Cassandra-Thrift implementation.</name>
   <description>The thrift class files that are needed to talk to Cassandra.</description>
   <build>
@@ -34,7 +34,7 @@
               org.sakaiproject.nakamura.eventexplorer.api.cassandra
 			</Export-Package>
             <Private-Package>org.sakaiproject.nakamura.eventexplorer.cassandra.*</Private-Package>
-            <Embed-Dependency>libthrift</Embed-Dependency>
+            <Embed-Dependency>libthrift,apache-cassandra</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
@@ -61,7 +61,10 @@
     <dependency>
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
-      <version>r917130</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cassandra.thrift</groupId>
+      <artifactId>apache-cassandra</artifactId>
     </dependency>
 
     <!-- We also need slf4j -->

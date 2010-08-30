@@ -49,9 +49,7 @@ import javax.jcr.Workspace;
 /**
  * Initializes structured pages for new users and groups.
  */
-@Component(immediate=true, metatype=true,
-    description="Initializes structured pages for new users and groups",
-    label="PagesAuthorizablePostProcessor")
+@Component(immediate=true, metatype=true)
 @Service
 @Properties(value = {
     @Property(name=SERVICE_VENDOR, value="The Sakai Foundation"),
@@ -60,11 +58,11 @@ import javax.jcr.Workspace;
 public class PagesAuthorizablePostProcessor implements AuthorizablePostProcessor {
   private static final Logger LOGGER = LoggerFactory.getLogger(PagesAuthorizablePostProcessor.class);
 
-  @Property(value="/var/templates/pages/systemuser", description="The default template for a user's pages", label="Default User Template")
+  @Property(value="/var/templates/pages/systemuser")
   public static final String DEFAULT_USER_PAGES_TEMPLATE = "default.user.template";
   private String defaultUserPagesTemplate;
 
-  @Property(value="/var/templates/pages/systemgroup", description="The default template for a group's pages", label="Default Group Template")
+  @Property(value="/var/templates/pages/systemgroup")
   public static final String DEFAULT_GROUP_PAGES_TEMPLATE = "default.group.template";
   private String defaultGroupPagesTemplate;
 
@@ -121,7 +119,7 @@ public class PagesAuthorizablePostProcessor implements AuthorizablePostProcessor
     // Check for an explicit pages template path.
     Object[] templateParameterValues = parameters.get(PAGES_TEMPLATE_PARAMETER);
     if (templateParameterValues != null) {
-      if (templateParameterValues instanceof String[] && (templateParameterValues.length == 1)) {
+      if ((templateParameterValues.length == 1) && templateParameterValues[0] instanceof String) {
         String templateParameterValue = (String) templateParameterValues[0];
         if (templateParameterValue.length() > 0) {
           templatePath = templateParameterValue;

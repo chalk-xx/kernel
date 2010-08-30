@@ -110,20 +110,18 @@ public class NakamuraNioImapServer extends AbstractConfigurableAsyncServer imple
     JCRVmNodeLocker nodeLocker = new JCRVmNodeLocker();
     JCRMailboxSessionMapperFactory jcrMailboxSessionMapperFactory = new JCRMailboxSessionMapperFactory(sessionRepos, nodeLocker);
     JCRSubscriptionManager jcrSubscriptionManager = new JCRSubscriptionManager(jcrMailboxSessionMapperFactory);
-    MailboxManager mailboxManager = new JCRMailboxManager( jcrMailboxSessionMapperFactory, userManager, jcrSubscriptionManager );
+//    MailboxManager mailboxManager = new JCRMailboxManager( jcrMailboxSessionMapperFactory, userManager, jcrSubscriptionManager );
+    MailboxManager mailboxManager = new JCRMailboxManager( jcrMailboxSessionMapperFactory, userManager, nodeLocker );
 
-    final DefaultImapProcessorFactory defaultImapProcessorFactory = new DefaultImapProcessorFactory();
     MailboxSession session = mailboxManager.createSystemSession("test", jcLog);
     mailboxManager.startProcessingRequest(session);
     //mailboxManager.deleteEverything(session);
     mailboxManager.endProcessingRequest(session);
     mailboxManager.logout(session, false);
 
-    defaultImapProcessorFactory.configure(mailboxManager);
-
     decoder = new DefaultImapDecoderFactory().buildImapDecoder();
     encoder = new DefaultImapEncoderFactory().buildImapEncoder();
-    processor = defaultImapProcessorFactory.buildImapProcessor();
+    processor = DefaultImapProcessorFactory.createDefaultProcessor(mailboxManager, jcrSubscriptionManager);
     setDNSService(dnsServer);
     setLog(jcLog);
     URL configUrl = getClass().getResource("/imap-config.xml");

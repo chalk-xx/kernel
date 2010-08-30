@@ -136,7 +136,8 @@ import javax.servlet.http.HttpServletResponse;
             "<pre>curl -F:name=g-groupname -Fproperty1=value1 http://localhost:8080/system/userManager/group.create.html</pre>"},
         parameters={
         @ServiceParameter(name=":name", description="The name of the new group (required)"),
-        @ServiceParameter(name="",description="Additional parameters become groups node properties (optional)")
+        @ServiceParameter(name="",description="Additional parameters become group node properties, " +
+            "except for parameters starting with ':', which are only forwarded to post-processors (optional)")
         },
         response={
         @ServiceResponse(code=200,description="Success, a redirect is sent to the groups resource locator with HTML describing status."),

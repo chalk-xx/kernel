@@ -16,15 +16,6 @@
  */
 package org.sakaiproject.nakamura.user.resource;
 
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -38,11 +29,20 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * Resource Provider implementation for jackrabbit UserManager resources.
- * 
+ *
  * @scr.component immediate="true" label="%authorizable.resourceprovider.name"
- *                description="authorizable.resourceprovider.description"
+ *                description="%authorizable.resourceprovider.description"
  * @scr.property name="service.description"
  *               value="Resource provider implementation for UserManager resources"
  * @scr.property name="service.vendor" value="The Apache Software Foundation"

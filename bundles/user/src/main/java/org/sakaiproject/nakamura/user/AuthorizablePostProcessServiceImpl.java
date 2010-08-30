@@ -64,8 +64,12 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
 
   AuthorizablePostProcessor sakaiUserProcessor;
   AuthorizablePostProcessor sakaiGroupProcessor;
-  DefaultAuthorizablesLoader defaultAuthorizablesLoader;
   private AuthorizablePostProcessor[] orderedServices = new AuthorizablePostProcessor[0];
+
+  public AuthorizablePostProcessServiceImpl() {
+    this.sakaiUserProcessor = new SakaiUserProcessor();
+    this.sakaiGroupProcessor = new SakaiGroupProcessor();
+  }
 
   /**
    * {@inheritDoc}
@@ -131,6 +135,7 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
   /**
    * @return
    */
+  @Override
   protected Comparator<AuthorizablePostProcessor> getComparator(final Map<AuthorizablePostProcessor, Map<String, Object>> propertiesMap) {
     return new Comparator<AuthorizablePostProcessor>() {
       public int compare(AuthorizablePostProcessor o1, AuthorizablePostProcessor o2) {
@@ -144,16 +149,10 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
 
   protected void bindAuthorizablePostProcessor(AuthorizablePostProcessor service, Map<String, Object> properties) {
     addService(service, properties);
-    if (defaultAuthorizablesLoader != null) {
-      defaultAuthorizablesLoader.initDefaultUsers();
-    }
   }
 
   protected void unbindAuthorizablePostProcessor(AuthorizablePostProcessor service, Map<String, Object> properties) {
     removeService(service, properties);
-    if (defaultAuthorizablesLoader != null) {
-      defaultAuthorizablesLoader.initDefaultUsers();
-    }
   }
 
   /**
@@ -169,16 +168,12 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
   protected void activate(ComponentContext componentContext) {
     this.sakaiUserProcessor = new SakaiUserProcessor();
     this.sakaiGroupProcessor = new SakaiGroupProcessor();
-    this.defaultAuthorizablesLoader = new DefaultAuthorizablesLoader(this,
-        componentContext, repository);
-    defaultAuthorizablesLoader.initDefaultUsers();
   }
 
   @Deactivate
   protected void deactivate(ComponentContext componentContext) {
     this.sakaiUserProcessor = null;
     this.sakaiGroupProcessor = null;
-    this.defaultAuthorizablesLoader = null;
   }
 
   private void doInternalProcessing(Authorizable authorizable, Session session,

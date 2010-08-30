@@ -122,7 +122,9 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceParameter(name = ":viewer", description = "Add a viewer to this group, note: this does not add the viewer as a member! (optional)"),
     @ServiceParameter(name = ":viewer@Delete", description = "Remove a viewer from this group, note: this does not remove the viewer as a member! (optional)"),
     @ServiceParameter(name = "propertyName@Delete", description = "Delete property, eg property1@Delete means delete property1 (optional)"),
-    @ServiceParameter(name = "", description = "Additional parameters become group node properties (optional)") }, response = {
+    @ServiceParameter(name="",description="Additional parameters become group node properties, " +
+        "except for parameters starting with ':', which are only forwarded to post-processors (optional)")
+    }, response={
     @ServiceResponse(code = 200, description = "Success, a redirect is sent to the group's resource locator with HTML describing status."),
     @ServiceResponse(code = 404, description = "Group was not found."),
     @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }))

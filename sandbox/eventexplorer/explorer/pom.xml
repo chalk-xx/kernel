@@ -2,9 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>base</artifactId>
+    <artifactId>eventexplorer</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.8-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
   <packaging>pom</packaging>
   <name>Sakai Nakamura :: Event listeners Project</name>
