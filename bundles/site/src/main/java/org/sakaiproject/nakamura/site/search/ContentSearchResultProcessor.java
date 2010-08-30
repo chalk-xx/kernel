@@ -44,7 +44,7 @@ import javax.jcr.Session;
 import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 
-@Component(immediate = true, name = "ContentSearchResultProcessor", label = "ContentSearchResultProcessor")
+@Component(immediate = true, label = "ContentSearchResultProcessor")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Formats search results for content nodes in sites."),
@@ -53,7 +53,7 @@ import javax.jcr.query.Row;
 public class ContentSearchResultProcessor implements SearchResultProcessor {
 
   private SearchResultProcessorTracker tracker;
-  
+
   @Reference
   private SearchServiceFactory searchServiceFactory;
 

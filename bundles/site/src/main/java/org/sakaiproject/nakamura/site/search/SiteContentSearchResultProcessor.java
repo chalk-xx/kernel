@@ -51,7 +51,7 @@ import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
 
-@Component(immediate = true, name = "SiteContentSearchResultProcessor", label = "SiteContentSearchResultProcessor")
+@Component(immediate = true, label = "SiteContentSearchResultProcessor")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Formats search results for content nodes in sites."),
@@ -62,13 +62,13 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
 
   private SiteService siteService;
   protected SearchResultProcessorTracker tracker;
-  
+
   @Reference
   protected SearchServiceFactory searchServiceFactory;
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor#writeNodes(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.commons.json.io.JSONWriter,
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.RowIterator)
@@ -93,7 +93,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
@@ -120,7 +120,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
       if (totalHits == -2) {
         totalHits = Long.MAX_VALUE;
       }
-      
+
       return searchServiceFactory.getSearchResultSet(mergedIterator, totalHits);
 
     } catch (RepositoryException e) {

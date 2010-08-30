@@ -55,7 +55,7 @@ import javax.xml.stream.events.XMLEvent;
  * such as checking if the Content-Length is < 10K and Content-Type is a valid type.
  */
 @Service(value = ProxyPostProcessor.class)
-@Component(name = "RSSProxyPostProcessor", label = "ProxyPostProcessor for RSS", description = "Post processor who checks if requests are valid RSS requests.", immediate = true)
+@Component(label = "ProxyPostProcessor for RSS", description = "Post processor who checks if requests are valid RSS requests.", immediate = true)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai foundation"),
     @Property(name = "service.description", value = "Post processor who checks if requests are valid RSS requests.") })
