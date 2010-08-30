@@ -243,7 +243,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
       }
 
     } catch (Throwable t) {
-      LOGGER.info("Failed " + t.getMessage(), t);
+      LOGGER.debug("Failed " + t.getMessage(), t);
       throw new RepositoryException(t.getMessage(), t);
     }
   }

@@ -85,7 +85,7 @@ public class ActiveMQBrokerComponent {
         LOG.info("AMQ Embeded Broker disabled, any connections must be made to a external broker. ");
       }
     } catch (Exception e) {
-      LOG.info(e.getMessage(), e);
+      LOG.debug(e.getMessage(), e);
       throw e;
     }
   }
