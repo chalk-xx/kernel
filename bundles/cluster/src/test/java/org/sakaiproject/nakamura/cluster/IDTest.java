@@ -59,7 +59,9 @@ public class IDTest {
       Thread t = new Thread(new Runnable() {
 
         public void run() {
-          nrunning++;
+          synchronized (lockObject) {
+            nrunning++;
+          }
           try {
             for (int j = 0; j < 100; j++) {
               BigInteger id = getId();
@@ -67,7 +69,9 @@ public class IDTest {
               hash.put(id, id);
             }
           } finally {
-            nrunning--;
+            synchronized (lockObject) {
+              nrunning--;
+            }
           }
 
         }
