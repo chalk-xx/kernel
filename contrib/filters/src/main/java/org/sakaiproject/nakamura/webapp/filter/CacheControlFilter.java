@@ -53,8 +53,8 @@ import javax.servlet.ServletResponse;
  * collection of matching patterns.
  */
 @Service(value=Filter.class)
-@Component(immediate=true, metatype=true)
-@Properties(value={@Property(name="service.description", value="Nakamura Expires Filter"),
+@Component(immediate=true, metatype=false)
+@Properties(value={@Property(name="service.description", value="Nakamura Cache-Control Filter"),
     @Property(name="service.vendor",value="The Sakai Foundation"),
     @Property(name="filter.scope",value="request", propertyPrivate=true),
     @Property(name="filter.order",intValue={10}, propertyPrivate=true)})
