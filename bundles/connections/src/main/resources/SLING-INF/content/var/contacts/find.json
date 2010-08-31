@@ -4,6 +4,7 @@
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "Connection",
   "sakai:processor" : "ConnectionFinder",
+  "sakai:resultprocessor": "User",
   "sakai:title": "Contacts - Search.",
   "sakai:shortDescription": "Search trough the accepted contacts based on firstName, lastName or email.",
   "sakai:parameters" : [
