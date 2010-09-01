@@ -31,10 +31,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -63,7 +62,7 @@ public class CacheControlFilter implements Filter {
   private static final Logger LOGGER = LoggerFactory.getLogger(CacheControlFilter.class);
 
   private final long FIVE_DAYS=432000;
-  private Map<String, Long> cachePatterns = new HashMap<String, Long>();
+  private Map<String, Long> cachePatterns = new ConcurrentHashMap<String, Long>();
 
   /**
    * {@inheritDoc}
