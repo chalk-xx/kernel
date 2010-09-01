@@ -53,9 +53,10 @@ import javax.servlet.ServletResponse;
  * collection of matching patterns.
  */
 @Service(value=Filter.class)
-@Component(immediate=true, metatype=false)
+@Component(immediate=true, metatype=true)
 @Properties(value={@Property(name="service.description", value="Nakamura Cache-Control Filter"),
     @Property(name="service.vendor",value="The Sakai Foundation"),
+    @Property(name="sakai.cache.patterns", value={"foo:99","bar:42","baz:120"}),
     @Property(name="filter.scope",value="request", propertyPrivate=true),
     @Property(name="filter.order",intValue={10}, propertyPrivate=true)})
 public class CacheControlFilter implements Filter {
@@ -127,13 +128,16 @@ public class CacheControlFilter implements Filter {
       cachePatterns.put(".*\\.(ico|pdf|flv|jpg|jpeg|png|gif|js|css|swf)$", new Long(FIVE_DAYS));
     } else {
       Dictionary props = context.getProperties();
-      for(Enumeration<Object> iter = props.keys(); iter.hasMoreElements();) {
-        Object key = iter.nextElement();
-        if (key instanceof String) {
-          if (((String)key).startsWith("pattern")) {
-            String patternNum = ((String)key).split("pattern")[1];
-            Long maxAge = Long.parseLong((String)props.get("maxage" + patternNum));
-            cachePatterns.put((String)props.get(key), maxAge);
+      String[] cacheDefs = (String[]) props.get("sakai.cache.patterns");
+      if (cacheDefs != null) {
+        for(String cacheDef : cacheDefs) {
+          String[] cacheDefParts = cacheDef.split(":");
+          try {
+            String cachePattern = cacheDefParts[0];
+            Long cacheTimeout = Long.parseLong(cacheDefParts[1]);
+            cachePatterns.put(cachePattern, cacheTimeout);
+          } catch (Exception e) {
+            LOGGER.error("Invalid cache control definition in configuration of CacheControlFilter. Will ignore this definition: " + cacheDef);
           }
         }
       }
