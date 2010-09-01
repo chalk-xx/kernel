@@ -10,18 +10,33 @@ include SlingUsers
 
 class TC_Kern566Test < Test::Unit::TestCase
   include SlingTest
+
+  def setup
+    super;
+    @now = Time.now.to_f.to_s.gsub('.', '');
+    @creator = create_user("creator-test#{@now}");
+    @user = create_user("user-test#{@now}");
+    @admin = SlingUsers::User.admin_user();
+    @anonymous = SlingUsers::User.anonymous();
+  end
+  
+  def teardown
+    super;
+#    @s.switch_user(@admin);
+#    @created_users.each do |user|
+#      @log.info(user);
+#      puts @um.delete_user("#{user}");
+#    end
+  end
   
   def test_basiclti
     # We create a test site.
-    m = Time.now.to_f.to_s.gsub('.', '');
-    @siteid = "testsite#{m}";
-    @sitename = "Test Site #{m}";
-    creator = create_user("creator-test#{m}");
-    user = create_user("user-test#{m}");
-    admin = SlingUsers::User.admin_user();
+    @now = Time.now.to_f.to_s.gsub('.', '');
+    @siteid = "testsite#{@now}";
+    @sitename = "Test Site #{@now}";
     
     # create test site
-    @s.switch_user(creator);
+    @s.switch_user(@creator);
     @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{@siteid}",
       "sakai:site-template" => "/var/templates/site/systemtemplate",
@@ -30,7 +45,7 @@ class TC_Kern566Test < Test::Unit::TestCase
       "id" => @siteid);
       
     # create a sakai/basiclti node
-    @saveUrl = "/sites/#{@siteid}/_widgets/id#{m}/basiclti";
+    @saveUrl = "/sites/#{@siteid}/_widgets/id#{@now}/basiclti";
     @ltiurl = "http://dr-chuck.com/ims/php-simple/tool.php";
     @ltikey = "12345";
     ltisecret = "secret";
@@ -70,14 +85,14 @@ class TC_Kern566Test < Test::Unit::TestCase
     launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
     assert_equal(200, launch.code.to_i, "200 Expected on launch.");
     assert_equal(false, launch.body.empty?);
-    validateHtml(launch.body);
+    validateHtml(launch.body, "/sites/#{@siteid}");
     
     # verify creator cannot access data contained in sensitive node
     sensitive = @s.execute_get(@s.url_for("#{@saveUrl}/ltiKeys.json"));
     assert_equal(404, sensitive.code.to_i, "404 Expected on sensitive node.");
     
     # switch to regular user
-    @s.switch_user(user);
+    @s.switch_user(@user);
     resp = @s.execute_get(@s.url_for("#{@saveUrl}"));
     assert_equal(200, resp.code.to_i, "Expected to be able to retrieve sakai/basiclti node.");
     props = JSON.parse(resp.body);
@@ -97,14 +112,14 @@ class TC_Kern566Test < Test::Unit::TestCase
     launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
     assert_equal(200, launch.code.to_i, "200 Expected on launch.");
     assert_equal(false, launch.body.empty?);
-    validateHtml(launch.body);
+    validateHtml(launch.body, "/sites/#{@siteid}");
     
     # verify user cannot access data contained in sensitive node
     sensitive = @s.execute_get(@s.url_for("#{@saveUrl}/ltiKeys.json"));
     assert_equal(404, sensitive.code.to_i, "404 Expected on sensitive node.");
 
     # switch to admin user
-    @s.switch_user(admin);
+    @s.switch_user(@admin);
     resp = @s.execute_get(@s.url_for("#{@saveUrl}"));
     assert_equal(200, resp.code.to_i, "Expected to be able to retrieve sakai/basiclti node.");
     props = JSON.parse(resp.body);
@@ -130,20 +145,16 @@ class TC_Kern566Test < Test::Unit::TestCase
     launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
     assert_equal(200, launch.code.to_i, "200 Expected on launch.");
     assert_equal(false, launch.body.empty?);
-    validateHtml(launch.body);
+    validateHtml(launch.body, "/sites/#{@siteid}");
     end
 
   def test_basiclti_virtualTool
-    m = Time.now.to_f.to_s.gsub('.', '');
-    @siteid = "testsite#{m}";
-    @sitename = "Test Site #{m}";
-    creator = create_user("creator-test#{m}");
-    user = create_user("user-test#{m}");
-    admin = SlingUsers::User.admin_user();
-    anonymous = SlingUsers::User.anonymous();
+    @now = Time.now.to_f.to_s.gsub('.', '');
+    @siteid = "testsite#{@now}";
+    @sitename = "Test Site #{@now}";
     
     # verify anonymous user cannot read /var/basiclti
-    @s.switch_user(anonymous);
+    @s.switch_user(@anonymous);
     resp = @s.execute_get(@s.url_for("/var.json"));
     assert_equal(200, resp.code.to_i, "Should be able to read /var.");
     resp = @s.execute_get(@s.url_for("/var/basiclti.json"));
@@ -154,7 +165,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     assert_equal(404, resp.code.to_i, "Should NOT be able to read /var/basiclti/sakai.singleuser/ltiKeys.json.");
     
     # verify normal user cannot read /var/basiclti
-    @s.switch_user(creator);
+    @s.switch_user(@creator);
     resp = @s.execute_get(@s.url_for("/var.json"));
     assert_equal(200, resp.code.to_i, "Should be able to read /var.");
     resp = @s.execute_get(@s.url_for("/var/basiclti.json"));
@@ -165,7 +176,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     assert_equal(404, resp.code.to_i, "Should NOT be able to read /var/basiclti/sakai.singleuser/ltiKeys.json.");
     
     # verify admin user can read /var/basiclti
-    @s.switch_user(admin);
+    @s.switch_user(@admin);
     resp = @s.execute_get(@s.url_for("/var.json"));
     assert_equal(200, resp.code.to_i, "Admin should be able to read /var.");
     resp = @s.execute_get(@s.url_for("/var/basiclti.json"));
@@ -176,7 +187,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     assert_equal(200, resp.code.to_i, "Admin should be able to read /var/basiclti/sakai.singleuser/ltiKeys.json.");
     
     # create test site
-    @s.switch_user(creator);
+    @s.switch_user(@creator);
     @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{@siteid}",
       "sakai:site-template" => "/var/templates/site/systemtemplate",
@@ -185,7 +196,7 @@ class TC_Kern566Test < Test::Unit::TestCase
       "id" => @siteid);
       
     # create a sakai/basiclti VirtualTool node
-    @saveUrl = "/sites/#{@siteid}/_widgets/id#{m}/basiclti";
+    @saveUrl = "/sites/#{@siteid}/_widgets/id#{@now}/basiclti";
     @ltiurl = "http://localhost/imsblti/provider/sakai.singleuser"; # in the policy file
     @ltikey = "12345"; # in the policy file
     postData = {
@@ -207,14 +218,14 @@ class TC_Kern566Test < Test::Unit::TestCase
     launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
     assert_equal(200, launch.code.to_i, "200 Expected on launch.");
     assert_equal(false, launch.body.empty?);
-    validateHtml(launch.body);
+    validateHtml(launch.body, "/sites/#{@siteid}");
     
     # verify creator cannot access data contained in sensitive node
     sensitive = @s.execute_get(@s.url_for("#{@saveUrl}/ltiKeys.json"));
     assert_equal(404, sensitive.code.to_i, "404 Expected on sensitive node.");
     
     # switch to regular user
-    @s.switch_user(user);
+    @s.switch_user(@user);
     resp = @s.execute_get(@s.url_for("#{@saveUrl}"));
     assert_equal(200, resp.code.to_i, "Expected to be able to retrieve sakai/basiclti node.");
     props = JSON.parse(resp.body);
@@ -234,14 +245,14 @@ class TC_Kern566Test < Test::Unit::TestCase
     launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
     assert_equal(200, launch.code.to_i, "200 Expected on launch.");
     assert_equal(false, launch.body.empty?);
-    validateHtml(launch.body);
+    validateHtml(launch.body, "/sites/#{@siteid}");
     
     # verify user cannot access data contained in sensitive node
     sensitive = @s.execute_get(@s.url_for("#{@saveUrl}/ltiKeys.json"));
     assert_equal(404, sensitive.code.to_i, "404 Expected on sensitive node.");
 
     # switch to admin user
-    @s.switch_user(admin);
+    @s.switch_user(@admin);
     resp = @s.execute_get(@s.url_for("#{@saveUrl}"));
     assert_equal(200, resp.code.to_i, "Expected to be able to retrieve sakai/basiclti node.");
     props = JSON.parse(resp.body);
@@ -261,16 +272,79 @@ class TC_Kern566Test < Test::Unit::TestCase
     launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
     assert_equal(200, launch.code.to_i, "200 Expected on launch.");
     assert_equal(false, launch.body.empty?);
-    validateHtml(launch.body);
+    validateHtml(launch.body, "/sites/#{@siteid}");
   end
   
-  def validateHtml(html)
+  def test_basicltiTrustedContextId
+    # We create a test site.
+    m = Time.now.to_f.to_s.gsub('.', '');
+    @siteid = "testsite#{@now}";
+    @sitename = "Test Site #{@now}";
+    
+    # create test site
+    @s.switch_user(@creator);
+    lti_context_id = "#{@now}";
+    @s.execute_post(@s.url_for("/sites.createsite.json"),
+      ":sitepath" => "/#{@siteid}",
+      "sakai:site-template" => "/var/templates/site/systemtemplate",
+      "name" => @sitename,
+      "description" => @sitename,
+      "id" => @siteid,
+      "lti_context_id" => lti_context_id);
+      
+    # create a sakai/basiclti node
+    @saveUrl = "/sites/#{@siteid}/_widgets/id#{@now}/basiclti";
+    @ltiurl = "http://dr-chuck.com/ims/php-simple/tool.php";
+    @ltikey = "12345";
+    ltisecret = "secret";
+    postData = {
+      ":operation" => "basiclti",
+      "sling:resourceType" => "sakai/basiclti",
+      "ltiurl" => @ltiurl,
+      "ltikey" => @ltikey,
+      "ltisecret" => ltisecret,
+      "debug@TypeHint" => "Boolean",
+      "debug" => "false",
+      "release_names@TypeHint" => "Boolean",
+      "release_names" => "true",
+      "release_principal_name@TypeHint" => "Boolean",
+      "release_principal_name" => "true",
+      "release_email@TypeHint" => "Boolean",
+      "release_email" => "true"
+    };
+    resp = @s.execute_post(@s.url_for("#{@saveUrl}"), postData);
+    assert_equal(200, resp.code.to_i, "Expected to be able to create a sakai/basiclti node.");
+    
+    # expect normal launch from creator
+    launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
+    assert_equal(200, launch.code.to_i, "200 Expected on launch.");
+    assert_equal(false, launch.body.empty?);
+    validateHtml(launch.body, lti_context_id);
+    
+    # switch to regular user
+    @s.switch_user(@user);
+    # expect normal launch from user
+    launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
+    assert_equal(200, launch.code.to_i, "200 Expected on launch.");
+    assert_equal(false, launch.body.empty?);
+    validateHtml(launch.body, lti_context_id);
+    
+    # switch to admin user
+    @s.switch_user(@admin);
+    # expect normal launch from admin
+    launch = @s.execute_get(@s.url_for("#{@saveUrl}.launch.html"));
+    assert_equal(200, launch.code.to_i, "200 Expected on launch.");
+    assert_equal(false, launch.body.empty?);
+    validateHtml(launch.body, lti_context_id);
+  end
+
+  def validateHtml(html, context_id)
     listener = Listener.new;
     parser = Parsers::StreamParser.new(html, listener);
     parser.parse;
     hash = listener.hash;
     assert_equal(hash["form.action"], @ltiurl, "Form action should equal ltiurl");
-    assert_equal(hash["context_id"], "/sites/#{@siteid}", "context_id should equal path to site node");
+    assert_equal(hash["context_id"], context_id, "context_id should equal path to #{context_id}");
     assert_equal(hash["context_label"], @siteid, "context_label should equal path to site id");
     assert_equal(hash["context_title"], @sitename, "context_title should equal path to site name");
     assert_equal(hash["context_type"].empty?, false, "context_type should not be empty");

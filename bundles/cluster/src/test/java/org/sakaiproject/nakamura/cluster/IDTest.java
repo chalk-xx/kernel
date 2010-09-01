@@ -19,9 +19,9 @@ package org.sakaiproject.nakamura.cluster;
 
 import static org.junit.Assert.assertFalse;
 
-import org.apache.commons.codec.binary.Base64;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,9 +89,8 @@ public class IDTest {
       }
     } while (nrunning > 0);
 
-    Base64 b64 = new Base64();
     for ( Entry<BigInteger, BigInteger> e : hash.entrySet() ) {
-      LOGGER.info(" Entry is "+e.getValue()+" "+ b64.encodeToString(e.getValue().toByteArray()).trim());
+      LOGGER.info(" Entry is "+e.getValue()+" "+ StringUtils.encode(e.getValue().toByteArray(),StringUtils.URL_SAFE_ENCODING).trim() +" Epoch "+String.valueOf(epoch)+" Size "+String.valueOf(System.currentTimeMillis()-epoch));
 
     }
 
@@ -102,7 +101,7 @@ public class IDTest {
       do {
         next = System.currentTimeMillis()-epoch;
       } while (next == prev);
-      BigInteger ret = new BigInteger(String.valueOf(tstart) + String.valueOf(next));
+      BigInteger ret = new BigInteger(String.valueOf(tstart+1000) + String.valueOf(next));
       prev = next;
       return ret;
     }
