@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.captcha;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -30,6 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -105,7 +108,11 @@ public class ReCaptchaService implements CaptchaService {
         return false;
       }
 
-      String body = method.getResponseBodyAsString();
+      InputStream bodyStream = method.getResponseBodyAsStream();
+      StringWriter writer = new StringWriter();
+      IOUtils.copy(bodyStream, writer);
+      String body = writer.toString();
+
       LOGGER.info("reCAPTCHA output is: " + body);
       if (!body.startsWith("true")) {
         return false;
