@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.user;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
@@ -31,6 +33,9 @@ import javax.jcr.Session;
  * This class handles whatever processing is needed before the Jackrabbit User
  * modification can be sent to other AuthorizablePostProcessor services.
  */
+
+@Component(immediate=true)
+@Service
 public class SakaiUserProcessor extends AbstractAuthorizableProcessor implements
     AuthorizablePostProcessor {
 
@@ -40,8 +45,10 @@ public class SakaiUserProcessor extends AbstractAuthorizableProcessor implements
    */
   public void process(Authorizable authorizable, Session session, Modification change,
       Map<String, Object[]> parameters) throws Exception {
-    if (change.getType() != ModificationType.DELETE) {
-      ensurePath(authorizable, session, UserConstants.USER_REPO_LOCATION);
+    if ( !authorizable.isGroup() ) {
+      if (change.getType() != ModificationType.DELETE) {
+        ensurePath(authorizable, session, UserConstants.USER_REPO_LOCATION);
+      }
     }
   }
 

@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.util.osgi;
 
+import org.osgi.framework.Constants;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -129,7 +131,16 @@ public abstract class AbstractOrderedService<T> implements BoundService {
   protected abstract void saveArray(List<T> serviceList);
 
   /**
-   * @return a compartator suitable for sorting the list of services.
+   * @return a comparator suitable for sorting the list of services.
    */
   protected abstract Comparator<? super T> getComparator(final Map<T, Map<String, Object>> propertiesMap);
+  
+  public String[] getRegisteredServiceIDs() {
+    String[] serviceIds = new String[serviceSet.size()];
+    int i = 0;
+    for ( Map<String,Object> properties : serviceSet.values() ) {
+      serviceIds[i++] = (String) properties.get(Constants.SERVICE_PID);
+    }
+    return serviceIds;
+  }
 }

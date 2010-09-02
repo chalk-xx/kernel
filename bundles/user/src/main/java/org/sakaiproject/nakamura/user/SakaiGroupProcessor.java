@@ -22,6 +22,8 @@ import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWER
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGED_GROUP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGERS_GROUP;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -48,6 +50,8 @@ import javax.jcr.ValueFactory;
  * This class handles whatever processing is needed before the Jackrabbit Group modification
  * can be sent to other AuthorizablePostProcessor services.
  */
+@Component(immediate=true)
+@Service
 public class SakaiGroupProcessor extends AbstractAuthorizableProcessor implements
     AuthorizablePostProcessor {
   private static final Logger LOGGER = LoggerFactory.getLogger(SakaiGroupProcessor.class);
