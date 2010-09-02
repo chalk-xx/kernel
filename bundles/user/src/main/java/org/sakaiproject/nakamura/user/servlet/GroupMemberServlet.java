@@ -213,8 +213,12 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
   }
 
   /**
-   * Get the managers for a group. These should be stored in the
-   * {@link UserConstants#PROP_GROUP_MANAGERS}.
+   * KERN-1026 changed the results of this to be the authz's that are members of the
+   * managers group associated to a group rather than the group managers associated to the
+   * group.
+   * <p>
+   * <del>Get the managers for a group. These should be stored in the
+   * {@link UserConstants#PROP_GROUP_MANAGERS}.</del>
    *
    * @param request
    * @param group
@@ -228,14 +232,23 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
     TreeMap<String, Authorizable> map = new TreeMap<String, Authorizable>(comparator);
 
     // KERN-949 will probably change this.
+    // note above was made before this was changed to retrieving members of the managers
+    // group and may not apply.
     Session session = request.getResourceResolver().adaptTo(Session.class);
     UserManager um = AccessControlUtil.getUserManager(session);
-    Value[] managerValues = group.getProperty(UserConstants.PROP_GROUP_MANAGERS);
-    if (managerValues != null) {
-      for (Value manager : managerValues) {
-        Authorizable au = um.getAuthorizable(manager.getString());
-        String name = getName(au);
-        map.put(name, au);
+    Value[] managersGroup = group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
+    if (managersGroup != null && managersGroup.length == 1) {
+      String mgrGroupName = managersGroup[0].getString();
+
+      Group mgrGroup = (Group) um.getAuthorizable(mgrGroupName);
+
+      Iterator<Authorizable> members = mgrGroup.getMembers();
+      while (members.hasNext()) {
+        Authorizable member = members.next();
+        String prinName = member.getPrincipal().getName();
+        Authorizable mau = um.getAuthorizable(prinName);
+        String name = getName(mau);
+        map.put(name, mau);
       }
     }
     return map;
