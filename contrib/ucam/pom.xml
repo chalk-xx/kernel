@@ -91,5 +91,18 @@
       <version>0.9-SNAPSHOT</version>
     </dependency>
   </dependencies>
+  <repositories>
+        <repository>
+            <id>sakai-maven2</id>
+            <name>Sakai Maven Repository</name>
+            <layout>default</layout>
+            <url>http://source.sakaiproject.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+  </repositories>
 </project>
-
