@@ -40,6 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
+import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.Row;
@@ -83,10 +84,17 @@ public class ConnectionSearchResultProcessorTest {
     MockNode contactNode = new MockNode("/_user/alice/contacts/bob");
     contactNode.setProperty("sling:resourceType", "sakai/contact");
     when(session.getNode("/_user/alice/contacts/bob")).thenReturn(contactNode);
+    Node rootNode = mock(Node.class);
+    when(session.getRootNode()).thenReturn(rootNode);
+    when(rootNode.hasNode("_user/bob/public/authprofile")).thenReturn(true);
     when(session.getNode("/_user/bob/public/authprofile")).thenReturn(profileNode);
 
     Row row = mock(Row.class);
     when(row.getNode()).thenReturn(contactNode);
+
+    // TODO With this, we are testing the internals of the ProfileServiceImpl
+    // class as well as the internals of the MeServlet class. Mocking it would
+    // reduce the cost of test maintenance.
     ProfileService profileService = new ProfileServiceImpl();
     processor.profileService = profileService;
 

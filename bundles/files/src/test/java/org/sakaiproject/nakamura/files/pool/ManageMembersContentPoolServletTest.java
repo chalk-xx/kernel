@@ -106,6 +106,10 @@ public class ManageMembersContentPoolServletTest {
     MockitoAnnotations.initMocks(this);
     servlet = new ManageMembersContentPoolServlet();
     servlet.slingRepository = slingRepository;
+
+    // TODO With this, we are testing the internals of the ProfileServiceImpl
+    // class as well as the internals of the MeServlet class. Mocking it would
+    // reduce the cost of test maintenance.
     servlet.profileService = new ProfileServiceImpl();
 
     // Mock the request and the filenode.
@@ -116,7 +120,11 @@ public class ManageMembersContentPoolServletTest {
     when(session.getPrincipalManager()).thenReturn(principalManager);
     when(session.getAccessControlManager()).thenReturn(acm);
     when(session.getUserManager()).thenReturn(userManager);
+    Node rootNode = mock(Node.class);
+    when(session.getRootNode()).thenReturn(rootNode);
+    when(rootNode.hasNode("_user/a/al/alice/public/authprofile")).thenReturn(true);
     when(session.getNode("/_user/a/al/alice/public/authprofile")).thenReturn(new MockNode("/_user/a/al/alice/public/authprofile"));
+    when(rootNode.hasNode("_user/b/bo/bob/public/authprofile")).thenReturn(true);
     when(session.getNode("/_user/b/bo/bob/public/authprofile")).thenReturn(new MockNode("/_user/b/bo/bob/public/authprofile"));
 
     // Handle setting ACLs.

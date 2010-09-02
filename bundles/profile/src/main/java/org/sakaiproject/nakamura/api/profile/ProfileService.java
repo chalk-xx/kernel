@@ -66,7 +66,7 @@ public interface ProfileService {
    * @param session
    *          A JCR Session that can be used to access the necessary nodes.
    *
-   * @return A Map that represents the profile.
+   * @return A Map that represents the profile, or null if no profile was found.
    */
   ValueMap getProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException;
@@ -90,7 +90,7 @@ public interface ProfileService {
    * @param session
    *          A JCR Session that can be used to access the necessary nodes.
    *
-   * @return A Map that represents the profile.
+   * @return A Map that represents the profile, or null if no profile was found.
    */
   ValueMap getCompactProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException;

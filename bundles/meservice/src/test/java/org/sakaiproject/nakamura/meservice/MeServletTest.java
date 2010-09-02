@@ -97,6 +97,10 @@ public class MeServletTest extends AbstractEasyMockTest {
 
     servlet = new MeServlet();
     servlet.messagingService = messagingService;
+
+    // TODO With this, we are testing the internals of the ProfileServiceImpl
+    // class as well as the internals of the MeServlet class. Mocking it would
+    // reduce the cost of test maintenance.
     servlet.profileService = new ProfileServiceImpl();
   }
 
@@ -163,6 +167,9 @@ public class MeServletTest extends AbstractEasyMockTest {
     String profilePath = PersonalUtils.getProfilePath(au);
     Node profileNode = new MockNode(profilePath);
 
+    Node rootNode = createMock(Node.class);
+    expect(rootNode.hasNode(profilePath.substring(1))).andReturn(true).anyTimes();
+    expect(session.getRootNode()).andReturn(rootNode).anyTimes();
     expect(session.getItem(profilePath)).andReturn(profileNode).anyTimes();
     expect(session.getNode(profilePath)).andReturn(profileNode).anyTimes();
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
@@ -193,6 +200,9 @@ public class MeServletTest extends AbstractEasyMockTest {
     String profilePath = PersonalUtils.getProfilePath(au);
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
     expect(session.getItem(profilePath)).andThrow(new RepositoryException()).anyTimes();
+    Node rootNode = createMock(Node.class);
+    expect(rootNode.hasNode(profilePath.substring(1))).andReturn(true).anyTimes();
+    expect(session.getRootNode()).andReturn(rootNode).anyTimes();
     expect(session.getNode(profilePath)).andThrow(new RepositoryException()).anyTimes();
 
     UserManager um = createUserManager(null, true, au);

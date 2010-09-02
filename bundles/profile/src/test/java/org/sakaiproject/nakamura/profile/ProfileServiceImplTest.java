@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.profile;
 
 import junit.framework.Assert;
 
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -34,6 +35,7 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.StringWriter;
 import java.io.Writer;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -41,6 +43,7 @@ import java.util.concurrent.Future;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.PropertyType;
@@ -86,6 +89,30 @@ public class ProfileServiceImplTest {
     ExtendedJSONWriter writer = new ExtendedJSONWriter(w);
     writer.valueMap(map);
     checkResponse(w);
+  }
+
+  @Test
+  public void testNoProfileNode() throws Exception {
+    ProfileServiceImpl profileService = new ProfileServiceImpl();
+
+    Session deepSession = Mockito.mock(Session.class, Mockito.RETURNS_DEEP_STUBS);
+    Group groupWithoutProfile = Mockito.mock(Group.class);
+
+    // Needed to set up PathUtils.getSubPath.
+    Principal principal = Mockito.mock(Principal.class);
+    Mockito.when(groupWithoutProfile.getPrincipal()).thenReturn(principal);
+    Mockito.when(groupWithoutProfile.hasProperty("path")).thenReturn(false);
+    Mockito.when(groupWithoutProfile.getID()).thenReturn("some-internal-group");
+    String profilePath = profileService.getProfilePath(groupWithoutProfile);
+
+    Mockito.doThrow(new PathNotFoundException()).when(deepSession).getNode(profilePath);
+    Mockito.when(deepSession.getRootNode().hasNode(profilePath.substring(1))).thenReturn(false);
+
+    ValueMap valueMap = profileService.getProfileMap(groupWithoutProfile, deepSession);
+    Assert.assertNull(valueMap);
+
+    valueMap = profileService.getCompactProfileMap(groupWithoutProfile, deepSession);
+    Assert.assertNull(valueMap);
   }
 
   /**

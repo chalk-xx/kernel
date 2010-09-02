@@ -24,7 +24,6 @@ import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_JCR_P
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_PROFILE_RT;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_TITLE_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_BASIC;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_BASIC_ACCESS;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_BASIC_ELEMENTS;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_EMAIL_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_FIRSTNAME_PROPERTY;
@@ -132,8 +131,15 @@ public class ProfileServiceImpl implements ProfileService {
   public ValueMap getProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException {
     String profilePath = getProfilePath(authorizable);
-    Node profileNode = session.getNode(profilePath);
-    return getProfileMap(profileNode);
+    String relativePath = profilePath.substring(1);
+    ValueMap profileMap;
+    if (session.getRootNode().hasNode(relativePath)) {
+      Node profileNode = session.getNode(profilePath);
+      profileMap = getProfileMap(profileNode);
+    } else {
+      profileMap = null;
+    }
+    return profileMap;
   }
 
   /**
@@ -214,32 +220,37 @@ public class ProfileServiceImpl implements ProfileService {
   public ValueMap getCompactProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException {
     // The map were we will stick the compact information in.
-    ValueMap compactProfile = new ValueMapDecorator(new HashMap<String, Object>());
+    ValueMap compactProfile;
 
     // Get the entire profile.
     ValueMap profile = getProfileMap(authorizable, session);
-
-    if (authorizable.isGroup()) {
-      // For a group we just dump it's title and description.
-      compactProfile.put("groupid", authorizable.getID());
-      compactProfile.put(GROUP_TITLE_PROPERTY, profile.get(GROUP_TITLE_PROPERTY));
-      compactProfile.put(GROUP_DESCRIPTION_PROPERTY, profile
-          .get(GROUP_DESCRIPTION_PROPERTY));
+    if (profile == null) {
+      compactProfile = null;
     } else {
-      compactProfile.put(USER_PICTURE, profile.get(USER_PICTURE));
+      compactProfile = new ValueMapDecorator(new HashMap<String, Object>());
 
-      try{
-        ValueMap basicMap =(ValueMap) profile.get(USER_BASIC);
-        ValueMap elementsMap = (ValueMap) basicMap.get(USER_BASIC_ELEMENTS);
-        compactProfile.put(USER_FIRSTNAME_PROPERTY, ((ValueMap) elementsMap.get(USER_FIRSTNAME_PROPERTY)).get("value"));
-        compactProfile.put(USER_LASTNAME_PROPERTY, ((ValueMap) elementsMap.get(USER_LASTNAME_PROPERTY)).get("value"));
-        compactProfile.put(USER_EMAIL_PROPERTY, ((ValueMap) elementsMap.get(USER_EMAIL_PROPERTY)).get("value"));
-      }catch(Exception e){
-        LOG.warn("Can't get authprofile basic information.", e);
+      if (authorizable.isGroup()) {
+        // For a group we just dump it's title and description.
+        compactProfile.put("groupid", authorizable.getID());
+        compactProfile.put(GROUP_TITLE_PROPERTY, profile.get(GROUP_TITLE_PROPERTY));
+        compactProfile.put(GROUP_DESCRIPTION_PROPERTY, profile
+            .get(GROUP_DESCRIPTION_PROPERTY));
+      } else {
+        compactProfile.put(USER_PICTURE, profile.get(USER_PICTURE));
+
+        try{
+          ValueMap basicMap =(ValueMap) profile.get(USER_BASIC);
+          ValueMap elementsMap = (ValueMap) basicMap.get(USER_BASIC_ELEMENTS);
+          compactProfile.put(USER_FIRSTNAME_PROPERTY, ((ValueMap) elementsMap.get(USER_FIRSTNAME_PROPERTY)).get("value"));
+          compactProfile.put(USER_LASTNAME_PROPERTY, ((ValueMap) elementsMap.get(USER_LASTNAME_PROPERTY)).get("value"));
+          compactProfile.put(USER_EMAIL_PROPERTY, ((ValueMap) elementsMap.get(USER_EMAIL_PROPERTY)).get("value"));
+        }catch(Exception e){
+          LOG.warn("Can't get authprofile basic information.", e);
+        }
+        // Backward compatible reasons.
+        compactProfile.put("userid", authorizable.getID());
+        compactProfile.put("hash", getUserHashedPath(authorizable));
       }
-      // Backward compatible reasons.
-      compactProfile.put("userid", authorizable.getID());
-      compactProfile.put("hash", getUserHashedPath(authorizable));
     }
     return compactProfile;
   }

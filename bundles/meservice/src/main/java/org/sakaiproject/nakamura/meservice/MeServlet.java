@@ -180,7 +180,9 @@ public class MeServlet extends SlingSafeMethodsServlet {
       while (groups.hasNext()) {
         Group group = groups.next();
         ValueMap groupProfile = profileService.getCompactProfileMap(group, session);
-        writer.valueMap(groupProfile);
+        if (groupProfile != null) {
+          writer.valueMap(groupProfile);
+        }
       }
     }
     writer.endArray();
