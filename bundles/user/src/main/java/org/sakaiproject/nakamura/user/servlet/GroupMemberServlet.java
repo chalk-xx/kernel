@@ -41,8 +41,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -109,6 +109,7 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
     }
 
     try {
+      response.setContentType("application/json");
       TreeMap<String, Authorizable> map = null;
       if (selectors.contains("managers")) {
         map = getManagers(request, group, comparator);
