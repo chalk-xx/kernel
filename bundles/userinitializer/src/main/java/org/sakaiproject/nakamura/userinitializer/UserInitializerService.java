@@ -23,12 +23,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Component to make selected pre-defined Jackrabbit Authorizable objects into
@@ -43,23 +39,6 @@ public class UserInitializerService {
   protected AuthorizablePostProcessService authorizablePostProcessService;
   @Reference
   protected SlingRepository repository;
-
-  // TODO Configure initial user-to-JSON set-up via a service property rather than static files.
-
-  // TODO Configure the post-processor dependencies via a service property, perhaps by using ServiceTracker.
-  // None of the references are directly used from this code, we just wait for them to show up.
-  public static final List<String> requiredServices = Arrays.asList("PersonalAuthorizablePostProcessor");
-
-  @Reference(target="(&(service.pid=org.sakaiproject.nakamura.personal.PersonalAuthorizablePostProcessor))")
-  protected AuthorizablePostProcessor profilePostProcessor;
-  @Reference(target="(&(service.pid=org.sakaiproject.nakamura.calendar.CalendarAuthorizablePostProcessor))")
-  protected AuthorizablePostProcessor calendarPostProcessor;
-  @Reference(target="(&(service.pid=org.sakaiproject.nakamura.connections.ConnectionsUserPostProcessor))")
-  protected AuthorizablePostProcessor connectionsPostProcessor;
-  @Reference(target="(&(service.pid=org.sakaiproject.nakamura.message.MessageAuthorizablePostProcessor))")
-  protected AuthorizablePostProcessor messagePostProcessor;
-  @Reference(target="(&(service.pid=org.sakaiproject.nakamura.pages.PagesAuthorizablePostProcessor))")
-  protected AuthorizablePostProcessor pagesPostProcessor;
 
   private DefaultAuthorizablesLoader defaultAuthorizablesLoader = new DefaultAuthorizablesLoader();
 
