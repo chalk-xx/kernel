@@ -111,6 +111,13 @@
        </modules>
     </profile>
     <profile>
+       <id>ucam</id>
+       <modules>
+        <module>contrib/ucam</module>
+        <module>contrib/mysql-jdbc</module>
+       </modules>
+    </profile>
+    <profile>
        <id>sandbox</id>
        <modules>
         <module>sandbox/jaxrs</module>
