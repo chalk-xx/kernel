@@ -34,6 +34,8 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -63,6 +65,7 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "service.description", value = "Renders the members or managers for a group") })
 public class GroupMemberServlet extends SlingSafeMethodsServlet {
 
+  private static final Logger logger = LoggerFactory.getLogger(GroupMemberServlet.class);
   private static final long serialVersionUID = 7976930178619974246L;
 
   @Reference
@@ -140,13 +143,18 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
         Entry<String, Authorizable> entry = iterator.next();
         Authorizable au = entry.getValue();
         ValueMap profile = null;
-        if(selectors.contains("detailed")){
-          profile = profileService.getProfileMap(au, session);
-        }else{
-          profile = profileService.getCompactProfileMap(au, session);
+        try {
+          if(selectors.contains("detailed")){
+            profile = profileService.getProfileMap(au, session);
+          }else{
+            profile = profileService.getCompactProfileMap(au, session);
+          }
+          writer.valueMap(profile);
+          i++;
+        } catch (RepositoryException e) {
+          // profile wasn't found.  safe to ignore and not include the group
+          logger.info("Profile not found for " + au.getID());
         }
-        writer.valueMap(profile);
-        i++;
       }
       writer.endArray();
 
