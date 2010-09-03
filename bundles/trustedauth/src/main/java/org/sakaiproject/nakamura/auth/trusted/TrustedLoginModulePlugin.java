@@ -138,7 +138,7 @@ public final class TrustedLoginModulePlugin implements LoginModulePlugin {
           PrincipalManager pm = ref.get();
           if (pm != null) {
             principal = pm.getPrincipal(((TrustedUser) user).getUser());
-            LOGGER.info("Got Principal {} which is a ItemBasedPrincipal ? {}  ",principal,(principal instanceof ItemBasedPrincipal));
+            LOGGER.debug("Got Principal {} which is a ItemBasedPrincipal ? {}  ",principal,(principal instanceof ItemBasedPrincipal));
           } else {
             LOGGER
                 .warn("no principal manager available due to Garbage Collection, TrustedLoginModulePlugin, should never happen, please Jira");
