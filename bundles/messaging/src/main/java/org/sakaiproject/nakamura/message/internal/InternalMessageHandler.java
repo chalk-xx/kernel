@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.resource.ValueMap;
@@ -49,9 +50,15 @@ import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFormatException;
 
 /**
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
@@ -99,34 +106,67 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
 
       Session session = slingRepository.loginAdministrative(null);
 
+      //recipients keeps track of who have already received the message, to avoid duplicate messages
+      List<String> recipients = new ArrayList<String>();
+      UserManager um = AccessControlUtil.getUserManager(session);
       for (MessageRoute route : routes) {
         if (MessageTransport.INTERNAL_TRANSPORT.equals(route.getTransport())) {
           LOG.info("Started handling a message.");
           String rcpt = route.getRcpt();
           // the path were we want to save messages in.
           String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID)
-              .getString();
+          .getString();
+          
+          sendHelper(recipients, rcpt, originalMessage, session, messageId, um);
+        }
+      }
+    } catch (RepositoryException e) {
+      LOG.error(e.getMessage(), e);
+    }
+  }
+
+  private void sendHelper(List<String> recipients, String rcpt, Node originalMessage, Session session, String messageId, UserManager um){   
+    try {
+      Authorizable au = um.getAuthorizable(rcpt);
+      if(au != null && au.isGroup() && au instanceof Group){
+        Group group = (Group) au;
+        //user must be in the group directly to send a message:
+        for (Iterator<Authorizable> iterator = group.getDeclaredMembers(); iterator.hasNext();) {
+          Authorizable auth = (Authorizable) iterator.next();
+          if(!recipients.contains(auth.getID())){
+            //call back to itself: this allows for groups to be in groups and future extensions
+            sendHelper(recipients, auth.getID(), originalMessage, session, messageId, um);
+            recipients.add(auth.getID());
+          }
+        }        
+      }else{
+        //only send a message to a user who hasn't already received one:
+        if(!recipients.contains(rcpt)){
+
           String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
 
           // Copy the node into the user his folder.
-          JcrUtils.deepGetOrCreateNode(session, toPath.substring(0, toPath
-              .lastIndexOf("/")));
+          JcrUtils.deepGetOrCreateNode(session, toPath.substring(0, toPath.lastIndexOf("/")));
           session.save();
           session.getWorkspace().copy(originalMessage.getPath(), toPath);
           Node n = JcrUtils.deepGetOrCreateNode(session, toPath);
 
           // Add some extra properties on the just created node.
           n.setProperty(MessageConstants.PROP_SAKAI_READ, false);
-          n.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
-              MessageConstants.BOX_INBOX);
+          n.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
 
           if (session.hasPendingChanges()) {
             session.save();
           }
+          recipients.add(rcpt);
         }
       }
+    } catch (ValueFormatException e) {
+      LOG.error(e.getMessage(), e);
+    } catch (PathNotFoundException e) {
+      LOG.error(e.getMessage(), e);
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
     }
