@@ -282,7 +282,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
           .createBinary(value.getInputStream()));
 
 
-      LOGGER.info("Updating Resource Node with new Content ");
+      LOGGER.debug("Updating Resource Node with new Content ");
 
     }
 
@@ -318,7 +318,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
     MessageDigest md = MessageDigest.getInstance("SHA-1");
     String encodedId = StringUtils.encode(md.digest(poolId.getBytes("UTF-8")),
         HASHENCODING);
-    LOGGER.info("Hashing [{}] gave [{}] ", poolId, encodedId);
+    LOGGER.debug("Hashing [{}] gave [{}] ", poolId, encodedId);
     return POOLED_CONTENT_ROOT + "/" + encodedId.charAt(0) + "/" + encodedId.substring(1, 3) + "/"
         + encodedId.substring(3, 5) + "/" + encodedId.substring(5, 7) + "/" + poolId;
   }

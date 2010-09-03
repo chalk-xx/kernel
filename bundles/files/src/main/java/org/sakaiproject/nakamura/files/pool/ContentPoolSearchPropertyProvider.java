@@ -117,7 +117,7 @@ public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider
       propertiesMap.put("_meManagerGroups", sbManagingGroups.toString());
       propertiesMap.put("_meViewerGroups", sbViewingGroups.toString());
     } catch (RepositoryException e) {
-      LOGGER.error("Could not get the groups for user '" + userID + "'.", e);
+      LOGGER.error("Could not get the groups for user [{}].",userID , e);
     }
   }
 }

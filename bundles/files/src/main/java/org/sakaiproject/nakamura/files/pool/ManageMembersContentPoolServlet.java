@@ -214,7 +214,9 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       response.setStatus(SC_OK);
     } catch (RepositoryException e) {
       LOGGER
-          .error("Could not set some permissions on '" + request.getPathInfo() + "'", e);
+          .error("Could not set some permissions on [{}] Cause:{}",request.getPathInfo(), e.getMessage());
+      LOGGER
+      .debug("Cause: ", e);
       response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not set permissions.");
     } finally {
       if (adminSession != null) {

@@ -56,7 +56,7 @@ public class ContentPoolProvider implements ResourceProvider {
    */
   public Resource getResource(ResourceResolver resourceResolver,
       HttpServletRequest request, String path) {
-    LOGGER.info("Got Resource URI [{}]  Path [{}] ", request.getRequestURI(), path);
+    LOGGER.debug("Got Resource URI [{}]  Path [{}] ", request.getRequestURI(), path);
     return getResource(resourceResolver, path);
   }
 
@@ -109,9 +109,7 @@ public class ContentPoolProvider implements ResourceProvider {
         // - /p/717AugiABkcKGOOYxGyzoEsa -> return JcrNodeResource
         return null;
       }
-      if (LOGGER.isInfoEnabled()) {
-        LOGGER.info("Pool ID is [{}]", poolId);
-      }
+      LOGGER.debug("Pool ID is [{}]", poolId);
       String poolPath = null;
       try {
         poolPath = CreateContentPoolServlet.hash(poolId) + selectors;
@@ -120,12 +118,12 @@ public class ContentPoolProvider implements ResourceProvider {
       }
       Resource r = resourceResolver.resolve(poolPath);
       if (r instanceof NonExistingResource) {
-        LOGGER.info("Pool ID does not exist, reject and dont allow creation on POST {} ",
+        LOGGER.debug("Pool ID does not exist, reject and dont allow creation on POST {} ",
             poolPath);
         throw new SlingException("Resources may not be created at /p by the user",
             new AccessDeniedException("Cant create user specified pool resoruce"));
       }
-      LOGGER.info("Resolving [{}] to [{}] ", poolPath, r);
+      LOGGER.debug("Resolving [{}] to [{}] ", poolPath, r);
       if (r != null) {
         // are the last elements the same ?
         if (getLastElement(r.getPath()).equals("/" + poolId)) {
@@ -133,8 +131,8 @@ public class ContentPoolProvider implements ResourceProvider {
           r.getResourceMetadata().setResolutionPathInfo(selectors);
           return r;
         } else {
-          if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Rejected [{}] != [{}] ", getLastElement(r.getPath()), "/"
+          if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Rejected [{}] != [{}] ", getLastElement(r.getPath()), "/"
                 + poolId);
           }
         }
