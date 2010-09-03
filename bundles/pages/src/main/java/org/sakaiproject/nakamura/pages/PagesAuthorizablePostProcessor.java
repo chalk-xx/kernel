@@ -141,7 +141,7 @@ public class PagesAuthorizablePostProcessor implements AuthorizablePostProcessor
     // Create pages based on the template.
     Workspace workspace = session.getWorkspace();
     workspace.copy(templatePath, pagesPath);
-    LOGGER.info("Copied template pages from {} to {}", templatePath, pagesPath);
+    LOGGER.debug("Copied template pages from {} to {}", templatePath, pagesPath);
   }
 
   private void initializeAccess(Authorizable authorizable, Session session, String pagesPath) throws RepositoryException {

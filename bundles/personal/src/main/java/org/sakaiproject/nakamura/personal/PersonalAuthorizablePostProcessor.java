@@ -212,10 +212,10 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
     Node homeNode = JcrUtils.deepGetOrCreateNode(session, homeFolderPath);
     if (homeNode.isNew()) {
-      LOGGER.info("Created Home Node for {} at   {} user was {} ", new Object[] {
+      LOGGER.debug("Created Home Node for {} at   {} user was {} ", new Object[] {
           authorizable.getID(), homeNode, session.getUserID() });
     } else {
-      LOGGER.info("Existing Home Node for {} at   {} user was {} ", new Object[] {
+      LOGGER.debug("Existing Home Node for {} at   {} user was {} ", new Object[] {
           authorizable.getID(), homeNode, session.getUserID() });
     }
 
@@ -238,13 +238,13 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
     // The user can do everything on this node.
     for (Principal manager : managers) {
-      LOGGER.info("User {} is attempting to make {} a manager ", session.getUserID(),
+      LOGGER.debug("User {} is attempting to make {} a manager ", session.getUserID(),
           manager.getName());
       AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, manager,
           new String[] { JCR_ALL }, null, null, null);
     }
     for (Principal viewer : viewers) {
-      LOGGER.info("User {} is attempting to make {} a viewer ", session.getUserID(),
+      LOGGER.debug("User {} is attempting to make {} a viewer ", session.getUserID(),
           viewer.getName());
       AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, viewer,
           new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
