@@ -18,20 +18,7 @@ class TC_Kern1025Test < Test::Unit::TestCase
     })
     assert_equal("200", res.code, "Should have created group as admin")
     @s.switch_user(manager)
-    details = group.details(@s)
-    managersgroupname = details["properties"]["sakai:managers-group"]
-    assert_not_nil(managersgroupname, "Managers group property should be set")
-    assert(details["properties"]["rep:group-managers"].include?(managersgroupname), "Group managers should include its own managers group")
-    managersgroup = Group.new(managersgroupname)
-    details = managersgroup.details(@s)
-    assert_equal(group.name, details["properties"]["sakai:managed-group"], "Managers group should point to its managed group")
-    assert_equal(managersgroupname, details["properties"]["rep:group-managers"], "Managers group should manage itself")
-    members = details["members"]
-    assert(members.include?(manager.name), "Should have added user to managers group")
-
-    # Real test starts here.
     res = @s.execute_get(@s.url_for("/system/me.json"))
-    puts "Manager me = " + res.code, res.body
     assert_equal("200", res.code, "Me servlet should return successfully")
   end
 
