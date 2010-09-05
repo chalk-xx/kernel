@@ -178,6 +178,7 @@ public class TagOperation extends AbstractSlingPostOperation {
       }
 
     } catch (RepositoryException e) {
+      LOGGER.error("Failed to Tag item ",e);
       response.setStatus(500, e.getMessage());
     }
 
