@@ -94,7 +94,7 @@ public class FileUtils {
       throw new AccessDeniedException();
     }
 
-    boolean hasMixin = JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN);
+    boolean hasMixin = JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN) && fileNode.canAddMixin(REQUIRED_MIXIN);
     // If the fileNode doesn't have the required referenceable mixin, we need to set it.
     // Also, if we want to link this file into a site. We have to be
     if (!hasMixin || sitePath != null) {
@@ -136,7 +136,9 @@ public class FileUtils {
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
     if (!"sling:Folder".equals(linkNode.getPrimaryNodeType().getName())) {
       // sling folder allows single and multiple properties, no need for the mixin.
-      linkNode.addMixin(REQUIRED_MIXIN);
+      if ( linkNode.canAddMixin(REQUIRED_MIXIN) ) {
+        linkNode.addMixin(REQUIRED_MIXIN);
+      }
     }
     linkNode
         .setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, RT_SAKAI_LINK);
@@ -372,7 +374,9 @@ public class FileUtils {
     // Check if the mixin is on the node.
     // This is nescecary for nt:file nodes.
     if (!JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN)) {
-      fileNode.addMixin(REQUIRED_MIXIN);
+      if ( fileNode.canAddMixin(REQUIRED_MIXIN)) {
+        fileNode.addMixin(REQUIRED_MIXIN);
+      }
     }
 
     // Add the reference from the tag to the node.
