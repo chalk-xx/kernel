@@ -17,9 +17,8 @@
  */
 package org.sakaiproject.nakamura.cluster;
 
-import static org.junit.Assert.assertFalse;
+import junit.framework.Assert;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
@@ -37,35 +36,33 @@ import java.util.concurrent.ConcurrentHashMap;
 public class IDTest {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IDTest.class);
-  private static long tstart;
-  private static long epoch;
   private Map<BigInteger, BigInteger> hash = new ConcurrentHashMap<BigInteger, BigInteger>();
-  private long prev = 0;
-  private long next = 0;
   private Object lockObject = new Object();
   private int nrunning = 0;
+  protected int failed;
 
-  @BeforeClass
-  public static void beforeClass() {
-    GregorianCalendar calendar = new GregorianCalendar(2009,8, 21);
-    epoch = calendar.getTimeInMillis();
-    tstart = 99;
-  }
 
   @Test
   public void testId() {
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 100; i++) {
+      final int tstart = i;
       Thread t = new Thread(new Runnable() {
 
+        private long epoch;
+        private long next;
         public void run() {
+          GregorianCalendar calendar = new GregorianCalendar(2010, 8, 6);
+          epoch = calendar.getTimeInMillis();
           synchronized (lockObject) {
             nrunning++;
           }
           try {
             for (int j = 0; j < 100; j++) {
               BigInteger id = getId();
-              assertFalse("Failed for " + id + " after " + j, hash.containsKey(id));
+              if ( hash.containsKey(id) ) {
+                failed++;
+              }
               hash.put(id, id);
             }
           } finally {
@@ -74,6 +71,17 @@ public class IDTest {
             }
           }
 
+        }
+        private BigInteger getId() {
+          synchronized (lockObject) {
+            if (next == 0) {
+              next = System.currentTimeMillis() - epoch;
+            } else {
+              next++;
+            }
+          }
+          BigInteger ret = new BigInteger(String.valueOf(next)+ String.valueOf(tstart + 1000));
+          return ret;
         }
 
       });
@@ -85,26 +93,22 @@ public class IDTest {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
-        LOGGER.info(e.getMessage(),e);
+        LOGGER.info(e.getMessage(), e);
       }
     } while (nrunning > 0);
 
-    for ( Entry<BigInteger, BigInteger> e : hash.entrySet() ) {
-      LOGGER.info(" Entry is "+e.getValue()+" "+ StringUtils.encode(e.getValue().toByteArray(),StringUtils.URL_SAFE_ENCODING).trim() +" Epoch "+String.valueOf(epoch)+" Size "+String.valueOf(System.currentTimeMillis()-epoch));
+    for (Entry<BigInteger, BigInteger> e : hash.entrySet()) {
+      LOGGER.info(" Entry is "
+          + e.getValue()
+          + " "
+          + StringUtils.encode(e.getValue().toByteArray(), StringUtils.URL_SAFE_ENCODING)
+              .trim());
 
     }
+    LOGGER.info("Finished Running,  Hash Size is " + hash.size()+ " Collisions "+failed);
+    Assert.assertEquals(0, failed);
 
   }
 
-  private BigInteger getId() {
-    synchronized (lockObject) {
-      do {
-        next = System.currentTimeMillis()-epoch;
-      } while (next == prev);
-      BigInteger ret = new BigInteger(String.valueOf(tstart+1000) + String.valueOf(next));
-      prev = next;
-      return ret;
-    }
-  }
 
 }
