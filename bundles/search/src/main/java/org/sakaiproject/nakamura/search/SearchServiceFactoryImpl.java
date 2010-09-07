@@ -109,7 +109,7 @@ public class SearchServiceFactoryImpl implements SearchServiceFactory {
    * @return
    */
   public SearchResultSet getSearchResultSet(RowIterator rowIterator, long size) {
-    return new SearchResultSetImpl(rowIterator, size, defaultMaxResults);
+    return new SearchResultSetImpl(new SakaiSearchRowIterator(rowIterator), size, defaultMaxResults);
   }
 
   public RowIterator getRowIteratorFromList(List<Row> savedRows) {
