@@ -67,6 +67,11 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
       Session session = request.getResourceResolver().adaptTo(Session.class);
       UserManager um = AccessControlUtil.getUserManager(session);
 
+      if (request.getParameter("q") == null) {
+        throw new IllegalArgumentException(
+            "Must provide 'q' parameter to use for search.");
+      }
+
       // get the request group name
       String groupName = request.getParameter("group");
       if (groupName == null) {
