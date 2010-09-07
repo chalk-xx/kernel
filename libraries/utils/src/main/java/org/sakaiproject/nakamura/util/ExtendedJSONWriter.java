@@ -182,6 +182,8 @@ public class ExtendedJSONWriter extends JSONWriter {
       return value.getDouble();
     case PropertyType.DATE:
       return DateUtils.iso8601(value.getDate());
+    case PropertyType.BINARY:
+      return "binary-length:"+String.valueOf(value.getBinary().getSize());
     default:
       return value.toString();
     }
