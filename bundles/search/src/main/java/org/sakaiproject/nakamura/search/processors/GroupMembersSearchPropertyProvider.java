@@ -87,7 +87,8 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
       // get the managers group for the requested group and collect its members
       addDeclaredManagerMembers(memberIds, group, um);
 
-      if (memberIds.size() > 1) {
+      // 900 is the number raydavis said we should split on. This can be tuned as needed.
+      if (memberIds.size() > 900) {
         // more than the threshold; pass along for post processing
         request.setAttribute("memberIds", memberIds);
       } else {
