@@ -64,10 +64,7 @@ public class GroupMembersSearchResultProcessor extends NodeSearchBatchResultProc
       // Get the query result.
       QueryResult rs = query.execute();
 
-      // Extract the total hits from lucene
-      long hits = SearchUtil.getHits(rs);
-      int maxResults = (int) SearchUtil.longRequestParameter(request, SearchConstants.PARAM_MAX_RESULT_SET_COUNT, 100);
-
+      @SuppressWarnings("unchecked")
       final List<String> memberIds = (List<String>) request.getAttribute("memberIds");
 
       // Do the paging on the iterator.
@@ -91,11 +88,17 @@ public class GroupMembersSearchResultProcessor extends NodeSearchBatchResultProc
           }
         }
       };
+
+      // Extract the total hits from lucene
+      long hits = SearchUtil.getHits(rs);
       long start = SearchUtil.getPaging(request, hits);
       iterator.skip(start);
 
       // Return the result set.
-      SearchResultSet srs = new SearchResultSetImpl(iterator, hits, maxResults);
+      int maxResults = (int) SearchUtil.longRequestParameter(request,
+          SearchConstants.PARAM_MAX_RESULT_SET_COUNT,
+          SearchConstants.DEFAULT_PAGED_ITEMS);
+      SearchResultSet srs = new SearchResultSetImpl(iterator, maxResults);
       return srs;
     } catch (RepositoryException e) {
       logger.error("Unable to perform query.", e);

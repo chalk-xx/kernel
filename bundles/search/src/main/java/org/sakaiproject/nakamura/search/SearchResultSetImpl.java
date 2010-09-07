@@ -39,6 +39,11 @@ public class SearchResultSetImpl implements SearchResultSet {
    */
   private ValueMap properties;
 
+  public SearchResultSetImpl(RowIterator rowIterator, int maxResults) {
+    setRowIterator(rowIterator, maxResults);
+    setSize(this.rowIterator.getSize());
+  }
+
   public SearchResultSetImpl(RowIterator rowIterator, long size, int maxResults) {
     setRowIterator(rowIterator, maxResults);
     setSize(size);
@@ -46,7 +51,7 @@ public class SearchResultSetImpl implements SearchResultSet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultSet#getSize()
    */
   public long getSize() {
@@ -54,9 +59,9 @@ public class SearchResultSetImpl implements SearchResultSet {
   }
 
   /**
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultSet#setSize(long)
    */
   public void setSize(long size) {
@@ -64,9 +69,9 @@ public class SearchResultSetImpl implements SearchResultSet {
   }
 
   /**
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultSet#getRowIterator()
    */
   public RowIterator getRowIterator() {
@@ -82,9 +87,9 @@ public class SearchResultSetImpl implements SearchResultSet {
   }
 
   /**
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultSet#setProperties(java.util.Dictionary)
    */
   public void setProperties(ValueMap properties) {
@@ -92,9 +97,9 @@ public class SearchResultSetImpl implements SearchResultSet {
   }
 
   /**
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultSet#getProperties()
    */
   public ValueMap getProperties() {

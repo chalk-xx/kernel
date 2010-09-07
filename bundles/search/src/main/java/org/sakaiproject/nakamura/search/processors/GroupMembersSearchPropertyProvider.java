@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.jcr.RepositoryException;
@@ -78,40 +79,63 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
         throw new IllegalArgumentException("Unable to find group [" + groupName + "]");
       }
 
-      Iterator<Authorizable> members = group.getDeclaredMembers();
       ArrayList<String> memberIds = new ArrayList<String>();
-      while (members.hasNext()) {
-        memberIds.add(members.next().getID());
-      }
 
-      // get the managers group for the request group and its members to the list
-      Group managerGroup = null;
-      if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-        Value[] values = group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
-        if ((values != null) && (values.length == 1)) {
-          String managerGroupId = values[0].getString();
-          managerGroup = (Group) um.getAuthorizable(managerGroupId);
-          if (managerGroup != null) {
-            members = managerGroup.getDeclaredMembers();
-            while (members.hasNext()) {
-              memberIds.add(members.next().getID());
-            }
-          } else {
-            logger.warn("Unable to find manager's group [" + managerGroupId + "]");
-          }
-        }
-      }
+      // collect the declared members of the requested group
+      addDeclaredMembers(memberIds, group);
 
-      if (memberIds.size() > 900) {
+      // get the managers group for the requested group and collect its members
+      addDeclaredManagerMembers(memberIds, group, um);
+
+      if (memberIds.size() > 1) {
         // more than the threshold; pass along for post processing
         request.setAttribute("memberIds", memberIds);
       } else {
         // update the query to filter before writing nodes
-        propertiesMap.put("_groupQuery",
-            "and (rep:userId='" + StringUtils.join(memberIds, "' or rep:userId='") + "')");
+        String users = StringUtils.join(memberIds, "' or rep:userId='");
+        propertiesMap.put("_groupQuery", "and (rep:userId='" + users + "')");
       }
     } catch (RepositoryException e) {
       logger.error(e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Add any declared members of {@link group} to {@link memberIds}.
+   *
+   * @param memberIds List to collect member IDs.
+   * @param group Group to plunder through for member IDs.
+   * @throws RepositoryException
+   */
+  private void addDeclaredMembers(List<String> memberIds, Group group)
+      throws RepositoryException {
+    Iterator<Authorizable> members = group.getDeclaredMembers();
+    while (members.hasNext()) {
+      memberIds.add(members.next().getID());
+    }
+  }
+
+  /**
+   * Add any declared manager members of {@link group} to {@link memberIds}.
+   *
+   * @param memberIds List to collect member IDs.
+   * @param group Group to plunder through for manager member IDs.
+   * @param um UserManager for digging up the manager group.
+   * @throws RepositoryException
+   */
+  private void addDeclaredManagerMembers(List<String> memberIds, Group group,
+      UserManager um) throws RepositoryException {
+    if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
+      Value[] values = group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
+      if (values != null && values.length == 1) {
+        String managerGroupId = values[0].getString();
+        Group managerGroup = (Group) um.getAuthorizable(managerGroupId);
+        if (managerGroup != null) {
+          addDeclaredMembers(memberIds, managerGroup);
+        } else {
+          logger.warn("Unable to find manager's group [" + managerGroupId + "]");
+        }
+      }
     }
   }
 }
