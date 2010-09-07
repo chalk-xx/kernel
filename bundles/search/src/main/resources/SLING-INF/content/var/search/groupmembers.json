@@ -1,10 +1,10 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "//*[@sling:resourceType=\"sakai/user-profile\" and (jcr:contains(., '{q}') or jcr:contains(*/*/*,'{q}'))] order by @{sortOn|jcr:score} {sortOrder|descending}",
+  "sakai:query-template": "//*[@sling:resourceType='sakai/user-profile' and (jcr:contains(., '{q}') or jcr:contains(*/*/*,'{q}')) {_groupQuery}] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:title": "Group Members",
-  //"sakai:propertyprovider": "GroupMembers",
-  "sakai:resultprocessor": "GroupMembers",
+  "sakai:propertyprovider": "GroupMembers",
+  "sakai:batchresultprocessor": "GroupMembers",
   "sakai:shortDescription": "Get the group profile nodes out of the repository.",
   "sakai:parameters" : [
       "{\"name\" : \"q\", \"description\" : \"The term you want to match against. This will match any property on the group profile.\"}",
