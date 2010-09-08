@@ -21,11 +21,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
@@ -54,6 +56,9 @@ import javax.jcr.Value;
 public class GroupMembersSearchPropertyProvider implements SearchPropertyProvider {
   private static final Logger logger = LoggerFactory
       .getLogger(GroupMembersSearchPropertyProvider.class);
+
+  @Reference
+  protected SlingRepository slingRepository;
 
   /**
    * {@inheritDoc}
@@ -90,7 +95,7 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
       addDeclaredMembers(memberIds, group);
 
       // get the managers group for the requested group and collect its members
-      addDeclaredManagerMembers(memberIds, group, um);
+      addDeclaredManagerMembers(memberIds, group);
 
       // 900 is the number raydavis said we should split on. This can be tuned as needed.
       if (memberIds.size() > 900) {
@@ -129,18 +134,30 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
    * @param um UserManager for digging up the manager group.
    * @throws RepositoryException
    */
-  private void addDeclaredManagerMembers(List<String> memberIds, Group group,
-      UserManager um) throws RepositoryException {
-    if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-      Value[] values = group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
-      if (values != null && values.length == 1) {
-        String managerGroupId = values[0].getString();
-        Group managerGroup = (Group) um.getAuthorizable(managerGroupId);
-        if (managerGroup != null) {
-          addDeclaredMembers(memberIds, managerGroup);
-        } else {
-          logger.warn("Unable to find manager's group [" + managerGroupId + "]");
+  private void addDeclaredManagerMembers(List<String> memberIds, Group group)
+      throws RepositoryException {
+
+    Session adminSession = null;
+
+    try {
+      adminSession = slingRepository.loginAdministrative(null);
+      UserManager um = AccessControlUtil.getUserManager(adminSession);
+
+      if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
+        Value[] values = group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
+        if (values != null && values.length == 1) {
+          String managerGroupId = values[0].getString();
+          Group managerGroup = (Group) um.getAuthorizable(managerGroupId);
+          if (managerGroup != null) {
+            addDeclaredMembers(memberIds, managerGroup);
+          } else {
+            logger.warn("Unable to find manager's group [" + managerGroupId + "]");
+          }
         }
+      }
+    } finally {
+      if (adminSession != null) {
+        adminSession.logout();
       }
     }
   }
