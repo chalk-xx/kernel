@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
 
@@ -398,4 +399,37 @@ public class JcrUtils {
 
   }
 
+  /**
+   * Delete a value on a multi-valued property.
+   *
+   * @param session
+   *          The session to create the {@link Value value}.
+   * @param node
+   *          The {@link Node node} to set the property on.
+   * @param propertyName
+   *          The name of the property.
+   * @param propertyValue
+   *          The actual value that will be removed from the property.
+   * @throws RepositoryException
+   *           Something went wrong.
+   */
+  public static void deleteValue(Session session, Node node, String propertyName,
+      String propertyValue) throws RepositoryException {
+    if (session == null || node == null || propertyName == null || propertyValue == null) {
+      return;
+    }
+
+    Value[] values = getValues(node, propertyName);
+    ArrayList<Value> valueList = new ArrayList<Value>();
+    for (Value value : values) {
+      if (!propertyValue.equals(value.getString())) {
+        valueList.add(value);
+      }
+    }
+
+    // only set the values if we collected fewer than are already set
+    if (valueList.size() < values.length) {
+      node.setProperty(propertyName, valueList.toArray(new Value[0]));
+    }
+  }
 }
