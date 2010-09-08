@@ -78,7 +78,6 @@ class TC_Kern939Test < Test::Unit::TestCase
     m = Time.now.to_f.to_s.gsub('.', '')
     @s.switch_user(User.admin_user())
     user = create_user("testuser-#{m}")
-    otheruser = create_user("otheruser-#{m}")
     @s.switch_user(user)
     path = "#{user.home_path_for(@s)}/pages"
     res = @s.execute_get(@s.url_for("#{path}.json"))
@@ -92,11 +91,7 @@ class TC_Kern939Test < Test::Unit::TestCase
     assert_equal("newval", props["newprop"], "New page content is incorrect")
     @s.switch_user(SlingUsers::User.anonymous)
     res = @s.execute_get(@s.url_for("#{path}.json"))
-    assert_not_equal("200", res.code, "By default, the user's pages are not public")
-    @s.switch_user(otheruser)
-    res = @s.execute_get(@s.url_for("#{path}.json"))
-    assert_not_equal("200", res.code, "By default, the user's pages are private to the user")
-    @s.switch_user(user)
+    assert_equal("200", res.code, "By default, the user's pages are public")
   end
 
   def test_default_group_access
@@ -136,10 +131,11 @@ class TC_Kern939Test < Test::Unit::TestCase
 
     @s.switch_user(SlingUsers::User.anonymous)
     res = @s.execute_get(@s.url_for("#{path}.json"))
-    assert_not_equal("200", res.code, "By default, the group's pages are not public")
+    assert_equal("200", res.code, "By default, the group's pages are public")
     @s.switch_user(otheruser)
-    res = @s.execute_get(@s.url_for("#{path}.json"))
-    assert_not_equal("200", res.code, "By default, the group's pages are private to the group")
+    res = @s.execute_post(@s.url_for("#{path}/newernode"),
+      "newprop" => "newval")
+    assert_not_equal("201", res.code, "Non-members should not be able to add to the group's pages")
   end
 
 end
