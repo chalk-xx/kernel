@@ -9,6 +9,7 @@
   "sakai:parameters" : [
       "{\"name\" : \"q\", \"description\" : \"The term you want to match against. This will match any property on the group profile.\"}",
       "{\"name\" : \"group\", \"description\" : \"The group you want to limit your query to.\"}",
+      "{\"name\" : \"includeSelf\", \"description\" : \"Whether to include the current user in the results.  Default to false.\"}",
       "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. The default is jcr:score\"}",
       "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'ascending' or 'descending'.\"}"
       ],

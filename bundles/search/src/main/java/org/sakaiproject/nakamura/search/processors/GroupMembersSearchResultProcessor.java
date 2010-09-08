@@ -31,7 +31,7 @@ import org.sakaiproject.nakamura.search.SearchResultSetImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -65,7 +65,7 @@ public class GroupMembersSearchResultProcessor extends NodeSearchBatchResultProc
       QueryResult rs = query.execute();
 
       @SuppressWarnings("unchecked")
-      final List<String> memberIds = (List<String>) request.getAttribute("memberIds");
+      final Set<String> memberIds = (Set<String>) request.getAttribute("memberIds");
 
       // Do the paging on the iterator.
       SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(rs.getRows()) {

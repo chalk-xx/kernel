@@ -35,9 +35,9 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 import javax.jcr.RepositoryException;
@@ -89,13 +89,19 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
         throw new IllegalArgumentException("Unable to find group [" + groupName + "]");
       }
 
-      ArrayList<String> memberIds = new ArrayList<String>();
+      LinkedHashSet<String> memberIds = new LinkedHashSet<String>();
 
       // collect the declared members of the requested group
       addDeclaredMembers(memberIds, group);
 
       // get the managers group for the requested group and collect its members
       addDeclaredManagerMembers(memberIds, group);
+
+      boolean includeSelf = Boolean.parseBoolean(request.getParameter("includeSelf"));
+      String currentUser = request.getRemoteUser();
+      if (!includeSelf) {
+        memberIds.remove(currentUser);
+      }
 
       // 900 is the number raydavis said we should split on. This can be tuned as needed.
       if (memberIds.size() > 900) {
@@ -118,11 +124,14 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
    * @param group Group to plunder through for member IDs.
    * @throws RepositoryException
    */
-  private void addDeclaredMembers(List<String> memberIds, Group group)
+  private void addDeclaredMembers(Collection<String> memberIds, Group group)
       throws RepositoryException {
     Iterator<Authorizable> members = group.getDeclaredMembers();
     while (members.hasNext()) {
-      memberIds.add(members.next().getID());
+      String memberId = members.next().getID();
+      if (!memberIds.contains(memberId)) {
+        memberIds.add(memberId);
+      }
     }
   }
 
@@ -134,7 +143,7 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
    * @param um UserManager for digging up the manager group.
    * @throws RepositoryException
    */
-  private void addDeclaredManagerMembers(List<String> memberIds, Group group)
+  private void addDeclaredManagerMembers(Collection<String> memberIds, Group group)
       throws RepositoryException {
 
     Session adminSession = null;
