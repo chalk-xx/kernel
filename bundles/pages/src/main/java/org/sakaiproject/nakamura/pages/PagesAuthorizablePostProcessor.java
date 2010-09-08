@@ -27,19 +27,15 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.Principal;
 import java.util.Map;
 
 import javax.jcr.RepositoryException;
@@ -85,7 +81,6 @@ public class PagesAuthorizablePostProcessor implements AuthorizablePostProcessor
         // Do not overwrite existing pages.
         if (!session.nodeExists(pagesPath)) {
           intitializeContent(authorizable, session, pagesPath, parameters);
-          initializeAccess(authorizable, session, pagesPath);
         }
       } catch (RepositoryException e) {
         LOGGER.error("Could not create default pages for " + authorizable, e);
@@ -142,48 +137,5 @@ public class PagesAuthorizablePostProcessor implements AuthorizablePostProcessor
     Workspace workspace = session.getWorkspace();
     workspace.copy(templatePath, pagesPath);
     LOGGER.debug("Copied template pages from {} to {}", templatePath, pagesPath);
-  }
-
-  private void initializeAccess(Authorizable authorizable, Session session, String pagesPath) throws RepositoryException {
-    // Start with a clean slate for each Principal.
-    final String[] allPrivs = {"jcr:all"};
-    final String[] readPrivs = {"jcr:read"};
-
-    PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-
-    if (authorizable.isGroup()) {
-      // By default, group managers have complete access to the group's pages and
-      // other group members only have read access.
-      Principal membersPrincipal = authorizable.getPrincipal();
-      Principal managersPrincipal = null;
-      if (authorizable.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-        String managersGroupId = authorizable.getProperty(UserConstants.PROP_MANAGERS_GROUP)[0].getString();
-        managersPrincipal = principalManager.getPrincipal(managersGroupId);
-        if (managersPrincipal != null) {
-          AccessControlUtil.replaceAccessControlEntry(session, pagesPath, managersPrincipal,
-              allPrivs, new String[] {}, allPrivs, null);
-        } else {
-          LOGGER.info("No managers group found for new group {}", authorizable.getID());
-        }
-      }
-      AccessControlUtil.replaceAccessControlEntry(session, pagesPath, membersPrincipal,
-          readPrivs, new String[] {}, allPrivs, null);
-    } else {
-      // Give new users complete control over their own pages.
-      Principal userPrincipal = authorizable.getPrincipal();
-      AccessControlUtil.replaceAccessControlEntry(session, pagesPath, userPrincipal,
-          allPrivs, new String[] {}, allPrivs, null);
-    }
-
-    // By default, no one except the user can see the new user's pages, and no one
-    // outside the group can see the new group's pages. We need to call out
-    // "everyone" and "anonymous" separately since they might have been given
-    // separate grants up the inheritance tree.
-    Principal everyonePrincipal = principalManager.getPrincipal("everyone");
-    AccessControlUtil.replaceAccessControlEntry(session, pagesPath, everyonePrincipal,
-        new String[] {}, allPrivs, allPrivs, null);
-    Principal anonymousPrincipal = principalManager.getPrincipal("anonymous");
-    AccessControlUtil.replaceAccessControlEntry(session, pagesPath, anonymousPrincipal,
-        new String[] {}, allPrivs, allPrivs, null);
   }
 }
