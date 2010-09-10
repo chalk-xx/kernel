@@ -56,7 +56,8 @@ import javax.servlet.http.HttpServletResponse;
 @ServiceDocumentation(name = "TagServlet", shortDescription = "Get information about a tag.",
     description = {
       "This servlet is able to give all the necessary information about tags.",
-      "It's able to give json feeds for the childtags, parent tags or give a dump of the files who are tagged with this tag."
+      "It's able to give json feeds for the childtags, parent tags or give a dump of the files who are tagged with this tag.",
+      "Must specify a selector of children, parents, tagged. tidy, {number} are optional and ineffective by themselves."
     },
     bindings = {
       @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/tag" },
@@ -64,7 +65,9 @@ import javax.servlet.http.HttpServletResponse;
           selectors = {
             @ServiceSelector(name = "children", description = "Will dump all the children of this tag."),
             @ServiceSelector(name = "parents", description = "Will dump all the parents of this tag."),
-            @ServiceSelector(name = "tagged", description = "Will dump all the files who are tagged with this tag.")
+            @ServiceSelector(name = "tagged", description = "Will dump all the files who are tagged with this tag."),
+            @ServiceSelector(name = "tidy", description = "Optional sub-selector. Will send back 'tidy' output."),
+            @ServiceSelector(name = "{number}", description = "Optional sub-selector. Specifies the depth of data to output.")
           }
       )
     },
