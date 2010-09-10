@@ -120,6 +120,8 @@ public class TagServlet extends SlingSafeMethodsServlet {
     for (String sel : selectors) {
       if ("tidy".equals(sel)) {
         tidy = true;
+      } else if ("infinity".equals(sel)) {
+        depth = -1;
       } else {
         // check if the selector is telling us the depth of detail to return
         Integer d = null;
