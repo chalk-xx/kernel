@@ -81,7 +81,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -89,9 +89,21 @@ public class TagServlet extends SlingSafeMethodsServlet {
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
 
-    String selector = request.getRequestPathInfo().getSelectorString();
+    boolean tidy = false;
+    String[] selectors = request.getRequestPathInfo().getSelectors();
+    String selector = null;
+    for (String sel : selectors) {
+      if ("tidy".equals(sel)) {
+        tidy = true;
+      } else {
+        selector = sel;
+      }
+    }
+
     JSONWriter write = new JSONWriter(response.getWriter());
+    write.setTidy(tidy);
     Node tag = request.getResource().adaptTo(Node.class);
+
     try {
       if ("children".equals(selector)) {
         sendChildren(tag, write);
@@ -146,7 +158,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
   /**
    * Write all the parent tags of the passed in tag.
-   * 
+   *
    * @param tag
    *          The tag that should be sent and get it's children parsed.
    * @param write
@@ -175,7 +187,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
   /**
    * Write all the child tags of the passed in tag.
-   * 
+   *
    * @param tag
    *          The tag that should be sent and get it's children parsed.
    * @param write
