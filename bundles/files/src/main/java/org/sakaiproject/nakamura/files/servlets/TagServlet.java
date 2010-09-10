@@ -108,14 +108,24 @@ public class TagServlet extends SlingSafeMethodsServlet {
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
 
+    // digest the selectors to determine if we should send a tidy result
+    // or if we need to traverse deeper into the tagged node.
     boolean tidy = false;
+    int depth = 0;
     String[] selectors = request.getRequestPathInfo().getSelectors();
     String selector = null;
     for (String sel : selectors) {
       if ("tidy".equals(sel)) {
         tidy = true;
       } else {
-        selector = sel;
+        // check if the selector is telling us the depth of detail to return
+        Integer d = null;
+        try { d = Integer.parseInt(sel); } catch (NumberFormatException e) {}
+        if (d != null) {
+          depth = d;
+        } else {
+          selector = sel;
+        }
       }
     }
 
@@ -129,7 +139,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
       } else if ("parents".equals(selector)) {
         sendParents(tag, write);
       } else if ("tagged".equals(selector)) {
-        sendFiles(tag, request, write);
+        sendFiles(tag, request, write, depth);
       }
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -148,8 +158,8 @@ public class TagServlet extends SlingSafeMethodsServlet {
    * @throws JSONException
    * @throws SearchException
    */
-  protected void sendFiles(Node tag, SlingHttpServletRequest request, JSONWriter write)
-      throws RepositoryException, JSONException, SearchException {
+  protected void sendFiles(Node tag, SlingHttpServletRequest request, JSONWriter write,
+      int depth) throws RepositoryException, JSONException, SearchException {
     // We expect tags to be referencable, if this tag is not..
     // it will throw an exception.
     String uuid = tag.getIdentifier();
@@ -168,6 +178,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
     if (proc == null) {
       proc = new FileSearchBatchResultProcessor(siteService, searchServiceFactory);
     }
+    proc.setDepth(depth);
 
     SearchResultSet rs = proc.getSearchResultSet(request, query);
     write.array();
