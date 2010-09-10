@@ -65,12 +65,16 @@
             <phase>generate-resources</phase>
             <configuration>
               <tasks>
-                <exec outputproperty="git.version" executable="git">
+                <exec outputproperty="git.version" executable="git" failifexecutionfails="false" searchpath="true" >
                   <arg line="describe" />
                 </exec>
-                <echo file="${basedir}/target/scm-version.properties">
-                  scm.version=${git.version}
-                </echo>
+                <condition property="git.version.value" value="${git.version}" else="UnknownVersion" >
+                  <isset property="git.version" />
+                </condition>
+                  <echo file="${basedir}/target/scm-version.properties" >
+                    scm.version=${git.version.value}
+                  </echo>
+                
               </tasks>
             </configuration>
             <goals>

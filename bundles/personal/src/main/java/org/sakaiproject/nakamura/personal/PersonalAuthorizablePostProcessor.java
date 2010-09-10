@@ -212,10 +212,10 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
     Node homeNode = JcrUtils.deepGetOrCreateNode(session, homeFolderPath);
     if (homeNode.isNew()) {
-      LOGGER.info("Created Home Node for {} at   {} user was {} ", new Object[] {
+      LOGGER.debug("Created Home Node for {} at   {} user was {} ", new Object[] {
           authorizable.getID(), homeNode, session.getUserID() });
     } else {
-      LOGGER.info("Existing Home Node for {} at   {} user was {} ", new Object[] {
+      LOGGER.debug("Existing Home Node for {} at   {} user was {} ", new Object[] {
           authorizable.getID(), homeNode, session.getUserID() });
     }
 
@@ -238,16 +238,20 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
     // The user can do everything on this node.
     for (Principal manager : managers) {
-      LOGGER.info("User {} is attempting to make {} a manager ", session.getUserID(),
+      if ( manager != null ) {
+        LOGGER.debug("User {} is attempting to make {} a manager ", session.getUserID(),
           manager.getName());
-      AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, manager,
+        AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, manager,
           new String[] { JCR_ALL }, null, null, null);
+      }
     }
     for (Principal viewer : viewers) {
-      LOGGER.info("User {} is attempting to make {} a viewer ", session.getUserID(),
+      if ( viewer != null ) {
+        LOGGER.debug("User {} is attempting to make {} a viewer ", session.getUserID(),
           viewer.getName());
-      AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, viewer,
+        AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, viewer,
           new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
+      }
     }
     LOGGER.debug("Set ACL on Node for {} at   {} ", authorizable.getID(), homeNode);
 
@@ -273,6 +277,9 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       Principal[] valueAsStrings = new Principal[values.length];
       for (int i = 0; i < values.length; i++) {
         valueAsStrings[i] = principalManager.getPrincipal(values[i].getString());
+        if ( valueAsStrings[i] == null ) {
+          LOGGER.warn("Principal {} cant be resolved, will be ignored ",values[i].getString());
+        }
       }
       return valueAsStrings;
     } else {

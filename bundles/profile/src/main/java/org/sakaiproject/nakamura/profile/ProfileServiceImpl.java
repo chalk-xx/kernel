@@ -240,12 +240,20 @@ public class ProfileServiceImpl implements ProfileService {
 
         try{
           ValueMap basicMap =(ValueMap) profile.get(USER_BASIC);
-          ValueMap elementsMap = (ValueMap) basicMap.get(USER_BASIC_ELEMENTS);
-          compactProfile.put(USER_FIRSTNAME_PROPERTY, ((ValueMap) elementsMap.get(USER_FIRSTNAME_PROPERTY)).get("value"));
-          compactProfile.put(USER_LASTNAME_PROPERTY, ((ValueMap) elementsMap.get(USER_LASTNAME_PROPERTY)).get("value"));
-          compactProfile.put(USER_EMAIL_PROPERTY, ((ValueMap) elementsMap.get(USER_EMAIL_PROPERTY)).get("value"));
+          if ( basicMap != null ) {
+            ValueMap elementsMap = (ValueMap) basicMap.get(USER_BASIC_ELEMENTS);
+            if ( elementsMap != null ) {
+              compactProfile.put(USER_FIRSTNAME_PROPERTY, ((ValueMap) elementsMap.get(USER_FIRSTNAME_PROPERTY)).get("value"));
+              compactProfile.put(USER_LASTNAME_PROPERTY, ((ValueMap) elementsMap.get(USER_LASTNAME_PROPERTY)).get("value"));
+              compactProfile.put(USER_EMAIL_PROPERTY, ((ValueMap) elementsMap.get(USER_EMAIL_PROPERTY)).get("value"));
+            } else {
+              LOG.warn("User {} has no basic user elements (firstName, lastName and email not avaiable) ",authorizable.getID());
+            }
+          } else {
+            LOG.warn("User {} has no basic profile (firstName, lastName and email not avaiable) ",authorizable.getID());
+          }
         }catch(Exception e){
-          LOG.warn("Can't get authprofile basic information.", e);
+          LOG.warn("Can't get authprofile basic information. ", e);
         }
         // Backward compatible reasons.
         compactProfile.put("userid", authorizable.getID());

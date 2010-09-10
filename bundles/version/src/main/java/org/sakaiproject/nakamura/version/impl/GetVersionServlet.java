@@ -162,7 +162,7 @@ public class GetVersionServlet extends SlingSafeMethodsServlet {
       @SuppressWarnings("unchecked")
       @Override
       public <AdapterType> AdapterType adaptTo(Class<AdapterType> type) {
-        LOG.info("Adapting to: " + type);
+        LOG.debug("Adapting to:{} ", type);
         if (type.equals(Node.class)) {
           return (AdapterType) finalNode;
         }

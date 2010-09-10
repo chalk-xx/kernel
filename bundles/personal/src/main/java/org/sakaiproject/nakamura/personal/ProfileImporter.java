@@ -86,6 +86,6 @@ public class ProfileImporter {
       Session session) throws RepositoryException, IOException {
     ByteArrayInputStream contentStream = new ByteArrayInputStream(json.getBytes());
     contentImporter.importContent(profileNode, CONTENT_ROOT_NAME, contentStream, importOptions, null);
-    LOGGER.info("Imported content to {} from JSON string '{}'", profileNode.getPath(), json);
+    LOGGER.debug("Imported content to {} from JSON string '{}'", profileNode.getPath(), json);
   }
 }

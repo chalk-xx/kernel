@@ -114,7 +114,7 @@ public class ContentPoolFilter implements Filter {
       if ( node == null ) {
         return false; // webdav
       }
-      LOGGER.info("/_user and /_group are protected ");
+      LOGGER.debug("/_user and /_group are protected ");
       return true;
     }
 

@@ -35,6 +35,7 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.easymock.EasyMock;
 import org.junit.Test;
+import org.osgi.util.mobile.UserPromptCondition;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.StringUtils;
 
@@ -111,6 +112,7 @@ public class CropItServletTest extends AbstractEasyMockTest {
 
     expect(imgNode.isNodeType("nt:file")).andReturn(true);
     expect(imgNode.getName()).andReturn("people.png");
+    expect(imgNode.getPath()).andReturn("/path/to/the/file/people.png");
     expect(imgNode.hasNode("jcr:content")).andReturn(true);
     expect(imgNode.getNode("jcr:content")).andReturn(imgContentNode);
 

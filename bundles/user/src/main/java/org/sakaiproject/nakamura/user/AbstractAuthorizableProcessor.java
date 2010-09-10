@@ -51,7 +51,7 @@ public abstract class AbstractAuthorizableProcessor {
         String path = itemPath.substring(prefix.length());
         ValueFactory valueFactory = session.getValueFactory();
         authorizable.setProperty(PROP_AUTHORIZABLE_PATH, valueFactory.createValue(path));
-        LOGGER.info("Authorizable {} path set to {} ", authorizable.getID(), path);
+        LOGGER.debug("Authorizable {} path set to {} ", authorizable.getID(), path);
       } else {
         LOGGER.warn("Authorizable {} has no available path", authorizable.getID());
       }
