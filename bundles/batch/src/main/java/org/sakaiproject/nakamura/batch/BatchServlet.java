@@ -155,6 +155,15 @@ public class BatchServlet extends SlingAllMethodsServlet {
       SlingHttpServletResponse response, boolean allowModify) throws IOException {
     // Grab the JSON block out of it and convert it to RequestData objects we can use.
     String json = request.getParameter(REQUESTS_PARAMETER);
+
+    // KERN-1061 NPE when request parameter is missing or empty
+    if (json == null) {
+      String msg = "The " + REQUESTS_PARAMETER + " parameter was not provided or was null.";
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, msg);
+      LOGGER.warn(msg);
+      return;
+    }
+
     List<RequestInfo> batchedRequests = new ArrayList<RequestInfo>();
     try {
       JSONArray arr = new JSONArray(json);
