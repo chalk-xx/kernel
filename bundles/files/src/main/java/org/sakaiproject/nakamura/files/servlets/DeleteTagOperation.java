@@ -74,7 +74,7 @@ public class DeleteTagOperation extends AbstractSlingPostOperation {
   @Reference
   protected transient EventAdmin eventAdmin;
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TagOperation.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DeleteTagOperation.class);
 
   private static final long serialVersionUID = -7724827744698056843L;
 
