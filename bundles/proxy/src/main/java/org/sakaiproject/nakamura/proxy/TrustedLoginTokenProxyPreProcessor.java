@@ -60,10 +60,10 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
   private String sharedSecret = "e2KS54H35j6vS5Z38nK40";
 
   @Property(name = "port", intValue = 80)
-  private int port;
+  protected int port;
 
   @Property(name = "hostname", value = {"localhost"})
-  private String hostname;
+  protected String hostname;
 
   public String getName() {
     return "trusted-token";
