@@ -102,7 +102,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    */
   private static final String JCR_RESOURCE_LOADER = "jcr";
   
-  @Property(value={"rss","someothersafepostprocessor"})
+  @Property(value={"rss", "trustedLoginTokenProxyPostProcessor", "someothersafepostprocessor"})
   private static final String SAFE_POSTPROCESSORS = "safe.postprocessors";
 
   /**
@@ -148,6 +148,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
       String[] safePostProcessorNames = (String[]) configProperties.get(SAFE_POSTPROCESSORS);
       if ( safePostProcessorNames == null ) {
         safeOpenProcessors.add("rss");
+        safeOpenProcessors.add("trustedLoginTokenProxyPostProcessor");
       } else {
         for ( String pp : safePostProcessorNames ) {
           safeOpenProcessors.add(pp);

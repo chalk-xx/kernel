@@ -3,9 +3,9 @@
 
 require 'sling/sling'
 require 'sling/test'
-require '../sling/file'
-require '../sling/sites'
-require '../sling/message'
+require 'sling/file'
+require 'sling/sites'
+require 'sling/message'
 require 'test/unit.rb'
 include SlingInterface
 include SlingUsers
