@@ -36,6 +36,22 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Will verify two required templateParams (i.e. <code>hostname</code> and
  * <code>port</code>) and then process.
+ * 
+ * 1) Added a new PostProcessor called <code>TrustedLoginTokenProxyPostProcessor</code>
+ * and added it to the list of trusted PostProcessors in
+ * <code>ProxyClientServiceImpl</code>. <br/>
+ * 2) <code>TrustedLoginTokenProxyPostProcessor</code> (i.e. "
+ * <code>trustedLoginTokenProxyPostProcessor</code>") is now bound to the two proxy nodes:
+ * a)
+ * <code>bundles/proxy/src/main/resources/SLING-INF/content/var/proxy/s23/site.json</code>
+ * and b)
+ * <code>bundles/proxy/src/main/resources/SLING-INF/content/var/proxy/s23/sites.json</code>
+ * .<br/>
+ * 3) <code>TrustedLoginTokenProxyPostProcessor</code> now verifies that the ${hostname}
+ * and ${port} values are required and MUST match the values for these two variables as
+ * defined in the PreProcessor: <code>TrustedLoginTokenProxyPreProcessor</code>.
+ * 
+ * This should prevent any shenanigans with this particular proxy. L
  */
 @Service
 @Component
