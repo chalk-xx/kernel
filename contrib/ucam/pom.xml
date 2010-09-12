@@ -6,10 +6,10 @@
     <version>0.8</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>uk.ac.cam.caret.engpilot-qa</groupId>
-  <artifactId>uk.ac.cam.caret.engpilot-qa</artifactId>
-  <name>Engineering Pilot QA Executable</name>
-  <version>0.0.2</version>
+  <groupId>uk.ac.cam.caret.nakamura</groupId>
+  <artifactId>uk.ac.cam.caret.nakamura</artifactId>
+  <name>UCAM Nakamura Instance</name>
+  <version>0.0.1</version>
   <packaging>jar</packaging>
   <build>
     <plugins>
@@ -26,7 +26,7 @@
             <bundle>
               <groupId>org.sakaiproject.nakamura</groupId>
               <artifactId>org.sakaiproject.nakamura.uxloader</artifactId>
-              <version>0.4.0-SNAPSHOT</version>
+              <version>0.5.0-ucam-2010-09-08-00-build</version>
             </bundle>
             <bundle>
                 <groupId>org.sakaiproject.nakamura</groupId>
@@ -97,6 +97,18 @@
         <name>Sakai Maven Repository</name>
         <layout>default</layout>
         <url>http://source.sakaiproject.org/maven2</url>
+        <releases>
+            <enabled>true</enabled>
+        </releases>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+    </repository>
+     <repository>
+        <id>caret-maven2</id>
+        <name>CARET Maven Repository</name>
+        <layout>default</layout>
+        <url>http://www2.caret.cam.ac.uk/maven2</url>
         <releases>
             <enabled>true</enabled>
         </releases>

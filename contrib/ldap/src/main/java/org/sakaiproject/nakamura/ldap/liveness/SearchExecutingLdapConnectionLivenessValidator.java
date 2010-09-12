@@ -53,11 +53,11 @@ import java.text.MessageFormat;
  *
  * @author dmccallum@unicon.net
  * @author "Carl Hall" <carl.hall@gatech.edu>
- * 
+ *
  * @scr.component enabled="false" immediate="true"
  * @scr.service
  */
-@Component(enabled = false, immediate = true)
+@Component(enabled = false)
 @Service
 public class SearchExecutingLdapConnectionLivenessValidator implements
     LdapConnectionLivenessValidator {
@@ -80,8 +80,8 @@ public class SearchExecutingLdapConnectionLivenessValidator implements
   /** Class-specific logger */
   private static Logger log = LoggerFactory
       .getLogger(SearchExecutingLdapConnectionLivenessValidator.class);
-  
-  
+
+
 
   /**
    * An ID for this instance
@@ -116,8 +116,8 @@ public class SearchExecutingLdapConnectionLivenessValidator implements
 
   @Reference
   private ConfigurationService configService;
-  
-  
+
+
   public SearchExecutingLdapConnectionLivenessValidator() {
     // Math.random is seedded with thh System.currentTimeMillis so we have to use SecureRandom.
     SecureRandom secureRandom = new SecureRandom();
