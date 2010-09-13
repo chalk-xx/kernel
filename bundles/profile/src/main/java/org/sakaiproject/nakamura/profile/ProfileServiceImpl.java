@@ -24,12 +24,8 @@ import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_JCR_P
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_PROFILE_RT;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_TITLE_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_BASIC;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_BASIC_ELEMENTS;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_EMAIL_PROPERTY;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_FIRSTNAME_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_IDENTIFIER_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_JCR_PATH_PREFIX;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_LASTNAME_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_PICTURE;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_PROFILE_RT;
 
