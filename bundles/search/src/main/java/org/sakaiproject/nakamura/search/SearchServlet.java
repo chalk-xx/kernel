@@ -67,6 +67,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
@@ -88,10 +89,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.jcr.AccessDeniedException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
@@ -231,6 +236,11 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   @Reference
   protected SearchServiceFactory searchServiceFactory;
 
+  @Reference
+  protected transient ProfileService profileService;
+
+  private Pattern homePathPattern = Pattern.compile("(~(.*?))/");
+
   @Override
   public void init() throws ServletException {
     super.init();
@@ -295,6 +305,8 @@ public class SearchServlet extends SlingSafeMethodsServlet {
 
         String queryString = processQueryTemplate(request, queryTemplate, queryLanguage,
             propertyProviderName);
+
+        queryString = expandHomeDirectoryInQuery(node, queryString);
 
         // Create the query.
         LOGGER.debug("Posting Query {} ", queryString);
@@ -401,6 +413,20 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.info("Caught JSONException {}", e.getMessage());
     }
+  }
+
+  private String expandHomeDirectoryInQuery(Node node, String queryString)
+      throws AccessDeniedException, UnsupportedRepositoryOperationException,
+      RepositoryException {
+    Matcher homePathMatcher = homePathPattern.matcher(queryString);
+    if (homePathMatcher.find()) {
+      String username = homePathMatcher.group(2);
+      UserManager um = AccessControlUtil.getUserManager(node.getSession());
+      Authorizable au = um.getAuthorizable(username);
+      String homePath = profileService.getHomePath(au).substring(1) + "/";
+      queryString = homePathMatcher.replaceAll(homePath);
+    }
+    return queryString;
   }
 
   /**
