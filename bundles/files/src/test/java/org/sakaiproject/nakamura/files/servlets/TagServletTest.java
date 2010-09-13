@@ -76,7 +76,7 @@ public class TagServletTest {
     Node tag = createTagTree();
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     RequestPathInfo pathInfo = mock(RequestPathInfo.class);
-    when(pathInfo.getSelectorString()).thenReturn("children");
+    when(pathInfo.getSelectors()).thenReturn(new String[] {"children"});
     when(request.getRequestPathInfo()).thenReturn(pathInfo);
     Resource resource = mock(Resource.class);
     when(resource.adaptTo(Node.class)).thenReturn(tag);
@@ -113,7 +113,7 @@ public class TagServletTest {
     Node tag = createTagTree();
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     RequestPathInfo pathInfo = mock(RequestPathInfo.class);
-    when(pathInfo.getSelectorString()).thenReturn("parents");
+    when(pathInfo.getSelectors()).thenReturn(new String[] {"parents"});
     when(request.getRequestPathInfo()).thenReturn(pathInfo);
     Resource resource = mock(Resource.class);
     when(resource.adaptTo(Node.class)).thenReturn(tag);
@@ -146,7 +146,7 @@ public class TagServletTest {
     Node tag = createTagTree();
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     RequestPathInfo pathInfo = mock(RequestPathInfo.class);
-    when(pathInfo.getSelectorString()).thenReturn("tagged");
+    when(pathInfo.getSelectors()).thenReturn(new String[] {"tagged"});
     when(request.getRequestPathInfo()).thenReturn(pathInfo);
     Resource resource = mock(Resource.class);
     when(resource.adaptTo(Node.class)).thenReturn(tag);
@@ -188,8 +188,8 @@ public class TagServletTest {
     SearchResultSet searchResultSet = mock(SearchResultSet.class);
     when(searchServiceFactory.getSearchResultSet(Mockito.any(RowIterator.class), Mockito.anyLong())).thenReturn(searchResultSet);
     RowIterator rowIterator = new MockRowIterator(nodes);
-    
-    
+
+
     when(searchResultSet.getRowIterator()).thenReturn(rowIterator);
     servlet.searchServiceFactory = searchServiceFactory;
     RowIterator pathIterator = new MockRowIterator(nodes);
@@ -216,7 +216,7 @@ public class TagServletTest {
 
   /**
    * Creates a tree of tag nodes. tag A + tag B + tag C + random file + tag D
-   * 
+   *
    * @return tag B
    */
   public Node createTagTree() throws RepositoryException {

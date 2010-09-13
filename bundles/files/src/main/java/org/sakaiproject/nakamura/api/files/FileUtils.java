@@ -154,7 +154,8 @@ public class FileUtils {
 
   /**
    * Writes all the properties of a sakai/file node. Also checks what the permissions are
-   * for a session and where the links are.
+   * for a session and where the links are.<br/>
+   * Same as calling {@link #writeFileNode(Node, Session, JSONWriter, SiteService, 0)}
    *
    * @param node
    * @param write
@@ -163,9 +164,28 @@ public class FileUtils {
    */
   public static void writeFileNode(Node node, Session session, JSONWriter write,
       SiteService siteService) throws JSONException, RepositoryException {
+    writeFileNode(node, session, write, siteService, 0);
+  }
+
+  /**
+   * Writes all the properties of a sakai/file node. Also checks what the permissions are
+   * for a session and where the links are.
+   *
+   * @param node
+   * @param write
+   * @param objectInProgress
+   *          Whether object creation is in progress. If false, object is started and
+   *          ended in this method call.
+   * @throws JSONException
+   * @throws RepositoryException
+   */
+  public static void writeFileNode(Node node, Session session, JSONWriter write,
+      SiteService siteService, int maxDepth) throws JSONException, RepositoryException {
+
     write.object();
+
     // dump all the properties.
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
+    ExtendedJSONWriter.writeNodeTreeToWriter(write, node, true, maxDepth);
     // The permissions for this session.
     writePermissions(node, session, write);
 

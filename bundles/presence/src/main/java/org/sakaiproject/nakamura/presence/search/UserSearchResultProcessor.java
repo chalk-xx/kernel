@@ -56,9 +56,9 @@ public class UserSearchResultProcessor implements SearchResultProcessor {
 
   @Reference
   protected transient ProfileService profileService;
-  
-  
-  @Reference 
+
+
+  @Reference
   protected transient SearchServiceFactory searchServiceFactory;
 
   /**
@@ -87,9 +87,11 @@ public class UserSearchResultProcessor implements SearchResultProcessor {
     String userID = node.getProperty("rep:userId").getString();
     UserManager um = AccessControlUtil.getUserManager(node.getSession());
     Authorizable au = um.getAuthorizable(userID);
-    ValueMap map = profileService.getProfileMap(au, node.getSession());
-    ((ExtendedJSONWriter)write).valueMapInternals(map);
-    PresenceUtils.makePresenceJSON(write, userID, presenceService, true);
+    if (au != null) {
+      ValueMap map = profileService.getProfileMap(au, node.getSession());
+      ((ExtendedJSONWriter)write).valueMapInternals(map);
+      PresenceUtils.makePresenceJSON(write, userID, presenceService, true);
+    }
     write.endObject();
 
   }

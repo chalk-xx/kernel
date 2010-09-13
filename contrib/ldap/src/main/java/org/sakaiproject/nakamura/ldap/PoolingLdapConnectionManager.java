@@ -60,7 +60,7 @@ import java.util.Map;
  * @see PooledLDAPConnection
  * @see PooledLDAPConnectionFactory
  */
-@Component(metatype = true, configurationFactory = true, policy = ConfigurationPolicy.REQUIRE, immediate = true)
+@Component(metatype = true, configurationFactory = true, policy = ConfigurationPolicy.REQUIRE)
 @Service
 public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
 
