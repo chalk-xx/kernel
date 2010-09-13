@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
+require 'ruby-lib-dir.rb'
+
 require 'set'
 require 'sling/test'
 require 'sling/message'
