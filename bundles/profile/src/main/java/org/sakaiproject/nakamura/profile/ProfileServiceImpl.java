@@ -241,14 +241,7 @@ public class ProfileServiceImpl implements ProfileService {
         try{
           ValueMap basicMap =(ValueMap) profile.get(USER_BASIC);
           if ( basicMap != null ) {
-            ValueMap elementsMap = (ValueMap) basicMap.get(USER_BASIC_ELEMENTS);
-            if ( elementsMap != null ) {
-              compactProfile.put(USER_FIRSTNAME_PROPERTY, ((ValueMap) elementsMap.get(USER_FIRSTNAME_PROPERTY)).get("value"));
-              compactProfile.put(USER_LASTNAME_PROPERTY, ((ValueMap) elementsMap.get(USER_LASTNAME_PROPERTY)).get("value"));
-              compactProfile.put(USER_EMAIL_PROPERTY, ((ValueMap) elementsMap.get(USER_EMAIL_PROPERTY)).get("value"));
-            } else {
-              LOG.warn("User {} has no basic user elements (firstName, lastName and email not avaiable) ",authorizable.getID());
-            }
+            compactProfile.put(USER_BASIC, basicMap);
           } else {
             LOG.warn("User {} has no basic profile (firstName, lastName and email not avaiable) ",authorizable.getID());
           }
