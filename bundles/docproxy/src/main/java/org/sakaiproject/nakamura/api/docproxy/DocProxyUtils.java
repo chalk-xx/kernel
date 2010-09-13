@@ -39,33 +39,34 @@ import javax.jcr.Session;
 public class DocProxyUtils {
 
   /**
-   * Checks wether or not a node is the config for an external repository
+   * Checks whether or not a node is the config for an external repository
    *
    * @param node
    *          The node to check.
-   * @return true = the node is a doc proxy node, false it is not.
+   * @return true = the node is a doc proxy node, false it is not or is null.
    */
   public static boolean isExternalRepositoryConfig(Node node) {
     try {
-      return (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && node.getProperty(
-          SLING_RESOURCE_TYPE_PROPERTY).getString().equals(RT_EXTERNAL_REPOSITORY));
+      return (node != null && node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && node
+          .getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString()
+          .equals(RT_EXTERNAL_REPOSITORY));
     } catch (RepositoryException e) {
       return false;
     }
   }
 
   /**
-   * Checks wether or not a node represents a document in an external repository.
+   * Checks whether or not a node represents a document in an external repository.
    *
    * @param node
    *          The node to check.
-   * @return true = the node is a doc proxy node, false it is not.
+   * @return true = the node is a doc proxy node, false it is not or is null.
    */
   public static boolean isExternalRepositoryDocument(Node node) {
     try {
-      return (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && node.getProperty(
-          SLING_RESOURCE_TYPE_PROPERTY).getString().equals(
-          RT_EXTERNAL_REPOSITORY_DOCUMENT));
+      return (node != null && node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && node
+          .getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString()
+          .equals(RT_EXTERNAL_REPOSITORY_DOCUMENT));
     } catch (RepositoryException e) {
       return false;
     }

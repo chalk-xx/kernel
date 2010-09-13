@@ -136,6 +136,8 @@ public class JcrUtils {
     try {
       item = session.getItem(absRealPath);
     } catch (PathNotFoundException ex) {
+    } catch (RepositoryException re) {
+      LOGGER.warn(re.getMessage());
     }
     String parentPath = absRealPath;
     while (item == null && !"/".equals(parentPath)) {
@@ -143,6 +145,8 @@ public class JcrUtils {
       try {
         item = session.getItem(parentPath);
       } catch (PathNotFoundException ex) {
+      } catch (RepositoryException re) {
+        LOGGER.warn(re.getMessage());
       }
     }
     if (item == null) {
