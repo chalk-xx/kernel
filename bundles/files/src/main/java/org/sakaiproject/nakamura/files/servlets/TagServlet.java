@@ -75,7 +75,7 @@ import javax.servlet.http.HttpServletResponse;
       @ServiceMethod(name = "GET",  parameters = {},
           description = { "This servlet only responds to GET requests." },
           response = {
-            @ServiceResponse(code = 200, description = "Succesfull request, json can be found in the body"),
+            @ServiceResponse(code = 200, description = "Succesful request, json can be found in the body"),
             @ServiceResponse(code = 500, description = "Failure to retrieve tags or files, an explanation can be found in the HTMl.")
           }
       )
@@ -146,6 +146,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
       } else if ("tagged".equals(selector)) {
         sendFiles(tag, request, write, depth);
       }
+      response.setContentType("application/json");
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } catch (RepositoryException e) {
