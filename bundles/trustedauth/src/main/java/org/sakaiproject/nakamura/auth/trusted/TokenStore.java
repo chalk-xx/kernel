@@ -19,6 +19,8 @@ package org.sakaiproject.nakamura.auth.trusted;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
+import org.apache.commons.codec.CharEncoding;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
@@ -125,7 +127,7 @@ public class TokenStore {
         UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException,
         SecureCookieException {
       String cookiePayload = String.valueOf(secretKeyId) + String.valueOf(expires) + "@"
-          + escapeUserId(userId) + "@" + serverId;
+          + encodeUserId(userId) + "@" + serverId;
       Mac m = Mac.getInstance(HMAC_SHA1);
       ExpiringSecretKey expiringSecretKey = TokenStore.this.getSecretKey(serverId,
           secretKeyId);
@@ -158,9 +160,10 @@ public class TokenStore {
                   + getCacheKey(serverId, secretKeyId));
             }
             this.secretKey = expiringSecretKey.getSecretKey();
-            String hmac = encode(cookieTime, parts[2]);
+            String userId = decodeUserId(parts[2]);
+            String hmac = encode(cookieTime, userId);
             if (value.equals(hmac)) {
-              return unescapeUserId(parts[2]);
+              return userId;
             }
           } catch (ArrayIndexOutOfBoundsException e) {
             LOG.error(e.getMessage(), e);
@@ -183,15 +186,29 @@ public class TokenStore {
       }
     }
 
-    private String escapeUserId(String userId) {
-      // replace @ with the hexadecimal replacement. this is necessary because @ is used
-      // to split the cookie value into parts
-      String escapedUserId = StringUtils.replace(userId, "@", "%40");
+    /**
+     * Escape user ID for safe storage as part of the payload of a cookie.
+     *
+     * @param userId
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    private String encodeUserId(String userId) throws UnsupportedEncodingException {
+      byte[] userIdUtf8 = userId.getBytes(CharEncoding.UTF_8);
+      String escapedUserId = new Base64(0, new byte[0], true).encodeToString(userIdUtf8);
       return escapedUserId;
     }
 
-    private String unescapeUserId(String userId) {
-      String unescapedUserId = StringUtils.replace(userId, "%40", "@");
+    /**
+     * Decode a user ID by unwrapping what is done in {@link #encodeUserId(String)}.
+     *
+     * @param userId
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    private String decodeUserId(String userId) throws UnsupportedEncodingException {
+      byte[] userIdUtf8 = new Base64(0, new byte[0], true).decode(userId);
+      String unescapedUserId = new String(userIdUtf8, CharEncoding.UTF_8);
       return unescapedUserId;
     }
 
