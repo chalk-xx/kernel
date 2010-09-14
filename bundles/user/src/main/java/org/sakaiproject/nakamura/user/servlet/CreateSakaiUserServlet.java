@@ -240,6 +240,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
      * @param componentContext The OSGi <code>ComponentContext</code> of this
      *            component.
      */
+    @Override
     protected void activate(ComponentContext componentContext) {
         super.activate(componentContext);
         Dictionary<?, ?> props = componentContext.getProperties();
@@ -302,7 +303,9 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
             }
 
             if (selfRegistrationEnabled && !trustedRequest) {
-              throw new RepositoryException("Untrusted request.");
+              response.setStatus(HttpServletResponse.SC_UNAUTHORIZED, "Untrusted request.");
+              log.error("Untrusted request.");
+              return;
             }
           }
 
