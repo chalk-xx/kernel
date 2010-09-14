@@ -47,6 +47,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -112,6 +113,9 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
 
   @Reference
   protected transient EventAdmin eventAdmin;
+
+  @Reference
+  protected ProfileService profileService;
 
   /**
    * {@inheritDoc}
@@ -272,7 +276,7 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
       Session session = signupNode.getSession();
       Authorizable au = getAuthorizable(session);
       String hash = PersonalUtils.getUserHashedPath(au);
-      String profilePath = PersonalUtils.getProfilePath(au);
+      String profilePath = profileService.getProfilePath(au);
       Node profileNode = (Node) session.getItem(profilePath);
       String path = signupNode.getPath() + "/" + PARTICIPANTS_NODE_NAME + "/" + hash;
       path = PathUtils.normalizePath(path);
