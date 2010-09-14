@@ -42,6 +42,13 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -70,6 +77,39 @@ import javax.jcr.security.AccessControlManager;
 import javax.jcr.security.Privilege;
 import javax.servlet.ServletException;
 
+@ServiceDocumentation(
+  name = "Manage Members Content Pool Servlet",
+  description = "List and manage the managers and viewers for a file in the content pool.",
+  bindings = {
+    @ServiceBinding(type = BindingType.TYPE,
+      bindings = {
+        "sakai/pooled-content"
+      },
+      selectors = {
+        @ServiceSelector(name = "members", description = "Binds to the selector members.")
+      }
+    )
+  },
+  methods = {
+    @ServiceMethod(name = "GET", description = "Retrieves a list of members.",
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully.  Output is in the JSON format."),
+        @ServiceResponse(code = 500, description = "Any exceptions encountered during processing.")
+      }
+    ),
+    @ServiceMethod(name = "POST", description = "Manipulate the member list for a file.",
+      parameters = {
+        @ServiceParameter(name = ":manager", description = "Set the managers on the ACL of a file."),
+        @ServiceParameter(name = ":viewer", description = "Set the viewers on the ACL of a file.")
+      },
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully."),
+        @ServiceResponse(code = 401, description = "POST by anonymous user."),
+        @ServiceResponse(code = 500, description = "Any exceptions encountered during processing.")
+      }
+    )
+  }
+)
 @SlingServlet(methods = { "GET", "POST" }, resourceTypes = { "sakai/pooled-content" }, selectors = { "members" })
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
