@@ -337,6 +337,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
                 break;
               } else {
                 LOG.debug("Invalid Cookie {} ", cookieValue);
+                clearCookie(response);
               }
             }
           }
