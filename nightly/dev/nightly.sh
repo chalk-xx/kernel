@@ -10,7 +10,7 @@ set -o nounset
 # environment
 export PATH=/usr/local/bin:$PATH
 export BUILD_DIR="/home/hybrid"
-export JAVA_HOME=/opt/jdk1.6.0_17
+export JAVA_HOME=/opt/jdk1.6.0_21
 export PATH=$JAVA_HOME/bin:${PATH}
 export MAVEN_HOME=/usr/local/apache-maven-2.2.1
 export M2_HOME=/usr/local/apache-maven-2.2.1
