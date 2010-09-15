@@ -46,6 +46,7 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(authorizable.getID()).andReturn("g-foo").anyTimes();
     expect(authorizable.hasProperty(UserConstants.PROP_GROUP_MANAGERS)).andReturn(false);
     expect(authorizable.hasProperty(UserConstants.PROP_GROUP_VIEWERS)).andReturn(false);
+    expect(authorizable.hasProperty(UserConstants.PROP_JOINABLE_GROUP)).andReturn(false);
 
     Resource resource = createMock(Resource.class);
     expect(resource.adaptTo(Authorizable.class)).andReturn(authorizable);
