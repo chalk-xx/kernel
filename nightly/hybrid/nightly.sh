@@ -83,7 +83,7 @@ else
     # // "personalportal":true --> "personalportal":true,
     perl -pwi -e 's/\/\/\s+"personalportal"\:true/"personalportal"\:true\,/gi' devwidgets/s23courses/config.json
     mvn -B -e clean install
-    date > .lastbuild
+    date > ../.lastbuild
 fi
 
 # build sakai 3
