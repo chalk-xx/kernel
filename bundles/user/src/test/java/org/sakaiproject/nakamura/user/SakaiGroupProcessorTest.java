@@ -89,7 +89,6 @@ public class SakaiGroupProcessorTest {
     verify(group).setProperty(eq(UserConstants.PROP_MANAGERS_GROUP), any(Value.class));
     verify(group).addMember(managersGroup);
     verify(managersGroup).setProperty(eq(UserConstants.PROP_GROUP_MANAGERS), any(Value[].class));
-    verify(managersGroup).setProperty(eq(UserConstants.PROP_GROUP_VIEWERS), any(Value[].class));
     verify(managersGroup).setProperty(eq(UserConstants.PROP_MANAGED_GROUP), any(Value.class));
   }
 
