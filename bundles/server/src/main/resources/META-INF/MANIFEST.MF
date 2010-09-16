@@ -61,7 +61,7 @@ Import-Package: com.microsoft.sqlserver.jdbc;resolution:=optional,java
  ,org.w3c.dom,org.xml.sax,org.xml.sax.helpers
 Bnd-LastModified: 1282504205185
 Export-Package: org.apache.sling.jcr.jackrabbit.server;uses:="javax.jc
- r";version="2.0.7",org.apache.sling.jcr.jackrabbit.server.security.ac
+ r";version="2.1.0",org.apache.sling.jcr.jackrabbit.server.security.ac
  cessmanager;uses:="javax.security.auth,javax.jcr";version="2.0.4.incu
  bator",org.apache.sling.jcr.jackrabbit.server.security;uses:="javax.j
  cr,javax.security.auth.login,javax.security.auth.callback";version="2
@@ -72,7 +72,7 @@ Export-Package: org.apache.sling.jcr.jackrabbit.server;uses:="javax.jc
  he.jackrabbit.spi,javax.security.auth,org.apache.jackrabbit.commons.i
  terator";version="2.1.1",org.apache.sling.jcr.jackrabbit.server.secur
  ity.dynamic,org.apache.sling.jcr.jackrabbit.server.index
-Bundle-Version: 2.0.7.sakai
+Bundle-Version: 2.1.0.sakai
 Ignore-Package: org.apache.jackrabbit.test
 Bundle-Name: Apache Sling Jackrabbit Embedded Repository
 Bundle-Description: Bundle providing support to embed Jackrabbit Repos

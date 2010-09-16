@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import org.apache.commons.lang.CharEncoding;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -147,6 +148,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
         sendFiles(tag, request, write, depth);
       }
       response.setContentType("application/json");
+      response.setCharacterEncoding(CharEncoding.UTF_8);
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } catch (RepositoryException e) {
