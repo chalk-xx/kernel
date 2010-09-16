@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import org.apache.commons.lang.CharEncoding;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -75,7 +76,7 @@ import javax.servlet.http.HttpServletResponse;
       @ServiceMethod(name = "GET",  parameters = {},
           description = { "This servlet only responds to GET requests." },
           response = {
-            @ServiceResponse(code = 200, description = "Succesfull request, json can be found in the body"),
+            @ServiceResponse(code = 200, description = "Succesful request, json can be found in the body"),
             @ServiceResponse(code = 500, description = "Failure to retrieve tags or files, an explanation can be found in the HTMl.")
           }
       )
@@ -120,6 +121,8 @@ public class TagServlet extends SlingSafeMethodsServlet {
     for (String sel : selectors) {
       if ("tidy".equals(sel)) {
         tidy = true;
+      } else if ("infinity".equals(sel)) {
+        depth = -1;
       } else {
         // check if the selector is telling us the depth of detail to return
         Integer d = null;
@@ -144,6 +147,8 @@ public class TagServlet extends SlingSafeMethodsServlet {
       } else if ("tagged".equals(selector)) {
         sendFiles(tag, request, write, depth);
       }
+      response.setContentType("application/json");
+      response.setCharacterEncoding(CharEncoding.UTF_8);
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } catch (RepositoryException e) {

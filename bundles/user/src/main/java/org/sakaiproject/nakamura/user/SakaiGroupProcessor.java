@@ -84,12 +84,11 @@ public class SakaiGroupProcessor extends AbstractAuthorizableProcessor implement
     UserManager userManager = AccessControlUtil.getUserManager(session);
     String managersGroupId = makeUniqueAuthorizableId(group.getID() + "-managers", userManager);
 
-    // Create the private self-managed managers group.
+    // Create the public self-managed managers group.
     Group managersGroup = userManager.createGroup(makePrincipal(managersGroupId));
     ValueFactory valueFactory = session.getValueFactory();
     Value managersGroupValue = valueFactory.createValue(managersGroupId);
     managersGroup.setProperty(PROP_GROUP_MANAGERS, new Value[] {managersGroupValue});
-    managersGroup.setProperty(PROP_GROUP_VIEWERS, new Value[0]);
 
     // Add the managers group to its Sakai group.
     group.addMember(managersGroup);

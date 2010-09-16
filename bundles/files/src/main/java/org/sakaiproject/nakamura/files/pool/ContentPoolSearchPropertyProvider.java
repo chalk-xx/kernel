@@ -17,9 +17,8 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_VIEWER;
-
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_VIEWER;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -27,6 +26,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
@@ -80,30 +80,32 @@ public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider
     try {
       Authorizable au = PersonalUtils.getAuthorizable(session, userID);
       String path = PersonalUtils.getUserHashedPath(au).substring(1);
+      String safePath = ISO9075.encodePath(path);
 
       // Get all the groups I'm a member of and add the property in the map.
       Iterator<Group> groups = au.memberOf();
-      StringBuilder sbManagingGroups = new StringBuilder("and (");
-      sbManagingGroups.append(path).append("/@");
+      StringBuilder sbManagingGroups = new StringBuilder(" and (");
+      sbManagingGroups.append(safePath).append("/@");
       sbManagingGroups.append(POOLED_CONTENT_USER_MANAGER);
       sbManagingGroups.append("='").append(au.getID()).append("'");
 
-      StringBuilder sbViewingGroups = new StringBuilder("and (");
-      sbViewingGroups.append(path).append("/@");
+      StringBuilder sbViewingGroups = new StringBuilder(" and (");
+      sbViewingGroups.append(safePath).append("/@");
       sbViewingGroups.append(POOLED_CONTENT_USER_VIEWER);
       sbViewingGroups.append("='").append(au.getID()).append("'");
 
       while (groups.hasNext()) {
         Group g = groups.next();
         path = PersonalUtils.getUserHashedPath(g).substring(1);
+        safePath = ISO9075.encodePath(path);
 
         // Add the group to the managers contraint
-        sbManagingGroups.append(" or ").append(path).append("/@").append(
+        sbManagingGroups.append(" or ").append(safePath).append("/@").append(
             POOLED_CONTENT_USER_MANAGER);
         sbManagingGroups.append("='").append(g.getID()).append("'");
 
         // Add the group to the viewers contraint
-        sbViewingGroups.append(" or ").append(path).append("/@").append(
+        sbViewingGroups.append(" or ").append(safePath).append("/@").append(
             POOLED_CONTENT_USER_VIEWER);
         sbViewingGroups.append("='").append(g.getID()).append("'");
 

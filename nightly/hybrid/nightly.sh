@@ -5,6 +5,7 @@
 
 export K2_TAG="HEAD"
 export S2_TAG="tags/sakai-2.7.1"
+export UX_TAG="HEAD"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -12,7 +13,7 @@ set -o nounset
 # environment
 export PATH=/usr/local/bin:$PATH
 export BUILD_DIR="/home/hybrid"
-export JAVA_HOME=/opt/jdk1.6.0_17
+export JAVA_HOME=/opt/jdk1.6.0_21
 export PATH=$JAVA_HOME/bin:${PATH}
 export MAVEN_HOME=/usr/local/apache-maven-2.2.1
 export M2_HOME=/usr/local/apache-maven-2.2.1
@@ -59,10 +60,30 @@ then
     echo "Starting clean build..."
     rm -rf sakai
     rm -rf sakai2-demo
+    rm -rf 3akai-ux
     rm -rf sakai3
     rm -rf ~/.m2/repository/org/sakaiproject
 else
     echo "Starting incremental build..."
+fi
+
+# build 3akai-ux
+cd $BUILD_DIR
+mkdir -p 3akai-ux
+cd 3akai-ux
+if [ -f .lastbuild ]
+then
+    echo "Skipping build 3akai-ux@$UX_TAG..."
+else
+    echo "Building 3akai-ux@$UX_TAG..."
+    git clone -q git://github.com/sakaiproject/3akai-ux.git
+    cd 3akai-ux
+    git checkout -b "build-$UX_TAG" $UX_TAG
+    # enable My Sakai 2 Sites widget
+    # // "personalportal":true --> "personalportal":true,
+    perl -pwi -e 's/\/\/\s+"personalportal"\:true/"personalportal"\:true\,/gi' devwidgets/s23courses/config.json
+    mvn -B -e clean install
+    date > ../.lastbuild
 fi
 
 # build sakai 3
@@ -77,7 +98,7 @@ else
     git clone -q git://github.com/sakaiproject/nakamura.git
     cd nakamura
     git checkout -b "build-$K2_TAG" $K2_TAG
-    mvn -B -e clean install -Dmaven.test.skip=true
+    mvn -B -e clean install
     date > .lastbuild
 fi
 
@@ -116,7 +137,7 @@ else
     cp -R $BUILD_DIR/sakai3/nakamura/hybrid .
     find hybrid -name pom.xml -exec perl -pwi -e 's/2\.8-SNAPSHOT/2\.7\.1/g' {} \;
     perl -pwi -e 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml
-    mvn -B -e clean install sakai:deploy -Dmaven.test.skip=true -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
+    mvn -B -e clean install sakai:deploy -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
     # configure sakai 2 instance
     cd $BUILD_DIR
     # change default tomcat listener port numbers

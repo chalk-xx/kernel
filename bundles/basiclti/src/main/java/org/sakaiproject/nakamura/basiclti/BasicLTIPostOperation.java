@@ -45,6 +45,9 @@ import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostOperation;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
@@ -73,6 +76,20 @@ import javax.jcr.security.AccessControlManager;
 import javax.jcr.security.Privilege;
 import javax.jcr.version.VersionException;
 
+@ServiceDocumentation(
+  name = "Basic LTI Post Operation",
+  description = "Sets up a node to be used as configuration for interation with Basic LTI",
+  methods = {
+    @ServiceMethod(name = "POST",
+      parameters = {
+        @ServiceParameter(name = ":opertion=basiclti", description = "The operation to specify when posting to trigger this operation.")
+      },
+      description = {
+        "Adds any provided properties to the noded being posted to for use in BasicLTI integration. Properties ending with @Delete are removed."
+      }
+    )
+  }
+)
 @Component(immediate = true)
 @Service(value = SlingPostOperation.class)
 @Properties(value = {
@@ -92,7 +109,7 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.servlets.post.AbstractSlingPostOperation#doRun(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
@@ -230,7 +247,7 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
   /**
    * Apply the necessary access control entries so that only admin users can read/write
    * the sensitive node.
-   * 
+   *
    * @param sensitiveNodePath
    * @param adminSession
    * @throws AccessDeniedException

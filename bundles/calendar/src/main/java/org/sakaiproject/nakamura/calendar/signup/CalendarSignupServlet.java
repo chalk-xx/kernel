@@ -40,7 +40,14 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
 import org.sakaiproject.nakamura.api.calendar.signup.SignupPreProcessor;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -63,12 +70,36 @@ import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+@ServiceDocumentation(
+  name = "Calendar Signup Servlet",
+  description = "This servlet handles signing up the current user to an event then copying that event to the user's calendar.",
+  bindings = {
+    @ServiceBinding(type = BindingType.TYPE,
+      bindings = {
+        "sakai/calendar-signup"
+      },
+      selectors = {
+        @ServiceSelector(name = "signup", description = "Binds to the signup selector.")
+      }
+    )
+  },
+  methods = {
+    @ServiceMethod(name = "POST", description = "Signup for a calendar event.",
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully."),
+        @ServiceResponse(code = 400, description = "User is already signed up for the event."),
+        @ServiceResponse(code = 401, description = "POST by anonymous user."),
+        @ServiceResponse(code = 500, description = "Failed to copy event to user's calendar or any exceptions encountered during processing.")
+      }
+    )
+  }
+)
 @SlingServlet(resourceTypes = { "sakai/calendar-signup" }, selectors = { "signup" }, methods = { "POST" }, generateComponent = true, generateService = true)
 @Reference(referenceInterface = SignupPreProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "bindPreProcessor", unbind = "unbindPreProcessor")
 public class CalendarSignupServlet extends SlingAllMethodsServlet {
 
   /**
-   * 
+   *
    */
   private static final String SAKAI_CALENDAR_PROFILE_LINK = "sakai:calendar-profile-link";
   private static final long serialVersionUID = 2770138417371548411L;
@@ -83,9 +114,12 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
   @Reference
   protected transient EventAdmin eventAdmin;
 
+  @Reference
+  protected ProfileService profileService;
+
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -124,7 +158,7 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
 
       // Copy the event to the user his calendar.
       copyEventNode(signupNode);
-      
+
       // Send an OSGi event for this sign up.
       Dictionary<String, String> properties = new Hashtable<String, String>();
       properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
@@ -162,7 +196,7 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
 
   /**
    * Copy the event to the user his calendar.
-   * 
+   *
    * @param signupNode
    *          The node that represents the signup properties for this event.
    */
@@ -225,7 +259,7 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
 
   /**
    * Creates a participant node at ../event/signup/s/si/simong
-   * 
+   *
    * @param signupNode
    *          The node that represents the signup properties for this event.
    * @throws CalendarException
@@ -242,7 +276,7 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
       Session session = signupNode.getSession();
       Authorizable au = getAuthorizable(session);
       String hash = PersonalUtils.getUserHashedPath(au);
-      String profilePath = PersonalUtils.getProfilePath(au);
+      String profilePath = profileService.getProfilePath(au);
       Node profileNode = (Node) session.getItem(profilePath);
       String path = signupNode.getPath() + "/" + PARTICIPANTS_NODE_NAME + "/" + hash;
       path = PathUtils.normalizePath(path);
@@ -274,7 +308,7 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
           "Failed to add current user to the participant list.");
     }
   }
-  
+
   /**
    * Gets the authorizable for a session
    * @param session
