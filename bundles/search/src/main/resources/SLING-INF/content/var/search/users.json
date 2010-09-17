@@ -1,11 +1,11 @@
 {
   "sakai:query-language": "xpath",
   // perform contains twice to look for username at the profile node level
-  "sakai:query-template": "//*[@sling:resourceType=\"sakai/user-profile\" and (jcr:contains(., '{q}') or jcr:contains(*/*/*,'{q}'))] order by @{sortOn|jcr:score} {sortOrder|descending}",
+  "sakai:query-template": "//*[@sling:resourceType=\"sakai/user-home\"]//*[jcr:contains(.,'{q}')]",
 //  "sakai:query-language": "JCR-SQL2",
 //  "sakai:query-template": "SELECT * FROM [nt:base] as n WHERE [sling:resourceType] = \"sakai/user-profile\" and contains(./*/*/*,'{q}') order by @{sortOn|score()} {sortOrder|desc}"
   "sling:resourceType": "sakai/search",
-  "sakai:resultprocessor": "User",
+  "sakai:batchresultprocessor": "User",
   "sakai:title": "Users",
   "sakai:shortDescription": "Get profile nodes out of the repository.",
   "sakai:parameters" : [
