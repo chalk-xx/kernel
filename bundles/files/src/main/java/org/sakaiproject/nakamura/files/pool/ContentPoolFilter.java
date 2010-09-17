@@ -80,7 +80,7 @@ public class ContentPoolFilter implements Filter {
 
   /**
    *
-   * If the path is /, /_user, /_group then access is protected.
+   * If the path is /, /_p then access is protected.
    *
    * @param srequest
    * @param resourceNode
