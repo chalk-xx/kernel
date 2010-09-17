@@ -45,8 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
- * This filter enforces privacy on certain paths. /_user subtree, /_group subtree and /
- * unless admin is the user, or a the HomeResourceProvider resolved the request.
+ * This filter enforces privacy on the /_p subtree unless admin is the user.
  * </p>
  */
 @Service(value = Filter.class)
@@ -81,7 +80,7 @@ public class ContentPoolFilter implements Filter {
 
   /**
    *
-   * If the path is /, /_user, /_group then access is protected.
+   * If the path is /, /_p then access is protected.
    *
    * @param srequest
    * @param resourceNode
@@ -114,7 +113,7 @@ public class ContentPoolFilter implements Filter {
       if ( node == null ) {
         return false; // webdav
       }
-      LOGGER.debug("/_user and /_group are protected ");
+      LOGGER.debug("/_p protected ");
       return true;
     }
 

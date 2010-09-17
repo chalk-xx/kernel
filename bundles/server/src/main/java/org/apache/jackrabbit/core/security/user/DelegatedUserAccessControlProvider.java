@@ -438,7 +438,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 boolean isPrivate = false;
                 NodeImpl node = (NodeImpl) getExistingNode(path);
                 if ( node.isNodeType(NT_REP_GROUP) ) {
-                  if ( node.hasProperty(NT_REP_GROUP_MANAGERS)) {
+                  if ( userNodePath != null && node.hasProperty(NT_REP_GROUP_MANAGERS)) { // a non user cant manage
                     log.debug("Is Managed {} ", node.getPath());
                     Value[] managers = getValues(node.getProperty(NT_REP_GROUP_MANAGERS));
                     for ( Value manager : managers ) {
@@ -459,23 +459,26 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                   if ( !isManager ) {
                       if ( node.hasProperty(NT_REP_GROUP_VIEWERS)) {
                           isPrivate = true;
-                          log.debug("Is Private {} ", node.getPath());
-                          Value[] viewers = getValues(node.getProperty(NT_REP_GROUP_VIEWERS));
-                          for ( Value viewer : viewers ) {
-                            String v = viewer.getString();
-                            for ( Principal p : principals ) {
-                              log.debug("Checking for Viewer [{}] == [{}]", v, p.getName());
-                              if ( v.equals(p.getName())) {
-                                log.debug("Is a Viewer [{}] == [{}]", v, p.getName());
-                                isPrivate = false;
-                                break;
+                          if ( userNodePath == null ) {
+                              log.debug("Is Private {} and there is no user logged in, denied. ", node.getPath());
+                          } else {
+                              log.debug("Is Private {} ", node.getPath());
+                              Value[] viewers = getValues(node.getProperty(NT_REP_GROUP_VIEWERS));
+                              for ( Value viewer : viewers ) {
+                                  String v = viewer.getString();
+                                  for ( Principal p : principals ) {
+                                      log.debug("Checking for Viewer [{}] == [{}]", v, p.getName());
+                                      if ( v.equals(p.getName())) {
+                                        log.debug("Is a Viewer [{}] == [{}]", v, p.getName());
+                                        isPrivate = false;
+                                        break;
+                                      }
+                                  }
+                                  if ( !isPrivate ) {
+                                      break;
+                                  }
                               }
-                            }
-                            if ( !isPrivate ) {
-                              break;
-                            }
                           }
-
                       }
                   }
                 }

@@ -192,6 +192,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(user.getID()).andReturn("admin");
     expect(group.hasProperty(UserConstants.PROP_GROUP_MANAGERS)).andReturn(false);
     expect(group.hasProperty(UserConstants.PROP_GROUP_VIEWERS)).andReturn(false);
+    expect(group.hasProperty(UserConstants.PROP_JOINABLE_GROUP)).andReturn(false);
 
     Capture<String> valueCapture = new Capture<String>();
     expect(valueFactory.createValue(capture(valueCapture))).andReturn(value);
