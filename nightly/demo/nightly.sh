@@ -46,7 +46,7 @@ cd 3akai-ux
 git clone -q git://github.com/sakaiproject/3akai-ux.git
 cd 3akai-ux
 git checkout -b "build-$UX_TAG" $UX_TAG
-mvn -B -e clean install -Dmaven.test.skip=true
+mvn -B -e clean install
 
 # build sakai 3
 echo "Building nakamura@$K2_TAG..."
@@ -56,7 +56,7 @@ cd sakai3
 git clone -q git://github.com/sakaiproject/nakamura.git
 cd nakamura
 git checkout -b "build-$K2_TAG" $K2_TAG
-mvn -B -e clean install -Dmaven.test.skip=true
+mvn -B -e clean install
 
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
