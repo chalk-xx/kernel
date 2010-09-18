@@ -59,31 +59,6 @@ import javax.jcr.Session;
      * will be added via the dynamic multiple service reference defined below.
      * TODO Configure the post-processor dependencies via a service property?
      */
-    @Reference(name="Personal",
-       target="(&(service.pid=org.sakaiproject.nakamura.personal.PersonalAuthorizablePostProcessor))",
-       referenceInterface=AuthorizablePostProcessor.class,
-        bind="bindAuthorizablePostProcessor",
-        unbind="unbindAuthorizablePostProcessor"),
-    @Reference(name="Calendar",
-        target="(&(service.pid=org.sakaiproject.nakamura.calendar.CalendarAuthorizablePostProcessor))",
-        referenceInterface=AuthorizablePostProcessor.class,
-        bind="bindAuthorizablePostProcessor",
-        unbind="unbindAuthorizablePostProcessor"),
-    @Reference(name="Connections",
-        target="(&(service.pid=org.sakaiproject.nakamura.connections.ConnectionsUserPostProcessor))",
-        referenceInterface=AuthorizablePostProcessor.class,
-        bind="bindAuthorizablePostProcessor",
-        unbind="unbindAuthorizablePostProcessor"),
-    @Reference(name="Messages",
-        target="(&(service.pid=org.sakaiproject.nakamura.message.MessageAuthorizablePostProcessor))",
-        referenceInterface=AuthorizablePostProcessor.class,
-        bind="bindAuthorizablePostProcessor",
-        unbind="unbindAuthorizablePostProcessor"),
-    @Reference(name="Pages",
-        target="(&(service.pid=org.sakaiproject.nakamura.pages.PagesAuthorizablePostProcessor))",
-        referenceInterface=AuthorizablePostProcessor.class,
-        bind="bindAuthorizablePostProcessor",
-        unbind="unbindAuthorizablePostProcessor"),
     @Reference(name="PostProcessors",cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
         policy=ReferencePolicy.DYNAMIC,
         referenceInterface=AuthorizablePostProcessor.class,
@@ -96,13 +71,11 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
   @Reference
   protected SlingRepository repository;
 
-  AuthorizablePostProcessor sakaiUserProcessor;
-  AuthorizablePostProcessor sakaiGroupProcessor;
   private AuthorizablePostProcessor[] orderedServices = new AuthorizablePostProcessor[0];
 
+  private String[] serviceClassNames = new String[0];
+
   public AuthorizablePostProcessServiceImpl() {
-    this.sakaiUserProcessor = new SakaiUserProcessor();
-    this.sakaiGroupProcessor = new SakaiGroupProcessor();
   }
 
   /**
@@ -125,9 +98,6 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
         UserConstants.SYSTEM_USER_MANAGER_USER_PREFIX;
     Modification modification = new Modification(change, pathPrefix + authorizable.getID(), null);
 
-    if (change != ModificationType.DELETE) {
-      doInternalProcessing(authorizable, session, modification, parameters);
-    }
     for ( AuthorizablePostProcessor processor : orderedServices ) {
       processor.process(authorizable, session, modification, parameters);
       // Allowing a dirty session to pass between post-processor components
@@ -137,9 +107,6 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
       if (session.hasPendingChanges()) {
         session.save();
       }
-    }
-    if (change == ModificationType.DELETE) {
-      doInternalProcessing(authorizable, session, modification, parameters);
     }
   }
 
@@ -181,12 +148,22 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
     };
   }
 
+  // If there are no activate deactivate methods the SCR plugin refuses to recognize the bind and unbind operations.
+  @Activate
+  protected void activate(ComponentContext componentContext) {
+  }
+
+  @Deactivate
+  protected void deactivate(ComponentContext componentContext) {
+  }
+
   protected void bindAuthorizablePostProcessor(AuthorizablePostProcessor service, Map<String, Object> properties) {
-    LOGGER.debug("About to add service " + service);
+    LOGGER.info("Bound Service "+service);
     addService(service, properties);
   }
 
   protected void unbindAuthorizablePostProcessor(AuthorizablePostProcessor service, Map<String, Object> properties) {
+    LOGGER.info("Un Bound Service "+service);
     removeService(service, properties);
   }
 
@@ -197,27 +174,18 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
   @Override
   protected void saveArray(List<AuthorizablePostProcessor> serviceList) {
     orderedServices = serviceList.toArray(new AuthorizablePostProcessor[serviceList.size()]);
-  }
-
-  @Activate
-  protected void activate(ComponentContext componentContext) {
-    LOGGER.debug("activate called");
-    this.sakaiUserProcessor = new SakaiUserProcessor();
-    this.sakaiGroupProcessor = new SakaiGroupProcessor();
-  }
-
-  @Deactivate
-  protected void deactivate(ComponentContext componentContext) {
-    this.sakaiUserProcessor = null;
-    this.sakaiGroupProcessor = null;
-  }
-
-  private void doInternalProcessing(Authorizable authorizable, Session session,
-      Modification change, Map<String, Object[]> parameters) throws Exception {
-    if (authorizable.isGroup()) {
-      sakaiGroupProcessor.process(authorizable, session, change, parameters);
-    } else {
-      sakaiUserProcessor.process(authorizable, session, change, parameters);
+    serviceClassNames = new String[orderedServices.length];
+    for ( int i = 0; i < serviceClassNames.length; i++ ) {
+      serviceClassNames[i] = orderedServices[i].getClass().getName();
     }
   }
+
+  public String[] getRegisteredServices() {
+    return serviceClassNames;
+  }
+  
+  
+  
+  
+
 }
