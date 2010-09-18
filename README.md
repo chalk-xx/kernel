@@ -1,4 +1,9 @@
+This is the master branch of Nakamura maintained by Ian Boston. 
+It contains some differences from the central Sakai Master branch of Nakamura where
+some of those central patches have not been merged or have been reverted.
+
 This is the Sling-based Sakai 3 kernel that uses OSGi.
+
 
 To run:
 
