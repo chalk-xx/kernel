@@ -68,7 +68,7 @@ public class LdapPersonProviderTest {
 
   /**
    * Test for the default constructor. Too simple to not have and boosts code coverage.
-   * 
+   *
    * @throws Exception
    */
   @Test(expected = NullPointerException.class)
@@ -104,7 +104,7 @@ public class LdapPersonProviderTest {
 
   /**
    * Test getting a person from an ldap provider.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -166,6 +166,7 @@ public class LdapPersonProviderTest {
     Node n2 = Mockito.mock(Node.class, new ReturnsDeepStubs());
     hasAllProperties(n2, "huh");
     when(node.getParent()).thenReturn(n2);
+    when(node.getPath()).thenReturn("/path/to/node");
     Map<String, Object> person = provider.getProfileSection(node);
     assertNotNull(person);
 
@@ -202,7 +203,7 @@ public class LdapPersonProviderTest {
   /**
    * Test getPerson() when LdapConnectionBroker.getBoundConnection(..) throws an
    * LdapException.
-   * 
+   *
    * @throws Exception
    */
   @Test(expected = PersonProviderException.class)
@@ -218,7 +219,7 @@ public class LdapPersonProviderTest {
 
   /**
    * Test getPerson() when LDAPConnection.search(..) throws an LDAPException.
-   * 
+   *
    * @throws Exception
    */
   @Test(expected = PersonProviderException.class)
@@ -240,7 +241,7 @@ public class LdapPersonProviderTest {
 
   /**
    * Setup everything needed for a test that follows the most positive path of action.
-   * 
+   *
    * @return
    * @throws Exception
    */
@@ -294,12 +295,12 @@ public class LdapPersonProviderTest {
 
   private Node hasAllProperties(Node node, String uid) throws Exception {
     when(node.hasProperty(LdapPersonProvider.SLING_RESOURCE_TYPE)).thenReturn(true);
-    when(node.getProperty(LdapPersonProvider.SLING_RESOURCE_TYPE).toString()).thenReturn(
+    when(node.getProperty(LdapPersonProvider.SLING_RESOURCE_TYPE).getString()).thenReturn(
         LdapPersonProvider.SAKAI_USER_PROFILE);
     when(node.hasProperty(LdapPersonProvider.REP_USER_ID)).thenReturn(true);
 
     Property prop = mock(Property.class);
-    when(prop.toString()).thenReturn(uid);
+    when(prop.getString()).thenReturn(uid);
     when(node.getProperty(LdapPersonProvider.REP_USER_ID)).thenReturn(prop);
 
     return node;

@@ -53,7 +53,7 @@ public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
 
   @Test
   public void testBadPrefix() throws RepositoryException {
-    badNodeNameParam("g-foo", "User name must not begin 'g-'");
+    badNodeNameParam("g-contacts-all", "'g-contacts-' is a reserved prefix.");
   }
 
   private void badNodeNameParam(String name, String exception) throws  RepositoryException {

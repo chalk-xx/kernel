@@ -23,12 +23,14 @@ import org.apache.commons.mail.MultiPartEmail;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.commons.scheduler.Job;
 import org.apache.sling.commons.scheduler.JobContext;
 import org.apache.sling.commons.scheduler.Scheduler;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.resource.JcrResourceResolverFactory;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
@@ -80,7 +82,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
   @Reference
   protected SlingRepository repository;
   @Reference
-  protected JcrResourceResolverFactory jcrResourceResolverFactory;
+  protected ResourceResolverFactory resourceResolverFactory;
   @Reference
   protected Scheduler scheduler;
   @Reference
@@ -125,7 +127,9 @@ public class OutgoingEmailMessageListener implements MessageListener {
       }
 
       javax.jcr.Session adminSession = repository.loginAdministrative(null);
-      ResourceResolver resolver = jcrResourceResolverFactory.getResourceResolver(adminSession);
+      Map<String, Object> authInfo = new HashMap<String, Object>();
+      authInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_SESSION, adminSession);
+      ResourceResolver resolver = resourceResolverFactory.getResourceResolver(authInfo);
 
       Node messageNode = resolver.getResource(nodePath).adaptTo(Node.class);
 
@@ -206,6 +210,8 @@ public class OutgoingEmailMessageListener implements MessageListener {
       LOGGER.error(e.getMessage(), e);
     } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);
+    } catch (LoginException e) {
+      LOGGER.error(e.getMessage(), e);
     }
   }
 
@@ -274,7 +280,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
 
   private void scheduleRetry(int errorCode, Node messageNode) throws RepositoryException {
     // All retry-able SMTP errors should have codes starting with 4
-    if ((int) (errorCode / 100) == 4) {
+    if ((errorCode / 100) == 4) {
       long retryCount = 0;
       if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_RETRY_COUNT)) {
         retryCount = messageNode.getProperty(MessageConstants.PROP_SAKAI_RETRY_COUNT)
@@ -416,8 +422,8 @@ public class OutgoingEmailMessageListener implements MessageListener {
     this.repository = repository;
   }
 
-  protected void bindJcrResourceResolverFactory(
-      JcrResourceResolverFactory jcrResourceResolverFactory) {
-    this.jcrResourceResolverFactory = jcrResourceResolverFactory;
+  protected void bindResourceResolverFactory(
+      ResourceResolverFactory resourceResolverFactory) {
+    this.resourceResolverFactory = resourceResolverFactory;
   }
 }

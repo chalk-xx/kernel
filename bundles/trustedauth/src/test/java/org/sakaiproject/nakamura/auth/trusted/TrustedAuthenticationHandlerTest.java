@@ -17,7 +17,10 @@
  */
 package org.sakaiproject.nakamura.auth.trusted;
 
-import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import static org.apache.sling.jcr.resource.JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS;
+import static org.junit.Assert.assertFalse;
+
+import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -61,7 +64,7 @@ public class TrustedAuthenticationHandlerTest {
   public void before() throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException, UnsupportedEncodingException {
     mocks.clear();
     trustedTokenService = new TrustedTokenServiceImpl();
-    
+
     ClusterTrackingService clusterTrackingService = createMock(ClusterTrackingService.class);
     CacheManagerService cacheManagerService = createMock(CacheManagerService.class);
     EventAdmin eventAdmin = createMock(EventAdmin.class);
@@ -77,7 +80,7 @@ public class TrustedAuthenticationHandlerTest {
     trustedTokenService.cacheManager = cacheManagerService;
     trustedTokenService.eventAdmin = eventAdmin;
   }
-  
+
   public ComponentContext configureForSession() {
     ComponentContext context = createMock(ComponentContext.class);
     Hashtable<String, Object> dict = new Hashtable<String, Object>();
@@ -87,20 +90,27 @@ public class TrustedAuthenticationHandlerTest {
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
     dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
-    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS, ";localhost;");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS_ADDR, "127.0.0.1");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
-  
+
+  @Test
+  public void testRequestCredentials() throws Exception {
+    TrustedAuthenticationHandler handler = new TrustedAuthenticationHandler();
+    assertFalse(handler.requestCredentials(null, null));
+  }
+
   @Test
   public void testNewRequest() throws IOException {
-    // create some credentials 
+    // create some credentials
     ComponentContext context = configureForSession();
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpSession session = createMock(HttpSession.class);
     EasyMock.expect(request.getSession(true)).andReturn(session);
-    
+    EasyMock.expect(request.getRemoteAddr()).andReturn("192.168.0.200"); // not trusted.
+
     Principal principal = createMock(Principal.class);
     EasyMock.expect(request.getUserPrincipal()).andReturn(principal);
     EasyMock.expect(principal.getName()).andReturn(null);
@@ -108,17 +118,17 @@ public class TrustedAuthenticationHandlerTest {
     Capture<SimpleCredentials> attributeValue = new Capture<SimpleCredentials>();
     Capture<String> attributeName = new Capture<String>();
     session.setAttribute(EasyMock.capture(attributeName), EasyMock.capture(attributeValue));
-    
-    
+
+
     HttpServletResponse response = createMock(HttpServletResponse.class);
-    
+
     replay();
-    trustedTokenService.activate(context); 
+    trustedTokenService.activate(context);
     trustedTokenService.injectToken(request, response);
     Assert.assertTrue(attributeName.hasCaptured());
     Assert.assertTrue(attributeValue.hasCaptured());
     Credentials credentials = attributeValue.getValue();
-    
+
     verify();
     reset();
     EasyMock.expect(request.getHeader("x-sakai-token")).andReturn(null).anyTimes();
@@ -145,22 +155,22 @@ public class TrustedAuthenticationHandlerTest {
     EasyMock.expectLastCall();
     request.setAttribute(TrustedAuthenticationHandler.RA_AUTHENTICATION_TRUST, null);
     EasyMock.expectLastCall();
-    
-    
+
+
     // this time make it invalid
     EasyMock.expect(request.getAttribute(TrustedAuthenticationHandler.RA_AUTHENTICATION_TRUST)).andReturn(null);
     EasyMock.expect(request.getSession(false)).andReturn(session);
     EasyMock.expect(session.getAttribute(TrustedTokenService.SA_AUTHENTICATION_CREDENTIALS)).andReturn(null);
-    
+
     // and this time with some Auth
-    
+
     replay();
     TrustedAuthenticationHandler trustedAuthenticationHandler = new TrustedAuthenticationHandler();
     trustedAuthenticationHandler.trustedTokenService = trustedTokenService;
-    
+
     AuthenticationInfo info = trustedAuthenticationHandler.extractCredentials(request, response);
     Assert.assertNotNull(info);
-    Credentials authCredentials = (Credentials)info.get(AuthenticationInfo.CREDENTIALS);
+    Credentials authCredentials = (Credentials)info.get(AUTHENTICATION_INFO_CREDENTIALS);
     Assert.assertTrue(authCredentials instanceof SimpleCredentials);
     SimpleCredentials simpleCredentials = (SimpleCredentials) authCredentials;
     Object o = simpleCredentials.getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);
@@ -175,27 +185,27 @@ public class TrustedAuthenticationHandlerTest {
     Assert.assertEquals(TrustedAuthenticationHandler.RA_AUTHENTICATION_INFO, name2.getValue());
     Assert.assertEquals(info, object2.getValue());
     Assert.assertNotNull(object1.getValue());
-    
+
     TrustedAuthentication ta = object1.getValue();
-    
+
     trustedAuthenticationHandler.dropCredentials(request, response);
-    
-    
+
+    // nothing to find in the request or sesion so we should get a null response
     AuthenticationInfo info2 = trustedAuthenticationHandler.extractCredentials(request, response);
-        
+
     Assert.assertNull(info2);
     verify();
     reset();
-    
+
     EasyMock.expect(request.getAttribute(TrustedAuthenticationHandler.RA_AUTHENTICATION_TRUST)).andReturn(ta);
     EasyMock.expect(request.getAttribute(TrustedAuthenticationHandler.RA_AUTHENTICATION_INFO)).andReturn(info);
-    // this time extract credentials from the request
-    
+
+    // this time extract credentials from the request attributes as listed above
     replay();
 
     trustedAuthenticationHandler.extractCredentials(request, response);
     Assert.assertNotNull(info);
-    authCredentials = (Credentials)info.get(AuthenticationInfo.CREDENTIALS);
+    authCredentials = (Credentials)info.get(AUTHENTICATION_INFO_CREDENTIALS);
     Assert.assertTrue(authCredentials instanceof SimpleCredentials);
     simpleCredentials = (SimpleCredentials) authCredentials;
     o = simpleCredentials.getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);
@@ -204,24 +214,24 @@ public class TrustedAuthenticationHandlerTest {
     Assert.assertEquals("ieb", tu.getUser());
     verify();
 
-    
+
   }
-  
+
 
   public <T> T createMock(Class<T> mockClass) {
     T m = EasyMock.createMock(mockClass);
     mocks.add(m);
     return m;
   }
-  
+
   public void replay() {
     EasyMock.replay(mocks.toArray());
   }
-  
+
   public void verify() {
     EasyMock.verify(mocks.toArray());
   }
-  
+
   public void reset() {
     EasyMock.reset(mocks.toArray());
   }

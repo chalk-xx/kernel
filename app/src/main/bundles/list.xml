@@ -9,7 +9,7 @@
         <bundle>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
-            <version>1.2.1</version>
+            <version>1.2.2</version>
         </bundle>
         <bundle>
             <groupId>commons-collections</groupId>
@@ -19,7 +19,7 @@
         <bundle>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.4</version>
+            <version>2.5</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -34,39 +34,44 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.classloader</artifactId>
-            <version>1.1.4</version>
+            <version>1.2.0</version>
         </bundle>
 
         <!-- Dependencies for Default Start Level -->
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.api</artifactId>
-            <version>2.0.9-SNAPSHOT</version>
+            <version>2.1.0</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
-            <artifactId>org.apache.sling.commons.auth</artifactId>
-            <version>0.9.0-SNAPSHOT</version>
+            <artifactId>org.apache.sling.settings</artifactId>
+            <version>1.0.0</version>
+        </bundle>
+        <bundle>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.auth.core</artifactId>
+            <version>1.0.2</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.engine</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.1.0</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
-            <artifactId>org.apache.sling.openidauth</artifactId>
-            <version>0.9.1-SNAPSHOT</version>
+            <artifactId>org.apache.sling.auth.openid</artifactId>
+            <version>1.0.0</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.adapter</artifactId>
-            <version>2.0.4</version>
+            <version>2.0.6</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.servlets.resolver</artifactId>
-            <version>2.0.9-SNAPSHOT</version>
+            <version>2.0.9-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -76,12 +81,12 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.contentloader</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.1.0</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.resource</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.0.7-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -91,7 +96,7 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.classloader</artifactId>
-            <version>3.1.1-SNAPSHOT</version> <!-- I have a feeling this is needed 20100521 -->
+            <version>3.1.2</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -101,14 +106,14 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.fsresource</artifactId>
-            <version>1.0.1-SNAPSHOT</version>
+            <version>1.0.1-20100823</version>
         </bundle>
 
         <!-- Launchpad initial content -->
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.launchpad.content</artifactId>
-            <version>2.0.5-SNAPSHOT</version>
+            <version>2.0.5-20100823</version>
         </bundle>
 
         <!-- scripting -->
@@ -120,7 +125,7 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.scripting.core</artifactId>
-            <version>2.0.11-SNAPSHOT</version>
+            <version>2.0.11-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -130,17 +135,17 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.scripting.jsp</artifactId>
-            <version>2.0.9-SNAPSHOT</version>
+            <version>2.0.9-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.scripting.jsp.taglib</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.0.7-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <version>1.7.0</version>
+            <version>1.7.4</version>
         </bundle>
 
         <!-- felix httpservice whiteboard -->
@@ -166,24 +171,29 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.servlets.get</artifactId>
-            <version>2.0.9-SNAPSHOT</version>
+            <version>2.0.9-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.log</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.0.7-20100823</version>
         </bundle>
     </startLevel>
     <startLevel level="5">
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.extensions.webconsolebranding</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>1.0.0</version>
+        </bundle>
+        <bundle>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.extensions.webconsolesecurityprovider</artifactId>
+            <version>1.0.0</version>
         </bundle>
         <bundle>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.webconsole</artifactId>
-            <version>3.0.0</version>
+            <version>3.1.2</version>
         </bundle>
         <bundle>
             <groupId>org.apache.felix</groupId>
@@ -193,17 +203,17 @@
         <bundle>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.webconsole.plugins.memoryusage</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.2</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.json</artifactId>
-            <version>2.0.5-SNAPSHOT</version>
+            <version>2.0.5-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.bundlerepository</artifactId>
-            <version>1.4.0</version>
+            <version>1.6.4</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -213,12 +223,12 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.webconsole</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.extensions.groovy</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0-20100823</version>
         </bundle>
     </startLevel>
 
@@ -226,12 +236,12 @@
         <bundle>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.eventadmin</artifactId>
-            <version>1.0.0</version>
+            <version>1.2.2</version>
         </bundle>
         <bundle>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr</artifactId>
-            <version>1.4.0</version>
+            <version>1.6.0</version>
         </bundle>
         <bundle>
             <groupId>org.apache.felix</groupId>
@@ -254,17 +264,17 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.api</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.1.0</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.base</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.1.0</version>
         </bundle>
         <bundle>
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>jackrabbit-api</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
         </bundle>
         <bundle>
             <groupId>org.apache.derby</groupId>
@@ -274,32 +284,32 @@
         <bundle>
             <groupId>org.sakaiproject.nakamura</groupId>
     	    <artifactId>org.sakaiproject.nakamura.tika</artifactId>
-            <version>0.7-0.7-SNAPSHOT</version>
+            <version>0.7-0.9-SNAPSHOT</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.jackrabbit.accessmanager</artifactId>
-            <version>2.0.5-SNAPSHOT</version>
+            <version>2.0.5-20100823</version>
         </bundle>
         <bundle>
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>jackrabbit-jcr-commons</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
         </bundle>
         <bundle>
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>jackrabbit-spi</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
         </bundle>
         <bundle>
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>jackrabbit-spi-commons</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
         </bundle>
         <bundle>
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>jackrabbit-jcr-rmi</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
         </bundle>
     </startLevel>
 <!-- End of Sling Bundles -->
@@ -310,17 +320,17 @@
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.google-collections</artifactId>
-      <version>0.8-0.7-SNAPSHOT</version>
+      <version>0.8-0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>javax.activation-mail</artifactId>
-      <version>1.1.1-1.4.2-0.7-SNAPSHOT</version>
+      <version>1.1.1-1.4.2-0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.woodstox</artifactId>
-      <version>4.0.7-0.7-SNAPSHOT</version>
+      <version>4.0.7-0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -335,22 +345,22 @@
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.specs.jmx</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.specs.ejb</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
    <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.specs.jms</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
    <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
-      <version>5.3.0-0.7-SNAPSHOT</version>
+      <version>5.3.0-0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.apache.geronimo.specs</groupId>
@@ -377,34 +387,34 @@
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.securityloader</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
    </startLevel>
    <startLevel level="11" >
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.json-lib</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
    <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.eclipse.persistence.jpa</artifactId>
-      <version>1.1.0-0.7-SNAPSHOT</version>
+      <version>1.1.0-0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.eclipse.persistence</groupId>
@@ -419,49 +429,49 @@
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.events</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.commons.threads</artifactId>
-      <version>2.0.2-incubator</version>
+      <version>3.0.2</version>
     </bundle>
   <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.commons.commons-pool</artifactId>
-      <version>1.5.2-0.7-SNAPSHOT</version>
+      <version>1.5.2-0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.commons.commons-httpclient</artifactId>
-      <version>3.1-0.7-SNAPSHOT</version>
+      <version>3.1-0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.commons.commons-codec</artifactId>
-      <version>1.4-0.7-SNAPSHOT</version>
+      <version>1.4-0.9-SNAPSHOT</version>
     </bundle>
        </startLevel>
    <startLevel level="12" >
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.batch</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
 <!--
 org.sakaiproject.nakamura.jpaprovider
@@ -474,128 +484,128 @@ org.sakaiproject.nakamura.jpaprovider
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
        </startLevel>
    <startLevel level="15" >
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.0.7-0.7-SNAPSHOT</version>
+      <version>2.1.0-0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.jcr</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.persistence</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.locking</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.presence</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.messaging</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.chat</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.discussion</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.formauth</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.commons.commons-email</artifactId>
-      <version>1.1-0.7-SNAPSHOT</version>
+      <version>1.1-0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.proxy</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.privacy</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
    </startLevel>
    <startLevel level="20" >
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.site</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.meservice</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.image</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
    <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.connections</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.version</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.email.outgoing</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
    </startLevel>
    <startLevel level="30" >
   <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.activity</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.files</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.search</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
 <!--
     <bundle>
@@ -617,7 +627,7 @@ org.sakaiproject.nakamura.jpaprovider
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.smtp</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.apache.felix</groupId>
@@ -627,32 +637,42 @@ org.sakaiproject.nakamura.jpaprovider
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.calendar</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.authz</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.basiclti</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.profile</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.captcha</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.docproxy</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.pages</artifactId>
+      <version>0.9-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.userinitializer</artifactId>
+      <version>0.9-SNAPSHOT</version>
     </bundle>
    </startLevel>
 </bundles>

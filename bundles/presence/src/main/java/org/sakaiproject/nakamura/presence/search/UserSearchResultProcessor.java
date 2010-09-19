@@ -22,16 +22,21 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import javax.jcr.Node;
@@ -43,26 +48,33 @@ import javax.jcr.query.Row;
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "sakai.search.processor", value = "User") })
-@Service(value = SearchResultProcessor.class) 
+@Service(value = SearchResultProcessor.class)
 public class UserSearchResultProcessor implements SearchResultProcessor {
 
   @Reference
   protected transient PresenceService presenceService;
 
+  @Reference
+  protected transient ProfileService profileService;
+
+
+  @Reference
+  protected transient SearchServiceFactory searchServiceFactory;
+
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
       throws SearchException {
-    return SearchUtil.getSearchResultSet(request, query);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#writeNode(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.commons.json.io.JSONWriter,
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.Row)
@@ -72,9 +84,14 @@ public class UserSearchResultProcessor implements SearchResultProcessor {
 
     write.object();
     Node node = row.getNode();
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
     String userID = node.getProperty("rep:userId").getString();
-    PresenceUtils.makePresenceJSON(write, userID, presenceService, true);
+    UserManager um = AccessControlUtil.getUserManager(node.getSession());
+    Authorizable au = um.getAuthorizable(userID);
+    if (au != null) {
+      ValueMap map = profileService.getProfileMap(au, node.getSession());
+      ((ExtendedJSONWriter)write).valueMapInternals(map);
+      PresenceUtils.makePresenceJSON(write, userID, presenceService, true);
+    }
     write.endObject();
 
   }

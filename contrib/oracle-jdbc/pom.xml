@@ -4,15 +4,15 @@
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>0.7-SNAPSHOT</version>
+      <version>0.9-SNAPSHOT</version>
     </parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
     <packaging>bundle</packaging>
-    <name>Sakai Nakamura :: oracle jdbc bundle</name>
+    <name>Sakai Nakamura :: Oracle JDBC Bundle</name>
     <description>
-        This bundle simply wraps ojdbc14.jar.
+        This bundle wraps ojdbc14.jar.
     </description>
     <organization>
         <name>The Sakai Foundation</name>
@@ -61,11 +61,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>
-                            ojdbc
-                        </Bundle-SymbolicName>
                         <Embed-Dependency>oracle.jdbc;inline=true</Embed-Dependency>
-                        <Export-Package>oracle.*;version=0.1</Export-Package>
+                        <Export-Package>oracle.*</Export-Package>
                         <Import-Package>
                           oracle.i18n.text;resolution:=optional,
                           oracle.i18n.text.converter;resolution:=optional,

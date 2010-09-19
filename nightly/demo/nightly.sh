@@ -10,7 +10,7 @@ set -o nounset
 # environment
 export PATH=/usr/local/bin:$PATH
 export BUILD_DIR="/home/hybrid"
-export JAVA_HOME=/opt/jdk1.6.0_18
+export JAVA_HOME=/opt/jdk1.6.0_21
 export PATH=$JAVA_HOME/bin:${PATH}
 export MAVEN_HOME=/usr/local/apache-maven-2.2.1
 export M2_HOME=/usr/local/apache-maven-2.2.1
@@ -46,7 +46,7 @@ cd 3akai-ux
 git clone -q git://github.com/sakaiproject/3akai-ux.git
 cd 3akai-ux
 git checkout -b "build-$UX_TAG" $UX_TAG
-mvn -B -e clean install -Dmaven.test.skip=true
+mvn -B -e clean install
 
 # build sakai 3
 echo "Building nakamura@$K2_TAG..."
@@ -56,17 +56,12 @@ cd sakai3
 git clone -q git://github.com/sakaiproject/nakamura.git
 cd nakamura
 git checkout -b "build-$K2_TAG" $K2_TAG
-mvn -B -e clean install -Dmaven.test.skip=true
+mvn -B -e clean install
 
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
 cd app/target/
 K2_ARTIFACT=`find . -name "org.sakaiproject.nakamura.app*[^sources].jar"`
-mkdir -p sling/config/org/sakaiproject/nakamura/captcha
-echo 'service.pid="org.sakaiproject.nakamura.captcha.ReCaptchaService"' > sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
-echo 'org.sakaiproject.nakamura.captcha.key_private="6Lef4bsSAAAAAId09ufqqs89SwdWpa9t7htW1aRc"' >> sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
-echo 'org.sakaiproject.nakamura.captcha.key_public="6Lef4bsSAAAAAJOwQE-qwkAOzGG3DizFP7GYYng-"' >> sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
-echo 'org.sakaiproject.nakamura.captcha.endpoint="http://www.google.com/recaptcha/api/verify"' >> sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
 java $K2_OPTS -jar $K2_ARTIFACT -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # final cleanup

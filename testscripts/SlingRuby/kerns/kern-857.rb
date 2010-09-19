@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
+require 'ruby-lib-dir.rb'
+
 require 'sling/test'
 require 'test/unit.rb'
 include SlingUsers
@@ -43,6 +46,10 @@ class TC_Kern857 < Test::Unit::TestCase
     
     # Add a widget and make sure that the cache is updated.
     @s.create_file_node(widgetsPath + "/second-#{m}", "second-#{m}", "config.json", JSON.dump(config), "application/json")
+
+
+   # sleep just long enough for the widget to be updated.
+   sleep(1)
     
     # Fetch new aggregate
     res = @s.execute_get(@s.url_for("/var/widgets"))

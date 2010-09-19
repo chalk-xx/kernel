@@ -21,7 +21,6 @@ import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWER
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -35,6 +34,7 @@ import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourc
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.osgi.service.cm.ConfigurationException;
@@ -67,7 +67,6 @@ import java.util.Set;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.ValueFactory;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -137,7 +136,8 @@ import javax.servlet.http.HttpServletResponse;
             "<pre>curl -F:name=g-groupname -Fproperty1=value1 http://localhost:8080/system/userManager/group.create.html</pre>"},
         parameters={
         @ServiceParameter(name=":name", description="The name of the new group (required)"),
-        @ServiceParameter(name="",description="Additional parameters become groups node properties (optional)")
+        @ServiceParameter(name="",description="Additional parameters become group node properties, " +
+            "except for parameters starting with ':', which are only forwarded to post-processors (optional)")
         },
         response={
         @ServiceResponse(code=200,description="Success, a redirect is sent to the groups resource locator with HTML describing status."),
@@ -157,13 +157,6 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
       .getLogger(CreateSakaiGroupServlet.class);
 
   /**
-   * Used to perform post processing.
-   *
-   * @scr.reference
-   */
-  protected transient AuthorizablePostProcessService postProcessorService;
-
-  /**
    * The JCR Repository we access to resolve resources
    *
    * @scr.reference
@@ -176,6 +169,13 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
    * @scr.reference
    */
   protected transient EventAdmin eventAdmin;
+
+  /**
+   * Used to create the group.
+   *
+   * @scr.reference
+   */
+  protected transient AuthorizablePostProcessService postProcessorService;
 
   /**
    *
@@ -288,21 +288,15 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                     "A principal already exists with the requested name: "
                         + principalName);
             } else {
-
                 Group group = userManager.createGroup(new Principal() {
                   public String getName() {
-                    return principalName;
+                      return principalName;
                   }
                 });
                 String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
                    + group.getID();
                 Map<String, RequestProperty> reqProperties = collectContent(
                     request, response, groupPath);
-
-                ItemBasedPrincipal p = (ItemBasedPrincipal) group.getPrincipal();
-                ValueFactory vf = session.getValueFactory();
-                group.setProperty(UserConstants.PROP_AUTHORIZABLE_PATH, vf.createValue(p.getPath().substring(UserConstants.GROUP_REPO_LOCATION.length())));
-                LOGGER.info("Group {} created at {} ",p.getName(), p.getPath());
 
                 response.setPath(groupPath);
                 response.setLocation(externalizePath(request, groupPath));
@@ -323,18 +317,16 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                 // does so for finding authorizables, so its ok that we are using an admin session
                 // here.
                 updateGroupMembership(request, group, changes);
-                updateOwnership(request, group, new String[] {currentUser.getID()},
-                    changes);
+                // TODO We should probably let the client decide whether the
+                // current user belongs in the managers list or not.
+                updateOwnership(request, group, new String[] {currentUser.getID()}, changes);
 
                 try {
-                  postProcessorService.process(group, session, Modification.onCreated(groupPath));
+                  postProcessorService.process(group, session, ModificationType.CREATE, request);
                 } catch (Exception e) {
-                    LOGGER.warn(e.getMessage(), e);
-                    response
-                       .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-                }
-                if (session.hasPendingChanges()) {
-                    session.save();
+                  LOGGER.warn(e.getMessage(), e);
+                  response
+                     .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
                 }
 
                 // Launch an OSGi event for creating a group.

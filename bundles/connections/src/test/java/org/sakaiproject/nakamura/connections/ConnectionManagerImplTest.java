@@ -17,13 +17,10 @@
  */
 package org.sakaiproject.nakamura.connections;
 
-import static org.mockito.Mockito.verify;
-
-import static org.easymock.EasyMock.verify;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
@@ -34,10 +31,12 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionException;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.locking.LockManager;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
 import java.util.HashMap;
@@ -56,12 +55,16 @@ public class ConnectionManagerImplTest {
 
   private ConnectionManagerImpl connectionManager;
   private LockManager lockManager;
+  private ProfileService profileService;
 
   @Before
   public void setUp() {
     lockManager = mock(LockManager.class);
+    profileService = mock(ProfileService.class);
+
     connectionManager = new ConnectionManagerImpl();
     connectionManager.lockManager = lockManager;
+    connectionManager.profileService = profileService;
   }
 
   @Test
@@ -102,7 +105,7 @@ public class ConnectionManagerImplTest {
 
     Value[] toValues = toNode.getProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES)
         .getValues();
-    
+
     assertEquals(3, fromValues.length);
     int j = 0;
     // order may not be what we expect it to be
@@ -111,13 +114,13 @@ public class ConnectionManagerImplTest {
         j = j|1;
       }
       if ( "Lecturer".equals(fromValues[i].getString())) {
-        j = j|2;        
+        j = j|2;
       }
       if ( "Supervisor".equals(fromValues[i].getString())) {
-        j = j|4;        
+        j = j|4;
       }
     }
-    
+
     Assert.assertTrue((j&1)==1);
     Assert.assertTrue((j&2)==2);
     Assert.assertTrue((j&4)==4);
@@ -129,10 +132,10 @@ public class ConnectionManagerImplTest {
         j = j|1;
       }
       if ( "Student".equals(toValues[i].getString())) {
-        j = j|2;        
+        j = j|2;
       }
       if ( "Supervised".equals(toValues[i].getString())) {
-        j = j|4;        
+        j = j|4;
       }
     }
     Assert.assertTrue((j&1)==1);
@@ -245,6 +248,7 @@ public class ConnectionManagerImplTest {
     when(to.isGroup()).thenReturn(false);
     Node profile = mock(Node.class);
     when(profile.getIdentifier()).thenReturn("bob-iden-tifi-er");
+    when(profileService.getProfilePath(Matchers.isA(Authorizable.class))).thenReturn("/_user/bob/public/authprofile");
     when(session.getItem("/_user/bob/public/authprofile")).thenReturn(profile);
 
     String basePath = "/_user/alice/contacts";

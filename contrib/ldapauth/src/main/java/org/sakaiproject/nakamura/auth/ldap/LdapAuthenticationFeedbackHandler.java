@@ -30,14 +30,15 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler;
-import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler;
+import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapUtil;
-import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +62,7 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
       .getLogger(LdapAuthenticationFeedbackHandler.class);
 
   @Reference
-  private SakaiAuthorizableService sakaiAuthorizableService;
+  private AuthorizablePostProcessService authorizablePostProcessService;;
 
   @Reference
   private SlingRepository slingRepository;
@@ -116,9 +117,9 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
   /**
    * {@inheritDoc}
    *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationFailed(javax.servlet.http.HttpServletRequest,
+   * @see org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler#authenticationFailed(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse,
-   *      org.apache.sling.commons.auth.spi.AuthenticationInfo)
+   *      org.apache.sling.auth.core.spi.AuthenticationInfo)
    */
   public void authenticationFailed(HttpServletRequest arg0, HttpServletResponse arg1,
       AuthenticationInfo arg2) {
@@ -128,9 +129,9 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
   /**
    * {@inheritDoc}
    *
-   * @see org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
+   * @see org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse,
-   *      org.apache.sling.commons.auth.spi.AuthenticationInfo)
+   *      org.apache.sling.auth.core.spi.AuthenticationInfo)
    */
   public boolean authenticationSucceeded(HttpServletRequest req,
       HttpServletResponse resp, AuthenticationInfo authInfo) {
@@ -148,7 +149,9 @@ public class LdapAuthenticationFeedbackHandler implements AuthenticationFeedback
           decorateUser(session, user);
         }
 
-        sakaiAuthorizableService.postprocess(user, session);
+        // TODO To properly set up personal profiles, non-persisted data from
+        // LDAP may need to be forwarded to post-processing.
+        authorizablePostProcessService.process(user, session, ModificationType.CREATE);
       }
     } catch (Exception e) {
       logger.warn(e.getMessage(), e);

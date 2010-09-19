@@ -20,10 +20,11 @@ package org.sakaiproject.nakamura.opensso.trusted;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.sling.commons.auth.spi.AuthenticationHandler;
-import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.apache.sling.auth.core.spi.AuthenticationHandler;
+import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,11 +42,11 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
   public static final Logger LOGGER = LoggerFactory.getLogger(AbstractAuthenticationHandler.class);
   public static final String AUTHENTICATION_OBJECT = "authentication-object";
- 
+
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   * @see org.apache.sling.auth.corei.AuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public void dropCredentials(HttpServletRequest arg0, HttpServletResponse arg1)
       throws IOException {
@@ -56,7 +57,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
   /**
    * @param request
-   * @throws RepositoryException 
+   * @throws RepositoryException
    */
   protected final void doCreateUser(String userName) throws RepositoryException {
     Session session = null;
@@ -70,7 +71,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         // create user
         LOGGER.debug("Createing user {}", userName);
         userManager.createUser(userName, RandomStringUtils.random(32));
-        
+
       }
     } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);
@@ -85,7 +86,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   * @see orgorg.apache.sling.auth.coreuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public AuthenticationInfo extractCredentials(HttpServletRequest request,
       HttpServletResponse response) {
@@ -96,7 +97,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
     if (authentication.isValid()) {
       // authenticate
       AuthenticationInfo authenticatioInfo = new AuthenticationInfo(getAuthType());
-      authenticatioInfo.put(AuthenticationInfo.CREDENTIALS, authentication.getCredentials());
+      authenticatioInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS, authentication.getCredentials());
       // put the form authentication into the request so that it can be checked by the servlet and saved to session if valid.
       request.setAttribute(AUTHENTICATION_OBJECT, authentication);
       return authenticatioInfo;
@@ -123,7 +124,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   * @see org.aporg.apache.sling.auth.coreenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public boolean requestCredentials(HttpServletRequest request, HttpServletResponse response)
       throws IOException {

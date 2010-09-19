@@ -74,9 +74,8 @@ import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
-import org.sakaiproject.nakamura.search.processors.NodeSearchBatchResultProcessor;
-import org.sakaiproject.nakamura.search.processors.NodeSearchResultProcessor;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
@@ -103,7 +102,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>SearchServlet</code> uses nodes from the
- * 
+ *
  */
 @ServiceDocumentation(name = "Search Servlet", shortDescription = "The Search servlet provides search results.", description = {
     "The Search Servlet responds with search results in json form in response to GETs on search urls. Those URLs are resolved "
@@ -169,20 +168,21 @@ import javax.servlet.http.HttpServletResponse;
 }) })
 
 @SlingServlet(extensions={"json"}, methods={"GET"}, resourceTypes={"sakai/search"} )
-@Properties( value={
-    @Property(name="service.description", value={"Perfoms searchs based on the associated node."}),
-    @Property(name="service.vendor", value={"The Sakai Foundation"})
+@Properties(value = {
+    @Property(name = "service.description", value = { "Perfoms searchs based on the associated node." }),
+    @Property(name = "service.vendor", value = { "The Sakai Foundation" }),
+    @Property(name = "maximumResults", longValue = 2500L)
 })
-@References(value={
-    @Reference(name="SearchResultProcessor", referenceInterface=SearchResultProcessor.class,
-        bind="bindSearchResultProcessor", unbind="unbindSearchResultProcessor",
-        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC),
-    @Reference(name="SearchBatchResultProcessor", referenceInterface=SearchBatchResultProcessor.class,
-        bind="bindSearchBatchResultProcessor", unbind="unbindSearchBatchResultProcessor",
-        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC),
-    @Reference(name="SearchPropertyProvider", referenceInterface=SearchPropertyProvider.class,
-        bind="bindSearchPropertyProvider", unbind="unbindSearchPropertyProvider",
-        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC)
+@References(value = {
+    @Reference(name = "SearchResultProcessor", referenceInterface = SearchResultProcessor.class,
+        bind = "bindSearchResultProcessor", unbind = "unbindSearchResultProcessor",
+        cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
+    @Reference(name = "SearchBatchResultProcessor", referenceInterface = SearchBatchResultProcessor.class,
+        bind = "bindSearchBatchResultProcessor", unbind = "unbindSearchBatchResultProcessor",
+        cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
+    @Reference(name = "SearchPropertyProvider", referenceInterface = SearchPropertyProvider.class,
+        bind = "bindSearchPropertyProvider", unbind = "unbindSearchPropertyProvider",
+        cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 })
 public class SearchServlet extends SlingSafeMethodsServlet {
 
@@ -191,6 +191,9 @@ public class SearchServlet extends SlingSafeMethodsServlet {
    */
   private static final long serialVersionUID = 4130126304725079596L;
   private static final Logger LOGGER = LoggerFactory.getLogger(SearchServlet.class);
+
+  public static final String TIDY = "tidy";
+  public static final String INFINITY = "infinity";
 
   private Map<String, SearchBatchResultProcessor> batchProcessors = new ConcurrentHashMap<String, SearchBatchResultProcessor>();
   private Map<Long, SearchBatchResultProcessor> batchProcessorsById = new ConcurrentHashMap<Long, SearchBatchResultProcessor>();
@@ -206,18 +209,31 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedBatchReferences = new ArrayList<ServiceReference>();
 
-  @Property(name = "maximumResults", longValue = 2500L)
   protected long maximumResults;
 
   // Default processors
-  protected transient SearchBatchResultProcessor defaultSearchBatchProcessor;
-  protected transient SearchResultProcessor defaultSearchProcessor;
+  /**
+   * Reference uses property set on NodeSearchResultProcessor. Other processors can become
+   * the default by setting {@link SearchResultProcessor.DEFAULT_PROCESOR_PROP} to true.
+   */
+  private static final String DEFAULT_BATCH_SEARCH_PROC_TARGET = "(&(" + SearchBatchResultProcessor.DEFAULT_BATCH_PROCESSOR_PROP + "=true))";
+  @Reference(target = DEFAULT_BATCH_SEARCH_PROC_TARGET)
+  protected SearchBatchResultProcessor defaultSearchBatchProcessor;
+
+  /**
+   * Reference uses property set on NodeSearchResultProcessor. Other processors can become
+   * the default by setting {@link SearchResultProcessor.DEFAULT_PROCESOR_PROP} to true.
+   */
+  private static final String DEFAULT_SEARCH_PROC_TARGET = "(&(" + SearchResultProcessor.DEFAULT_PROCESSOR_PROP + "=true))";
+  @Reference(target = DEFAULT_SEARCH_PROC_TARGET)
+  protected SearchResultProcessor defaultSearchProcessor;
+
+  @Reference
+  protected SearchServiceFactory searchServiceFactory;
 
   @Override
   public void init() throws ServletException {
     super.init();
-    defaultSearchBatchProcessor = new NodeSearchBatchResultProcessor();
-    defaultSearchProcessor = new NodeSearchResultProcessor();
   }
 
   @Override
@@ -230,7 +246,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
             "Search templates can only be executed if they are located under " + SEARCH_PATH_PREFIX);
         return;
       }
-      
+
       Node node = resource.adaptTo(Node.class);
       if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
         String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE).getString();
@@ -267,9 +283,9 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         // If we wouldn't do this, the user could ask for the 1000th page
         // This would result in iterating over (at least) 25.000 lucene indexes and
         // checking if the user has READ access on it.
-        long nitems = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+        long nitems = SearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
             DEFAULT_PAGED_ITEMS);
-        long page = SearchUtil.intRequestParameter(request, PARAMS_PAGE, 0);
+        long page = SearchUtil.longRequestParameter(request, PARAMS_PAGE, 0);
         long offset = page * nitems;
         if (limitResults && offset > maximumResults) {
           response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE,
@@ -324,6 +340,8 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         response.setCharacterEncoding("UTF-8");
 
         ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
+        write.setTidy(isTidy(request));
+
         write.object();
         write.key(PARAMS_ITEMS_PER_PAGE);
         write.value(nitems);
@@ -384,7 +402,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   /**
    * Processes a template of the form select * from y where x = {q} so that strings
    * enclosed in { and } are replaced by the same property in the request.
-   * 
+   *
    * @param request
    *          the request.
    * @param queryTemplate
@@ -568,6 +586,15 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       for (String r : toRemove) {
         processors.remove(r);
       }
+
+      // bit of a kludge until I can figure out why felix doesn't wire up the default
+      // processor even though it finds a matching service.
+      boolean defaultProcessor = OsgiUtil.toBoolean(
+          serviceReference.getProperty(SearchResultProcessor.DEFAULT_PROCESSOR_PROP),
+          false);
+      if (defaultProcessor) {
+        defaultSearchProcessor = null;
+      }
     }
   }
 
@@ -586,6 +613,15 @@ public class SearchServlet extends SlingSafeMethodsServlet {
     for (String processorName : processorNames) {
       processors.put(processorName, processor);
     }
+
+    // bit of a kludge until I can figure out why felix doesn't wire up the default
+    // processor even though it finds a matching service.
+    boolean defaultProcessor = OsgiUtil.toBoolean(
+            serviceReference.getProperty(SearchResultProcessor.DEFAULT_PROCESSOR_PROP),
+            false);
+    if (defaultProcessor) {
+      defaultSearchProcessor = processor;
+    }
   }
 
   /**
@@ -603,6 +639,14 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       }
       for (String r : toRemove) {
         processors.remove(r);
+      }
+
+      // bit of a kludge until I can figure out why felix doesn't wire up the default
+      // processor even though it finds a matching service.
+      boolean defaultBatchProcessor = OsgiUtil.toBoolean(serviceReference
+          .getProperty(SearchBatchResultProcessor.DEFAULT_BATCH_PROCESSOR_PROP), false);
+      if (defaultBatchProcessor) {
+        defaultSearchBatchProcessor = null;
       }
     }
   }
@@ -623,6 +667,14 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       for (String processorName : processorNames) {
         batchProcessors.put(processorName, processor);
       }
+    }
+
+    // bit of a kludge until I can figure out why felix doesn't wire up the default
+    // processor even though it finds a matching service.
+    boolean defaultBatchProcessor = OsgiUtil.toBoolean(serviceReference
+        .getProperty(SearchBatchResultProcessor.DEFAULT_BATCH_PROCESSOR_PROP), false);
+    if (defaultBatchProcessor) {
+      defaultSearchBatchProcessor = processor;
     }
   }
 
@@ -687,6 +739,19 @@ public class SearchServlet extends SlingSafeMethodsServlet {
     }
 
     maximumResults = (Long) componentContext.getProperties().get("maximumResults");
+  }
+
+  /**
+   * True if our request wants the "tidy" pretty-printed format
+   * Copied from org.apache.sling.servlets.get.impl.helpers.JsonRendererServlet
+   */
+  protected boolean isTidy(SlingHttpServletRequest req) {
+      for(String selector : req.getRequestPathInfo().getSelectors()) {
+          if(TIDY.equals(selector)) {
+              return true;
+          }
+      }
+      return false;
   }
 
 }

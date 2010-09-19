@@ -72,7 +72,7 @@ import javax.jcr.version.VersionException;
  * changes.
  *
  */
-@Component(immediate = true, description = "Post Processor for User and Group operations", metatype = true, label = "PersonalAuthorizablePostProcessor")
+@Component(immediate = true, metatype = true)
 @Service(value = AuthorizablePostProcessor.class)
 @Properties(value = {
     @org.apache.felix.scr.annotations.Property(name = "service.vendor", value = "The Sakai Foundation"),
@@ -104,18 +104,15 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   }
 
   /**
-   * @param request
-   * @param changes
-   * @throws Exception
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#process(org.apache.jackrabbit.api.security.user.Authorizable, javax.jcr.Session, org.apache.sling.servlets.post.Modification, java.util.Map)
    */
-  public void process(Authorizable authorizable, Session session, Modification change)
-      throws Exception {
-    if (ModificationType.DELETE.equals(change.getType())) {
-      deleteHomeNode(session, authorizable);
-    } else {
+  public void process(Authorizable authorizable, Session session, Modification change,
+      Map<String, Object[]> parameters) throws Exception {
+    if (!ModificationType.DELETE.equals(change.getType())) {
       LOGGER.debug("Processing  {} ", authorizable.getID());
       try {
-        createHomeFolder(session, authorizable, change);
+        createHomeFolder(session, authorizable, change, parameters);
         fireEvent(session, authorizable.getID(), change);
         LOGGER.debug("DoneProcessing  {} ", authorizable.getID());
       } catch (Exception ex) {
@@ -134,7 +131,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    * @throws PathNotFoundException
    */
   private void updateProperties(Session session, Node profileNode,
-      Authorizable athorizable, Modification change) throws RepositoryException {
+      Authorizable athorizable, Modification change, Map<String, Object[]> parameters) throws RepositoryException {
 
       String dest = change.getDestination();
       if (dest == null) {
@@ -156,9 +153,9 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       return;
     }
 
-    // This awful hack is a workaround for KERN-929.
-    // TODO DO NOT LET THIS BECOME PERMANENT.
-    ProfileImporter.importFromAuthorizable(profileNode, athorizable, contentImporter, session);
+    // If the client sent a parameter specifying new Profile content,
+    // apply it now.
+    ProfileImporter.importFromParameters(profileNode, parameters, contentImporter, session);
 
     // build a blacklist set of properties that should be kept private
     Set<String> privateProperties = new HashSet<String>();
@@ -209,15 +206,16 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    * @return
    * @throws RepositoryException
    */
-  private Node createHomeFolder(Session session, Authorizable authorizable, Modification change) throws RepositoryException {
+  private Node createHomeFolder(Session session, Authorizable authorizable,
+      Modification change, Map<String, Object[]> parameters) throws RepositoryException {
     String homeFolderPath = PersonalUtils.getHomeFolder(authorizable);
 
     Node homeNode = JcrUtils.deepGetOrCreateNode(session, homeFolderPath);
     if (homeNode.isNew()) {
-      LOGGER.info("Created Home Node for {} at   {} user was {} ", new Object[] {
+      LOGGER.debug("Created Home Node for {} at   {} user was {} ", new Object[] {
           authorizable.getID(), homeNode, session.getUserID() });
     } else {
-      LOGGER.info("Existing Home Node for {} at   {} user was {} ", new Object[] {
+      LOGGER.debug("Existing Home Node for {} at   {} user was {} ", new Object[] {
           authorizable.getID(), homeNode, session.getUserID() });
     }
 
@@ -240,16 +238,20 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
     // The user can do everything on this node.
     for (Principal manager : managers) {
-      LOGGER.info("User {} is attempting to make {} a manager ", session.getUserID(),
+      if ( manager != null ) {
+        LOGGER.debug("User {} is attempting to make {} a manager ", session.getUserID(),
           manager.getName());
-      AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, manager,
+        AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, manager,
           new String[] { JCR_ALL }, null, null, null);
+      }
     }
     for (Principal viewer : viewers) {
-      LOGGER.info("User {} is attempting to make {} a viewer ", session.getUserID(),
+      if ( viewer != null ) {
+        LOGGER.debug("User {} is attempting to make {} a viewer ", session.getUserID(),
           viewer.getName());
-      AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, viewer,
+        AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, viewer,
           new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
+      }
     }
     LOGGER.debug("Set ACL on Node for {} at   {} ", authorizable.getID(), homeNode);
 
@@ -259,7 +261,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     Node profileNode = createProfile(session, authorizable);
 
     // Update the values on the profile node.
-    updateProperties(session, profileNode, authorizable, change);
+    updateProperties(session, profileNode, authorizable, change, parameters);
     return homeNode;
   }
 
@@ -275,6 +277,9 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       Principal[] valueAsStrings = new Principal[values.length];
       for (int i = 0; i < values.length; i++) {
         valueAsStrings[i] = principalManager.getPrincipal(values[i].getString());
+        if ( valueAsStrings[i] == null ) {
+          LOGGER.warn("Principal {} cant be resolved, will be ignored ",values[i].getString());
+        }
       }
       return valueAsStrings;
     } else {
@@ -389,17 +394,6 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     LOGGER.debug("Creating Public  for {} at   {} ", athorizable.getID(), publicPath);
     Node publicNode = JcrUtils.deepGetOrCreateNode(session, publicPath);
     return publicNode;
-  }
-
-  private void deleteHomeNode(Session session, Authorizable athorizable)
-      throws RepositoryException {
-    if (athorizable != null) {
-      String path = PersonalUtils.getHomeFolder(athorizable);
-      if (session.itemExists(path)) {
-        Node node = (Node) session.getItem(path);
-        node.remove();
-      }
-    }
   }
 
   private String nodeTypeForAuthorizable(boolean isGroup) {

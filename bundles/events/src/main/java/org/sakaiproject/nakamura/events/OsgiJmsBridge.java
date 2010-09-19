@@ -106,7 +106,7 @@ public class OsgiJmsBridge implements EventHandler {
    * 
    * @param ctx
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
 
@@ -132,7 +132,6 @@ public class OsgiJmsBridge implements EventHandler {
    * 
    * @see org.osgi.service.event.EventHandler#handleEvent(org.osgi.service.event.Event)
    */
-  @SuppressWarnings("unchecked")
   public void handleEvent(Event event) {
     LOGGER.trace("Receiving event");
     Connection conn = null;

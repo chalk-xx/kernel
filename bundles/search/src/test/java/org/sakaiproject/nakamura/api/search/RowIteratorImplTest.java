@@ -21,6 +21,7 @@ import junit.framework.Assert;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.Test;
+import org.sakaiproject.nakamura.search.RowIteratorImpl;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.util.ArrayList;
@@ -47,18 +48,8 @@ public class RowIteratorImplTest extends AbstractEasyMockTest {
     rows.add(row2);
        
     RowIteratorImpl rowIteratorImpl = new RowIteratorImpl(rows);
-    try {
-      rowIteratorImpl.getSize();
-      Assert.fail();
-    } catch ( NotImplementedException e) {
-      
-    }
-    try {
-      rowIteratorImpl.getPosition();
-      Assert.fail();
-    } catch ( NotImplementedException e) {
-      
-    }
+    Assert.assertEquals(2, rowIteratorImpl.getSize());
+    Assert.assertEquals(0, rowIteratorImpl.getPosition());
     Assert.assertTrue(rowIteratorImpl.hasNext());
     Assert.assertEquals(row1, rowIteratorImpl.next());
     Assert.assertTrue(rowIteratorImpl.hasNext());

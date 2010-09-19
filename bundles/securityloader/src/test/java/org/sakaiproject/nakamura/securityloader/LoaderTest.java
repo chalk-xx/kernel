@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 
 import java.io.IOException;
 import java.net.URL;
@@ -48,7 +48,7 @@ public class LoaderTest extends SecurityLoaderServiceTest {
   @Mock private PrincipalManager principalManager;
   @Mock private Group group;
   @Mock private ValueFactory valueFactory;
-  @Mock private SakaiAuthorizableService sakaiAuthorizableService;
+  @Mock private AuthorizablePostProcessService authorizablePostProcessService;;
 
   @Before
   public void before() throws RepositoryException {
@@ -86,7 +86,7 @@ public class LoaderTest extends SecurityLoaderServiceTest {
     Mockito.when(bundle2.getEntry("SLING-INF/acl2/personal-acl.json")).thenReturn(u);
     Mockito.when(bundle2.getEntry("SLING-INF/acl3/personal-acl.json")).thenReturn(u);
 
-    Loader loader = new Loader(securityLoaderService, sakaiAuthorizableService);
+    Loader loader = new Loader(securityLoaderService, authorizablePostProcessService);
     loader.registerBundle(session, bundle1, false);
     loader.registerBundle(session, bundle1, false);
     Mockito.when(b1node.isLocked()).thenReturn(true);

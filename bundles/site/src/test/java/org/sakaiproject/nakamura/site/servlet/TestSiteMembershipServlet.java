@@ -58,7 +58,7 @@ public class TestSiteMembershipServlet extends AbstractSiteServiceServletTest {
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     expect(request.getResourceResolver()).andReturn(resourceResolver);
     expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
-    JSONArray sites = makeGetRequestReturningJSON();
+    JSONArray sites = makeGetRequestReturningJSONresults();
     assertEquals("Expected no sites back", 0, sites.length());
   }
 
@@ -76,7 +76,7 @@ public class TestSiteMembershipServlet extends AbstractSiteServiceServletTest {
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     MockNode siteNode = new MockNode(TEST_SITE_PATH);
     expect(session.getNodeByIdentifier(TEST_SITE_UUID)).andReturn(siteNode);
-    JSONArray sites = makeGetRequestReturningJSON();
+    JSONArray sites = makeGetRequestReturningJSONresults();
     assertEquals("Expected 1 site back", 1, sites.length());
     JSONObject site = (JSONObject) sites.get(0);
     assertEquals("Expected siteref to match path", TEST_SITE_PATH, site

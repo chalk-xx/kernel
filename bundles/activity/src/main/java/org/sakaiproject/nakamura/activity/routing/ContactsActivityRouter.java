@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.activity.AbstractActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
@@ -29,7 +30,6 @@ import org.sakaiproject.nakamura.api.activity.ActivityRouter;
 import org.sakaiproject.nakamura.api.activity.ActivityUtils;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +59,7 @@ public class ContactsActivityRouter implements ActivityRouter {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.activity.ActivityRouter#getPriority()
    */
   public int getPriority() {
@@ -69,7 +69,7 @@ public class ContactsActivityRouter implements ActivityRouter {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.activity.ActivityRouter#route(javax.jcr.Node,
    *      java.util.List)
    */
@@ -86,6 +86,7 @@ public class ContactsActivityRouter implements ActivityRouter {
         String activityPath = activity.getPath();
         AccessControlManager adminACM = AccessControlUtil
             .getAccessControlManager(adminSession);
+        UserManager um = AccessControlUtil.getUserManager(adminSession);
         Privilege readPriv = adminACM.privilegeFromName("jcr:read");
         Privilege[] privs = new Privilege[] { readPriv };
         for (String connection : connections) {
@@ -106,7 +107,7 @@ public class ContactsActivityRouter implements ActivityRouter {
 
           if (allowCopy) {
             // Get the activity feed for this contact and deliver it.
-            Authorizable au = PersonalUtils.getAuthorizable(activity.getSession(), connection);
+            Authorizable au = um.getAuthorizable(connection);
             activityFeedPath = ActivityUtils.getUserFeed(au);
             ActivityRoute route = new AbstractActivityRoute(activityFeedPath) {
             };

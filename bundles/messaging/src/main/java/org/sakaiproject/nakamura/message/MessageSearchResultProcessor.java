@@ -37,7 +37,7 @@ import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.RowUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
@@ -62,6 +62,9 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
 
   @Reference
   protected transient MessagingService messagingService;
+  @Reference
+  protected transient SearchServiceFactory searchServiceFactory;
+
   protected MessageProfileWriterTracker tracker;
 
   protected void activate(ComponentContext context) {
@@ -185,7 +188,7 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
    */
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
       throws SearchException {
-    return SearchUtil.getSearchResultSet(request, query);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
 }

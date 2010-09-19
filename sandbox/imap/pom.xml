@@ -5,11 +5,11 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.imap</artifactId>
-  <version>0.7-SNAPSHOT</version>
+  <version>0.9-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: JAMES IMAP Serverr</name>
   <build>
@@ -25,32 +25,19 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <Export-Package> org.sakaiproject.nakamura.api.imap.* </Export-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Import-Package>
-             !sun.net.spi.nameservice.*,
-             !org.xbill.*,
-             !org.apache.torque.*,
-             !org.slf4j.spi.*,
+             !org.apache.commons.beanutils.*,
+             !org.apache.commons.digester.*,
              !org.apache.commons.jxpath.*,
              !org.apache.mailet.*,
-             !org.apache.commons.configuration.*,
              !org.apache.james.*,
-             !com.workingdogs.*,
-             !org.jboss.netty.*,
-             !org.apache.james.mailboxmanager.torque.*,
-             !org.apache.commons.beanutils.*,
-             !org.jboss.xnio.*,
-             !org.apache.jackrabbit.util.*,
-             !org.jboss.logging.*,
-             !org.apache.commons.logging.*,
              !org.apache.oro.text.*,
-             !org.apache.commons.digester.*,
-             !org.apache.jackrabbit.commons.*,
-             !com.google.inject.*,
-             !com.google.protobuf.*,
-             !org.springframework.*,
              !org.apache.tools.ant.*,
+             !com.google.protobuf.*,
+             !org.jboss.logging.*,
+             !org.jboss.netty.*,
+             !sun.net.spi.nameservice.*,
              *,
             </Import-Package>
             <Private-Package>
@@ -88,6 +75,16 @@
     <dependency>
       <groupId>org.apache.james</groupId>
       <artifactId>james-server-imapserver</artifactId>
+      <version>3.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.james</groupId>
+      <artifactId>james-server-dnsserver</artifactId>
+      <version>3.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.james</groupId>
+      <artifactId>james-server-netty-socket</artifactId>
       <version>3.0-SNAPSHOT</version>
     </dependency>
     <dependency>
@@ -143,8 +140,6 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>1.8.4</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

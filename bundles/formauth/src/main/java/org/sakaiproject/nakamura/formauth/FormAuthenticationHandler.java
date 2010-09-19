@@ -17,12 +17,14 @@
  */
 package org.sakaiproject.nakamura.formauth;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.auth.spi.AuthenticationHandler;
-import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.apache.sling.auth.core.spi.AuthenticationHandler;
+import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,9 +48,8 @@ import javax.servlet.http.HttpServletResponse;
  * used to authenticate the request against the JCR.
  * </p>
  * <p>
- * On POST, if sakaiauth:login = 1, authentication will take place. If
- * sakaiauth:logout = 1, then logout will take place. If sakaiauth:login = 1
- * then the request parameter "sakaiauth:un" will be used for the username and
+ * On POST, if sakaiauth:login = 1, authentication will take place.
+ * The request parameter "sakaiauth:un" will be used for the username and
  * "sakaiauth:pw" for the password.
  * </p>
  * <p>
@@ -82,7 +83,6 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
      *
      */
     private static final long serialVersionUID = 8019850707623762839L;
-    private boolean forceLogout;
     private boolean valid;
     private SimpleCredentials credentials;
 
@@ -90,7 +90,6 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
      * @param request
      */
     FormAuthentication(HttpServletRequest request) {
-      forceLogout = false;
       valid = false;
       if ("POST".equals(request.getMethod())) {
         if ("1".equals(request.getParameter(FormLoginServlet.TRY_LOGIN))) {
@@ -120,13 +119,6 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
     /**
      * @return
      */
-    boolean isForceLogout() {
-      return forceLogout;
-    }
-
-    /**
-     * @return
-     */
     Credentials getCredentials() {
       return credentials;
     }
@@ -147,7 +139,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   * @see org.apache.sling.auth.corei.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public AuthenticationInfo extractCredentials(HttpServletRequest request,
       HttpServletResponse response) {
@@ -158,7 +150,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
     if (authentication.isValid()) {
       // authenticate
       AuthenticationInfo authenticatioInfo = new AuthenticationInfo(SESSION_AUTH);
-      authenticatioInfo.put(AuthenticationInfo.CREDENTIALS, authentication.getCredentials());
+      authenticatioInfo.put(AUTHENTICATION_INFO_CREDENTIALS, authentication.getCredentials());
       // put the form authentication into the request so that it can be checked by the servlet and saved to session if valid.
       request.setAttribute(FORM_AUTHENTICATION, authentication);
       return authenticatioInfo;
@@ -170,7 +162,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   * @see orgorg.apache.sling.auth.coreuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public void dropCredentials(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
@@ -181,7 +173,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   * @see org.aporg.apache.sling.auth.coreenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public boolean requestCredentials(HttpServletRequest request,
       HttpServletResponse response) throws IOException {

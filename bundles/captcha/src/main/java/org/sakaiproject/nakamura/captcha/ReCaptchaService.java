@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.captcha;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -30,6 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,10 +45,10 @@ import javax.servlet.http.HttpServletRequest;
     @Property(name = "service.description", value = "An implementation for the CaptchaService that uses the Google reCAPTCHA webservice.") })
 public class ReCaptchaService implements CaptchaService {
 
-  @Property(value = "6LemN7sSAAAAANILfj4y0QzbCTb6rV3U3__E1NF2", description = "Your public key for the reCAPTCHA service")
+  @Property(value = "6Lef4bsSAAAAAJOwQE-qwkAOzGG3DizFP7GYYng-", description = "Your public key for the reCAPTCHA service")
   static final String KEY_PUBLIC = "org.sakaiproject.nakamura.captcha.key_public";
 
-  @Property(value = "6LemN7sSAAAAAKjBRl_mJqMqX_4CsyrIp9p6qr-R", description = "Your private key for the reCAPTCHA service.")
+  @Property(value = "6Lef4bsSAAAAAId09ufqqs89SwdWpa9t7htW1aRc", description = "Your private key for the reCAPTCHA service.")
   static final String KEY_PRIVATE = "org.sakaiproject.nakamura.captcha.key_private";
 
   @Property(value = "http://www.google.com/recaptcha/api/verify", description = "The REST endpoint for the reCAPTCHA service.")
@@ -85,8 +88,8 @@ public class ReCaptchaService implements CaptchaService {
     // - The challenge (challenge)
     // - The response (response)
 
-    String challenge = request.getParameter("recaptcha-challenge");
-    String response = request.getParameter("recaptcha-response");
+    String challenge = request.getParameter(":recaptcha-challenge");
+    String response = request.getParameter(":recaptcha-response");
 
     // No point in doing a request when this one is false.
     if (challenge == null || response == null) {
@@ -105,7 +108,11 @@ public class ReCaptchaService implements CaptchaService {
         return false;
       }
 
-      String body = method.getResponseBodyAsString();
+      InputStream bodyStream = method.getResponseBodyAsStream();
+      StringWriter writer = new StringWriter();
+      IOUtils.copy(bodyStream, writer);
+      String body = writer.toString();
+
       LOGGER.info("reCAPTCHA output is: " + body);
       if (!body.startsWith("true")) {
         return false;

@@ -137,7 +137,7 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
           "User must be logged in to ping their status and set location");
       return;
     }
-    LOGGER.info("POST to PresenceControlServlet (" + user + ")");
+    LOGGER.debug("POST to PresenceControlServlet ({})",user);
 
     String location = null; // null location will clear the location
     RequestParameter locationParam = request

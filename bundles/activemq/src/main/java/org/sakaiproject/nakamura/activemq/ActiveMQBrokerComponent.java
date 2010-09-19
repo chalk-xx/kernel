@@ -31,18 +31,18 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 
-@Component(immediate = true, name = "org.sakaiproject.nakamura.eventexplorer.ActiveMQBrokerComponent", label = "%activemqbroker.name", description = "%activemqbroker.description", metatype = true)
+@Component(immediate = true, label = "%activemqbroker.name", description = "%activemqbroker.description", metatype = true)
 @Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "AMQ Broker Component.") })
 public class ActiveMQBrokerComponent {
 
-  @Property(description = "%activemqbroker.federated.broker.url")
+  @Property
   protected static final String ACTIVEMQ_FEDERATED_BROKER_URL = "federated.broker.url";
 
-  @Property(value = "tcp://localhost:61616", description = "%activemqbroker.broker.url")
+  @Property(value = "tcp://localhost:61616")
   protected static final String ACTIVEMQ_BROKER_URL = "broker.url";
 
-  @Property(boolValue = true, description = "%activemqbroker.broker.enabled")
+  @Property(boolValue = true)
   protected static final String ACTIVEMQ_BROKER_ENABLED = "broker.enabled";
 
   private static final Logger LOG = LoggerFactory
@@ -85,7 +85,7 @@ public class ActiveMQBrokerComponent {
         LOG.info("AMQ Embeded Broker disabled, any connections must be made to a external broker. ");
       }
     } catch (Exception e) {
-      LOG.info(e.getMessage(), e);
+      LOG.debug(e.getMessage(), e);
       throw e;
     }
   }

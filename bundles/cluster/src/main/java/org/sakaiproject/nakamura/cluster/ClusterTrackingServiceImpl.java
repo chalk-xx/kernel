@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.cluster;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -56,7 +55,7 @@ import javax.servlet.http.HttpServletResponse;
  * The ClusterTrackingService, maintains an entry for the active server and tracks active
  * users with a cluster replicated shared cache.
  */
-@Component(description = "Cluster tracking, tracks app servers and users within the cluster", label = "Cluster Tracking", name = "ClusterTrackingService", immediate = true)
+@Component(description = "Cluster tracking, tracks app servers and users within the cluster", label = "Cluster Tracking", immediate = true)
 @Services(value = { @Service(value = ClusterTrackingService.class),
     @Service(value = Runnable.class) })
 @Properties(value = {
@@ -116,9 +115,8 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
   private boolean isReady = false;
   private int serverNumber;
   private Object lockObject = new Object();
-  private long next;
+  private long next = 0;
   private long epoch;
-  private long prev;
   private String thisSecureUrl;
 
   /**
@@ -128,13 +126,13 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    */
   protected ClusterTrackingServiceImpl(CacheManagerService cacheManagerService) {
     this.cacheManagerService = cacheManagerService;
-    GregorianCalendar calendar = new GregorianCalendar(2009, 8, 22);
+    GregorianCalendar calendar = new GregorianCalendar(2010, 8, 6);
     epoch = calendar.getTimeInMillis();
 
   }
 
   public ClusterTrackingServiceImpl() {
-    GregorianCalendar calendar = new GregorianCalendar(2009, 8, 22);
+    GregorianCalendar calendar = new GregorianCalendar(2010, 8, 6);
     epoch = calendar.getTimeInMillis();
   }
 
@@ -466,14 +464,19 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    */
   public String getClusterUniqueId() {
     synchronized (lockObject) {
-      do {
+      if ( next < 0 ) {
         next = System.currentTimeMillis() - epoch;
-      } while (next == prev);
+      } else {
+        next++;
+      }
     }
-    BigInteger idNum = new BigInteger(String.valueOf(serverNumber) + String.valueOf(next));
-    prev = next;
-    Base64 b64 = new Base64();
-    return b64.encodeToString(idNum.toByteArray()).trim();
+    // Collision analysis
+    // The server number is unique in the cluster so no 2 servers with the same number can exist at the same time
+    // The Id Num is of the form 1SSSNNNN where SS ranges from 0 to 999 servers in a cluster and NNNN is a real positive number.
+    // Even when NNNN rols over to 1NNNN and again to 2NNNN there is no collision since the server part of the number is prefixed
+    // by 1 as in 1SSSS therefore this ID can never collide in the cluster or by rollover provided we have < 9001 servers in the cluster.
+    BigInteger idNum = new BigInteger(String.valueOf(next)+ String.valueOf(serverNumber+1000));
+    return StringUtils.encode(idNum.toByteArray(),StringUtils.URL_SAFE_ENCODING);
   }
 
 }

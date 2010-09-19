@@ -62,9 +62,10 @@ public class JcrEmailDataSource implements DataSource {
     try {
       if (node.getPrimaryNodeType().getName().equals(JcrConstants.NT_FILE)) {
         Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
-        is = contentNode.getProperty(JcrConstants.JCR_DATA).getStream();
+        is = contentNode.getProperty(JcrConstants.JCR_DATA).getBinary().getStream();
       } else {
-        is = node.getProperty(MessageConstants.PROP_SAKAI_ATTACHMENT_CONTENT).getStream();
+        is = node.getProperty(MessageConstants.PROP_SAKAI_ATTACHMENT_CONTENT).getBinary()
+            .getStream();
       }
     } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);

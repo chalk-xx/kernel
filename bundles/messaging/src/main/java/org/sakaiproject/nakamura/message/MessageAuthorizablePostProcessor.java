@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
+import java.util.Map;
 
 import javax.jcr.Node;
 import javax.jcr.Session;
@@ -55,11 +56,13 @@ import javax.jcr.Session;
     @Property(name = "service.description", value = "Creates the message stores for users and groups."),
     @Property(name = "service.ranking", intValue=10)})
 public class MessageAuthorizablePostProcessor implements AuthorizablePostProcessor {
-  
+
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessageAuthorizablePostProcessor.class);
 
-  public void process(Authorizable authorizable, Session session, Modification change) throws Exception {
+
+  public void process(Authorizable authorizable, Session session, Modification change,
+      Map<String, Object[]> parameters) throws Exception {
     LOGGER.debug("Starting MessageAuthorizablePostProcessor process");
     if (authorizable != null && authorizable.getID() != null && !authorizable.isGroup()) {
       PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);

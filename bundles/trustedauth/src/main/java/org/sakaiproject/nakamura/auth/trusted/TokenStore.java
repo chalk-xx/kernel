@@ -19,6 +19,8 @@ package org.sakaiproject.nakamura.auth.trusted;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
+import org.apache.commons.codec.CharEncoding;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
@@ -53,7 +55,7 @@ public class TokenStore {
   public static final class SecureCookieException extends Exception {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -1291914895288707428L;
 
@@ -83,7 +85,7 @@ public class TokenStore {
 
     /**
      * Create the token, using the secure key number specified.
-     * 
+     *
      * @param secretKeyId
      * @param secretKey
      */
@@ -107,7 +109,7 @@ public class TokenStore {
 
     /**
      * Encode the cookie for a user, a serverId and an expiry
-     * 
+     *
      * @param expires
      *          the time of expiry
      * @param userId
@@ -125,7 +127,7 @@ public class TokenStore {
         UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException,
         SecureCookieException {
       String cookiePayload = String.valueOf(secretKeyId) + String.valueOf(expires) + "@"
-          + userId + "@" + serverId;
+          + encodeUserId(userId) + "@" + serverId;
       Mac m = Mac.getInstance(HMAC_SHA1);
       ExpiringSecretKey expiringSecretKey = TokenStore.this.getSecretKey(serverId,
           secretKeyId);
@@ -158,9 +160,10 @@ public class TokenStore {
                   + getCacheKey(serverId, secretKeyId));
             }
             this.secretKey = expiringSecretKey.getSecretKey();
-            String hmac = encode(cookieTime, parts[2]);
+            String userId = decodeUserId(parts[2]);
+            String hmac = encode(cookieTime, userId);
             if (value.equals(hmac)) {
-              return parts[2];
+              return userId;
             }
           } catch (ArrayIndexOutOfBoundsException e) {
             LOG.error(e.getMessage(), e);
@@ -183,26 +186,52 @@ public class TokenStore {
       }
     }
 
+    /**
+     * Escape user ID for safe storage as part of the payload of a cookie.
+     *
+     * @param userId
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    private String encodeUserId(String userId) throws UnsupportedEncodingException {
+      byte[] userIdUtf8 = userId.getBytes(CharEncoding.UTF_8);
+      String escapedUserId = new Base64(0, new byte[0], true).encodeToString(userIdUtf8);
+      return escapedUserId;
+    }
+
+    /**
+     * Decode a user ID by unwrapping what is done in {@link #encodeUserId(String)}.
+     *
+     * @param userId
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    private String decodeUserId(String userId) throws UnsupportedEncodingException {
+      byte[] userIdUtf8 = new Base64(0, new byte[0], true).decode(userId);
+      String unescapedUserId = new String(userIdUtf8, CharEncoding.UTF_8);
+      return unescapedUserId;
+    }
+
   }
 
   public static final Logger LOG = LoggerFactory.getLogger(TokenStore.class);
 
   /**
-   * 
+   *
    */
   private static final char[] TOHEX = "0123456789abcdef".toCharArray();
 
   /**
-   * 
+   *
    */
   private static final String SHA1PRNG = "SHA1PRNG";
 
   /**
-   * 
+   *
    */
   private static final String HMAC_SHA1 = "HmacSHA1";
   /**
-   * 
+   *
    */
   private static final String UTF_8 = "UTF-8";
 
@@ -254,7 +283,7 @@ public class TokenStore {
    * @throws InvalidKeyException
    * @throws UnsupportedEncodingException
    * @throws IllegalStateException
-   * 
+   *
    */
   public TokenStore() throws NoSuchAlgorithmException, InvalidKeyException,
       IllegalStateException, UnsupportedEncodingException {
@@ -273,7 +302,7 @@ public class TokenStore {
 
   /**
    * Initialise the token store.
-   * 
+   *
    * @param cacheManager
    *          the cache manager
    * @param tokenFile
@@ -296,7 +325,7 @@ public class TokenStore {
 
   /**
    * Maintain a circular buffer to tokens, and return the current one.
-   * 
+   *
    * @return the current token.
    */
   synchronized SecureCookie getActiveToken() {
@@ -374,7 +403,7 @@ public class TokenStore {
       }
       keyOutputStream.close();
       if ( !tmpTokenFile.renameTo(tokenFile) ) {
-        LOG.error("Failed to save cookie keys, rename of tokenFile failed. Reload of secure token keys will fail while this is happening. ");        
+        LOG.error("Failed to save cookie keys, rename of tokenFile failed. Reload of secure token keys will fail while this is happening. ");
       }
     } catch (IOException e) {
       LOG.error("Failed to save cookie keys " + e.getMessage());
@@ -392,7 +421,7 @@ public class TokenStore {
   }
 
   /**
-   * 
+   *
    */
   private void loadLocalSecretKeys() {
     FileInputStream fin = null;
@@ -445,7 +474,7 @@ public class TokenStore {
 
   /**
    * Get a cache key for the secret key.
-   * 
+   *
    * @param serverId2
    * @param i
    * @return
@@ -456,7 +485,7 @@ public class TokenStore {
 
   /**
    * Get the secret key keyNumber from server serverId
-   * 
+   *
    * @param serverId
    *          the server that owns the secret Key
    * @param keyNumber
@@ -489,7 +518,7 @@ public class TokenStore {
 
   /**
    * Encode a byte array.
-   * 
+   *
    * @param base
    * @return
    */

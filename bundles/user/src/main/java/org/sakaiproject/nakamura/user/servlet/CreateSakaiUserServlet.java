@@ -29,6 +29,7 @@ import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourc
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.osgi.service.component.ComponentContext;
@@ -43,7 +44,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.user.SakaiAuthorizableService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.NameSanitizer;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
@@ -144,7 +145,11 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceParameter(name=":name", description="The name of the new user (required)"),
         @ServiceParameter(name="pwd", description="The password of the new user (required)"),
         @ServiceParameter(name="pwdConfirm", description="The password of the new user (required)"),
-        @ServiceParameter(name="",description="Additional parameters become user node properties (optional)")
+        @ServiceParameter(name="",description="Additional parameters become user node properties, " +
+        		"except for parameters starting with ':', which are only forwarded to post-processors (optional)"),
+        @ServiceParameter(name=":create-auth", description="The name of a per request authentication " +
+        		"mechanism eg capatcha, callers will also need to add parameters to satisfy the " +
+        		"authentication method,  (optional)")
     },
     response={
     @ServiceResponse(code=200,description="Success, a redirect is sent to the users resource locator with HTML describing status."),
@@ -185,11 +190,11 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
     protected transient EventAdmin eventAdmin;
 
     /**
-     * Used to create the user.
+     * Used to post process authorizable creation request.
      *
      * @scr.reference
      */
-    protected transient SakaiAuthorizableService sakaiAuthorizableService;
+    private transient AuthorizablePostProcessService postProcessorService;
 
     private String adminUserId = null;
 
@@ -235,6 +240,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
      * @param componentContext The OSGi <code>ComponentContext</code> of this
      *            component.
      */
+    @Override
     protected void activate(ComponentContext componentContext) {
         super.activate(componentContext);
         Dictionary<?, ?> props = componentContext.getProperties();
@@ -297,7 +303,9 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
             }
 
             if (selfRegistrationEnabled && !trustedRequest) {
-              throw new RepositoryException("Untrusted request.");
+              response.setStatus(HttpServletResponse.SC_UNAUTHORIZED, "Untrusted request.");
+              log.error("Untrusted request.");
+              return;
             }
           }
 
@@ -346,7 +354,14 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
           if (selfRegSession.hasPendingChanges()) {
             selfRegSession.save();
           }
-          sakaiAuthorizableService.postprocess(user, selfRegSession);
+          try {
+            postProcessorService.process(user, selfRegSession, ModificationType.CREATE,
+                request);
+          } catch (Exception e) {
+            log.warn(e.getMessage(), e);
+            response
+            .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+          }
 
           // Launch an OSGi event for creating a user.
           try {

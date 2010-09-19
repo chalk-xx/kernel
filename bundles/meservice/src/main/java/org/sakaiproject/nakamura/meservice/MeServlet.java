@@ -47,6 +47,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -106,9 +107,12 @@ public class MeServlet extends SlingSafeMethodsServlet {
   @Reference
   protected transient ConnectionManager connectionManager;
 
+  @Reference
+  protected transient ProfileService profileService;
+
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -130,9 +134,8 @@ public class MeServlet extends SlingSafeMethodsServlet {
 
       // Dump this user his info
       writer.key("profile");
-      String profilePath = PersonalUtils.getProfilePath(au);
-      Node profileNode = (Node) session.getItem(profilePath);
-      ExtendedJSONWriter.writeNodeTreeToWriter(writer, profileNode);
+      ValueMap profile = profileService.getProfileMap(au, session);
+      writer.valueMap(profile);
 
       // Dump this user his number of unread messages.
       writer.key("messages");
@@ -176,7 +179,10 @@ public class MeServlet extends SlingSafeMethodsServlet {
       Iterator<Group> groups = au.memberOf();
       while (groups.hasNext()) {
         Group group = groups.next();
-        PersonalUtils.writeCompactGroupInfo(session, group.getID(), writer);
+        ValueMap groupProfile = profileService.getCompactProfileMap(group, session);
+        if (groupProfile != null) {
+          writer.valueMap(groupProfile);
+        }
       }
     }
     writer.endArray();
@@ -185,7 +191,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
   /**
    * Writes a JSON Object that contains the number of contacts for a user split up in
    * PENDING, ACCEPTED.
-   * 
+   *
    * @param writer
    * @param session
    * @param au
@@ -252,7 +258,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
 
   /**
    * Writes a JSON Object that contains the unread messages for a user.
-   * 
+   *
    * @param writer
    *          The writer
    * @param session
@@ -285,7 +291,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
       StringBuilder statement = new StringBuilder("/jcr:root");
       statement.append(store);
       statement
-          .append("//*[@sling:resourceType='sakai/message' and @sakai:type='internal' and @sakai:messagebox='inbox' and @sakai:read = false]");
+          .append("//*[@sling:resourceType='sakai/message' and @sakai:type='internal' and @sakai:messagebox='inbox' and @sakai:read = false()]");
 
       // Execute the query, loop over the results and count the items.
       QueryManager qm = session.getWorkspace().getQueryManager();
@@ -303,7 +309,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
   }
 
   /**
-   * 
+   *
    * @param write
    * @param session
    * @param authorizable
@@ -340,7 +346,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
 
   /**
    * Writes the local and timezone information.
-   * 
+   *
    * @param write
    * @param properties
    * @throws JSONException
@@ -402,7 +408,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
   /**
    * Writes the general information about a user such as the userid, storagePrefix, wether
    * he is a superUser or not..
-   * 
+   *
    * @param write
    * @param user
    * @param session
@@ -435,7 +441,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
 
   /**
    * All the names of the {@link Group groups} a user is a member of.
-   * 
+   *
    * @param authorizable
    *          The {@link Authorizable authorizable} that represents the user.
    * @param principalManager

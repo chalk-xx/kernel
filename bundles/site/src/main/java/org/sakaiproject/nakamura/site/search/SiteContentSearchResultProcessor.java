@@ -17,9 +17,8 @@
  */
 package org.sakaiproject.nakamura.site.search;
 
-import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
-
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -31,15 +30,13 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
 import org.sakaiproject.nakamura.api.search.Aggregator;
-import org.sakaiproject.nakamura.api.search.MergedRowIterator;
-import org.sakaiproject.nakamura.api.search.SakaiSearchRowIterator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -54,7 +51,7 @@ import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
 
-@Component(immediate = true, name = "SiteContentSearchResultProcessor", label = "SiteContentSearchResultProcessor")
+@Component(immediate = true, label = "SiteContentSearchResultProcessor")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Formats search results for content nodes in sites."),
@@ -66,9 +63,12 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
   private SiteService siteService;
   protected SearchResultProcessorTracker tracker;
 
+  @Reference
+  protected SearchServiceFactory searchServiceFactory;
+
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor#writeNodes(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.commons.json.io.JSONWriter,
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.RowIterator)
@@ -79,7 +79,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
 
     long toSkip = SearchUtil.getPaging(request, -1);
     iterator.skip(toSkip);
-    long items = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+    long items = SearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
         SearchConstants.DEFAULT_PAGED_ITEMS);
 
     long i = 0;
@@ -93,7 +93,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
@@ -102,7 +102,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
     try {
       // Perform the query
       QueryResult qr = query.execute();
-      RowIterator iterator = new SakaiSearchRowIterator(qr.getRows());
+      RowIterator iterator = searchServiceFactory.getPathFilteredRowIterator(qr.getRows());
 
       // Do another query to get the files.
       Session session = request.getResourceResolver().adaptTo(Session.class);
@@ -112,7 +112,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
       QueryResult filesQueryResult = q.execute();
       RowIterator filesIterator = filesQueryResult.getRows();
 
-      MergedRowIterator mergedIterator = new MergedRowIterator(iterator, filesIterator);
+      RowIterator mergedIterator = searchServiceFactory.getMergedRowIterator(iterator, filesIterator);
 
       long siteHits = SearchUtil.getHits(qr);
       long filesHits = SearchUtil.getHits(filesQueryResult);
@@ -120,8 +120,8 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
       if (totalHits == -2) {
         totalHits = Long.MAX_VALUE;
       }
-      
-      return new AbstractSearchResultSet(mergedIterator, totalHits);
+
+      return searchServiceFactory.getSearchResultSet(mergedIterator, totalHits);
 
     } catch (RepositoryException e) {
       throw new SearchException(500, "Unable to do files query.");

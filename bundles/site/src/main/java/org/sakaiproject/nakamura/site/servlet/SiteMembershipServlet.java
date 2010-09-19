@@ -89,6 +89,8 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
       response.setCharacterEncoding("UTF-8");
 
       ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
+      output.object();
+      output.key("results");
       output.array();
       for (Entry<String, List<Group>> site : membership.entrySet()) {
         Node siteNode = session.getNodeByIdentifier(site.getKey());
@@ -111,6 +113,7 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
         output.endObject();
       }
       output.endArray();
+      output.endObject();
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     } catch (SiteException e) {

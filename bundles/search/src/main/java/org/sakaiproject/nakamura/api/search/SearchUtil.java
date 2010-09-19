@@ -23,10 +23,10 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_PAGE;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.jcr.jackrabbit.server.index.QueryHitsExtractor;
+import org.sakaiproject.nakamura.search.SearchServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jcr.RepositoryException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
 
@@ -37,41 +37,11 @@ public class SearchUtil {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(SearchUtil.class);
 
-  /**
-   * This method will return a SearchResultSet that contains a paged rowIterator and the
-   * total hit count from Lucene.
-   * 
-   * @param request
-   * @param query
-   * @return
-   * @throws SearchException
-   */
-  public static SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      Query query) throws SearchException {
-    try {
-      // Get the query result.
-      QueryResult rs = query.execute();
 
-      // Extract the total hits from lucene
-      long hits = getHits(rs);
-
-      // Do the paging on the iterator.
-      SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(rs.getRows());
-      long start = getPaging(request, hits);
-      iterator.skip(start);
-
-      // Return the result set.
-      SearchResultSet srs = new AbstractSearchResultSet(iterator, hits);
-      return srs;
-    } catch (RepositoryException e) {
-      throw new SearchException(500, "Unable to perform query.");
-    }
-
-  }
 
   /**
    * Get the hits from a Lucene queryResult.
-   * 
+   *
    * @param rs
    * @return
    */
@@ -82,7 +52,7 @@ public class SearchUtil {
 
   /**
    * Check for an integer value in the request.
-   * 
+   *
    * @param request
    *          The request to look in.
    * @param paramName
@@ -91,7 +61,7 @@ public class SearchUtil {
    *          The default value in case the parameter is not found or is not an integer
    * @return The long value.
    */
-  public static long intRequestParameter(SlingHttpServletRequest request,
+  public static long longRequestParameter(SlingHttpServletRequest request,
       String paramName, long defaultVal) {
     RequestParameter param = request.getRequestParameter(paramName);
     if (param != null) {
@@ -107,16 +77,16 @@ public class SearchUtil {
 
   /**
    * Get the starting point.
-   * 
+   *
    * @param request
    * @param total
    * @return
    */
   public static long getPaging(SlingHttpServletRequest request, long total) {
 
-    long nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+    long nitems = longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
         SearchConstants.DEFAULT_PAGED_ITEMS);
-    long offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
+    long offset = longRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
     if (total < 0) {
       total = Long.MAX_VALUE;
@@ -128,13 +98,14 @@ public class SearchUtil {
   /**
    * Assumes value is the value of a parameter in a where constraint and escapes it
    * according to the spec.
-   * 
+   *
    * @param value
    * @param queryLanguage
    *          The language to escape for. This can be XPATH, SQL, JCR_SQL2 or JCR_JQOM.
    *          Look at {@link Query Query}.
    * @return
    */
+  @SuppressWarnings("deprecation") // Suppressed because we need to check depreciated methods just in case.
   public static String escapeString(String value, String queryLanguage) {
     String escaped = null;
     if (value != null) {
@@ -149,4 +120,26 @@ public class SearchUtil {
     }
     return escaped;
   }
+
+  public static int getTraversalDepth(SlingHttpServletRequest req) {
+    int maxRecursionLevels = 0;
+    final String[] selectors = req.getRequestPathInfo().getSelectors();
+    if (selectors != null && selectors.length > 0) {
+      final String level = selectors[selectors.length - 1];
+      if (!SearchServlet.TIDY.equals(level)) {
+        if (SearchServlet.INFINITY.equals(level)) {
+          maxRecursionLevels = -1;
+        } else {
+          try {
+            maxRecursionLevels = Integer.parseInt(level);
+          } catch (NumberFormatException nfe) {
+            LOGGER.warn("Invalid recursion selector value '" + level
+                + "'; defaulting to 0");
+          }
+        }
+      }
+    }
+    return maxRecursionLevels;
+  }
+
 }

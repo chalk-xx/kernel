@@ -112,7 +112,7 @@ protected ExternalRepositoryProcessorTracker tracker;
 
       ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
       write.array();
-      long nitems = SearchUtil.intRequestParameter(request,
+      long nitems = SearchUtil.longRequestParameter(request,
           SearchConstants.PARAMS_ITEMS_PER_PAGE, SearchConstants.DEFAULT_PAGED_ITEMS);
       for (long i = 0; i < nitems && results.hasNext(); i++) {
         ExternalDocumentResult result = results.next();

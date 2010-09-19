@@ -30,30 +30,30 @@ import static org.imsglobal.basiclti.BasicLTIConstants.LIS_PERSON_NAME_GIVEN;
 import static org.imsglobal.basiclti.BasicLTIConstants.RESOURCE_LINK_ID;
 import static org.imsglobal.basiclti.BasicLTIConstants.ROLES;
 import static org.imsglobal.basiclti.BasicLTIConstants.USER_ID;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.ADMIN_CONFIG_PATH;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.DEBUG;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.DEBUG_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.FRAME_HEIGHT;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.FRAME_HEIGHT_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.GLOBAL_SETTINGS;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_ADMIN_NODE_NAME;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_KEY;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_KEY_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_SECRET;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_SECRET_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_URL;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_URL_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_VTOOL_ID;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_EMAIL;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_EMAIL_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_NAMES;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_NAMES_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME_LOCK;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_ACCESSED;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_CHANGED;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_LAUNCHED;
-import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.TOPIC_BASICLTI_REMOVED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.ADMIN_CONFIG_PATH;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.DEBUG;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.DEBUG_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.FRAME_HEIGHT;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.FRAME_HEIGHT_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.GLOBAL_SETTINGS;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_ADMIN_NODE_NAME;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_KEY;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_KEY_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_SECRET;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_SECRET_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_URL;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_URL_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.LTI_VTOOL_ID;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_EMAIL;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_EMAIL_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_NAMES;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_NAMES_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_PRINCIPAL_NAME;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.RELEASE_PRINCIPAL_NAME_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.TOPIC_BASICLTI_ACCESSED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.TOPIC_BASICLTI_CHANGED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.TOPIC_BASICLTI_LAUNCHED;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLTIAppConstants.TOPIC_BASICLTI_REMOVED;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.getInvalidUserPrivileges;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.isAdminUser;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.removeProperty;
@@ -76,6 +76,7 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.imsglobal.basiclti.BasicLTIConstants;
 import org.imsglobal.basiclti.BasicLTIUtil;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.basiclti.BasicLTIContextIdResolver;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -135,6 +136,7 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceParameter(name = LTI_KEY, description = "The opaque key given by the LTI provider."),
         @ServiceParameter(name = LTI_SECRET, description = "The shared secret given by the LTI provider."),
         @ServiceParameter(name = LTI_URL, description = "The LTI end point of the LTI provider."),
+        @ServiceParameter(name = LTI_VTOOL_ID, description = "The virtualToolId if acting as a virtual tool."),
         @ServiceParameter(name = RELEASE_EMAIL, description = "Controls privacy of email address in launch data."),
         @ServiceParameter(name = RELEASE_NAMES, description = "Controls privacy of first/last name in launch data."),
         @ServiceParameter(name = RELEASE_PRINCIPAL_NAME, description = "Controls privacy of username in launch data."),
@@ -172,6 +174,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
 
   @Reference
   protected transient EventAdmin eventAdmin;
+
+  @Reference
+  protected transient BasicLTIContextIdResolver contextIdResolver;
 
   // global properties used for every tool launch
   /**
@@ -302,6 +307,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           if (canManageSettings(node.getPath(), session)) {
             settings.putAll(readSensitiveNode(node));
           }
+          final Map<String, Object> adminSettings = getAdminSettings(node, false);
+          settings.putAll(adminSettings);
           renderJson(response.getWriter(), settings);
         } catch (Exception e) {
           sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -328,26 +335,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     }
     final Node node = resource.adaptTo(Node.class);
     final Session session = request.getResourceResolver().adaptTo(Session.class);
+    // determine virtual toolId
     try {
-      String vtoolId = null;
-      if (node.hasProperty(LTI_VTOOL_ID)) {
-        vtoolId = node.getProperty(LTI_VTOOL_ID).getString();
-      } else {
-        vtoolId = "basiclti";
-      }
-
-      final String adminNodePath = ADMIN_CONFIG_PATH + "/" + vtoolId;
-      Map<String, Object> adminSettings = null;
-      if (session.itemExists(adminNodePath)) {
-        LOG.debug("Found administrative settings for virtual tool: " + vtoolId);
-        final Node adminNode = (Node) session.getItem(adminNodePath);
-        adminSettings = getLaunchSettings(adminNode);
-      } else {
-        LOG.debug(
-            "No administrative settings found for virtual tool: {}. No policy to apply.",
-            vtoolId);
-        adminSettings = Collections.emptyMap();
-      }
+      // grab admin settings
+      final Map<String, Object> adminSettings = getAdminSettings(node, true);
+      // grab user settings
       final Map<String, Object> userSettings = getLaunchSettings(node);
 
       // merge admin and user properties
@@ -404,7 +396,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         return;
       }
       final String sitePath = siteNode.getPath();
-      launchProps.put(CONTEXT_ID, sitePath);
+      final String contextId = contextIdResolver.resolveContextId(siteNode);
+      if (contextId == null) {
+        throw new IllegalStateException("Could not resolve context_id!");
+      }
+      launchProps.put(CONTEXT_ID, contextId);
       launchProps.put(CONTEXT_TITLE, siteNode.getProperty("name").getString());
       launchProps.put(CONTEXT_LABEL, siteNode.getProperty("id").getString());
 
@@ -520,6 +516,54 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     final Map<String, String> sensitiveData = readSensitiveNode(node);
     settings.putAll(sensitiveData);
     return settings;
+  }
+
+  /**
+   * Helper method to read the policy settings from /var/basiclti/* virtual tools.
+   * 
+   * @param vtoolId
+   *          The virtual tool id (e.g. <code>sakai.resources</code>)
+   * @param launchMode
+   *          true if sensitive settings should be included; false if not to include
+   *          sesitive settings.
+   * @return An empty Map if no settings could be found.
+   * @throws RepositoryException
+   */
+  private Map<String, Object> getAdminSettings(final Node node, final boolean launchMode)
+      throws RepositoryException {
+    // grab admin settings from /var/basiclti/* if they exist...
+    String vtoolId = null;
+    if (node.hasProperty(LTI_VTOOL_ID)) {
+      vtoolId = node.getProperty(LTI_VTOOL_ID).getString();
+    } else {
+      vtoolId = "basiclti";
+    }
+    final String adminNodePath = ADMIN_CONFIG_PATH + "/" + vtoolId;
+    Map<String, Object> adminSettings = null;
+    // begin admin elevation
+    Session adminSession = null;
+    try {
+      adminSession = slingRepository.loginAdministrative(null);
+      if (adminSession.itemExists(adminNodePath)) {
+        LOG.debug("Found administrative settings for virtual tool: " + vtoolId);
+        final Node adminNode = (Node) adminSession.getItem(adminNodePath);
+        if (launchMode) {
+          adminSettings = getLaunchSettings(adminNode);
+        } else {
+          adminSettings = readProperties(adminNode);
+        }
+      } else {
+        LOG.debug(
+            "No administrative settings found for virtual tool: {}. No policy to apply.",
+            vtoolId);
+        adminSettings = Collections.emptyMap();
+      }
+    } finally {
+      if (adminSession != null) {
+        adminSession.logout();
+      }
+    } // end admin elevation
+    return adminSettings;
   }
 
   /**

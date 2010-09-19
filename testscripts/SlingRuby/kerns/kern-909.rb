@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
+require 'ruby-lib-dir.rb'
+
 require 'sling/test'
 require 'test/unit.rb'
 include SlingSearch
@@ -52,7 +55,7 @@ class TC_Kern909Test < Test::Unit::TestCase
 
     res = @s.execute_post(@s.url_for("system/batch"), parameters)
 
-    jsonRes = JSON.parse(res.body)
+    jsonRes = JSON.parse(res.body)["results"]
 
     assert_equal(jsonRes[0]["url"], "#{path}/test/b")
     assert_equal(jsonRes[0]["status"], 200, "Expexted to get a created statuscode.")

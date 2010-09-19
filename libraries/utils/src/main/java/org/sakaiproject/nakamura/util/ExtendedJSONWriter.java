@@ -22,6 +22,7 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 
 import java.io.Writer;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.jcr.Node;
@@ -39,7 +40,7 @@ public class ExtendedJSONWriter extends JSONWriter {
     super(w);
   }
 
-  public void valueMap(ValueMap valueMap) throws JSONException {
+  public void valueMap(Map<String, Object> valueMap) throws JSONException {
     object();
     valueMapInternals(valueMap);
     endObject();
@@ -49,13 +50,14 @@ public class ExtendedJSONWriter extends JSONWriter {
    * This will output the key value pairs of a value map as JSON without opening and
    * closing braces, you will need to call object() and endObject() yourself but you can
    * use this to allow appending onto the end of the existing data
-   * 
+   *
    * @param valueMap
    *          any ValueMap (cannot be null)
    * @throws JSONException
    *           on failure
    */
-  public void valueMapInternals(ValueMap valueMap) throws JSONException {
+  @SuppressWarnings("unchecked")
+  public void valueMapInternals(Map<String, Object> valueMap) throws JSONException {
     for (Entry<String, Object> entry : valueMap.entrySet()) {
       key(entry.getKey());
       Object entryValue = entry.getValue();
@@ -66,7 +68,10 @@ public class ExtendedJSONWriter extends JSONWriter {
           value(object);
         }
         endArray();
-      } else {
+      } else if (entryValue instanceof ValueMap || entryValue instanceof Map<?, ?>) {
+        valueMap((Map<String, Object>) entryValue);
+      }
+      else {
         value(entry.getValue());
       }
     }
@@ -158,9 +163,7 @@ public class ExtendedJSONWriter extends JSONWriter {
 
   public static void writeNodeToWriter(JSONWriter write, Node node) throws JSONException,
       RepositoryException {
-    write.object();
-    writeNodeContentsToWriter(write, node);
-    write.endObject();
+    writeNodeTreeToWriter(write, node, false, 0);
   }
 
   private static Object stringValue(Value value) throws ValueFormatException,
@@ -179,18 +182,21 @@ public class ExtendedJSONWriter extends JSONWriter {
       return value.getDouble();
     case PropertyType.DATE:
       return DateUtils.iso8601(value.getDate());
+    case PropertyType.BINARY:
+      return "binary-length:"+String.valueOf(value.getBinary().getSize());
     default:
       return value.toString();
     }
   }
 
   public void node(Node node) throws JSONException, RepositoryException {
-    writeNodeToWriter(this, node);
+    ExtendedJSONWriter.writeNodeToWriter(this, node);
   }
 
   /**
-   * Represent an entire JCR tree in JSON format.
-   * 
+   * Represent an entire JCR tree in JSON format. Convenience method for
+   * writeNodeTreeToWriter(write, node, false, -1, -1).
+   *
    * @param write
    *          The {@link JSONWriter writer} to send the data to.
    * @param node
@@ -201,18 +207,117 @@ public class ExtendedJSONWriter extends JSONWriter {
    */
   public static void writeNodeTreeToWriter(JSONWriter write, Node node)
       throws RepositoryException, JSONException {
+      writeNodeTreeToWriter(write, node, false, -1, -1);
+  }
+
+  /**
+   * Represent an entire JCR tree in JSON format. Convenience method for
+   * writeNodeTreeToWriter(write, node, objectInProgress, -1, -1).
+   *
+   * @param write
+   *          The {@link JSONWriter writer} to send the data to.
+   * @param node
+   *          The node and it's subtree to output. Note: The properties of this node will
+   *          be outputted as well.
+   * @param objectInProgress
+   *          use true if you don't want the method to enclose the output in fresh object braces
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  public static void writeNodeTreeToWriter(JSONWriter write, Node node, boolean objectInProgress)
+      throws RepositoryException, JSONException {
+    writeNodeTreeToWriter(write, node, objectInProgress, -1, -1);
+  }
+
+  /**
+   * Represent an entire JCR tree in JSON format. Convenience method for
+   * writeNodeTreeToWriter(write, node, false, maxDepth, 0).
+   *
+   * @param write
+   *          The {@link JSONWriter writer} to send the data to.
+   * @param node
+   *          The node and it's subtree to output. Note: The properties of this node will
+   *          be outputted as well.
+   * @param maxDepth
+   *          Maximum depth of subnodes to traverse. The properties on {@link node} are
+   *          processed before this is taken into account.
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  public static void writeNodeTreeToWriter(JSONWriter write, Node node, int maxDepth)
+      throws RepositoryException, JSONException {
+    writeNodeTreeToWriter(write, node, false, maxDepth, 0);
+  }
+
+  /**
+   * Represent an entire JCR tree in JSON format.
+   * <p>
+   * if maxDepth == 0 and objectInProgress == false, same as calling
+   * {@link #writeNodeToWriter(JSONWriter, Node).
+   * <p>
+   * if maxDepth == 0 and objectInfProgress == true, same as calling
+   * {@link #writeNodeContentsToWriter(JSONWriter, Node).
+   *
+   * @param write
+   *          The {@link JSONWriter writer} to send the data to.
+   * @param node
+   *          The node and it's subtree to output. Note: The properties of this node will
+   *          be outputted as well.
+   * @param objectInProgress
+   *          use true if you don't want the method to enclose the output in fresh object
+   *          braces
+   * @param maxDepth
+   *          Maximum depth of subnodes to traverse. The properties on {@link node} are
+   *          processed before this is taken into account.
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  public static void writeNodeTreeToWriter(JSONWriter write, Node node,
+      boolean objectInProgress, int maxDepth) throws RepositoryException, JSONException {
+    writeNodeTreeToWriter(write, node, objectInProgress, maxDepth, 0);
+  }
+
+  /**
+   * Represent an entire JCR tree in JSON format.
+   *
+   * @param write
+   *          The {@link JSONWriter writer} to send the data to.
+   * @param node
+   *          The node and it's subtree to output. Note: The properties of this node will
+   *          be outputted as well.
+   * @param objectInProgress
+   *          use true if you don't want the method to enclose the output in fresh object
+   *          braces
+   * @param maxDepth
+   *          Maximum depth of subnodes to traverse. The properties on {@link node} are
+   *          processed before this is taken into account.
+   * @param currentLevel
+   *          Internal parameter to track the current processing level.
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  protected static void writeNodeTreeToWriter(JSONWriter write, Node node,
+      boolean objectInProgress, int maxDepth, int currentLevel)
+      throws RepositoryException, JSONException {
     // Write this node's properties.
-    write.object();
+    if (!objectInProgress) {
+      write.object();
+    }
     writeNodeContentsToWriter(write, node);
 
-    // Write all the child nodes.
-    NodeIterator iterator = node.getNodes();
-    while (iterator.hasNext()) {
-      Node childNode = iterator.nextNode();
-      write.key(childNode.getName());
-      writeNodeTreeToWriter(write, childNode);
+    if (maxDepth == -1 || currentLevel < maxDepth) {
+      // Write all the child nodes.
+      NodeIterator iterator = node.getNodes();
+      while (iterator.hasNext()) {
+        Node childNode = iterator.nextNode();
+        write.key(childNode.getName());
+        writeNodeTreeToWriter(write, childNode, false, maxDepth, currentLevel + 1);
+      }
     }
-    write.endObject();
+
+    if (!objectInProgress) {
+      write.endObject();
+    }
   }
 
 }

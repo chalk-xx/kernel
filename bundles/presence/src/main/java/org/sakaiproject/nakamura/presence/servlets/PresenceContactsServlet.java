@@ -18,25 +18,18 @@
 
 package org.sakaiproject.nakamura.presence.servlets;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.List;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -46,29 +39,38 @@ import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.util.List;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(resourceTypes = { "sakai/presence" }, generateComponent = true, generateService = true, methods = { "GET" }, selectors = { "contacts" }, extensions = { "json" })
 @Properties(value = {
     @Property(name = "service.description", value = { "Outputs the accepted contacts listing presence related to the current user." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
-@ServiceDocumentation(name = "Presence Contacts Servlet", 
+@ServiceDocumentation(name = "Presence Contacts Servlet",
     description = "Gets presence for the current users contact including the public profile of each accepted contact.",
     shortDescription="Gets the presence for the current user.",
-    bindings = @ServiceBinding(type = BindingType.TYPE, 
+    bindings = @ServiceBinding(type = BindingType.TYPE,
         bindings = "sakai/presence",
         selectors = @ServiceSelector(name="contacts", description=" requires a selector of resource.contacts.json to get the presence for the user and their contacts."),
         extensions = @ServiceExtension(name="json", description={
             "the presence information is returned as a json tree."
         })
-    ), 
-    methods = { 
-         @ServiceMethod(name = "GET", 
+    ),
+    methods = {
+         @ServiceMethod(name = "GET",
              description = {
                  "Gets the presence for the current user, a list of contacts, their presence and their profile. The servlet is bound " +
                  "to a node of type sakai/presence although at the moment, there does not appear to be any information used from that " +
@@ -123,6 +125,9 @@ public class PresenceContactsServlet extends SlingSafeMethodsServlet {
   @Reference
   protected transient ConnectionManager connectionManager;
 
+  @Reference
+  protected transient ProfileService profileService;
+
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
@@ -149,18 +154,18 @@ public class PresenceContactsServlet extends SlingSafeMethodsServlet {
       List<String> userIds = connectionManager.getConnectedUsers(user,
           ConnectionState.ACCEPTED);
       output.key("contacts");
+      UserManager um = AccessControlUtil.getUserManager(session);
       output.array();
       for (String userId : userIds) {
         output.object();
         // put in the basics
         PresenceUtils.makePresenceJSON(output, userId, presenceService, true);
         // add in the profile
-        Authorizable au = PersonalUtils.getAuthorizable(session, userId);
-        String profilePath = PersonalUtils.getProfilePath(au);
-        if ( session.itemExists(profilePath)) {
-          Node profileNode = (Node) session.getItem(profilePath);
+        Authorizable au = um.getAuthorizable(userId);
+        ValueMap map = profileService.getProfileMap(au, session);
+        if (map != null) {
           output.key("profile");
-          ExtendedJSONWriter.writeNodeToWriter(output, profileNode);
+          output.valueMap(map);
         }
         output.endObject();
       }

@@ -1,94 +1,96 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.sakaiproject.nakamura</groupId>
+    <artifactId>base</artifactId>
+    <version>0.9-SNAPSHOT</version>
+  </parent>
+
   <groupId>edu.nyu</groupId>
   <artifactId>edu.nyu.launchpad</artifactId>
-  <name>NYU Executable</name>
+  <name>NYU Launchpad</name>
   <version>1.0-SNAPSHOT</version>
   <properties>
-    <nakamura.version>0.7-SNAPSHOT</nakamura.version>
+    <nakamura.version>0.9-SNAPSHOT</nakamura.version>
     <ux.version>0.5.0-SNAPSHOT</ux.version>
   </properties>
   <packaging>jar</packaging>
   <build>
+    <resources>
+      <resource>
+        <directory>../../app/src/main/resources</directory>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.sling</groupId>
         <artifactId>maven-launchpad-plugin</artifactId>
-        <configuration>
-          <defaultBundleList>
-            <groupId>org.sakaiproject.nakamura</groupId>
-            <artifactId>org.sakaiproject.nakamura.app</artifactId>
-            <version>${nakamura.version}</version>
-          </defaultBundleList>
-          <additionalBundles>
-            <bundle>
-              <groupId>org.sakaiproject.nakamura</groupId>
-              <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
-              <version>${nakamura.version}</version>
-              <startLevel>30</startLevel>
-            </bundle>
-            <bundle>
-              <groupId>org.sakaiproject.nakamura</groupId>
-              <artifactId>org.sakaiproject.nakamura.auth.ldap</artifactId>
-              <version>${nakamura.version}</version>
-              <startLevel>30</startLevel>
-            </bundle>
-            <bundle>
-              <groupId>org.sakaiproject.nakamura</groupId>
-              <artifactId>org.sakaiproject.nakamura.remotefiles</artifactId>
-              <version>${nakamura.version}</version>
-              <startLevel>30</startLevel>
-            </bundle>
-            <bundle>
-              <groupId>org.sakaiproject.nakamura</groupId>
-              <artifactId>org.sakaiproject.nakamura.site.join</artifactId>
-              <version>${nakamura.version}</version>
-              <startLevel>30</startLevel>
-            </bundle>
-            <bundle>
-              <groupId>org.sakaiproject.nakamura</groupId>
-              <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
-              <version>${nakamura.version}</version>
-              <startLevel>1</startLevel>
-            </bundle>
-            <bundle>
-              <groupId>org.sakaiproject.nakamura</groupId>
-              <artifactId>org.sakaiproject.nakamura.uxloader</artifactId>
-              <version>${ux.version}</version>
-              <startLevel>30</startLevel>
-            </bundle>
-          </additionalBundles>
-<!--
-          <bundleExclusions>
-            <bundle>
-              <groupId>org.sakaiproject.nakamura</groupId>
-              <artifactId>org.sakaiproject.nakamura.uxloader</artifactId>
-            </bundle>
-            <bundle>
-              <groupId>org.apache.sling</groupId>
-              <artifactId>org.apache.sling.httpauth</artifactId>
-            </bundle>
-            <bundle>
-              <groupId>org.apache.sling</groupId>
-              <artifactId>org.apache.sling.launchpad.content</artifactId>
-            </bundle>
-          </bundleExclusions>
--->
-          <!-- Needs to be copied from nakamura.app -->
-          <jarWebSupport>
-            <groupId>org.sakaiproject.nakamura</groupId>
-            <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
-            <version>${nakamura.version}</version>
-            <startLevel>5</startLevel>
-          </jarWebSupport>
-        </configuration>
         <executions>
           <execution>
             <id>prepare-package</id>
             <goals>
               <goal>prepare-package</goal>
             </goals>
+            <configuration>
+              <defaultBundleList>
+                <groupId>org.sakaiproject.nakamura</groupId>
+                <artifactId>org.sakaiproject.nakamura.app</artifactId>
+                <version>${nakamura.version}</version>
+              </defaultBundleList>
+              <jarWebSupport>
+                <groupId>org.sakaiproject.nakamura</groupId>
+                <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
+                <version>${nakamura.version}</version>
+                <startLevel>5</startLevel>
+              </jarWebSupport>
+              <additionalBundles>
+                <!-- contrib bundles -->
+                <bundle>
+                  <groupId>org.sakaiproject.nakamura</groupId>
+                  <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
+                  <version>${nakamura.version}</version>
+                  <startLevel>30</startLevel>
+                </bundle>
+                <bundle>
+                  <groupId>org.sakaiproject.nakamura</groupId>
+                  <artifactId>org.sakaiproject.nakamura.auth.ldap</artifactId>
+                  <version>${nakamura.version}</version>
+                  <startLevel>30</startLevel>
+                </bundle>
+                <bundle>
+                  <groupId>org.sakaiproject.nakamura</groupId>
+                  <artifactId>org.sakaiproject.nakamura.auth.opensso</artifactId>
+                  <version>${nakamura.version}</version>
+                  <startLevel>30</startLevel>
+                </bundle>
+                <bundle>
+                  <groupId>org.sakaiproject.nakamura</groupId>
+                  <artifactId>org.sakaiproject.nakamura.remotefiles</artifactId>
+                  <version>${nakamura.version}</version>
+                  <startLevel>30</startLevel>
+                </bundle>
+                <bundle>
+                  <groupId>org.sakaiproject.nakamura</groupId>
+                  <artifactId>org.sakaiproject.nakamura.site.join</artifactId>
+                  <version>${nakamura.version}</version>
+                  <startLevel>30</startLevel>
+                </bundle>
+                <bundle>
+                  <groupId>org.sakaiproject.nakamura</groupId>
+                  <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
+                  <version>${nakamura.version}</version>
+                  <startLevel>1</startLevel>
+                </bundle>
+                <bundle>
+                  <groupId>org.sakaiproject.nakamura</groupId>
+                  <artifactId>org.sakaiproject.nakamura.uxloader</artifactId>
+                  <version>${ux.version}</version>
+                  <startLevel>30</startLevel>
+                </bundle>
+                <!-- sandbox bundles -->
+              </additionalBundles>
+            </configuration>
           </execution>
         </executions>
       </plugin>

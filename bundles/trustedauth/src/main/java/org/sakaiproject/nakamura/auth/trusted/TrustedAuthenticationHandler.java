@@ -17,12 +17,14 @@
  */
 package org.sakaiproject.nakamura.auth.trusted;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.auth.spi.AuthenticationHandler;
-import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.apache.sling.auth.core.spi.AuthenticationHandler;
+import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,8 +47,8 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
   /**
    * Authentication type name
    */
-  public static final String TRUSTED_AUTH = TrustedAuthenticationHandler.class.getName();
 
+  public static final String TRUSTED_AUTH = TrustedAuthenticationHandler.class.getName();
   /**
    * Attribute name for storage of the TrustedAuthentication object in the requests
    */
@@ -72,7 +74,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
   static final String VENDOR_PROPERTY = "service.vendor";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TrustedAuthenticationHandler.class);
-  
+
   @Reference
   protected TrustedTokenService trustedTokenService;
 
@@ -81,13 +83,13 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
 
   /**
    * {@inheritDoc}
-   * 
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest,
+   *
+   * @see org.apache.sling.auth.corei.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
   public AuthenticationInfo extractCredentials(HttpServletRequest request,
       HttpServletResponse response) {
-    
+
     LOGGER.debug("Calling TrustedAuthenticationHandler extractCredentials ");
     // check for existing authentication information in the request
     Object auth = request.getAttribute(RA_AUTHENTICATION_TRUST);
@@ -97,7 +99,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
         Object authInfo = request.getAttribute(RA_AUTHENTICATION_INFO);
         if ( authInfo instanceof AuthenticationInfo ) {
           AuthenticationInfo authenticationInfo = (AuthenticationInfo) authInfo;
-          Credentials credentials = (Credentials)authenticationInfo.get(AuthenticationInfo.CREDENTIALS);
+          Credentials credentials = (Credentials)authenticationInfo.get(AUTHENTICATION_INFO_CREDENTIALS);
           if ( credentials instanceof SimpleCredentials ) {
             LOGGER.debug("Got AuthInfo {} credentials {} ",authInfo, credentials);
             return authenticationInfo;
@@ -106,7 +108,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
           }
         } else {
           LOGGER.debug("Authentication Info not AuthenticationInfo :{} ",authInfo);
-          
+
         }
       } else {
         LOGGER.debug("Authentication not trusted {} ", auth);
@@ -121,7 +123,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
 
       // construct the authentication info and store credentials on the request
       AuthenticationInfo authInfo = new AuthenticationInfo(TRUSTED_AUTH);
-      authInfo.put(AuthenticationInfo.CREDENTIALS, trustedAuthentication.getCredentials());
+      authInfo.put(AUTHENTICATION_INFO_CREDENTIALS, trustedAuthentication.getCredentials());
       request.setAttribute(RA_AUTHENTICATION_INFO, authInfo);
       LOGGER.debug("Trusted Authentication is valid {} ",trustedAuthentication);
       return authInfo;
@@ -134,8 +136,8 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
 
   /**
    * {@inheritDoc}
-   * 
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest,
+   *
+   * @see orgorg.apache.sling.auth.coreuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
   @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="BC_VACUOUS_INSTANCEOF",justification="Could be injected from annother bundle")
@@ -151,8 +153,8 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
 
   /**
    * {@inheritDoc}
-   * 
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest,
+   *
+   * @see org.aporg.apache.sling.auth.coreenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
   public boolean requestCredentials(HttpServletRequest arg0, HttpServletResponse arg1)
@@ -189,8 +191,8 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
     Credentials getCredentials() {
       return cred;
     }
-    
-    
+
+
 
     boolean isValid() {
       return cred != null;

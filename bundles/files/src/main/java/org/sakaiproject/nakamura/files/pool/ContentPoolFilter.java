@@ -45,12 +45,11 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
- * This filter enforces privacy on certain paths. /_user subtree, /_group subtree and /
- * unless admin is the user, or a the HomeResourceProvider resolved the request.
+ * This filter enforces privacy on the /_p subtree unless admin is the user.
  * </p>
  */
 @Service(value = Filter.class)
-@Component(name = "org.sakaiproject.nakamura.files.pool.ContentPoolFilter", immediate = true, metatype = true, description = "%contentfilter.description", label = "%contentfilter.name")
+@Component(immediate = true, description = "%contentfilter.description", label = "%contentfilter.name")
 @Properties(value = { @Property(name = "service.description", value = "Content Filter"),
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "filter.scope", value = "request", propertyPrivate = true),
@@ -80,9 +79,9 @@ public class ContentPoolFilter implements Filter {
   }
 
   /**
-   * 
-   * If the path is /, /_user, /_group then access is protected.
-   * 
+   *
+   * If the path is /, /_p then access is protected.
+   *
    * @param srequest
    * @param resourceNode
    * @return
@@ -114,7 +113,7 @@ public class ContentPoolFilter implements Filter {
       if ( node == null ) {
         return false; // webdav
       }
-      LOGGER.info("/_user and /_group are protected ");
+      LOGGER.debug("/_p protected ");
       return true;
     }
 

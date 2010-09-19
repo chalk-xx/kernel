@@ -50,7 +50,7 @@ public class MessageAuthorizablePostProcessorTest {
     when(info.getResourcePath()).thenReturn("/wrong/path");
     when(request.getRequestPathInfo()).thenReturn(info);
 
-    proc.process(group, session, Modification.onCreated("/wrong/path"));
+    proc.process(group, session, Modification.onCreated("/wrong/path"), null);
   }
 
 // we cant test this becuase we need a principal manager, and that is part Acl Utils  @Test
@@ -75,6 +75,6 @@ public class MessageAuthorizablePostProcessorTest {
     when(userManager.getAuthorizable("newUserID")).thenReturn(null);
     when(session.getUserManager()).thenReturn(userManager);
 
-    proc.process(user, session, Modification.onCreated(UserConstants.SYSTEM_USER_MANAGER_USER_PATH+"newUserID"));
+    proc.process(user, session, Modification.onCreated(UserConstants.SYSTEM_USER_MANAGER_USER_PATH+"newUserID"), null);
   }
 }

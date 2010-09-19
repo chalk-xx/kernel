@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 @Service(value = ProxyPreProcessor.class)
-@Component(name = "RSSProxyPreProcessor", label = "ProxyPreProcessor for RSS", description = "Pre processor for RSS requests.", immediate = true)
+@Component(label = "ProxyPreProcessor for RSS", description = "Pre processor for RSS requests.", immediate = true)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai foundation"),
     @Property(name = "service.description", value = "Pre processor who removes all headers from the request.") })

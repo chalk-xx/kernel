@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import org.apache.commons.lang.CharEncoding;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -36,6 +37,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.files.search.FileSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -52,20 +54,42 @@ import javax.jcr.query.QueryManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "TagServlet", shortDescription = "Get information about a tag.", description = {
-    "This servlet is able to give all the necessary information about tags.",
-    "It's able to give json feeds for the childtags, parent tags or give a dump of the files who are tagged with this tag." }, bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/tag" }, extensions = @ServiceExtension(name = "json", description = "This servlet outputs JSON data."), selectors = {
-    @ServiceSelector(name = "children", description = "Will dump all the children of this tag."),
-    @ServiceSelector(name = "parents", description = "Will dump all the parents of this tag."),
-    @ServiceSelector(name = "tagged", description = "Will dump all the files who are tagged with this tag.") }) }, methods = { @ServiceMethod(name = "GET", description = { "This servlet only responds to GET requests." }, parameters = {}, response = {
-    @ServiceResponse(code = 200, description = "Succesfull request, json can be found in the body"),
-    @ServiceResponse(code = 500, description = "Failure to retrieve tags or files, an explanation can be found in the HTMl.") }) }
+@ServiceDocumentation(name = "TagServlet", shortDescription = "Get information about a tag.",
+    description = {
+      "This servlet is able to give all the necessary information about tags.",
+      "It's able to give json feeds for the childtags, parent tags or give a dump of the files who are tagged with this tag.",
+      "Must specify a selector of children, parents, tagged. tidy, {number} are optional and ineffective by themselves."
+    },
+    bindings = {
+      @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/tag" },
+          extensions = @ServiceExtension(name = "json", description = "This servlet outputs JSON data."),
+          selectors = {
+            @ServiceSelector(name = "children", description = "Will dump all the children of this tag."),
+            @ServiceSelector(name = "parents", description = "Will dump all the parents of this tag."),
+            @ServiceSelector(name = "tagged", description = "Will dump all the files who are tagged with this tag."),
+            @ServiceSelector(name = "tidy", description = "Optional sub-selector. Will send back 'tidy' output."),
+            @ServiceSelector(name = "{number}", description = "Optional sub-selector. Specifies the depth of data to output.")
+          }
+      )
+    },
+    methods = {
+      @ServiceMethod(name = "GET",  parameters = {},
+          description = { "This servlet only responds to GET requests." },
+          response = {
+            @ServiceResponse(code = 200, description = "Succesful request, json can be found in the body"),
+            @ServiceResponse(code = 500, description = "Failure to retrieve tags or files, an explanation can be found in the HTMl.")
+          }
+      )
+    }
 )
-@SlingServlet(extensions = { "json" }, generateComponent = true, generateService = true, methods = { "GET" }, resourceTypes = { "sakai/tag" }, selectors = {
-    "children", "parents", "tagged" })
+@SlingServlet(extensions = { "json" }, generateComponent = true, generateService = true,
+    methods = { "GET" }, resourceTypes = { "sakai/tag" },
+    selectors = {"children", "parents", "tagged" }
+)
 @Properties(value = {
     @Property(name = "service.description", value = "Provides support for file tagging."),
-    @Property(name = "service.vendor", value = "The Sakai Foundation") })
+    @Property(name = "service.vendor", value = "The Sakai Foundation")
+})
 public class TagServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = -8815248520601921760L;
@@ -75,9 +99,12 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
   private transient FileSearchBatchResultProcessor proc;
 
+  @Reference
+  protected transient SearchServiceFactory searchServiceFactory;
+
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -85,17 +112,43 @@ public class TagServlet extends SlingSafeMethodsServlet {
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
 
-    String selector = request.getRequestPathInfo().getSelectorString();
+    // digest the selectors to determine if we should send a tidy result
+    // or if we need to traverse deeper into the tagged node.
+    boolean tidy = false;
+    int depth = 0;
+    String[] selectors = request.getRequestPathInfo().getSelectors();
+    String selector = null;
+    for (String sel : selectors) {
+      if ("tidy".equals(sel)) {
+        tidy = true;
+      } else if ("infinity".equals(sel)) {
+        depth = -1;
+      } else {
+        // check if the selector is telling us the depth of detail to return
+        Integer d = null;
+        try { d = Integer.parseInt(sel); } catch (NumberFormatException e) {}
+        if (d != null) {
+          depth = d;
+        } else {
+          selector = sel;
+        }
+      }
+    }
+
     JSONWriter write = new JSONWriter(response.getWriter());
+    write.setTidy(tidy);
     Node tag = request.getResource().adaptTo(Node.class);
+
     try {
       if ("children".equals(selector)) {
         sendChildren(tag, write);
       } else if ("parents".equals(selector)) {
         sendParents(tag, write);
       } else if ("tagged".equals(selector)) {
-        sendFiles(tag, request, write);
+        sendFiles(tag, request, write, depth);
       }
+      response.setContentType("application/json");
+      response.setCharacterEncoding(CharEncoding.UTF_8);
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } catch (RepositoryException e) {
@@ -113,8 +166,8 @@ public class TagServlet extends SlingSafeMethodsServlet {
    * @throws JSONException
    * @throws SearchException
    */
-  protected void sendFiles(Node tag, SlingHttpServletRequest request, JSONWriter write)
-      throws RepositoryException, JSONException, SearchException {
+  protected void sendFiles(Node tag, SlingHttpServletRequest request, JSONWriter write,
+      int depth) throws RepositoryException, JSONException, SearchException {
     // We expect tags to be referencable, if this tag is not..
     // it will throw an exception.
     String uuid = tag.getIdentifier();
@@ -131,8 +184,9 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
     // For good measurement
     if (proc == null) {
-      proc = new FileSearchBatchResultProcessor(siteService);
+      proc = new FileSearchBatchResultProcessor(siteService, searchServiceFactory);
     }
+    proc.setDepth(depth);
 
     SearchResultSet rs = proc.getSearchResultSet(request, query);
     write.array();
@@ -142,7 +196,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
   /**
    * Write all the parent tags of the passed in tag.
-   * 
+   *
    * @param tag
    *          The tag that should be sent and get it's children parsed.
    * @param write
@@ -171,7 +225,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
   /**
    * Write all the child tags of the passed in tag.
-   * 
+   *
    * @param tag
    *          The tag that should be sent and get it's children parsed.
    * @param write

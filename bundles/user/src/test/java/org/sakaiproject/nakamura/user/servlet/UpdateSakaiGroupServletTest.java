@@ -15,6 +15,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.easymock.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
@@ -40,30 +41,31 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     usgs.bindRepository(slingRepository);
     JackrabbitSession session = createMock(JackrabbitSession.class);
     AuthorizablePostProcessService authorizablePostProcessService = createMock(AuthorizablePostProcessService.class);
-    
+
     expect(authorizable.isGroup()).andReturn(true).times(2);
-    expect(authorizable.getID()).andReturn("g-foo").times(5);
+    expect(authorizable.getID()).andReturn("g-foo").anyTimes();
     expect(authorizable.hasProperty(UserConstants.PROP_GROUP_MANAGERS)).andReturn(false);
     expect(authorizable.hasProperty(UserConstants.PROP_GROUP_VIEWERS)).andReturn(false);
+    expect(authorizable.hasProperty(UserConstants.PROP_JOINABLE_GROUP)).andReturn(false);
 
     Resource resource = createMock(Resource.class);
     expect(resource.adaptTo(Authorizable.class)).andReturn(authorizable);
 
     UserManager userManager = createMock(UserManager.class);
-    
+
 
     expect(session.getUserManager()).andReturn(userManager).anyTimes();
-    
-    
-    
-    
+
+
+
+
     expect(session.hasPendingChanges()).andReturn(true);
     session.save();
     expectLastCall();
 
     ResourceResolver rr = createMock(ResourceResolver.class);
     expect(rr.adaptTo(Session.class)).andReturn(session).anyTimes();
-    
+
 
     Vector<String> params = new Vector<String>();
     HashMap<String, RequestParameter[]> rpm = new HashMap<String, RequestParameter[]>();
@@ -82,17 +84,18 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(request.getParameterValues(":manager")).andReturn(new String[] {});
     expect(request.getParameterValues(":viewer@Delete")).andReturn(new String[] {});
     expect(request.getParameterValues(":viewer")).andReturn(new String[] {});
-    
-    authorizablePostProcessService.process((Authorizable)EasyMock.anyObject(),(Session)EasyMock.anyObject(),(Modification)EasyMock.anyObject());
+
+    authorizablePostProcessService.process((Authorizable)EasyMock.anyObject(),(Session)EasyMock.anyObject(),
+        (ModificationType)EasyMock.anyObject(), (SlingHttpServletRequest)EasyMock.anyObject());
     expectLastCall();
-    
+
     HtmlResponse response = new HtmlResponse();
 
     replay();
-    
+
     usgs.postProcessorService = authorizablePostProcessService;
     usgs.handleOperation(request, response, changes);
-    
+
     verify();
   }
 }

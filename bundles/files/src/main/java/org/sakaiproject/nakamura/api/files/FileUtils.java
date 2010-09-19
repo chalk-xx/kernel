@@ -68,7 +68,7 @@ public class FileUtils {
   /**
    * Create a link to a file. There is no need to call a session.save, the change is
    * persistent.
-   * 
+   *
    * @param fileNode
    *          The node that represents the file. This node has to be retrieved via the
    *          normal user his {@link Session session}. If the userID equals
@@ -94,7 +94,7 @@ public class FileUtils {
       throw new AccessDeniedException();
     }
 
-    boolean hasMixin = JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN);
+    boolean hasMixin = JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN) && fileNode.canAddMixin(REQUIRED_MIXIN);
     // If the fileNode doesn't have the required referenceable mixin, we need to set it.
     // Also, if we want to link this file into a site. We have to be
     if (!hasMixin || sitePath != null) {
@@ -136,7 +136,9 @@ public class FileUtils {
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
     if (!"sling:Folder".equals(linkNode.getPrimaryNodeType().getName())) {
       // sling folder allows single and multiple properties, no need for the mixin.
-      linkNode.addMixin(REQUIRED_MIXIN);
+      if ( linkNode.canAddMixin(REQUIRED_MIXIN) ) {
+        linkNode.addMixin(REQUIRED_MIXIN);
+      }
     }
     linkNode
         .setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, RT_SAKAI_LINK);
@@ -152,8 +154,9 @@ public class FileUtils {
 
   /**
    * Writes all the properties of a sakai/file node. Also checks what the permissions are
-   * for a session and where the links are.
-   * 
+   * for a session and where the links are.<br/>
+   * Same as calling {@link #writeFileNode(Node, Session, JSONWriter, SiteService, 0)}
+   *
    * @param node
    * @param write
    * @throws JSONException
@@ -161,9 +164,28 @@ public class FileUtils {
    */
   public static void writeFileNode(Node node, Session session, JSONWriter write,
       SiteService siteService) throws JSONException, RepositoryException {
+    writeFileNode(node, session, write, siteService, 0);
+  }
+
+  /**
+   * Writes all the properties of a sakai/file node. Also checks what the permissions are
+   * for a session and where the links are.
+   *
+   * @param node
+   * @param write
+   * @param objectInProgress
+   *          Whether object creation is in progress. If false, object is started and
+   *          ended in this method call.
+   * @throws JSONException
+   * @throws RepositoryException
+   */
+  public static void writeFileNode(Node node, Session session, JSONWriter write,
+      SiteService siteService, int maxDepth) throws JSONException, RepositoryException {
+
     write.object();
+
     // dump all the properties.
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
+    ExtendedJSONWriter.writeNodeTreeToWriter(write, node, true, maxDepth);
     // The permissions for this session.
     writePermissions(node, session, write);
 
@@ -189,7 +211,7 @@ public class FileUtils {
 
   /**
    * Writes all the properties for a linked node.
-   * 
+   *
    * @param node
    * @param write
    * @param siteService
@@ -221,7 +243,7 @@ public class FileUtils {
 
   /**
    * Gives the permissions for this user.
-   * 
+   *
    * @param node
    * @param session
    * @param write
@@ -244,7 +266,7 @@ public class FileUtils {
 
   /**
    * Checks if the current user has a permission on a path.
-   * 
+   *
    * @param session
    * @param path
    * @param permission
@@ -263,7 +285,7 @@ public class FileUtils {
 
   /**
    * Gets all the sites where this file is used and parses the info for it.
-   * 
+   *
    * @param node
    * @param write
    * @throws RepositoryException
@@ -292,7 +314,7 @@ public class FileUtils {
         String path = v.getString();
         if (!handledSites.contains(path)) {
           handledSites.add(path);
-          Node siteNode = (Node) session.getNodeByIdentifier(v.getString());
+          Node siteNode = session.getNodeByIdentifier(v.getString());
 
           boolean hasAccess = acm.hasPrivileges(path, privs);
           if (siteService.isSite(siteNode) && hasAccess) {
@@ -315,7 +337,7 @@ public class FileUtils {
 
   /**
    * Parses the info for a site.
-   * 
+   *
    * @param siteNode
    * @param write
    * @throws JSONException
@@ -332,7 +354,7 @@ public class FileUtils {
 
   /**
    * Check if a node is a proper sakai tag.
-   * 
+   *
    * @param node
    *          The node to check if it is a tag.
    * @return true if the node is a tag, false if it is not.
@@ -350,7 +372,7 @@ public class FileUtils {
   /**
    * Add's a tag on a node. If the tag has a name defined in the {@link Property property}
    * sakai:tag-name it will be added in the fileNode as well.
-   * 
+   *
    * @param adminSession
    *          The session that can be used to modify the fileNode.
    * @param fileNode
@@ -372,7 +394,9 @@ public class FileUtils {
     // Check if the mixin is on the node.
     // This is nescecary for nt:file nodes.
     if (!JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN)) {
-      fileNode.addMixin(REQUIRED_MIXIN);
+      if ( fileNode.canAddMixin(REQUIRED_MIXIN)) {
+        fileNode.addMixin(REQUIRED_MIXIN);
+      }
     }
 
     // Add the reference from the tag to the node.
@@ -389,10 +413,39 @@ public class FileUtils {
   }
 
   /**
+   * Delete a tag from a node.
+   *
+   * @param adminSession
+   * @param fileNode
+   * @param tagNode
+   * @throws RepositoryException
+   */
+  public static void deleteTag(Session adminSession, Node fileNode, Node tagNode)
+      throws RepositoryException {
+    if (tagNode == null || fileNode == null) {
+      throw new RuntimeException("Can't delete tag from non existent nodes. File:"
+          + fileNode + " Node To Tag:" + tagNode);
+    }
+    // Grab the node via the adminSession
+    String path = fileNode.getPath();
+    fileNode = (Node) adminSession.getItem(path);
+
+    // Add the reference from the tag to the node.
+    String tagUuid = tagNode.getIdentifier();
+    String tagName = tagNode.getName();
+    if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
+      tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
+    }
+
+    JcrUtils.deleteValue(adminSession, fileNode, SAKAI_TAG_UUIDS, tagUuid);
+    JcrUtils.deleteValue(adminSession, fileNode, SAKAI_TAGS, tagName);
+  }
+
+  /**
    * Resolves a Node given one of three possible passed parameters: 1) A fully qualified
    * path to a Node (e.g. "/foo/bar/baz"), 2) a Node's UUID, or 3) the PoolId from a
    * ContentPool.
-   * 
+   *
    * @param pathOrIdentifier
    *          One of three possible parameters: 1) A fully qualified path to a Node (e.g.
    *          "/foo/bar/baz"), 2) a Node's UUID, or 3) the PoolId from a ContentPool.
@@ -413,7 +466,12 @@ public class FileUtils {
         node = session.getNode(pathOrIdentifier);
       } else {
         // assume we have a UUID and try to resolve
-        node = session.getNodeByIdentifier(pathOrIdentifier);
+        try {
+          node = session.getNodeByIdentifier(pathOrIdentifier);
+        } catch (RepositoryException e) {
+          log.debug("Swallowed exception; i.e. normal operation: {}",
+              e.getLocalizedMessage(), e);
+        }
       }
     } catch (PathNotFoundException e) {
       // Normal execution path - ignore
@@ -425,7 +483,7 @@ public class FileUtils {
     if (node == null) {
       // must not have been a UUID; resolve via poolId
       try {
-        // 
+        //
         final String poolPath = CreateContentPoolServlet.hash(pathOrIdentifier);
         node = session.getNode(poolPath);
       } catch (PathNotFoundException e) {

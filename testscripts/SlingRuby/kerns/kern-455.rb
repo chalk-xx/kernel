@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
+require 'ruby-lib-dir.rb'
+
 require 'sling/test'
 require 'sling/search'
 require 'test/unit.rb'
@@ -34,7 +37,7 @@ class TC_Kern455Test < Test::Unit::TestCase
     
 	# check what happens when we try and post to a file, check for hashed path creation
 	testnode = "#{privateFolder}/testnode#{m}"
-	res = @s.execute_post(@s.url_for(testnode),{"testprop", "test" })
+	res = @s.execute_post(@s.url_for(testnode),{"testprop" => "test" })
 	assert_equal(res.code.to_i, 201, "Expected the node to be created "+res.body)
 		
 	assert_equal((res.body.include?"created(\"/_user/a/ad/admin/private/testnode#{m}\""), true, "Expected to find hashed created path "+res.body)
@@ -50,7 +53,7 @@ class TC_Kern455Test < Test::Unit::TestCase
 
 	# check that the deep create funtionality is working for the admin user.
 	testnode = "#{privateFolder}/test/n/o/d/e/#{m}"
-	res = @s.execute_post(@s.url_for(testnode),{"testprop", "test" })
+	res = @s.execute_post(@s.url_for(testnode),{"testprop" => "test" })
 	assert_equal(res.code.to_i, 201, "Expected the node to be created "+res.body)
 		
 	assert_equal((res.body.include?"created(\"/_user/a/ad/admin/private/test/n/o/d/e/#{m}\""), true, "Expected to find hashed created path "+res.body)
@@ -75,7 +78,7 @@ class TC_Kern455Test < Test::Unit::TestCase
 
 	# check what happens when we try and post to a file, check for hashed path creation
 	testnode = "#{privateFolder}/testnode#{m}"
-	res = @s.execute_post(@s.url_for(testnode),{"testprop", "test" })
+	res = @s.execute_post(@s.url_for(testnode),{"testprop" => "test" })
 	assert_equal(res.code.to_i, 201, "Expected the node to be created "+res.body)
 	
 	res = @s.execute_get(@s.url_for(testnode+".json"))
@@ -86,7 +89,7 @@ class TC_Kern455Test < Test::Unit::TestCase
 
 	# check that the deep create funtionality is working for the admin user.
 	testnode = "#{privateFolder}/test/n/o/d/e/#{m}"
-	res = @s.execute_post(@s.url_for(testnode),{"testprop", "test" })
+	res = @s.execute_post(@s.url_for(testnode),{"testprop" => "test" })
 	assert_equal(res.code.to_i, 201, "Expected the node to be created "+res.body)
 		
 	res = @s.execute_get(@s.url_for(testnode+".json"))

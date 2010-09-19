@@ -29,8 +29,18 @@ import javax.jcr.Node;
 public interface ProfileProvider {
 
   /**
-   * Generate a Map of Nodes to Future Maps for this provider, where the Future Map will replace the node subtree at the Node referenced in the map.
-   * @param list a list of {@link ProviderSettings} to be processed efficiently as a batch operation.
+   * The name of the Profile Provider. This has to match the property set on the node at
+   * /var/profile/providersByName/**
+   */
+  static final String PROVIDER_NAME = "sakai.profile.provider.name";
+
+  /**
+   * Generate a Map of Nodes to Future Maps for this provider, where the Future Map will
+   * replace the node subtree at the Node referenced in the map.
+   *
+   * @param list
+   *          a list of {@link ProviderSettings} to be processed efficiently as a batch
+   *          operation.
    * @return
    */
   Map<? extends Node, ? extends Future<Map<String, Object>>> getProvidedMap(

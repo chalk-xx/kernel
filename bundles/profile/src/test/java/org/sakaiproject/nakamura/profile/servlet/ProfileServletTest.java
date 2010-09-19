@@ -41,7 +41,7 @@ import javax.servlet.ServletException;
  */
 public class ProfileServletTest {
 
-  
+
   private ProfileServiceImplTest profileServiceImpleTest;
   @Mock
   private SlingHttpServletRequest request;
@@ -51,14 +51,14 @@ public class ProfileServletTest {
   private Resource resource;
 
   /**
-   * 
+   *
    */
   public ProfileServletTest() {
    MockitoAnnotations.initMocks(this);
    profileServiceImpleTest = new ProfileServiceImplTest();
    MockitoAnnotations.initMocks(profileServiceImpleTest);
   }
-  
+
   @Test
   public void testGet() throws ServletException, RepositoryException, InterruptedException, ExecutionException, IOException, JSONException {
     ProfileServlet profileServlet = new ProfileServlet();
@@ -68,10 +68,10 @@ public class ProfileServletTest {
     Mockito.when(response.getWriter()).thenReturn(new PrintWriter(w));
     Mockito.when(request.getResource()).thenReturn(resource);
     Mockito.when(resource.adaptTo(Node.class)).thenReturn(profileServiceImpleTest.getBaseNode());
-    
+
     profileServlet.doGet(request, response);
-    
+
     profileServiceImpleTest.checkResponse(w);
   }
-  
+
 }

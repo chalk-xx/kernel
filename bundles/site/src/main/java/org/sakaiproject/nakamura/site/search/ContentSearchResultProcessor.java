@@ -22,6 +22,7 @@ import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
@@ -32,6 +33,7 @@ import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.RowUtils;
@@ -42,7 +44,7 @@ import javax.jcr.Session;
 import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 
-@Component(immediate = true, name = "ContentSearchResultProcessor", label = "ContentSearchResultProcessor")
+@Component(immediate = true, label = "ContentSearchResultProcessor")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Formats search results for content nodes in sites."),
@@ -51,6 +53,10 @@ import javax.jcr.query.Row;
 public class ContentSearchResultProcessor implements SearchResultProcessor {
 
   private SearchResultProcessorTracker tracker;
+
+  @Reference
+  private SearchServiceFactory searchServiceFactory;
+
 
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
@@ -86,13 +92,13 @@ public class ContentSearchResultProcessor implements SearchResultProcessor {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
       Query query) throws SearchException {
-    return SearchUtil.getSearchResultSet(request, query);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
   private void dumpProperties(SlingHttpServletRequest request,
@@ -109,7 +115,8 @@ public class ContentSearchResultProcessor implements SearchResultProcessor {
     write.key("excerpt");
     write.value(RowUtils.getDefaultExcerpt(row));
     write.key("data");
-    ExtendedJSONWriter.writeNodeToWriter(write, node);
+    int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
+    ExtendedJSONWriter.writeNodeTreeToWriter(write, node, maxTraversalDepth);
     write.endObject();
   }
 

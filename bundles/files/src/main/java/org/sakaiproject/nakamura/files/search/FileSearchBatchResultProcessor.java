@@ -31,14 +31,12 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
-import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
 import org.sakaiproject.nakamura.api.search.Aggregator;
-import org.sakaiproject.nakamura.api.search.RowIteratorImpl;
-import org.sakaiproject.nakamura.api.search.SakaiSearchRowIterator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.RowUtils;
@@ -59,7 +57,7 @@ import javax.jcr.query.RowIterator;
 
 /**
  * Formats the files search results.
- * 
+ *
  */
 
 @Component(immediate = true, label = "FileSearchBatchResultProcessor", description = "Formatter for file searches")
@@ -74,19 +72,31 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
   @Reference
   protected transient SiteService siteService;
 
+  @Reference
+  private SearchServiceFactory searchServiceFactory;
+
+  // how deep to traverse the file structure
+  private int depth = 0;
+
   /**
    * @param siteService
    */
-  public FileSearchBatchResultProcessor(SiteService siteService) {
+  public FileSearchBatchResultProcessor(SiteService siteService,
+      SearchServiceFactory searchServiceFactory) {
     this.siteService = siteService;
+    this.searchServiceFactory = searchServiceFactory;
   }
 
   public FileSearchBatchResultProcessor() {
   }
 
+  public void setDepth(int depth) {
+    this.depth = depth;
+  }
+
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
@@ -99,11 +109,11 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
 
       // Extract the total hits from lucene
       long hits = SearchUtil.getHits(rs);
-      long nitems = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+      long nitems = SearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
           SearchConstants.DEFAULT_PAGED_ITEMS);
 
       // Do the paging on the iterator.
-      SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(rs.getRows());
+      RowIterator iterator = searchServiceFactory.getPathFilteredRowIterator(rs.getRows());
       long start = SearchUtil.getPaging(request, hits);
       iterator.skip(start);
 
@@ -142,10 +152,10 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
         i++;
       }
 
-      RowIterator newIterator = new RowIteratorImpl(savedRows);
+      RowIterator newIterator = searchServiceFactory.getRowIteratorFromList(savedRows);
 
       // Return the result set.
-      SearchResultSet srs = new AbstractSearchResultSet(newIterator, hits);
+      SearchResultSet srs = searchServiceFactory.getSearchResultSet(newIterator, hits);
       return srs;
     } catch (RepositoryException e) {
       throw new SearchException(500, "Unable to perform query.");
@@ -154,7 +164,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor#writeNodes(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.commons.json.io.JSONWriter,
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.RowIterator)
@@ -177,7 +187,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
 
   /**
    * Write the nodes in the node iterator confirming this batchprocessor default output.
-   * 
+   *
    * @param request
    *          The request.
    * @param write
@@ -205,7 +215,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
 
   /**
    * Give a JSON representation of the file node.
-   * 
+   *
    * @param node
    *          The node
    * @param session
@@ -225,7 +235,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
     if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
       FileUtils.writeLinkNode(node, session, write, siteService);
     } else {
-      FileUtils.writeFileNode(node, session, write, siteService);
+      FileUtils.writeFileNode(node, session, write, siteService, depth);
     }
   }
 }

@@ -26,14 +26,16 @@ import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 
 /**
- * 
+ *
  */
 public interface SearchResultProcessor {
+
+  String DEFAULT_PROCESSOR_PROP = "sakai.search.processor.default";
 
   /**
    * The SearchServlet will already have sent a partial JSON response. This processor
    * should continue using the JSON format.
-   * 
+   *
    * @param request
    *          The request that was issued for this search.
    * @param write
@@ -51,7 +53,7 @@ public interface SearchResultProcessor {
 
   /**
    * Prepare the resultset
-   * 
+   *
    * @param request
    *          The request that triggered the search.
    * @param query

@@ -2,14 +2,15 @@ package org.sakaiproject.nakamura.email.outgoing;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.resource.JcrResourceResolverFactory;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -22,8 +23,10 @@ import org.subethamail.wiser.WiserMessage;
 
 import java.io.ByteArrayInputStream;
 import java.net.BindException;
+import java.util.Map;
 import java.util.Properties;
 
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.Property;
@@ -76,13 +79,13 @@ public class OutgoingEmailMessageListenerTest {
     ResourceResolver rr = createMock(ResourceResolver.class);
     expect(rr.getResource(PATH)).andReturn(res);
 
-    JcrResourceResolverFactory jrrf = createMock(JcrResourceResolverFactory.class);
-    expect(jrrf.getResourceResolver(adminSession)).andReturn(rr);
+    ResourceResolverFactory rrf = createMock(ResourceResolverFactory.class);
+    expect(rrf.getResourceResolver(isA(Map.class))).andReturn(rr);
 
-    oeml.bindJcrResourceResolverFactory(jrrf);
+    oeml.bindResourceResolverFactory(rrf);
     oeml.bindRepository(repository);
 
-    replay(ctx, adminSession, res, rr, jrrf, repository);
+    replay(ctx, adminSession, res, rr, rrf, repository);
 
     connFactoryService.activateForTest(ctx);
     oeml.activate(ctx);
@@ -468,9 +471,11 @@ public class OutgoingEmailMessageListenerTest {
     expect(descProp.getString()).andReturn("Digital signature");
 
     Property contentProp = createMock(Property.class);
-    expect(contentProp.getStream()).andReturn(
+    Binary contentBin = createMock(Binary.class);
+    expect(contentBin.getStream()).andReturn(
         new ByteArrayInputStream("----BEGIN FAKE PGP SIGNATURE----".getBytes()))
         .anyTimes();
+    expect(contentProp.getBinary()).andReturn(contentBin).anyTimes();
 
     Property ctProp = createMock(Property.class);
     expect(ctProp.getString()).andReturn("applica/pgp-signat").anyTimes();
@@ -519,7 +524,7 @@ public class OutgoingEmailMessageListenerTest {
             MessageConstants.BOX_SENT)).andReturn(null);
 
     replay(message, messageNode, boxName, toProp, fromProp, descProp, contentProp,
-        ctProp, childNode, nodeType, nodeIterator);
+        contentBin, ctProp, childNode, nodeType, nodeIterator);
 
     oeml.onMessage(message);
 

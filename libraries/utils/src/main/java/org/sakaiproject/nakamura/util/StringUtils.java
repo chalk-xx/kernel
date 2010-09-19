@@ -28,6 +28,9 @@ public class StringUtils {
 
   private static final char[] TOHEX = "0123456789abcdef".toCharArray();
   public static final String UTF8 = "UTF8";
+  
+  public static final char[] URL_SAFE_ENCODING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+    .toCharArray();
 
   /**
    * @param st

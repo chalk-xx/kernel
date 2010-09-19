@@ -41,29 +41,29 @@ import java.util.Map;
  * match the far end. At the moment this component is configured to be a singleton service
  * but if this mechanism of authenticating proxies becomes wide spread we may want this
  * class to be come a service factory so that we can support many trust relationships.
- * 
+ *
  */
 @Service(value = ProxyPreProcessor.class)
-@Component(description = "Pre processor for proxy requests to a Sakai 2 Instance with a Trusted Token filter", metatype = true, immediate = true, label = "TrustedTokenProxyPreProcessor")
+@Component(metatype = true, immediate = true)
 @Properties(value = {
     @Property(name = "service.description", value = { "Pre processor for proxy requests to Sakai 2 instance with a trusted token filter." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
 public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
-  
+
   public static final String SECURE_TOKEN_HEADER_NAME = "x-sakai-token";
   public static final String TOKEN_SEPARATOR = ";";
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(TrustedLoginTokenProxyPreProcessor.class);
 
-  @Property(name = "sharedSecret", description = "This is the secret shared between the target http endpoint")
+  @Property(name = "sharedSecret")
   private String sharedSecret = "e2KS54H35j6vS5Z38nK40";
 
-  @Property(name = "port", description = "This is the port where sakai2 runs on (default = 80).", intValue = 80)
-  private int port;
-  
-  @Property(name = "hostname", description = "This is the hostname where sakai2 runs on.", value = {"localhost"})
-  private String hostname;
+  @Property(name = "port", intValue = 80)
+  protected int port;
+
+  @Property(name = "hostname", value = {"localhost"})
+  protected String hostname;
 
   public String getName() {
     return "trusted-token";

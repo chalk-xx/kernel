@@ -221,6 +221,11 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
         if (!testing) {
           // work out the remote server and try there.
           ClusterServer clusterServer = clusterTrackingService.getServer(trackingCookie);
+          if (clusterServer == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                "Cookie could not be found");
+            return;
+          }
           GetMethod method = new GetMethod(clusterServer.getSecureUrl() + node.getPath()
               + ".cookie.json?c=" + URLEncoder.encode(trackingCookie, "UTF-8"));
           method.setFollowRedirects(true);

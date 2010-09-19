@@ -18,6 +18,8 @@
 package org.sakaiproject.nakamura.persondirectory.providers;
 
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProvider;
@@ -36,35 +38,39 @@ import javax.jcr.Node;
 /**
  *
  */
-@Component(immediate=true, 
-    description="A Service Implementation of the Profile Provider that connects to a Person Provider",
-    name="Profile Provider Adapter")
-@Service(value=ProfileProvider.class)
+@Component(immediate = true, description = "A Service Implementation of the Profile Provider that connects to a Person Provider", name = "Profile Provider Adapter")
+@Service()
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "A ProfileProvider that connects to a Person Provider"),
+    @Property(name = ProfileProvider.PROVIDER_NAME, value = "person") })
 public class PersonProfileProviderAdapter implements ProfileProvider {
 
   @Reference
   protected PersonProvider personProvider;
+
   /**
    * {@inheritDoc}
+   *
    * @see org.sakaiproject.nakamura.api.profile.ProfileProvider#getProvidedMap(java.util.List)
    */
   public Map<? extends Node, ? extends Future<Map<String, Object>>> getProvidedMap(
       List<ProviderSettings> list) {
-    
-    Map<Node, Future<Map<String, Object>>> resultMap = new HashMap<Node, Future<Map<String,Object>>>();
-    
-    for ( ProviderSettings s : list ) {
+
+    Map<Node, Future<Map<String, Object>>> resultMap = new HashMap<Node, Future<Map<String, Object>>>();
+
+    for (ProviderSettings s : list) {
       Node n = s.getNode();
       try {
         Map<String, Object> profile = personProvider.getProfileSection(n);
-        resultMap.put(n, new ImmediateFuture<Map<String,Object>>(profile));
+        resultMap.put(n, new ImmediateFuture<Map<String, Object>>(profile));
       } catch (PersonProviderException e) {
         Map<String, Object> profileError = new HashMap<String, Object>();
         profileError.put("error", e.getMessage());
-        resultMap.put(n, new ImmediateFuture<Map<String,Object>>(profileError));
+        resultMap.put(n, new ImmediateFuture<Map<String, Object>>(profileError));
       }
     }
-    
+
     return resultMap;
   }
 

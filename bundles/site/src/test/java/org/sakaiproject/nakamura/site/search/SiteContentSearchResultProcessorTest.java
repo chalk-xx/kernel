@@ -24,6 +24,7 @@ import junit.framework.Assert;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -38,9 +39,11 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.search.Aggregator;
+import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.site.SiteService;
-import org.sakaiproject.nakamura.search.processors.PageSearchResultProcessor;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.StringWriter;
@@ -51,6 +54,7 @@ import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
+import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
 
@@ -59,14 +63,14 @@ import javax.jcr.query.RowIterator;
  */
 public class SiteContentSearchResultProcessorTest extends AbstractEasyMockTest {
 
+  @Override
   @Before
   public void setUp() throws Exception {
     super.setUp();
   }
 
   @Test
-  public void testResultWithResourceType() throws RepositoryException,
-      InvalidSyntaxException {
+  public void testResultWithResourceType() throws Exception {
 
     String excerpt = "foobar";
     RequestParameter itemsParam = createMock(RequestParameter.class);
@@ -85,6 +89,7 @@ public class SiteContentSearchResultProcessorTest extends AbstractEasyMockTest {
     expect(row.getValue("jcr:path")).andReturn(valPath).anyTimes();
     expect(row.getValue("rep:excerpt(jcr:content)")).andReturn(valExcerpt);
     Node resultNode = createMock(Node.class);
+    expect(row.getNode()).andReturn(resultNode);
     expect(resultNode.getPath()).andReturn("/sites/physics-101").anyTimes();
     expect(resultNode.getName()).andReturn("physics-101").anyTimes();
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
@@ -128,7 +133,19 @@ public class SiteContentSearchResultProcessorTest extends AbstractEasyMockTest {
 
     SearchResultProcessorTracker tracker = new SearchResultProcessorTracker(
         bundleContext);
-    SearchResultProcessor proc = new PageSearchResultProcessor();
+    SearchResultProcessor proc = new SearchResultProcessor() {
+      public void writeNode(SlingHttpServletRequest request, JSONWriter write,
+          Aggregator aggregator, Row row) throws JSONException, RepositoryException {
+        write.value("value");
+      }
+
+      public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+          Query query) throws SearchException {
+        return null;
+      }
+
+    };
+
     tracker.putProcessor(proc, new String[] { "sakai/page" });
     siteContentSearchResultProcessor.tracker = tracker;
 
@@ -144,6 +161,9 @@ public class SiteContentSearchResultProcessorTest extends AbstractEasyMockTest {
     expect(iterator.nextRow()).andReturn(row);
     expect(iterator.hasNext()).andReturn(false);
     iterator.skip(0);
+
+    RequestPathInfo pathInfo = createNiceMock(RequestPathInfo.class);
+    expect(request.getRequestPathInfo()).andReturn(pathInfo);
 
     replay();
 

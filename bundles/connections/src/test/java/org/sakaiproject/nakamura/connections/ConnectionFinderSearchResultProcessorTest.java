@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.connections;
 
 import static org.junit.Assert.assertEquals;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,12 +25,14 @@ import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
@@ -50,6 +51,8 @@ public class ConnectionFinderSearchResultProcessorTest {
   public void test() throws RepositoryException, JSONException,
       UnsupportedEncodingException {
     ConnectionFinderSearchResultProcessor processor = new ConnectionFinderSearchResultProcessor();
+    SearchServiceFactory searchServiceFactory = mock(SearchServiceFactory.class);
+    processor.searchServiceFactory = searchServiceFactory;
 
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     ResourceResolver resolver = mock(ResourceResolver.class);
@@ -81,6 +84,9 @@ public class ConnectionFinderSearchResultProcessorTest {
     MockNode contactNode = new MockNode("/_user/alice/contacts/bob");
     contactNode.setProperty("sling:resourceType", "sakai/contact");
     when(session.getItem("/_user/alice/contacts/bob")).thenReturn(contactNode);
+
+    RequestPathInfo pathInfo = mock(RequestPathInfo.class);
+    when(request.getRequestPathInfo()).thenReturn(pathInfo);
 
     processor.writeNode(request, write, null, row);
 

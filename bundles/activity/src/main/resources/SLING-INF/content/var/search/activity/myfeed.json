@@ -2,7 +2,6 @@
   "sakai:query-language": "xpath",
   "sakai:query-template": "/{_myFeed}//*[@sling:resourceType='sakai/activity'] order by @{sortOn|jcr:created} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
-  "sakai:resultprocessor": "Activity",
   "sakai:propertyprovider": "Activity",
   "sakai:title": "Activity - My feed.",
   "sakai:shortDescription": "Shows the latest activities for the current user.",

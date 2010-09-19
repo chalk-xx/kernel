@@ -24,19 +24,25 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jackrabbit.usermanager.impl.post.AbstractAuthorizablePostServlet;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.api.user.UserConstants.Joinable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.ValueFactory;
+import javax.jcr.ValueFormatException;
 
 /**
  * Base class for servlets manipulating groups
@@ -44,18 +50,33 @@ import javax.jcr.ValueFactory;
 public abstract class AbstractSakaiGroupPostServlet extends
     AbstractAuthorizablePostServlet {
   private static final long serialVersionUID = 1159063041816944076L;
+  
+  /**
+   * The JCR Repository we access to resolve resources
+   *
+   * @scr.reference
+   */
+  protected transient SlingRepository repository;
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(AbstractSakaiGroupPostServlet.class);
 
   /**
    * Update the group membership based on the ":member" request parameters. If the
    * ":member" value ends with @Delete it is removed from the group membership, otherwise
    * it is added to the group membership.
-   * 
+   *
    * @param request
    * @param authorizable
    * @throws RepositoryException
    */
   protected void updateGroupMembership(SlingHttpServletRequest request,
       Authorizable authorizable, List<Modification> changes) throws RepositoryException {
+    updateGroupMembership(request, authorizable,
+        SlingPostConstants.RP_PREFIX + "member", changes);
+  }
+
+  protected void updateGroupMembership(SlingHttpServletRequest request,
+      Authorizable authorizable, String paramName, List<Modification> changes) throws RepositoryException {
     if (authorizable.isGroup()) {
       Group group = ((Group) authorizable);
       String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
@@ -69,30 +90,65 @@ public abstract class AbstractSakaiGroupPostServlet extends
           .adaptTo(Session.class));
 
       // first remove any members posted as ":member@Delete"
-      String[] membersToDelete = request.getParameterValues(SlingPostConstants.RP_PREFIX
-          + "member" + SlingPostConstants.SUFFIX_DELETE);
+      String[] membersToDelete = request.getParameterValues(paramName + SlingPostConstants.SUFFIX_DELETE);
       if (membersToDelete != null) {
         for (String member : membersToDelete) {
           Authorizable memberAuthorizable = getAuthorizable(baseResource, member,
               userManager, resolver);
           if (memberAuthorizable != null) {
-            group.removeMember(memberAuthorizable);
-            changed = true;
-          }
+            if(resolver.getUserID().equals(memberAuthorizable.getID())){              
+              //since the current user is the member being removed,
+              //we can grab admin session since user should be able to delete themselves from a group
+              Session adminSession = getSession();
+              try{
+                UserManager adminManager = AccessControlUtil.getUserManager(adminSession);
+                Group adminAuthGroup = (Group) adminManager.getAuthorizable(group.getID());
+                if(adminAuthGroup != null){
+                  adminAuthGroup.removeMember(memberAuthorizable);
+                  changed = true;
+                }
 
-        }
+              }finally{
+                ungetSession(adminSession);
+              }
+            }else{
+              //current user is not the member being removed
+              group.removeMember(memberAuthorizable);
+              changed = true;
+            }
+          }
+        }                 
       }
+    
+
+      Joinable groupJoin = getJoinable(group);
 
       // second add any members posted as ":member"
-      String[] membersToAdd = request.getParameterValues(SlingPostConstants.RP_PREFIX
-          + "member");
+      String[] membersToAdd = request.getParameterValues(paramName);
       if (membersToAdd != null) {
         for (String member : membersToAdd) {
           Authorizable memberAuthorizable = getAuthorizable(baseResource, member,
               userManager, resolver);
           if (memberAuthorizable != null) {
-            group.addMember(memberAuthorizable);
-            changed = true;
+            if(Joinable.yes.equals(groupJoin)){          
+              //we can grab admin session since group allows all users to join
+              Session adminSession = getSession();
+              try{
+                UserManager adminManager = AccessControlUtil.getUserManager(adminSession);
+                Group adminAuthGroup = (Group) adminManager.getAuthorizable(group.getID());
+                if(adminAuthGroup != null){
+                  adminAuthGroup.addMember(memberAuthorizable);
+                  changed = true;
+                }
+              }finally{
+                ungetSession(adminSession);
+              }
+            }else{
+              //group is restricted, so use the current user's authorization
+              //to add the member to the group:
+              group.addMember(memberAuthorizable);
+              changed = true;
+            }
           }
         }
       }
@@ -108,7 +164,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
   /**
    * Gets the member, assuming its a principal name, failing that it assumes it a path to
    * the resource.
-   * 
+   *
    * @param member
    *          the token pointing to the member, either a name or a uri
    * @param userManager
@@ -135,8 +191,6 @@ public abstract class AbstractSakaiGroupPostServlet extends
   }
 
   /**
-   * @param session
-   *          the session used to create the group
    * @param request
    *          the request
    * @param group
@@ -154,6 +208,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
         SlingPostConstants.RP_PREFIX + "manager", managers);
     handleAuthorizablesOnProperty(request, group, UserConstants.PROP_GROUP_VIEWERS,
         SlingPostConstants.RP_PREFIX + "viewer", null);
+
   }
 
   /**
@@ -223,6 +278,54 @@ public abstract class AbstractSakaiGroupPostServlet extends
       }
       group.setProperty(propAuthorizables, newPrincipals);
     }
+  }
+
+  /** Returns the JCR repository used by this service. */
+  protected SlingRepository getRepository() {
+    return repository;
+  }
+
+  /**
+   * Returns an administrative session to the default workspace.
+   */
+  private Session getSession() throws RepositoryException {
+    return getRepository().loginAdministrative(null);
+  }
+
+  /**
+   * Return the administrative session and close it.
+   */
+  private void ungetSession(final Session session) {
+    if (session != null) {
+      try {
+        session.logout();
+      } catch (Throwable t) {
+        LOGGER.error("Unable to log out of session: " + t.getMessage(), t);
+      }
+    }
+  }
+  
+  /**
+   * @param site
+   * @return true if the authz group is joinable
+   * @throws RepositoryException
+   * @throws PathNotFoundException
+   * @throws ValueFormatException
+   */
+  public Joinable getJoinable(Authorizable authorizable) {
+    try {
+      if (authorizable instanceof Group && authorizable.hasProperty(UserConstants.PROP_JOINABLE_GROUP)) {
+        try {
+          Value[] joinable = authorizable.getProperty(UserConstants.PROP_JOINABLE_GROUP);
+          if (joinable != null && joinable.length > 0)
+            return Joinable.valueOf(joinable[0].getString());
+        } catch (IllegalArgumentException e) {
+        }
+      }
+    } catch (RepositoryException e) {
+      LOGGER.warn(e.getMessage(), e);
+    }
+    return Joinable.no;
   }
 
 }

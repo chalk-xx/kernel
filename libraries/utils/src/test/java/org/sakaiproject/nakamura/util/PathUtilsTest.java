@@ -1,19 +1,22 @@
 package org.sakaiproject.nakamura.util;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import junit.framework.Assert;
 
-import static org.junit.Assert.*;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.easymock.EasyMock;
+import org.junit.Test;
 
 import java.security.Principal;
 import java.util.regex.Pattern;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
-
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.easymock.EasyMock;
-import org.junit.Test;
 
 public class PathUtilsTest {
 
@@ -23,6 +26,8 @@ public class PathUtilsTest {
    assertEquals("/testing/d0/33/e2/2a/admin/.extra", PathUtils.toInternalShardPath("/testing", "admin", ".extra"));
    assertEquals("/testing/0a/92/fa/b3/anonymous/.extra", PathUtils.toInternalShardPath("/testing", "anonymous", ".extra"));
   }
+
+  @SuppressWarnings("deprecation")
   @Test
   public void testGetUserPrefix() {
     assertEquals("61/51/anon/", PathUtils.getUserPrefix("",2));
@@ -32,6 +37,7 @@ public class PathUtilsTest {
     assertEquals("90/8b/amet_/", PathUtils.getUserPrefix("amet.",2));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testGetMessagePrefix() {
     Pattern prefixFormat = Pattern.compile("^/\\d{4}/\\d{1,2}/$");
@@ -55,6 +61,7 @@ public class PathUtilsTest {
   public void testGetDatePrefix() {
     Pattern prefixFormat = Pattern
         .compile("^/\\d{4}/\\d{1,2}/\\p{XDigit}{2}/\\p{XDigit}{2}/\\w+/$");
+    @SuppressWarnings("deprecation")
     String path = PathUtils.getDatePath("Lorem",2);
     assertTrue(path,prefixFormat.matcher(path).matches());
     assertTrue(path.endsWith("/22/c6/Lorem/"));

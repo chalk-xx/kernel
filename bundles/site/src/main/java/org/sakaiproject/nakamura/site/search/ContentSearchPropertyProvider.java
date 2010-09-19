@@ -14,7 +14,7 @@ import java.util.Map;
 
 import javax.jcr.query.Query;
 
-@Component(immediate = true, name = "ContentSearchPropertyProvider", label = "ContentSearchPropertyProvider", description = "Provides general properties for the content search")
+@Component(immediate = true, label = "ContentSearchPropertyProvider", description = "Provides general properties for the content search")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Provides general properties for the content search"),

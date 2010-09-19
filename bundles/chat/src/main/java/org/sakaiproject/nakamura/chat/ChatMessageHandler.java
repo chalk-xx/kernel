@@ -24,8 +24,12 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.chat.ChatManagerService;
@@ -35,7 +39,8 @@ import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingService;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,10 +55,8 @@ import javax.jcr.Session;
  * Handler for chat messages.
  */
 @Component(label = "ChatMessageHandler", description = "Handler for internally delivered chat messages.", immediate = true)
-@Services(value = {
-    @Service(value = MessageTransport.class),
-    @Service(value = MessageProfileWriter.class)
-})
+@Services(value = { @Service(value = MessageTransport.class),
+    @Service(value = MessageProfileWriter.class) })
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Handler for internally delivered chat messages") })
@@ -71,6 +74,9 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
   @Reference
   protected transient MessagingService messagingService;
 
+  @Reference
+  protected transient ProfileService profileService;
+
   /**
    * Default constructor
    */
@@ -79,7 +85,7 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.MessageTransport#send(org.sakaiproject.nakamura.api.message.MessageRoutes,
    *      org.osgi.service.event.Event, javax.jcr.Node)
    */
@@ -87,7 +93,7 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
     try {
 
       Session session = slingRepository.loginAdministrative(null); // usage checked and Ok
-                                                                   // KERN-577
+      // KERN-577
 
       for (MessageRoute route : routes) {
         if (CHAT_TRANSPORT.equals(route.getTransport())) {
@@ -139,17 +145,24 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.MessageProfileWriter#writeProfileInformation(javax.jcr.Session,
    *      java.lang.String, org.apache.sling.commons.json.io.JSONWriter)
    */
   public void writeProfileInformation(Session session, String recipient, JSONWriter write) {
-    PersonalUtils.writeCompactUserInfo(session, recipient, write);
+    try {
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Authorizable au = um.getAuthorizable(recipient);
+      ValueMap map = profileService.getCompactProfileMap(au, session);
+      ((ExtendedJSONWriter) write).valueMap(map);
+    } catch (Exception e) {
+      LOG.error("Failed to write profile information for " + recipient, e);
+    }
   }
 
   /**
    * Determines what type of messages this handler will process. {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.MessageHandler#getType()
    */
   public String getType() {

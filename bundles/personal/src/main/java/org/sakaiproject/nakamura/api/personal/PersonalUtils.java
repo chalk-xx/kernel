@@ -26,21 +26,16 @@ import static org.sakaiproject.nakamura.api.personal.PersonalConstants._USER;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
-import javax.jcr.ValueFormatException;
 
 /**
  *
@@ -48,68 +43,6 @@ import javax.jcr.ValueFormatException;
 public class PersonalUtils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PersonalUtils.class);
-
-  /**
-   * Writes userinfo out for a property in a node. Make sure that the resultNode has a
-   * property with propertyName that contains a userid.
-   *
-   * @param session
-   *          The JCR Session
-   * @param user
-   *          The user name
-   * @param write
-   *          The writer to write to.
-   * @param jsonName
-   *          The name that should be used for the json key.
-   * @throws ValueFormatException
-   * @throws PathNotFoundException
-   * @throws RepositoryException
-   * @throws JSONException
-   */
-  public static void writeUserInfo(Session session, String user, JSONWriter write,
-      String jsonName) {
-    try {
-      // We can't have anymore exceptions from now on.
-      write.key(jsonName);
-      write.object();
-      writeUserInfoContent(session, user, write);
-      write.endObject();
-    } catch (Exception ex) {
-      LOGGER.warn(ex.getMessage());
-    }
-  }
-
-  /**
-   * Writes userinfo out for a property in a node. Make sure that the resultNode has a
-   * property with propertyName that contains a userid.
-   * 
-   * @param session
-   *          The JCR Session
-   * @param user
-   *          The user name
-   * @param write
-   *          The writer to write to.
-   * @throws ValueFormatException
-   * @throws PathNotFoundException
-   * @throws RepositoryException
-   * @throws JSONException
-   */
-  public static void writeUserInfoContent(Session session, String user, JSONWriter write) {
-    try {
-      Authorizable au = getAuthorizable(session, user);
-      String path = PersonalUtils.getProfilePath(au);
-      String hash = getUserHashedPath(au);
-      Node userNode = (Node) session.getItem(path);
-      // We can't have anymore exceptions from now on.
-      write.key("hash");
-      write.value(hash);
-      ExtendedJSONWriter.writeNodeContentsToWriter(write, userNode);
-    } catch (PathNotFoundException pnfe) {
-      LOGGER.warn("Profile path not found for this user.");
-    } catch (Exception ex) {
-      LOGGER.warn(ex.getMessage());
-    }
-  }
 
   /**
    * @param au
@@ -130,163 +63,6 @@ public class PersonalUtils {
       hash = principal.getPath();
     }
     return hash;
-  }
-
-  /**
-   * Write a small bit of information from an authprofile. userid, firstName, lastName,
-   * picture.
-   *
-   * @param session
-   *          The {@link Session session} to access the authprofile.
-   * @param user
-   *          The userid to look up
-   * @param write
-   *          The {@link JSONWriter writer} to write to.
-   */
-  public static void writeCompactUserInfo(Session session, String user, JSONWriter write) {
-    try {
-      write.object();
-      writeCompactUserInfoContent(session, user, write);
-      write.endObject();
-    } catch (JSONException e) {
-      LOGGER.error(e.getMessage(), e);
-    }
-  }
-
-  /**
-   * Write a small bit of information from an authprofile. userid, firstName, lastName,
-   * picture.
-   * 
-   * @param session
-   *          The {@link Session session} to access the authprofile.
-   * @param user
-   *          The userid to look up
-   * @param write
-   *          The {@link JSONWriter writer} to write to.
-   */
-  public static void writeCompactUserInfoContent(Session session, String user,
-      JSONWriter write) {
-    try {
-      write.key("userid");
-      write.value(user);
-      try {
-        Authorizable au = getAuthorizable(session, user);
-        String profilePath = PersonalUtils.getProfilePath(au);
-        String hash = getUserHashedPath(au);
-        write.key("hash");
-        write.value(hash);
-
-        Node profileNode = (Node) session.getItem(profilePath);
-        write.key("jcr:path");
-        write.value(ExtendedJSONWriter.translateAuthorizablePath(profileNode.getPath()));
-        write.key("jcr:name");
-        write.value(profileNode.getName());
-        writeValue("firstName", profileNode, write);
-        writeValue("lastName", profileNode, write);
-        writeValue("picture", profileNode, write);
-      } catch (Exception e) {
-        // The provided user-string is probably not a user id.
-        LOGGER.warn(e.getMessage(), e);
-      }
-    } catch (JSONException e) {
-      LOGGER.error(e.getMessage(), e);
-    }
-  }
-  
-  /**
-   * Write a small bit of information from a group authprofile. 
-   *
-   * @param session
-   *          The {@link Session session} to access the authprofile.
-   * @param group
-   *          The group ID to look up
-   * @param write
-   *          The {@link JSONWriter writer} to write to.
-   */
-  public static void writeCompactGroupInfo(Session session, String group, JSONWriter write) {
-    try {
-      write.object();
-      writeCompactGroupInfoContent(session, group, write);
-      write.endObject();
-    } catch (JSONException e) {
-      LOGGER.error(e.getMessage(), e);
-    }
-  }
-
-  /**
-   * Write a small bit of information from a group authprofile
-   * 
-   * @param session
-   *          The {@link Session session} to access the authprofile.
-   * @param group
-   *          The group ID to look up
-   * @param write
-   *          The {@link JSONWriter writer} to write to.
-   */
-  public static void writeCompactGroupInfoContent(Session session, String group,
-      JSONWriter write) {
-    try {
-      write.key("groupid");
-      write.value(group);
-      try {
-        Authorizable au = getAuthorizable(session, group);
-        String profilePath = PersonalUtils.getProfilePath(au);
-        Node profileNode = (Node) session.getItem(profilePath);
-        write.key("jcr:path");
-        write.value(ExtendedJSONWriter.translateAuthorizablePath(profileNode.getPath()));
-        write.key("jcr:name");
-        write.value(profileNode.getName());
-        writeValue("name", profileNode, write);
-      } catch (Exception e) {
-        // The provided user-string is probably not a user id.
-        LOGGER.warn(e.getMessage(), e);
-      }
-    } catch (JSONException e) {
-      LOGGER.error(e.getMessage(), e);
-    }
-  }
-
-  /**
-   * Write the value of a property form the profileNode. If the property doesn't exist it
-   * outputs "name": false.
-   *
-   * @param string
-   * @param profileNode
-   * @throws RepositoryException
-   * @throws JSONException
-   */
-  private static void writeValue(String name, Node profileNode, JSONWriter write)
-      throws RepositoryException, JSONException {
-    write.key(name);
-    if (profileNode.hasProperty(name)) {
-      write.value(profileNode.getProperty(name).getString());
-    } else {
-      write.value(false);
-    }
-  }
-
-  /**
-   * Writes userinfo out for a property in a node. Make sure that the resultNode has a
-   * property with propertyName that contains a userid.
-   *
-   * @param resultNode
-   *          The node to look on
-   * @param write
-   *          The writer to write to.
-   * @param propertyName
-   *          The propertyname that contains the userid.
-   * @param jsonName
-   *          The json name that should be used.
-   * @throws ValueFormatException
-   * @throws PathNotFoundException
-   * @throws RepositoryException
-   * @throws JSONException
-   */
-  public static void writeUserInfo(Node resultNode, JSONWriter write,
-      String propertyName, String jsonName) throws ValueFormatException,
-      PathNotFoundException, RepositoryException, JSONException {
-    String user = resultNode.getProperty(propertyName).getString();
-    writeUserInfo(resultNode.getSession(), user, write, jsonName);
   }
 
   public static String getPrimaryEmailAddress(Node profileNode)
@@ -328,7 +104,9 @@ public class PersonalUtils {
    *          The authorizable to get the authprofile path for.
    * @return The absolute path in JCR to the authprofile node that contains all the
    *         profile information.
+   * @deprecated Use the ProfileService.getProfilePath() method.
    */
+  @Deprecated
   public static String getProfilePath(Authorizable au) {
     StringBuilder sb = new StringBuilder();
     sb.append(getPublicPath(au)).append("/").append(AUTH_PROFILE);

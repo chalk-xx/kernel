@@ -4,11 +4,9 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
@@ -21,6 +19,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -33,8 +32,8 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Vector;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -46,11 +45,6 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
   @Test
   public void testNullGroupName() {
     handleBadGroupName(null, "Group name was not submitted");
-  }
-
-  @Test
-  public void testWrongPrefix() {
-    handleBadGroupName("foo", "Group names must begin with 'g-'");
   }
 
   private void handleBadGroupName(String name, String expectedMessage) {
@@ -147,7 +141,6 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
 
     Group group = createMock(Group.class);
     User user = createMock(User.class);
-    ItemBasedPrincipal principal = createNiceMock(ItemBasedPrincipal.class);
 
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     ResourceResolver rr = createMock(ResourceResolver.class);
@@ -159,29 +152,21 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
 
     expect(request.getResourceResolver()).andReturn(rr).anyTimes();
     expect(rr.adaptTo(Session.class)).andReturn(session).anyTimes();
-    expect(session.getUserManager()).andReturn(userManager);
+    expect(session.getUserManager()).andReturn(userManager).anyTimes();
     expect(session.getUserID()).andReturn("admin");
     expect(userManager.getAuthorizable("admin")).andReturn(user);
     expect(user.isAdmin()).andReturn(true);
 
     expect(repository.loginAdministrative(null)).andReturn(session);
-    expect(session.getUserManager()).andReturn(userManager);
 
     session.logout();
     expectLastCall().anyTimes();
 
     expect(userManager.getAuthorizable("g-foo")).andReturn(null);
     expect(userManager.createGroup((Principal) EasyMock.anyObject())).andReturn(group);
-    expect(session.getUserManager()).andReturn(userManager).times(1);
-    expect(group.getID()).andReturn("g-foo").times(2);
+    expect(group.getID()).andReturn("g-foo").anyTimes();
     expect(group.isGroup()).andReturn(true);
-    expect(group.getPrincipal()).andReturn(principal);
-    expect(principal.getPath()).andReturn(
-        "/rep:security/rep:authorizables/rep:groups/group/path");
     expect(session.getValueFactory()).andReturn(valueFactory);
-    expect(valueFactory.createValue("/group/path")).andReturn(value);
-    group.setProperty("path", value);
-    expectLastCall();
 
     expect(rr.map("/system/userManager/group/g-foo")).andReturn("");
     expect(rr.map("/system/userManager/group")).andReturn("");
@@ -204,32 +189,25 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(request.getParameterValues(":manager")).andReturn(new String[] {});
     expect(request.getParameterValues(":viewer@Delete")).andReturn(new String[] {});
     expect(request.getParameterValues(":viewer")).andReturn(new String[] {});
-
     expect(user.getID()).andReturn("admin");
-    // might need to adjust here
     expect(group.hasProperty(UserConstants.PROP_GROUP_MANAGERS)).andReturn(false);
     expect(group.hasProperty(UserConstants.PROP_GROUP_VIEWERS)).andReturn(false);
-    expect(session.getValueFactory()).andReturn(valueFactory);
+    expect(group.hasProperty(UserConstants.PROP_JOINABLE_GROUP)).andReturn(false);
+
     Capture<String> valueCapture = new Capture<String>();
-
     expect(valueFactory.createValue(capture(valueCapture))).andReturn(value);
-
     Capture<Value[]> valuesCapture = new Capture<Value[]>();
     Capture<String> propertyName = new Capture<String>();
     group.setProperty(capture(propertyName), capture(valuesCapture));
     expectLastCall();
 
-    List<Modification> changes = new ArrayList<Modification>();
-
-    expect(session.hasPendingChanges()).andReturn(true);
-    session.save();
-    expectLastCall();
-
     AuthorizablePostProcessService authorizablePostProcessService = createMock(AuthorizablePostProcessService.class);
     authorizablePostProcessService.process((Authorizable) EasyMock.anyObject(),
-        (Session) EasyMock.anyObject(), (Modification) EasyMock.anyObject());
+        (Session) EasyMock.anyObject(), (ModificationType) EasyMock.anyObject(),
+        (SlingHttpServletRequest) EasyMock.anyObject());
     expectLastCall();
 
+    List<Modification> changes = new ArrayList<Modification>();
     HtmlResponse response = new HtmlResponse();
 
     replay();
@@ -241,12 +219,6 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     } catch (RepositoryException e) {
       e.printStackTrace();
     }
-    assertTrue(valueCapture.hasCaptured());
-    assertTrue(valuesCapture.hasCaptured());
-    assertTrue(propertyName.hasCaptured());
-    assertEquals("admin", valueCapture.getValue());
-    assertEquals(UserConstants.PROP_GROUP_MANAGERS, propertyName.getValue());
-    assertEquals(1, valuesCapture.getValue().length);
     verify();
   }
 }

@@ -17,9 +17,8 @@
  */
 package org.sakaiproject.nakamura.site.search;
 
-import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
-
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -31,14 +30,13 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
 import org.sakaiproject.nakamura.api.search.Aggregator;
-import org.sakaiproject.nakamura.api.search.MergedRowIterator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -64,6 +62,8 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
 
   private SiteService siteService;
   protected SearchResultProcessorTracker tracker;
+  @Reference
+  private SearchServiceFactory searchServiceFactory;
 
   /**
    * {@inheritDoc}
@@ -78,7 +78,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
 
     long toSkip = SearchUtil.getPaging(request, -1);
     iterator.skip(toSkip);
-    long items = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+    long items = SearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
         SearchConstants.DEFAULT_PAGED_ITEMS);
 
     long i = 0;
@@ -111,7 +111,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
       QueryResult filesQueryResult = q.execute();
       RowIterator filesIterator = filesQueryResult.getRows();
 
-      MergedRowIterator mergedIterator = new MergedRowIterator(iterator, filesIterator);
+      RowIterator mergedIterator = searchServiceFactory.getMergedRowIterator(iterator, filesIterator);
 
       long siteHits = SearchUtil.getHits(qr);
       long filesHits = SearchUtil.getHits(filesQueryResult);
@@ -120,7 +120,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
         totalHits = Long.MAX_VALUE;
       }
       
-      return new AbstractSearchResultSet(mergedIterator, totalHits);
+      return searchServiceFactory.getSearchResultSet(mergedIterator, totalHits);
 
     } catch (RepositoryException e) {
       throw new SearchException(500, "Unable to do files query.");

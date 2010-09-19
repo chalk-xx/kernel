@@ -26,14 +26,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 
+ *
  * @author dmccallum
  * @author "Carl Hall" <carl.hall@gatech.edu>
- * 
- * @scr.component enabled="false" immediate="true"
- * @scr.service
  */
-@Component(enabled = false, immediate = true)
+@Component(enabled = false)
 @Service
 public class MaxLifetimeLdapConnectionLivenessValidator implements LdapConnectionLivenessValidator {
 

@@ -2,10 +2,10 @@
 
 #Sakai 2+3 Hybrid Nightly
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
-# and svn info https://source.caret.cam.ac.uk/camtools
 
 export K2_TAG="HEAD"
-export S2_TAG="tags/sakai-2.7.0-rc01"
+export S2_TAG="tags/sakai-2.7.1"
+export UX_TAG="HEAD"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -13,7 +13,7 @@ set -o nounset
 # environment
 export PATH=/usr/local/bin:$PATH
 export BUILD_DIR="/home/hybrid"
-export JAVA_HOME=/opt/jdk1.6.0_17
+export JAVA_HOME=/opt/jdk1.6.0_21
 export PATH=$JAVA_HOME/bin:${PATH}
 export MAVEN_HOME=/usr/local/apache-maven-2.2.1
 export M2_HOME=/usr/local/apache-maven-2.2.1
@@ -23,6 +23,7 @@ export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=tru
 export K2_OPTS="-server -Xmx512m -XX:MaxPermSize=128m -Djava.awt.headless=true"
 BUILD_DATE=`date "+%D %R"`
 
+# get some shell scripting setup out of the way...
 # resolve links - $0 may be a softlink
 PRG="$0"
 
@@ -59,10 +60,30 @@ then
     echo "Starting clean build..."
     rm -rf sakai
     rm -rf sakai2-demo
+    rm -rf 3akai-ux
     rm -rf sakai3
     rm -rf ~/.m2/repository/org/sakaiproject
 else
     echo "Starting incremental build..."
+fi
+
+# build 3akai-ux
+cd $BUILD_DIR
+mkdir -p 3akai-ux
+cd 3akai-ux
+if [ -f .lastbuild ]
+then
+    echo "Skipping build 3akai-ux@$UX_TAG..."
+else
+    echo "Building 3akai-ux@$UX_TAG..."
+    git clone -q git://github.com/sakaiproject/3akai-ux.git
+    cd 3akai-ux
+    git checkout -b "build-$UX_TAG" $UX_TAG
+    # enable My Sakai 2 Sites widget
+    # // "personalportal":true --> "personalportal":true,
+    perl -pwi -e 's/\/\/\s+"personalportal"\:true/"personalportal"\:true\,/gi' devwidgets/s23courses/config.json
+    mvn -B -e clean install
+    date > ../.lastbuild
 fi
 
 # build sakai 3
@@ -77,7 +98,7 @@ else
     git clone -q git://github.com/sakaiproject/nakamura.git
     cd nakamura
     git checkout -b "build-$K2_TAG" $K2_TAG
-    mvn -B -e clean install -Dmaven.test.skip=true
+    mvn -B -e clean install
     date > .lastbuild
 fi
 
@@ -85,15 +106,11 @@ fi
 echo "Starting sakai3 instance..."
 cd app/target/
 K2_ARTIFACT=`find . -name "org.sakaiproject.nakamura.app*[^sources].jar"`
+# configure TrustedLoginTokenProxyPreProcessor the hackish way...
 mkdir -p sling/config/org/sakaiproject/nakamura/proxy
 echo 'port=I"8080"' > sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
 echo 'sharedSecret="e2KS54H35j6vS5Z38nK40"' >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
 echo 'service.pid="org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor"' >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
-mkdir -p sling/config/org/sakaiproject/nakamura/captcha
-echo 'service.pid="org.sakaiproject.nakamura.captcha.ReCaptchaService"' > sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
-echo 'org.sakaiproject.nakamura.captcha.key_private="6Lef4bsSAAAAAId09ufqqs89SwdWpa9t7htW1aRc"' >> sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
-echo 'org.sakaiproject.nakamura.captcha.key_public="6Lef4bsSAAAAAJOwQE-qwkAOzGG3DizFP7GYYng-"' >> sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
-echo 'org.sakaiproject.nakamura.captcha.endpoint="http://www.google.com/recaptcha/api/verify"' >> sling/config/org/sakaiproject/nakamura/captcha/ReCaptchaService.config
 java $K2_OPTS -jar $K2_ARTIFACT -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # build sakai 2
@@ -118,11 +135,12 @@ else
     svn checkout -q https://source.sakaiproject.org/svn/providers/branches/SAK-17222-2.7 providers
     # KERN-360 Servlet and TrustedLoginFilter RESTful services
     cp -R $BUILD_DIR/sakai3/nakamura/hybrid .
-    find hybrid -name pom.xml -exec perl -pwi -e 's/2\.8-SNAPSHOT/2\.7-SNAPSHOT/g' {} \;
+    find hybrid -name pom.xml -exec perl -pwi -e 's/2\.8-SNAPSHOT/2\.7\.1/g' {} \;
     perl -pwi -e 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml
-    mvn -B -e clean install sakai:deploy -Dmaven.test.skip=true -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
+    mvn -B -e clean install sakai:deploy -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
     # configure sakai 2 instance
     cd $BUILD_DIR
+    # change default tomcat listener port numbers
     cp -f server.xml sakai2-demo/conf/server.xml 
     echo "ui.service = trunk+SAK-17223+KERN-360 on HSQLDB" >> sakai2-demo/sakai/sakai.properties
     echo "version.sakai = $REPO_REV" >> sakai2-demo/sakai/sakai.properties
@@ -130,7 +148,7 @@ else
     echo "serverName=sakai23-hybrid.sakaiproject.org" >> sakai2-demo/sakai/sakai.properties
     echo "webservices.allowlogin=true" >> sakai2-demo/sakai/sakai.properties
     echo "webservice.portalsecret=nightly" >> sakai2-demo/sakai/sakai.properties
-    echo "samigo.answerUploadRepositoryPath= /tmp/sakai2-hybrid/" >> sakai2-demo/sakai/sakai.properties
+    echo "samigo.answerUploadRepositoryPath=/tmp/sakai2-hybrid/" >> sakai2-demo/sakai/sakai.properties
     # enable SAK-17223 K2AuthenticationFilter
     echo "top.login=false" >> sakai2-demo/sakai/sakai.properties
     echo "container.login=true" >> sakai2-demo/sakai/sakai.properties
@@ -141,12 +159,17 @@ else
     echo "x.sakai.token.localhost.sharedSecret=default-setting-change-before-use" >> sakai2-demo/sakai/sakai.properties
     # declare shared secret for trusted login from K2
     echo "org.sakaiproject.util.TrustedLoginFilter.sharedSecret=e2KS54H35j6vS5Z38nK40" >> sakai2-demo/sakai/sakai.properties
-    echo "org.sakaiproject.util.TrustedLoginFilter.safeHosts=localhost;127.0.0.1" >> sakai2-demo/sakai/sakai.properties
+    echo "org.sakaiproject.util.TrustedLoginFilter.safeHosts=localhost;127.0.0.1;129.79.26.127" >> sakai2-demo/sakai/sakai.properties
     # enabled Basic LTI provider
     echo "imsblti.provider.enabled=true" >> sakai2-demo/sakai/sakai.properties
     echo "imsblti.provider.allowedtools=sakai.forums:sakai.messages:sakai.synoptic.messagecenter:sakai.poll:sakai.profile:sakai.profile2:sakai.announcements:sakai.synoptic.announcement:sakai.assignment.grades:sakai.summary.calendar:sakai.schedule:sakai.chat:sakai.dropbox:sakai.resources:sakai.gradebook.tool:sakai.help:sakai.mailbox:sakai.news:sakai.podcasts:sakai.postem:sakai.site.roster:sakai.rwiki:sakai.syllabus:sakai.singleuser:sakai.samigo:sakai.sitestats" >> sakai2-demo/sakai/sakai.properties
     echo "imsblti.provider.12345.secret=secret" >> sakai2-demo/sakai/sakai.properties
     echo "webservices.allow=.+" >> sakai2-demo/sakai/sakai.properties
+    # enable debugging for UDP
+    echo "log.config.count=3" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.1 = ALL.org.sakaiproject.log.impl" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.2 = OFF.org.sakaiproject" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.3 = DEBUG.org.sakaiproject.provider.user" >> sakai2-demo/sakai/sakai.properties
     date > $BUILD_DIR/sakai/.lastbuild
 fi
 

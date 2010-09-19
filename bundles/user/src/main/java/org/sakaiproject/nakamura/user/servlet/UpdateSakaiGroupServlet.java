@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.user.servlet;
 
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGERS;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWERS;
-import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
@@ -30,6 +29,7 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -122,7 +122,9 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceParameter(name = ":viewer", description = "Add a viewer to this group, note: this does not add the viewer as a member! (optional)"),
     @ServiceParameter(name = ":viewer@Delete", description = "Remove a viewer from this group, note: this does not remove the viewer as a member! (optional)"),
     @ServiceParameter(name = "propertyName@Delete", description = "Delete property, eg property1@Delete means delete property1 (optional)"),
-    @ServiceParameter(name = "", description = "Additional parameters become group node properties (optional)") }, response = {
+    @ServiceParameter(name="",description="Additional parameters become group node properties, " +
+        "except for parameters starting with ':', which are only forwarded to post-processors (optional)")
+    }, response={
     @ServiceResponse(code = 200, description = "Success, a redirect is sent to the group's resource locator with HTML describing status."),
     @ServiceResponse(code = 404, description = "Group was not found."),
     @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }))
@@ -194,12 +196,14 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
       Map<String, RequestProperty> reqProperties = collectContent(request, htmlResponse, groupPath);
       try {
         // cleanup any old content (@Delete parameters)
+        // This is the only way to make a private group (one with a "rep:group-viewers"
+        // property) no longer private.
         processDeletes(authorizable, reqProperties, changes);
 
-        // It is not allowed to touch the rep:group-managers property directly.
-        String key = SYSTEM_USER_MANAGER_GROUP_PREFIX + authorizable.getID() + "/";
-        reqProperties.remove(key + PROP_GROUP_MANAGERS);
-        reqProperties.remove(key + PROP_GROUP_VIEWERS);
+        // It is not allowed to touch the rep:group-managers and rep:group-viewers
+        // properties directly except to delete them.
+        reqProperties.remove(groupPath + "/" + PROP_GROUP_MANAGERS);
+        reqProperties.remove(groupPath + "/" + PROP_GROUP_VIEWERS);
 
         // write content from form
         writeContent(session, authorizable, reqProperties, changes);
@@ -214,8 +218,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
       }
 
       try {
-        postProcessorService.process(authorizable, session, Modification.onModified(AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
-                + authorizable.getID()));
+        postProcessorService.process(authorizable, session, ModificationType.MODIFY, request);
       } catch (Exception e) {
         LOGGER.warn(e.getMessage(), e);
 
@@ -240,7 +243,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
       }
 
     } catch (Throwable t) {
-      LOGGER.info("Failed " + t.getMessage(), t);
+      LOGGER.debug("Failed " + t.getMessage(), t);
       throw new RepositoryException(t.getMessage(), t);
     }
   }

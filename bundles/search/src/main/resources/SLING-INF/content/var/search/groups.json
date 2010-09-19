@@ -1,6 +1,9 @@
 {
   "sakai:query-language": "xpath",
   "sakai:query-template": "//*[@sling:resourceType=\"sakai/group-profile\" and jcr:contains(.,'{q}')] order by @{sortOn|jcr:score} {sortOrder|descending}",
+  // translating this to JCR-SQL2 caused a performance problem (0.072s -> 5s+)
+//  "sakai:query-language": "JCR-SQL2",
+//  "sakai:query-template": "SELECT * FROM [nt:base] as n WHERE [sling:resourceType] = \"sakai/group-profile\" and contains(n.*,'{q}') order by {sortOn|score()} {sortOrder|desc}",
   "sling:resourceType": "sakai/search",
   "sakai:title": "Groups",
   "sakai:shortDescription": "Get the group profile nodes out of the repository.",

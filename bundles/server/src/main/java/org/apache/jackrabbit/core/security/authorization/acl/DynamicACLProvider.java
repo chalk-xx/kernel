@@ -71,8 +71,8 @@ public class DynamicACLProvider extends ACLProvider {
   private LRUMap staticPrincipals = new LRUMap(1000);
   private NodeId rootNodeId;
   private RuleProcessorManager ruleProccesorManager;
-  
-  
+
+
   // This creates a second systemEditor that we can see, hopefully it wont cause problems having 2 of these.
   private ACLEditor systemEditor;
 
@@ -260,8 +260,6 @@ public class DynamicACLProvider extends ACLProvider {
     @SuppressWarnings("unchecked")
     private Iterator<AccessControlEntry> iterator() {
       if ( forceDebug) {
-        LOG.info("User {} ACE {} ",userId,construct);
-      } else {
         LOG.debug("User {} ACE {} ",userId,construct);
       }
       return new IteratorChain(userAces.iterator(), groupAces.iterator());
@@ -322,7 +320,7 @@ public class DynamicACLProvider extends ACLProvider {
         }
         return false; // it had active times but none matched
       }
-      
+
       Value[] inactiveRanges = getValues(RulesBasedAce.P_INACTIVE_RANGE,aceNode);
       if ( inactiveRanges.length != 0 ) {
         for ( Value r : inactiveRanges) {
@@ -364,7 +362,7 @@ public class DynamicACLProvider extends ACLProvider {
     }
     return values.toArray(new Value[values.size()]);
   }
-  
+
   private Value[] getValues(Property property) throws RepositoryException {
     if ( property.isMultiple()) {
       return property.getValues();
@@ -402,8 +400,8 @@ public class DynamicACLProvider extends ACLProvider {
         Authorizable principal = manager.getAuthorizable(principalName);
         if ( principal == null ) {
           return false;
-        } else if (principal.hasProperty("dynamic")) {
-          Value[] dyn = principal.getProperty("dynamic");
+        } else if (principal.hasProperty(PrincipalProperties.DYNAMIC)) {
+          Value[] dyn = principal.getProperty(PrincipalProperties.DYNAMIC);
           if (dyn != null && dyn.length > 0 && ("true".equals(dyn[0].getString()))) {
             LOG.debug("Found dynamic principal {} ",principalName);
             dynamic = true;

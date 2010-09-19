@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
+require 'ruby-lib-dir.rb'
+
 require 'set'
 require 'sling/test'
 include SlingSearch
@@ -43,10 +46,7 @@ class TC_Kern551Test < Test::Unit::TestCase
 	# Correctly and some of the actions that follow will fail. (eg updating managers or viewers)
     collaborators = SlingUsers::Group.new(rolemap["Collaborator"])
     viewers = SlingUsers::Group.new(rolemap["Viewer"])
-	
-	
-	
-	
+
 	# Check if the groups exist and what is the  structure.
 	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(collaborators.name) + ".tidy.json"))
 	@log.info("Collaborators should have group-managers of #{sitecreator.name} and #{collaborators.name} ")
@@ -60,11 +60,11 @@ class TC_Kern551Test < Test::Unit::TestCase
 	props = JSON.parse(res.body)
 	assert(props["properties"]["rep:group-managers"].include?(collaborators.name))
 	assert(props["properties"]["rep:group-managers"].include?(sitecreator.name))
-	
+
 	# adding collaborator as a member of collaborators
     collaborators.add_member(@s, collaborator.name, "user")
-	
-	#check that the collaborator user and sitecreator user are both members of the collaborators group, 
+
+	#check that the collaborator user and sitecreator user are both members of the collaborators group,
     # and so should have management of both the collaborators group and the viewers group.
 	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(collaborators.name) + ".tidy.json"))
 	@log.info("Collaborators Should now contain #{collaborator.name} as a member")
@@ -83,25 +83,25 @@ class TC_Kern551Test < Test::Unit::TestCase
 	@log.info("Viewers should have group-managers containing #{collaborators.name} ")
 	@log.debug(res.body)
 
-	
+
 	@log.info("As far as I can tell, #{collaborator.name} is a member of #{collaborators.name} which is a manager of both  #{collaborators.name} and #{viewers.name} ")
 	@log.info("So the following tests where we switch to #{collaborator.name} and add #{viewer.name} as a member should be Ok")
-	
-	
+
+
     @s.switch_user(collaborator)
-	
+
 	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(viewers.name) + ".markingtherequest.json"))
 
-	
+
     res = viewers.add_member(@s, viewer.name, "user")
     assert_equal("200", res.code, "Collaborator should be able to add members as a member of Collaborators which manage the viewers group")
-	
-	
+
+
     @s.switch_user(viewer)
     res = viewers.add_member(@s, nonmember.name, "user")
     assert_not_equal("200", res.code, "Viewers should not be able to add members")
   end
-  
+
   def test_groupchanges
     m = "1a"+Time.now.to_i.to_s
     viewer = create_user("testviewer#{m}")
@@ -110,7 +110,7 @@ class TC_Kern551Test < Test::Unit::TestCase
     @s.switch_user(collaborator)
     collaborators = create_group("g-collaborator#{m}")
     viewers = create_group("g-viewer#{m}")
-	
+
 	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(collaborators.name) + ".tidy.json"))
 	@log.debug(res.body)
 	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(viewers.name) + ".tidy.json"))
@@ -353,21 +353,18 @@ class TC_Kern551Test < Test::Unit::TestCase
     @s.switch_user(collaborator)
     res = @s.execute_get(@s.url_for("/system/sling/membership.json"))
     @log.debug res.body
-    memberships = JSON.parse(res.body)
-    # Since KERN-916 each user has his own site.
-    # The order is completely random.
-    # That's why we loop over all of them.
+    memberships = JSON.parse(res.body)["results"]
     assert_value(memberships, "siteref", "/sites/#{siteid}", "Expected user to have Collaborator membership")
     @s.switch_user(viewer)
     res = @s.execute_get(@s.url_for("/system/sling/membership.json"))
     @log.debug res.body
-    memberships = JSON.parse(res.body)
+    memberships = JSON.parse(res.body)["results"]
     assert_value(memberships, "siteref", "/sites/#{siteid}", "Expected user to have Viewer membership")
     @s.switch_user(nonmember)
     res = @s.execute_get(@s.url_for("/system/sling/membership.json"))
     @log.debug res.body
-    memberships = JSON.parse(res.body)
-    assert_equal(1, memberships.size, "Expected user to have one site. (his own)")
+    memberships = JSON.parse(res.body)["results"]
+    assert_equal(0, memberships.size, "Expected non-member to have no site memberships")
   end
 
   def assert_value(hash, key, value, message)

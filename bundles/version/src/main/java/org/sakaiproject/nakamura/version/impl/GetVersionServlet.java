@@ -23,6 +23,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
@@ -102,10 +103,9 @@ public class GetVersionServlet extends SlingSafeMethodsServlet {
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     RequestPathInfo requestPathInfo = request.getRequestPathInfo();
-    String selectorString = requestPathInfo.getSelectorString();
 
     // the version might be encapsulated in , at each end.
-    String versionName = getVersionName(selectorString);
+    String versionName = VersionRequestPathInfo.getVersionName(requestPathInfo.getSelectorString(), requestPathInfo.getExtension());
     if (versionName == null) {
       response
           .sendError(HttpServletResponse.SC_BAD_REQUEST,
@@ -162,7 +162,7 @@ public class GetVersionServlet extends SlingSafeMethodsServlet {
       @SuppressWarnings("unchecked")
       @Override
       public <AdapterType> AdapterType adaptTo(Class<AdapterType> type) {
-        LOG.info("Adapting to: " + type);
+        LOG.debug("Adapting to:{} ", type);
         if (type.equals(Node.class)) {
           return (AdapterType) finalNode;
         }
@@ -214,9 +214,23 @@ public class GetVersionServlet extends SlingSafeMethodsServlet {
           }
         }
         if (type.equals(InputStream.class)) {
-          NodeInputStream stream = JcrUtils.getInputStreamForNode(finalNode);
-          getResourceMetadata().setContentLength(stream.getLength());
-          return (AdapterType) stream.getInputStream();
+          Node node = finalNode;
+          try {
+            if ( finalNode.hasNode(JcrConstants.JCR_CONTENT)) {
+              node = finalNode.getNode(JcrConstants.JCR_CONTENT);
+            }
+          } catch (RepositoryException e) {
+            LOG.warn("Failed to convert to a content node: {}",e.getMessage());
+          }
+
+
+          NodeInputStream stream = JcrUtils.getInputStreamForNode(node);
+          if ( stream != null ) {
+            ResourceMetadata resourceMetadata = getResourceMetadata();
+            long length = stream.getLength();
+            resourceMetadata.setContentLength(length);
+            return (AdapterType) stream.getInputStream();
+          }
         }
         return super.adaptTo(type);
       }
@@ -269,31 +283,5 @@ public class GetVersionServlet extends SlingSafeMethodsServlet {
     request.getRequestDispatcher(resourceWrapper).forward(requestWrapper, response);
   }
 
-  /**
-   * @param suffix
-   * @return
-   */
-  protected String getVersionName(String selectorString) {
-    if (selectorString.startsWith("version.")) {
-      char[] ca = selectorString.toCharArray();
-      int i = "version.".length();
-      int j = i;
-      if (i < ca.length && ca[i] == '.') {
-        i++;
-      }
 
-      if (i < ca.length && ca[i] == ',') {
-        i++;
-        j = i;
-        while (i < ca.length && ca[i] != ',')
-          i++;
-      } else {
-        j = i;
-        while (i < ca.length && ca[i] != '.')
-          i++;
-      }
-      return new String(ca, j, i - j);
-    }
-    return null;
-  }
 }

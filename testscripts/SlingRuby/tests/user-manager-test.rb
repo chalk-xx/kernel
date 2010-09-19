@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
+require 'ruby-lib-dir.rb'
+
 require 'sling/test'
 require 'sling/search'
 require 'test/unit.rb'
@@ -36,17 +39,12 @@ class TC_UserManagerTest < Test::Unit::TestCase
     res = @s.execute_get(@s.url_for(Group.url_for(g.name + ".json")))
     assert_equal("404", res.code, "Expected no group node")
   end
-
-  def test_invalid_group_create
-    m = Time.now.to_i.to_s
-    g = @um.create_group("testgroup"+m)
-    assert_nil(g, "Expected group not to be created")
-  end
   
-  def test_invalid_user_create
+  def test_create_email_username
     m = Time.now.to_i.to_s
-    u = @um.create_user("g-testuser"+m)
-    assert_nil(u, "Expected user not to be created")
+    u = create_user("testuser@gmail.com"+m)
+	details = @um.get_user_props(u.name)
+    assert_equal("testuser@gmail.com"+m, details["rep:principalName"], "Expected username to match")
   end
 
 end

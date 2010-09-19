@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>base</artifactId>
-  <version>0.7-SNAPSHOT</version>
+  <version>0.9-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Sakai Nakamura Project</name>
   <description> Sakai Nakamura is an OSGi server built ontop of Apache Sling, supporting Sakai 3. </description>
@@ -88,6 +88,8 @@
         <module>bundles/captcha</module>
         <module>bundles/webdav</module>
         <module>bundles/privacy</module>
+        <module>bundles/pages</module>
+        <module>bundles/userinitializer</module>
       </modules>
     </profile>
     <profile>
@@ -99,12 +101,20 @@
         <module>contrib/persondirectory</module>
         <module>contrib/casauth</module>
         <module>contrib/ldapauth</module>
+        <module>contrib/openssoauth</module>
         <module>contrib/ldap</module>
         <module>contrib/remotefiles</module>
         <!-- to build oracle you must download and install oracle.jar first  <module>contrib/oracle-jdbc</module> -->
         <module>contrib/sitejoin</module>
         <module>contrib/foreignprincipal</module>
         <module>contrib/rootconfig</module>
+       </modules>
+    </profile>
+    <profile>
+       <id>ucam</id>
+       <modules>
+        <module>contrib/ucam</module>
+        <module>contrib/mysql-jdbc</module>
        </modules>
     </profile>
     <profile>
@@ -115,7 +125,9 @@
         <module>sandbox/sessiontest</module>
         <module>sandbox/sitetemplates</module>
         <module>sandbox/imap</module>
-        <module>sandbox/drools</module>
+        <!-- <module>sandbox/drools</module> DISABLED TO MAKE THE 0.8 RELEASE -->
+        <!-- follow the setup in sandbox/eventexplorer/README.txt before enabling this -->
+        <!-- <module>sandbox/eventexplorer</module> -->
        </modules>
     </profile>
     <profile>
@@ -763,6 +775,12 @@
         <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-all</artifactId>
+        <version>1.8.5</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>org.subethamail</groupId>
         <artifactId>subethasmtp-wiser</artifactId>
         <version>1.2</version>
@@ -770,7 +788,7 @@
       <dependency>
          <groupId>org.apache.sling</groupId>
          <artifactId>org.apache.sling.commons.testing</artifactId>
-         <version>2.0.5-SNAPSHOT</version>
+         <version>2.0.5-20100823</version>
          <scope>test</scope>
      </dependency>
 

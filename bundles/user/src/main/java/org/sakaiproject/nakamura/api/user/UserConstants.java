@@ -65,6 +65,28 @@ public interface UserConstants {
 
   public static final String PROP_GROUP_VIEWERS = "rep:group-viewers";
 
+  public static final String PROP_MANAGERS_GROUP = "sakai:managers-group";
+  public static final String PROP_MANAGED_GROUP = "sakai:managed-group";
+  public static final String PROP_JOINABLE_GROUP = "sakai:group-joinable";
+  
+  /**
+   * The joinable property
+   */
+  public enum Joinable {
+    /**
+     * The group is joinable.
+     */
+    yes(),
+    /**
+     * The group is not joinable.
+     */
+    no(),
+    /**
+     * The group is joinable with approval.
+     */
+    withauth();
+  }
+
   /**
    * The Authorizable node's subpath within the repository's user or group tree.
    */

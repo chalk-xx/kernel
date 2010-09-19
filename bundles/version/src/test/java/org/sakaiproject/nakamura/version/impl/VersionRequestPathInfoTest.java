@@ -34,15 +34,33 @@ import org.sakaiproject.nakamura.version.impl.VersionRequestPathInfo;
 public class VersionRequestPathInfoTest {
 
   @Test
+  public void testGetVersionName() {
+    assertEquals("1.1", VersionRequestPathInfo.getVersionName("version.,1.1,.tidy","json"));
+    assertEquals("1", VersionRequestPathInfo.getVersionName("version.1.tidy","json"));
+    assertEquals("1.1.tidy.json", VersionRequestPathInfo.getVersionName("version.,1.1.tidy","json"));
+    assertEquals("1.1", VersionRequestPathInfo.getVersionName("version.,1.1",null));
+    assertEquals("1.1", VersionRequestPathInfo.getVersionName("version.,1.1,",null));
+  }
+
+  @Test
+  public void testRemoveVersionName() {
+    assertEquals("tidy.json", VersionRequestPathInfo.removeVersionName("version.,1.1,.tidy","json"));
+    assertEquals("tidy.json", VersionRequestPathInfo.removeVersionName("version.1.tidy","json"));
+    assertEquals("json", VersionRequestPathInfo.removeVersionName("version.,1.1.tidy,","json"));
+    assertEquals(null, VersionRequestPathInfo.removeVersionName("version.,1.1",null));
+    assertEquals(null, VersionRequestPathInfo.removeVersionName("version.,1.1,",null));
+  }
+
+  @Test
   public void testRemoveVersion() {
-    assertEquals("sdfsdfs.sdfsdf.sdfsdfsdf", VersionRequestPathInfo.removeVersionName("version.sdfsdfds.sdfsdfs.sdfsdf.sdfsdfsdf"));
-    assertEquals("sdfsdfs.sdfsdf.sdfsdfsdf", VersionRequestPathInfo.removeVersionName("version.,sdf...sdfds,.sdfsdfs.sdfsdf.sdfsdfsdf"));
-    assertEquals(null, VersionRequestPathInfo.removeVersionName("version.,sdf...sdfds,"));
-    assertEquals(null, VersionRequestPathInfo.removeVersionName("version.sdf"));
-    assertEquals("sdfsdfs.sdfsdf.sdfsdfsdf", VersionRequestPathInfo.removeVersionName("version.sdfsdfds.sdfsdfs.sdfsdf.sdfsdfsdf"));
-    assertEquals("sdfsdfs.sdfsdf.sdfsdfsdf", VersionRequestPathInfo.removeVersionName("version.,sdf...sdfds,.sdfsdfs.sdfsdf.sdfsdfsdf"));
-    assertEquals(null, VersionRequestPathInfo.removeVersionName("version.,sdf...sdfds,"));
-    assertEquals(null, VersionRequestPathInfo.removeVersionName("version.sdf"));
+    assertEquals("sdfsdfs.sdfsdf.sdfsdfsdf", VersionRequestPathInfo.removeVersionName("version.sdfsdfds.sdfsdfs.sdfsdf.sdfsdfsdf", null));
+    assertEquals("sdfsdfs.sdfsdf.sdfsdfsdf", VersionRequestPathInfo.removeVersionName("version.,sdf...sdfds,.sdfsdfs.sdfsdf.sdfsdfsdf", null));
+    assertEquals(null, VersionRequestPathInfo.removeVersionName("version.,sdf...sdfds,", null));
+    assertEquals(null, VersionRequestPathInfo.removeVersionName("version.sdf", null));
+    assertEquals("sdfsdfs.sdfsdf.sdfsdfsdf", VersionRequestPathInfo.removeVersionName("version.sdfsdfds.sdfsdfs.sdfsdf.sdfsdfsdf", null));
+    assertEquals("sdfsdfs.sdfsdf.sdfsdfsdf", VersionRequestPathInfo.removeVersionName("version.,sdf...sdfds,.sdfsdfs.sdfsdf.sdfsdfsdf", null));
+    assertEquals(null, VersionRequestPathInfo.removeVersionName("version.,sdf...sdfds,",null));
+    assertEquals(null, VersionRequestPathInfo.removeVersionName("version.sdf",null));
   }
 
   @Test

@@ -35,6 +35,8 @@ import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.util.PathUtils;
 
+import java.util.Map;
+
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
@@ -51,11 +53,10 @@ public class CalendarAuthorizablePostProcessor implements AuthorizablePostProces
 
   /**
    * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#process(org.apache.jackrabbit.api.security.user.Authorizable,
-   *      javax.jcr.Session, org.apache.sling.api.SlingHttpServletRequest, java.util.List)
+   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#process(org.apache.jackrabbit.api.security.user.Authorizable, javax.jcr.Session, org.apache.sling.servlets.post.Modification, java.util.Map)
    */
-  public void process(Authorizable authorizable, Session session, Modification change) throws Exception {
+  public void process(Authorizable authorizable, Session session, Modification change,
+      Map<String, Object[]> parameters) throws Exception {
     // We only process new users/groups.
     if (ModificationType.CREATE.equals(change.getType())) {
       // Store it.
@@ -65,7 +66,7 @@ public class CalendarAuthorizablePostProcessor implements AuthorizablePostProces
 
   /**
    * Create a calenadr for an authorizable.
-   * 
+   *
    * @param authorizable
    * @param session
    * @param request
@@ -87,5 +88,5 @@ public class CalendarAuthorizablePostProcessor implements AuthorizablePostProces
     AccessControlUtil.replaceAccessControlEntry(session, path, authorizable
         .getPrincipal(), granted, null, null, null);
   }
-  
+
 }

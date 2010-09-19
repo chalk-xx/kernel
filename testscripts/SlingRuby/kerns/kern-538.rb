@@ -1,83 +1,86 @@
 #!/usr/bin/env ruby
 
+# Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
+require 'ruby-lib-dir.rb'
+
 require 'sling/test'
 require 'test/unit.rb'
 include SlingSearch
 
 class TC_Kern538Test < Test::Unit::TestCase
   include SlingTest
-  
+
   #
   # Creating a tree of nodes by posting a block of JSON.
   #
-  
+
   def test_normal
-    m = Time.now.to_i.to_s
-    treeuser = create_user("treeuser1#{m}")    
+    m = Time.now.to_f.to_s.gsub('.', '')
+    treeuser = create_user("treeuser1#{m}")
     @s.switch_user(treeuser)
-    
+
     # Create foo node in private store
     @s.execute_post(@s.url_for("#{treeuser.private_path_for(@s)}/foo"), {"foo" => "bar"})
-    
+
     # Create the default tree
     jsonRes = create_tree(default_tree(), "#{treeuser.private_path_for(@s)}/foo")
-    
+
     #Assertions
     default_asserts(jsonRes)
   end
-  
+
   def test_with_jcr_in_property
-    m = Time.now.to_i.to_s
-    treeuser = create_user("treeuser2#{m}")    
+    m = Time.now.to_f.to_s.gsub('.', '')
+    treeuser = create_user("treeuser2#{m}")
     @s.switch_user(treeuser)
-    
+
     # Create foo node in private store
     @s.execute_post(@s.url_for("#{treeuser.private_path_for(@s)}/foo"), {"foo" => "bar"})
-    
+
     # Create the default tree
     tree = default_tree()
     tree["foo"]["jcr:primaryType"] = "nt:file"
     jsonRes = create_tree(tree, "#{treeuser.private_path_for(@s)}/foo")
-    
+
     #Assertions
     default_asserts(jsonRes)
   end
-  
+
   def test_noneExistingResource
-    m = Time.now.to_i.to_s
-    treeuser = create_user("treeuser3#{m}")    
+    m = Time.now.to_f.to_s.gsub('.', '')
+    treeuser = create_user("treeuser3#{m}")
     @s.switch_user(treeuser)
-    
+
     # Create the default tree
     jsonRes = create_tree(default_tree(), "#{treeuser.private_path_for(@s)}/test")
-    
+
     #Assertions
-    default_asserts(jsonRes)    
+    default_asserts(jsonRes)
   end
-  
+
   def test_accessdenied
-    m = Time.now.to_i.to_s
-    treeuser = create_user("treeuser4#{m}")    
+    m = Time.now.to_f.to_s.gsub('.', '')
+    treeuser = create_user("treeuser4#{m}")
     @s.switch_user(treeuser)
-    
+
     # Create the default tree
     tree = default_tree()
-    
+
     # Actual parameters we're sending in the request.
     parameters = {
-      ":operation" => "createTree", 
+      ":operation" => "createTree",
       "tree" => JSON.generate(tree)
     }
-    
+
     # Execute the post
     res = @s.execute_post(@s.url_for("foo/bar"), parameters)
-    
+
     assert_equal(res.code.to_i, 500, "Expected to fail.")
-    
+
   end
-  
+
   def test_withdelete
-    m = Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '')
     treeuser = create_user("treeuser5#{m}")
     @s.switch_user(treeuser)
 
@@ -114,7 +117,7 @@ class TC_Kern538Test < Test::Unit::TestCase
   end
 
   def default_tree()
-    # Our tree should exist out of a node 'foo' with two childnodes 'bar1' and 'bar2'    
+    # Our tree should exist out of a node 'foo' with two childnodes 'bar1' and 'bar2'
     tree = {
         "foo" => {
             "title" => "Foo",
@@ -128,30 +131,30 @@ class TC_Kern538Test < Test::Unit::TestCase
         }
       }
     }
-    
+
     return tree
   end
-  
+
   def create_tree(tree, url, levels = 5, delete = "0")
-    
+
     # Actual parameters we're sending in the request.
     parameters = {
-      ":operation" => "createTree", 
+      ":operation" => "createTree",
       "tree" => JSON.generate(tree),
       "delete" => delete
     }
-    
+
     # Execute the post
     @s.execute_post(@s.url_for(url), parameters)
-    
+
     # Return the result of that node
     res = @s.execute_get(@s.url_for("#{url}.#{levels}.json"))
-    if ( res.code == "200" ) 
+    if ( res.code == "200" )
       return JSON.parse(res.body)
     else
       return JSON.parse("{}")
     end
   end
-  
+
 end
 

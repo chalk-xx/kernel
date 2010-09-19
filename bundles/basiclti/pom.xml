@@ -18,11 +18,11 @@
 	<parent>
 		<groupId>org.sakaiproject.nakamura</groupId>
 		<artifactId>base</artifactId>
-		<version>0.7-SNAPSHOT</version>
+		<version>0.9-SNAPSHOT</version>
 	</parent>
 	<artifactId>org.sakaiproject.nakamura.basiclti</artifactId>
 	<packaging>bundle</packaging>
-	<version>0.7-SNAPSHOT</version>
+	<version>0.9-SNAPSHOT</version>
 	<name>Sakai Nakamura :: Basic LTI Consumer bundle</name>
 	<description>Sakai Basic LTI Implementation</description>
 	<build>
@@ -41,6 +41,7 @@
 						<Export-Package>org.sakaiproject.nakamura.api.basiclti</Export-Package>
 						<Private-Package>org.sakaiproject.nakamura.basiclti.*</Private-Package>
 						<Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
+						<Sakai-Initial-Security>SLING-INF/acl/basiclti-acl.json</Sakai-Initial-Security>   
 						<Embed-Transitive>true</Embed-Transitive>
 						<Embed-Dependency>basiclti-util</Embed-Dependency>
 					</instructions>
@@ -53,7 +54,7 @@
 		<dependency>
 			<groupId>org.apache.sling</groupId>
 			<artifactId>org.apache.sling.api</artifactId>
-			<version>2.0.9-SNAPSHOT</version>
+			<version>2.1.0</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -79,32 +80,32 @@
 		<dependency>
 			<groupId>org.sakaiproject.nakamura</groupId>
 			<artifactId>org.sakaiproject.nakamura.doc</artifactId>
-			<version>0.7-SNAPSHOT</version>
+			<version>0.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.sakaiproject.nakamura</groupId>
 			<artifactId>org.sakaiproject.nakamura.utils</artifactId>
-			<version>0.7-SNAPSHOT</version>
+			<version>0.9-SNAPSHOT</version>
 		</dependency>
         <dependency>
           <groupId>org.sakaiproject.nakamura</groupId>
           <artifactId>org.sakaiproject.nakamura.user</artifactId>
-          <version>0.7-SNAPSHOT</version>
+          <version>0.9-SNAPSHOT</version>
         </dependency>
           <dependency>
             <groupId>org.sakaiproject.nakamura</groupId>
             <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-            <version>2.0.7-0.7-SNAPSHOT</version>
+            <version>2.1.0-0.9-SNAPSHOT</version>
           </dependency>
           <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.api</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.1.0</version>
           </dependency>
           <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.servlets.post</artifactId>
-            <version>2.0.5-SNAPSHOT</version>
+            <version>2.0.5-20100823</version>
           </dependency>
           <dependency>
             <groupId>org.sakaiproject.basiclti</groupId>

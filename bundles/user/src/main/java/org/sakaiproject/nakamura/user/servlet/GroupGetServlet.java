@@ -29,14 +29,13 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>GroupGetServlet</code>
- * 
- * @scr.component immediate="true" label="GroupGetServlet"
- *                description="Get servlet for groups"
+ *
+ * @scr.component immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="service.description" value="Renders groups"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sling.servlet.resourceTypes" values="sling/group"
- * @scr.property name="sling.servlet.methods" value="GET" 
+ * @scr.property name="sling.servlet.methods" value="GET"
  * @scr.property name="sling.servlet.extensions" value="json"
  */
 @ServiceDocumentation(name="Get Group Servlet",
@@ -57,7 +56,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code=200,description="Success, the body contains the Group json with profile."),
           @ServiceResponse(code=404,description="Group was not found."),
           @ServiceResponse(code=500,description="Failure with HTML explanation.")}
-   )) 
+   ))
 public class GroupGetServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = 2792407832129918578L;
@@ -100,7 +99,7 @@ public class GroupGetServlet extends SlingSafeMethodsServlet {
       write.value("/_group"+PathUtils.getSubPath(authorizable)+"/public/authprofile");
       write.key("members");
       write.array();
-      
+
       Group group = (Group)authorizable;
       Set<String> memberNames = new HashSet<String>();
       Iterator<Authorizable> members = group.getMembers();
@@ -124,6 +123,6 @@ public class GroupGetServlet extends SlingSafeMethodsServlet {
     }
   }
 
-  
+
 
 }

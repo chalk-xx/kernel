@@ -52,7 +52,7 @@ public class TrustedAuthenticationServletTest {
   public void before() throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException, UnsupportedEncodingException {
     mocks.clear();
     trustedTokenService = new TrustedTokenServiceImpl();
-    
+
     ClusterTrackingService clusterTrackingService = createMock(ClusterTrackingService.class);
     CacheManagerService cacheManagerService = createMock(CacheManagerService.class);
 
@@ -72,7 +72,7 @@ public class TrustedAuthenticationServletTest {
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
     dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
-    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS, ";localhost;");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS_ADDR, "127.0.0.1");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
     EasyMock.expect(context.getProperties()).andReturn(dict).anyTimes();
     return context;
@@ -81,28 +81,29 @@ public class TrustedAuthenticationServletTest {
 
   @Test
   public void testDoGet() throws ServletException, IOException, NamespaceException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException {
-    
+
     ComponentContext context = configureForSession();
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
     WebContainer webContainer = createMock(WebContainer.class);
-    
+
     TrustedAuthenticationServlet trustedAuthenticationServlet = new TrustedAuthenticationServlet();
     webContainer.registerServlet(null, trustedAuthenticationServlet, null, trustedAuthenticationServlet);
     EasyMock.expectLastCall();
-    
+
+    EasyMock.expect(request.getRemoteAddr()).andReturn("192.168.0.123");
     EasyMock.expect(request.getUserPrincipal()).andReturn(null);
     EasyMock.expect(request.getRemoteUser()).andReturn(null);
     EasyMock.expect(request.getParameter("d")).andReturn("/test");
     response.sendRedirect("/test");
     EasyMock.expectLastCall();
-    
+
     replay();
     trustedAuthenticationServlet.trustedTokenService = trustedTokenService;
     trustedAuthenticationServlet.webContainer = webContainer;
     trustedTokenService.activate(context);
     trustedAuthenticationServlet.activate(context);
-    
+
     trustedAuthenticationServlet.doGet(request, response);
 
 

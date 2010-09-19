@@ -164,7 +164,7 @@ public class CropItServlet extends SlingAllMethodsServlet {
           url = requestImg + url.substring(img.length());
         }
         if ( url.startsWith(save) ) {
-          System.err.println("Chomping ["+url+"]["+save+"]["+requestSave+"]");
+          logger.debug("Chomping [{}][{}][{}]",new Object[] {url ,save ,requestSave});
           url = requestSave + url.substring(save.length());
         }
         output.value(url);
@@ -213,9 +213,9 @@ public class CropItServlet extends SlingAllMethodsServlet {
         if ( a.isGroup() ) {
           path = "/_group"+p.getPath().substring("/rep:security/rep:authorizables/rep:groups".length())+path.substring(nextSlash);
         } else {
-          System.err.println("Processing Path as ["+path+"]["+p.getPath()+"]["+path.substring(nextSlash)+"]");
+          logger.debug("Processing Path as [{}][{}][{}] ", new Object[]{path, p.getPath(), path.substring(nextSlash)});
           path = "/_user"+p.getPath().substring("/rep:security/rep:authorizables/rep:users".length())+path.substring(nextSlash);     
-          System.err.println("Done Processing Path as ["+path+"]");
+          logger.debug("Done Processing Path as [{}]", path);
         }
       }
     }
