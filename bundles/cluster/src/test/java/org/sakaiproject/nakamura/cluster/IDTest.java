@@ -25,9 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -41,7 +42,6 @@ public class IDTest {
   private int nrunning = 0;
   protected int failed;
 
-
   @Test
   public void testId() {
 
@@ -49,18 +49,15 @@ public class IDTest {
       final int tstart = i;
       Thread t = new Thread(new Runnable() {
 
-        private long epoch;
-        private long next;
         public void run() {
-          GregorianCalendar calendar = new GregorianCalendar(2010, 8, 6);
-          epoch = calendar.getTimeInMillis();
+          UniqueIdGenerator idGenerator = new UniqueIdGenerator(tstart);
           synchronized (lockObject) {
             nrunning++;
           }
           try {
             for (int j = 0; j < 100; j++) {
-              BigInteger id = getId();
-              if ( hash.containsKey(id) ) {
+              BigInteger id = idGenerator.nextIdNum();
+              if (hash.containsKey(id)) {
                 failed++;
               }
               hash.put(id, id);
@@ -70,20 +67,7 @@ public class IDTest {
               nrunning--;
             }
           }
-
         }
-        private BigInteger getId() {
-          synchronized (lockObject) {
-            if (next == 0) {
-              next = System.currentTimeMillis() - epoch;
-            } else {
-              next++;
-            }
-          }
-          BigInteger ret = new BigInteger(String.valueOf(next)+ String.valueOf(tstart + 1000));
-          return ret;
-        }
-
       });
       t.start();
     }
@@ -105,10 +89,40 @@ public class IDTest {
               .trim());
 
     }
-    LOGGER.info("Finished Running,  Hash Size is " + hash.size()+ " Collisions "+failed);
+    LOGGER.info("Finished Running,  Hash Size is " + hash.size() + " Collisions "
+        + failed);
     Assert.assertEquals(0, failed);
 
   }
 
+  @Test
+  public void testRate() {
+    UniqueIdGenerator uniqueIdGenerator = new UniqueIdGenerator(1);
+    int testSize = 100000;
+    long s = System.currentTimeMillis();
+    for (int i = 0; i < testSize; i++) {
+      uniqueIdGenerator.nextIdNum();
+    }
+    double t = System.currentTimeMillis() - s;
+    t = (t * 1000) / testSize;
+    LOGGER.info("Time per Id " + t + " ns, rollover happend "
+        + uniqueIdGenerator.getRollover());
+  }
+
+  @Test
+  public void testSingleThreadCollission() {
+    UniqueIdGenerator uniqueIdGenerator = new UniqueIdGenerator(1);
+    int testSize = 10000;
+    for (int j = 0; j < 100; j++) {
+      Set<BigInteger> collision = new HashSet<BigInteger>(testSize);
+      for (int i = 0; i < testSize; i++) {
+        BigInteger id = uniqueIdGenerator.nextIdNum();
+        Assert.assertFalse(collision.contains(id));
+        collision.add(id);
+      }
+    }
+    LOGGER.info("No Collisions, rollover happend "
+        + uniqueIdGenerator.getRollover());
+  }
 
 }
