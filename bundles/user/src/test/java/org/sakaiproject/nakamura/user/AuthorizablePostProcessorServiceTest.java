@@ -45,7 +45,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.osgi.framework.Constants;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
@@ -80,20 +79,13 @@ public class AuthorizablePostProcessorServiceTest {
   @Before
   public void setUp() throws RepositoryException {
     authorizablePostProcessService = new AuthorizablePostProcessServiceImpl();
-    authorizablePostProcessService.bindAuthorizablePostProcessor(sakaiUserProcessor, getServiceProperties(1,1));
-    authorizablePostProcessService.bindAuthorizablePostProcessor(sakaiGroupProcessor, getServiceProperties(2,2));
-    authorizablePostProcessService.bindAuthorizablePostProcessor(authorizablePostProcessor, getServiceProperties(3,3));
+    authorizablePostProcessService.sakaiUserProcessor = sakaiUserProcessor;
+    authorizablePostProcessService.sakaiGroupProcessor = sakaiGroupProcessor;
+    authorizablePostProcessService.bindAuthorizablePostProcessor(authorizablePostProcessor, new HashMap<String, Object>());
     when(user.isGroup()).thenReturn(false);
     when(user.getID()).thenReturn("joe");
     when(group.isGroup()).thenReturn(true);
     when(group.getID()).thenReturn("faculty");
-  }
-
-  private Map<String, Object> getServiceProperties(long serviceId, int serviceRanking) {
-    Map<String, Object> m = new HashMap<String, Object>();
-    m.put(Constants.SERVICE_ID, serviceId);
-    m.put(Constants.SERVICE_RANKING, serviceRanking);
-    return m;
   }
 
   @SuppressWarnings("unchecked")
@@ -125,7 +117,7 @@ public class AuthorizablePostProcessorServiceTest {
   }
 
   @SuppressWarnings("unchecked")
-  // @Test This should not matter which order the delete processing happens in, if there is we have a bug, disabling tests. All modification in one session.
+  @Test
   public void userProcessingOccursBeforeOtherNondeleteProcessing() throws Exception {
     authorizablePostProcessService.process(user, session, ModificationType.MODIFY);
     InOrder inOrder = inOrder(sakaiUserProcessor, authorizablePostProcessor);
@@ -135,7 +127,7 @@ public class AuthorizablePostProcessorServiceTest {
   }
 
   @SuppressWarnings("unchecked")
-  // @Test This should not matter which order the delete processing happens in, if there is we have a bug, disabling tests.
+  @Test
   public void userProcessingOccursAfterOtherDeleteProcessing() throws Exception {
     authorizablePostProcessService.process(user, session, ModificationType.DELETE);
     InOrder inOrder = inOrder(authorizablePostProcessor, sakaiUserProcessor);
@@ -143,6 +135,13 @@ public class AuthorizablePostProcessorServiceTest {
     inOrder.verify(sakaiUserProcessor).process(eq(user), eq(session), any(Modification.class), any(Map.class));
   }
 
+  @SuppressWarnings("unchecked")
+  @Test
+  public void groupProcessingOccurs() throws Exception {
+    authorizablePostProcessService.process(group, session, ModificationType.MODIFY);
+    verify(sakaiUserProcessor, never()).process(eq(group), eq(session), any(Modification.class), any(Map.class));
+    verify(sakaiGroupProcessor).process(eq(group), eq(session), any(Modification.class), any(Map.class));
+  }
 
   @SuppressWarnings("unchecked")
   @Test

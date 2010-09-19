@@ -26,6 +26,7 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceUtil;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
+import org.osgi.framework.Bundle;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.util.IOUtils;
 import org.slf4j.Logger;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -49,8 +51,8 @@ import javax.jcr.Value;
 public class DefaultAuthorizablesLoader {
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultAuthorizablesLoader.class);
 
-  public boolean initDefaultUsers(AuthorizablePostProcessService authorizablePostProcessService,
-     URL[] jsonFiles,  SlingRepository repository) {
+  public void initDefaultUsers(AuthorizablePostProcessService authorizablePostProcessService,
+      Bundle bundle, SlingRepository repository) {
     Session session = null;
     try {
       session = repository.loginAdministrative(null);
@@ -58,7 +60,11 @@ public class DefaultAuthorizablesLoader {
 
       // Apply default user properties from JSON files.
       Pattern fileNamePattern = Pattern.compile("/users/|\\.json");
-      for ( URL jsonUrl : jsonFiles ) {
+      @SuppressWarnings("rawtypes")
+      Enumeration entriesEnum = bundle.findEntries("users", "*.json", true);
+      while (entriesEnum.hasMoreElements()) {
+        Object entry = entriesEnum.nextElement();
+        URL jsonUrl = new URL(entry.toString());
         String jsonFileName = jsonUrl.getFile();
         String authorizableId = fileNamePattern.matcher(jsonFileName).replaceAll("");
         Authorizable authorizable = userManager.getAuthorizable(authorizableId);
@@ -69,7 +75,6 @@ public class DefaultAuthorizablesLoader {
           LOGGER.warn("Configured default authorizable {} not found", authorizableId);
         }
       }
-      return true;
     } catch (RepositoryException e) {
       LOGGER.error("Could not configure default authorizables", e);
     } catch (IOException e) {
@@ -79,7 +84,6 @@ public class DefaultAuthorizablesLoader {
         session.logout();
       }
     }
-    return false;
   }
 
   private void applyJsonToAuthorizable(AuthorizablePostProcessService authorizablePostProcessService,

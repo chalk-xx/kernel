@@ -32,9 +32,4 @@ public interface BoundService {
    */
   void removeListener(BindingListener listener);
 
-  /**
-   * @return a String[] of class names of all the registered services present.
-   */
-  String[] getRegisteredServiceIDs();
-
 }
