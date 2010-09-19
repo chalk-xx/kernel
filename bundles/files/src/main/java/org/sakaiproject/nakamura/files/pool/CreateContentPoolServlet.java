@@ -30,7 +30,6 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_RT;
 
-import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -46,7 +45,6 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -124,15 +122,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateContentPoolServlet.class);
 
-  private String serverId;
-  private long startingPoint;
-  private Object lock = new Object();
 
-  @Activate
-  public void activate(ComponentContext componentContext) {
-    serverId = clusterTrackingService.getCurrentServerId();
-    startingPoint = System.currentTimeMillis();
-  }
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -325,11 +315,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
   private String generatePoolId() throws UnsupportedEncodingException,
       NoSuchAlgorithmException {
-    synchronized (lock) {
-      String newId = String.valueOf(startingPoint++) + "-" + serverId;
-      MessageDigest md = MessageDigest.getInstance("SHA-1");
-      return StringUtils.encode(md.digest(newId.getBytes("UTF-8")), ENCODING);
-    }
+    return clusterTrackingService.getClusterUniqueId();
   }
 
   /**

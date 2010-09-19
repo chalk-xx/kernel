@@ -44,7 +44,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.testutils.mockito.MockitoTestUtils;
@@ -100,8 +99,6 @@ public class CreateContentPoolServletTest {
   @Mock
   private ClusterTrackingService clusterTrackingService;
   @Mock
-  private ComponentContext componentContext;
-  @Mock
   private SlingHttpServletRequest request;
   @Mock
   private SlingHttpServletResponse response;
@@ -124,8 +121,8 @@ public class CreateContentPoolServletTest {
   public void testCreate() throws Exception {
 
     // activate
-    when(clusterTrackingService.getCurrentServerId()).thenReturn("serverID");
     when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
+    when(clusterTrackingService.getClusterUniqueId()).thenReturn(String.valueOf(System.currentTimeMillis()));
 
 
     when(request.getRequestPathInfo()).thenReturn(requestPathInfo);
@@ -222,7 +219,6 @@ public class CreateContentPoolServletTest {
     CreateContentPoolServlet cp = new CreateContentPoolServlet();
     cp.clusterTrackingService = clusterTrackingService;
     cp.slingRepository = slingRepository;
-    cp.activate(componentContext);
 
     cp.doPost(request, response);
 
