@@ -64,7 +64,7 @@ public class MessageAuthorizablePostProcessor implements AuthorizablePostProcess
   public void process(Authorizable authorizable, Session session, Modification change,
       Map<String, Object[]> parameters) throws Exception {
     LOGGER.debug("Starting MessageAuthorizablePostProcessor process");
-    if (authorizable != null && authorizable.getID() != null && !authorizable.isGroup()) {
+    if (authorizable != null && authorizable.getID() != null) {
       PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
       String path = PersonalUtils.getHomeFolder(authorizable) + "/"
           + MessageConstants.FOLDER_MESSAGES;
