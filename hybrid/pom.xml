@@ -25,6 +25,16 @@
 		<name>Sakai Project</name>
 		<url>http://sakaiproject.org/</url>
 	</organization>
+	<description>A set of simple integration points which enables Sakai 2/3 Hybrid mode operation.</description>
+	<url>http://github.com/sakaiproject/nakamura/tree/master/hybrid/</url>
+	<issueManagement>
+		<system>JIRA</system>
+		<url>http://jira.sakaiproject.org/browse/KERN</url>
+	</issueManagement>
+	<ciManagement>
+		<system>Hudson</system>
+		<url>http://builds.sakaiproject.org:8080/job/Hybrid/</url>
+	</ciManagement>
 	<inceptionYear>2009</inceptionYear>
 	<packaging>pom</packaging>
 
