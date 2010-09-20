@@ -92,11 +92,10 @@
 			<type>jar</type>
 			<classifier>jdk15</classifier>
 		</dependency>
-		<!-- TODO bind to release version when it is ready 0.5? -->
 		<dependency>
 			<groupId>org.sakaiproject.nakamura</groupId>
 			<artifactId>org.sakaiproject.nakamura.utils</artifactId>
-			<version>0.9-SNAPSHOT</version>
+			<version>[0.5,)</version>
 		</dependency>
 	</dependencies>
 	<distributionManagement>
@@ -141,6 +140,21 @@
             </organizationUrl>
 			<roles>
 				<role>architect</role>
+			</roles>
+			<timezone>-4</timezone>
+		</developer>
+		<developer>
+			<id>thecarlhall</id>
+			<name>Carl Hall</name>
+			<email>carl@hallwaytech.com</email>
+			<organization>
+                Hallway Technologies
+            </organization>
+			<organizationUrl>
+                http://www.hallwaytech.com/
+            </organizationUrl>
+			<roles>
+				<role>engineer</role>
 			</roles>
 			<timezone>-4</timezone>
 		</developer>
