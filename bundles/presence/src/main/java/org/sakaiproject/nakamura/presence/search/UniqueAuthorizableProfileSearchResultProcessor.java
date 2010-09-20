@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.search.processors;
+package org.sakaiproject.nakamura.presence.search;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
@@ -40,9 +40,7 @@ import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
-import org.sakaiproject.nakamura.search.RowIteratorImpl;
 import org.sakaiproject.nakamura.search.SakaiSearchRowIterator;
-import org.sakaiproject.nakamura.search.SearchResultSetImpl;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,8 +107,8 @@ public class UniqueAuthorizableProfileSearchResultProcessor implements SearchRes
       }
 
       // Do the paging on the iterator.
-      SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(new RowIteratorImpl(
-          filteredRows));
+      SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(
+          searchServiceFactory.getRowIteratorFromList(filteredRows));
 
       // Extract the total hits from lucene
       long start = SearchUtil.getPaging(request, filteredRows.size());
@@ -120,7 +118,7 @@ public class UniqueAuthorizableProfileSearchResultProcessor implements SearchRes
       int maxResults = (int) SearchUtil.longRequestParameter(request,
           SearchConstants.PARAM_MAX_RESULT_SET_COUNT,
           SearchConstants.DEFAULT_PAGED_ITEMS);
-      SearchResultSet srs = new SearchResultSetImpl(iterator, maxResults);
+      SearchResultSet srs = searchServiceFactory.getSearchResultSet(iterator, maxResults);
       return srs;
     } catch (RepositoryException e) {
       logger.error("Unable to perform query.", e);
