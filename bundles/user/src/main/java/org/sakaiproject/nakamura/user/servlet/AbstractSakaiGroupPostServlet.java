@@ -96,7 +96,8 @@ public abstract class AbstractSakaiGroupPostServlet extends
           Authorizable memberAuthorizable = getAuthorizable(baseResource, member,
               userManager, resolver);
           if (memberAuthorizable != null) {
-            if(resolver.getUserID().equals(memberAuthorizable.getID())){              
+            if(!UserConstants.ANON_USERID.equals(resolver.getUserID())
+                && memberAuthorizable.getID().equals(resolver.getUserID())){              
               //since the current user is the member being removed,
               //we can grab admin session since user should be able to delete themselves from a group
               Session adminSession = getSession();
@@ -130,7 +131,9 @@ public abstract class AbstractSakaiGroupPostServlet extends
           Authorizable memberAuthorizable = getAuthorizable(baseResource, member,
               userManager, resolver);
           if (memberAuthorizable != null) {
-            if(Joinable.yes.equals(groupJoin)){          
+            if(!UserConstants.ANON_USERID.equals(resolver.getUserID()) 
+                && Joinable.yes.equals(groupJoin) 
+                && memberAuthorizable.getID().equals(resolver.getUserID())){          
               //we can grab admin session since group allows all users to join
               Session adminSession = getSession();
               try{
