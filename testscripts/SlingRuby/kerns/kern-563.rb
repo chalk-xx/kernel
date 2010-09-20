@@ -20,15 +20,22 @@ class TC_Kern563Test < Test::Unit::TestCase
     userid = "testuser-#{m}"
     user = create_user(userid)
     @s.switch_user(user)
+    # find the default country locale for this user
+    response = @s.execute_get(@s.url_for("/system/me"))
+    assert_equal(response.code.to_i, 200)
+    json = JSON.parse(response.body)
+    default_country_locale = json["user"]["locale"]["country"]
+    
+    # un-set the default country local for this user (eg go from en_US to _ )
     params = {"locale" => "_"}
     
     @s.execute_post(@s.url_for("system/userManager/user/#{userid}.update.html"), params)
     
+    # confirm default country locale still exists for this user
     res = @s.execute_get(@s.url_for("/system/me"))
     assert_equal(res.code.to_i, 200)
-    # Default is US
     json = JSON.parse(res.body)
-    assert_equal(json["user"]["locale"]["country"], "US")
+    assert_equal(json["user"]["locale"]["country"], default_country_locale)
   end
   
   
