@@ -1,10 +1,9 @@
 {
   "sakai:query-language": "xpath",
   // see users.json and groups.json for any notes
-  "sakai:query-template": "//*[(@sling:resourceType=\"sakai/user-profile\" and (jcr:contains(., '{q}') or jcr:contains(*/*/*,'{q}'))) or (@sling:resourceType=\"sakai/group-profile\" and jcr:contains(.,'{q}'))] order by @{sortOn|jcr:score} {sortOrder|descending}",
-//  "sakai:query-language": "JCR-SQL2",
-//  "sakai:query-template": "SELECT * FROM [nt:base] as n WHERE ([sling:resourceType] = \"sakai/user-profile\" and (contains(*, '{q}') or contains(*/*/*,'{q}'))) OR ([sling:resourceType] = \"sakai/group-profile\" and contains(*,'{q}')) order by @{sortOn|score()} {sortOrder|desc}"
+  "sakai:query-template": "//*[@sling:resourceType='sakai/user-home' or @sling:resourceType='sakai/group-home']//*[jcr:contains(.,'{q}')] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
+  "sakai:resultprocessor": "UniqueAuthorizableProfile",
   "sakai:title": "Users, Groups",
   "sakai:shortDescription": "Get profile nodes of users or groups.",
   "sakai:parameters" : [
