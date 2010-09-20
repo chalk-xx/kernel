@@ -17,10 +17,9 @@
 	<artifactId>hybrid</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<scm>
-		<connection>scm:git:http://github.com/sakaiproject/nakamura.git</connection>
-		<developerConnection>scm:git:[fetch=]http://github.com/sakaiproject/nakamura.git[push=]ssh://git@github.com/sakaiproject/nakamura.git</developerConnection>
-		<tag>scm:git:http://github.com/sakaiproject/nakamura.git</tag>
-		<url>scm:git:http://github.com/sakaiproject/nakamura.git</url>
+		<connection>scm:git:git://github.com/sakaiproject/nakamura.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com:sakaiproject/nakamura.git</developerConnection>
+		<url>http://github.com/sakaiproject/nakamura</url>
 	</scm>
 	<organization>
 		<name>Sakai Project</name>
