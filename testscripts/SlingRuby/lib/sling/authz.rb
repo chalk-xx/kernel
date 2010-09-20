@@ -40,11 +40,9 @@ module SlingAuthz
 	  
 	  # Save the current ACE
 	  ace.each do | key, value |
-	    if ( key == "granted" || key == "denied" )
-		  value.each do | priv |
-		    postParams['privilege@'+priv] = key
-		  end 
-		end
+	    value.each do | priv |
+		  postParams['privilege@'+priv] = key
+		end 
 	  end
 	  
 	  # Add in the new ACE

@@ -202,6 +202,11 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
       // get user credentials
       SimpleCredentials sc = (SimpleCredentials) credentials;
+      
+      if ("admin".equals(sc.getUserID())) {
+    	  return false;
+      }
+
 
       long timeStart = System.currentTimeMillis();
 
