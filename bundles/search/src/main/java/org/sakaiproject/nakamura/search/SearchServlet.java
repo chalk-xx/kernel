@@ -345,8 +345,6 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         write.object();
         write.key(PARAMS_ITEMS_PER_PAGE);
         write.value(nitems);
-        write.key(TOTAL);
-        write.value(rs.getSize());
         write.key(JSON_RESULTS);
 
         write.array();
@@ -368,6 +366,12 @@ public class SearchServlet extends SlingSafeMethodsServlet {
           }
         }
         write.endArray();
+
+        // write the total out after processing the list to give the underlying iterator
+        // a chance to walk the results then report how many there were.
+        write.key(TOTAL);
+        write.value(rs.getSize());
+
         if (aggregator != null) {
           Map<String, Map<String, Integer>> aggregate = aggregator.getAggregate();
           write.key(JSON_TOTALS);
