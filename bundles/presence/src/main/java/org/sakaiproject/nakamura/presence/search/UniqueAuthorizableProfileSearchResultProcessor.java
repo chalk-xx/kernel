@@ -40,7 +40,6 @@ import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
-import org.sakaiproject.nakamura.search.SakaiSearchRowIterator;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,8 +106,7 @@ public class UniqueAuthorizableProfileSearchResultProcessor implements SearchRes
       }
 
       // Do the paging on the iterator.
-      SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(
-          searchServiceFactory.getRowIteratorFromList(filteredRows));
+      RowIterator iterator = searchServiceFactory.getRowIteratorFromList(filteredRows);
 
       // Extract the total hits from lucene
       long start = SearchUtil.getPaging(request, filteredRows.size());
