@@ -44,7 +44,7 @@ mkdir sakai3
 cd sakai3
 git clone -q git://github.com/sakaiproject/nakamura.git
 cd nakamura
-mvn -B -e clean install -Dmaven.test.skip=true -Dux=$UX_TAG
+mvn -B -e clean install -Dux=$UX_TAG
 
 # start sakai 3 instance
 echo "Starting sakai3 instance..."

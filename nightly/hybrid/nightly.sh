@@ -165,6 +165,11 @@ else
     echo "imsblti.provider.allowedtools=sakai.forums:sakai.messages:sakai.synoptic.messagecenter:sakai.poll:sakai.profile:sakai.profile2:sakai.announcements:sakai.synoptic.announcement:sakai.assignment.grades:sakai.summary.calendar:sakai.schedule:sakai.chat:sakai.dropbox:sakai.resources:sakai.gradebook.tool:sakai.help:sakai.mailbox:sakai.news:sakai.podcasts:sakai.postem:sakai.site.roster:sakai.rwiki:sakai.syllabus:sakai.singleuser:sakai.samigo:sakai.sitestats" >> sakai2-demo/sakai/sakai.properties
     echo "imsblti.provider.12345.secret=secret" >> sakai2-demo/sakai/sakai.properties
     echo "webservices.allow=.+" >> sakai2-demo/sakai/sakai.properties
+    # enable debugging for UDP
+    echo "log.config.count=3" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.1 = ALL.org.sakaiproject.log.impl" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.2 = OFF.org.sakaiproject" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.3 = DEBUG.org.sakaiproject.provider.user" >> sakai2-demo/sakai/sakai.properties
     date > $BUILD_DIR/sakai/.lastbuild
 fi
 
