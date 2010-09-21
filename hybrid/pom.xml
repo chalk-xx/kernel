@@ -48,20 +48,6 @@
 				<module>hybrid</module>
 				<module>hybrid-util</module>
 			</modules>
-			<dependencyManagement>
-				<dependencies>
-					<dependency>
-						<groupId>org.sakaiproject</groupId>
-						<artifactId>sakai-portal-impl</artifactId>
-						<!--
-							This needs to match the version of sakai used as the parent of
-							this pom.
-						-->
-						<version>2.7.1</version>
-						<scope>provided</scope>
-					</dependency>
-				</dependencies>
-			</dependencyManagement>
 		</profile>
 		<profile>
 			<id>pre-kernel</id>
