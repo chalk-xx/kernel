@@ -107,16 +107,14 @@ public class UniqueAuthorizableProfileSearchResultProcessor implements SearchRes
 
       // Do the paging on the iterator.
       RowIterator iterator = searchServiceFactory.getRowIteratorFromList(filteredRows);
+      int totalHits = filteredRows.size();
 
       // Extract the total hits from lucene
-      long start = SearchUtil.getPaging(request, filteredRows.size());
+      long start = SearchUtil.getPaging(request, totalHits);
       iterator.skip(start);
 
       // Return the result set.
-      int maxResults = (int) SearchUtil.longRequestParameter(request,
-          SearchConstants.PARAM_MAX_RESULT_SET_COUNT,
-          SearchConstants.DEFAULT_PAGED_ITEMS);
-      SearchResultSet srs = searchServiceFactory.getSearchResultSet(iterator, maxResults);
+      SearchResultSet srs = searchServiceFactory.getSearchResultSet(iterator, totalHits);
       return srs;
     } catch (RepositoryException e) {
       logger.error("Unable to perform query.", e);
