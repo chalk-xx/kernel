@@ -47,6 +47,7 @@
 			<modules>
 				<module>hybrid</module>
 				<module>hybrid-util</module>
+				<module>hybrid-assembly</module>
 			</modules>
 		</profile>
 		<profile>
