@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.files.pool;
 
 import static javax.jcr.security.Privilege.JCR_ALL;
-import static javax.jcr.security.Privilege.JCR_READ;
 import static org.apache.jackrabbit.JcrConstants.JCR_CONTENT;
 import static org.apache.jackrabbit.JcrConstants.NT_RESOURCE;
 import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
@@ -28,7 +27,6 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_NT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_RT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_RT;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Properties;
@@ -42,7 +40,6 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestPathInfo;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
@@ -106,7 +103,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code=500,description="Failure with HTML explanation.")}
 
         ))
-public class CreateContentPoolServlet extends SlingAllMethodsServlet {
+public class CreateContentPoolServlet extends AbstractContentPoolServlet {
 
   @Reference
   protected ClusterTrackingService clusterTrackingService;
@@ -236,43 +233,33 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       resourceNode.setProperty(JcrConstants.JCR_DATA, session.getValueFactory()
           .createBinary(value.getInputStream()));
 
-      // The current user will be a manager and thus gets the JCR_ALL privilege on the file.
-      Principal userPrincipal = au.getPrincipal();
-      AccessControlUtil.replaceAccessControlEntry(session, path, userPrincipal,
-          new String[] { JCR_ALL }, null, null, null);
-
-      // Other people can't see or do anything.
+      // By default, non-viewers and non-managers can't see or do anything.
+      PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
       Principal anon = new Principal() {
         public String getName() {
           return UserConstants.ANON_USERID;
         }
       };
-      Principal everyone = new Principal() {
-        public String getName() {
-          return "everyone";
-        }
-      };
+      Principal everyone = principalManager.getEveryone();
       AccessControlUtil.replaceAccessControlEntry(session, path, anon, null,
           new String[] { JCR_ALL }, null, null);
       AccessControlUtil.replaceAccessControlEntry(session, path, everyone, null,
           new String[] { JCR_ALL }, null, null);
-      // Create a users node under this node.
+
+      // Create a members node under the pooled content node.
       // We do this so we're still able to query the repository and find the files where a
       // user/group is viewer/manager of.
-      // These nodes will be stored at /_p/a1/b2/c3/d4/FILENODE/e5/f6/g7/h8/USERNODE so we
+      // Viewer and manager nodes will be stored at /_p/a1/b2/c3/d4/FILENODE/members/e5/f6/g7/h8/USERNODE so we
       // can keep full ACL permissions on them.
-      // We want to ACL control these user nodes because sometimes it's not allowed to see
+      // We want to ACL control these member nodes because sometimes it's not allowed to see
       // who can view a file.
-      String newPath = fileNode.getPath() + PersonalUtils.getUserHashedPath(au);
-      Node userNode = JcrUtils.deepGetOrCreateNode(session, newPath);
-      userNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_USER_RT);
-      userNode.setProperty(POOLED_CONTENT_USER_MANAGER, new String[] { userPrincipal
-          .getName() });
+      String membersPath = getMembersPath(path);
+      JcrUtils.deepGetOrCreateNode(session, membersPath);
+      replaceAccessControlEntry(session, membersPath, anon, null, new String[] { JCR_ALL }, null, null);
+      replaceAccessControlEntry(session, membersPath, everyone, null, new String[] { JCR_ALL }, null, null);
 
-      // These nodes can only be modified by an admin/manager.
-      // Other people cannot even see it.
-      replaceAccessControlEntry(session, userNode.getPath(), everyone, null, new String[] {
-          JCR_READ, JCR_ALL }, null, null);
+      // Make the creator a manager of this pooled content.
+      addMember(session, path, au, POOLED_CONTENT_USER_MANAGER);
     } else {
       Node fileNode = session.getNode(path);
       Node resourceNode = fileNode.getNode(JCR_CONTENT);
@@ -280,10 +267,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
       resourceNode.setProperty(JcrConstants.JCR_DATA, session.getValueFactory()
           .createBinary(value.getInputStream()));
-
-
       LOGGER.debug("Updating Resource Node with new Content ");
-
     }
 
   }

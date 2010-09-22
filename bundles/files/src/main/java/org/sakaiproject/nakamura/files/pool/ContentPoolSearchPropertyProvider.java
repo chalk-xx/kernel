@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
+import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_MEMBERS_NODE;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_VIEWER;
 
@@ -80,7 +81,8 @@ public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider
     try {
       Authorizable au = PersonalUtils.getAuthorizable(session, userID);
       String path = PersonalUtils.getUserHashedPath(au).substring(1);
-      String safePath = ISO9075.encodePath(path);
+      String membersRelativePath = POOLED_CONTENT_MEMBERS_NODE.substring(1);
+      String safePath = membersRelativePath + "/" + ISO9075.encodePath(path);
 
       // Get all the groups I'm a member of and add the property in the map.
       Iterator<Group> groups = au.memberOf();
@@ -97,7 +99,7 @@ public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider
       while (groups.hasNext()) {
         Group g = groups.next();
         path = PersonalUtils.getUserHashedPath(g).substring(1);
-        safePath = ISO9075.encodePath(path);
+        safePath = membersRelativePath + "/" + ISO9075.encodePath(path);
 
         // Add the group to the managers contraint
         sbManagingGroups.append(" or ").append(safePath).append("/@").append(
