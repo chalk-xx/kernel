@@ -224,13 +224,18 @@ public class CropItProcessor {
       // This is not a valid image.
       LOGGER.error("Can't parse this format.");
       throw new ImageException(406, "Can't parse this format.");
-    } else if (info.getFormat() == ImageFormat.IMAGE_FORMAT_JPEG
-        || info.getFormat() == ImageFormat.IMAGE_FORMAT_PNG) {
-      // KERN-1113 Sanselan doesn't read the image type correctly when working with a PNG
+    } else if (info.getFormat() == ImageFormat.IMAGE_FORMAT_JPEG) {
       imgBuf = ImageIO.read(new ByteArrayInputStream(bytes));
     } else {
       imgBuf = Sanselan.getBufferedImage(bytes);
+
+      // KERN-1113 Sanselan doesn't read the image type correctly when working with some
+      // PNG's.  Alpha layer is tricky.
+      if (imgBuf.getType() == 0) {
+        imgBuf = ImageIO.read(new ByteArrayInputStream(bytes));
+      }
     }
+
     return imgBuf;
   }
 
@@ -317,6 +322,8 @@ public class CropItProcessor {
       // Write to stream.
       if (info.getFormat() == ImageFormat.IMAGE_FORMAT_JPEG) {
         ImageIO.write(imgScaled, "jpg", out);
+      } else if (info.getFormat() == ImageFormat.IMAGE_FORMAT_PNG) {
+        ImageIO.write(imgScaled, "png", out);
       } else {
         Sanselan.writeImage(imgScaled, out, info.getFormat(), null);
       }
