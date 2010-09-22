@@ -28,6 +28,7 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_RT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_VIEWER;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -371,11 +372,13 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
    */
   protected void resolveNames(UserManager um, String[] names,
       Set<Authorizable> authorizables) throws RepositoryException {
-    if (names != null) {
+    if (names != null && names.length > 0) {
       for (String principalName : names) {
-        Authorizable au = um.getAuthorizable(principalName);
-        if (au != null) {
-          authorizables.add(au);
+        if (!StringUtils.isEmpty(principalName)) {
+          Authorizable au = um.getAuthorizable(principalName);
+          if (au != null) {
+            authorizables.add(au);
+          }
         }
       }
     }
