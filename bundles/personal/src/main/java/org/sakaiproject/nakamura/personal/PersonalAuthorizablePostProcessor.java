@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.personal;
 import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static javax.jcr.security.Privilege.JCR_WRITE;
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
@@ -37,7 +38,6 @@ import org.apache.jackrabbit.api.security.user.User;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.contentloader.ContentImporter;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.service.event.EventAdmin;
@@ -208,6 +208,11 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       LOGGER.debug("Existing Home Node for {} at   {} user was {} ", new Object[] {
           authorizable.getID(), homeNode, session.getUserID() });
     }
+    if (authorizable.isGroup()) {
+      homeNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, "sakai/group-home");
+    } else {
+      homeNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, "sakai/user-home");
+    }
 
     refreshOwnership(session, authorizable, homeFolderPath);
 
@@ -261,7 +266,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       LOGGER.debug("Creating or resetting Profile Node {} for authorizable {} ", path,
           authorizable.getID());
       profileNode = JcrUtils.deepGetOrCreateNode(session, path);
-      profileNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, type);
+      profileNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, type);
       // Make sure we can place references to this profile node in the future.
       // This will make it easier to search on it later on.
       if (profileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
@@ -461,9 +466,8 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     Node node = getProfileNode(session, authorizable);
     if (node != null) {
       String type = nodeTypeForAuthorizable(authorizable.isGroup());
-      if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
-        if (node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            .getString().equals(type)) {
+      if (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
+        if (node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString().equals(type)) {
           isProfileCreated = true;
         }
       }
