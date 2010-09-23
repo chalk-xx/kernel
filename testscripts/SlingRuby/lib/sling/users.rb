@@ -260,7 +260,9 @@ module SlingUsers
       user = User.new(username)
       data = { ":name" => user.name,
               "pwd" => user.password,
-              "pwdConfirm" => user.password }
+              "pwdConfirm" => user.password,
+              "sling:resourceType" => "sakai/user-home"
+      }
       if (!firstname.nil? and !lastname.nil?)
         data[":sakai:profile-import"] = "{'basic': {'access': 'everybody', 'elements': {'email': {'value': '#{username}@sakai.invalid'}, 'firstName': {'value': '#{firstname}'}, 'lastName': {'value': '#{lastname}'}}}}"
       end
@@ -275,7 +277,7 @@ module SlingUsers
     def create_group(groupname)
       @log.info "Creating group: #{groupname}"
       group = Group.new(groupname)
-      result = @sling.execute_post(@sling.url_for($GROUP_URI), { ":name" => group.name })
+      result = @sling.execute_post(@sling.url_for($GROUP_URI), { ":name" => group.name, "sling:resourceType" => "sakai/group-home" })
       if (result.code.to_i > 299)
         return nil
       end

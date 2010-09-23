@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.cluster;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -145,6 +146,7 @@ import javax.servlet.http.HttpServletResponse;
     + "}"
     + "</pre>", parameters = { @ServiceParameter(name = "c", description = { "The value of cookie SAKAI-TRACKING." }) }, response = {
     @ServiceResponse(code = 200, description = "On sucess a JSON tree of the User object."),
+    @ServiceResponse(code = 400, description = "Cookie is not provided in the request."),
     @ServiceResponse(code = 404, description = "Cookie is not registered."),
     @ServiceResponse(code = 0, description = "Any other status codes returned have meanings as per the RFC") }) })
 public class ClusterUserServlet extends SlingSafeMethodsServlet {
@@ -215,13 +217,20 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
 
       String trackingCookie = request.getParameter("c");
 
+      if (StringUtils.isEmpty(trackingCookie)) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+            "Must provide cookie to check.");
+        return;
+      }
+
       ClusterUser clusterUser = clusterTrackingService.getUser(trackingCookie);
       if (clusterUser == null) {
 
         if (!testing) {
           // work out the remote server and try there.
           ClusterServer clusterServer = clusterTrackingService.getServer(trackingCookie);
-          if (clusterServer == null) {
+          if (clusterServer == null
+              || clusterServer.getServerId() == clusterTrackingService.getCurrentServerId()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND,
                 "Cookie could not be found");
             return;
