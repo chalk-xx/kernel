@@ -39,15 +39,12 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 
 import javax.jcr.AccessDeniedException;
-import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
-import javax.jcr.ValueFormatException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -96,25 +93,9 @@ public class GroupJoinRequestServlet extends SlingAllMethodsServlet {
       }
 
       joinGroup(group, requestingUser.getString());
-    } catch (AccessDeniedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (ItemNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (PathNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (ValueFormatException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (RepositoryException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    } catch (Exception e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
     }
-
-    // response.sendError(HttpServletResponse.SC_OK);
-    return;
   }
 
   private void joinGroup(Node group, String userId) throws AccessDeniedException,
