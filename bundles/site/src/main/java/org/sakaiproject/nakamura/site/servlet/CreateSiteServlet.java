@@ -170,7 +170,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
           .getRequestParameter(SAKAI_SITE_TEMPLATE);
       if (siteTemplateParam != null) {
         templatePath = siteTemplateParam.getString();
-        if (!session.itemExists(templatePath)) {
+        if (StringUtils.isEmpty(templatePath) || !session.itemExists(templatePath)) {
           response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
               + SAKAI_SITE_TEMPLATE + " must be set to a site template");
           return;
@@ -187,7 +187,8 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       RequestParameter requestParameter = request.getRequestParameter(PARAM_MOVE_FROM);
       if (requestParameter != null) {
         moveFromPath = requestParameter.getString();
-        if (!session.itemExists(moveFromPath) || !getSiteService().isSite(session.getItem(moveFromPath))) {
+        if (StringUtils.isEmpty(moveFromPath) || !session.itemExists(moveFromPath)
+            || !getSiteService().isSite(session.getItem(moveFromPath))) {
           response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
               + PARAM_MOVE_FROM + " must be set to an existing site.");
           return;
@@ -197,7 +198,8 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       requestParameter = request.getRequestParameter(PARAM_COPY_FROM);
       if (requestParameter != null) {
         copyFromPath = requestParameter.getString();
-        if (!session.itemExists(copyFromPath) || !getSiteService().isSite(session.getItem(copyFromPath))) {
+        if (StringUtils.isEmpty(copyFromPath) || !session.itemExists(copyFromPath)
+            || !getSiteService().isSite(session.getItem(copyFromPath))) {
           response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
               + PARAM_COPY_FROM + " must be set to an existing site.");
           return;
