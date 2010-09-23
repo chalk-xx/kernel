@@ -2,6 +2,7 @@
   "sakai:query-language": "xpath",
   "sakai:query-template": "/jcr:root/{groupId}//*[@sling:resourceType=\"sakai/joinrequest\"] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
+  "sakai:resultprocessor": "GroupJoinRequest",
   "sakai:title": "Group Join Requests - List.",
   "sakai:shortDescription": "List all of the pending join requests for the group specified by the groupId parameter",
   "sakai:parameters" : [
