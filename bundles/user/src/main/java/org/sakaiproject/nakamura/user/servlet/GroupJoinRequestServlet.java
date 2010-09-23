@@ -149,6 +149,7 @@ public class GroupJoinRequestServlet extends SlingAllMethodsServlet {
       String profileId = profileNode.getProperty("jcr:uuid").getString();
       joinrequest.setProperty("jcr:created", Calendar.getInstance());
       joinrequest.setProperty("profile", profileId, PropertyType.REFERENCE);
+      joinrequest.setProperty("sling:resourceType", "sakai/joinrequest");
       session.save();
       break;
     default:
