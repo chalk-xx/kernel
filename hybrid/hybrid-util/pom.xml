@@ -38,51 +38,5 @@
         </dependency>
       </dependencies>
     </profile>
-
-    <profile>
-      <id>pre-kernel</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.sakaiproject</groupId>
-          <artifactId>sakai-hybrid-prekernel</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.sakaiproject</groupId>
-          <artifactId>sakai-authz-api</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.sakaiproject</groupId>
-          <artifactId>sakai-entity-api</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.sakaiproject</groupId>
-          <artifactId>sakai-event-api</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.sakaiproject</groupId>
-          <artifactId>sakai-component</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.sakaiproject</groupId>
-          <artifactId>sakai-component-api</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.sakaiproject</groupId>
-          <artifactId>sakai-site-api</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.sakaiproject</groupId>
-          <artifactId>sakai-tool-api</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.sakaiproject</groupId>
-          <artifactId>sakai-user-api</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.sakaiproject</groupId>
-          <artifactId>sakai-util-api</artifactId>
-        </dependency>
-      </dependencies>
-    </profile>
   </profiles>
 </project>
