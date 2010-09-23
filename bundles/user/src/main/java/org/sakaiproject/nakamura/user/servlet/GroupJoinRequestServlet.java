@@ -48,6 +48,8 @@ import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.ANON_USERID;
+
 /**
  *
  */
@@ -84,15 +86,23 @@ public class GroupJoinRequestServlet extends SlingAllMethodsServlet {
       return;
     }
     try {
+      String requestedBy = joinrequests.getSession().getUserID();
+      if (ANON_USERID.equals(requestedBy)) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, "anonymous user may not request to join a group");
+        return;
+      }
       Node group = joinrequests.getParent();
-      RequestParameter requestingUser = request.getRequestParameter(PARAM_USERID);
-      if (requestingUser == null) {
+      RequestParameter userToJoin = request.getRequestParameter(PARAM_USERID);
+      if (userToJoin == null) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST,
             "requesting user must be specified in the request parameter " + PARAM_USERID);
         return;
       }
-
-      joinGroup(group, requestingUser.getString());
+      if (!userToJoin.getString().equalsIgnoreCase(requestedBy)) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, "You may not request someone other than yourself join a group");
+        return;
+      }
+      joinGroup(group, userToJoin.getString());
     } catch (Exception e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
     }
