@@ -144,12 +144,19 @@ public class GroupJoinRequestServlet extends SlingAllMethodsServlet {
     case withauth:
       // a node is added to represent this user's request to join
       Node joinrequests = session.getNode(group.getPath() + "/joinrequests");
-      Node joinrequest = joinrequests.addNode(userId);
-      Node profileNode = session.getNode(profileService.getProfilePath(user));
-      String profileId = profileNode.getProperty("jcr:uuid").getString();
-      joinrequest.setProperty("jcr:created", Calendar.getInstance());
-      joinrequest.setProperty("profile", profileId, PropertyType.REFERENCE);
-      joinrequest.setProperty("sling:resourceType", "sakai/joinrequest");
+      // check to see if this user is already there
+      if (joinrequests.hasNode(userId)) {
+        // just update the date
+        Node joinRequestUpdate = joinrequests.getNode(userId);
+        joinRequestUpdate.setProperty("jcr:created", Calendar.getInstance());
+      } else {
+        Node joinrequest = joinrequests.addNode(userId);
+        Node profileNode = session.getNode(profileService.getProfilePath(user));
+        String profileId = profileNode.getProperty("jcr:uuid").getString();
+        joinrequest.setProperty("jcr:created", Calendar.getInstance());
+        joinrequest.setProperty("profile", profileId, PropertyType.REFERENCE);
+        joinrequest.setProperty("sling:resourceType", "sakai/joinrequest");
+      }
       session.save();
       break;
     default:
