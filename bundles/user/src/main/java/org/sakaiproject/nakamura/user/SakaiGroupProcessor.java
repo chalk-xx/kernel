@@ -72,13 +72,6 @@ public class SakaiGroupProcessor extends AbstractAuthorizableProcessor implement
         ensurePath(authorizable, session, UserConstants.GROUP_REPO_LOCATION);
         if (change.getType() == ModificationType.CREATE) {
           createManagersGroup(group, session);
-          Value[] path = authorizable.getProperty(PROP_AUTHORIZABLE_PATH);
-          if (path != null && path.length > 0) {
-            String pathString = "/_group" + path[0].getString() + "/joinrequests";
-            Node messageStore = JcrUtils.deepGetOrCreateNode(session, pathString);
-            messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-                "sakai/joinrequests");
-          }
         }
         updateManagersGroupMembership(group, session, parameters);
       }
