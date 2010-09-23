@@ -32,6 +32,10 @@
           <groupId>org.sakaiproject.kernel</groupId>
           <artifactId>sakai-component-manager</artifactId>
         </dependency>
+        <dependency>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+        </dependency>
       </dependencies>
     </profile>
 

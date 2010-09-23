@@ -97,11 +97,6 @@
 			<type>jar</type>
 			<classifier>jdk15</classifier>
 		</dependency>
-		<dependency>
-			<groupId>org.sakaiproject.nakamura</groupId>
-			<artifactId>org.sakaiproject.nakamura.utils</artifactId>
-			<version>0.8</version>
-		</dependency>
 	</dependencies>
 	<distributionManagement>
 		<downloadUrl>http://source.sakaiproject.org/maven2/</downloadUrl>
