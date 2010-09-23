@@ -27,13 +27,15 @@ class TC_Kern723Test < Test::Unit::TestCase
     @s.switch_user(sitecreator)
     sitetemplate = "/var/templates/site/systemtemplate"
     
-    @s.execute_post(@s.url_for("/sites.createsite.json"),
+    res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{siteid}",
       "sakai:site-template" => sitetemplate,
       "name" => sitename,
       "description" => sitename,
       "id" => siteid)
+    assert_equal("200", res.code, "Expected site to be created successfully.")
     res = @s.execute_get(@s.url_for("/sites/#{siteid}/store.json"))
+    assert_equal("200", res.code, "Expected a successful response from the server.")
     props = JSON.parse(res.body)
     assert_equal(props["sling:resourceType"], "sakai/messagestore", "Expected to find a sakai/messagestore resource type.")
     
