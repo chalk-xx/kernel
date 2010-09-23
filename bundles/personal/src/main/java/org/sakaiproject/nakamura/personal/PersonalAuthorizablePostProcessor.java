@@ -40,6 +40,7 @@ import org.apache.jackrabbit.api.security.user.User;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.contentloader.ContentImporter;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.service.event.EventAdmin;
