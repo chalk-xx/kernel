@@ -79,6 +79,8 @@ public class GroupJoinRequestSearchResultProcessor implements SearchResultProces
 
     write.object();
     Node node = row.getNode();
+    write.key("jcr:created");
+    write.value(node.getProperty("jcr:created").getString());
     String userID = node.getName();
     UserManager um = AccessControlUtil.getUserManager(node.getSession());
     Authorizable au = um.getAuthorizable(userID);
