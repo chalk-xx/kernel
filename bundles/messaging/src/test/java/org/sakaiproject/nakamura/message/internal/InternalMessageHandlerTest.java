@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.message.internal;
 
-import static org.easymock.EasyMock.eq;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
