@@ -70,19 +70,25 @@ else
    echo "Third Load Failed to create file"
 fi
 
-if [ `curl -s http://localhost:8080/contenttest/contentTest1.txt | grep "ContentTest1" | wc -l ` -eq 1 ]
-then
-  echo Content Ok for file 1
-else 
-  echo Content Not Ok For file 1
-fi 
+function checkExists {
+   file=$1
+   content=$2
+   if [ `curl -s http://localhost:8080/contenttest/$file | grep "$content" | wc -l ` -eq 1 ]
+   then
+     echo Content Ok for $file 
+   else 
+     echo Content Not Ok For $file
+   fi 
+}
+
+
+checkExists "contentTest1.txt" "ContentTest1"
+checkExists "contentTest2.txt" "ContentTest2" 
+checkExists "contentFolder1/contentInFolder1.txt" "ContentTest1" 
+checkExists "contentFolder1/contentInFolder2.txt" "ContentTest2" 
+checkExists "contentFolder2/contentInFolder2.txt" "ContentTest2" 
  
-if [ `curl -s http://localhost:8080/contenttest/contentTest2.txt | grep "ContentTest2" | wc -l ` -eq 1 ]
-then
-  echo Content Ok for file 2
-else 
-  echo Content Not Ok For file 2
-fi 
+
 
 
 
