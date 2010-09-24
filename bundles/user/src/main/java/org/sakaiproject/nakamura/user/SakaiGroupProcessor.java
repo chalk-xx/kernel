@@ -21,16 +21,19 @@ import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGE
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWERS;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGED_GROUP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGERS_GROUP;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_AUTHORIZABLE_PATH;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;

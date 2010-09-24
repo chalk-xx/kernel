@@ -1,14 +1,16 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "/jcr:root/{_connectionstore}//*[@sling:resourceType=\"sakai/contact\" and @sakai:state=\"IGNORED\"] order by @{sortOn|jcr:score} {sortOrder|descending}",
+  "sakai:query-template": "/jcr:root/{_connectionstore}//*[@sling:resourceType=\"sakai/contact\" and @sakai:state=\"IGNORED\"]/jcr:deref(@jcr:reference, '*')[(jcr:contains(., '{q|*}') or jcr:contains(*/*/*,'{q|*}'))] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "Connection",
-  "sakai:resultprocessor": "Connection",
+  "sakai:resultprocessor": "ConnectionFinder",
   "sakai:title": "Contacts - Ignored.",
-  "sakai:shortDescription": "Get all the current user's ignored contacts.",
-  "sakai:parameters" : [],
+  "sakai:shortDescription": "Get all the current user's ignored contacts.  Search through contacts based on firstName, lastName or email with the 'q' parameter",
+  "sakai:parameters" : [
+  						"{\"name\" : \"q\", \"description\" : \"Filter for the firstName, lastName or email.\"}",
+  						],
   "sakai:description": [
-                      "This search will get all the ignored contacts in the current user's contactstore."
+                      "This search will get all the ignored contacts in the current user's contactstore.  Search through contacts based on firstName, lastName or email with the 'q' parameter"
                       ],
   "sakai:response": [
                    "Standard request.<br /> Example: Request to: /_user/contacts/ignored.json<br /><pre class=\"json\">{\n   \"query\": \"//_user/contacts/_x0037_9/_x0039_4/ea/_x0034_6/simong//*[@sling:resourceType=\"sakai/contact\" and @sakai:state!=\"IGNORED\"]\",\n   \"items\": 25,\n   \"total\": 0,\n   \"results\": []}</pre>"

@@ -31,6 +31,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
@@ -64,35 +65,37 @@ public class MessageAuthorizablePostProcessor implements AuthorizablePostProcess
   public void process(Authorizable authorizable, Session session, Modification change,
       Map<String, Object[]> parameters) throws Exception {
     LOGGER.debug("Starting MessageAuthorizablePostProcessor process");
-    if (authorizable != null && authorizable.getID() != null && !authorizable.isGroup()) {
-      PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-      String path = PersonalUtils.getHomeFolder(authorizable) + "/"
-          + MessageConstants.FOLDER_MESSAGES;
-      LOGGER
-          .debug("Getting/creating message store node: {}", path);
+    if (ModificationType.CREATE.equals(change.getType())) {
+      if (authorizable != null && authorizable.getID() != null) {
+        PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
+        String path = PersonalUtils.getHomeFolder(authorizable) + "/"
+            + MessageConstants.FOLDER_MESSAGES;
+        LOGGER
+            .debug("Creating message store node: {}", path);
 
-      Node messageStore = JcrUtils.deepGetOrCreateNode(session, path);
-      messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-          MessageConstants.SAKAI_MESSAGESTORE_RT);
-      // ACL's are managed by the Personal User Post processor.
-      Principal anon = new Principal() {
+        Node messageStore = JcrUtils.deepGetOrCreateNode(session, path);
+        messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            MessageConstants.SAKAI_MESSAGESTORE_RT);
+        // ACL's are managed by the Personal User Post processor.
+        Principal anon = new Principal() {
 
-        public String getName() {
-          return UserConstants.ANON_USERID;
-        }
+          public String getName() {
+            return UserConstants.ANON_USERID;
+          }
 
-      };
-      Principal everyone = principalManager.getEveryone();
+        };
+        Principal everyone = principalManager.getEveryone();
 
 
-      // The user can do everything on this node.
-      replaceAccessControlEntry(session, path, authorizable.getPrincipal(),
-          new String[] { JCR_ALL }, null, null, null);
+        // The user can do everything on this node.
+        replaceAccessControlEntry(session, path, authorizable.getPrincipal(),
+            new String[] { JCR_ALL }, null, null, null);
 
-      // explicitly deny anon and everyone, this is private space.
-      String[] deniedPrivs = new String[] { JCR_READ, JCR_WRITE };
-      replaceAccessControlEntry(session, path, anon, null, deniedPrivs, null, null);
-      replaceAccessControlEntry(session, path, everyone, null, deniedPrivs, null, null);
+        // explicitly deny anon and everyone, this is private space.
+        String[] deniedPrivs = new String[] { JCR_READ, JCR_WRITE };
+        replaceAccessControlEntry(session, path, anon, null, deniedPrivs, null, null);
+        replaceAccessControlEntry(session, path, everyone, null, deniedPrivs, null, null);
+      }
     }
   }
 

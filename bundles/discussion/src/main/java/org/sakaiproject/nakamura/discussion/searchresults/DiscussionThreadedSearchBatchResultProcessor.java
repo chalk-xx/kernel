@@ -94,14 +94,13 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
     }
 
     List<Post> basePosts = new ArrayList<Post>();
+    List<Node> replyNodes = new ArrayList<Node>();
     for (int i = 0; i < allNodes.size(); i++) {
       Node n = allNodes.get(i);
 
       if (n.hasProperty(DiscussionConstants.PROP_REPLY_ON)) {
-        String replyon = n.getProperty(DiscussionConstants.PROP_REPLY_ON).getString();
         // This post is a reply on another post.
-        // Find that post and add it.
-        addPost(basePosts, n, replyon);
+        replyNodes.add(n);
 
       } else {
         // This post is not a reply to another post, thus it is a basepost.
@@ -109,6 +108,11 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       }
     }
 
+    // Now that we have all the base posts, we can sort the replies properly
+    for (Node replyNode : replyNodes) {
+      String replyon = replyNode.getProperty(DiscussionConstants.PROP_REPLY_ON).getString();
+      addPost(basePosts, replyNode, replyon);
+    }
     // The posts are sorted, now return them as json.
 
     for (Post p : basePosts) {

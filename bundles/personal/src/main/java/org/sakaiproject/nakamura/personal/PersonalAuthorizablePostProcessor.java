@@ -17,9 +17,12 @@
  */
 package org.sakaiproject.nakamura.personal;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_AUTHORIZABLE_PATH;
+
 import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static javax.jcr.security.Privilege.JCR_WRITE;
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
@@ -47,7 +50,6 @@ import org.sakaiproject.nakamura.api.user.AuthorizableEventUtil;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +61,6 @@ import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
-import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
@@ -112,7 +113,11 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     if (!ModificationType.DELETE.equals(change.getType())) {
       LOGGER.debug("Processing  {} ", authorizable.getID());
       try {
-        createHomeFolder(session, authorizable, change, parameters);
+        if (ModificationType.CREATE.equals(change.getType())) {
+          createHomeFolder(session, authorizable, change, parameters);
+        } else {
+          updateHomeFolder(session, authorizable, change, parameters);
+        }
         fireEvent(session, authorizable.getID(), change);
         LOGGER.debug("DoneProcessing  {} ", authorizable.getID());
       } catch (Exception ex) {
@@ -130,24 +135,13 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    * @throws VersionException
    * @throws PathNotFoundException
    */
-  private void updateProperties(Session session, Node profileNode,
+  private void updateProfileProperties(Session session, Node profileNode,
       Authorizable athorizable, Modification change, Map<String, Object[]> parameters) throws RepositoryException {
 
-      String dest = change.getDestination();
-      if (dest == null) {
-        dest = change.getSource();
-      }
-      switch (change.getType()) {
-      case DELETE:
-        if (!dest.endsWith(athorizable.getID()) && profileNode != null) {
-          String propertyName = PathUtils.lastElement(dest);
-          if (profileNode.hasProperty(propertyName)) {
-            Property prop = profileNode.getProperty(propertyName);
-            prop.remove();
-          }
-        }
-        break;
-      }
+    String dest = change.getDestination();
+    if (dest == null) {
+      dest = change.getSource();
+    }
 
     if (profileNode == null) {
       return;
@@ -202,11 +196,10 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    * @param session
    * @param authorizable
    * @param isGroup
-   * @param changes
-   * @return
+   * @param change
    * @throws RepositoryException
    */
-  private Node createHomeFolder(Session session, Authorizable authorizable,
+  private void createHomeFolder(Session session, Authorizable authorizable,
       Modification change, Map<String, Object[]> parameters) throws RepositoryException {
     String homeFolderPath = PersonalUtils.getHomeFolder(authorizable);
 
@@ -218,42 +211,13 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       LOGGER.debug("Existing Home Node for {} at   {} user was {} ", new Object[] {
           authorizable.getID(), homeNode, session.getUserID() });
     }
-
-    PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-    Principal anon = new Principal() {
-      public String getName() {
-        return UserConstants.ANON_USERID;
-      }
-    };
-
-    Principal everyone = principalManager.getEveryone();
-
-    Value[] managerSettings = authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS);
-    Value[] viewerSettings = authorizable.getProperty(UserConstants.PROP_GROUP_VIEWERS);
-
-    Principal[] managers = valuesToPrincipal(managerSettings,
-        new Principal[] { authorizable.getPrincipal() }, principalManager);
-    Principal[] viewers = valuesToPrincipal(viewerSettings, new Principal[] { anon,
-        everyone }, principalManager);
-
-    // The user can do everything on this node.
-    for (Principal manager : managers) {
-      if ( manager != null ) {
-        LOGGER.debug("User {} is attempting to make {} a manager ", session.getUserID(),
-          manager.getName());
-        AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, manager,
-          new String[] { JCR_ALL }, null, null, null);
-      }
+    if (authorizable.isGroup()) {
+      homeNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, "sakai/group-home");
+    } else {
+      homeNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, "sakai/user-home");
     }
-    for (Principal viewer : viewers) {
-      if ( viewer != null ) {
-        LOGGER.debug("User {} is attempting to make {} a viewer ", session.getUserID(),
-          viewer.getName());
-        AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, viewer,
-          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
-      }
-    }
-    LOGGER.debug("Set ACL on Node for {} at   {} ", authorizable.getID(), homeNode);
+
+    refreshOwnership(session, authorizable, homeFolderPath);
 
     // Create the public, private, authprofile
     createPrivate(session, authorizable);
@@ -261,8 +225,18 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     Node profileNode = createProfile(session, authorizable);
 
     // Update the values on the profile node.
-    updateProperties(session, profileNode, authorizable, change, parameters);
-    return homeNode;
+    updateProfileProperties(session, profileNode, authorizable, change, parameters);
+    
+    if (authorizable.isGroup()) {
+      // setup a joinrequests node for the group 
+      Value[] path = authorizable.getProperty(PROP_AUTHORIZABLE_PATH);
+      if (path != null && path.length > 0) {
+        String pathString = "/_group" + path[0].getString() + "/joinrequests";
+        Node messageStore = JcrUtils.deepGetOrCreateNode(session, pathString);
+        messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            "sakai/joinrequests");
+      }
+    }
   }
 
   /**
@@ -273,7 +247,10 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private Principal[] valuesToPrincipal(Value[] values, Principal[] defaultValue,
       PrincipalManager principalManager) throws RepositoryException {
-    if (values != null && values.length > 0) {
+    // An explicitly empty list of group viewers or managers does not mean the
+    // same thing as having no group viewers or managers property, and so
+    // a zero-length array should still override the defaults.
+    if (values != null) {
       Principal[] valueAsStrings = new Principal[values.length];
       for (int i = 0; i < values.length; i++) {
         valueAsStrings[i] = principalManager.getPrincipal(values[i].getString());
@@ -303,7 +280,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       LOGGER.debug("Creating or resetting Profile Node {} for authorizable {} ", path,
           authorizable.getID());
       profileNode = JcrUtils.deepGetOrCreateNode(session, path);
-      profileNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, type);
+      profileNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, type);
       // Make sure we can place references to this profile node in the future.
       // This will make it easier to search on it later on.
       if (profileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
@@ -500,18 +477,90 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   private boolean isPostProcessingDone(Session session, Authorizable authorizable)
       throws RepositoryException {
     boolean isProfileCreated = false;
-    String path = PersonalUtils.getProfilePath(authorizable);
-    if (session.nodeExists(path)) {
-      Node node = session.getNode(path);
+    Node node = getProfileNode(session, authorizable);
+    if (node != null) {
       String type = nodeTypeForAuthorizable(authorizable.isGroup());
-      if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
-        if (node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            .getString().equals(type)) {
+      if (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
+        if (node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString().equals(type)) {
           isProfileCreated = true;
         }
       }
     }
     return isProfileCreated;
+  }
+
+  private Node getProfileNode(Session session, Authorizable authorizable)
+      throws RepositoryException {
+    Node profileNode;
+    String path = PersonalUtils.getProfilePath(authorizable);
+    if (session.nodeExists(path)) {
+      profileNode = session.getNode(path);
+    } else {
+      profileNode = null;
+    }
+    return profileNode;
+  }
+
+  private void updateHomeFolder(Session session, Authorizable authorizable,
+      Modification change, Map<String, Object[]> parameters) throws RepositoryException {
+    Node profileNode = getProfileNode(session, authorizable);
+    if (profileNode != null) {
+      // Mirror the current state of the Authorizable's visibility and
+      // management controls. (We might think about being more selective
+      // at some point.)
+      refreshOwnership(session, authorizable, PersonalUtils.getHomeFolder(authorizable));
+      updateProfileProperties(session, getProfileNode(session, authorizable),
+          authorizable, change, parameters);
+    }
+  }
+
+  /**
+   * Synchronize home folder access to match the current accessibility of the
+   * Jackrabbit User or Group. Currently this is done for every update,
+   * overwriting any ACLs which might have been explicitly set on the
+   * home node.
+   *
+   * @param session
+   * @param authorizable
+   * @param homeFolderPath
+   * @throws RepositoryException
+   */
+  private void refreshOwnership(Session session, Authorizable authorizable,
+      String homeFolderPath) throws RepositoryException {
+    PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
+    Principal anon = new Principal() {
+      public String getName() {
+        return UserConstants.ANON_USERID;
+      }
+    };
+    Principal everyone = principalManager.getEveryone();
+
+    Value[] managerSettings = authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS);
+    Value[] viewerSettings = authorizable.getProperty(UserConstants.PROP_GROUP_VIEWERS);
+
+    Principal[] managers = valuesToPrincipal(managerSettings,
+        new Principal[] { authorizable.getPrincipal() }, principalManager);
+    Principal[] viewers = valuesToPrincipal(viewerSettings, new Principal[] { anon,
+        everyone }, principalManager);
+
+    // The user can do everything on this node.
+    for (Principal manager : managers) {
+      if ( manager != null ) {
+        LOGGER.debug("User {} is attempting to make {} a manager ", session.getUserID(),
+          manager.getName());
+        AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, manager,
+          new String[] { JCR_ALL }, null, null, null);
+      }
+    }
+    for (Principal viewer : viewers) {
+      if ( viewer != null ) {
+        LOGGER.debug("User {} is attempting to make {} a viewer ", session.getUserID(),
+          viewer.getName());
+        AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, viewer,
+          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
+      }
+    }
+    LOGGER.debug("Set ACL on Node for {} at   {} ", authorizable.getID(), homeFolderPath);
   }
 
 }
