@@ -387,9 +387,11 @@ public class DynamicACLProvider extends ACLProvider {
         LOG.warn(e1.getMessage(),e1);
       }
     }
-    if (staticPrincipals.containsKey(principalName)) {
-      LOG.debug("Principal {} is cached static - not resolving dynamically",principalName );
-      return false;
+    synchronized (staticPrincipals) {
+      if (staticPrincipals.containsKey(principalName)) {
+        LOG.debug("Principal {} is cached static - not resolving dynamically",principalName );
+        return false;
+      }      
     }
     Session session = aclNode.getSession();
     if (session instanceof JackrabbitSession) {
@@ -409,7 +411,9 @@ public class DynamicACLProvider extends ACLProvider {
         }
         if (!dynamic) {
           LOG.debug("Found static principal {}. Caching ",principalName);
-          staticPrincipals.put(principalName, true);
+          synchronized (staticPrincipals) {
+            staticPrincipals.put(principalName, true);            
+          }
           return false;
         }
       } catch (AccessDeniedException e) {
