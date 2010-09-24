@@ -81,7 +81,9 @@ import javax.servlet.ServletException;
         "sakai/pooled-content"
       },
       selectors = {
-        @ServiceSelector(name = "members", description = "Binds to the selector members.")
+        @ServiceSelector(name = "members", description = "Binds to the selector members."),
+        @ServiceSelector(name = "detailed", description = "(optional) Provides more detailed profile information."),
+        @ServiceSelector(name = "tidy", description = "(optional) Provideds 'tidy' (formatted) JSON output."),
       }
     )
   },
@@ -149,14 +151,25 @@ public class ManageMembersContentPoolServlet extends AbstractContentPoolServlet 
 
       UserManager um = AccessControlUtil.getUserManager(session);
 
+      boolean detailed = false;
+      boolean tidy = false;
+      for (String selector : request.getRequestPathInfo().getSelectors()) {
+        if ("detailed".equals(selector)) {
+          detailed = true;
+        } else if ("tidy".equals(selector)) {
+          tidy = true;
+        }
+      }
+
       // Loop over the sets and output it.
       ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
+      writer.setTidy(tidy);
       writer.object();
       writer.key("managers");
       writer.array();
       for (Entry<String, Boolean> entry : users.entrySet()) {
         if (entry.getValue()) {
-          writeProfileMap(session, um, writer, entry);
+          writeProfileMap(session, um, writer, entry, detailed);
         }
       }
       writer.endArray();
@@ -164,7 +177,7 @@ public class ManageMembersContentPoolServlet extends AbstractContentPoolServlet 
       writer.array();
       for (Entry<String, Boolean> entry : users.entrySet()) {
         if (!entry.getValue()) {
-          writeProfileMap(session, um, writer, entry);
+          writeProfileMap(session, um, writer, entry, detailed);
         }
       }
       writer.endArray();
@@ -180,11 +193,16 @@ public class ManageMembersContentPoolServlet extends AbstractContentPoolServlet 
   }
 
   private void writeProfileMap(Session session, UserManager um,
-      ExtendedJSONWriter writer, Entry<String, Boolean> entry)
+      ExtendedJSONWriter writer, Entry<String, Boolean> entry, boolean detailed)
       throws RepositoryException, JSONException {
     Authorizable au = um.getAuthorizable(entry.getKey());
     if (au != null) {
-      ValueMap profileMap = profileService.getCompactProfileMap(au, session);
+      ValueMap profileMap = null;
+      if (detailed) {
+        profileMap = profileService.getProfileMap(au, session);
+      } else {
+        profileMap = profileService.getCompactProfileMap(au, session);
+      }
       if (profileMap != null) {
         writer.valueMap(profileMap);
       }
