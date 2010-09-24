@@ -159,14 +159,15 @@ public class ManageMembersContentPoolServletTest {
     when(q.execute()).thenReturn(qr);
     when(qr.getNodes()).thenReturn(iterator);
 
-    MockNode aliceNode = new MockNode(fileNode.getPath() + "/a/al/alice");
+    MockNode aliceNode = new MockNode(fileNode.getPath() + "/members/a/al/alice");
     aliceNode.setProperty(POOLED_CONTENT_USER_MANAGER, "alice");
     when(adminSession.itemExists(aliceNode.getPath())).thenReturn(true);
     when(adminSession.getItem(aliceNode.getPath())).thenReturn(aliceNode);
+    when(adminSession.getNode(aliceNode.getPath())).thenReturn(aliceNode);
     Authorizable alice = MockitoTestUtils.createAuthorizable("alice", false);
     when(userManager.getAuthorizable("alice")).thenReturn(alice);
 
-    MockNode bobNode = new MockNode(fileNode.getPath() + "/b/bo/bob");
+    MockNode bobNode = new MockNode(fileNode.getPath() + "/members/b/bo/bob");
     bobNode.setProperty(POOLED_CONTENT_USER_VIEWER, "bob");
     when(adminSession.itemExists(bobNode.getPath())).thenReturn(true);
     when(adminSession.getItem(bobNode.getPath())).thenReturn(bobNode);

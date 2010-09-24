@@ -42,7 +42,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     @s.switch_user(@creator);
     @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{@siteid}",
-      "sakai:site-template" => "/var/templates/site/systemtemplate",
+      "sakai:site-template" => "/var/templates/sitetest/systemtemplate",
       "name" => @sitename,
       "description" => @sitename,
       "id" => @siteid);
@@ -193,7 +193,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     @s.switch_user(@creator);
     @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{@siteid}",
-      "sakai:site-template" => "/var/templates/site/systemtemplate",
+      "sakai:site-template" => "/var/templates/sitetest/systemtemplate",
       "name" => @sitename,
       "description" => @sitename,
       "id" => @siteid);
@@ -289,7 +289,7 @@ class TC_Kern566Test < Test::Unit::TestCase
     lti_context_id = "#{@now}";
     @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{@siteid}",
-      "sakai:site-template" => "/var/templates/site/systemtemplate",
+      "sakai:site-template" => "/var/templates/sitetest/systemtemplate",
       "name" => @sitename,
       "description" => @sitename,
       "id" => @siteid,

@@ -87,6 +87,10 @@ public interface FilesConstants {
   public static final String POOLED_CONTENT_USER_RT = "sakai/pooled-content-user";
 
   /**
+   * The name of the node that contains the viewers and and managers of the pooled content.
+   */
+  public static final String POOLED_CONTENT_MEMBERS_NODE = "/members";
+  /**
    * The name for the managers property on the pooled content members node.
    */
   public static final String POOLED_CONTENT_USER_MANAGER = "sakai:pooled-content-manager";
@@ -98,7 +102,7 @@ public interface FilesConstants {
    * The name of the property that holds the filename.
    */
   public static final String POOLED_CONTENT_FILENAME = "sakai:pooled-content-file-name";
-  
+
   /**
    * Property on the file node indicating who the content was created for.
    */

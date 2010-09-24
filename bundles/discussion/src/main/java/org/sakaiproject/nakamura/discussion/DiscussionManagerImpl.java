@@ -19,16 +19,26 @@ package org.sakaiproject.nakamura.discussion;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
 import org.sakaiproject.nakamura.api.message.MessagingException;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.jcr.AccessDeniedException;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
@@ -44,6 +54,11 @@ public class DiscussionManagerImpl implements DiscussionManager {
 
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
+
+  @Reference
+  protected transient ProfileService profileService;
+
+  private Pattern homePathPattern = Pattern.compile("(~(.*?))/");
 
   /**
    * 
@@ -65,13 +80,15 @@ public class DiscussionManagerImpl implements DiscussionManager {
     if (path.endsWith("/")) {
       path = path.substring(0, path.length());
     }
+    try {
+      path = expandHomeDirectoryInPath(session, path);
 
-    String queryString = "/"
+      String queryString = "/"
         + path
         + "//*[@sling:resourceType=\"sakai/message\" and @sakai:type='discussion' and @sakai:id='"
         + messageId + "' and @sakai:marker='" + marker + "']";
-    LOG.info("Trying to find message with query: {}", queryString);
-    try {
+      LOG.info("Trying to find message with query: {}", queryString);
+
       QueryManager queryManager = session.getWorkspace().getQueryManager();
       Query query = queryManager.createQuery(queryString, Query.XPATH);
       QueryResult result = query.execute();
@@ -121,5 +138,18 @@ public class DiscussionManagerImpl implements DiscussionManager {
     LOG.warn("No settings with type '{}' and marker '{}' found.", type, marker);
 
     return null;
+  }
+  private String expandHomeDirectoryInPath(Session session, String path)
+  throws AccessDeniedException, UnsupportedRepositoryOperationException,
+  RepositoryException {
+    Matcher homePathMatcher = homePathPattern.matcher(path);
+    if (homePathMatcher.find()) {
+      String username = homePathMatcher.group(2);
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Authorizable au = um.getAuthorizable(username);
+      String homePath = profileService.getHomePath(au).substring(1) + "/";
+      path = homePathMatcher.replaceAll(homePath);
+    }
+    return path;
   }
 }

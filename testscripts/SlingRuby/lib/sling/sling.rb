@@ -36,7 +36,11 @@ module Net::HTTPHeader
   end
   
   def encode_kvpair(k, vs)
-    Array(vs).map {|v| "#{urlencode(k)}=#{urlencode(v.to_s)}" }
+    if vs.nil? or vs == '' then
+      "#{urlencode(k)}="
+    else
+      Array(vs).map {|v| "#{urlencode(k)}=#{urlencode(v.to_s)}" }
+    end
   end
 end
 
