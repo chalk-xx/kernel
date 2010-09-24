@@ -45,7 +45,7 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.service.event.EventAdmin;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.api.user.AuthorizableEventUtil;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
@@ -99,6 +99,9 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   private String defaultProfileTemplate;
 
   private ArrayList<String> profileParams = new ArrayList<String>();
+
+  @Reference
+  private ProfileService profileService;
 
   @Reference
   private EventAdmin eventAdmin;
@@ -248,7 +251,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private void createHomeFolder(Session session, Authorizable authorizable,
       Modification change, Map<String, Object[]> parameters) throws RepositoryException {
-    String homeFolderPath = PersonalUtils.getHomeFolder(authorizable);
+    String homeFolderPath = profileService.getHomePath(authorizable);
 
     Node homeNode = JcrUtils.deepGetOrCreateNode(session, homeFolderPath);
     if (homeNode.isNew()) {
@@ -319,7 +322,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private Node createProfile(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String path = PersonalUtils.getProfilePath(authorizable);
+    String path = profileService.getProfilePath(authorizable);
     Node profileNode = null;
     if (!isPostProcessingDone(session, authorizable)) {
 
@@ -354,7 +357,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private Node createPrivate(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String privatePath = PersonalUtils.getPrivatePath(authorizable);
+    String privatePath = profileService.getPrivatePath(authorizable);
     if (session.itemExists(privatePath)) {
       return session.getNode(privatePath);
     }
@@ -410,7 +413,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private Node createPublic(Session session, Authorizable athorizable)
       throws RepositoryException {
-    String publicPath = PersonalUtils.getPublicPath(athorizable);
+    String publicPath = profileService.getPublicPath(athorizable);
     if (session.nodeExists(publicPath)) {
       // No more work needed at present.
       return session.getNode(publicPath);
@@ -539,7 +542,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   private Node getProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
     Node profileNode;
-    String path = PersonalUtils.getProfilePath(authorizable);
+    String path = profileService.getProfilePath(authorizable);
     if (session.nodeExists(path)) {
       profileNode = session.getNode(path);
     } else {
@@ -555,7 +558,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       // Mirror the current state of the Authorizable's visibility and
       // management controls. (We might think about being more selective
       // at some point.)
-      refreshOwnership(session, authorizable, PersonalUtils.getHomeFolder(authorizable));
+      refreshOwnership(session, authorizable, profileService.getHomePath(authorizable));
       updateProfileProperties(session, getProfileNode(session, authorizable),
           authorizable, change, parameters);
     }
