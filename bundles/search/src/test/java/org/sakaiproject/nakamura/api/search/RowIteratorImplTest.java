@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.api.search;
 
 import junit.framework.Assert;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.junit.Test;
 import org.sakaiproject.nakamura.search.RowIteratorImpl;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;

@@ -35,7 +35,6 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.easymock.EasyMock;
 import org.junit.Test;
-import org.osgi.util.mobile.UserPromptCondition;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.StringUtils;
 

@@ -39,6 +39,7 @@ import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -71,7 +72,7 @@ public class ManageMembersContentPoolServletTest {
 
   @Mock
   private SlingRepository slingRepository;
-  @Mock
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private SlingHttpServletRequest request;
   @Mock
   private SlingHttpServletResponse response;
@@ -180,6 +181,7 @@ public class ManageMembersContentPoolServletTest {
 
   @Test
   public void testGetMembers() throws Exception {
+    when(request.getRequestPathInfo().getSelectors()).thenReturn(new String[0]);
     servlet.doGet(request, response);
     printWriter.flush();
 
