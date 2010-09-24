@@ -1,17 +1,11 @@
 #!/bin/sh
 echo This script requrires that there is a server up and running on port 8080
-if [ ! -f test1/target/org.sakaiproject.nakamura.contenttest1-0.1-SNAPSHOT.jar ]
-then
   pushd test1
   mvn package
   popd
-fi 
-if [ ! -f test2/target/org.sakaiproject.nakamura.contenttest2-0.1-SNAPSHOT.jar ]
-then
   pushd test2
   mvn package
   popd
-fi
 if [ `curl -s -F:operation=delete http://admin:admin@localhost:8080/contenttest | grep 'deleted("/contenttest")' | wc -l` -ne 1 ]
 then
    echo "Warning, Failed to delete /contenttest, might not have existed"
@@ -24,6 +18,9 @@ echo "Uploading 2"
 ../../tools/loadbundle.sh test2/target/org.sakaiproject.nakamura.contenttest2-0.1-SNAPSHOT.jar 
 sleep 1
 contents2=`curl -s http://localhost:8080/contenttest.tidy.2.json `
+pushd test1
+mvn package
+popd
 echo "Uploading 1"
 ../../tools/loadbundle.sh test1/target/org.sakaiproject.nakamura.contenttest1-0.1-SNAPSHOT.jar 
 sleep 1
