@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -30,8 +31,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.util.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,7 +47,7 @@ import javax.servlet.http.HttpServletResponse;
     "sakai/user-home", "sakai/group-home" }),
 
 methods = @ServiceMethod(name = "GET", description = { "Shows  a HTML page when the user or groups home is accessed" }, response = { @ServiceResponse(code = 200, description = "A HTML template for the site, or json tree of the site depending on the request.") }))
-public class ShowHomeServlet extends SlingSafeMethodsServlet {
+public class ShowHomeServlet extends SlingSafeMethodsServlet implements OptingServlet {
 
   private static final long serialVersionUID = 613629169503411716L;
 
@@ -66,6 +65,19 @@ public class ShowHomeServlet extends SlingSafeMethodsServlet {
     response.setCharacterEncoding("UTF-8");
     response.setStatus(HttpServletResponse.SC_OK);
     IOUtils.stream(resource.adaptTo(InputStream.class), response.getOutputStream());
+  }
+
+  /**
+   * Let other servlets take care of requests for JSON.
+   *
+   * @see org.apache.sling.api.servlets.OptingServlet#accepts(org.apache.sling.api.SlingHttpServletRequest)
+   */
+  public boolean accepts(SlingHttpServletRequest request) {
+    if ("json".equals(request.getRequestPathInfo().getExtension())) {
+      return false;
+    } else {
+      return true;
+    }
   }
 
 }
