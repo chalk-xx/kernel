@@ -44,7 +44,7 @@
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency></Embed-Dependency>
-            <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content;uninstall:=false</Sling-Initial-Content>
             <Sakai-Initial-Security>SLING-INF/acl/cluster-acl.json</Sakai-Initial-Security>   
           </instructions>
         </configuration>
@@ -88,7 +88,7 @@
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.commons.scheduler</artifactId>
-      <version>2.0.4-incubator</version>
+      <version>2.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

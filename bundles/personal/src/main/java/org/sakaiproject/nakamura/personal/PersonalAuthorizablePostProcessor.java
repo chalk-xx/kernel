@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.personal;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_AUTHORIZABLE_PATH;
+
 import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static javax.jcr.security.Privilege.JCR_WRITE;
@@ -38,6 +40,7 @@ import org.apache.jackrabbit.api.security.user.User;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.contentloader.ContentImporter;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.service.event.EventAdmin;
@@ -223,6 +226,17 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
     // Update the values on the profile node.
     updateProfileProperties(session, profileNode, authorizable, change, parameters);
+    
+    if (authorizable.isGroup()) {
+      // setup a joinrequests node for the group 
+      Value[] path = authorizable.getProperty(PROP_AUTHORIZABLE_PATH);
+      if (path != null && path.length > 0) {
+        String pathString = "/_group" + path[0].getString() + "/joinrequests";
+        Node messageStore = JcrUtils.deepGetOrCreateNode(session, pathString);
+        messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            "sakai/joinrequests");
+      }
+    }
   }
 
   /**

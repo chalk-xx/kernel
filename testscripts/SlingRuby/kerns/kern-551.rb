@@ -10,7 +10,7 @@ include SlingSearch
 class TC_Kern551Test < Test::Unit::TestCase
   include SlingTest
   def simple_site_create(siteid, sitename)
-    sitetemplate = "/var/templates/site/systemtemplate"
+    sitetemplate = "/var/templates/sitetest/systemtemplate"
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{siteid}",
       "sakai:site-template" => sitetemplate,
@@ -263,7 +263,7 @@ class TC_Kern551Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Expected to get site: #{res.body}")
     @log.debug res.body
     props = JSON.parse(res.body)
-    assert_equal("/var/templates/site/systemtemplate", props["sakai:site-template"])
+    assert_equal("/var/templates/sitetest/systemtemplate", props["sakai:site-template"])
     assert_equal(sitename, props["name"])
     assert_equal(sitename, props["description"])
   end
@@ -390,7 +390,7 @@ class TC_Kern551Test < Test::Unit::TestCase
     @s.switch_user(sitecreator1)
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => sitepath1,
-      "sakai:site-template" => "/var/templates/site/systemtemplate",
+      "sakai:site-template" => "/var/templates/sitetest/systemtemplate",
       "name" => sitename,
       "description" => sitedesc1,
       "id" => siteid)
@@ -398,7 +398,7 @@ class TC_Kern551Test < Test::Unit::TestCase
     @s.switch_user(sitecreator2)
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => sitepath2,
-      "sakai:site-template" => "/var/templates/site/systemtemplate",
+      "sakai:site-template" => "/var/templates/sitetest/systemtemplate",
       "name" => sitename,
       "description" => sitedesc2,
       "id" => siteid)
