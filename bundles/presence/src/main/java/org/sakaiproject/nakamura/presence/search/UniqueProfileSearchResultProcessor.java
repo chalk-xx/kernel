@@ -60,11 +60,11 @@ import javax.jcr.query.RowIterator;
 @Component
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "UniqueAuthorizableProfile") })
+    @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "UniqueProfile") })
 @Service
-public class UniqueAuthorizableProfileSearchResultProcessor implements SearchResultProcessor {
+public class UniqueProfileSearchResultProcessor implements SearchResultProcessor {
   private static final Logger logger = LoggerFactory
-      .getLogger(UniqueAuthorizableProfileSearchResultProcessor.class);
+      .getLogger(UniqueProfileSearchResultProcessor.class);
 
   @Reference
   protected PresenceService presenceService;

@@ -4,7 +4,7 @@
   // Wait for Jukka to get the performance fixed before translating.
   "sakai:query-template": "//*[@sling:resourceType='sakai/group-home']//*[jcr:contains(.,'{q}')] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
-  "sakai:resultprocessor": "UniqueAuthorizableProfile",
+  "sakai:resultprocessor": "UniqueProfile",
   "sakai:title": "Groups",
   "sakai:shortDescription": "Get the group profile nodes out of the repository.",
   "sakai:parameters" : [
