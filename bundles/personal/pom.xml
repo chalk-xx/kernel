@@ -126,14 +126,19 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-     <groupId>org.sakaiproject.nakamura</groupId>
-     <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-     <version>0.9-SNAPSHOT</version>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.doc</artifactId>
+      <version>0.9-SNAPSHOT</version>
     </dependency>
     <dependency>
-     <groupId>org.sakaiproject.nakamura</groupId>
-     <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-     <version>0.9-SNAPSHOT</version>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.profile</artifactId>
+      <version>0.9-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
+      <version>0.9-SNAPSHOT</version>
      <scope>test</scope>
     </dependency>
   </dependencies>

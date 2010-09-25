@@ -83,7 +83,7 @@ import javax.servlet.ServletException;
       selectors = {
         @ServiceSelector(name = "members", description = "Binds to the selector members."),
         @ServiceSelector(name = "detailed", description = "(optional) Provides more detailed profile information."),
-        @ServiceSelector(name = "tidy", description = "(optional) Provideds 'tidy' (formatted) JSON output."),
+        @ServiceSelector(name = "tidy", description = "(optional) Provideds 'tidy' (formatted) JSON output.")
       }
     )
   },

@@ -59,7 +59,7 @@ public class ProfileImporterTest {
   public void canAcceptObjectArrayOfStrings() throws IOException, RepositoryException {
     Object[] objectArrayWithStrings = new Object[] {"{topprop: topvalue}"};
     parameters.put(PersonalConstants.PROFILE_JSON_IMPORT_PARAMETER, objectArrayWithStrings);
-    ProfileImporter.importFromParameters(profileNode, parameters, contentImporter, session);
+    ProfileImporter.importFromParameters(profileNode, parameters, contentImporter, session, null);
     verify(contentImporter).importContent(eq(profileNode), eq(ProfileImporter.CONTENT_ROOT_NAME),
         any(InputStream.class), any(ImportOptions.class), any(ContentImportListener.class));
   }

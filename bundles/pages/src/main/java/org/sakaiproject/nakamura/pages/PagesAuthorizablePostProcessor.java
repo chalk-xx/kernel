@@ -90,19 +90,8 @@ public class PagesAuthorizablePostProcessor implements AuthorizablePostProcessor
 
   //----------- OSGi integration ----------------------------
 
-  @Activate
-  protected void activate(Map<?, ?> properties) {
-    init(properties);
-  }
-
-  @Modified
-  protected void modified(Map<?, ?> properties) {
-    init(properties);
-  }
-
-  //----------- Internal ----------------------------
-
-  private void init(Map<?, ?> properties) {
+  @Activate @Modified
+  protected void init(Map<?, ?> properties) {
     defaultUserPagesTemplate = OsgiUtil.toString(properties.get(DEFAULT_USER_PAGES_TEMPLATE), "");
     defaultGroupPagesTemplate = OsgiUtil.toString(properties.get(DEFAULT_GROUP_PAGES_TEMPLATE), "");
   }

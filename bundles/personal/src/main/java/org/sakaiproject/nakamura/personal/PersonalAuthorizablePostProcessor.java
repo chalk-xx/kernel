@@ -17,13 +17,14 @@
  */
 package org.sakaiproject.nakamura.personal;
 
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_AUTHORIZABLE_PATH;
-
 import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static javax.jcr.security.Privilege.JCR_WRITE;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_AUTHORIZABLE_PATH;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Properties;
@@ -44,7 +45,7 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.service.event.EventAdmin;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.api.user.AuthorizableEventUtil;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
@@ -54,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -81,12 +83,25 @@ import javax.jcr.version.VersionException;
     @org.apache.felix.scr.annotations.Property(name = "service.ranking", intValue=0)})
 public class PersonalAuthorizablePostProcessor implements AuthorizablePostProcessor {
 
-  @org.apache.felix.scr.annotations.Property(name = "org.sakaiproject.nakamura.personal.profile.preference", description = "What the default behaviour for the ACL on an authprofile should be when an authorizable gets created.", options = {
+  @org.apache.felix.scr.annotations.Property(description = "What the default behaviour for the ACL on an authprofile should be when an authorizable gets created.",
+    options = {
       @PropertyOption(name = "private", value = "The profile is completely private."),
       @PropertyOption(name = "semi", value = "The profile is private to anonymous users, logged in users can see it."),
-      @PropertyOption(name = "public", value = "The profile is completely public.") })
+      @PropertyOption(name = "public", value = "The profile is completely public.")
+    }
+  )
   static final String PROFILE_PREFERENCE = "org.sakaiproject.nakamura.personal.profile.preference";
   static final String PROFILE_PREFERENCE_DEFAULT = "semi";
+
+  public static final String PROFILE_IMPORT_TEMPLATE_DEFAULT = "{'basic':{'elements':{'firstName':{'value':'@@firstName@@'},'lastName':{'value':'@@lastName@@'},'email':{'value':'@@email@@'}},'access':'everybody'}}";
+  @org.apache.felix.scr.annotations.Property
+  static final String PROFILE_IMPORT_TEMPLATE = "sakai.user.profile.template.default";
+  private String defaultProfileTemplate;
+
+  private ArrayList<String> profileParams = new ArrayList<String>();
+
+  @Reference
+  private ProfileService profileService;
 
   @Reference
   private EventAdmin eventAdmin;
@@ -99,9 +114,24 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PersonalAuthorizablePostProcessor.class);
 
-  @Modified
+  @Activate @Modified
   protected void modified(Map<?, ?> props) {
-    profilePreference = OsgiUtil.toString(props.get(PROFILE_PREFERENCE), PROFILE_PREFERENCE_DEFAULT);
+    profilePreference = OsgiUtil.toString(props.get(PROFILE_PREFERENCE),
+        PROFILE_PREFERENCE_DEFAULT);
+    defaultProfileTemplate = OsgiUtil.toString(props.get(PROFILE_IMPORT_TEMPLATE),
+        PROFILE_IMPORT_TEMPLATE_DEFAULT);
+
+    int startPos = defaultProfileTemplate.indexOf("@@");
+    while (startPos > -1) {
+      int endPos = defaultProfileTemplate.indexOf("@@", startPos + 2);
+      if (endPos > -1) {
+        String param = defaultProfileTemplate.substring(startPos + 2, endPos);
+        profileParams.add(param);
+
+        endPos = defaultProfileTemplate.indexOf("@@", endPos + 2);
+      }
+      startPos = endPos;
+    }
   }
 
   /**
@@ -127,7 +157,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   }
 
   /**
-   * @param athorizable
+   * @param authorizable
    * @param changes
    * @throws RepositoryException
    * @throws ConstraintViolationException
@@ -136,7 +166,8 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    * @throws PathNotFoundException
    */
   private void updateProfileProperties(Session session, Node profileNode,
-      Authorizable athorizable, Modification change, Map<String, Object[]> parameters) throws RepositoryException {
+      Authorizable authorizable, Modification change, Map<String, Object[]> parameters)
+      throws RepositoryException {
 
     String dest = change.getDestination();
     if (dest == null) {
@@ -149,7 +180,10 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
     // If the client sent a parameter specifying new Profile content,
     // apply it now.
-    ProfileImporter.importFromParameters(profileNode, parameters, contentImporter, session);
+    String defaultProfile = processProfileParameters(defaultProfileTemplate,
+        authorizable, parameters);
+    ProfileImporter.importFromParameters(profileNode, parameters, contentImporter,
+        session, defaultProfile);
 
     // build a blacklist set of properties that should be kept private
     Set<String> privateProperties = new HashSet<String>();
@@ -160,19 +194,19 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       }
     }
     // copy the non blacklist set of properties into the users profile.
-    if (athorizable != null) {
+    if (authorizable != null) {
       // explicitly add protected properties form the user authorizable
-      if (!athorizable.isGroup() && !profileNode.hasProperty("rep:userId")) {
-        profileNode.setProperty("rep:userId", athorizable.getID());
+      if (!authorizable.isGroup() && !profileNode.hasProperty("rep:userId")) {
+        profileNode.setProperty("rep:userId", authorizable.getID());
       }
-      Iterator<?> inames = athorizable.getPropertyNames();
+      Iterator<?> inames = authorizable.getPropertyNames();
       while (inames.hasNext()) {
         String propertyName = (String) inames.next();
         // No need to copy in jcr:* properties, otherwise we would copy over the uuid
         // which could lead to a lot of confusion.
         if (!propertyName.startsWith("jcr:") && !propertyName.startsWith("rep:")) {
           if (!privateProperties.contains(propertyName)) {
-            Value[] v = athorizable.getProperty(propertyName);
+            Value[] v = authorizable.getProperty(propertyName);
             if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
                 propertyName).getDefinition().isProtected())) {
               if (v.length == 1) {
@@ -189,6 +223,22 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     }
   }
 
+  private String processProfileParameters(final String defaultProfileTemplate,
+      final Authorizable auth, final Map<String, Object[]> parameters)
+      throws RepositoryException {
+    String retval = defaultProfileTemplate;
+    for (String param : profileParams) {
+      String val = "unknown";
+      if (parameters.containsKey(param)) {
+        val = (String) parameters.get(param)[0];
+      } else if (auth.hasProperty(param)) {
+        val = auth.getProperty(param)[0].getString();
+      }
+      retval = StringUtils.replace(retval, "@@" + param + "@@", val);
+    }
+    return retval;
+  }
+
   /**
    * Creates the home folder for a {@link User user} or a {@link Group group}. It will
    * also create all the subfolders such as private, public, ..
@@ -201,7 +251,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private void createHomeFolder(Session session, Authorizable authorizable,
       Modification change, Map<String, Object[]> parameters) throws RepositoryException {
-    String homeFolderPath = PersonalUtils.getHomeFolder(authorizable);
+    String homeFolderPath = profileService.getHomePath(authorizable);
 
     Node homeNode = JcrUtils.deepGetOrCreateNode(session, homeFolderPath);
     if (homeNode.isNew()) {
@@ -226,9 +276,9 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
     // Update the values on the profile node.
     updateProfileProperties(session, profileNode, authorizable, change, parameters);
-    
+
     if (authorizable.isGroup()) {
-      // setup a joinrequests node for the group 
+      // setup a joinrequests node for the group
       Value[] path = authorizable.getProperty(PROP_AUTHORIZABLE_PATH);
       if (path != null && path.length > 0) {
         String pathString = "/_group" + path[0].getString() + "/joinrequests";
@@ -272,7 +322,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private Node createProfile(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String path = PersonalUtils.getProfilePath(authorizable);
+    String path = profileService.getProfilePath(authorizable);
     Node profileNode = null;
     if (!isPostProcessingDone(session, authorizable)) {
 
@@ -307,7 +357,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private Node createPrivate(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String privatePath = PersonalUtils.getPrivatePath(authorizable);
+    String privatePath = profileService.getPrivatePath(authorizable);
     if (session.itemExists(privatePath)) {
       return session.getNode(privatePath);
     }
@@ -363,7 +413,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private Node createPublic(Session session, Authorizable athorizable)
       throws RepositoryException {
-    String publicPath = PersonalUtils.getPublicPath(athorizable);
+    String publicPath = profileService.getPublicPath(athorizable);
     if (session.nodeExists(publicPath)) {
       // No more work needed at present.
       return session.getNode(publicPath);
@@ -492,7 +542,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   private Node getProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
     Node profileNode;
-    String path = PersonalUtils.getProfilePath(authorizable);
+    String path = profileService.getProfilePath(authorizable);
     if (session.nodeExists(path)) {
       profileNode = session.getNode(path);
     } else {
@@ -508,7 +558,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       // Mirror the current state of the Authorizable's visibility and
       // management controls. (We might think about being more selective
       // at some point.)
-      refreshOwnership(session, authorizable, PersonalUtils.getHomeFolder(authorizable));
+      refreshOwnership(session, authorizable, profileService.getHomePath(authorizable));
       updateProfileProperties(session, getProfileNode(session, authorizable),
           authorizable, change, parameters);
     }
