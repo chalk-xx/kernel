@@ -73,10 +73,11 @@ public class ShowHomeServlet extends SlingSafeMethodsServlet implements OptingSe
    * @see org.apache.sling.api.servlets.OptingServlet#accepts(org.apache.sling.api.SlingHttpServletRequest)
    */
   public boolean accepts(SlingHttpServletRequest request) {
-    if ("json".equals(request.getRequestPathInfo().getExtension())) {
-      return false;
-    } else {
+    String extension = request.getRequestPathInfo().getExtension();
+    if ( extension == null || extension.length() == 0 ) {
       return true;
+    } else {
+      return false;
     }
   }
 
