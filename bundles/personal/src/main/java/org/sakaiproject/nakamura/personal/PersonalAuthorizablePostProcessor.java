@@ -21,7 +21,9 @@ import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static javax.jcr.security.Privilege.JCR_WRITE;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_HOME_RESOURCE_TYPE;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_AUTHORIZABLE_PATH;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_HOME_RESOURCE_TYPE;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
@@ -262,9 +264,9 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
           authorizable.getID(), homeNode, session.getUserID() });
     }
     if (authorizable.isGroup()) {
-      homeNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, "sakai/group-home");
+      homeNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, GROUP_HOME_RESOURCE_TYPE);
     } else {
-      homeNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, "sakai/user-home");
+      homeNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, USER_HOME_RESOURCE_TYPE);
     }
 
     refreshOwnership(session, authorizable, homeFolderPath);

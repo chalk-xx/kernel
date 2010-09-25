@@ -17,19 +17,19 @@
  */
 package org.sakaiproject.nakamura.presence.search;
 
-import org.apache.commons.lang.StringUtils;
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_HOME_RESOURCE_TYPE;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_HOME_RESOURCE_TYPE;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
@@ -47,9 +47,11 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
@@ -87,7 +89,6 @@ public class UniqueAuthorizableProfileSearchResultProcessor implements SearchRes
       final QueryResult rs = query.execute();
 
       Session session = request.getResourceResolver().adaptTo(Session.class);
-      UserManager um = AccessControlUtil.getUserManager(session);
 
       // filter the result set so that only 1 result is presented for each user found.
       HashSet<String> processedIds = new HashSet<String>();
@@ -97,11 +98,29 @@ public class UniqueAuthorizableProfileSearchResultProcessor implements SearchRes
         Row row = rows.nextRow();
         Node node = row.getNode();
 
-        Authorizable au = findAuthorizable(node, um);
-
-        if (au != null && !processedIds.contains(au.getID())) {
-          processedIds.add(au.getID());
-          filteredRows.add(row);
+        try {
+          Node homeNode = getHomeNode(node);
+//        String[] pathParts = StringUtils.split(node.getPath(), "/", 5);
+//
+//        StringBuilder profilePathBuilder = new StringBuilder();
+//        for (int i = 0; i < 4; i++) {
+//          profilePathBuilder.append("/").append(pathParts[i]);
+//        }
+//        profilePathBuilder.append("/public/authprofile");
+//        String profilePath = profilePathBuilder.toString();
+          String homePath = homeNode.getPath();
+          String profilePath = homePath + "/public/authprofile";
+          if (!processedIds.contains(profilePath)) {
+            try {
+              Node profile = session.getNode(profilePath);
+              filteredRows.add(node2Row(profile));
+              processedIds.add(profilePath);
+            } catch (RepositoryException e) {
+              logger.warn("Unable to retrieve path: {}", profilePath);
+            }
+          }
+        } catch (RepositoryException e) {
+          logger.warn("Unable to find profile node in hierarchy {}", node.getPath());
         }
       }
 
@@ -134,39 +153,60 @@ public class UniqueAuthorizableProfileSearchResultProcessor implements SearchRes
 
     write.object();
     Node node = row.getNode();
-    Session session = node.getSession();
-    UserManager um = AccessControlUtil.getUserManager(session);
-    Authorizable au = findAuthorizable(node, um);
-    if (au != null) {
-      ValueMap map = profileService.getProfileMap(au, node.getSession());
-      ((ExtendedJSONWriter)write).valueMapInternals(map);
-      PresenceUtils.makePresenceJSON(write, au.getID(), presenceService, true);
-    }
+    ValueMap map = profileService.getProfileMap(node);
+    ((ExtendedJSONWriter)write).valueMapInternals(map);
+    PresenceUtils.makePresenceJSON(write, node.getProperty("rep:userId").getString(),
+        presenceService, true);
     write.endObject();
 
   }
 
-  private Authorizable findAuthorizable(Node node, UserManager um)
-      throws RepositoryException {
-    String nodeName = node.getName();
-    Authorizable au = um.getAuthorizable(nodeName);
-
-    // try to get the user ID from the path if not found in previous step
-    if (au == null) {
-      nodeName = getUserFromPath(node.getPath());
-      au = um.getAuthorizable(nodeName);
+  private Node getHomeNode(Node node) throws RepositoryException {
+    if (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)
+        && (USER_HOME_RESOURCE_TYPE.equals(node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString())
+        || GROUP_HOME_RESOURCE_TYPE.equals(node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString()))) {
+      return node;
+    } else {
+      return getHomeNode(node.getParent());
     }
-
-    return au;
   }
 
-  private String getUserFromPath(String path) {
-    String[] pathParts = StringUtils.split(path, "/");
+  private Row node2Row(final Node node) {
+    Row row = new Row() {
 
-    if (pathParts != null && pathParts.length >= 4) {
-      return pathParts[3];
-    } else {
-      return null;
-    }
+      public Value[] getValues() throws RepositoryException {
+        return null;
+      }
+
+      public Value getValue(String propertyName) throws ItemNotFoundException,
+          RepositoryException {
+        return node.getProperty(propertyName).getValue();
+      }
+
+      public Node getNode() throws RepositoryException {
+        return node;
+      }
+
+      public Node getNode(String arg0) throws RepositoryException {
+        return node;
+      }
+
+      public String getPath() throws RepositoryException {
+        return node.getPath();
+      }
+
+      public String getPath(String arg0) throws RepositoryException {
+        return node.getPath();
+      }
+
+      public double getScore() throws RepositoryException {
+        return -1;
+      }
+
+      public double getScore(String arg0) throws RepositoryException {
+        return -1;
+      }
+    };
+    return row;
   }
 }
