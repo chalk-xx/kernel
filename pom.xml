@@ -90,6 +90,7 @@
         <module>bundles/privacy</module>
         <module>bundles/pages</module>
         <module>bundles/userinitializer</module>
+        <module>bundles/http</module>
       </modules>
     </profile>
     <profile>

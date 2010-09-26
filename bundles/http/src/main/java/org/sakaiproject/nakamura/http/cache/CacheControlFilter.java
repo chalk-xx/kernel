@@ -60,13 +60,13 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = "Nakamura Cache-Control Filter"),
     @Property(name = "sakai.cache.paths", value = { 
-        "dev;.lastmodified:unset;.expires:31536000;Cache-Control:max-age=3600,public;Vary:Accept-Encoding", 
-        "devwidgets;.lastmodified:unset;.expires:31536000;Cache-Control:max-age=3600,public;Vary:Accept-Encoding",
+        "dev;.lastmodified:unset;.expires:31536000;Cache-Control:max-age=3600, public;Vary:Accept-Encoding", 
+        "devwidgets;.lastmodified:unset;.expires:31536000;Cache-Control:max-age=3600, public;Vary:Accept-Encoding",
         "p;Cache-Control:no-cache" }, 
         description = "List of subpaths and max age for all content under subpath in seconds, setting to 0 makes it non cacheing"),
     @Property(name = "sakai.cache.patterns", value = { 
-        "root;.*(js|css)$;.lastmodified:unset;.expires:3456000;Cache-Control:max-age=3600,public;Vary:Accept-Encoding",
-        "root;.*html$;.lastmodified:unset;.expires:3456000;Cache-Control:max-age=3600,public;Vary:Accept-Encoding" }, 
+        "root;.*(js|css)$;.lastmodified:unset;.expires:3456000;Cache-Control:max-age=3600, public;Vary:Accept-Encoding",
+        "root;.*html$;.lastmodified:unset;.expires:3456000;Cache-Control:max-age=3600, public;Vary:Accept-Encoding" }, 
         description = "List of path prefixes followed by a regex. If the prefix starts with a root: it means files in the root folder that match the pattern."),
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "filter.scope", value = "request", propertyPrivate = true),
@@ -120,6 +120,7 @@ public class CacheControlFilter implements Filter {
       Resource resouce = srequest.getResource();
       headers = getHeaders(path);
       if (headers != null ) {
+        sresponse.setHeader("X-CacheControlFilter", "true");
         nolastmodified = "unset".equals(headers.get(".lastmodified"));
         if ( nolastmodified ) {
           sresponse.setHeader("Last-Modified", null);
@@ -156,7 +157,6 @@ public class CacheControlFilter implements Filter {
           }
         }
       }
-      sresponse.setHeader("X-CacheControlFilter", "true");
     }
     if ( respCode > 0 ) {
       sresponse.setHeader("X-CacheControlFilterCode", String.valueOf(respCode));

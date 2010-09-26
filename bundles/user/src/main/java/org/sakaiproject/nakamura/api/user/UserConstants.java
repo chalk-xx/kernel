@@ -35,6 +35,8 @@ public interface UserConstants {
 
   public static final String USER_PROFILE_RESOURCE_TYPE = "sakai/user-profile";
   public static final String GROUP_PROFILE_RESOURCE_TYPE = "sakai/group-profile";
+  public static final String USER_HOME_RESOURCE_TYPE = "sakai/user-home";
+  public static final String GROUP_HOME_RESOURCE_TYPE = "sakai/group-home";
 
   /**
    * A list of private properties that will not be copied from the authorizable.
@@ -68,7 +70,7 @@ public interface UserConstants {
   public static final String PROP_MANAGERS_GROUP = "sakai:managers-group";
   public static final String PROP_MANAGED_GROUP = "sakai:managed-group";
   public static final String PROP_JOINABLE_GROUP = "sakai:group-joinable";
-  
+
   /**
    * The joinable property
    */
