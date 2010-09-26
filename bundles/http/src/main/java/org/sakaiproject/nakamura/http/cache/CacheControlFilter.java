@@ -60,17 +60,17 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = "Nakamura Cache-Control Filter"),
     @Property(name = "sakai.cache.paths", value = { 
-        "dev;.lastmodified:unset;.expires:31536000;Cache-Control:max-age=3600, public;Vary:Accept-Encoding", 
-        "devwidgets;.lastmodified:unset;.expires:31536000;Cache-Control:max-age=3600, public;Vary:Accept-Encoding",
+        "dev;.lastmodified:unset;.cookies:unset;.expires:3456000;Vary: Accept-Encoding", 
+        "devwidgets;.lastmodified:unset;.cookies:unset;.expires:3456000;Vary: Accept-Encoding",
         "p;Cache-Control:no-cache" }, 
         description = "List of subpaths and max age for all content under subpath in seconds, setting to 0 makes it non cacheing"),
     @Property(name = "sakai.cache.patterns", value = { 
-        "root;.*(js|css)$;.lastmodified:unset;.expires:3456000;Cache-Control:max-age=3600, public;Vary:Accept-Encoding",
-        "root;.*html$;.lastmodified:unset;.expires:3456000;Cache-Control:max-age=3600, public;Vary:Accept-Encoding" }, 
+        "root;.*(js|css)$;.lastmodified:unset;.cookies:unset;.expires:3456000;Vary: Accept-Encoding",
+        "root;.*html$;.lastmodified:unset;.cookies:unset;.expires:3456000;Vary: Accept-Encoding" }, 
         description = "List of path prefixes followed by a regex. If the prefix starts with a root: it means files in the root folder that match the pattern."),
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "filter.scope", value = "request", propertyPrivate = true),
-    @Property(name = "filter.order", intValue = { 10 }, propertyPrivate = true) })
+    @Property(name = "filter.order", intValue = { 1 }, propertyPrivate = true) })
 public class CacheControlFilter implements Filter {
   private static final Logger LOGGER = LoggerFactory.getLogger(CacheControlFilter.class);
 
@@ -115,23 +115,22 @@ public class CacheControlFilter implements Filter {
     String path = srequest.getPathInfo();
     int respCode = 0;
     Map<String, String> headers = null;
-    boolean nolastmodified = false;
+    boolean withLastModfied = true;
+    boolean withCookies = true;
     if ("GET".equals(srequest.getMethod())) {
       Resource resouce = srequest.getResource();
       headers = getHeaders(path);
       if (headers != null ) {
-        sresponse.setHeader("X-CacheControlFilter", "true");
-        nolastmodified = "unset".equals(headers.get(".lastmodified"));
-        if ( nolastmodified ) {
-          sresponse.setHeader("Last-Modified", null);
-        }
+        sresponse.setDateHeader("Date", System.currentTimeMillis());
+        withLastModfied = !"unset".equals(headers.get(".lastmodified"));
+        withCookies = !"unset".equals(headers.get(".cookies"));
         if (resouce != null) {
           Node n = resouce.adaptTo(Node.class);
           if (n != null) {
             try {
               long lastModified = getLastModified(n);
               if ( lastModified > 0 ) {
-                if ( !nolastmodified ) {
+                if ( withLastModfied ) {
                   sresponse.setDateHeader("Last-Modified", lastModified);
                 }
                 if ( srequest.getHeader("If-Modified-Since") != null ) {
@@ -162,10 +161,10 @@ public class CacheControlFilter implements Filter {
       sresponse.setHeader("X-CacheControlFilterCode", String.valueOf(respCode));
       sresponse.sendError(respCode,"Not Modified (Cache Control Filter)");
     } else {
+      if ( !withLastModfied || !withCookies ) {
+        response = new FilterResponseWrapper(sresponse, withLastModfied, withCookies);
+      }
       chain.doFilter(request, response);
-    }
-    if ( nolastmodified && !sresponse.isCommitted() ) {
-      sresponse.setHeader("Last-Modified", null);
     }
   }
 
