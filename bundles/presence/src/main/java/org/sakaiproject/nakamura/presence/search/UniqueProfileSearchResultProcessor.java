@@ -17,10 +17,6 @@
  */
 package org.sakaiproject.nakamura.presence.search;
 
-import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_HOME_RESOURCE_TYPE;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_HOME_RESOURCE_TYPE;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -40,18 +36,14 @@ import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.search.UniquePathRowIterator;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-
-import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
@@ -88,44 +80,23 @@ public class UniqueProfileSearchResultProcessor implements SearchResultProcessor
       // Get the query result.
       final QueryResult rs = query.execute();
 
-      Session session = request.getResourceResolver().adaptTo(Session.class);
-
-      // filter the result set so that only 1 result is presented for each user found.
-      HashSet<String> processedIds = new HashSet<String>();
-      ArrayList<Row> filteredRows = new ArrayList<Row>();
       RowIterator rows = rs.getRows();
-      while (rows.hasNext()) {
-        Row row = rows.nextRow();
-        Node node = row.getNode();
 
-        try {
-          Node homeNode = getHomeNode(node);
-          String homePath = homeNode.getPath();
-          String profilePath = homePath + "/public/authprofile";
-          if (!processedIds.contains(profilePath)) {
-            try {
-              Node profile = session.getNode(profilePath);
-              filteredRows.add(node2Row(profile));
-              processedIds.add(profilePath);
-            } catch (RepositoryException e) {
-              logger.warn("Unable to retrieve path: {}", profilePath);
-            }
-          }
-        } catch (RepositoryException e) {
-          logger.warn("Unable to find profile node in hierarchy {}", node.getPath());
-        }
-      }
+      // Get just the home node for each result found
+      RowIterator homeRowIter = new AuthorizableHomeRowIterator(rows);
+
+      // filter the result set so that only 1 result is presented for each user/path found.
+      RowIterator uniqPathIter = new UniquePathRowIterator(homeRowIter);
 
       // Do the paging on the iterator.
-      RowIterator iterator = searchServiceFactory.getRowIteratorFromList(filteredRows);
-      int totalHits = filteredRows.size();
+//      int totalHits = filteredRows.size();
 
       // Extract the total hits from lucene
-      long start = SearchUtil.getPaging(request, totalHits);
-      iterator.skip(start);
+      long start = SearchUtil.getPaging(request, -1);
+      uniqPathIter.skip(start);
 
       // Return the result set.
-      SearchResultSet srs = searchServiceFactory.getSearchResultSet(iterator, totalHits);
+      SearchResultSet srs = searchServiceFactory.getSearchResultSet(uniqPathIter, 0);
       return srs;
     } catch (RepositoryException e) {
       logger.error("Unable to perform query.", e);
@@ -144,61 +115,15 @@ public class UniqueProfileSearchResultProcessor implements SearchResultProcessor
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
 
     write.object();
-    Node node = row.getNode();
-    ValueMap map = profileService.getProfileMap(node);
+    Node homeNode = row.getNode();
+    String profilePath = homeNode.getPath() + "/public/authprofile";
+    Session session = homeNode.getSession();
+    Node profileNode = session.getNode(profilePath);
+    ValueMap map = profileService.getProfileMap(profileNode);
     ((ExtendedJSONWriter)write).valueMapInternals(map);
-    PresenceUtils.makePresenceJSON(write, node.getProperty("rep:userId").getString(),
+    PresenceUtils.makePresenceJSON(write, profileNode.getProperty("rep:userId").getString(),
         presenceService, true);
     write.endObject();
 
-  }
-
-  private Node getHomeNode(Node node) throws RepositoryException {
-    if (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)
-        && (USER_HOME_RESOURCE_TYPE.equals(node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString())
-        || GROUP_HOME_RESOURCE_TYPE.equals(node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString()))) {
-      return node;
-    } else {
-      return getHomeNode(node.getParent());
-    }
-  }
-
-  private Row node2Row(final Node node) {
-    Row row = new Row() {
-
-      public Value[] getValues() throws RepositoryException {
-        return null;
-      }
-
-      public Value getValue(String propertyName) throws ItemNotFoundException,
-          RepositoryException {
-        return node.getProperty(propertyName).getValue();
-      }
-
-      public Node getNode() throws RepositoryException {
-        return node;
-      }
-
-      public Node getNode(String arg0) throws RepositoryException {
-        return node;
-      }
-
-      public String getPath() throws RepositoryException {
-        return node.getPath();
-      }
-
-      public String getPath(String arg0) throws RepositoryException {
-        return node.getPath();
-      }
-
-      public double getScore() throws RepositoryException {
-        return -1;
-      }
-
-      public double getScore(String arg0) throws RepositoryException {
-        return -1;
-      }
-    };
-    return row;
   }
 }

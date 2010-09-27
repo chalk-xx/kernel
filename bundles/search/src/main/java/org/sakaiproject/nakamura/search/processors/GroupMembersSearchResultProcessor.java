@@ -98,7 +98,8 @@ public class GroupMembersSearchResultProcessor extends NodeSearchBatchResultProc
       int maxResults = (int) SearchUtil.longRequestParameter(request,
           SearchConstants.PARAM_MAX_RESULT_SET_COUNT,
           SearchConstants.DEFAULT_PAGED_ITEMS);
-      SearchResultSet srs = new SearchResultSetImpl(iterator, maxResults);
+      SearchResultSet srs = new SearchResultSetImpl(iterator, iterator.getSize(),
+          maxResults);
       return srs;
     } catch (RepositoryException e) {
       logger.error("Unable to perform query.", e);

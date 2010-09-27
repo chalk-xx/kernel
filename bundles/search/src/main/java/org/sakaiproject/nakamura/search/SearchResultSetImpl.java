@@ -39,11 +39,6 @@ public class SearchResultSetImpl implements SearchResultSet {
    */
   private ValueMap properties;
 
-  public SearchResultSetImpl(RowIterator rowIterator, int maxResults) {
-    setRowIterator(rowIterator, maxResults);
-    setSize(this.rowIterator.getSize());
-  }
-
   public SearchResultSetImpl(RowIterator rowIterator, long size, int maxResults) {
     setRowIterator(rowIterator, maxResults);
     setSize(size);
