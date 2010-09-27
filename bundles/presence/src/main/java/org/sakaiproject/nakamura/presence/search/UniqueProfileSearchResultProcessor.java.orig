@@ -121,11 +121,9 @@ public class UniqueProfileSearchResultProcessor implements SearchResultProcessor
       write.object();
       ValueMap map = profileService.getProfileMap(profileNode);
       ((ExtendedJSONWriter)write).valueMapInternals(map);
-      PresenceUtils.makePresenceJSON(write, profileNode.getProperty("rep:userId")
-          .getString(), presenceService, true);
+      PresenceUtils.makePresenceJSON(write, profileNode.getProperty("rep:userId").getString(),
+          presenceService, true);
       write.endObject();
-    } else {
-      logger.warn("Didn't find rep:userId on " + profilePath);
     }
   }
 }
