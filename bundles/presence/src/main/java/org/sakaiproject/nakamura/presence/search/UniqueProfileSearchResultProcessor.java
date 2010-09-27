@@ -100,14 +100,6 @@ public class UniqueProfileSearchResultProcessor implements SearchResultProcessor
 
         try {
           Node homeNode = getHomeNode(node);
-//        String[] pathParts = StringUtils.split(node.getPath(), "/", 5);
-//
-//        StringBuilder profilePathBuilder = new StringBuilder();
-//        for (int i = 0; i < 4; i++) {
-//          profilePathBuilder.append("/").append(pathParts[i]);
-//        }
-//        profilePathBuilder.append("/public/authprofile");
-//        String profilePath = profilePathBuilder.toString();
           String homePath = homeNode.getPath();
           String profilePath = homePath + "/public/authprofile";
           if (!processedIds.contains(profilePath)) {
