@@ -147,10 +147,16 @@ public class UniqueProfileSearchResultProcessor implements SearchResultProcessor
     Node node = row.getNode();
     ValueMap map = profileService.getProfileMap(node);
     ((ExtendedJSONWriter)write).valueMapInternals(map);
-    PresenceUtils.makePresenceJSON(write, node.getProperty("rep:userId").getString(),
-        presenceService, true);
+    if (nodeIsUserProfile(node)) {
+      PresenceUtils.makePresenceJSON(write, node.getProperty("rep:userId").getString(),
+          presenceService, true);
+    }
     write.endObject();
 
+  }
+
+  private boolean nodeIsUserProfile(Node node) throws RepositoryException {
+    return USER_HOME_RESOURCE_TYPE.equals(getHomeNode(node).getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString());
   }
 
   private Node getHomeNode(Node node) throws RepositoryException {
