@@ -4,7 +4,7 @@
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
 
 export K2_TAG="HEAD"
-export S2_TAG="tags/sakai-2.7.1"
+export S2_TAG="tags/sakai-2.8.0-a01"
 export UX_TAG="HEAD"
 
 # Treat unset variables as an error when performing parameter expansion
@@ -127,22 +127,24 @@ else
     svn checkout -q "https://source.sakaiproject.org/svn/sakai/$S2_TAG" sakai
     cd sakai/
     REPO_REV=`svn info|grep Revision`
-    # SAK-17223 K2AuthenticationFilter
-    rm -rf login/
-    svn checkout -q https://source.sakaiproject.org/svn/login/branches/SAK-17223-2.7 login
-    # SAK-17222 K2UserDirectoryProvider
-    rm -rf providers
-    svn checkout -q https://source.sakaiproject.org/svn/providers/branches/SAK-17222-2.7 providers
-    # KERN-360 Servlet and TrustedLoginFilter RESTful services
-    cp -R $BUILD_DIR/sakai3/nakamura/hybrid .
-    find hybrid -name pom.xml -exec perl -pwi -e 's/2\.8-SNAPSHOT/2\.7\.1/g' {} \;
-    perl -pwi -e 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml
+    # # SAK-17223 K2AuthenticationFilter
+    # rm -rf login/
+    # svn checkout -q https://source.sakaiproject.org/svn/login/branches/SAK-17223-2.7 login
+    # SAK-17222 NakamuraUserDirectoryProvider
+    # rm -rf providers
+    # svn checkout -q https://source.sakaiproject.org/svn/providers/branches/SAK-17222-2.7 providers
+    # enable NakamuraUserDirectoryProvider
+    perl -pwi -e 's/<\/beans>/\t<bean id="org.sakaiproject.user.api.UserDirectoryProvider"\n\t\tclass="org.sakaiproject.provider.user.NakamuraUserDirectoryProvider"\n\t\tinit-method="init">\n\t\t<property name="threadLocalManager">\n\t\t\t<ref bean="org.sakaiproject.thread_local.api.ThreadLocalManager" \/>\n\t\t<\/property>\n\t<\/bean>\n<\/beans>/gi' providers/component/src/webapp/WEB-INF/components.xml
+    # # KERN-360 Servlet and TrustedLoginFilter RESTful services
+    # cp -R $BUILD_DIR/sakai3/nakamura/hybrid .
+    # find hybrid -name pom.xml -exec perl -pwi -e 's/2\.8-SNAPSHOT/2\.7\.1/g' {} \;
+    # perl -pwi -e 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml
     mvn -B -e clean install sakai:deploy -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
     # configure sakai 2 instance
     cd $BUILD_DIR
     # change default tomcat listener port numbers
     cp -f server.xml sakai2-demo/conf/server.xml 
-    echo "ui.service = trunk+SAK-17223+KERN-360 on HSQLDB" >> sakai2-demo/sakai/sakai.properties
+    echo "ui.service = $S2_TAG on HSQLDB" >> sakai2-demo/sakai/sakai.properties
     echo "version.sakai = $REPO_REV" >> sakai2-demo/sakai/sakai.properties
     echo "version.service = Built: $BUILD_DATE" >> sakai2-demo/sakai/sakai.properties
     echo "serverName=sakai23-hybrid.sakaiproject.org" >> sakai2-demo/sakai/sakai.properties

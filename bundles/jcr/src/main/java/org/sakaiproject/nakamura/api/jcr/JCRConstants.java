@@ -367,4 +367,6 @@ public interface JCRConstants {
   String JCR_MESSAGE_RCPTS = "sakai:messageRcpts";
   String JCR_MESSAGE_DATE = "sakai:messageDate";
   String JCR_MESSAGE_FROM = "sakai:messageFrom";
+
+  String SEARCH_EXCLUDE_TREE = "sakai:search-exclude-tree";
 }

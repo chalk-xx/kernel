@@ -22,12 +22,8 @@ import org.sakaiproject.nakamura.api.search.SearchResultSet;
 
 import javax.jcr.query.RowIterator;
 
-public class SearchResultSetImpl implements SearchResultSet {
+final class SearchResultSetImpl implements SearchResultSet {
 
-  /**
-   * The size of the result set.
-   */
-  private long size;
 
   /**
    * The iterator that should be used.
@@ -41,12 +37,6 @@ public class SearchResultSetImpl implements SearchResultSet {
 
   public SearchResultSetImpl(RowIterator rowIterator, int maxResults) {
     setRowIterator(rowIterator, maxResults);
-    setSize(this.rowIterator.getSize());
-  }
-
-  public SearchResultSetImpl(RowIterator rowIterator, long size, int maxResults) {
-    setRowIterator(rowIterator, maxResults);
-    setSize(size);
   }
 
   /**
@@ -55,17 +45,7 @@ public class SearchResultSetImpl implements SearchResultSet {
    * @see org.sakaiproject.nakamura.api.search.SearchResultSet#getSize()
    */
   public long getSize() {
-    return size;
-  }
-
-  /**
-   *
-   * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.api.search.SearchResultSet#setSize(long)
-   */
-  public void setSize(long size) {
-    this.size = size;
+    return rowIterator.getSize();
   }
 
   /**

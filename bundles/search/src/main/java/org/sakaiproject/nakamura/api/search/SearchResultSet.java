@@ -21,18 +21,27 @@ import org.apache.sling.api.resource.ValueMap;
 
 import javax.jcr.query.RowIterator;
 
+/**
+ * Do not implement this class, use the search service factory to build an instance. see:
+ * <ul>
+ * <li> {@link SearchServiceFactory#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest, javax.jcr.query.Query) } </li>
+ * <li> {@Link SearchServiceFactory#getSearchResultSet(RowIterator) </li>
+ * <li> {@link SearchServiceFactory#getSearchResultSet(RowIterator, int)</li>
+ * </ul>
+ * 
+ * Your implementation of RowIterator must not iterate through all results but produce them in a lazy way to avoid loading millions of items 
+ * from the JCR. If you need additional filtering you can chain row iterators.
+ * eg:
+ * <pre>
+ * SearchResultSet srs = SearchServiceFactory.getSearchResultSet(searchResultSet.getPathFileredRowIterator(new MySpecialRowIterator(request, query)));
+ * </pre>
+ */
 public interface SearchResultSet {
 
   /**
    * @return the number of results
    */
   public long getSize();
-
-  /**
-   * @param size
-   *          the number of results to set
-   */
-  public void setSize(long size);
 
   /**
    * @return the rowIterator
