@@ -19,9 +19,31 @@ package org.sakaiproject.nakamura.search;
 
 import org.apache.sling.api.resource.ValueMap;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 
 import javax.jcr.query.RowIterator;
 
+
+
+/**
+ * A final class that provides search result as a set. The reason this class is final and 
+ * protected is to avoid search result processors creating the class except via the factory that
+ * ensures that the counting iterators are wired up correctly. So, Do not use this class directly or
+ * be tempted to remove the protection that has been put in place. The correct way to get hold of an implementation
+ * is to use one of:
+ * <ul>
+ * <li> {@link SearchServiceFactory#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest, javax.jcr.query.Query) } </li>
+ * <li> {@Link SearchServiceFactory#getSearchResultSet(RowIterator) </li>
+ * <li> {@link SearchServiceFactory#getSearchResultSet(RowIterator, int)</li>
+ * </ul>
+ * 
+ * Your implementation of RowIterator must not iterate through all results but produce them in a lazy way to avoid loading millions of items 
+ * from the JCR. If you need additional filtering you can chain row iterators.
+ * eg:
+ * <pre>
+ * SearchResultSet srs = SearchServiceFactory.getSearchResultSet(searchResultSet.getPathFileredRowIterator(new MySpecialRowIterator(request, query)));
+ * </pre>
+ */
 final class SearchResultSetImpl implements SearchResultSet {
 
 

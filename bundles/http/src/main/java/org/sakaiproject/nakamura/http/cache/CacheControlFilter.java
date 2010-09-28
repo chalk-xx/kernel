@@ -21,11 +21,15 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.memory.Cache;
+import org.sakaiproject.nakamura.api.memory.CacheManagerService;
+import org.sakaiproject.nakamura.api.memory.CacheScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,13 +64,13 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = "Nakamura Cache-Control Filter"),
     @Property(name = "sakai.cache.paths", value = { 
-        "dev;.lastmodified:unset;.cookies:unset;.expires:3456000;Vary: Accept-Encoding", 
-        "devwidgets;.lastmodified:unset;.cookies:unset;.expires:3456000;Vary: Accept-Encoding",
+        "dev;.lastmodified:unset;.cookies:unset;.requestCache:3600;.expires:3456000;Vary: Accept-Encoding", 
+        "devwidgets;.lastmodified:unset;.cookies:unset;.requestCache:3600;.expires:3456000;Vary: Accept-Encoding",
         "p;Cache-Control:no-cache" }, 
         description = "List of subpaths and max age for all content under subpath in seconds, setting to 0 makes it non cacheing"),
     @Property(name = "sakai.cache.patterns", value = { 
-        "root;.*(js|css)$;.lastmodified:unset;.cookies:unset;.expires:3456000;Vary: Accept-Encoding",
-        "root;.*html$;.lastmodified:unset;.cookies:unset;.expires:3456000;Vary: Accept-Encoding" }, 
+        "root;.*(js|css)$;.lastmodified:unset;.cookies:unset;.requestCache:3600;.expires:3456000;Vary: Accept-Encoding",
+        "root;.*html$;.lastmodified:unset;.cookies:unset;.requestCache:3600;.expires:3456000;Vary: Accept-Encoding" }, 
         description = "List of path prefixes followed by a regex. If the prefix starts with a root: it means files in the root folder that match the pattern."),
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "filter.scope", value = "request", propertyPrivate = true),
@@ -93,6 +97,10 @@ public class CacheControlFilter implements Filter {
 
   static final String SAKAI_CACHE_PATHS = "sakai.cache.paths";
 
+  
+  @Reference 
+  protected CacheManagerService cacheManagerService;
+  
   /**
    * {@inheritDoc}
    * 
@@ -117,6 +125,9 @@ public class CacheControlFilter implements Filter {
     Map<String, String> headers = null;
     boolean withLastModfied = true;
     boolean withCookies = true;
+    int cacheAge = 0;
+    CachedResponseManager cachedResponseManager = null;
+    FilterResponseWrapper fresponse = null;
     if ("GET".equals(srequest.getMethod())) {
       Resource resouce = srequest.getResource();
       headers = getHeaders(path);
@@ -124,6 +135,22 @@ public class CacheControlFilter implements Filter {
         sresponse.setDateHeader("Date", System.currentTimeMillis());
         withLastModfied = !"unset".equals(headers.get(".lastmodified"));
         withCookies = !"unset".equals(headers.get(".cookies"));
+        String cacheAgeValue = headers.get(".requestCache");
+        if ( cacheAgeValue != null ) {
+          cacheAge = Integer.parseInt(cacheAgeValue);
+        }
+        if ( cacheAge > 0 ) {
+          cachedResponseManager = new CachedResponseManager(srequest, cacheAge, getCache());
+          if ( cachedResponseManager.isValid() ) {
+            cachedResponseManager.send(sresponse);
+            return;
+          }
+        }
+        if ( !withLastModfied || !withCookies || cachedResponseManager != null ) {
+          fresponse = new FilterResponseWrapper(sresponse, withLastModfied, withCookies, cachedResponseManager != null);
+        }
+        
+        
         if (resouce != null) {
           Node n = resouce.adaptTo(Node.class);
           if (n != null) {
@@ -161,11 +188,19 @@ public class CacheControlFilter implements Filter {
       sresponse.setHeader("X-CacheControlFilterCode", String.valueOf(respCode));
       sresponse.sendError(respCode,"Not Modified (Cache Control Filter)");
     } else {
-      if ( !withLastModfied || !withCookies ) {
-        response = new FilterResponseWrapper(sresponse, withLastModfied, withCookies);
+      if ( fresponse != null ) {
+        chain.doFilter(request, fresponse);
+        if ( cachedResponseManager != null ) {
+          cachedResponseManager.save(fresponse.getResponseOperation());
+        }
+      } else {
+        chain.doFilter(request, response);
       }
-      chain.doFilter(request, response);
     }
+  }
+
+  private Cache<CachedResponse> getCache() {
+    return cacheManagerService.getCache(CacheControlFilter.class.getName()+"-cache", CacheScope.INSTANCE);
   }
 
   private long getLastModified(Node n) throws RepositoryException {
