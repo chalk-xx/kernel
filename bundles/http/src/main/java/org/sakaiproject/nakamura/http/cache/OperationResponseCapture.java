@@ -1,14 +1,14 @@
 package org.sakaiproject.nakamura.http.cache;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.ServletOutputStream;
 
-public class ResponseCapture {
+public class OperationResponseCapture {
 
   public static final int MARKER = 0xff;
   public static final int END_OF_MARKER = 0xfe;
@@ -27,15 +27,13 @@ public class ResponseCapture {
   private PrintWriter writer;
   private SplitOutputStream outputStream;
   private boolean cacheable;
-  private ByteArrayOutputStream rawBuffer;
-  private DataOutputStream redoLog;
   private SplitWriter splitWriter;
+  private List<Operation> operations = new ArrayList<Operation>();
 
-  public ResponseCapture() {
+  public OperationResponseCapture() {
     cacheable = true;
     resetRedoLog();
   }
-
 
   public PrintWriter getWriter(PrintWriter baseWriter) {
     if (outputStream != null) {
@@ -67,113 +65,80 @@ public class ResponseCapture {
   }
 
   public void setDateHeader(String name, long date) {
-    appendLog(SET_DATE_HEADER, name, date);
+    if (cacheable) {
+      operations.add(new Operation(SET_DATE_HEADER, name, date));
+    }
   }
 
   public void addDateHeader(String name, long date) {
-    appendLog(ADD_DATE_HEADER, name, date);
+    if (cacheable) {
+      operations.add(new Operation(ADD_DATE_HEADER, name, date));
+    }
   }
 
   public void setCharacterEncoding(String charset) {
-    appendLog(SET_CHARACTER_ENCODING, charset);
+    if (cacheable) {
+      operations.add(new Operation(SET_CHARACTER_ENCODING, charset));
+    }
   }
 
   public void setContentLength(int len) {
-    appendLog(SET_CONTENT_LENGTH, len);
+    if (cacheable) {
+      operations.add(new Operation(SET_CONTENT_LENGTH, len));
+    }
   }
 
   public void setContentType(String type) {
-    appendLog(SET_CONTENT_TYPE, type);
+    if (cacheable) {
+      operations.add(new Operation(SET_CONTENT_TYPE, type));
+    }
   }
 
   public void setLocale(Locale loc) {
-    appendLog(SET_LOCALE, loc.getLanguage(), loc.getCountry());
+    if (cacheable) {
+      operations.add(new Operation(SET_LOCALE, loc.getLanguage(), loc.getCountry()));
+    }
   }
 
   public void setHeader(String name, String value) {
-    appendLog(SET_HEADER, name, value);
+    if (cacheable) {
+      operations.add(new Operation(SET_HEADER, name, value));
+    }
   }
 
   public void setIntHeader(String name, int value) {
-    appendLog(SET_INT_HEADER, name, value);
+    if (cacheable) {
+      operations.add(new Operation(SET_INT_HEADER, name, value));
+    }
   }
 
   public void setStatus(int sc) {
-    appendLog(SET_STATUS, sc);
+    if (sc != 200) {
+      dropCache();
+    }
+    if (cacheable) {
+      operations.add(new Operation(SET_STATUS, sc));
+    }
   }
 
-
   public void setStatus(int sc, String sm) {
-    appendLog(SET_STATUS_WITH_MESSAGE, sm, sc);
+    if (sc != 200) {
+      dropCache();
+    }
+    if (cacheable) {
+      operations.add(new Operation(SET_STATUS_WITH_MESSAGE, sc, sm));
+    }
   }
 
   public void addHeader(String name, String value) {
-    appendLog(ADD_HEADER, name, value);
+    if (cacheable) {
+      operations.add(new Operation(ADD_HEADER, name, value));
+    }
   }
-
 
   public void addIntHeader(String name, int value) {
-    appendLog(ADD_INT_HEADER, name, value);
-  }
-
-  private void appendLog(int op, int sc) {
     if (cacheable) {
-      try {
-        redoLog.writeByte(MARKER);
-        redoLog.writeByte(op);
-        redoLog.writeInt(sc);
-      } catch (IOException e) {
-        dropCache();
-      }
-    }
-  }
-  private void appendLog(int op, String value) {
-    if (cacheable) {
-      try {
-        redoLog.writeByte(MARKER);
-        redoLog.writeByte(op);
-        redoLog.writeUTF(value);
-      } catch (IOException e) {
-        dropCache();
-      }
-    }
-  }
-  private void appendLog(int op, String name, String value) {
-    if (cacheable) {
-      try {
-        redoLog.writeByte(MARKER);
-        redoLog.writeByte(op);
-        redoLog.writeUTF(name);
-        redoLog.writeUTF(value);
-      } catch (IOException e) {
-        dropCache();
-      }
-    }
-  }
-
-  private void appendLog(int op, String name, int value) {
-    if (cacheable) {
-      try {
-        redoLog.writeByte(MARKER);
-        redoLog.writeByte(op);
-        redoLog.writeUTF(name);
-        redoLog.writeInt(value);
-      } catch (IOException e) {
-        dropCache();
-      }
-    }
-  }
-
-  private void appendLog(int op, String name, long value) {
-    if (cacheable) {
-      try {
-        redoLog.writeByte(MARKER);
-        redoLog.writeByte(op);
-        redoLog.writeUTF(name);
-        redoLog.writeLong(value);
-      } catch (IOException e) {
-        dropCache();
-      }
+      operations.add(new Operation(ADD_INT_HEADER, name, value));
     }
   }
 
@@ -195,18 +160,15 @@ public class ResponseCapture {
   }
 
   private void resetRedoLog() {
-    rawBuffer = new ByteArrayOutputStream();
-    redoLog = new DataOutputStream(rawBuffer);
+    operations.clear();
   }
 
-  public byte[] getRedoLog() throws IOException {
-    redoLog.writeByte(END_OF_MARKER);
-    redoLog.flush();
-    return rawBuffer.toByteArray();
+  public Operation[] getRedoLog() throws IOException {
+    return operations.toArray(new Operation[operations.size()]);
   }
 
   public byte[] getByteContent() throws IOException {
-    if ( outputStream != null  ) {
+    if (outputStream != null) {
       outputStream.flush();
       return outputStream.toByteArray();
     }
@@ -214,12 +176,11 @@ public class ResponseCapture {
   }
 
   public String getStringContent() {
-    if ( writer != null ) {
+    if (writer != null) {
       writer.flush();
       return splitWriter.getStringContent();
     }
     return null;
   }
-
 
 }

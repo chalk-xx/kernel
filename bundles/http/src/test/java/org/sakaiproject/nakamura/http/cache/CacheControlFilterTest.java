@@ -31,7 +31,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.internal.matchers.Any;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.memory.Cache;
@@ -42,7 +41,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Locale;
@@ -191,7 +189,7 @@ public class CacheControlFilterTest {
   }
 
   private CachedResponse populateResponseCapture(boolean useOutputStream) throws IOException {
-    ResponseCapture sresponse = new ResponseCapture();
+    OperationResponseCapture sresponse = new OperationResponseCapture();
     sresponse.addDateHeader("Date", System.currentTimeMillis());
     sresponse.setDateHeader("Last-Modified", System.currentTimeMillis());
     sresponse.setCharacterEncoding("URF-8");
