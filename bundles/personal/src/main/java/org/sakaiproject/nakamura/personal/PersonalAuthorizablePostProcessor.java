@@ -47,6 +47,7 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.jcr.JCRConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.api.user.AuthorizableEventUtil;
@@ -263,13 +264,11 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       LOGGER.debug("Existing Home Node for {} at   {} user was {} ", new Object[] {
           authorizable.getID(), homeNode, session.getUserID() });
     }
-    if (authorizable.isGroup()) {
-      homeNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, GROUP_HOME_RESOURCE_TYPE);
-    } else {
-      homeNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, USER_HOME_RESOURCE_TYPE);
-    }
 
     refreshOwnership(session, authorizable, homeFolderPath);
+
+    // add things to home
+    decorateHome(homeNode, authorizable);
 
     // Create the public, private, authprofile
     createPrivate(session, authorizable);
@@ -288,6 +287,22 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
         messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             "sakai/joinrequests");
       }
+    }
+  }
+
+  private void decorateHome(Node homeNode, Authorizable authorizable)
+      throws RepositoryException {
+    // set the home node resource type
+    if (authorizable.isGroup()) {
+      homeNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, GROUP_HOME_RESOURCE_TYPE);
+    } else {
+      homeNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, USER_HOME_RESOURCE_TYPE);
+    }
+
+    // set whether the home node should be excluded from searches
+    if (authorizable.hasProperty(JCRConstants.SEARCH_EXCLUDE_TREE)) {
+      homeNode.setProperty(JCRConstants.SEARCH_EXCLUDE_TREE,
+          authorizable.getProperty(JCRConstants.SEARCH_EXCLUDE_TREE)[0]);
     }
   }
 

@@ -26,7 +26,9 @@ public class SearchResultSetImpl implements SearchResultSet {
 
   /**
    * The size of the result set.
+   * (See TODO on "getSize" below.)
    */
+  @SuppressWarnings("unused")
   private long size;
 
   /**
@@ -39,11 +41,6 @@ public class SearchResultSetImpl implements SearchResultSet {
    */
   private ValueMap properties;
 
-  public SearchResultSetImpl(RowIterator rowIterator, int maxResults) {
-    setRowIterator(rowIterator, maxResults);
-    setSize(this.rowIterator.getSize());
-  }
-
   public SearchResultSetImpl(RowIterator rowIterator, long size, int maxResults) {
     setRowIterator(rowIterator, maxResults);
     setSize(size);
@@ -55,7 +52,10 @@ public class SearchResultSetImpl implements SearchResultSet {
    * @see org.sakaiproject.nakamura.api.search.SearchResultSet#getSize()
    */
   public long getSize() {
-    return size;
+    // Delegate to the CountingRowIterator for the real record count.
+    // TODO This needs review, since it eliminates any use for the "size"
+    // argument in the constructor.
+    return rowIterator.getSize();
   }
 
   /**
