@@ -58,7 +58,7 @@ import javax.servlet.http.HttpServletResponse;
     "Maps to node of resourceType sakai/contactstore at the URL /_user/contacts. " +
     "Each new contact results in two new nodes of resourceType sakai/contact, one for the inviting user and one for the invited user. "+
     "These contacts can be retrieved by GET requests which specify a connection-status: "+
-    "/_user/contacts/accepted.json, /_user/contacts/pending.json, /_user/contacts/all.json, etc.",
+    "/_user/contacts/find?state=ACCEPTED, etc.",
   shortDescription="Manage personal connections/contacts",
   bindings=@ServiceBinding(type=BindingType.PATH,bindings="/_user/contacts/OTHER_USER",
       selectors={
