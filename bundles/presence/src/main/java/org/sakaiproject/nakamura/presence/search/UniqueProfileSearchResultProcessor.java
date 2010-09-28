@@ -89,12 +89,11 @@ public class UniqueProfileSearchResultProcessor implements SearchResultProcessor
       RowIterator uniqPathIter = new UniquePathRowIterator(homeRowIter);
 
       // Extract the total hits from lucene
-      long hits = SearchUtil.getHits(rs);
-      long start = SearchUtil.getPaging(request, hits);
+      long start = SearchUtil.getPaging(request);
       uniqPathIter.skip(start);
 
       // Return the result set.
-      SearchResultSet srs = searchServiceFactory.getSearchResultSet(uniqPathIter, 0);
+      SearchResultSet srs = searchServiceFactory.getSearchResultSet(uniqPathIter);
       return srs;
     } catch (RepositoryException e) {
       logger.error("Unable to perform query.", e);

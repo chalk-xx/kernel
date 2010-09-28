@@ -353,7 +353,6 @@ public class TrustedTokenServiceTest {
   public void testInjectCookieHeader() {
     ComponentContext context = configureForCookie();
     HttpServletRequest request = createMock(HttpServletRequest.class);
-    Principal principal = createMock(Principal.class);
     EasyMock.expect(request.getRemoteAddr()).andReturn("192.168.0.123");
     EasyMock.expect(request.getHeader("remote_user")).andReturn("ieb").anyTimes();
     HttpServletResponse response = createMock(HttpServletResponse.class);

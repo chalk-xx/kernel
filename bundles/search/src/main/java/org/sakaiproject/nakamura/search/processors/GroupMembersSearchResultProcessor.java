@@ -20,14 +20,15 @@ package org.sakaiproject.nakamura.search.processors;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
-import org.sakaiproject.nakamura.search.SakaiSearchRowIterator;
-import org.sakaiproject.nakamura.search.SearchResultSetImpl;
+import org.sakaiproject.nakamura.api.search.ValidatingRowIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +52,10 @@ public class GroupMembersSearchResultProcessor extends NodeSearchBatchResultProc
   private static final Logger logger = LoggerFactory
       .getLogger(GroupMembersSearchResultProcessor.class);
 
+  
+  @Reference
+  public SearchServiceFactory searchServiceFactory;
+  
   /**
    * {@inheritDoc}
    *
@@ -68,7 +73,8 @@ public class GroupMembersSearchResultProcessor extends NodeSearchBatchResultProc
       final Set<String> memberIds = (Set<String>) request.getAttribute("memberIds");
 
       // Do the paging on the iterator.
-      SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(rs.getRows()) {
+      
+      ValidatingRowIterator iterator = new ValidatingRowIterator(rs.getRows()) {
 
         @Override
         protected boolean isValid(Node node) {
@@ -79,9 +85,9 @@ public class GroupMembersSearchResultProcessor extends NodeSearchBatchResultProc
               if (memberIds.contains(username)) {
                 isMember = true;
               }
-              return isMember && super.isValid(node);
+              return isMember;
             } else {
-              return super.isValid(node);
+              return true;
             }
           } catch (RepositoryException e) {
             return false;
@@ -90,16 +96,14 @@ public class GroupMembersSearchResultProcessor extends NodeSearchBatchResultProc
       };
 
       // Extract the total hits from lucene
-      long hits = SearchUtil.getHits(rs);
-      long start = SearchUtil.getPaging(request, hits);
+      long start = SearchUtil.getPaging(request);
       iterator.skip(start);
 
       // Return the result set.
       int maxResults = (int) SearchUtil.longRequestParameter(request,
           SearchConstants.PARAM_MAX_RESULT_SET_COUNT,
           SearchConstants.DEFAULT_PAGED_ITEMS);
-      SearchResultSet srs = new SearchResultSetImpl(iterator, iterator.getSize(),
-          maxResults);
+      SearchResultSet srs = searchServiceFactory.getSearchResultSet(iterator, maxResults);
       return srs;
     } catch (RepositoryException e) {
       logger.error("Unable to perform query.", e);

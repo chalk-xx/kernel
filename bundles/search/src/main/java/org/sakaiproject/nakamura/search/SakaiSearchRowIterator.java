@@ -34,7 +34,7 @@ import javax.jcr.query.RowIterator;
  * {@link Node} is in a blacklisted tree. If the {@link Node} is in a blacklisted tree, it
  * will skip it and fetch the next one. This iterator always lazy loads the next row.
  */
-public class SakaiSearchRowIterator extends ValidatingRowIterator {
+public final class SakaiSearchRowIterator extends ValidatingRowIterator {
 
   private String[] blacklistedPaths;
 
@@ -42,7 +42,7 @@ public class SakaiSearchRowIterator extends ValidatingRowIterator {
    * @param iterator
    *          The iterator that should be wrapped.
    */
-  public SakaiSearchRowIterator(RowIterator iterator) {
+  SakaiSearchRowIterator(RowIterator iterator) {
     super(iterator);
     loadNextRow();
   }
@@ -54,7 +54,7 @@ public class SakaiSearchRowIterator extends ValidatingRowIterator {
    * @param blacklistedPaths
    *          An array of paths that should be ignored.
    */
-  public SakaiSearchRowIterator(RowIterator iterator, String[] blacklistedPaths) {
+  SakaiSearchRowIterator(RowIterator iterator, String[] blacklistedPaths) {
     super(iterator);
     if (blacklistedPaths != null) {
       Arrays.sort(blacklistedPaths);

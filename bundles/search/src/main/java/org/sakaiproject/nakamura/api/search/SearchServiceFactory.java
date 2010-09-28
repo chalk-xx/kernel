@@ -48,10 +48,18 @@ public interface SearchServiceFactory {
   /**
    * Create a Search Result Set from a row iterator.
    * @param rowIterator
-   * @param size
+   * @param maxResultsToCount the maximum number of results to count
    * @return
    */
-  public SearchResultSet getSearchResultSet(RowIterator mergedIterator, long totalHits);
+  public SearchResultSet getSearchResultSet(RowIterator mergedIterator, int maxResultsToCount);
+
+  /**
+   * Create a Search Result Set from a row iterator.
+   * @param rowIterator
+   * @param maxResultsToCount the maximum number of results to count
+   * @return
+   */
+  public SearchResultSet getSearchResultSet(RowIterator mergedIterator);
 
   /**
    * This method will return a SearchResultSet that contains a paged rowIterator and the
