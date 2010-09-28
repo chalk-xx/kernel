@@ -34,7 +34,6 @@ import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
-import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.RowUtils;
 import org.slf4j.Logger;
@@ -133,11 +132,9 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       QueryResult qr = query.execute();
       RowIterator iterator = qr.getRows();
 
-      // Get the hits
-      long hits = SearchUtil.getHits(qr);
 
       // Return the result set.
-      return searchServiceFactory.getSearchResultSet(iterator, hits);
+      return searchServiceFactory.getSearchResultSet(iterator);
     } catch (RepositoryException e) {
       throw new SearchException(500, "Unable to execute query.");
     }

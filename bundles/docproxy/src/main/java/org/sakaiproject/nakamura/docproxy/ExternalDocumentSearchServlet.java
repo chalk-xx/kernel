@@ -96,7 +96,7 @@ protected ExternalRepositoryProcessorTracker tracker;
           searchProperties);
 
       // Do the default search paging.
-      long toSkip = SearchUtil.getPaging(request, -1);
+      long toSkip = SearchUtil.getPaging(request);
       while (toSkip > 0) {
         if (results.hasNext()) {
           results.next();

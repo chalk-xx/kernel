@@ -83,17 +83,15 @@ public class SearchServiceFactoryImpl implements SearchServiceFactory {
       // Get the query result.
       QueryResult rs = query.execute();
 
-      // Extract the total hits from lucene
-      long hits = SearchUtil.getHits(rs);
       int maxResults = (int) SearchUtil.longRequestParameter(request, SearchConstants.PARAM_MAX_RESULT_SET_COUNT, defaultMaxResults);
 
       // Do the paging on the iterator.
       SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(rs.getRows());
-      long start = SearchUtil.getPaging(request, hits);
+      long start = SearchUtil.getPaging(request);
       iterator.skip(start);
 
       // Return the result set.
-      SearchResultSet srs = new SearchResultSetImpl(iterator, hits, maxResults);
+      SearchResultSet srs = new SearchResultSetImpl(iterator, maxResults);
       return srs;
     } catch (RepositoryException e) {
       LOGGER.error("Unable to perform query.", e);
@@ -108,8 +106,18 @@ public class SearchServiceFactoryImpl implements SearchServiceFactory {
    * @param size
    * @return
    */
-  public SearchResultSet getSearchResultSet(RowIterator rowIterator, long size) {
-    return new SearchResultSetImpl(new SakaiSearchRowIterator(rowIterator), size, defaultMaxResults);
+  public SearchResultSet getSearchResultSet(RowIterator rowIterator) {
+    return new SearchResultSetImpl(new SakaiSearchRowIterator(rowIterator), defaultMaxResults);
+  }
+
+  /**
+   * Create a Search Result Set from a row iterator.
+   * @param rowIterator
+   * @param size
+   * @return
+   */
+  public SearchResultSet getSearchResultSet(RowIterator rowIterator, int maxResultsToCount ) {
+    return new SearchResultSetImpl(new SakaiSearchRowIterator(rowIterator), Math.min(defaultMaxResults, maxResultsToCount));
   }
 
   public RowIterator getRowIteratorFromList(List<Row> savedRows) {

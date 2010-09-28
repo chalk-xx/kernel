@@ -22,13 +22,11 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_PAGE;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.jcr.jackrabbit.server.index.QueryHitsExtractor;
 import org.sakaiproject.nakamura.search.SearchServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.query.Query;
-import javax.jcr.query.QueryResult;
 
 /**
  *
@@ -39,16 +37,6 @@ public class SearchUtil {
 
 
 
-  /**
-   * Get the hits from a Lucene queryResult.
-   *
-   * @param rs
-   * @return
-   */
-  public static long getHits(QueryResult rs) throws SearchException {
-    QueryHitsExtractor extr = new QueryHitsExtractor(rs);
-    return extr.getHits();
-  }
 
   /**
    * Check for an integer value in the request.
@@ -82,17 +70,13 @@ public class SearchUtil {
    * @param total
    * @return
    */
-  public static long getPaging(SlingHttpServletRequest request, long total) {
+  public static long getPaging(SlingHttpServletRequest request) {
 
     long nitems = longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
         SearchConstants.DEFAULT_PAGED_ITEMS);
     long offset = longRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
-    if (total < 0) {
-      total = Long.MAX_VALUE;
-    }
-    long start = Math.min(offset, total);
-    return start;
+    return offset;
   }
 
   /**
