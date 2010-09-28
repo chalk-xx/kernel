@@ -186,7 +186,7 @@ public class TagServletTest {
     TagServlet servlet = new TagServlet();
     SearchServiceFactory searchServiceFactory = mock(SearchServiceFactory.class);
     SearchResultSet searchResultSet = mock(SearchResultSet.class);
-    when(searchServiceFactory.getSearchResultSet(Mockito.any(RowIterator.class), Mockito.anyLong())).thenReturn(searchResultSet);
+    when(searchServiceFactory.getSearchResultSet(Mockito.any(RowIterator.class))).thenReturn(searchResultSet);
     RowIterator rowIterator = new MockRowIterator(nodes);
 
 

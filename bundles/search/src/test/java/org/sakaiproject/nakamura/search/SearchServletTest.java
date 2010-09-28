@@ -257,7 +257,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
       public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
           Query query) throws SearchException {
-        return new SearchResultSetImpl(iterator, 0, 100);
+        return new SearchResultSetImpl(iterator,100);
       }
     };
 

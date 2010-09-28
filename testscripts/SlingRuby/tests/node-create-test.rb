@@ -57,7 +57,7 @@ class TC_NodeCreateTest < Test::Unit::TestCase
     res = @s.execute_get(@s.url_for(filepath + "/file"))
     assert_equal(200, res.code.to_i, "Expected GET to of second version succeed")
     assert_equal(filedata, res.body, "Expected body back unmodified")
-    res = @s.execute_get(@s.url_for(filepath + "/file.versions.json"), "dummy")
+    res = @s.execute_get(@s.url_for(filepath + "/file.versions.json"), "dummy_key" => "dummy")
     assert_equal(200, res.code.to_i, "Expected GET to versions to succeed, looks like versioning is not working check the logs. "+res.body)
 	@log.debug(res.body)
     @log.info("test_create_file_node_and_version----------------------------------END")
@@ -72,7 +72,7 @@ class TC_NodeCreateTest < Test::Unit::TestCase
     assert_equal(200, res.code.to_i, "Expected GET to succeed")
     assert_equal(filedata, res.body, "Expected body back unmodified")
 	@log.info("Attempting version history operation ")
-    res = @s.execute_get(@s.url_for(filepath + "/file.versions.json"), "dummy")
+    res = @s.execute_get(@s.url_for(filepath + "/file.versions.json"), "dummy_key" => "dummy")
     assert_equal(200, res.code.to_i, "Expected GET to versions to succeed, looks like versioning is not working check the logs. "+res.body)
     @log.info("test_create_file_node_and_get_version_history----------------------END")
   end
@@ -102,7 +102,7 @@ class TC_NodeCreateTest < Test::Unit::TestCase
 
     res = @s.execute_get(@s.url_for(nodepath+".json"))
     assert_equal(200, res.code.to_i, "Expected GET to succeed "+res.body )
-    res = @s.execute_get(@s.url_for(nodepath +  ".versions.json"), "dummy")
+    res = @s.execute_get(@s.url_for(nodepath +  ".versions.json"), "dummy_key" => "dummy")
     assert_equal(200, res.code.to_i, "Expected GET to versions to succeed, looks like versioning is not working check the logs. "+res.body)
 	@log.debug(res.body)
 	history = JSON.parse(res.body)
@@ -112,7 +112,7 @@ class TC_NodeCreateTest < Test::Unit::TestCase
 	assert_equal(3,versions.length,"Was expecting 3 versions")
 	versions.each_key do |versionName|
 	  @log.info("loading Version "+versionName)
-      res = @s.execute_get(@s.url_for(nodepath +  ".version.,"+versionName+",.json"), "dummy")
+      res = @s.execute_get(@s.url_for(nodepath +  ".version.,"+versionName+",.json"), "dummy_key" => "dummy")
       assert_equal(200, res.code.to_i, "Expected GET to version "+versionName+" to succeed, looks like versioning is not working check the logs. "+res.body)
       content = JSON.parse(res.body)
       assert(version_content.has_key?(versionName), "Expected version to be expected")  

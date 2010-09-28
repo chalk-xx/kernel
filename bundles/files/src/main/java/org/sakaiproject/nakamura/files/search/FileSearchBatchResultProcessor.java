@@ -108,13 +108,12 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       QueryResult rs = query.execute();
 
       // Extract the total hits from lucene
-      long hits = SearchUtil.getHits(rs);
       long nitems = SearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
           SearchConstants.DEFAULT_PAGED_ITEMS);
 
       // Do the paging on the iterator.
       RowIterator iterator = searchServiceFactory.getPathFilteredRowIterator(rs.getRows());
-      long start = SearchUtil.getPaging(request, hits);
+      long start = SearchUtil.getPaging(request);
       iterator.skip(start);
 
       Session session = request.getResourceResolver().adaptTo(Session.class);
@@ -155,7 +154,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       RowIterator newIterator = searchServiceFactory.getRowIteratorFromList(savedRows);
 
       // Return the result set.
-      SearchResultSet srs = searchServiceFactory.getSearchResultSet(newIterator, hits);
+      SearchResultSet srs = searchServiceFactory.getSearchResultSet(newIterator);
       return srs;
     } catch (RepositoryException e) {
       throw new SearchException(500, "Unable to perform query.");

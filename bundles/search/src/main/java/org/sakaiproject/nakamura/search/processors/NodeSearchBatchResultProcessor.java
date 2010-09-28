@@ -81,9 +81,7 @@ public class NodeSearchBatchResultProcessor implements
 
     Session session = request.getResourceResolver().adaptTo(Session.class);
 
-    // TODO Get size from somewhere else.
-    long total = iterator.getSize();
-    long start = SearchUtil.getPaging(request, total);
+    long start = SearchUtil.getPaging(request);
 
     long nitems = SearchUtil.longRequestParameter(request,
         PARAMS_ITEMS_PER_PAGE, DEFAULT_PAGED_ITEMS);

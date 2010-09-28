@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.imap;
 
-import static org.jboss.netty.channel.Channels.pipeline;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -48,6 +46,7 @@ import org.apache.james.socket.netty.AbstractConfigurableAsyncServer;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.DefaultChannelPipeline;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.connection.ConnectionLimitUpstreamHandler;
 import org.jboss.netty.handler.connection.ConnectionPerIpLimitUpstreamHandler;
@@ -121,7 +120,8 @@ public class NakamuraNioImapServer extends AbstractConfigurableAsyncServer imple
 
     decoder = new DefaultImapDecoderFactory().buildImapDecoder();
     encoder = new DefaultImapEncoderFactory().buildImapEncoder();
-    processor = DefaultImapProcessorFactory.createDefaultProcessor(mailboxManager, jcrSubscriptionManager);
+    processor = DefaultImapProcessorFactory.createDefaultProcessor(mailboxManager,
+        jcrSubscriptionManager);
     setDNSService(dnsServer);
     setLog(jcLog);
     URL configUrl = getClass().getResource("/imap-config.xml");
@@ -172,7 +172,7 @@ public class NakamuraNioImapServer extends AbstractConfigurableAsyncServer imple
       return new ChannelPipelineFactory() {
 
           public ChannelPipeline getPipeline() throws Exception {
-              ChannelPipeline pipeline = pipeline();
+              ChannelPipeline pipeline = new DefaultChannelPipeline();
               pipeline.addLast("connectionLimit", new ConnectionLimitUpstreamHandler(NakamuraNioImapServer.this.connectionLimit));
 
               pipeline.addLast("connectionPerIpLimit", new ConnectionPerIpLimitUpstreamHandler(NakamuraNioImapServer.this.connPerIP));

@@ -17,24 +17,24 @@ module SlingUsers
     def initialize(name)
       @name = name
     end
-    
-    
+
+
     # Get the public path for a user
     def public_path_for(sling)
       return home_path_for(sling) + "/public"
     end
-    
+
     # Get the private path for a user
     def private_path_for(sling)
       return home_path_for(sling) + "/private"
     end
-    
+
     def message_path_for(sling,messageid)
       return home_path_for(sling) + "/message/"+messageid[0,2]+"/"+messageid[2,2]+"/"+messageid[4,2]+"/"+messageid[6,2]+"/"+messageid
     end
 
   end
-  
+
 
   class Group < Principal
     def to_s
@@ -145,7 +145,7 @@ module SlingUsers
 		super("owner")
 	end
   end
-  
+
   class User < Principal
     attr_accessor :password
 
@@ -165,7 +165,7 @@ module SlingUsers
     def do_request_auth(req)
       req.basic_auth(@name, @password)
     end
-  
+
     def do_curl_auth(c)
       c.userpwd = "#{@name}:#{@password}"
     end
@@ -177,19 +177,19 @@ module SlingUsers
     def update_properties(sling, props)
       return sling.execute_post(sling.url_for("#{user_url}.update.html"), props)
     end
-	
-	
+
+
 	def change_password(sling, newpassword)
-	   return sling.execute_post(sling.url_for("#{user_url}.changePassword.html"), "oldPwd" => @password, "newPwd" => newpassword, "newPwdConfirm" => newpassword)     
+	   return sling.execute_post(sling.url_for("#{user_url}.changePassword.html"), "oldPwd" => @password, "newPwd" => newpassword, "newPwdConfirm" => newpassword)
 	end
-	
+
 
     # Get the home folder of a group.
     def home_path_for(sling)
       return "/~#{@name}"
     end
 
-    
+
     def self.url_for(name)
       return "#{$USERMANAGER_URI}user/#{name}"
     end
@@ -209,11 +209,11 @@ module SlingUsers
     def do_curl_auth(c)
       # do nothing
     end
-    
+
     def do_request_auth(r)
       # do nothing
     end
-  
+
   end
 
   class UserManager
@@ -230,7 +230,7 @@ module SlingUsers
     def delete_test_user(id)
       return delete_user("testuser#{@date}-#{id}")
     end
-     
+
     def delete_user(username)
       result = @sling.execute_post(@sling.url_for("#{User.url_for(username)}.delete.html"),
                                     { "go" => 1 })
@@ -240,7 +240,7 @@ module SlingUsers
       end
       return true
     end
- 
+
     def delete_group(groupname)
       result = @sling.execute_post(@sling.url_for("#{Group.url_for(groupname)}.delete.html"),
                                     { "go" => 1 })
@@ -250,7 +250,7 @@ module SlingUsers
       end
       return true
     end
-   
+
     def create_test_user(id)
       return create_user("testuser#{@date}-#{id}")
     end
@@ -260,8 +260,7 @@ module SlingUsers
       user = User.new(username)
       data = { ":name" => user.name,
               "pwd" => user.password,
-              "pwdConfirm" => user.password,
-              "sling:resourceType" => "sakai/user-home"
+              "pwdConfirm" => user.password
       }
       if (!firstname.nil? and !lastname.nil?)
         data[":sakai:profile-import"] = "{'basic': {'access': 'everybody', 'elements': {'email': {'value': '#{username}@sakai.invalid'}, 'firstName': {'value': '#{firstname}'}, 'lastName': {'value': '#{lastname}'}}}}"
@@ -277,7 +276,7 @@ module SlingUsers
     def create_group(groupname)
       @log.info "Creating group: #{groupname}"
       group = Group.new(groupname)
-      result = @sling.execute_post(@sling.url_for($GROUP_URI), { ":name" => group.name, "sling:resourceType" => "sakai/group-home" })
+      result = @sling.execute_post(@sling.url_for($GROUP_URI), { ":name" => group.name })
       if (result.code.to_i > 299)
         return nil
       end

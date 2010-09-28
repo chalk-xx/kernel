@@ -3,7 +3,7 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.8</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>uk.ac.cam.caret.nakamura</groupId>
@@ -20,7 +20,7 @@
           <defaultBundleList>
             <groupId>org.sakaiproject.nakamura</groupId>
             <artifactId>org.sakaiproject.nakamura.app</artifactId>
-            <version>0.8</version>
+            <version>0.9-SNAPSHOT</version>
           </defaultBundleList>
           <additionalBundles>
             <bundle>
@@ -41,7 +41,7 @@
           <jarWebSupport>
             <groupId>org.sakaiproject.nakamura</groupId>
             <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
-            <version>0.8</version>
+            <version>0.9-SNAPSHOT</version>
             <startLevel>5</startLevel>
           </jarWebSupport>
         </configuration>
@@ -50,6 +50,19 @@
             <id>prepare-package</id>
             <goals>
               <goal>prepare-package</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>include-resource-modifications</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>resources</goal>
             </goals>
           </execution>
         </executions>

@@ -76,7 +76,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
       Aggregator aggregator, RowIterator iterator) throws JSONException,
       RepositoryException {
 
-    long toSkip = SearchUtil.getPaging(request, -1);
+    long toSkip = SearchUtil.getPaging(request);
     iterator.skip(toSkip);
     long items = SearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
         SearchConstants.DEFAULT_PAGED_ITEMS);
@@ -113,14 +113,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
 
       RowIterator mergedIterator = searchServiceFactory.getMergedRowIterator(iterator, filesIterator);
 
-      long siteHits = SearchUtil.getHits(qr);
-      long filesHits = SearchUtil.getHits(filesQueryResult);
-      long totalHits = siteHits + filesHits;
-      if (totalHits == -2) {
-        totalHits = Long.MAX_VALUE;
-      }
-      
-      return searchServiceFactory.getSearchResultSet(mergedIterator, totalHits);
+      return searchServiceFactory.getSearchResultSet(mergedIterator);
 
     } catch (RepositoryException e) {
       throw new SearchException(500, "Unable to do files query.");

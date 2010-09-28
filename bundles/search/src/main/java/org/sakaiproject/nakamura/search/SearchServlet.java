@@ -340,8 +340,18 @@ public class SearchServlet extends SlingSafeMethodsServlet {
           // This allows a processor to do other queries and manipulate the results.
           if (useBatch) {
             rs = searchBatchProcessor.getSearchResultSet(request, query);
+            if ( !(rs instanceof SearchResultSetImpl) ) {
+              SearchException ex = new SearchException(500, "Invalid Implementation  "+searchBatchProcessor+" is not creating a SearchResultSet using the SearchServiceFactory ");
+              LOGGER.error(ex.getMessage(), ex);
+              throw ex;
+            }
           } else {
             rs = searchProcessor.getSearchResultSet(request, query);
+            if ( !(rs instanceof SearchResultSetImpl) ) {
+              SearchException ex = new SearchException(500, "Invalid Implementation  "+searchProcessor+" is not creating a SearchResultSet using the SearchServiceFactory ");
+              LOGGER.error(ex.getMessage(), ex);
+              throw ex;
+            }
           }
         } catch (SearchException e) {
           response.sendError(e.getCode(), e.getMessage());
