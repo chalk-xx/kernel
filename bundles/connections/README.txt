@@ -123,13 +123,9 @@ connect remove
  
  Searching:
  
- There are Search End points for each state available at 
-/_user/contacts/accepted.json
-/_user/contacts/blocked.json
-/_user/contacts/ignored.json
-/_user/contacts/invited.json
-/_user/contacts/pending.json
-/_user/contacts/rejected.json
+ There is a Search End points for each state available at 
+
+/_user/contacts/find.json?state={state}
 
 Which return the contacts for the current user in the state requested. E.g.
 
