@@ -116,16 +116,16 @@ public class UniqueProfileSearchResultProcessor implements SearchResultProcessor
     String profilePath = homeNode.getPath() + "/public/authprofile";
     Session session = homeNode.getSession();
     Node profileNode = session.getNode(profilePath);
+    write.object();
+    ValueMap map = profileService.getProfileMap(profileNode);
+    ((ExtendedJSONWriter)write).valueMapInternals(map);
 
+    // If this is a User Profile, then include Presence data.
     if (profileNode.hasProperty("rep:userId")) {
-      write.object();
-      ValueMap map = profileService.getProfileMap(profileNode);
-      ((ExtendedJSONWriter)write).valueMapInternals(map);
       PresenceUtils.makePresenceJSON(write, profileNode.getProperty("rep:userId")
           .getString(), presenceService, true);
-      write.endObject();
-    } else {
-      logger.warn("Didn't find rep:userId on " + profilePath);
     }
+
+    write.endObject();
   }
 }
