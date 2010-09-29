@@ -18,13 +18,14 @@
 
 package org.sakaiproject.nakamura.http.cache;
 
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class CachedResponseManager {
 
@@ -34,9 +35,9 @@ public class CachedResponseManager {
   private Cache<CachedResponse> cache;
   private CachedResponse cachedResponse;
 
-  public CachedResponseManager(SlingHttpServletRequest srequest, int cacheAge, Cache<CachedResponse> cache) {
+  public CachedResponseManager(HttpServletRequest request, int cacheAge, Cache<CachedResponse> cache) {
     this.cacheAge = cacheAge;
-    this.key = hashKey(srequest.getPathInfo()+"?"+srequest.getQueryString());
+    this.key = hashKey(request.getPathInfo()+"?"+request.getQueryString());
     this.cache = cache;
     this.cachedResponse = load();
   }
@@ -70,8 +71,8 @@ public class CachedResponseManager {
     return cachedResponse;
   }
 
-  public void send(SlingHttpServletResponse sresponse) throws IOException {
-    cachedResponse.replay(sresponse);
+  public void send(HttpServletResponse response) throws IOException {
+    cachedResponse.replay(response);
   }
   
   @Override

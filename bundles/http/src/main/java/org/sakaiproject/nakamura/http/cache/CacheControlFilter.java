@@ -64,8 +64,8 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = "Nakamura Cache-Control Filter"),
     @Property(name = "sakai.cache.paths", value = { 
-        "dev;.lastmodified:unset;.cookies:unset;.expires:3456000;Vary: Accept-Encoding", 
-        "devwidgets;.lastmodified:unset;.cookies:unset;.expires:3456000;Vary: Accept-Encoding",
+        "dev;.lastmodified:unset;.cookies:unset;.requestCache:3600;.expires:3456000;Vary: Accept-Encoding", 
+        "devwidgets;.lastmodified:unset;.cookies:unset;.requestCache:3600;.expires:3456000;Vary: Accept-Encoding",
         "p;Cache-Control:no-cache" }, 
         description = "List of subpaths and max age for all content under subpath in seconds, setting to 0 makes it non cacheing"),
     @Property(name = "sakai.cache.patterns", value = { 
@@ -139,16 +139,6 @@ public class CacheControlFilter implements Filter {
         if ( cacheAgeValue != null ) {
           cacheAge = Integer.parseInt(cacheAgeValue);
         }
-        if ( cacheAge > 0 ) {
-          cachedResponseManager = new CachedResponseManager(srequest, cacheAge, getCache());
-          if ( cachedResponseManager.isValid() ) {
-            cachedResponseManager.send(sresponse);
-            return;
-          }
-        }
-        if ( !withLastModfied || !withCookies || cachedResponseManager != null ) {
-          fresponse = new FilterResponseWrapper(sresponse, withLastModfied, withCookies, cachedResponseManager != null);
-        }
         
         
         if (resouce != null) {
@@ -188,6 +178,16 @@ public class CacheControlFilter implements Filter {
       sresponse.setHeader("X-CacheControlFilterCode", String.valueOf(respCode));
       sresponse.sendError(respCode,"Not Modified (Cache Control Filter)");
     } else {
+      if ( cacheAge > 0 ) {
+        cachedResponseManager = new CachedResponseManager(srequest, cacheAge, getCache());
+        if ( cachedResponseManager.isValid() ) {
+          cachedResponseManager.send(sresponse);
+          return;
+        }
+      }
+      if ( !withLastModfied || !withCookies || cachedResponseManager != null ) {
+        fresponse = new FilterResponseWrapper(sresponse, withLastModfied, withCookies, cachedResponseManager != null);
+      }
       if ( fresponse != null ) {
         chain.doFilter(request, fresponse);
         if ( cachedResponseManager != null ) {
