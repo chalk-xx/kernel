@@ -93,6 +93,7 @@ public class ExtendedJSONWriterTest {
       // Properties
       // Double
       Property doubleProp = createMock(Property.class);
+      expect(doubleProp.getType()).andReturn(PropertyType.DOUBLE);
       Value doubleValue = createMock(Value.class);
 
       expect(doubleValue.getType()).andReturn(PropertyType.DOUBLE);
@@ -103,6 +104,7 @@ public class ExtendedJSONWriterTest {
 
       // Multi string prop
       Property multiStringProp = createMock(Property.class);
+      expect(multiStringProp.getType()).andReturn(PropertyType.STRING).once();
       expect(multiStringProp.getDefinition()).andReturn(propDefMultiple).once();
       expect(multiStringProp.getName()).andReturn("multiString").once();
       Value[] multiStringValues = new Value[2];
@@ -181,6 +183,7 @@ public class ExtendedJSONWriterTest {
     expect(propDefSingle.isMultiple()).andReturn(false).anyTimes();
 
     Property doubleProp = createMock(Property.class);
+    expect(doubleProp.getType()).andReturn(PropertyType.DOUBLE);
     Value doubleValue = createMock(Value.class);
 
     expect(doubleValue.getType()).andReturn(PropertyType.DOUBLE);
@@ -243,6 +246,7 @@ public class ExtendedJSONWriterTest {
     expect(propDefSingle.isMultiple()).andReturn(false).anyTimes();
 
     Property doubleProp = createMock(Property.class);
+    expect(doubleProp.getType()).andReturn(PropertyType.DOUBLE).anyTimes();
     Value doubleValue = createMock(Value.class);
 
     expect(doubleValue.getType()).andReturn(PropertyType.DOUBLE).anyTimes();
@@ -328,6 +332,7 @@ public class ExtendedJSONWriterTest {
     expect(propDefSingle.isMultiple()).andReturn(false).anyTimes();
 
     Property doubleProp = createMock(Property.class);
+    expect(doubleProp.getType()).andReturn(PropertyType.DOUBLE).anyTimes();
     Value doubleValue = createMock(Value.class);
 
     expect(doubleValue.getType()).andReturn(PropertyType.DOUBLE).anyTimes();
@@ -407,6 +412,7 @@ public class ExtendedJSONWriterTest {
     expect(propDefSingle.isMultiple()).andReturn(false).anyTimes();
 
     Property doubleProp = createMock(Property.class);
+    expect(doubleProp.getType()).andReturn(PropertyType.DOUBLE).anyTimes();
     Value doubleValue = createMock(Value.class);
 
     expect(doubleValue.getType()).andReturn(PropertyType.DOUBLE).anyTimes();
@@ -490,6 +496,7 @@ public class ExtendedJSONWriterTest {
     expect(propDefSingle.isMultiple()).andReturn(false).anyTimes();
 
     Property doubleProp = createMock(Property.class);
+    expect(doubleProp.getType()).andReturn(PropertyType.DOUBLE).anyTimes();
     Value doubleValue = createMock(Value.class);
 
     expect(doubleValue.getType()).andReturn(PropertyType.DOUBLE).anyTimes();
