@@ -18,9 +18,7 @@
 
 package org.sakaiproject.nakamura.http.cache;
 
-import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.HttpConstants;
-import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -28,18 +26,20 @@ import java.util.Locale;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
 
 /**
  * Filters and captures a response operation.
  */
-public class FilterResponseWrapper extends SlingHttpServletResponseWrapper {
+public class FilterResponseWrapper extends HttpServletResponseWrapper {
 
   private boolean withCookies;
   private boolean withLastModified;
   private boolean captureResponse;
   private OperationResponseCapture capture = new OperationResponseCapture();
 
-  public FilterResponseWrapper(SlingHttpServletResponse wrappedResponse, boolean withLastModfied, boolean withCookies, boolean captureResponse) {
+  public FilterResponseWrapper(HttpServletResponse wrappedResponse, boolean withLastModfied, boolean withCookies, boolean captureResponse) {
     super(wrappedResponse);
     this.withCookies = withCookies;
     this.withLastModified = withLastModfied;

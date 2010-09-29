@@ -71,16 +71,6 @@
       <artifactId>org.osgi.compendium</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.api</artifactId>
-      <version>2.0.6</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-     <groupId>javax.jcr</groupId>
-     <artifactId>jcr</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <scope>provided</scope>

@@ -17,10 +17,10 @@
  */
 package org.sakaiproject.nakamura.http.cache;
 
-import org.apache.sling.api.SlingHttpServletResponse;
-
 import java.io.IOException;
 import java.io.Serializable;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
   A pojo to contain the response redo log and content.
@@ -48,9 +48,9 @@ public class CachedResponse implements Serializable {
     return expires > System.currentTimeMillis();
   }
 
-  public void replay(SlingHttpServletResponse sresponse) throws IOException {
+  public void replay(HttpServletResponse response) throws IOException {
     OperationResponseReplay responseOperation = new OperationResponseReplay(operations, byteContent, stringContent);
-    responseOperation.replay(sresponse);
+    responseOperation.replay(response);
   }
   
   @Override
