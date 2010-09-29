@@ -35,6 +35,7 @@ public class TFilter implements FilterChain {
     this.useOutputStream = userOutputStream;
   }
 
+  @SuppressWarnings("deprecation")
   public void doFilter(ServletRequest request, ServletResponse response)
       throws IOException, ServletException {
     HttpServletResponse sresponse = (HttpServletResponse) response;
