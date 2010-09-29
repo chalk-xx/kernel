@@ -82,6 +82,8 @@ else
     # enable My Sakai 2 Sites widget
     # // "personalportal":true --> "personalportal":true,
     perl -pwi -e 's/\/\/\s+"personalportal"\:true/"personalportal"\:true\,/gi' devwidgets/s23courses/config.json
+    perl -pwi -e 's/\/\/"grouppages"\:true\,/"grouppages"\:true\,/gi' devwidgets/sakai2tools/config.json
+    perl -pwi -e 's/\/\/"grouppages"\:true\,/"grouppages"\:true\,/gi' devwidgets/basiclti/config.json
     mvn -B -e clean install
     date > ../.lastbuild
 fi
