@@ -64,8 +64,8 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = "Nakamura Cache-Control Filter"),
     @Property(name = "sakai.cache.paths", value = { 
-        "dev;.lastmodified:unset;.cookies:unset;.expires:3456000;Vary: Accept-Encoding", 
-        "devwidgets;.lastmodified:unset;.cookies:unset;.expires:3456000;Vary: Accept-Encoding",
+        "dev;.lastmodified:unset;.cookies:unset;.requestCache:3600;.expires:3456000;Vary: Accept-Encoding", 
+        "devwidgets;.lastmodified:unset;.cookies:unset;.requestCache:3600;.expires:3456000;Vary: Accept-Encoding",
         "p;Cache-Control:no-cache" }, 
         description = "List of subpaths and max age for all content under subpath in seconds, setting to 0 makes it non cacheing"),
     @Property(name = "sakai.cache.patterns", value = { 
