@@ -139,16 +139,6 @@ public class CacheControlFilter implements Filter {
         if ( cacheAgeValue != null ) {
           cacheAge = Integer.parseInt(cacheAgeValue);
         }
-        if ( cacheAge > 0 ) {
-          cachedResponseManager = new CachedResponseManager(srequest, cacheAge, getCache());
-          if ( cachedResponseManager.isValid() ) {
-            cachedResponseManager.send(sresponse);
-            return;
-          }
-        }
-        if ( !withLastModfied || !withCookies || cachedResponseManager != null ) {
-          fresponse = new FilterResponseWrapper(sresponse, withLastModfied, withCookies, cachedResponseManager != null);
-        }
         
         
         if (resouce != null) {
@@ -188,6 +178,16 @@ public class CacheControlFilter implements Filter {
       sresponse.setHeader("X-CacheControlFilterCode", String.valueOf(respCode));
       sresponse.sendError(respCode,"Not Modified (Cache Control Filter)");
     } else {
+      if ( cacheAge > 0 ) {
+        cachedResponseManager = new CachedResponseManager(srequest, cacheAge, getCache());
+        if ( cachedResponseManager.isValid() ) {
+          cachedResponseManager.send(sresponse);
+          return;
+        }
+      }
+      if ( !withLastModfied || !withCookies || cachedResponseManager != null ) {
+        fresponse = new FilterResponseWrapper(sresponse, withLastModfied, withCookies, cachedResponseManager != null);
+      }
       if ( fresponse != null ) {
         chain.doFilter(request, fresponse);
         if ( cachedResponseManager != null ) {
