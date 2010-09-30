@@ -119,7 +119,6 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
         List<Post> childrenList = parentPost.getChildren();
         List<Post> childrenActual = postChildren.get(parentId);
         childrenList.addAll(childrenActual);
-        System.out.println("We have " + childrenList.size());
       }
     }
     
