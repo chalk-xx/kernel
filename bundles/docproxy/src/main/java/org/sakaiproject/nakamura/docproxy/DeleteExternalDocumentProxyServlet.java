@@ -23,6 +23,12 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
@@ -40,6 +46,28 @@ import javax.servlet.http.HttpServletResponse;
  * The servlet for requesting to delete an external repository document
  */
 
+@ServiceDocumentation(
+  name = "Delete External Document Proxy Servlet",
+  description = "The servlet for requesting to delete an external repository document",
+  bindings = {
+    @ServiceBinding(
+      type = BindingType.TYPE,
+      bindings = { "sakai/external-repository" },
+      selectors = { @ServiceSelector(name = "delete", description = "Binds to the delete selector.") }
+    )
+  },
+  methods = {
+    @ServiceMethod(
+      name = "POST",
+      description = "Delete an external repository document.",
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully."),
+        @ServiceResponse(code = 400, description = "Unknown external repository requested."),
+        @ServiceResponse(code = 500, description = "Exception occurred during processing.")
+      }
+    )
+  }
+)
 @SlingServlet(resourceTypes = { "sakai/external-repository" }, selectors = { "delete" }, methods = { "POST" }, generateComponent = true, generateService = true)
 public class DeleteExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
