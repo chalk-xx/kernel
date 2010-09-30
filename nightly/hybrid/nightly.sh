@@ -82,7 +82,9 @@ else
     # enable My Sakai 2 Sites widget
     # // "personalportal":true --> "personalportal":true,
     perl -pwi -e 's/\/\/\s+"personalportal"\:true/"personalportal"\:true\,/gi' devwidgets/s23courses/config.json
+    # //"grouppages":true, --> "grouppages":true,
     perl -pwi -e 's/\/\/"grouppages"\:true\,/"grouppages"\:true\,/gi' devwidgets/sakai2tools/config.json
+    # //"grouppages":true, --> "grouppages":true,
     perl -pwi -e 's/\/\/"grouppages"\:true\,/"grouppages"\:true\,/gi' devwidgets/basiclti/config.json
     mvn -B -e clean install
     date > ../.lastbuild
@@ -153,7 +155,7 @@ else
     echo "webservices.allowlogin=true" >> sakai2-demo/sakai/sakai.properties
     echo "webservice.portalsecret=nightly" >> sakai2-demo/sakai/sakai.properties
     echo "samigo.answerUploadRepositoryPath=/tmp/sakai2-hybrid/" >> sakai2-demo/sakai/sakai.properties
-    # enable SAK-17223 K2AuthenticationFilter
+    # enable SAK-17223 NakamuraAuthenticationFilter
     echo "top.login=false" >> sakai2-demo/sakai/sakai.properties
     echo "container.login=true" >> sakai2-demo/sakai/sakai.properties
     echo "org.sakaiproject.login.filter.NakamuraAuthenticationFilter.enabled=true" >> sakai2-demo/sakai/sakai.properties
@@ -161,7 +163,7 @@ else
     # configure SAK-17222 NakamuraUserDirectoryProvider
     echo "org.sakaiproject.provider.user.NakamuraUserDirectoryProvider.validateUrl=http://localhost:8008/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
     echo "x.sakai.token.localhost.sharedSecret=default-setting-change-before-use" >> sakai2-demo/sakai/sakai.properties
-    # declare shared secret for trusted login from K2
+    # declare shared secret for trusted login from nakamura
     echo "org.sakaiproject.util.TrustedLoginFilter.sharedSecret=e2KS54H35j6vS5Z38nK40" >> sakai2-demo/sakai/sakai.properties
     echo "org.sakaiproject.util.TrustedLoginFilter.safeHosts=localhost;127.0.0.1;129.79.26.127" >> sakai2-demo/sakai/sakai.properties
     # enabled Basic LTI provider
@@ -181,3 +183,8 @@ fi
 echo "Starting sakai2 instance..."
 cd $BUILD_DIR/sakai2-demo
 ./bin/startup.sh 
+
+# run nakamura integration tests
+echo "Running integration tests..."
+cd $BUILD_DIR/sakai3/nakamura
+./tools/runalltests.rb > $BUILD_DIR/logs/sakai3-integration-tests.log.txt 2>&1

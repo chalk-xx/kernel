@@ -55,3 +55,10 @@ java $K2_OPTS -jar $K2_ARTIFACT -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.tx
 # final cleanup
 cd $BUILD_DIR
 rm -rf ~/.m2/repository/org/sakaiproject
+
+# run nakamura integration tests
+echo "Sleeping ten minutes before running integration tests..."
+sleep 600
+echo "Running integration tests..."
+cd $BUILD_DIR/sakai3/nakamura
+./tools/runalltests.rb > $BUILD_DIR/logs/sakai3-integration-tests.log.txt 2>&1
