@@ -24,6 +24,12 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
@@ -42,6 +48,29 @@ import javax.servlet.http.HttpServletResponse;
  * Creates a external document resource where there was none, conforming to the standard
  * Sling protocol.
  */
+@ServiceDocumentation(
+  name = "Create External Document Proxy Servlet",
+  description = "Creates a external document resource where there was none",
+  bindings = {
+    @ServiceBinding(
+      type = BindingType.TYPE,
+      bindings = { "sakai/external-repository" },
+      selectors = { @ServiceSelector(name = "create", description = "Binds to the create selector.") }
+    )
+  },
+  methods = {
+    @ServiceMethod(
+      name = "POST",
+      description = "Create an external repository document.",
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully."),
+        @ServiceResponse(code = 400, description = "Syntactically incorrect request or unknown repository."),
+        @ServiceResponse(code = 401, description = "POST by anonymous user."),
+        @ServiceResponse(code = 500, description = "Exception occurred during processing.")
+      }
+    )
+  }
+)
 @SlingServlet(resourceTypes = { "sakai/external-repository" }, selectors = { "create" }, methods = { "POST" }, generateComponent = true, generateService = true)
 public class CreateExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
