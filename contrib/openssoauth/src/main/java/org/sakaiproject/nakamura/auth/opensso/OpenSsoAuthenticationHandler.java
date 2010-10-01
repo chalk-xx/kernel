@@ -87,7 +87,8 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = OpenSsoAuthenticationHandler.LOGIN_URL, value = OpenSsoAuthenticationHandler.DEFAULT_LOGIN_URL),
     @Property(name = OpenSsoAuthenticationHandler.LOGOUT_URL, value = OpenSsoAuthenticationHandler.DEFAULT_LOGOUT_URL),
     @Property(name = OpenSsoAuthenticationHandler.SERVER_URL, value = OpenSsoAuthenticationHandler.DEFAULT_SERVER_URL),
-    @Property(name = OpenSsoAuthenticationHandler.ATTRIBUTES_NAMES, value = OpenSsoAuthenticationHandler.DEFAULT_ATTRIBUTE_NAME)
+    @Property(name = OpenSsoAuthenticationHandler.ATTRIBUTES_NAMES, value = OpenSsoAuthenticationHandler.DEFAULT_ATTRIBUTE_NAME),
+    @Property(name = OpenSsoAuthenticationHandler.MISSING_LOCAL_USER_URL, value = OpenSsoAuthenticationHandler.DEFAULT_MISSING_LOCAL_USER_URL)
 })
 public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
     AuthenticationFeedbackHandler {
@@ -104,6 +105,7 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
   static final String DEFAULT_LOGOUT_URL = "http://localhost/sso/UI/Logout";
   static final String DEFAULT_SERVER_URL = "http://localhost/sso";
   static final String DEFAULT_ATTRIBUTE_NAME = "uid";
+  static final String DEFAULT_MISSING_LOCAL_USER_URL = "/dev/500.html";
 
   static final String USRDTLS_ATTR_NAME_STUB = "userdetails.attribute.name=";
   static final String USRDTLS_ATTR_VAL_STUB = "userdetails.attribute.value=";
@@ -134,6 +136,9 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
   static final String ATTRIBUTES_NAMES = "sakai.auth.sso.opensso.user.attribute";
   private String attributeName;
 
+  static final String MISSING_LOCAL_USER_URL = "sakai.auth.sso.user.missing";
+  private String missingLocalUserUrl;
+
   /**
    * Define the set of authentication-related query parameters which should
    * be removed from the "service" URL sent to the SSO server.
@@ -161,6 +166,8 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
     loginUrl = OsgiUtil.toString(props.get(LOGIN_URL), DEFAULT_LOGIN_URL);
     logoutUrl = OsgiUtil.toString(props.get(LOGOUT_URL), DEFAULT_LOGOUT_URL);
     serverUrl = OsgiUtil.toString(props.get(SERVER_URL), DEFAULT_SERVER_URL);
+    missingLocalUserUrl = OsgiUtil.toString(props.get(MISSING_LOCAL_USER_URL),
+        DEFAULT_MISSING_LOCAL_USER_URL);
 
     attributeName = OsgiUtil.toString(props.get(ATTRIBUTES_NAMES), DEFAULT_ATTRIBUTE_NAME);
     autoCreateUser = OsgiUtil.toBoolean(props.get(SSO_AUTOCREATE_USER), false);
@@ -288,7 +295,7 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
    * integrations, etc. See SLING-1563 for the related issue of user population via
    * OpenID.
    *
-   * @see org.apachorg.apache.sling.auth.coreicationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
+   * @see org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse,
    *      org.apache.sorg.apache.sling.auth.coretionInfo)
    */
@@ -298,17 +305,26 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
 
     // If the plug-in is intended to verify the existence of a matching Authorizable,
     // check that now.
-    if (this.autoCreateUser) {
-      boolean isUserValid = findOrCreateUser(authInfo);
-      if (!isUserValid) {
-        LOGGER.warn("SSO authentication succeeded but corresponding user not found or created");
-        try {
-          dropCredentials(request, response);
-        } catch (IOException e) {
-          LOGGER.error("Failed to drop credentials after SSO authentication by invalid user", e);
-        }
-        return true;
+    boolean isUserValid = isUserValid(authInfo);
+    if (!isUserValid) {
+      LOGGER.warn("SSO authentication succeeded but corresponding user not found or created");
+      try {
+        dropCredentials(request, response);
+      } catch (IOException e) {
+        LOGGER.error(
+            "Failed to drop credentials after SSO authentication by invalid user", e);
       }
+      try {
+        // redirect over to SSO to logout to invalidate the session, then return to our
+        // server to tell the user about the missing local user.
+        String localUrl = request.getScheme() + "://" + request.getServerName() + ":"
+            + request.getServerPort() + missingLocalUserUrl;
+        String redirectUrl = response.encodeRedirectURL(logoutUrl + "?goto=" + localUrl);
+        response.sendRedirect(redirectUrl);
+      } catch (IOException e) {
+        LOGGER.error(e.getMessage(), e);
+      }
+      return true;
     }
 
     // Check for the default post-authentication redirect.
@@ -359,7 +375,7 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
     return encodedUrl;
   }
 
-  private boolean findOrCreateUser(AuthenticationInfo authInfo) {
+  private boolean isUserValid(AuthenticationInfo authInfo) {
     boolean isUserValid = false;
     final String username = authInfo.getUser();
     // Check for a matching Authorizable. If one isn't found, create
@@ -370,9 +386,13 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
       UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable authorizable = userManager.getAuthorizable(username);
       if (authorizable == null) {
-        createUser(username, session);
+        if (autoCreateUser) {
+          createUser(username, session);
+          isUserValid = true;
+        }
+      } else {
+        isUserValid = true;
       }
-      isUserValid = true;
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
     } finally {
