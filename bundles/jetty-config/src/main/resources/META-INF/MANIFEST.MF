@@ -26,7 +26,8 @@ Import-Package: javax.net.ssl;resolution:=optional,javax.security.cert
  ersion="[1.0.0,2.0.0)",org.osgi.service.cm;version="[1.0.0,2.0.0)",or
  g.osgi.service.http;version="[1.0.0,2.0.0)",org.slf4j;resolution:=opt
  ional;version="1.4.3",org.xml.sax,org.xml.sax.helpers,org.mortbay.jet
- ty.ajp;resolution:=optional;version="6.1.16"
+ ty.ajp;resolution:=optional;version="6.1.16",javax.sql;resolution:=op
+ itional
 Bnd-LastModified: 1239411697766
 Export-Package: javax.servlet.http;uses:="javax.servlet";version="2.5.
  0",org.mortbay.thread;uses:="org.mortbay.log,org.mortbay.component";v
