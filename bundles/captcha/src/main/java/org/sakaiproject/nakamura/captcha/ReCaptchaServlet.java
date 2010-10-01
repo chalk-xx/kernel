@@ -27,6 +27,11 @@ import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.captcha.CaptchaService;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 
 import java.io.IOException;
 import java.util.Map;
@@ -35,6 +40,26 @@ import java.util.Map.Entry;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+@ServiceDocumentation(
+  name = "ReCaptcha Servlet",
+  description = "All the necessary properties the UI needs to communicate with the reCAPTCHA.net service.",
+  bindings = {
+    @ServiceBinding(
+      type = BindingType.TYPE,
+      bindings = { "system/captcha" }
+    )
+  },
+  methods = {
+    @ServiceMethod(
+      name = "GET",
+      description = "Get the captcha properties.",
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully."),
+        @ServiceResponse(code = 500, description = "Exception occurred during processing.")
+       }
+    )
+  }
+)
 @SlingServlet(paths = { "/system/captcha" }, methods = { "GET" }, generateComponent = true, generateService = true)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),

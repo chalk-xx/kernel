@@ -28,18 +28,27 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.memory.Cache;
+import org.sakaiproject.nakamura.api.memory.CacheManagerService;
+import org.sakaiproject.nakamura.api.memory.CacheScope;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Locale;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CacheControlFilterTest {
@@ -49,6 +58,8 @@ public class CacheControlFilterTest {
 
   @Mock
   private SlingHttpServletResponse response;
+  
+  
   @Mock
   private FilterChain chain;
 
@@ -59,6 +70,12 @@ public class CacheControlFilterTest {
 
   @Mock
   private FilterConfig filterConfig;
+
+  @Mock
+  private CacheManagerService cacheMangerService;
+
+  @Mock
+  private Cache<Object> cache;
 
   @Before
   public void setup() throws Exception {
@@ -72,6 +89,7 @@ public class CacheControlFilterTest {
     properties.put(CacheControlFilter.SAKAI_CACHE_PATHS, new String[] { 
         "dev;.expires:3456000;Cache-Control: max-age=432000 public;Vary:Accept-Encoding", 
         "devwidgets;.expires:3456000;Cache-Control:max-age=432000 public;Vary:Accept-Encoding",
+        "cacheable;.expires:3456000;.requestCache:3600;Cache-Control:max-age=432000 public;Vary:Accept-Encoding",
         "p;Cache-Control:no-cache" });
     when(componentContext.getProperties()).thenReturn(properties);
     cacheControlFilter.activate(componentContext);
@@ -113,12 +131,118 @@ public class CacheControlFilterTest {
     verifyExpiresHeaderWithPath("POST", "/dev/config.js", false);
   }
 
+  @Test
+  public void checkRequestCaching() throws Exception {
+    when(request.getMethod()).thenReturn("GET");
+    when(request.getPathInfo()).thenReturn("/cacheable/config.json");
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ServletOutputStream servletOutputStream = new ServletOutputStream() {
+      
+      @Override
+      public void write(int b) throws IOException {
+        baos.write(b);
+      }
+    };
+    when(response.getOutputStream()).thenReturn(servletOutputStream);
+
+    when(cacheMangerService.getCache(CacheControlFilter.class.getName()+"-cache", CacheScope.INSTANCE)).thenReturn(cache);
+    
+    cacheControlFilter.cacheManagerService = cacheMangerService;
+
+    cacheControlFilter.doFilter(request, response, new TFilter(true));
+
+    verify(response, Mockito.atLeastOnce()).setHeader(anyString(), anyString());
+    verify(cache).put(Mockito.eq("/cacheable/config.json?null"), Matchers.any(CachedResponse.class));
+    
+    
+    
+  }
+  
+  
+  @Test
+  public void checkRequestCachingReplay() throws Exception {
+    when(request.getMethod()).thenReturn("GET");
+    when(request.getPathInfo()).thenReturn("/cacheable/config.json");
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ServletOutputStream servletOutputStream = new ServletOutputStream() {
+      
+      @Override
+      public void write(int b) throws IOException {
+        baos.write(b);
+      }
+    };
+    when(response.getOutputStream()).thenReturn(servletOutputStream);
+
+    when(cacheMangerService.getCache(CacheControlFilter.class.getName()+"-cache", CacheScope.INSTANCE)).thenReturn(cache);
+    CachedResponse cachedResponse  = populateResponseCapture(true);
+    when(cache.get("/cacheable/config.json?null")).thenReturn(cachedResponse);
+    
+    cacheControlFilter.cacheManagerService = cacheMangerService;
+
+    cacheControlFilter.doFilter(request, response, null);
+
+    verify(response, Mockito.atLeastOnce()).setHeader(anyString(), anyString());
+    
+    
+    
+    
+  }
+
+  private CachedResponse populateResponseCapture(boolean useOutputStream) throws IOException {
+    OperationResponseCapture sresponse = new OperationResponseCapture();
+    sresponse.addDateHeader("Date", System.currentTimeMillis());
+    sresponse.setDateHeader("Last-Modified", System.currentTimeMillis());
+    sresponse.setCharacterEncoding("URF-8");
+    sresponse.setContentLength(10);
+    sresponse.setContentType("test/plain");
+    sresponse.setHeader("Cache-Control", "max-age=3600");
+    sresponse.setIntHeader("Age", 1000);
+    sresponse.setLocale(new Locale("en","GB"));
+    sresponse.setStatus(200);
+    sresponse.setStatus(200, "Ok");
+    sresponse.addHeader("Cache-Control", " public");
+    sresponse.addIntHeader("Age", 101);
+    if ( useOutputStream ) {
+      ServletOutputStream baseStream = new ServletOutputStream() {
+        
+        @Override
+        public void write(int b) throws IOException {
+          // TODO Auto-generated method stub
+          
+        }
+      };
+      sresponse.getOutputStream(baseStream).write(new byte[1024]);
+    } else {
+      StringWriter writer = new StringWriter();
+      sresponse.getWriter(new PrintWriter(writer)).write("ABCDEF");        
+    }  
+    return new CachedResponse(sresponse, 30);
+  }
+
+  @Test
+  public void checkRequestCachingWriter() throws Exception {
+    when(request.getMethod()).thenReturn("GET");
+    when(request.getPathInfo()).thenReturn("/cacheable/config.json");
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(stringWriter);
+    when(response.getWriter()).thenReturn(printWriter);
+    when(cacheMangerService.getCache(CacheControlFilter.class.getName()+"-cache", CacheScope.INSTANCE)).thenReturn(cache);
+
+    cacheControlFilter.cacheManagerService = cacheMangerService;
+    cacheControlFilter.doFilter(request, response, new TFilter(false));
+
+    verify(response, Mockito.atLeastOnce()).setHeader(anyString(), anyString());
+    
+    verify(cache).put(Mockito.eq("/cacheable/config.json?null"), Matchers.any(CachedResponse.class));
+  }
+
 
   private void verifyExpiresHeaderWithPath(String method, String path,
       boolean expectHeader) throws ServletException, IOException {
     when(request.getMethod()).thenReturn(method);
     when(request.getPathInfo()).thenReturn(path);
-
+    
+    
     cacheControlFilter.doFilter(request, response, chain);
 
     if (expectHeader) {

@@ -33,6 +33,7 @@ import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
+import javax.jcr.nodetype.PropertyDefinition;
 
 public class ExtendedJSONWriter extends JSONWriter {
 
@@ -90,24 +91,38 @@ public class ExtendedJSONWriter extends JSONWriter {
       Property prop = properties.nextProperty();
       String name = prop.getName();
       write.key(name);
-      if (prop.getDefinition().isMultiple()) {
-        Value[] values = prop.getValues();
-        write.array();
-        for (Value value : values) {
-          Object ovalue = stringValue(value);
-          if (isUserPath(name, ovalue)) {
-            write.value(translateAuthorizablePath(ovalue));
-          } else {
-            write.value(ovalue);
+      PropertyDefinition propertyDefinition = prop.getDefinition();
+      int propertyType = prop.getType();
+      if ( PropertyType.BINARY == propertyType ) {
+        if (propertyDefinition.isMultiple()) {
+          write.array();
+          for (long l : prop.getLengths()) {
+            write.value("binary-length:"+String.valueOf(l));
           }
-        }
-        write.endArray();
-      } else {
-        Object value = stringValue(prop.getValue());
-        if (isUserPath(name, value)) {
-          write.value(translateAuthorizablePath(value));
+          write.endArray();
         } else {
-          write.value(value);
+          write.value("binary-length:"+String.valueOf(prop.getLength()));
+        }
+      } else {
+        if (propertyDefinition.isMultiple()) {
+          Value[] values = prop.getValues();
+          write.array();
+          for (Value value : values) {
+            Object ovalue = stringValue(value);
+            if (isUserPath(name, ovalue)) {
+              write.value(translateAuthorizablePath(ovalue));
+            } else {
+              write.value(ovalue);
+            }
+          }
+          write.endArray();
+        } else {
+          Object value = stringValue(prop.getValue());
+          if (isUserPath(name, value)) {
+            write.value(translateAuthorizablePath(value));
+          } else {
+            write.value(value);
+          }
         }
       }
     }
@@ -182,8 +197,6 @@ public class ExtendedJSONWriter extends JSONWriter {
       return value.getDouble();
     case PropertyType.DATE:
       return DateUtils.iso8601(value.getDate());
-    case PropertyType.BINARY:
-      return "binary-length:"+String.valueOf(value.getBinary().getSize());
     default:
       return value.toString();
     }
