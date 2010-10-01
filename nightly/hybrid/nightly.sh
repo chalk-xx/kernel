@@ -187,4 +187,5 @@ cd $BUILD_DIR/sakai2-demo
 # run nakamura integration tests
 echo "Running integration tests..."
 cd $BUILD_DIR/sakai3/nakamura
-./tools/runalltests.rb > $BUILD_DIR/logs/sakai3-integration-tests.log.txt 2>&1
+date > $BUILD_DIR/logs/sakai3-integration-tests.log.txt
+./tools/runalltests.rb >> $BUILD_DIR/logs/sakai3-integration-tests.log.txt 2>&1
