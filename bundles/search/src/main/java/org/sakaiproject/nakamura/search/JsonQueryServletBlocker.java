@@ -23,6 +23,13 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 
 import java.io.IOException;
 
@@ -31,9 +38,28 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>JsonQueryServletBlocker</code> blocks the default sling JsonQueryServlet
- * 
  */
-
+@ServiceDocumentation(
+  name = "Json Query Servlet Blocker",
+  description = "Blocks the default sling JsonQueryServlet",
+  bindings = {
+    @ServiceBinding(
+      type = BindingType.TYPE,
+      bindings = { "sling/servlet/default" },
+      selectors = { @ServiceSelector(name = "query", description = "Binds to the query selector.") },
+      extensions = @ServiceExtension(name = "json", description = "javascript object notation")
+    )
+  },
+  methods = {
+    @ServiceMethod(
+      name = "GET",
+      description = "Create an external repository document.",
+      response = {
+        @ServiceResponse(code = 501, description = "Unimplemented.")
+      }
+    )
+  }
+)
 @SlingServlet(extensions={"json"}, methods={"GET"}, resourceTypes={"sling/servlet/default"}, selectors={"query"} )
 @Properties(value={
  @Property(name="sling.servlet.prefix", value={"-1"}),

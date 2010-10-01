@@ -145,7 +145,8 @@ class TC_Kern538Test < Test::Unit::TestCase
     }
 
     # Execute the post
-    @s.execute_post(@s.url_for(url), parameters)
+    postRes = @s.execute_post(@s.url_for(url), parameters)
+    assert_equal("200", postRes.code, "Failed to create tree structure")
 
     # Return the result of that node
     res = @s.execute_get(@s.url_for("#{url}.#{levels}.json"))

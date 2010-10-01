@@ -81,6 +81,8 @@ public class OpenSsoAuthenticationHandlerTest {
 
   @Before
   public void setUp() throws RepositoryException {
+    when(request.getServerName()).thenReturn("localhost");
+
     ssoAuthenticationHandler = new OpenSsoAuthenticationHandler(repository,
         authzPostProcessService);
     ssoAuthenticationHandler.activate(props);
@@ -182,7 +184,7 @@ public class OpenSsoAuthenticationHandlerTest {
         request, response);
     boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request,
         response, authenticationInfo);
-    assertFalse(actionTaken);
+    assertTrue(actionTaken);
     verify(userManager, never()).createUser(anyString(), anyString());
     verify(userManager, never()).createUser(anyString(), anyString(),
         any(Principal.class), anyString());

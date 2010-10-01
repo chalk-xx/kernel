@@ -24,6 +24,12 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyUtils;
@@ -43,6 +49,41 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * This servlet provides access to the node metadata of an existing node.
  */
+@ServiceDocumentation(
+  name = "External Document Metadata Servlet",
+  description = "Provides access to the node metadata of an existing node.",
+  bindings = {
+    @ServiceBinding(
+      type = BindingType.TYPE,
+      bindings = { "sakai/external-repository" },
+      selectors = {
+        @ServiceSelector(name = "metadata", description = "Binds to the metadata selector.")
+      }
+    )
+  },
+  methods = {
+    @ServiceMethod(
+      name = "POST",
+      description = "Gets the metadata for an external repository document.",
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully."),
+        @ServiceResponse(code = 400, description = "Syntactically incorrect request or unknown repository."),
+        @ServiceResponse(code = 401, description = "POST by anonymous user."),
+        @ServiceResponse(code = 500, description = "Exception occurred during processing.")
+      }
+    ),
+    @ServiceMethod(
+      name = "GET",
+      description = "Gets the metadata for an external repository document.",
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully."),
+        @ServiceResponse(code = 400, description = "Syntactically incorrect request or unknown repository."),
+        @ServiceResponse(code = 404, description = "The requested resource couldn't be found."),
+        @ServiceResponse(code = 500, description = "Exception occurred during processing.")
+      }
+    )
+  }
+)
 @SlingServlet(selectors = "metadata", extensions = "json", resourceTypes = {
     "sling/nonexisting","sakai/external-repository" }, generateComponent = true, generateService = true, methods = {
     "GET", "POST" })
