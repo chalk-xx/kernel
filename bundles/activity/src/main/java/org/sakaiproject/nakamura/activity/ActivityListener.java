@@ -111,20 +111,29 @@ public class ActivityListener implements MessageListener {
           .getStringProperty(ActivityConstants.EVENT_PROP_PATH);
       LOG.info("Processing activity: {}", activityItemPath);
       Session session = slingRepository.loginAdministrative(null); // usage checked and Ok KERN-577
-      Node activity = (Node) session.getItem(activityItemPath);
-      if (!activity.hasProperty(PARAM_ACTOR_ID)) {
-        // we must know the actor
-        throw new IllegalStateException(
-            "Could not determine actor of activity: " + activity);
-      }
-
-      // Get all the routes for this activity.
-      List<ActivityRoute> routes = activityRouterManager
-          .getActivityRoutes(activity);
-
-      // Copy the activity items to each endpoint.
-      for (ActivityRoute route : routes) {
-        deliverActivityToFeed(session, activity, route.getDestination());
+      // usage is NOT ok. whoever made the comment above, sessions must be logged out or they leak.
+      try {
+        Node activity = (Node) session.getItem(activityItemPath);
+        if (!activity.hasProperty(PARAM_ACTOR_ID)) {
+          // we must know the actor
+          throw new IllegalStateException(
+              "Could not determine actor of activity: " + activity);
+        }
+  
+        // Get all the routes for this activity.
+        List<ActivityRoute> routes = activityRouterManager
+            .getActivityRoutes(activity);
+  
+        // Copy the activity items to each endpoint.
+        for (ActivityRoute route : routes) {
+          deliverActivityToFeed(session, activity, route.getDestination());
+        }
+      } finally {
+        try { 
+          session.logout(); 
+        } catch ( Exception e) {
+          LOG.warn("Failed to logout of administrative session {} ",e.getMessage());
+        }
       }
 
     } catch (JMSException e) {

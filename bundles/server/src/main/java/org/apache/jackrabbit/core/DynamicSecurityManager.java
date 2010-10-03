@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.Credentials;
@@ -38,6 +39,7 @@ import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.jackrabbit.core.RepositoryImpl.WorkspaceInfo;
 import org.apache.jackrabbit.core.config.AccessManagerConfig;
 import org.apache.jackrabbit.core.config.LoginModuleConfig;
 import org.apache.jackrabbit.core.config.SecurityConfig;
@@ -126,7 +128,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * key = name of the workspace,
      * value = {@link AccessControlProvider}
      */
-    private final Map<String, AccessControlProvider> acProviders = new HashMap<String, AccessControlProvider>();
+    private final Map<String, AccessControlProviderHolder> acProviders = new ConcurrentHashMap<String, AccessControlProviderHolder>();
 
     /**
      * the AccessControlProviderFactory
@@ -241,7 +243,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     public void dispose(String workspaceName) {
         checkInitialized();
         synchronized (acProviders) {
-            AccessControlProvider prov = acProviders.remove(workspaceName);
+            AccessControlProviderHolder prov = acProviders.remove(workspaceName);
             if (prov != null) {
                 prov.close();
             }
@@ -254,7 +256,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     public void close() {
         checkInitialized();
         synchronized (acProviders) {
-            for (AccessControlProvider accessControlProvider : acProviders.values()) {
+            for (AccessControlProviderHolder accessControlProvider : acProviders.values()) {
                 accessControlProvider.close();
             }
             acProviders.clear();
@@ -557,9 +559,11 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     private AccessControlProvider getAccessControlProvider(String workspaceName)
             throws NoSuchWorkspaceException, RepositoryException {
         checkInitialized();
-        AccessControlProvider provider = acProviders.get(workspaceName);
+        AccessControlProvider provider = getAccessControlProviderHolder(workspaceName).get();
         if (provider == null || !provider.isLive()) {
-            SystemSession systemSession = repository.getSystemSession(workspaceName);
+            // providers are bound to threads, so we need to create a new SystemSession per provider.
+            WorkspaceInfo workspaceInfo = repository.getWorkspaceInfo(workspaceName);
+            SystemSession systemSession = SystemSession.create(repository,workspaceInfo.getConfig());
             // mark this session as 'active' so the workspace does not get disposed
             // by the workspace-janitor until the garbage collector is done
             // TODO: review again... this workaround is now used in several places.
@@ -569,10 +573,21 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             WorkspaceSecurityConfig secConf = (conf == null) ?  null : conf.getSecurityConfig();
             synchronized (acProviders) {
                 provider = acProviderFactory.createProvider(systemSession, secConf);
-                acProviders.put(workspaceName, provider);
+                getAccessControlProviderHolder(workspaceName).set(provider);
             }
         }
         return provider;
+    }
+
+    private AccessControlProviderHolder getAccessControlProviderHolder(String workspaceName) {
+      synchronized (acProviders) {
+        AccessControlProviderHolder accessControlProviderHolder = acProviders.get(workspaceName);
+        if ( accessControlProviderHolder == null ) {
+          accessControlProviderHolder = new AccessControlProviderHolder();
+          acProviders.put(workspaceName, accessControlProviderHolder);
+        }
+        return accessControlProviderHolder;        
+      }
     }
 
     /**

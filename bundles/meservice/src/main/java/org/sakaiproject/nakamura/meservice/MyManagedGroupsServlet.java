@@ -1,4 +1,5 @@
 /*
+
  * Licensed to the Sakai Foundation (SF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -22,6 +23,11 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
@@ -31,6 +37,25 @@ import java.util.TreeMap;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 
+@ServiceDocumentation(
+  name = "My Managed Groups Servlet",
+  description = "Gets the groups where the current user is a manager",
+  bindings = {
+    @ServiceBinding(
+      type = BindingType.TYPE, bindings = { "system/me/managedgroups" }
+    )
+  },
+  methods = {
+    @ServiceMethod(
+      name = "GET",
+      description = "Get the groups for this user.",
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully."),
+        @ServiceResponse(code = 500, description = "Exception occurred during processing.")
+      }
+    )
+  }
+)
 @SlingServlet(paths = { "/system/me/managedgroups" }, generateComponent = true, generateService = true, methods = { "GET" })
 @Reference(name="profileService", referenceInterface=ProfileService.class)
 public class MyManagedGroupsServlet extends AbstractMyGroupsServlet {

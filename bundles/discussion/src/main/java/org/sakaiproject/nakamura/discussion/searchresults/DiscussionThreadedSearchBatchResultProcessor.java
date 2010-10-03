@@ -40,13 +40,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.ValueFormatException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
 import javax.jcr.query.RowIterator;
@@ -83,39 +83,48 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       RepositoryException {
 
     Session session = request.getResourceResolver().adaptTo(Session.class);
-    List<Node> allNodes = new ArrayList<Node>();
+    List<String> basePosts = new ArrayList<String>();
+    Map<String,List<Post>> postChildren = new HashMap<String, List<Post>>();
+    Map<String,Post> allPosts = new HashMap<String, Post>();
     for (; iterator.hasNext();) {
       Node node = RowUtils.getNode(iterator.nextRow(), session);
       if (aggregator != null) {
         aggregator.add(node);
       }
-      allNodes.add(node);
-    }
+      
+      Post p = new Post(node);
+      allPosts.put(node.getProperty(MessageConstants.PROP_SAKAI_ID).getString(), p);
 
-    List<Post> basePosts = new ArrayList<Post>();
-    List<Node> replyNodes = new ArrayList<Node>();
-    for (int i = 0; i < allNodes.size(); i++) {
-      Node n = allNodes.get(i);
-
-      if (n.hasProperty(DiscussionConstants.PROP_REPLY_ON)) {
+      if (node.hasProperty(DiscussionConstants.PROP_REPLY_ON)) {
         // This post is a reply on another post.
-        replyNodes.add(n);
+        String replyon = node.getProperty(DiscussionConstants.PROP_REPLY_ON).getString();
+        if (!postChildren.containsKey(replyon)) {
+          postChildren.put(replyon, new ArrayList<Post>());
+        }
+        
+        postChildren.get(replyon).add(p);
+        
+        
 
       } else {
         // This post is not a reply to another post, thus it is a basepost.
-        basePosts.add(new Post(n));
+        basePosts.add(p.getPostId());
       }
     }
 
     // Now that we have all the base posts, we can sort the replies properly
-    for (Node replyNode : replyNodes) {
-      String replyon = replyNode.getProperty(DiscussionConstants.PROP_REPLY_ON).getString();
-      addPost(basePosts, replyNode, replyon);
+    for (String parentId : postChildren.keySet()) {
+      Post parentPost = allPosts.get(parentId);
+      if (parentPost != null) {
+        List<Post> childrenList = parentPost.getChildren();
+        List<Post> childrenActual = postChildren.get(parentId);
+        childrenList.addAll(childrenActual);
+      }
     }
+    
     // The posts are sorted, now return them as json.
-
-    for (Post p : basePosts) {
-      p.outputPostAsJSON((ExtendedJSONWriter) writer, presenceService, profileService);
+    for (String basePostId : basePosts) {
+      allPosts.get(basePostId).outputPostAsJSON((ExtendedJSONWriter) writer, presenceService, profileService);
     }
   }
 
@@ -137,29 +146,6 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       return searchServiceFactory.getSearchResultSet(iterator);
     } catch (RepositoryException e) {
       throw new SearchException(500, "Unable to execute query.");
-    }
-  }
-
-  /**
-   * Adds the post to the list at the correct place.
-   *
-   * @param basePosts
-   * @param n
-   * @return
-   * @throws ValueFormatException
-   * @throws PathNotFoundException
-   * @throws RepositoryException
-   */
-  private void addPost(List<Post> basePosts, Node n, String replyon)
-      throws ValueFormatException, PathNotFoundException, RepositoryException {
-    String postid = n.getProperty(MessageConstants.PROP_SAKAI_ID).getString();
-    for (Post p : basePosts) {
-      if (p.getPostId().equals(replyon)) {
-        p.getChildren().add(new Post(n));
-        break;
-      } else {
-        p.addPost(n, postid, replyon);
-      }
     }
   }
 

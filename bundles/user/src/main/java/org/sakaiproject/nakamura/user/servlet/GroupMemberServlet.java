@@ -31,6 +31,13 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -58,6 +65,33 @@ import javax.servlet.http.HttpServletResponse;
  *
  * Provides a listing for the members and managers of this group.
  */
+@ServiceDocumentation(
+  name = "Group Member Servlet",
+  description = "Provides a listing for the members and managers of this group.",
+  bindings = {
+    @ServiceBinding(
+      type = BindingType.TYPE,
+      bindings = { "sling/group" },
+      selectors = {
+        @ServiceSelector(name = "members", description = "Binds to the members selector."),
+        @ServiceSelector(name = "managers", description = "Binds to the managers selector."),
+        @ServiceSelector(name = "details", description = "Binds to the details selector.")
+      },
+      extensions = @ServiceExtension(name = "json", description = "javascript object notation")
+    )
+  },
+  methods = {
+    @ServiceMethod(
+      name = "GET",
+      description = "Create an external repository document.",
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully."),
+        @ServiceResponse(code = 204, description = "Group doesn't exist."),
+        @ServiceResponse(code = 500, description = "Exception occurred during processing.")
+      }
+    )
+  }
+)
 @SlingServlet(resourceTypes = { "sling/group" }, methods = { "GET" }, selectors = {
     "members", "managers", "detailed" }, extensions = { "json" })
 @Properties(value = {
