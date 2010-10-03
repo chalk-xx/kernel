@@ -95,4 +95,10 @@ public interface PersonalConstants {
    */
   public static final String GROUP_DESCRIPTION_PROPERTY = "sakai:group-description";
 
+  /**
+   * Available default access settings for a new User or Group.
+   */
+  public static final String VISIBILITY_PRIVATE = "private";
+  public static final String VISIBILITY_LOGGED_IN = "logged_in";
+  public static final String VISIBILITY_PUBLIC = "public";
 }

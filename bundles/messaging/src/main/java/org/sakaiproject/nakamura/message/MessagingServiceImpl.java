@@ -243,7 +243,13 @@ public class MessagingServiceImpl implements MessagingService {
         // This is a site.
         Node n = siteService.findSiteByName(session, rcpt.substring(2));
         path = n.getPath() + "/store";
-      } else {
+      } else { 
+        if (rcpt.startsWith("w-")) {
+          // This is a widget
+          return rcpt.substring(2);
+      }
+        else {
+      }
         Authorizable au = PersonalUtils.getAuthorizable(session, rcpt);
         path = PersonalUtils.getHomeFolder(au) + "/" + MessageConstants.FOLDER_MESSAGES;
       }

@@ -27,6 +27,12 @@ import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyUtils;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
@@ -52,6 +58,23 @@ import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+@ServiceDocumentation(
+  name = "External Document Search Servlet",
+  description = "Searches external documents",
+  bindings = {
+    @ServiceBinding(
+      type = BindingType.TYPE,
+      bindings = {"sakai/external-repository-search"},
+      extensions = {@ServiceExtension(name = "json", description = "javascript object notation")}
+    )
+  },
+  methods = @ServiceMethod(
+    name = "GET",response = {
+      @ServiceResponse(code = 200, description = "All processing finished successfully."),
+      @ServiceResponse(code = 500, description = "Exception occurred during processing.")
+    }
+  )
+)
 @SlingServlet(resourceTypes = { "sakai/external-repository-search" }, generateComponent = true, generateService = true, extensions = { "json" })
 public class ExternalDocumentSearchServlet extends SlingSafeMethodsServlet {
 

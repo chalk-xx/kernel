@@ -21,6 +21,9 @@ import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static javax.jcr.security.Privilege.JCR_WRITE;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.personal.PersonalConstants.VISIBILITY_LOGGED_IN;
+import static org.sakaiproject.nakamura.api.personal.PersonalConstants.VISIBILITY_PRIVATE;
+import static org.sakaiproject.nakamura.api.personal.PersonalConstants.VISIBILITY_PUBLIC;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_HOME_RESOURCE_TYPE;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_AUTHORIZABLE_PATH;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_HOME_RESOURCE_TYPE;
@@ -86,15 +89,16 @@ import javax.jcr.version.VersionException;
     @org.apache.felix.scr.annotations.Property(name = "service.ranking", intValue=0)})
 public class PersonalAuthorizablePostProcessor implements AuthorizablePostProcessor {
 
-  @org.apache.felix.scr.annotations.Property(description = "What the default behaviour for the ACL on an authprofile should be when an authorizable gets created.",
+  @org.apache.felix.scr.annotations.Property(description = "The default access settings for the home of a new user or group.",
+    value = VISIBILITY_PUBLIC,
     options = {
-      @PropertyOption(name = "private", value = "The profile is completely private."),
-      @PropertyOption(name = "semi", value = "The profile is private to anonymous users, logged in users can see it."),
-      @PropertyOption(name = "public", value = "The profile is completely public.")
+      @PropertyOption(name = VISIBILITY_PRIVATE, value = "The home is private."),
+      @PropertyOption(name = VISIBILITY_LOGGED_IN, value = "The home is blocked to anonymous users; all logged-in users can see it."),
+      @PropertyOption(name = VISIBILITY_PUBLIC, value = "The home is completely public.")
     }
   )
-  static final String PROFILE_PREFERENCE = "org.sakaiproject.nakamura.personal.profile.preference";
-  static final String PROFILE_PREFERENCE_DEFAULT = "semi";
+  static final String VISIBILITY_PREFERENCE = "org.sakaiproject.nakamura.personal.visibility.preference";
+  static final String VISIBILITY_PREFERENCE_DEFAULT = VISIBILITY_PUBLIC;
 
   public static final String PROFILE_IMPORT_TEMPLATE_DEFAULT = "{'basic':{'elements':{'firstName':{'value':'@@firstName@@'},'lastName':{'value':'@@lastName@@'},'email':{'value':'@@email@@'}},'access':'everybody'}}";
   @org.apache.felix.scr.annotations.Property
@@ -112,15 +116,15 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   @Reference(policy=ReferencePolicy.DYNAMIC, cardinality=ReferenceCardinality.OPTIONAL_UNARY)
   protected ContentImporter contentImporter;
 
-  private String profilePreference;
+  private String visibilityPreference;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PersonalAuthorizablePostProcessor.class);
 
   @Activate @Modified
   protected void modified(Map<?, ?> props) {
-    profilePreference = OsgiUtil.toString(props.get(PROFILE_PREFERENCE),
-        PROFILE_PREFERENCE_DEFAULT);
+    visibilityPreference = OsgiUtil.toString(props.get(VISIBILITY_PREFERENCE),
+        VISIBILITY_PREFERENCE_DEFAULT);
     defaultProfileTemplate = OsgiUtil.toString(props.get(PROFILE_IMPORT_TEMPLATE),
         PROFILE_IMPORT_TEMPLATE_DEFAULT);
 
@@ -265,6 +269,10 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
           authorizable.getID(), homeNode, session.getUserID() });
     }
 
+    if ( !UserConstants.ANON_USERID.equals(authorizable.getID()) ) {
+      initializeAccess(homeNode, session, authorizable);
+    }
+
     refreshOwnership(session, authorizable, homeFolderPath);
 
     // add things to home
@@ -342,7 +350,6 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     String path = profileService.getProfilePath(authorizable);
     Node profileNode = null;
     if (!isPostProcessingDone(session, authorizable)) {
-
       String type = nodeTypeForAuthorizable(authorizable.isGroup());
       LOGGER.debug("Creating or resetting Profile Node {} for authorizable {} ", path,
           authorizable.getID());
@@ -353,9 +360,6 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       if (profileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
         profileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
       }
-      if ( !UserConstants.ANON_USERID.equals(authorizable.getID()) ) {
-        makePrivate(profileNode, session, authorizable);
-      }
     } else {
       profileNode = session.getNode(path);
     }
@@ -364,6 +368,8 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
 
   /**
    * Creates the private folder in the user his home space.
+   * TODO As of 2010-09-28 the "private" node is no longer used by any Nakamura
+   * component. Can this code be eliminated?
    *
    * @param session
    *          The session to create the node
@@ -380,15 +386,22 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     }
     LOGGER.debug("creating or replacing ACLs for private at {} ", privatePath);
     Node privateNode = JcrUtils.deepGetOrCreateNode(session, privatePath);
-    makePrivate(privateNode, session, authorizable);
 
     LOGGER.debug("Done creating private at {} ", privatePath);
     return privateNode;
   }
 
-  private void makePrivate(Node privateNode, Session session, Authorizable authorizable) throws RepositoryException {
-    // Make sure that this folder is completely private.
-    String privatePath = privateNode.getPath();
+  /**
+   * Set access controls on the new User or Group node according to the profile
+   * preference configuration property.
+   *
+   * @param node
+   * @param session
+   * @param authorizable
+   * @throws RepositoryException
+   */
+  private void initializeAccess(Node node, Session session, Authorizable authorizable) throws RepositoryException {
+    String nodePath = node.getPath();
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
     Principal everyone = principalManager.getEveryone();
     Principal anon = new Principal() {
@@ -396,25 +409,22 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
         return UserConstants.ANON_USERID;
       }
     };
-    AccessControlUtil.replaceAccessControlEntry(session, privatePath, authorizable
-        .getPrincipal(), new String[] { JCR_ALL }, null, null, null);
-
     // KERN-886 : Depending on the profile preference we set some ACL's on the profile.
-    if ("public".equals(profilePreference)) {
-      AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon,
-          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
-      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone,
-          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
-    } else if ("semi".equals(profilePreference)) {
-      AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon, null,
-          new String[] { JCR_READ, JCR_WRITE }, null, null);
-      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone,
-          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
-    } else if ("private".equals(profilePreference)) {
-      AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon, null,
-          new String[] { JCR_READ, JCR_WRITE }, null, null);
-      AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone, null,
-          new String[] { JCR_READ, JCR_WRITE }, null, null);
+    if (VISIBILITY_PUBLIC.equals(visibilityPreference)) {
+      AccessControlUtil.replaceAccessControlEntry(session, nodePath, anon,
+          new String[] { JCR_READ }, null, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, nodePath, everyone,
+          new String[] { JCR_READ }, null, null, null);
+    } else if (VISIBILITY_LOGGED_IN.equals(visibilityPreference)) {
+      AccessControlUtil.replaceAccessControlEntry(session, nodePath, anon, null,
+          new String[] { JCR_READ }, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, nodePath, everyone,
+          new String[] { JCR_READ }, null, null, null);
+    } else if (VISIBILITY_PRIVATE.equals(visibilityPreference)) {
+      AccessControlUtil.replaceAccessControlEntry(session, nodePath, anon, null,
+          new String[] { JCR_READ }, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, nodePath, everyone, null,
+          new String[] { JCR_READ }, null, null);
     }
   }
 
@@ -595,22 +605,20 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   private void refreshOwnership(Session session, Authorizable authorizable,
       String homeFolderPath) throws RepositoryException {
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-    Principal anon = new Principal() {
-      public String getName() {
-        return UserConstants.ANON_USERID;
-      }
-    };
-    Principal everyone = principalManager.getEveryone();
 
     Value[] managerSettings = authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS);
     Value[] viewerSettings = authorizable.getProperty(UserConstants.PROP_GROUP_VIEWERS);
 
+    // If the Authorizable has a managers list, everyone on that list gets write access.
+    // Otherwise, the Authorizable itself is the owner.
     Principal[] managers = valuesToPrincipal(managerSettings,
         new Principal[] { authorizable.getPrincipal() }, principalManager);
-    Principal[] viewers = valuesToPrincipal(viewerSettings, new Principal[] { anon,
-        everyone }, principalManager);
 
-    // The user can do everything on this node.
+    // Do not automatically give read-access to anonymous and everyone, since that
+    // forces User Home folders to be public and overwrites configuration settings.
+    Principal[] viewers = valuesToPrincipal(viewerSettings, new Principal[] { },
+        principalManager);
+
     for (Principal manager : managers) {
       if ( manager != null ) {
         LOGGER.debug("User {} is attempting to make {} a manager ", session.getUserID(),

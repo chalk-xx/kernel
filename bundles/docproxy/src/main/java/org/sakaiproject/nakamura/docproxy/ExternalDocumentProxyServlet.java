@@ -23,6 +23,11 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyUtils;
@@ -49,7 +54,28 @@ import javax.servlet.http.HttpServletResponse;
  * Repository Processor from the node or the request, and then forward the request to that
  * processor appropriately, serializing any output onto http.
  */
-
+@ServiceDocumentation(
+  name = "External Document Proxy Servlet",
+  description = "Generic access to external document resources",
+  bindings = {
+    @ServiceBinding(
+      type = BindingType.TYPE,
+      bindings = { "sakai/external-repository-document" }
+    )
+  },
+  methods = {
+    @ServiceMethod(
+      name = "GET",
+      description = "Gets a document from an external repository.",
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully."),
+        @ServiceResponse(code = 400, description = "Unknown repository."),
+        @ServiceResponse(code = 404, description = "Unable to find the requested resource."),
+        @ServiceResponse(code = 500, description = "Exception occurred during processing.")
+      }
+    )
+  }
+)
 @SlingServlet(resourceTypes = { "sling/nonexisting", "sakai/external-repository-document" }, methods = { "GET" }, generateComponent = true, generateService = true)
 public class ExternalDocumentProxyServlet extends SlingSafeMethodsServlet {
 

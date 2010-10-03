@@ -7,7 +7,12 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.DocumentationConstants;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.doc.servlet.ServletDocumentation;
 import org.sakaiproject.nakamura.doc.servlet.ServletDocumentationRegistry;
 
@@ -21,6 +26,23 @@ import java.util.Map;
 
 import javax.servlet.ServletException;
 
+@ServiceDocumentation(
+  name = "General Documentation Servlet",
+  description = "Gets the documentation for servlets, proxies and search templates.",
+  bindings = {
+    @ServiceBinding(type = BindingType.PATH, bindings = { "system/doc" })
+  },
+  methods = {
+    @ServiceMethod(
+      name = "GET",
+      description = "Get the documentation.",
+      response = {
+        @ServiceResponse(code = 200, description = "All processing finished successfully."),
+        @ServiceResponse(code = 500, description = "Exception occurred during processing.")
+      }
+    )
+  }
+)
 @SlingServlet(methods = { "GET" }, paths = { "/system/doc" })
 public class GeneralDocumentationServlet extends SlingSafeMethodsServlet {
 
