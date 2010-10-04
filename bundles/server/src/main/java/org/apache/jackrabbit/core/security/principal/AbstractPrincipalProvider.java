@@ -36,15 +36,22 @@ public abstract class AbstractPrincipalProvider implements PrincipalProvider {
 
     /** Option name for the max size of the cache to use */
     public static final String MAXSIZE_KEY = "cacheMaxSize";
+    /** Option name to enable negative cache entries (see JCR-2672) */
+    public static final String NEGATIVE_ENTRY_KEY = "cacheIncludesNegative";
 
     /** flag indicating if the instance has not been {@link #close() closed} */
     private boolean initialized;
+
+    /**
+     * flag indicating if the cache should include 'negative' entries.
+     * @see #NEGATIVE_ENTRY_KEY
+     */
+    private boolean includeNegative;
 
     /** the principal cache */
     private LRUMap cache;
 
     private static final Logger log = LoggerFactory.getLogger(AbstractPrincipalProvider.class);
-
     /**
      * Create a new instance of <code>AbstractPrincipalProvider</code>.
      * Initialization and cache are set up upon {@link #init(Properties)}
@@ -99,23 +106,24 @@ public abstract class AbstractPrincipalProvider implements PrincipalProvider {
     /**
      * {@inheritDoc}
      *
-     * {@link #providePrincipal(String)} is called, if no principal with the
-     * given name is present in the cache.
+     * {@link #providePrincipal(String)} is called, if no matching entry
+     * is present in the cache.<br>
+     * NOTE: If the cache is enabled to contain negative entries (see
+     * {@link #NEGATIVE_ENTRY_KEY} configuration option), the cache will also
+     * store negative matches (as <code>null</code> values) in the principal cache.
      */
     public Principal getPrincipal(String principalName) {
         checkInitialized();
-        Principal principal = null;
         try {
-           principal = (Principal) cache.get(principalName);
-        } catch ( Exception ex ) {
-          log.warn("Cache Get Operation Failed on LRUMap "+ex.getMessage());
-          // concurrent access may cause NPE,s but we have to avoid blocking
+          if (cache.containsKey(principalName)) {
+              return (Principal) cache.get(principalName);
+          }
+        } catch ( Exception e) {
+          log.warn("Cache Get operation failed on LRUMap {} ",e.getLocalizedMessage());
         }
-        if (principal == null) {
-            principal = providePrincipal(principalName);
-            if (principal != null) {
-                addToCache(principal);
-            }
+        Principal principal = providePrincipal(principalName);
+        if (principal != null || includeNegative) {
+            addToCache(principal);
         }
         return principal;
     }
@@ -130,7 +138,8 @@ public abstract class AbstractPrincipalProvider implements PrincipalProvider {
 
         int maxSize = Integer.parseInt(options.getProperty(MAXSIZE_KEY, "1000"));
         cache = new LRUMap(maxSize);
-
+        includeNegative = Boolean.parseBoolean(options.getProperty(NEGATIVE_ENTRY_KEY, "false"));
+        
         initialized = true;
     }
 
