@@ -64,7 +64,7 @@ import javax.servlet.http.HttpServletResponse;
  * </dl>
  * <h4>Response</h4>
  * <dl>
- * <dt>200</dt>
+ * <dt>204</dt>
  * <dd>Success, user exists.</dd>
  * <dt>404</dt>
  * <dd>User does not exist.</dd>
@@ -102,9 +102,8 @@ import javax.servlet.http.HttpServletResponse;
         parameters={
         @ServiceParameter(name="userid", description="The id of the user to check for (required)")},
         response={
-        @ServiceResponse(code=200,description="Success, a redirect is sent to the groups resource locator with HTML describing status."),
-        @ServiceResponse(code=500,description="Failure, including group already exists. HTML explains failure."),
-        @ServiceResponse(code=400,description="Bad request: the required userid parameter was missing.")
+        @ServiceResponse(code=204,description="Success, user exists."),
+        @ServiceResponse(code=404,description="Bad request: the required userid parameter was missing.")
         }))
 
 public class UserExistsServlet extends SlingSafeMethodsServlet {
@@ -137,7 +136,7 @@ public class UserExistsServlet extends SlingSafeMethodsServlet {
           if (userManager != null) {
               Authorizable authorizable = userManager.getAuthorizable(id);
               if (authorizable != null) {
-                  response.setStatus(HttpServletResponse.SC_OK);
+                  response.setStatus(HttpServletResponse.SC_NO_CONTENT);
               } else response.sendError(HttpServletResponse.SC_NOT_FOUND);
           }
       }
