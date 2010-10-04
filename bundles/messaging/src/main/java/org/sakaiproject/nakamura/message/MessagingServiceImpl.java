@@ -25,6 +25,8 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
@@ -32,6 +34,7 @@ import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.JcrUtils;
@@ -44,6 +47,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
@@ -51,6 +56,7 @@ import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.ValueFormatException;
 
 /**
@@ -66,6 +72,11 @@ public class MessagingServiceImpl implements MessagingService {
 
   @Reference
   protected transient SiteService siteService;
+  
+  @Reference
+  protected transient ProfileService profileService;
+
+  private Pattern homePathPattern = Pattern.compile("(~(.*?))/");
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagingServiceImpl.class);
@@ -246,7 +257,7 @@ public class MessagingServiceImpl implements MessagingService {
       } else { 
         if (rcpt.startsWith("w-")) {
           // This is a widget
-          return rcpt.substring(2);
+          return expandHomeDirectoryInPath(session,rcpt.substring(2));
       }
         else {
       }
@@ -274,6 +285,20 @@ public class MessagingServiceImpl implements MessagingService {
     // at the moment we dont do alias expansion
     expanded.add(localRecipient);
     return expanded;
+  }
+  
+  private String expandHomeDirectoryInPath(Session session, String path)
+  throws AccessDeniedException, UnsupportedRepositoryOperationException,
+  RepositoryException {
+    Matcher homePathMatcher = homePathPattern.matcher(path);
+    if (homePathMatcher.find()) {
+      String username = homePathMatcher.group(2);
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Authorizable au = um.getAuthorizable(username);
+      String homePath = profileService.getHomePath(au).substring(1) + "/";
+      path = homePathMatcher.replaceAll(homePath);
+    }
+    return path;
   }
 
 }
