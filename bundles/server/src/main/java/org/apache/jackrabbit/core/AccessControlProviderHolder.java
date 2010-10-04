@@ -9,8 +9,8 @@ import java.util.WeakHashMap;
 public class AccessControlProviderHolder {
 
   /**
-   * This provides the lookup on thread, ensurign that when the thread dissapears the
-   * AccessProvider dissapears from the map.
+   * This provides the lookup on thread, ensuring that when the thread disappears the
+   * AccessProvider disappears from the map.
    */
   private WeakHashMap<Thread, AccessControlProvider> threadMap = new WeakHashMap<Thread, AccessControlProvider>();
 
@@ -44,13 +44,14 @@ public class AccessControlProviderHolder {
   }
 
   /**
-   * Iteditfy ACPs that were bound to threads that have gone, and clean them
+   * Identify ACPs that were bound to threads that have gone, and clean them
    */
   private void clean() {
     List<AccessControlProvider> toDelete = new ArrayList<AccessControlProvider>();
     for (AccessControlProvider acp : accessControlProviders) {
       if (!threadMap.containsValue(acp)) {
         toDelete.add(acp);
+        acp.close();
       }
     }
     accessControlProviders.removeAll(toDelete);
