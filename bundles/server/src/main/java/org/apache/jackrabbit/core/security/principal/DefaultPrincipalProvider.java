@@ -65,7 +65,7 @@ import java.util.Set;
  * this implementation keeps an extra membership cache, which is notified in
  * case of changes made to the members of any group.
  */
-public class DefaultPrincipalProvider extends AbstractPrincipalProvider implements SynchronousEventListener {
+public class DefaultPrincipalProvider extends AbstractPrincipalProvider implements EventListener {
 
     /**
      * the default logger
