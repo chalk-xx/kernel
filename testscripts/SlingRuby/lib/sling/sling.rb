@@ -74,7 +74,8 @@ module SlingInterface
       @server = server
       @user = SlingUsers::User.admin_user()
       @trustedauth = trustedauth
-      @trustedcookie == nil
+      @cookies = Hash.new()
+      @loggedin = false
       @log = Logger.new(STDOUT)
       @log.level = Logger::WARN
     end
@@ -88,7 +89,7 @@ module SlingInterface
       @log.info "Switched user to #{user}"
       @user = user
       if ( @trustedauth ) 
-         @trustedcookie = nil
+         @loggedin = false
       end
     end
     
@@ -126,15 +127,19 @@ module SlingInterface
       query = params.collect {|p| '--' + boundary + "\r\n" + p}.join('') + "--" + boundary + "--\r\n"
       req = Net::HTTP::Post.new(uri.path)
       if ( @trustedauth ) 
-        if ( @trustedcookie == nil ) 
+        if ( ! @loggedin ) 
             do_login()
         end
+	set_cookies(req)
         res = Net::HTTP.new(uri.host, uri.port).start {|http| http.request_post(path,query,"Content-type" => "multipart/form-data; boundary=" + boundary, "Cookie" => @trustedcookie) }
+        save_cookies(res)
       else 
         @user.do_request_auth(req)
         pwd = "#{@user.name}:#{@user.password}"
         pwd = pwd.base64_encode()
+	set_cookies(req)
         res = Net::HTTP.new(uri.host, uri.port).start {|http| http.request_post(path,query,"Content-type" => "multipart/form-data; boundary=" + boundary, "Authorization" => "Basic #{pwd}") }
+        save_cookies(res)
       end
       dump_response(res)
       return res
@@ -144,14 +149,17 @@ module SlingInterface
       uri = URI.parse(path)
       req = Net::HTTP::Delete.new(uri.path)
       if ( @trustedauth ) 
-        if ( @trustedcookie == nil ) 
+        if ( ! @loggedin ) 
             do_login()
         end
-		req["Cookie"] = @trustedcookie
+	set_cookies(req)
         res = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req ) }
+        save_cookies(res)
       else
         @user.do_request_auth(req)
+	set_cookies(req)
         res = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req) }
+        save_cookies(res)
       end
       dump_response(res)
       return res
@@ -163,14 +171,17 @@ module SlingInterface
       uri = URI.parse(path)
       req = Net::HTTP::Put.new(uri.path)
       if ( @trustedauth ) 
-        if ( @trustedcookie == nil ) 
+        if ( !@loggedin ) 
             do_login()
         end
-		req["Cookie"] = @trustedcookie
+	set_cookies(req)
         res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req, data) }
+        save_cookies(res)
       else
         @user.do_request_auth(req)
+	set_cookies(req)
         res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req, data) }
+        save_cookies(res)
       end
       dump_response(res)
       return res
@@ -185,16 +196,19 @@ module SlingInterface
       uri = URI.parse(path)
       req = Net::HTTP::Post.new(uri.path)
       if ( @trustedauth ) 
-        if ( @trustedcookie == nil ) 
+        if ( ! @loggedin  ) 
             do_login()
         end
-		req["Cookie"] = @trustedcookie
         req.set_form_data(post_params)
+        set_cookies(req)
         res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req) }
+        save_cookies(res)
       else
         @user.do_request_auth(req)
         req.set_form_data(post_params)
+        set_cookies(req)
         res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req) }
+        save_cookies(res)
       end
       dump_response(res)
       return res
@@ -222,31 +236,59 @@ module SlingInterface
       @log.debug("GET: #{path} (as '#{@user.name}')")
       req = Net::HTTP::Get.new(path)
       if ( @trustedauth ) 
-        if ( @trustedcookie == nil ) 
+        if ( ! @loggedin ) 
             do_login()
         end
-		req["Cookie"] = @trustedcookie
+        set_cookies(req)
         res = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req) }
+        save_cookies(res)
       else
         @user.do_request_auth(req)
+        set_cookies(req)
         res = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req) }
+        save_cookies(res)
       end
       dump_response(res)
       return res
     end
-  
+    
+    def set_cookies(req)
+       req["Cookie"] = @cookies.values * ", "
+       @log.debug("Cookie is #{req["Cookie"]}")
+    end
+
+    def save_cookies(res)
+      if ( res["Set-Cookie"] ) 
+        setcookie = res.get_fields('Set-Cookie')
+        @log.debug("Set-Cookie header #{setcookie} ")
+        setcookie.each do |cookieitem|
+          cookie = cookieitem.split(/;/)[0]
+          cookiename = cookie.split(/=/)[0]
+          value = cookie.split(/=/)[1]
+          cookievalue = "#{cookiename}=#{value}"
+          if ( @cookies[cookiename] != cookievalue ) 
+             @cookies[cookiename] = cookievalue
+             @log.info("New Cookie Value #{@cookies.values * "' "} ")
+          else 
+            @log.debug("No Change to Cookie #{@cookies}")
+          end
+        end
+      end
+    end
+
     def do_login() 
-	  path = url_for("/system/sling/formlogin")
+      path = url_for("/system/sling/formlogin")
       req = Net::HTTP::Post.new(path)
       uri = URI.parse(path)
       req.set_form_data({ "sakaiauth:un" => @user.name, "sakaiauth:pw" => @user.password, "sakaiauth:login" => 1 })
       res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req) }
       if ( res.code == "200" ) 
-        @trustedcookie = res["Set-Cookie"]
-	    @log.info("Login Ok, cookie was  ["+@trustedcookie+"]")
+        save_cookies(res)
+	@log.info("Login Ok, cookie was  {#@cookies}")
+        @loggedin = true
       else
-	    @log.info("Failed to perform login, got "+res.code+" response code")
-	  end
+	@log.info("Failed to perform login, got "+res.code+" response code")
+      end
     end
     
     def execute_get_with_follow(url)
@@ -256,14 +298,17 @@ module SlingInterface
         host, port = uri.host, uri.port if uri.host && uri.port
         req = Net::HTTP::Get.new(uri.path)
         if ( @trustedauth ) 
-          if ( @trustedcookie == nil ) 
+          if ( ! @loggedin ) 
             do_login()
           end
-		  req["Cookie"] = @trustedcookie
+          set_cookies(req)
           res = Net::HTTP.start(host, port) {|http|  http.request(req) }
+          save_cookies(res)
         else 
           @user.do_request_auth(req)
+          set_cookies(req)
           res = Net::HTTP.start(host, port) {|http|  http.request(req) }
+          save_cookies(res)
         end
         if res.header['location']
           @log.info "Got Redirect: #{res.header['location']}"
