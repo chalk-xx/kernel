@@ -55,7 +55,9 @@ public class CachedResponseManager {
 
   public void save(OperationResponseCapture responseOperation) {
     try {
-      cache.put(key, new CachedResponse(responseOperation, cacheAge));
+      if ( responseOperation.canCache() ) {
+        cache.put(key, new CachedResponse(responseOperation, cacheAge));
+      }
     } catch (IOException e) {
       LOGGER.error("Failed to save response in cache ",e);
     }
