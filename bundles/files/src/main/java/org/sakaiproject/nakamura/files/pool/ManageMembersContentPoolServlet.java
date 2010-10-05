@@ -63,6 +63,7 @@ import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.Query;
@@ -182,6 +183,9 @@ public class ManageMembersContentPoolServlet extends AbstractContentPoolServlet 
       }
       writer.endArray();
       writer.endObject();
+    } catch ( PathNotFoundException e ) {
+      response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not lookup ACL list.");
+      LOGGER.warn(e.getMessage());
     } catch (RepositoryException e) {
       response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not lookup ACL list.");
       LOGGER.error(e.getMessage(), e);
