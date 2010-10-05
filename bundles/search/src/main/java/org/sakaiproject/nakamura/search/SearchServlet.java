@@ -392,7 +392,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         // write the total out after processing the list to give the underlying iterator
         // a chance to walk the results then report how many there were.
         write.key(TOTAL);
-        write.value(rs.getSize());
+        write.value(rs.getSize() + offset);
 
         if (aggregator != null) {
           Map<String, Map<String, Integer>> aggregate = aggregator.getAggregate();
