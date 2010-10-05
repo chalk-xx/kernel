@@ -36,7 +36,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.service.event.Event;
@@ -46,7 +45,6 @@ import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingService;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
@@ -55,16 +53,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import javax.jcr.AccessDeniedException;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.UnsupportedRepositoryOperationException;
 
 /**
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
@@ -85,11 +79,6 @@ public class DiscussionMessageTransport implements MessageTransport {
 
   @Reference
   protected transient EventAdmin eventAdmin;
-  
-  @Reference
-  protected transient ProfileService profileService;
-
-  private Pattern homePathPattern = Pattern.compile("(~(.*?))/");
 
   @org.apache.felix.scr.annotations.Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
@@ -117,7 +106,7 @@ public class DiscussionMessageTransport implements MessageTransport {
           String rcpt = route.getRcpt();
           // the path were we want to save messages in.
           String messageId = originalMessage.getProperty(PROP_SAKAI_ID).getString();
-          String toPath = expandHomeDirectoryInPath(session, messagingService.getFullPathToMessage(rcpt, messageId, session));
+          String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
           
 
           // Copy the node to the destination
@@ -187,20 +176,6 @@ public class DiscussionMessageTransport implements MessageTransport {
    */
   protected void activateTesting() {
     testing = true;
-  }
-  
-  private String expandHomeDirectoryInPath(Session session, String path)
-  throws AccessDeniedException, UnsupportedRepositoryOperationException,
-  RepositoryException {
-    Matcher homePathMatcher = homePathPattern.matcher(path);
-    if (homePathMatcher.find()) {
-      String username = homePathMatcher.group(2);
-      UserManager um = AccessControlUtil.getUserManager(session);
-      Authorizable au = um.getAuthorizable(username);
-      String homePath = profileService.getHomePath(au).substring(1) + "/";
-      path = homePathMatcher.replaceAll(homePath);
-    }
-    return path;
   }
 
 }
