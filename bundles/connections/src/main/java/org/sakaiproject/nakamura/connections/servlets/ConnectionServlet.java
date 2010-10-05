@@ -165,7 +165,7 @@ public class ConnectionServlet extends SlingAllMethodsServlet {
     }
     try {
       // Do the connection.
-      LOGGER.info("Connection {} {} ",new Object[]{user,targetUserId});
+      LOGGER.debug("Connection {} {} ",new Object[]{user,targetUserId});
       connectionManager.connect(request.getParameterMap(), request.getResource(), user, targetUserId, operation);
     } catch (ConnectionException e) {
       if ( e.getCode() == 200 ) {
@@ -174,7 +174,8 @@ public class ConnectionServlet extends SlingAllMethodsServlet {
         writer.write(e.getMessage());
         writer.write("</p></body></html>");
       } else {
-        LOGGER.error("Connection exception: {}", e);
+        LOGGER.error("Connection exception: {}", e.getMessage());
+        LOGGER.debug("Connection exception: {}", e);
         response.sendError(e.getCode(), e.getMessage());
       }
     }

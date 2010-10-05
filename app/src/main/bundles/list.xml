@@ -58,11 +58,15 @@
             <artifactId>org.apache.sling.engine</artifactId>
             <version>2.1.0</version>
         </bundle>
+<!-- 
+OpenID contains some cookie handling bugs, removing it for the moment
+KERN-1187
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.auth.openid</artifactId>
             <version>1.0.0</version>
         </bundle>
+-->
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.adapter</artifactId>

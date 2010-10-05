@@ -67,7 +67,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   private static final Logger LOG = LoggerFactory.getLogger(TrustedTokenServiceImpl.class);
 
-  /** Property to indivate if the session should be used. */
+  /** Property to invalidate if the session should be used. */
   @Property(boolValue = false)
   public static final String USE_SESSION = "sakai.auth.trusted.token.usesession";
 
@@ -391,7 +391,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       if (trustedHeaderName.length() > 0) {
         userId = request.getHeader(trustedHeaderName);
         if (userId != null) {
-          LOG.info(
+          LOG.debug(
               "Injecting Trusted Token from request: Header [{}] indicated user was [{}] ",
               trustedHeaderName, userId);
         }
@@ -399,7 +399,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       if (userId == null && trustedParameterName.length() > 0) {
         userId = request.getParameter(trustedParameterName);
         if (userId != null) {
-          LOG.info(
+          LOG.debug(
               "Injecting Trusted Token from request: Parameter [{}] indicated user was [{}] ",
               trustedParameterName, userId);
         }
@@ -410,7 +410,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       if (p != null) {
         userId = p.getName();
         if (userId != null) {
-          LOG.info(
+          LOG.debug(
               "Injecting Trusted Token from request: User Principal indicated user was [{}] ",
               userId);
         }
@@ -419,7 +419,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     if (userId == null) {
       userId = request.getRemoteUser();
       if ( userId != null ) {
-        LOG.info("Injecting Trusted Token from request: Remote User indicated user was [{}] ", userId);
+        LOG.debug("Injecting Trusted Token from request: Remote User indicated user was [{}] ", userId);
       }
     }
 
@@ -428,7 +428,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       if (usingSession) {
         HttpSession session = request.getSession(true);
         if (session != null) {
-          LOG.info("Injecting Credentials into Session for " + userId);
+          LOG.debug("Injecting Credentials into Session for " + userId);
           session.setAttribute(SA_AUTHENTICATION_CREDENTIALS, createCredentials(userId));
         }
       } else {
@@ -479,6 +479,9 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     if (parts != null && parts.length == 4) {
       long cookieTime = Long.parseLong(parts[1].substring(1));
       if (System.currentTimeMillis() + (ttl / 2) > cookieTime) {
+        if ( TokenStore.DEBUG_COOKIES) {
+          LOG.info("Refreshing Token for {} cookieTime {} ttl {} CurrentTime {} ",new Object[]{userId, cookieTime, ttl, System.currentTimeMillis()});
+        }
         addCookie(response, userId);
       }
     }
