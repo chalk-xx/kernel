@@ -204,7 +204,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
      *
      * @scr.reference
      */
-    protected RequestTrustValidatorService requestTrustValidatorService;
+    protected transient RequestTrustValidatorService requestTrustValidatorService;
 
     /** Returns the JCR repository used by this service. */
     @SuppressWarnings(justification="OSGi Managed", value={"UWF_UNWRITTEN_FIELD"})

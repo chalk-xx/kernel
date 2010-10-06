@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.ANON_USERID;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
@@ -48,8 +50,6 @@ import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.sakaiproject.nakamura.api.user.UserConstants.ANON_USERID;
-
 /**
  *
  */
@@ -71,10 +71,10 @@ public class GroupJoinRequestServlet extends SlingAllMethodsServlet {
    * The OSGi Event Admin Service.
    */
   @Reference
-  private EventAdmin eventAdmin;
+  private transient EventAdmin eventAdmin;
 
   @Reference
-  private ProfileService profileService;
+  private transient ProfileService profileService;
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)

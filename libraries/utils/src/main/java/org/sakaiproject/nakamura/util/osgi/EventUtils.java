@@ -34,7 +34,7 @@ public class EventUtils {
 
   /**
    * Send an OSGi event based on a JCR Observation Event.
-   * 
+   *
    * @param resource
    *          The resource we should send an event for.
    * @param properties
@@ -54,8 +54,8 @@ public class EventUtils {
   public static void sendOsgiEvent(Resource resource,
       final Dictionary<String, String> properties, final String topic,
       final EventAdmin eventAdmin) {
-    String path = resource.getPath();
     if (resource != null) {
+      String path = resource.getPath();
       // check for nt:file nodes
       if (path.endsWith("/jcr:content")) {
         final Node node = resource.adaptTo(Node.class);
@@ -88,7 +88,7 @@ public class EventUtils {
   }
 
   /**
-   * 
+   *
    * @param properties
    *          A set of properties that should be sent.f
    * @param topic

@@ -84,9 +84,9 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
       + "Precedence: bulk\n" + "Auto-Submitted: auto-generated\n"
       + "X-JIRA-FingerPrint: 43079b93228ea120d4bc89f05c6f1356\n\n"
       + "Here is a message body";
-  
 
-  
+
+
   private static final String SUBJECT_TEST = "[Sakai Jira] Commented: (KERN-631) Expose Sakai 2 tools in a Sakai\r\n"
   + " 3 environment detached from a Sakai 2 rendered site";
   private static final String MULTIPART_SUBJECT_TEST = "Breaking News Extra: Husband of Accused Huntsville Killer Says She Was Bitter Over Tenure";
@@ -113,7 +113,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
 
     EasyMock.expect(componentContext.getProperties()).andReturn(properties).anyTimes();
     int port = getSafePort(8025);
-    properties.put("smtp.port",new Integer(port));
+    properties.put("smtp.port", Integer.valueOf(port));
     EasyMock.expect(slingRepository.loginAdministrative(null)).andReturn(session)
         .anyTimes();
     List<String> recipents = new ArrayList<String>();
@@ -170,7 +170,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
 
     verify();
   }
-  
+
   @Test
   public void testSafePort() throws IOException {
     ServerSocket s1 = null;
@@ -193,15 +193,15 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
       s4 = new ServerSocket(8028);
     } catch (IOException e1) {
     }
-    
+
     int port = getSafePort(8025);
     Assert.assertTrue(port>8028);
     ServerSocket ss = new ServerSocket(port);
     Assert.assertTrue(ss.isBound());
     ss.close();
-     
+
     try {
-      
+
     } finally {
       try {
         s1.close();
@@ -220,7 +220,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
       } catch (Exception e) {
       }
     }
-    
+
   }
 
   /**
@@ -263,9 +263,9 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
 
     session.logout();
     EasyMock.expectLastCall().anyTimes();
-    
+
     int port = getSafePort(8025);
-    properties.put("smtp.port",new Integer(port));
+    properties.put("smtp.port", Integer.valueOf(port));
 
     EasyMock.expect(componentContext.getProperties()).andReturn(properties).anyTimes();
     EasyMock.expect(slingRepository.loginAdministrative(null)).andReturn(session)
@@ -289,7 +289,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     EasyMock.expect(
         messagingService.create(EasyMock.capture(sessionCapture2), EasyMock
             .capture(mapProperties2))).andReturn(myMessageNode);
-    
+
     EasyMock.expect(session.getValueFactory()).andReturn(valueFactory);
     EasyMock.expect(valueFactory.createBinary(dataStream)).andReturn(binary);
     EasyMock.expect(myMessageNode.setProperty("sakai:body", binary)).andReturn(null);
@@ -313,7 +313,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     sakaiSmtpServer.accept("bob@localhost", "alice@localhost");
     sakaiSmtpServer.deliver("bob@localhost", "alice@localhost", dataStream);
 
-    
+
     // call to messageService.create
     Assert.assertTrue(mapProperties2.hasCaptured());
     Assert.assertTrue(sessionCapture2.hasCaptured());
@@ -323,7 +323,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     Map<String,Object> headers = mapProperties2.getValue();
     // check multi line parsing of headers
     Assert.assertEquals(SUBJECT_TEST, headers.get("sakai:subject"));
-    
+
     // check multi header parsing.
     String[] recieved = (String[]) headers.get("sakai:received");
     Assert.assertNotNull(recieved);
@@ -333,7 +333,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
 
     verify();
   }
-  
+
 
   @Test
   public void testGoodFormatMultipartMessage() throws Exception {
@@ -349,7 +349,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
 
     Dictionary<String, Object> properties = new Hashtable<String, Object>();
     int port = getSafePort(8025);
-    properties.put("smtp.port",new Integer(port));
+    properties.put("smtp.port", Integer.valueOf(port));
 
     session.logout();
     EasyMock.expectLastCall().anyTimes();
@@ -383,7 +383,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
 
     EasyMock.expect(myMessageNode.addNode("part000")).andReturn(part0Node);
     EasyMock.expect(myMessageNode.addNode("part001")).andReturn(part0Node);
-    
+
 
     EasyMock.expect(myMessageNode.getPath()).andReturn("/messagestore/bob/messagenode");
     EasyMock.expect(myMessageNode.getProperty("message-id")).andReturn(property);
@@ -403,7 +403,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     sakaiSmtpServer.accept("bob@localhost", "alice@localhost");
     sakaiSmtpServer.deliver("bob@localhost", "alice@localhost", dataStream);
 
-    
+
     // call to messageService.create
     Assert.assertTrue(mapProperties.hasCaptured());
     Assert.assertTrue(sessionCapture.hasCaptured());
@@ -416,7 +416,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     Map<String,Object> headers = mapProperties.getValue();
     // check multi line parsing of headers
     Assert.assertEquals(MULTIPART_SUBJECT_TEST, headers.get("sakai:subject"));
-    
+
     // check multi header parsing.
     String[] recieved = (String[]) headers.get("sakai:received");
     Assert.assertNotNull(recieved);
@@ -442,7 +442,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
 
     Dictionary<String, Object> properties = new Hashtable<String, Object>();
     int port = getSafePort(8025);
-    properties.put("smtp.port",new Integer(port));
+    properties.put("smtp.port", Integer.valueOf(port));
 
     session.logout();
     EasyMock.expectLastCall().anyTimes();
@@ -476,7 +476,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     EasyMock.expect(myMessageNode.addNode("part001","nt:file")).andReturn(part0Node);
     EasyMock.expect(part0Node.addNode("jcr:content", "nt:resource")).andReturn(part0Node);
     EasyMock.expect(session.getValueFactory()).andReturn(valueFactory).anyTimes();
-    
+
 
     EasyMock.expect(myMessageNode.getPath()).andReturn("/messagestore/bob/messagenode");
     EasyMock.expect(myMessageNode.getProperty("message-id")).andReturn(property);
@@ -496,7 +496,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     sakaiSmtpServer.accept("bob@localhost", "alice@localhost");
     sakaiSmtpServer.deliver("bob@localhost", "alice@localhost", dataStream);
 
-    
+
     // call to messageService.create
     Assert.assertTrue(mapProperties.hasCaptured());
     Assert.assertTrue(sessionCapture.hasCaptured());
@@ -509,7 +509,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     Map<String,Object> headers = mapProperties.getValue();
     // check multi line parsing of headers
     Assert.assertEquals(MULTIPART_SUBJECT_TEST2, headers.get("sakai:subject"));
-    
+
     // check multi header parsing.
     String recieved =  (String) headers.get("sakai:received");
     Assert.assertNotNull(recieved);
