@@ -19,6 +19,8 @@ package org.sakaiproject.nakamura.site.search;
 
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -34,7 +36,6 @@ import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
-import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.RowUtils;
 
@@ -53,8 +54,10 @@ import javax.jcr.query.Row;
 public class ContentSearchResultProcessor implements SearchResultProcessor {
 
   private SearchResultProcessorTracker tracker;
+
+  @SuppressWarnings(value = "NP_UNWRITTEN_FIELD", justification = "Injected by OSGi")
   @Reference
-  private SearchServiceFactory searchServiceFactory;
+  private transient SearchServiceFactory searchServiceFactory;
 
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
@@ -90,7 +93,7 @@ public class ContentSearchResultProcessor implements SearchResultProcessor {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
