@@ -31,6 +31,7 @@ public class ExpiringSecretKeyData implements Serializable {
   protected long expires;
   protected byte[] encoded;
   protected String algorithm;
+  private String serverId;
 
   /**
    * Default constructor, for serialization.
@@ -41,10 +42,11 @@ public class ExpiringSecretKeyData implements Serializable {
    * @param expires
    * @param encoded
    */
-  public ExpiringSecretKeyData(long expires, String algorithm,  byte[] encoded) {
+  public ExpiringSecretKeyData(long expires, String algorithm,  byte[] encoded, String serverId) {
     this.expires = expires;
     this.encoded = encoded;
     this.algorithm = algorithm;
+    this.serverId = serverId;
   }
   
   /**
@@ -65,8 +67,10 @@ public class ExpiringSecretKeyData implements Serializable {
   public long getExpires() {
     return expires;
   }
-
-
-
-
+  /**
+   * @return the server ID the key was generated on.
+   */
+  public String getServerId() {
+    return serverId;
+  }
 }
