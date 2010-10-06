@@ -20,6 +20,8 @@ package org.sakaiproject.nakamura.site.search;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -62,12 +64,14 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
 
   private SiteService siteService;
   protected SearchResultProcessorTracker tracker;
+
+  @SuppressWarnings(value = "NP_UNWRITTEN_FIELD", justification = "Injected by OSGi")
   @Reference
-  private SearchServiceFactory searchServiceFactory;
+  private transient SearchServiceFactory searchServiceFactory;
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor#writeNodes(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.commons.json.io.JSONWriter,
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.RowIterator)
@@ -92,7 +96,7 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */

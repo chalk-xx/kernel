@@ -27,7 +27,6 @@ public class ChangeSakaiUserPasswordServletTest {
 
   @Test
   public void test() {
-    @SuppressWarnings("unused")
-    ChangeSakaiUserPasswordServlet cs = new ChangeSakaiUserPasswordServlet();
+    new ChangeSakaiUserPasswordServlet();
   }
 }
