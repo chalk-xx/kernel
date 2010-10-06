@@ -5,3 +5,4 @@ then
   tar xvzf jakarta-jmeter-2.4.tgz
 fi
 jakarta-jmeter-2.4/bin/jmeter -n -t kern-1187/login_out_s3.jmx
+jakarta-jmeter-2.4/bin/jmeter -n -t kern-1176/login_assertion.jmx
