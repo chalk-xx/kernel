@@ -149,6 +149,7 @@ public class TokenStore {
             ExpiringSecretKey expiringSecretKey = TokenStore.this.getSecretKey(serverId,
                 secretKeyId);
             if (expiringSecretKey == null) {
+              LOG.warn("No Secure Key found ",getCacheKey(serverId, secretKeyId));
               throw new SecureCookieException("No Secure Key found "
                   + getCacheKey(serverId, secretKeyId));
             }
@@ -311,7 +312,7 @@ public class TokenStore {
       // being replaced, this is important in a clustered environment.
       ExpiringSecretKey expiringSecretKey = new ExpiringSecretKey(b, HMAC_SHA1, System
           .currentTimeMillis()
-          + (ttl * 2));
+          + (ttl * 2), serverId);
       int nextToken = secretKeyId + 1;
       if (nextToken == secretKeyRingBuffer.length) {
         nextToken = 0;
@@ -380,6 +381,7 @@ public class TokenStore {
         } else {
           keyOutputStream.writeInt(1);
           keyOutputStream.writeLong(secretKeyRingBuffer[i].getExpires());
+          keyOutputStream.writeUTF(secretKeyRingBuffer[i].getServerId());
           byte[] b = secretKeyRingBuffer[i].getSecretKey().getEncoded();
           keyOutputStream.writeInt(b.length);
           keyOutputStream.write(b);
@@ -420,14 +422,16 @@ public class TokenStore {
         int isNull = keyInputStream.readInt();
         if (isNull == 1) {
           long expires = keyInputStream.readLong();
+          String keyServerId = keyInputStream.readUTF();
           int l = keyInputStream.readInt();
           byte[] b = new byte[l];
           if ( keyInputStream.read(b) != l ) {
             throw new IOException("Failed to read Key no "+i+" from Secret Keys, end of file reached ");
           }
-          newKeys[i] = new ExpiringSecretKey(b, HMAC_SHA1, expires);
+          newKeys[i] = new ExpiringSecretKey(b, HMAC_SHA1, expires, keyServerId);
           getServerKeyCache()
-              .put(getCacheKey(serverId, i), newKeys[i].getSecretKeyData());
+              .put(getCacheKey(keyServerId, i), newKeys[i].getSecretKeyData());
+          LOG.info("Loaded Key {} from Local Store into {} ",getCacheKey(keyServerId, i), getServerKeyCache());
         } else {
           newKeys[i] = null;
         }
@@ -477,18 +481,16 @@ public class TokenStore {
    * @return
    */
   private ExpiringSecretKey getSecretKey(String serverId, int keyNumber) {
-    if (this.serverId.equals(serverId)) {
-      return secretKeyRingBuffer[keyNumber];
+    LOG.debug("Looking key {} in {} ", serverId, keyNumber);
+    if ( secretKeyRingBuffer[keyNumber] != null ) {
+      if ( serverId.equals(secretKeyRingBuffer[keyNumber].getServerId())) {
+        return secretKeyRingBuffer[keyNumber];
+      }
     }
     String cacheKey = getCacheKey(serverId, keyNumber);
     Cache<ExpiringSecretKeyData> keyCache = getServerKeyCache();
-    if (keyCache.containsKey(cacheKey)) {
-      ExpiringSecretKeyData cachedServerKeyData = keyCache.get(cacheKey);
-      if (cachedServerKeyData.getExpires() < System.currentTimeMillis()) {
-        return new ExpiringSecretKey(cachedServerKeyData);
-      }
-    }
 
+    LOG.debug("Looking for off server key {} in {} ", cacheKey, keyCache);
     // load tokens for the server up
     if (keyCache.containsKey(cacheKey)) {
       ExpiringSecretKeyData cachedServerKeyData = keyCache.get(cacheKey);

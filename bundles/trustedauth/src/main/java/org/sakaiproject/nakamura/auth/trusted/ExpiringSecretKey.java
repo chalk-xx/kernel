@@ -34,10 +34,10 @@ public class ExpiringSecretKey {
    * @param algorithm the algorithm ie "HmacSHA1"
    * @param expires the time of expiry epoch in ms.
    */
-  public ExpiringSecretKey(byte[] b, String algorithm, long expires) {
+  public ExpiringSecretKey(byte[] b, String algorithm, long expires, String serverId) {
     secretKey = new SecretKeySpec(b, algorithm);
     this.expires = expires;
-    this.secretKeyData = new ExpiringSecretKeyData(expires, algorithm, b);
+    this.secretKeyData = new ExpiringSecretKeyData(expires, algorithm, b, serverId);
   }
   
   /**
@@ -69,7 +69,8 @@ public class ExpiringSecretKey {
   public ExpiringSecretKeyData getSecretKeyData() {
     return secretKeyData;
   }
-  
- 
 
+  public String getServerId() {
+    return secretKeyData.getServerId();
+  }
 }

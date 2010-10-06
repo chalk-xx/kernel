@@ -1058,13 +1058,15 @@ public class SiteServiceImpl implements SiteService {
           && n.hasProperties()
           && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(
               JcrConstants.NT_RESOURCE)) {
-        versionService.saveNode((Node) session.getItem(n.getPath()), userID);
+        
         NodeIterator it = n.getNodes();
         // Version the childnodes
         while (it.hasNext()) {
           Node childNode = it.nextNode();
           versionNodeAndChildren(childNode, userID, session);
         }
+        
+        versionService.saveNode((Node) session.getItem(n.getPath()), userID);
       }
     } catch (RepositoryException re) {
       LOGGER.warn("Unable to save copied node", re);
