@@ -18,6 +18,12 @@
 
 package org.sakaiproject.nakamura.message.internal;
 
+import static javax.jcr.security.Privilege.JCR_READ;
+import static javax.jcr.security.Privilege.JCR_REMOVE_NODE;
+import static javax.jcr.security.Privilege.JCR_WRITE;
+import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_FROM;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -73,6 +79,8 @@ import javax.jcr.ValueFormatException;
 public class InternalMessageHandler implements MessageTransport, MessageProfileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_INTERNAL;
+  
+  private boolean testing = false;
 
   @Reference
   protected transient SlingRepository slingRepository;
@@ -118,6 +126,13 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
           .getString();
           
           sendHelper(recipients, rcpt, originalMessage, session, messageId, um);
+          if (!testing) {
+            String from = originalMessage.getProperty(PROP_SAKAI_FROM).getString();
+            String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
+            Authorizable authorizable = um.getAuthorizable(from);
+            replaceAccessControlEntry(session, toPath, authorizable.getPrincipal(),
+                new String[] { JCR_WRITE, JCR_READ, JCR_REMOVE_NODE }, null, null, null);
+          }
         }
       }
     } catch (RepositoryException e) {
@@ -221,6 +236,14 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
     }
+  }
+  
+  /**
+   * This method should only be called for unit testing purposes. It will disable the ACL
+   * settings.
+   */
+  protected void activateTesting() {
+    testing = true;
   }
 
 }
