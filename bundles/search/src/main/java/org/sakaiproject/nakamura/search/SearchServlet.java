@@ -214,7 +214,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedBatchReferences = new ArrayList<ServiceReference>();
 
-  protected long maximumResults;
+  protected long maximumResults = 100;
 
   // Default processors
   /**
@@ -297,7 +297,8 @@ public class SearchServlet extends SlingSafeMethodsServlet {
             DEFAULT_PAGED_ITEMS);
         long page = SearchUtil.longRequestParameter(request, PARAMS_PAGE, 0);
         long offset = page * nitems;
-        if (limitResults && offset > maximumResults) {
+        long resultSize = Math.max(nitems, offset);
+        if (limitResults && resultSize > maximumResults) {
           response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE,
               "There are too many results.");
           return;
