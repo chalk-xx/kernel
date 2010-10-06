@@ -47,9 +47,9 @@ import javax.servlet.ServletResponse;
 /**
  * The <code>CacheControlFilter</code> class is a request level filter which applies a
  * Cache-Control response header on GET requests which match any of an arbitrary list of
- * configured regex patterns. Each configured pattern must also have a corresponding 
+ * configured regex patterns. Each configured pattern must also have a corresponding
  * maxage value (in seconds) to use if the pattern matches.
- * 
+ *
  * When more than one pattern matches, the filter sets the lowest maxage of the
  * collection of matching patterns.
  */
@@ -93,12 +93,12 @@ public class CacheControlFilter implements Filter {
     }
     SlingHttpServletRequest srequest = (SlingHttpServletRequest) request;
     SlingHttpServletResponse sresponse = (SlingHttpServletResponse) response;
-    
+
     Long maxAge = requestedResourceMaxAge(srequest);
     if(maxAge > 0) {
       sresponse.addHeader("Cache-Control", "max-age=" + maxAge);
     }
-    
+
     chain.doFilter(request, response);
   }
 
@@ -106,7 +106,7 @@ public class CacheControlFilter implements Filter {
     if (! "GET".equals(srequest.getMethod())) {
       return new Long(0);
     }
-    
+
     String path = srequest.getPathInfo();
     List<Long> expirations = new ArrayList<Long>();
     for (Pattern pattern : cachePatterns().keySet()) {
@@ -115,9 +115,9 @@ public class CacheControlFilter implements Filter {
         expirations.add(cachePatterns().get(pattern));
       }
     }
-    
+
     if (expirations.isEmpty()) {
-      return new Long(0);
+      return Long.valueOf(0);
     } else {
       return Collections.min(expirations);
     }
@@ -130,7 +130,7 @@ public class CacheControlFilter implements Filter {
   public void init(FilterConfig filterConfig) throws ServletException {
 
   }
-  
+
   @SuppressWarnings("unchecked")
   protected void activate(ComponentContext context) {
     if (context == null) {
@@ -160,21 +160,22 @@ public class CacheControlFilter implements Filter {
     }
     threadLocalCache.setInitTime(System.currentTimeMillis());
   }
-  
+
   @SuppressWarnings("unchecked")
   private Map<Pattern, Long> cachePatterns() {
     return (Map<Pattern, Long>) threadLocalCache.get();
   }
-  
+
   private static class ThreadLocalCachePatternsMap extends ThreadLocal<Object> {
     private long initTime = 0;
+    @Override
     public Object initialValue() {
       return new HashMap<Pattern, Long>();
     }
     public long getInitTime() {
       return initTime;
     }
-    
+
     public void setInitTime(long initTime) {
       this.initTime = initTime;
     }
