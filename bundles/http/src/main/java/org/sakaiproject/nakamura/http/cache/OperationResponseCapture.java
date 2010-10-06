@@ -42,6 +42,10 @@ public class OperationResponseCapture {
   public static final int SET_CHARACTER_ENCODING = 0x0A;
   public static final int ADD_DATE_HEADER = 0x0B;
   public static final int SET_DATE_HEADER = 0x0C;
+  /**
+   * a : delimited list of headernames in lower case that can't be cached.
+   */
+  private static final String DONT_CACHE = ":set-cookies:set-cookie:age:connection:www-authenticate:";
   private PrintWriter writer;
   private SplitOutputStream outputStream;
   private boolean cacheable;
@@ -83,13 +87,14 @@ public class OperationResponseCapture {
   }
 
   public void setDateHeader(String name, long date) {
-    if (cacheable) {
+    
+    if (cacheable && cacheHeader(name)) {
       operations.add(new Operation(SET_DATE_HEADER, name, date));
     }
   }
 
   public void addDateHeader(String name, long date) {
-    if (cacheable) {
+    if (cacheable && cacheHeader(name)) {
       operations.add(new Operation(ADD_DATE_HEADER, name, date));
     }
   }
@@ -119,13 +124,13 @@ public class OperationResponseCapture {
   }
 
   public void setHeader(String name, String value) {
-    if (cacheable) {
+    if (cacheable && cacheHeader(name)) {
       operations.add(new Operation(SET_HEADER, name, value));
     }
   }
 
   public void setIntHeader(String name, int value) {
-    if (cacheable) {
+    if (cacheable && cacheHeader(name)) {
       operations.add(new Operation(SET_INT_HEADER, name, value));
     }
   }
@@ -149,15 +154,20 @@ public class OperationResponseCapture {
   }
 
   public void addHeader(String name, String value) {
-    if (cacheable) {
+    if (cacheable && cacheHeader(name)) {
       operations.add(new Operation(ADD_HEADER, name, value));
     }
   }
 
   public void addIntHeader(String name, int value) {
-    if (cacheable) {
+    if (cacheable && cacheHeader(name)) {
       operations.add(new Operation(ADD_INT_HEADER, name, value));
     }
+  }
+
+  private boolean cacheHeader(String name) {
+    String lc = name.toLowerCase();
+    return (DONT_CACHE.indexOf(lc) == -1);
   }
 
   public void reset() {
@@ -199,6 +209,10 @@ public class OperationResponseCapture {
       return splitWriter.getStringContent();
     }
     return null;
+  }
+
+  public boolean canCache() {
+    return cacheable;
   }
 
 }

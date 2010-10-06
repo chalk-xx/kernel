@@ -18,6 +18,9 @@
 package org.sakaiproject.nakamura.remotefiles.servlet;
 
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -33,14 +36,16 @@ import javax.servlet.ServletException;
 
 @SlingServlet(resourceTypes = { "sakai/remotefiles-share" }, methods = { "POST" }, generateComponent = true, generateService = true)
 public class ShareFileServlet extends SlingAllMethodsServlet {
-  
+
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 3794459685138851653L;
-  
-  private RemoteFilesRepository remoteFilesRepository;
-  
+
+  @SuppressWarnings(value = "NP_UNWRITTEN_FIELD", justification = "Injected by OSGi")
+  @Reference
+  private transient RemoteFilesRepository remoteFilesRepository;
+
   @Override
   protected void doPost(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException,
@@ -49,7 +54,7 @@ public class ShareFileServlet extends SlingAllMethodsServlet {
       String currentUserId = request.getResource().adaptTo(Node.class).getSession().getUserID();
       String resource = request.getParameter("resource");
       String groupId = request.getParameter("groupid");
-      
+
       boolean success = remoteFilesRepository.shareFileWithGroup(groupId, resource, currentUserId);
       String status = success ? "success" : "failed";
       response.setContentType("application/json");

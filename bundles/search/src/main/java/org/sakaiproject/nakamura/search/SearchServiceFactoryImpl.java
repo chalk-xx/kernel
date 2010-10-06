@@ -124,5 +124,11 @@ public class SearchServiceFactoryImpl implements SearchServiceFactory {
     return new RowIteratorImpl(savedRows);
   }
 
+  public SearchResultSet getSearchResultSet(RowIterator rowIterator, Long offset) {
+    RowIterator sakaiSearchRowIter = new SakaiSearchRowIterator(rowIterator);
+    sakaiSearchRowIter.skip(offset);
+    return new SearchResultSetImpl(sakaiSearchRowIter, defaultMaxResults);
+  }
+
 
 }

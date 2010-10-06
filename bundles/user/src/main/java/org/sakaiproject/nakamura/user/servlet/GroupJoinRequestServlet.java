@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.ANON_USERID;
+
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
@@ -48,8 +52,6 @@ import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.sakaiproject.nakamura.api.user.UserConstants.ANON_USERID;
-
 /**
  *
  */
@@ -64,17 +66,20 @@ public class GroupJoinRequestServlet extends SlingAllMethodsServlet {
 
   private static final String PARAM_USERID = "userid";
 
+  @SuppressWarnings(value = "NP_UNWRITTEN_FIELD", justification = "Injected by OSGi")
   @Reference
   protected transient SlingRepository slingRepository;
 
   /**
    * The OSGi Event Admin Service.
    */
+  @SuppressWarnings(value = "NP_UNWRITTEN_FIELD", justification = "Injected by OSGi")
   @Reference
-  private EventAdmin eventAdmin;
+  private transient EventAdmin eventAdmin;
 
+  @SuppressWarnings(value = "NP_UNWRITTEN_FIELD", justification = "Injected by OSGi")
   @Reference
-  private ProfileService profileService;
+  private transient ProfileService profileService;
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)

@@ -75,4 +75,14 @@ public interface SearchServiceFactory {
 
   public RowIterator getRowIteratorFromList(List<Row> savedRows);
 
+  /**
+   * This method will return a SearchResultSet with a RowIterator that has been
+   * advanced by the number in the offset argument
+   * 
+   * @param mergedIterator
+   * @param offset Used for paging, the number of valid rows to skip in this result set before returning
+   * @return
+   */
+  public SearchResultSet getSearchResultSet(RowIterator mergedIterator, Long offset);
+
 }
