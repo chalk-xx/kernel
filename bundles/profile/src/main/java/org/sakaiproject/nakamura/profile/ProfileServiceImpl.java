@@ -192,7 +192,7 @@ public class ProfileServiceImpl implements ProfileService {
       // The node wasn't found in the baseMap.
       // We just dump the JCR properties.
       map.putAll(new JcrPropertyMap(node));
-      map.put("jcr:path", node.getPath());
+      map.put("jcr:path", PathUtils.translateAuthorizablePath(node.getPath()));
       map.put("jcr:name", node.getName());
 
       // We loop over the child nodes, but each node get checked against the baseMap
