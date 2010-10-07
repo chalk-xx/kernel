@@ -51,6 +51,12 @@ public class Signature {
   
   public static String calculateRFC2104HMACWithEncoding(String data, String key, boolean urlSafe) 
   	throws java.security.SignatureException {
+    if (data == null) {
+      throw new IllegalArgumentException("String data == null");
+    }
+    if (key == null) {
+      throw new IllegalArgumentException("String key == null");
+    }
 	  try {
 		  // Get an hmac_sha1 key from the raw key bytes
 		  byte[] keyBytes = key.getBytes("UTF-8");
