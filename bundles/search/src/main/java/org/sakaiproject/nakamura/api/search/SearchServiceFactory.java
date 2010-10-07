@@ -21,6 +21,7 @@ package org.sakaiproject.nakamura.api.search;
 import org.apache.sling.api.SlingHttpServletRequest;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import javax.jcr.query.Query;
 import javax.jcr.query.Row;
@@ -30,7 +31,7 @@ public interface SearchServiceFactory {
 
   /**
    * Creates a merged Row Iterator from 2 iterators.
-   * 
+   *
    * @param iteratorA
    * @param iteratorB
    * @return
@@ -39,7 +40,7 @@ public interface SearchServiceFactory {
 
   /**
    * Gets a Row Iterator filtered for protected paths.
-   * 
+   *
    * @param rowIterator
    * @return
    */
@@ -64,7 +65,7 @@ public interface SearchServiceFactory {
   /**
    * This method will return a SearchResultSet that contains a paged rowIterator and the
    * total hit count from Lucene.
-   * 
+   *
    * @param request
    * @param query
    * @return
@@ -78,10 +79,11 @@ public interface SearchServiceFactory {
   /**
    * This method will return a SearchResultSet with a RowIterator that has been
    * advanced by the number in the offset argument
-   * 
+   *
    * @param mergedIterator
    * @param offset Used for paging, the number of valid rows to skip in this result set before returning
    * @return
+   * @throws NoSuchElementException If the offset is beyond the size of the iterator.
    */
   public SearchResultSet getSearchResultSet(RowIterator mergedIterator, Long offset);
 
