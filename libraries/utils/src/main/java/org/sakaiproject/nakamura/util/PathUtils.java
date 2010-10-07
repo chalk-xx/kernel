@@ -386,4 +386,44 @@ public class PathUtils {
     sb.append(pathEnd);
     return sb.toString();
   }
+
+  public static Object translateAuthorizablePath(Object value) {
+    String s = String.valueOf(value);
+    if (s != null && s.length() > 4) {
+      if (s.charAt(0) == '/' && s.charAt(1) == '_') {
+        String id = null;
+        if (s.startsWith("/_user/") || s.startsWith("/_group/")) {
+          int slash = s.indexOf('/', 2);
+          while (slash > 0) {
+            int nslash = s.indexOf('/', slash + 1);
+            String nid = null;
+            if (nslash > 0) {
+              nid = s.substring(slash + 1, nslash);
+            } else {
+              nid = s.substring(slash + 1);
+            }
+            if (id == null) {
+              id = nid;
+            } else if (nid.equals(id)) {
+              // a quirk of Jackrabbit: a 3-character id has an additional intermediate directory
+              // /~ieb equals /_user/i/ie/ieb/ieb
+              if (id.length() > 3) {
+                return "/~" + id + "/"+ s.substring(slash + 1);
+              } else {
+                return "/~" + id + s.substring(slash + 1 + id.length());
+              }
+            } else if (!nid.startsWith(id)) {
+              return "/~" + id+ "/" + s.substring(slash + 1);
+            }
+            slash = nslash;
+            id = nid;
+          }
+          if ( id != null && id.length() > 0) {
+            return "/~" + id;
+          }
+        }
+      }
+    }
+    return value;
+  }
 }

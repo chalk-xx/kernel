@@ -147,26 +147,6 @@ public class ExtendedJSONWriterTest {
     }
   }
 
-  @Test
-  public void testTranslate() {
-    assertEquals("/~ieb/testing", ExtendedJSONWriter.translateAuthorizablePath("/_user/i/ie/ieb/testing"));
-    assertEquals("/~ieb/", ExtendedJSONWriter.translateAuthorizablePath("/_user/i/ie/ieb/"));
-    assertEquals("/~ieb", ExtendedJSONWriter.translateAuthorizablePath("/_user/i/ie/ieb"));
-    assertEquals("/~ieb/ieb", ExtendedJSONWriter.translateAuthorizablePath("/_user/i/ie/ieb/ieb"));
-    assertEquals("/~ieb/ieb/ieb", ExtendedJSONWriter.translateAuthorizablePath("/_user/i/ie/ieb/ieb/ieb"));
-    assertEquals("/~ieb236/testing/a/b/c", ExtendedJSONWriter.translateAuthorizablePath("/_user/i/ie/ieb/ieb236/testing/a/b/c"));
-    assertEquals("/~ieb/testing", ExtendedJSONWriter.translateAuthorizablePath("/_group/i/ie/ieb/testing"));
-    assertEquals("/~ieb/", ExtendedJSONWriter.translateAuthorizablePath("/_group/i/ie/ieb/"));
-    assertEquals("/~ieb", ExtendedJSONWriter.translateAuthorizablePath("/_group/i/ie/ieb"));
-    assertEquals("/~ieb/ieb", ExtendedJSONWriter.translateAuthorizablePath("/_group/i/ie/ieb/ieb"));
-    assertEquals("/~ieb/ieb/ieb", ExtendedJSONWriter.translateAuthorizablePath("/_group/i/ie/ieb/ieb/ieb"));
-    assertEquals("/~ieb236/testing/a/b/c", ExtendedJSONWriter.translateAuthorizablePath("/_group/i/ie/ieb/ieb236/testing/a/b/c"));
-    assertEquals("/_group", ExtendedJSONWriter.translateAuthorizablePath("/_group"));
-    assertEquals("/_group/", ExtendedJSONWriter.translateAuthorizablePath("/_group/"));
-    assertEquals("/_user", ExtendedJSONWriter.translateAuthorizablePath("/_user"));
-    assertEquals("/_user/", ExtendedJSONWriter.translateAuthorizablePath("/_user/"));
-    assertEquals("/anything/", ExtendedJSONWriter.translateAuthorizablePath("/anything/"));
-  }
 
   @Test
   public void writeNodeTreeToWriterNoSubNodes() throws Exception {
