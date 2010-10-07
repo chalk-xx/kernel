@@ -41,6 +41,8 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.NoSuchElementException;
+
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -91,10 +93,14 @@ public class UniqueProfileSearchResultProcessor implements SearchResultProcessor
       // Extract the total hits from lucene
       long start = SearchUtil.getPaging(request);
 
-      // Return the result set.
-      SearchResultSet srs = searchServiceFactory.getSearchResultSet(uniqPathIter,
-          Long.valueOf(start));
-      return srs;
+      try {
+        // Return the result set.
+        SearchResultSet srs = searchServiceFactory.getSearchResultSet(uniqPathIter,
+            Long.valueOf(start));
+        return srs;
+      } catch (NoSuchElementException e) {
+        throw new SearchException(400, "Requested offset is beyond the returned results");
+      }
     } catch (RepositoryException e) {
       logger.error("Unable to perform query.", e);
       throw new SearchException(500, "Unable to perform query.");
