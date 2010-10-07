@@ -92,7 +92,8 @@ public class UniqueProfileSearchResultProcessor implements SearchResultProcessor
       long start = SearchUtil.getPaging(request);
 
       // Return the result set.
-      SearchResultSet srs = searchServiceFactory.getSearchResultSet(uniqPathIter, new Long(start));
+      SearchResultSet srs = searchServiceFactory.getSearchResultSet(uniqPathIter,
+          Long.valueOf(start));
       return srs;
     } catch (RepositoryException e) {
       logger.error("Unable to perform query.", e);

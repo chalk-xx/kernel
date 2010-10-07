@@ -82,7 +82,7 @@ public class ExtendedJSONWriter extends JSONWriter {
       throws RepositoryException, JSONException {
     // Since removal of bigstore we add in jcr:path and jcr:name
     write.key("jcr:path");
-    write.value(translateAuthorizablePath(node.getPath()));
+    write.value(PathUtils.translateAuthorizablePath(node.getPath()));
     write.key("jcr:name");
     write.value(node.getName());
 
@@ -110,7 +110,7 @@ public class ExtendedJSONWriter extends JSONWriter {
           for (Value value : values) {
             Object ovalue = stringValue(value);
             if (isUserPath(name, ovalue)) {
-              write.value(translateAuthorizablePath(ovalue));
+              write.value(PathUtils.translateAuthorizablePath(ovalue));
             } else {
               write.value(ovalue);
             }
@@ -119,7 +119,7 @@ public class ExtendedJSONWriter extends JSONWriter {
         } else {
           Object value = stringValue(prop.getValue());
           if (isUserPath(name, value)) {
-            write.value(translateAuthorizablePath(value));
+            write.value(PathUtils.translateAuthorizablePath(value));
           } else {
             write.value(value);
           }
@@ -140,40 +140,6 @@ public class ExtendedJSONWriter extends JSONWriter {
       }
     }
     return false;
-  }
-
-  public static Object translateAuthorizablePath(Object value) {
-    String s = String.valueOf(value);
-    if (s != null && s.length() > 4) {
-      if (s.charAt(0) == '/' && s.charAt(1) == '_') {
-        String id = null;
-        if (s.startsWith("/_user/") || s.startsWith("/_group/")) {
-          int slash = s.indexOf('/', 2);
-          while (slash > 0) {
-            int nslash = s.indexOf('/', slash + 1);
-            String nid = null;
-            if (nslash > 0) {
-              nid = s.substring(slash + 1, nslash);
-            } else {
-              nid = s.substring(slash + 1);
-            }
-            if (id == null) {
-              id = nid;
-            } else if (nid.equals(id)) {
-              return "/~" + id + "/"+ s.substring(slash + 1);
-            } else if (!nid.startsWith(id)) {
-              return "/~" + id+ "/" + s.substring(slash + 1);
-            }
-            slash = nslash;
-            id = nid;
-          }
-          if ( id != null && id.length() > 0) {
-            return "/~" + id;
-          }
-        }
-      }
-    }
-    return value;
   }
 
   public static void writeNodeToWriter(JSONWriter write, Node node) throws JSONException,

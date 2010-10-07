@@ -41,6 +41,7 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_RESULT
 import static org.sakaiproject.nakamura.api.search.SearchConstants.TOTAL;
 import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -69,6 +70,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.Aggregator;
+import org.sakaiproject.nakamura.api.search.MissingParameterException;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
@@ -304,8 +306,15 @@ public class SearchServlet extends SlingSafeMethodsServlet {
           return;
         }
 
-        String queryString = processQueryTemplate(request, queryTemplate, queryLanguage,
-            propertyProviderName);
+        // KERN-1147 Response better when all parameters haven't been provided for a query
+        String queryString = null;
+        try {
+          queryString = processQueryTemplate(request, queryTemplate, queryLanguage,
+              propertyProviderName);
+        } catch (MissingParameterException e) {
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+          return;
+        }
 
         queryString = expandHomeDirectoryInQuery(node, queryString);
 
@@ -453,7 +462,8 @@ public class SearchServlet extends SlingSafeMethodsServlet {
    * @throws RepositoryException
    */
   protected String processQueryTemplate(SlingHttpServletRequest request,
-      String queryTemplate, String queryLanguage, String propertyProviderName) {
+      String queryTemplate, String queryLanguage, String propertyProviderName)
+      throws MissingParameterException {
     Map<String, String> propertiesMap = loadUserProperties(request, propertyProviderName);
 
     StringBuilder sb = new StringBuilder();
@@ -478,18 +488,28 @@ public class SearchServlet extends SlingSafeMethodsServlet {
           }
           if (v.startsWith("_")) {
             String value = propertiesMap.get(v);
-            if (value != null) {
+            if (!StringUtils.isEmpty(value)) {
               sb.append(value);
-            } else if (value == null && defaultValue != null) {
+            } else if (StringUtils.isEmpty(value) && !StringUtils.isEmpty(defaultValue)) {
               sb.append(defaultValue);
+            } else {
+              throw new MissingParameterException("Unable to substitute {" + v
+                  + "} in query template");
             }
           } else {
 
             RequestParameter rp = request.getRequestParameter(v);
+            String rpVal = null;
             if (rp != null) {
-              sb.append(escapeString(rp.getString(), queryLanguage));
-            } else if (rp == null && defaultValue != null) {
+              rpVal = rp.getString();
+            }
+            if (!StringUtils.isEmpty(rpVal)) {
+              sb.append(escapeString(rpVal, queryLanguage));
+            } else if (StringUtils.isEmpty(rpVal) && !StringUtils.isEmpty(defaultValue)) {
               sb.append(escapeString(defaultValue, queryLanguage));
+            } else {
+              throw new MissingParameterException("Unable to substitute {" + v
+                  + "} in query template");
             }
           }
           vstart = -1;
