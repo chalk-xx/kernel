@@ -182,4 +182,27 @@ public class PathUtilsTest {
     Assert.assertEquals("/f/fo/foo", PathUtils.getSubPath(au));
     EasyMock.verify(au,principal,value);
   }
+  
+
+  @Test
+  public void testTranslate() {
+    assertEquals("/~ieb/testing", PathUtils.translateAuthorizablePath("/_user/i/ie/ieb/testing"));
+    assertEquals("/~ieb/", PathUtils.translateAuthorizablePath("/_user/i/ie/ieb/"));
+    assertEquals("/~ieb", PathUtils.translateAuthorizablePath("/_user/i/ie/ieb"));
+    assertEquals("/~ieb", PathUtils.translateAuthorizablePath("/_user/i/ie/ieb/ieb"));
+    assertEquals("/~ieb/ieb", PathUtils.translateAuthorizablePath("/_user/i/ie/ieb/ieb/ieb"));
+    assertEquals("/~ieb236/testing/a/b/c", PathUtils.translateAuthorizablePath("/_user/i/ie/ieb/ieb236/testing/a/b/c"));
+    assertEquals("/~ieb/testing", PathUtils.translateAuthorizablePath("/_group/i/ie/ieb/testing"));
+    assertEquals("/~ieb/", PathUtils.translateAuthorizablePath("/_group/i/ie/ieb/"));
+    assertEquals("/~ieb", PathUtils.translateAuthorizablePath("/_group/i/ie/ieb"));
+    assertEquals("/~ieb", PathUtils.translateAuthorizablePath("/_group/i/ie/ieb/ieb"));
+    assertEquals("/~ieb/ieb", PathUtils.translateAuthorizablePath("/_group/i/ie/ieb/ieb/ieb"));
+    assertEquals("/~ieb/testing/a/b/c", PathUtils.translateAuthorizablePath("/_group/i/ieb/ieb/testing/a/b/c"));
+    assertEquals("/~ieb236/testing/a/b/c", PathUtils.translateAuthorizablePath("/_group/i/ie/ieb/ieb236/testing/a/b/c"));
+    assertEquals("/_group", PathUtils.translateAuthorizablePath("/_group"));
+    assertEquals("/_group/", PathUtils.translateAuthorizablePath("/_group/"));
+    assertEquals("/_user", PathUtils.translateAuthorizablePath("/_user"));
+    assertEquals("/_user/", PathUtils.translateAuthorizablePath("/_user/"));
+    assertEquals("/anything/", PathUtils.translateAuthorizablePath("/anything/"));
+  }
 }

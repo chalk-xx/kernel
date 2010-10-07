@@ -36,7 +36,7 @@ import javax.jcr.Session;
 import javax.jcr.query.Query;
 
 /**
- * 
+ *
  */
 public class SearchServletParsingTest extends AbstractEasyMockTest {
 
@@ -57,15 +57,15 @@ public class SearchServletParsingTest extends AbstractEasyMockTest {
 
     expect(request.getRequestParameter("a")).andReturn(rp_a).anyTimes();
     expect(rp_a.getString()).andReturn("again").anyTimes();
-    
+
     Authorizable au = createAuthorizable("admin", false, true);
-    
+
     UserManager um = EasyMock.createMock(UserManager.class);
     expect(um.getAuthorizable("admin")).andReturn(au).anyTimes();
-    
+
     JackrabbitSession session = EasyMock.createMock(JackrabbitSession.class);
     expect(session.getUserManager()).andReturn(um).anyTimes();
-    
+
     ResourceResolver resourceResolver = EasyMock.createMock(ResourceResolver.class);
     expect(resourceResolver.adaptTo(Session.class)).andReturn(session).anyTimes();
     expect(request.getResourceResolver()).andReturn(resourceResolver).anyTimes();
@@ -80,33 +80,33 @@ public class SearchServletParsingTest extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testQueryParsing() {
+  public void testQueryParsing() throws Exception {
     String result = searchServlet.processQueryTemplate(request, " {q}", Query.SQL, null);
     assertEquals(" testing", result);
   }
 
   @Test
-  public void testQueryParsing1() {
+  public void testQueryParsing1() throws Exception {
     String result = searchServlet.processQueryTemplate(request, "{q} ", Query.SQL, null);
     assertEquals("testing ", result);
   }
 
   @Test
-  public void testQueryParsing2() {
+  public void testQueryParsing2() throws Exception {
     String result = searchServlet.processQueryTemplate(request, "{q} {a}", Query.SQL,
         null);
     assertEquals("testing again", result);
   }
 
   @Test
-  public void testQueryParsingDefaultVals() {
+  public void testQueryParsingDefaultVals() throws Exception {
     String result = searchServlet.processQueryTemplate(request, "{q|foo}", Query.SQL,
         null);
     assertEquals("testing", result);
   }
-  
+
   @Test
-  public void testQueryParsingDefaultNullVals() {
+  public void testQueryParsingDefaultNullVals() throws Exception {
     String result = searchServlet.processQueryTemplate(request, "{null|foo}", Query.SQL, null);
     assertEquals("foo", result);
   }

@@ -17,8 +17,6 @@
 package org.apache.jackrabbit.core;
 
 import java.security.Principal;
-import java.util.Arrays; // Nakamura Change
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -573,7 +571,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             WorkspaceSecurityConfig secConf = (conf == null) ?  null : conf.getSecurityConfig();
             synchronized (acProviders) {
                 provider = acProviderFactory.createProvider(systemSession, secConf);
-                getAccessControlProviderHolder(workspaceName).set(provider);
+                getAccessControlProviderHolder(workspaceName).set(provider, systemSession);
             }
         }
         return provider;
@@ -583,7 +581,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
       synchronized (acProviders) {
         AccessControlProviderHolder accessControlProviderHolder = acProviders.get(workspaceName);
         if ( accessControlProviderHolder == null ) {
-          accessControlProviderHolder = new AccessControlProviderHolder();
+          accessControlProviderHolder = new AccessControlProviderHolder(workspaceName, 60000L*5L, 1000);
           acProviders.put(workspaceName, accessControlProviderHolder);
         }
         return accessControlProviderHolder;        

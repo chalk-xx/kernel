@@ -19,6 +19,8 @@ package org.sakaiproject.nakamura.user.servlet;
 
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGERS;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWERS;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGED_GROUP;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGERS_GROUP;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
@@ -204,6 +206,11 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
         // properties directly except to delete them.
         reqProperties.remove(groupPath + "/" + PROP_GROUP_MANAGERS);
         reqProperties.remove(groupPath + "/" + PROP_GROUP_VIEWERS);
+
+        // Block direct manipulation of the properties that implement
+        // a Sakai Group entity's Managers group.
+        reqProperties.remove(PROP_MANAGERS_GROUP);
+        reqProperties.remove(PROP_MANAGED_GROUP);
 
         // write content from form
         writeContent(session, authorizable, reqProperties, changes);

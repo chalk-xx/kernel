@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -129,6 +128,11 @@ public class UserExistsServlet extends SlingSafeMethodsServlet {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST, "This request must have a 'userid' parameter.");
         return;
       }
+      
+      if ("".equals(idParam)) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The 'userid' parameter must not be blank.");
+        return;
+      }
       String id = idParam.getString();
       LOGGER.debug("Checking for existence of {}", id);
       if (session != null) {
@@ -140,8 +144,9 @@ public class UserExistsServlet extends SlingSafeMethodsServlet {
               } else response.sendError(HttpServletResponse.SC_NOT_FOUND);
           }
       }
-    } catch (RepositoryException e) {
-      
+    } catch (Exception e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+      return;
     } finally {
       LOGGER.debug("checking for existence took {} ms", System.currentTimeMillis() - start);
     }
