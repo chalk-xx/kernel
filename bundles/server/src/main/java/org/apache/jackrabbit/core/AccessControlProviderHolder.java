@@ -1,5 +1,6 @@
 package org.apache.jackrabbit.core;
 
+import org.apache.jackrabbit.core.AccessControlProviderHolder.AccessControlProviderReference;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
@@ -105,6 +107,7 @@ public class AccessControlProviderHolder  {
   private String workspaceName;
   private long maxAge;
   private int maxUsed;
+  private List<AccessControlProviderReference> removeQueue = new ArrayList<AccessControlProviderReference>();
 
   public AccessControlProviderHolder(String workspaceName, long maxAge, int maxUsed ) {
     this.workspaceName = workspaceName;
@@ -134,8 +137,9 @@ public class AccessControlProviderHolder  {
   }
 
   private void clean() {
-    List<Thread> toRemove = new ArrayList<Thread>();
     long evictBefore = System.currentTimeMillis() - maxAge;
+    long closeBefore = System.currentTimeMillis() - 30000L;
+    List<Thread> toRemove = new ArrayList<Thread>();
     for ( Entry<Thread, AccessControlProviderReference> e : threadMap.entrySet() ) {
       AccessControlProviderReference r = e.getValue();
       if ( r != null ) {
@@ -146,11 +150,21 @@ public class AccessControlProviderHolder  {
         toRemove.add(e.getKey());
       }
     }
+    //create a temp list to add new items to and check
+    List<AccessControlProviderReference> toCheckRemove = new ArrayList<AccessControlProviderReference>(removeQueue);
+    removeQueue = new ArrayList<AccessControlProviderReference>();
     for ( Thread t : toRemove ) {
-      AccessControlProviderReference r = threadMap.remove(t);
-      if ( r != null ) {
-        LOGGER.debug("{} Evicting  {} size {} ", new Object[] { workspaceName, r, threadMap.size()});
-        r.close();
+      toCheckRemove.add(threadMap.remove(t));
+    }
+    // check which ones to save, and which ones to close
+    for ( AccessControlProviderReference acp : toCheckRemove  ) {
+      if ( acp != null ) {
+        if ( acp.lastUsed < closeBefore ) {
+          LOGGER.debug("{} Evicting  {} size {} ", new Object[] { workspaceName, acp, threadMap.size()});
+          acp.close();          
+        } else {
+          removeQueue.add(acp);
+        }
       }
     }
   }
