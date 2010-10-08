@@ -176,7 +176,8 @@ public class CacheControlFilter implements Filter {
     }
     if ( respCode > 0 ) {
       sresponse.setHeader("X-CacheControlFilterCode", String.valueOf(respCode));
-      sresponse.sendError(respCode,"Not Modified (Cache Control Filter)");
+      sresponse.setStatus(respCode);
+      sresponse.flushBuffer();
     } else {
       if ( cacheAge > 0 ) {
         cachedResponseManager = new CachedResponseManager(srequest, cacheAge, getCache());
