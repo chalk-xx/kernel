@@ -223,6 +223,10 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
       cookie.setPath("/");
       cookie.setVersion(0);
       response.addCookie(cookie);
+      // rfc 2109 section 4.5. stop http 1.1 caches caching the response
+      response.addHeader("Cache-Control", "no-cache=\"set-cookie\" ");
+      // and stop http 1.0 caches caching the response
+      response.addDateHeader("Expires", 0);
       // we *do not* track cookies the first time, to avoid DOS on the cookie store.
       // pingTracking(trackingCookie, remoteUser);
     }
