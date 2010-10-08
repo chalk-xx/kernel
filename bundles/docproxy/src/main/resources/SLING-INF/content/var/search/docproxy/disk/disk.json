@@ -3,5 +3,4 @@
 	"sakai:repository-processor": "disk",
 	"sakai:search-prop-starts-with": "{starts-with}",
 	"sakai:search-prop-ends-with": "{ends-with}"
-	}
 }

@@ -102,6 +102,7 @@ public class SearchServiceFactoryImpl implements SearchServiceFactory {
 
   /**
    * Create a Search Result Set from a row iterator.
+   *
    * @param rowIterator
    * @param size
    * @return
@@ -112,6 +113,7 @@ public class SearchServiceFactoryImpl implements SearchServiceFactory {
 
   /**
    * Create a Search Result Set from a row iterator.
+   *
    * @param rowIterator
    * @param size
    * @return
@@ -120,10 +122,20 @@ public class SearchServiceFactoryImpl implements SearchServiceFactory {
     return new SearchResultSetImpl(new SakaiSearchRowIterator(rowIterator), Math.min(defaultMaxResults, maxResultsToCount));
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.search.SearchServiceFactory#getRowIteratorFromList(java.util.List)
+   */
   public RowIterator getRowIteratorFromList(List<Row> savedRows) {
     return new RowIteratorImpl(savedRows);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.search.SearchServiceFactory#getSearchResultSet(javax.jcr.query.RowIterator, java.lang.Long)
+   */
   public SearchResultSet getSearchResultSet(RowIterator rowIterator, Long offset) {
     RowIterator sakaiSearchRowIter = new SakaiSearchRowIterator(rowIterator);
     sakaiSearchRowIter.skip(offset);

@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_path}//*[@sling:resourceType=\"sakai/page\"{_filter}] order by @{sortOn|jcr:score} {sortOrder|descending}",
+  "sakai:query-template": "/{_path}//*[@sling:resourceType=\"sakai/page\"{_filter?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider": "Page",
   "sakai:title": "Pages.",

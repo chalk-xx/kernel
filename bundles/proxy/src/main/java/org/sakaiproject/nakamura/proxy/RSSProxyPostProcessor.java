@@ -65,6 +65,7 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
 
   // Maximum size is 10 megabyte.
   private static final int MAX_RSS_LENGTH = 10000000;
+  private static final int MAX_XML_EVENTS = 100;
   public static final Logger logger = LoggerFactory
       .getLogger(RSSProxyPostProcessor.class);
 
@@ -100,8 +101,9 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
   public void process(Map<String, Object> templateParams,
       SlingHttpServletResponse response, ProxyResponse proxyResponse) throws IOException {
     if ( proxyResponse.getResultCode() == HttpServletResponse.SC_PRECONDITION_FAILED ) {
-      response.sendError(HttpServletResponse.SC_FORBIDDEN,
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "This RSS feed is too big ");
+      return;
     }
 
     Map<String, String[]> headers = proxyResponse.getResponseHeaders();
@@ -111,7 +113,7 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
     if (contentLengthHeader != null) {
       int length = Integer.parseInt(contentLengthHeader[0]);
       if (length > MAX_RSS_LENGTH) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN,
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
             "This RSS feed is too big. The maximum for a feed is: " + MAX_RSS_LENGTH);
         return;
       }
@@ -125,7 +127,7 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
         contentType = contentType.substring(0, contentType.indexOf(';'));
       }
       if (!contentTypes.contains(contentType)) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN,
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
             "This URL doesn't send a proper Content-Type back");
         return;
       }
@@ -183,23 +185,23 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
 
           }
 
-          if (i > 100) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN,
-                "This file does not match an RSS formatted XML file..");
-            break;
+          if (i > MAX_XML_EVENTS) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                "This file is too complex.");
+            return;
           }
           i++;
         }
       }
 
       if (!isValid) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid RSS file.");
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid RSS file.");
         return;
       }
 
       // Check if we are not streaming a gigantic file..
       if (out.size() > MAX_RSS_LENGTH) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN, "This file is to big.");
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "This file is too big.");
         return;
       }
 
@@ -215,11 +217,11 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
       out.writeTo(response.getOutputStream());
 
     } catch (XMLStreamException e) {
-      response.sendError(HttpServletResponse.SC_FORBIDDEN,
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "This is not a valid XML file.");
     } catch (Exception e) {
-      logger.warn("Exception reading RSS feed.");
-      response.sendError(HttpServletResponse.SC_FORBIDDEN, "General exception caught.");
+      logger.warn("Exception reading RSS feed.", e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "General exception caught.");
     } finally {
       out.close();
       reader.close();

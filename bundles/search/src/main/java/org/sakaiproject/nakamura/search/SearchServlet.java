@@ -486,13 +486,18 @@ public class SearchServlet extends SlingSafeMethodsServlet {
             v = val[0];
             defaultValue = val[1];
           }
+          boolean optional = false;
+          if (v.endsWith("?")) {
+            optional = true;
+            v = v.substring(0, v.length() - 1);
+          }
           if (v.startsWith("_")) {
             String value = propertiesMap.get(v);
             if (!StringUtils.isEmpty(value)) {
               sb.append(value);
             } else if (StringUtils.isEmpty(value) && !StringUtils.isEmpty(defaultValue)) {
               sb.append(defaultValue);
-            } else {
+            } else if (!optional) {
               throw new MissingParameterException("Unable to substitute {" + v
                   + "} in query template");
             }
@@ -507,7 +512,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
               sb.append(escapeString(rpVal, queryLanguage));
             } else if (StringUtils.isEmpty(rpVal) && !StringUtils.isEmpty(defaultValue)) {
               sb.append(escapeString(defaultValue, queryLanguage));
-            } else {
+            } else if (!optional) {
               throw new MissingParameterException("Unable to substitute {" + v
                   + "} in query template");
             }
