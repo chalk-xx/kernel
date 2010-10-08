@@ -126,7 +126,11 @@ public class ClusterTrackingFilterTest extends AbstractEasyMockTest {
     expect(response.isCommitted()).andReturn(false);
     response.addCookie((Cookie) EasyMock.anyObject());
     expectLastCall();
-    
+    response.addHeader("Cache-Control", "no-cache=\"set-cookie\" ");
+    expectLastCall();
+    response.addDateHeader("Expires", 0);
+    expectLastCall();
+
     chain.doFilter(request, response);
     expectLastCall();
 

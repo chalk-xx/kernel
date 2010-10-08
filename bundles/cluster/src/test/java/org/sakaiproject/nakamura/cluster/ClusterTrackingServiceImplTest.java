@@ -260,6 +260,11 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     Capture<Cookie> captureCookie = new Capture<Cookie>();
     response.addCookie(capture(captureCookie));
     expectLastCall();
+    
+    response.addHeader("Cache-Control", "no-cache=\"set-cookie\" ");
+    expectLastCall();
+    response.addDateHeader("Expires", 0);
+    expectLastCall();
 
 
 
