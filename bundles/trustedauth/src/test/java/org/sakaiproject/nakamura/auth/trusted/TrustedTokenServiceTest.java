@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.auth.trusted;
 
+import static org.easymock.EasyMock.expectLastCall;
+
 import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -249,6 +251,10 @@ public class TrustedTokenServiceTest {
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
     EasyMock.expectLastCall();
+    response.addHeader("Cache-Control", "no-cache=\"set-cookie\" ");
+    expectLastCall();
+    response.addDateHeader("Expires", 0);
+    expectLastCall();
     replay();
     trustedTokenService.activate(context);
     String cookie = trustedTokenService.encodeCookie("ieb");
@@ -283,7 +289,11 @@ public class TrustedTokenServiceTest {
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
     EasyMock.expectLastCall();
-
+    response.addHeader("Cache-Control", "no-cache=\"set-cookie\" ");
+    expectLastCall();
+    response.addDateHeader("Expires", 0);
+    expectLastCall();
+    
     replay();
     trustedTokenService.activate(context);
     trustedTokenService.addCookie(response, "ieb");
@@ -309,7 +319,11 @@ public class TrustedTokenServiceTest {
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
     EasyMock.expectLastCall();
-
+    response.addHeader("Cache-Control", "no-cache=\"set-cookie\" ");
+    expectLastCall();
+    response.addDateHeader("Expires", 0);
+    expectLastCall();
+    
     replay();
     trustedTokenService.activate(context);
     trustedTokenService.injectToken(request, response);
@@ -336,7 +350,11 @@ public class TrustedTokenServiceTest {
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
     EasyMock.expectLastCall();
-
+    response.addHeader("Cache-Control", "no-cache=\"set-cookie\" ");
+    expectLastCall();
+    response.addDateHeader("Expires", 0);
+    expectLastCall();
+    
     replay();
     trustedTokenService.activate(context);
     trustedTokenService.injectToken(request, response);
@@ -359,6 +377,10 @@ public class TrustedTokenServiceTest {
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
     EasyMock.expectLastCall();
+    response.addHeader("Cache-Control", "no-cache=\"set-cookie\" ");
+    expectLastCall();
+    response.addDateHeader("Expires", 0);
+    expectLastCall();
 
     replay();
     trustedTokenService.activate(context);
@@ -383,6 +405,10 @@ public class TrustedTokenServiceTest {
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
     EasyMock.expectLastCall();
+    response.addHeader("Cache-Control", "no-cache=\"set-cookie\" ");
+    expectLastCall();
+    response.addDateHeader("Expires", 0);
+    expectLastCall();
 
     replay();
     trustedTokenService.activate(context);
