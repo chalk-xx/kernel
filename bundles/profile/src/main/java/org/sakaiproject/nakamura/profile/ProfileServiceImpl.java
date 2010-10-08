@@ -82,7 +82,7 @@ public class ProfileServiceImpl implements ProfileService {
    */
   public String getHomePath(Authorizable authorizable) {
     String folder = PathUtils.getSubPath(authorizable);
-    if (authorizable.isGroup()) {
+    if (authorizable != null && authorizable.isGroup()) {
       folder = GROUP_JCR_PATH_PREFIX + folder;
     } else {
       folder = USER_JCR_PATH_PREFIX + folder;
