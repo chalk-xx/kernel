@@ -454,6 +454,10 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     c.setPath("/");
     c.setSecure(secureCookie);
     response.addCookie(c);
+    // rfc 2109 section 4.5. stop http 1.1 caches caching the response
+    response.addHeader("Cache-Control", "no-cache=\"set-cookie\" ");
+    // and stop http 1.0 caches caching the response
+    response.addDateHeader("Expires", 0);
   }
 
   /**
