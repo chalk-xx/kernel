@@ -69,7 +69,7 @@ public class RepositoryBaseTest {
   private static BundleContext bundleContext;
   private static RepositoryBase repositoryBase;
 
-  private static RepositoryBase getRepositoryBase() throws IOException,
+  public static RepositoryBase getRepositoryBase() throws IOException,
       RepositoryException {
     if (repositoryBase == null) {
       bundleContext = Mockito.mock(BundleContext.class);

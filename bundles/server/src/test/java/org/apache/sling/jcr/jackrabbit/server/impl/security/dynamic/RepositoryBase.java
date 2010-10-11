@@ -58,7 +58,7 @@ public class RepositoryBase {
     RepositoryConfig crc = RepositoryConfig.create(ins, home.getAbsolutePath());
     repository = RepositoryImpl.create(crc);
     Session session = repository.login(new SimpleCredentials("admin", "admin".toCharArray()));
-    session.getWorkspace().getNamespaceRegistry().registerNamespace("sakai", "http://www.sakaiproject.org/testing");
+    session.getWorkspace().getNamespaceRegistry().registerNamespace("sakai", "http://www.sakaiproject.org/nakamura/2.0");
     session.getWorkspace().getNamespaceRegistry().registerNamespace("sling", "http://sling.apache.org/testing");
     if ( session.hasPendingChanges() ) {
       session.save();

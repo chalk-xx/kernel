@@ -78,6 +78,7 @@
       -->
       <param name="resultFetchSize" value="100" />
       <param name="supportHighlighting" value="true" />
+      <param name="indexingConfiguration" value="src/test/resources/indexing_configuration.xml"/>
     </SearchIndex>
   </Workspace>
 
@@ -94,6 +95,7 @@
   <SearchIndex class="org.apache.jackrabbit.core.query.lucene.SearchIndex">
     <param name="path" value="${rep.home}/repository/index" />
     <param name="supportHighlighting" value="true" />
+    <param name="indexingConfiguration" value="src/test/resources/indexing_configuration.xml"/>
   </SearchIndex>
 
 </Repository>
