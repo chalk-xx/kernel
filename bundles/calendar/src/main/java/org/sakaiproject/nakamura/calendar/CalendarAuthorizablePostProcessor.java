@@ -33,6 +33,7 @@ import org.sakaiproject.nakamura.api.calendar.CalendarException;
 import org.sakaiproject.nakamura.api.calendar.CalendarService;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.util.Map;
@@ -83,10 +84,12 @@ public class CalendarAuthorizablePostProcessor implements AuthorizablePostProces
     Calendar cal = new Calendar();
     calendarService.store(cal, session, path);
 
-    // If the authorizable is a group, we give the group access to it.
-    String[] granted = new String[] { "jcr:all" };
-    AccessControlUtil.replaceAccessControlEntry(session, path, authorizable
-        .getPrincipal(), granted, null, null, null);
+    // If the authorizable is a group, we give the group access to it, but dont do anything for anon.
+    if ( authorizable != null && !UserConstants.ANON_USERID.equals(authorizable.getID()) ) {
+      String[] granted = new String[] { "jcr:all" };
+      AccessControlUtil.replaceAccessControlEntry(session, path, authorizable
+          .getPrincipal(), granted, null, null, null);
+    }
   }
 
 }
