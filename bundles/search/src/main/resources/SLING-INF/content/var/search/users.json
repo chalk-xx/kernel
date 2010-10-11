@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "//*[@sling:resourceType='sakai/user-home']/*[fn:name() = 'public' or fn:name() = 'pages']//*[jcr:contains(.,'{q}')] order by @{sortOn|jcr:score} {sortOrder|descending}",
+  "sakai:query-template": "//*[@sling:resourceType='sakai/user-home' and (jcr:contains(public/*/*/*/*/*,'{q}') or jcr:contains(public/*/*/*/*,'{q}') or jcr:contains(public/*/*/*,'{q}') or jcr:contains(public/*/*,'{q}') or jcr:contains(public/*,'{q}') or jcr:contains(pages/*/*/*/*/*,'{q}') or jcr:contains(pages/*/*/*/*,'{q}') or jcr:contains(pages/*/*/*,'{q}') or jcr:contains(pages/*/*,'{q}') or jcr:contains(pages/*,'{q}'))] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "UniqueProfile",
   "sakai:title": "Users",
