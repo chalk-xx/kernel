@@ -87,10 +87,11 @@ public class MessageAuthorizablePostProcessor implements AuthorizablePostProcess
         Principal everyone = principalManager.getEveryone();
 
 
-        // The user can do everything on this node.
-        replaceAccessControlEntry(session, path, authorizable.getPrincipal(),
-            new String[] { JCR_ALL }, null, null, null);
-
+        if ( !UserConstants.ANON_USERID.equals(authorizable.getID()) ) {
+          // The user can do everything on this node.
+          replaceAccessControlEntry(session, path, authorizable.getPrincipal(),
+              new String[] { JCR_ALL }, null, null, null);
+        }
         // explicitly deny anon and everyone, this is private space.
         String[] deniedPrivs = new String[] { JCR_READ, JCR_WRITE };
         replaceAccessControlEntry(session, path, anon, null, deniedPrivs, null, null);

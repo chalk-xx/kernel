@@ -410,7 +410,12 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       }
     };
     // KERN-886 : Depending on the profile preference we set some ACL's on the profile.
-    if (VISIBILITY_PUBLIC.equals(visibilityPreference)) {
+    if ( UserConstants.ANON_USERID.equals(authorizable.getID()) ) {
+      AccessControlUtil.replaceAccessControlEntry(session, nodePath, anon,
+          new String[] { JCR_READ }, null, null, null);
+      AccessControlUtil.replaceAccessControlEntry(session, nodePath, everyone,
+          new String[] { JCR_READ }, null, null, null);
+    } else if (VISIBILITY_PUBLIC.equals(visibilityPreference)) {
       AccessControlUtil.replaceAccessControlEntry(session, nodePath, anon,
           new String[] { JCR_READ }, null, null, null);
       AccessControlUtil.replaceAccessControlEntry(session, nodePath, everyone,
@@ -620,7 +625,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
         principalManager);
 
     for (Principal manager : managers) {
-      if ( manager != null ) {
+      if ( manager != null && !UserConstants.ANON_USERID.equals(manager.getName()) ) {
         LOGGER.debug("User {} is attempting to make {} a manager ", session.getUserID(),
           manager.getName());
         AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, manager,
@@ -628,7 +633,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       }
     }
     for (Principal viewer : viewers) {
-      if ( viewer != null ) {
+      if ( viewer != null && !UserConstants.ANON_USERID.equals(viewer.getName())) {
         LOGGER.debug("User {} is attempting to make {} a viewer ", session.getUserID(),
           viewer.getName());
         AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, viewer,
