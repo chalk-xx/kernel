@@ -84,14 +84,18 @@ public class ConnectionsUserPostProcessor implements AuthorizablePostProcessor {
       };
       Principal everyone = principalManager.getEveryone();
 
-      replaceAccessControlEntry(session, path, authorizable.getPrincipal(),
-          new String[] { JCR_ALL }, null, null, null);
+      if ( !UserConstants.ANON_USERID.equals(authorizable.getID()) ) {
+        replaceAccessControlEntry(session, path, authorizable.getPrincipal(),
+            new String[] { JCR_ALL }, null, null, null);
+      }
 
       // explicitly deny anon and everyone, this is private space.
       String[] deniedPrivs = new String[] { JCR_READ, JCR_WRITE };
       replaceAccessControlEntry(session, path, anon, null, deniedPrivs, null, null);
       replaceAccessControlEntry(session, path, everyone, null, deniedPrivs, null, null);
-      createContactsGroup(authorizable, session);
+      if ( !UserConstants.ANON_USERID.equals(authorizable.getID()) ) {
+        createContactsGroup(authorizable, session);
+      }
     }
   }
 
