@@ -169,7 +169,7 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceParameter(name = "*", description = { "Any other parameters may be used by the template." }) }, response = {
     @ServiceResponse(code = 200, description = "A search response simular to the above will be emitted "),
     @ServiceResponse(code = 403, description = "The search template is not located under /var "),
-    @ServiceResponse(code = 406, description = "There are too many results that need to be paged. "),
+    @ServiceResponse(code = 400, description = "There are too many results that need to be paged. "),
     @ServiceResponse(code = 500, description = "Any error with the html containing the error")
 
 }) })
@@ -301,7 +301,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         long offset = page * nitems;
         long resultSize = Math.max(nitems, offset);
         if (limitResults && resultSize > maximumResults) {
-          response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE,
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST,
               "There are too many results.");
           return;
         }
