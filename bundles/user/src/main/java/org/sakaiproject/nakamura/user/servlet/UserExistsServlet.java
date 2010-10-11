@@ -17,12 +17,19 @@
 package org.sakaiproject.nakamura.user.servlet;
 
 
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -36,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.jcr.Session;
 import javax.servlet.ServletException;
@@ -75,20 +83,6 @@ import javax.servlet.http.HttpServletResponse;
  * </code>
  *
  * <h4>Notes</h4>
- *
- * @scr.component immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sling/users"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.selectors" value="exists"
- *
- * @scr.property name="servlet.post.dateFormats"
- *               values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
- *               values.1="yyyy-MM-dd'T'HH:mm:ss.SSSZ" values.2="yyyy-MM-dd'T'HH:mm:ss"
- *               values.3="yyyy-MM-dd" values.4="dd.MM.yyyy HH:mm:ss"
- *               values.5="dd.MM.yyyy"
- *
- *
  */
 @ServiceDocumentation(name="User Exists Servlet",
     description="Tests for existence of user. This servlet responds at /system/userManager/user.exists.html",
@@ -104,18 +98,26 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceResponse(code=204,description="Success, user exists."),
         @ServiceResponse(code=404,description="Bad request: the required userid parameter was missing.")
         }))
-
+@Component(immediate=true, metatype=true, label="Sakai Nakamura :: User Existence Check Servlet",
+    description="Returns 204 if userid exists, 404 if not")
+@Service(value=javax.servlet.Servlet.class)
+@Properties(value = {
+    @Property(name="sling.servlet.resourceTypes", value="sling/users"),
+    @Property(name="sling.servlet.methods", value="GET"),
+    @Property(name="sling.servlet.selectors", value="exists")
+})
 public class UserExistsServlet extends SlingSafeMethodsServlet {
-
-
-
-  /**
-   * 
-   */
   private static final long serialVersionUID = 7051557537133012560L;
-  
+
   private static final Logger LOGGER = LoggerFactory
       .getLogger(UserExistsServlet.class);
+
+  @Property(label="Delay (MS)",
+      description="Number of milliseconds to delay before responding; 0 to return as quickly as possible",
+      longValue=UserExistsServlet.USER_EXISTS_DELAY_MS_DEFAULT)
+  public static final String USER_EXISTS_DELAY_MS_PROPERTY = "user.exists.delay.ms";
+  public static final long USER_EXISTS_DELAY_MS_DEFAULT = 200;
+  protected long delayMs;
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -128,7 +130,7 @@ public class UserExistsServlet extends SlingSafeMethodsServlet {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST, "This request must have a 'userid' parameter.");
         return;
       }
-      
+
       if ("".equals(idParam)) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The 'userid' parameter must not be blank.");
         return;
@@ -149,7 +151,21 @@ public class UserExistsServlet extends SlingSafeMethodsServlet {
       return;
     } finally {
       LOGGER.debug("checking for existence took {} ms", System.currentTimeMillis() - start);
+      if (delayMs > 0) {
+        long remainingTime = delayMs - (System.currentTimeMillis() - start);
+        if (remainingTime > 0) {
+          try {
+            Thread.sleep(remainingTime);
+          } catch (InterruptedException e) {
+          }
+        }
+      }
     }
   }
 
+  @Activate @Modified
+  protected void modified(Map<?, ?> props) {
+    delayMs = OsgiUtil.toLong(props.get(USER_EXISTS_DELAY_MS_PROPERTY),
+        USER_EXISTS_DELAY_MS_DEFAULT);
+  }
 }
