@@ -84,18 +84,12 @@ public class UniqueProfileSearchResultProcessor implements SearchResultProcessor
 
       RowIterator rows = rs.getRows();
 
-      // Get just the home node for each result found
-      RowIterator homeRowIter = new AuthorizableHomeRowIterator(rows);
-
-      // filter the result set so that only 1 result is presented for each user/path found.
-      RowIterator uniqPathIter = new UniquePathRowIterator(homeRowIter);
-
       // Extract the total hits from lucene
       long start = SearchUtil.getPaging(request);
 
       try {
         // Return the result set.
-        SearchResultSet srs = searchServiceFactory.getSearchResultSet(uniqPathIter,
+        SearchResultSet srs = searchServiceFactory.getSearchResultSet(rows,
             Long.valueOf(start));
         return srs;
       } catch (NoSuchElementException e) {
