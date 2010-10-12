@@ -241,7 +241,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   @Reference
   protected transient ProfileService profileService;
 
-  private Pattern homePathPattern = Pattern.compile("(~(.*?))/");
+  private Pattern homePathPattern = Pattern.compile("^(.*)(~(\\w*?))/");
 
   @Override
   public void init() throws ServletException {
@@ -440,10 +440,11 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       RepositoryException {
     Matcher homePathMatcher = homePathPattern.matcher(queryString);
     if (homePathMatcher.find()) {
-      String username = homePathMatcher.group(2);
+      String username = homePathMatcher.group(3);
+      String homePrefix = homePathMatcher.group(1);
       UserManager um = AccessControlUtil.getUserManager(node.getSession());
       Authorizable au = um.getAuthorizable(username);
-      String homePath = profileService.getHomePath(au).substring(1) + "/";
+      String homePath = homePrefix + profileService.getHomePath(au).substring(1) + "/";
       queryString = homePathMatcher.replaceAll(homePath);
     }
     return queryString;
