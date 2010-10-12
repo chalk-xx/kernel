@@ -221,10 +221,10 @@ public class BatchServlet extends SlingAllMethodsServlet {
       // Get the response
       try {
         if (resource != null) {
-          LOGGER.info("Dispatching to request path='{}', resource path='{}'", requestPath, resource.getPath());
+          LOGGER.debug("Dispatching to request path='{}', resource path='{}'", requestPath, resource.getPath());
           requestDispatcher = request.getRequestDispatcher(resource);
         } else {
-          LOGGER.info("Dispatching to request path='{}', no resource", requestPath);
+          LOGGER.debug("Dispatching to request path='{}', no resource", requestPath);
           requestDispatcher = request.getRequestDispatcher(requestPath);
         }
         requestDispatcher.forward(requestWrapper, responseWrapper);
