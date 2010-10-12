@@ -111,5 +111,6 @@ public class ProfileNodeSearchResultProcessor implements SearchResultProcessor {
       PresenceUtils.makePresenceJSON(write, profileNode.getProperty("rep:userId")
           .getString(), presenceService, true);
     }
+    write.endObject();
   }
 }
