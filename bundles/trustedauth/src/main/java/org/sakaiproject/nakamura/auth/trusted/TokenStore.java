@@ -49,7 +49,7 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class TokenStore {
 
-  protected static final boolean DEBUG_COOKIES = true; // turning this on will expose the shared secrets in the logs.
+  protected static final boolean DEBUG_COOKIES = false; // turning this on will expose the shared secrets in the logs.
 
   /**
    * Thrown when there is a problem with a Cookie.

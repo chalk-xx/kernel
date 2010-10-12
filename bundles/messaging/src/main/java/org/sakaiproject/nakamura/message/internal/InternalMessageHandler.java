@@ -172,9 +172,12 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
 
-          if (session.hasPendingChanges()) {
-            session.save();
-          }
+          // KERN-1222 this session will be saved in AbstractSlingPostOperation
+          // So saving it here only causes javax.jcr.InvalidItemStateException:
+          // Item cannot be saved because it has been modified externally: node / 
+//          if (session.hasPendingChanges()) {
+//            session.save();
+//          }
           recipients.add(rcpt);
         }
       }
