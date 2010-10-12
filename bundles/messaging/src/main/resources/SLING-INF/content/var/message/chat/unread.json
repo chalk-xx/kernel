@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_userMessagePath}//element(*)MetaData[(@sling:resourceType='sakai/message' and @sakai:type='chat' and @sakai:created >= xs:dateTime('{t}')){_from}] order by @{sortOn|jcr:created} {sortOrder|descending}",
+  "sakai:query-template": "/{_userMessagePath}//element(*)MetaData[(@sling:resourceType='sakai/message' and @sakai:type='chat' and @sakai:created >= xs:dateTime('{t}')){_from?}] order by @{sortOn|jcr:created} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "ChatMessage",
   "sakai:resultprocessor": "Message",
