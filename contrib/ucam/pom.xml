@@ -3,7 +3,7 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.9</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>uk.ac.cam.caret.nakamura</groupId>
@@ -20,7 +20,7 @@
           <defaultBundleList>
             <groupId>org.sakaiproject.nakamura</groupId>
             <artifactId>org.sakaiproject.nakamura.app</artifactId>
-            <version>0.9</version>
+            <version>0.9-SNAPSHOT</version>
           </defaultBundleList>
           <additionalBundles>
             <bundle>
@@ -31,7 +31,7 @@
             <bundle>
                 <groupId>org.sakaiproject.nakamura</groupId>
                 <artifactId>org.sakaiproject.nakamura.mysqljdbc</artifactId>
-                <version>0.9</version>
+                <version>0.9-SNAPSHOT</version>
             </bundle>
           </additionalBundles>
           <bundleExclusions>
@@ -41,7 +41,7 @@
           <jarWebSupport>
             <groupId>org.sakaiproject.nakamura</groupId>
             <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
-            <version>0.9</version>
+            <version>0.9-SNAPSHOT</version>
             <startLevel>5</startLevel>
           </jarWebSupport>
         </configuration>
@@ -101,7 +101,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.mysqljdbc</artifactId>
-      <version>0.9</version>
+      <version>0.9-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <repositories>
