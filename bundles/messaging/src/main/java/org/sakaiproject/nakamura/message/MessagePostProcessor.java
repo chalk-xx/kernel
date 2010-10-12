@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.message;
 
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-
 import static org.sakaiproject.nakamura.api.message.MessageConstants.BOX_OUTBOX;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.EVENT_LOCATION;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PENDINGMESSAGE_EVENT;
@@ -72,7 +71,7 @@ public class MessagePostProcessor implements SlingPostProcessor {
   /**
    * {@inheritDoc} This post processor is only interested in posts to messages,
    * so it should iterate rapidly through all messages.
-   * 
+   *
    * @see org.apache.sling.servlets.post.SlingPostProcessor#process(org.apache.sling.api.SlingHttpServletRequest,
    *      java.util.List)
    */
@@ -139,11 +138,15 @@ public class MessagePostProcessor implements SlingPostProcessor {
         }
       }
     }
+    // KERN-1222, KERN-1229
+    // refresh the session in case any of the event responders make changes in a different
+    // session.  this is known to happen in InternalMessageHandler.
+    s.refresh(true);
   }
 
   /**
    * Gets the node for a modification.
-   * 
+   *
    * @param m
    * @return
    */
