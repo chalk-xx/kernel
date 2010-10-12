@@ -138,7 +138,7 @@ public class MessagePostProcessor implements SlingPostProcessor {
         }
       }
     }
-    // KERN-1222, KERN-1229
+    // KERN-1222, KERN-1225
     // refresh the session in case any of the event responders make changes in a different
     // session.  this is known to happen in InternalMessageHandler.
     s.refresh(true);
