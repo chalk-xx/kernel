@@ -32,12 +32,16 @@ import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
-import org.sakaiproject.nakamura.search.processors.NodeSearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.SearchException;
+import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 
 /**
@@ -50,7 +54,10 @@ import javax.jcr.query.Row;
   @Property(name = Constants.SERVICE_VENDOR, value = "The Sakai Foundation"),
   @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "Profile")
 })
-public class ProfileNodeSearchResultProcessor extends NodeSearchResultProcessor {
+public class ProfileNodeSearchResultProcessor implements SearchResultProcessor {
+  @Reference
+  private SearchServiceFactory searchServiceFactory;
+
   @Reference
   private ProfileService profileService;
 
@@ -60,12 +67,13 @@ public class ProfileNodeSearchResultProcessor extends NodeSearchResultProcessor 
   public ProfileNodeSearchResultProcessor() {
   }
 
-  ProfileNodeSearchResultProcessor(ProfileService profileService,
-      PresenceService presenceService) {
-    if ( profileService == null || presenceService == null ) {
+  ProfileNodeSearchResultProcessor(SearchServiceFactory searchServiceFactory,
+      ProfileService profileService, PresenceService presenceService) {
+    if (searchServiceFactory == null || profileService == null || presenceService == null) {
       throw new IllegalArgumentException(
-          "ProfileService and PresenceService must be set when not using as a component");
+          "SearchServiceFactory, ProfileService and PresenceService must be set when not using as a component");
     }
+    this.searchServiceFactory = searchServiceFactory;
     this.presenceService = presenceService;
     this.profileService = profileService;
   }
@@ -73,11 +81,21 @@ public class ProfileNodeSearchResultProcessor extends NodeSearchResultProcessor 
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.nakamura.search.processors.NodeSearchResultProcessor#writeNode(org.apache.sling.api.SlingHttpServletRequest,
+   * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
+   *      javax.jcr.query.Query)
+   */
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SearchException {
+    return searchServiceFactory.getSearchResultSet(request, query);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.search.processors.SearchResultProcessor#writeNode(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.commons.json.io.JSONWriter,
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.Row)
    */
-  @Override
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Node homeNode = row.getNode();
