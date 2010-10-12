@@ -28,7 +28,7 @@
     <description> Standalone Launchpad Java Application. Everything needed to run the Launchpad is
     included in a single JAR file. </description>
     <properties>
-      <ux>0.5.0-SNAPSHOT</ux>
+      <ux>0.5.0</ux>
     </properties>
 
     <build>
