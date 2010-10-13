@@ -9,7 +9,6 @@ import static org.easymock.EasyMock.replay;
 
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.event.Event;
@@ -41,7 +40,7 @@ public class MessageSentListenerTest {
     expect(node.getProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(prop);
     expect(node.getPath()).andReturn("").anyTimes();
     expect(node.isNew()).andReturn(true).anyTimes();
-    
+
     replay(prop, node);
 
     messageRouterManager = createMock(MessageRouterManager.class);
@@ -49,7 +48,7 @@ public class MessageSentListenerTest {
         new MessageRoutesImpl(node));
 
     replay(messageRouterManager);
-    
+
     session = createMock(Session.class);
 
     Property msgProp = createMock(Property.class);
@@ -63,19 +62,11 @@ public class MessageSentListenerTest {
 
     slingRepository = createMock(SlingRepository.class);
     expect(slingRepository.loginAdministrative(null)).andReturn(session);
+    session.logout();
+    expectLastCall();
     replay(msgProp, msgNode, session, slingRepository);
 
-
-    msl = new MessageSentListener();
-    msl.messageRouterManager = messageRouterManager;
-    msl.slingRepository = slingRepository;
-    msl.activate(null);
-  }
-
-  @After
-  public void cleanup() {
-    msl.messageRouterManager = null;
-    msl.slingRepository = null;
+    msl = new MessageSentListener(messageRouterManager, slingRepository);
   }
 
   @Test
