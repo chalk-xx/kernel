@@ -134,7 +134,9 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
       // can trigger InvalidItemStateException after a Workspace.copy.
       // TODO Check to see if this is still a problem after we upgrade to
       // Jackrabbit 2.1.1
-      session.refresh(true);
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
     }
     if (change == ModificationType.DELETE) {
       doInternalProcessing(authorizable, session, modification, parameters);
