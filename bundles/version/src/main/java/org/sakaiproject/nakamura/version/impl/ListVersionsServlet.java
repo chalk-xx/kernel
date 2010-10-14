@@ -140,8 +140,18 @@ public class ListVersionsServlet extends SlingSafeMethodsServlet {
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
 
+      boolean tidy = false;
+      String[] selectors = request.getRequestPathInfo().getSelectors();
+      for (String selector : selectors) {
+        if ("tidy".equals(selector)) {
+          tidy = true;
+          break;
+        }
+      }
+
       Writer writer = response.getWriter();
       ExtendedJSONWriter write = new ExtendedJSONWriter(writer);
+      write.setTidy(tidy);
       write.object();
       write.key(JSON_PATH);
       write.value(node.getPath());
