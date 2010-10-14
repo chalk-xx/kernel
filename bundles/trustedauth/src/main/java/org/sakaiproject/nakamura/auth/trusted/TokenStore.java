@@ -49,8 +49,6 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class TokenStore {
 
-  protected static final boolean DEBUG_COOKIES = false; // turning this on will expose the shared secrets in the logs.
-
   /**
    * Thrown when there is a problem with a Cookie.
    */
@@ -155,7 +153,7 @@ public class TokenStore {
             }
             SecretKey secretKey = expiringSecretKey.getSecretKey();
             String userId = decodeField(parts[2]);
-            if ( DEBUG_COOKIES ) {
+            if ( debugCookies ) {
               LOG.info("Decoding with server:{} keyno:{} secret:{} user:{} cookeiTime:{} cookie:{}",new Object[]{serverId, secretKeyId, encodeField(secretKey.getEncoded()), userId, cookieTime, value} );
             }
             String hmac = encode(cookieTime, userId);
@@ -246,6 +244,8 @@ public class TokenStore {
    */
   private CacheManagerService cacheManager;
 
+  private boolean debugCookies;
+
   /**
    * @throws NoSuchAlgorithmException
    * @throws InvalidKeyException
@@ -266,6 +266,11 @@ public class TokenStore {
     m.doFinal();
     this.tokenFile = new File(DEFAULT_TOKEN_FILE);
     tmpTokenFile = new File(DEFAULT_TOKEN_FILE + ".tmp");
+   
+  }
+  
+  public void setDebugCookies(boolean debugCookies) {
+    this.debugCookies = debugCookies;
   }
 
   /**
@@ -319,7 +324,7 @@ public class TokenStore {
       }
       secretKeyRingBuffer[nextToken] = expiringSecretKey;
       LOG.debug("Added SecretKey {} at {} ", encodeField(expiringSecretKey.getSecretKey().getEncoded()), nextToken);
-      if ( DEBUG_COOKIES ) {
+      if ( debugCookies ) {
         dumpSecretKeyRingBuffer(secretKeyRingBuffer);
       }
       getServerKeyCache().put(getCacheKey(serverId, nextToken),
@@ -335,9 +340,11 @@ public class TokenStore {
     int i = 0;
     for ( ExpiringSecretKey e : secretKeyRingBuffer ) {
       if ( e == null ) {
-        sb.append(i).append(",").append(-1).append(",").append("empty").append("\n");        
+        sb.append(i).append(", Expires in:").append(-1).append(", Key:").append("empty").append("\n");        
       } else {
-        sb.append(i).append(",").append(System.currentTimeMillis()-e.getExpires()).append(",").append(new Base64().encodeToString(e.getSecretKey().getEncoded())).append("\n");
+        sb.append(i).append(", Expires in:").append(e.getExpires()-System.currentTimeMillis());
+        sb.append(", Key:").append(encodeField(e.getSecretKey().getEncoded()));
+        sb.append(", Server:").append(e.getServerId()).append("\n");
       }
     }
     LOG.info("Secret Key Ring Buffer, Active ID is {}\n{}",secretKeyId,sb.toString());
@@ -348,7 +355,9 @@ public class TokenStore {
    * @return
    */
   private boolean hasExpired(ExpiringSecretKey expiringSecretKey) {
-    return expiringSecretKey == null || (System.currentTimeMillis() > expiringSecretKey.getExpires());
+    return expiringSecretKey == null 
+    || (System.currentTimeMillis() > expiringSecretKey.getExpires()) 
+    || !serverId.equals(expiringSecretKey.getServerId());
   }
 
   /**
@@ -440,6 +449,7 @@ public class TokenStore {
       nextUpdate = newNextUpdate;
       secretKeyId = newCurrentToken;
       secretKeyRingBuffer = newKeys;
+      
     } catch (IOException e) {
       LOG.error("Failed to load cookie keys " + e.getMessage());
     } finally {
@@ -457,7 +467,9 @@ public class TokenStore {
       nextUpdate = System.currentTimeMillis();
       secretKeyId = 0;
     }
-
+    if ( debugCookies ) {
+      dumpSecretKeyRingBuffer(secretKeyRingBuffer);
+    }
   }
 
   /**

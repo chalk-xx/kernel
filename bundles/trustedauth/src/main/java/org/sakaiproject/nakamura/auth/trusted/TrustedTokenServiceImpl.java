@@ -113,6 +113,9 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   @Property(value ="")
   public static final String TRUSTED_PROXY_SERVER_ADDR = "sakai.auth.trusted.server.safe-authentication-addresses";
 
+  @Property(boolValue=false )
+  public static final String DEBUG_COOKIES = "sakai.auth.trusted.token.debugcookies";
+
   /**
    * the name of the header to be trusted, if null or "" then don't trust headers.
    */
@@ -188,6 +191,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   private String[] safeWrappers;
 
+  private boolean debugCookies;
+
   /**
    * @throws NoSuchAlgorithmException
    * @throws InvalidKeyException
@@ -198,6 +203,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   public TrustedTokenServiceImpl() throws NoSuchAlgorithmException, InvalidKeyException,
       IllegalStateException, UnsupportedEncodingException {
       tokenStore = new TokenStore();
+    
   }
 
 
@@ -210,7 +216,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     trustedAuthCookieName = (String) props.get(COOKIE_NAME);
     sharedSecret = (String) props.get(SERVER_TOKEN_SHARED_SECRET);
     trustedTokenEnabled = (Boolean) props.get(SERVER_TOKEN_ENABLED);
-
+    debugCookies = (Boolean) props.get(DEBUG_COOKIES);
+    tokenStore.setDebugCookies(debugCookies);
     String safeHostsAddr = OsgiUtil.toString(props.get(SERVER_TOKEN_SAFE_HOSTS_ADDR), "");
     safeHostAddrSet.clear();
     if ( safeHostsAddr != null) {
@@ -483,7 +490,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     if (parts != null && parts.length == 4) {
       long cookieTime = Long.parseLong(parts[1].substring(1));
       if (System.currentTimeMillis() + (ttl / 2) > cookieTime) {
-        if ( TokenStore.DEBUG_COOKIES) {
+        if ( debugCookies) {
           LOG.info("Refreshing Token for {} cookieTime {} ttl {} CurrentTime {} ",new Object[]{userId, cookieTime, ttl, System.currentTimeMillis()});
         }
         addCookie(response, userId);
