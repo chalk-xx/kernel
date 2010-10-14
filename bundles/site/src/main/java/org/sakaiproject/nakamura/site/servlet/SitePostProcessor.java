@@ -22,9 +22,11 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostProcessor;
+import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.site.SiteAuthz;
 import org.slf4j.Logger;
@@ -33,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 import javax.jcr.Item;
+import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
@@ -69,10 +72,15 @@ public class SitePostProcessor implements SlingPostProcessor {
               LOGGER.debug("Change to node {}", item);
             } else {
               LOGGER.debug("Change to property {}", item);
-              if (!authzHandled && SiteAuthz.MONITORED_SITE_PROPERTIES.contains(item.getName())) {
-                SiteAuthz authz = new SiteAuthz(item.getParent(), postProcessService);
-                authz.applyAuthzChanges();
-                authzHandled = true;  // Only needed once
+              // Make sure that this is a Site property.
+              Node node = item.getParent();
+              if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY) &&
+                  node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString().equals(SiteService.SITE_RESOURCE_TYPE)) {
+                if (!authzHandled && SiteAuthz.MONITORED_SITE_PROPERTIES.contains(item.getName())) {
+                  SiteAuthz authz = new SiteAuthz(node, postProcessService);
+                  authz.applyAuthzChanges();
+                  authzHandled = true;  // Only needed once
+                }
               }
             }
           } else {

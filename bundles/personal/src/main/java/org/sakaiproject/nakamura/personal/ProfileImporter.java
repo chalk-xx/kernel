@@ -59,7 +59,7 @@ public class ProfileImporter {
     }
     @Override
     public boolean isPropertyOverwrite() {
-      return false;
+      return true;
     }
   };
 

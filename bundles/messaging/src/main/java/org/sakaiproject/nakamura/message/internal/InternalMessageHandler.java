@@ -79,7 +79,7 @@ import javax.jcr.ValueFormatException;
 public class InternalMessageHandler implements MessageTransport, MessageProfileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_INTERNAL;
-  
+
   private boolean testing = false;
 
   @Reference
@@ -110,9 +110,10 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
    *      org.osgi.service.event.Event, javax.jcr.Node)
    */
   public void send(MessageRoutes routes, Event event, Node originalMessage) {
+    Session session = null;
     try {
 
-      Session session = slingRepository.loginAdministrative(null);
+      session = slingRepository.loginAdministrative(null);
 
       //recipients keeps track of who have already received the message, to avoid duplicate messages
       List<String> recipients = new ArrayList<String>();
@@ -124,7 +125,7 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
           // the path were we want to save messages in.
           String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID)
           .getString();
-          
+
           sendHelper(recipients, rcpt, originalMessage, session, messageId, um);
           if (!testing) {
             String from = originalMessage.getProperty(PROP_SAKAI_FROM).getString();
@@ -137,23 +138,27 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
       }
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
+    } finally {
+      if (session != null) {
+        session.logout();
+      }
     }
   }
 
-  private void sendHelper(List<String> recipients, String rcpt, Node originalMessage, Session session, String messageId, UserManager um){   
+  private void sendHelper(List<String> recipients, String rcpt, Node originalMessage, Session session, String messageId, UserManager um){
     try {
       Authorizable au = um.getAuthorizable(rcpt);
       if(au != null && au.isGroup() && au instanceof Group){
         Group group = (Group) au;
         //user must be in the group directly to send a message:
         for (Iterator<Authorizable> iterator = group.getDeclaredMembers(); iterator.hasNext();) {
-          Authorizable auth = (Authorizable) iterator.next();
+          Authorizable auth = iterator.next();
           if(!recipients.contains(auth.getID())){
             //call back to itself: this allows for groups to be in groups and future extensions
             sendHelper(recipients, auth.getID(), originalMessage, session, messageId, um);
             recipients.add(auth.getID());
           }
-        }        
+        }
       }else{
         //only send a message to a user who hasn't already received one:
         if(!recipients.contains(rcpt)){
@@ -172,12 +177,9 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
 
-          // KERN-1222 this session will be saved in AbstractSlingPostOperation
-          // So saving it here only causes javax.jcr.InvalidItemStateException:
-          // Item cannot be saved because it has been modified externally: node / 
-//          if (session.hasPendingChanges()) {
-//            session.save();
-//          }
+          if (session.hasPendingChanges()) {
+            session.save();
+          }
           recipients.add(rcpt);
         }
       }
@@ -240,7 +242,7 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
       LOG.error(e.getMessage(), e);
     }
   }
-  
+
   /**
    * This method should only be called for unit testing purposes. It will disable the ACL
    * settings.

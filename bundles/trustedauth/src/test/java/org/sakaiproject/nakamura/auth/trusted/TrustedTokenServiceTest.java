@@ -94,6 +94,7 @@ public class TrustedTokenServiceTest {
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS_ADDR, "127.0.0.1");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
+    dict.put(TrustedTokenServiceImpl.DEBUG_COOKIES, false );
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -111,6 +112,7 @@ public class TrustedTokenServiceTest {
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
     dict.put(TrustedTokenServiceImpl.TRUSTED_HEADER_NAME, "remote_user");
     dict.put(TrustedTokenServiceImpl.TRUSTED_PROXY_SERVER_ADDR, "192.168.0.123;192.168.1.123");
+    dict.put(TrustedTokenServiceImpl.DEBUG_COOKIES, false );
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -128,6 +130,7 @@ public class TrustedTokenServiceTest {
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
     dict.put(TrustedTokenServiceImpl.TRUSTED_PARAMETER_NAME, "remote_user_parameter");
     dict.put(TrustedTokenServiceImpl.TRUSTED_PROXY_SERVER_ADDR, "192.168.0.123;192.168.1.123");
+    dict.put(TrustedTokenServiceImpl.DEBUG_COOKIES, false );
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -143,6 +146,7 @@ public class TrustedTokenServiceTest {
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS_ADDR, "127.0.0.1");
     dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
+    dict.put(TrustedTokenServiceImpl.DEBUG_COOKIES, false );
 
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
