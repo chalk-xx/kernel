@@ -74,6 +74,8 @@ import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.Privilege;
 import javax.jcr.version.VersionException;
 
 /**
@@ -175,56 +177,54 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   private void updateProfileProperties(Session session, Node profileNode,
       Authorizable authorizable, Modification change, Map<String, Object[]> parameters)
       throws RepositoryException {
-
-    String dest = change.getDestination();
-    if (dest == null) {
-      dest = change.getSource();
-    }
-
     if (profileNode == null) {
       return;
     }
 
-    // If the client sent a parameter specifying new Profile content,
-    // apply it now.
-    String defaultProfile = processProfileParameters(defaultProfileTemplate,
-        authorizable, parameters);
-    ProfileImporter.importFromParameters(profileNode, parameters, contentImporter,
-        session, defaultProfile);
+    // The current session does not necessarily have write access to
+    // the Profile.
+    if (isAbleToModify(session, profileNode.getPath())) {
+      // If the client sent a parameter specifying new Profile content,
+      // apply it now.
+      String defaultProfile = processProfileParameters(defaultProfileTemplate,
+          authorizable, parameters);
+      ProfileImporter.importFromParameters(profileNode, parameters, contentImporter,
+          session, defaultProfile);
 
-    // build a blacklist set of properties that should be kept private
-    Set<String> privateProperties = new HashSet<String>();
-    if (profileNode.hasProperty(UserConstants.PRIVATE_PROPERTIES)) {
-      Value[] pp = profileNode.getProperty(UserConstants.PRIVATE_PROPERTIES).getValues();
-      for (Value v : pp) {
-        privateProperties.add(v.getString());
+      // build a blacklist set of properties that should be kept private
+      Set<String> privateProperties = new HashSet<String>();
+      if (profileNode.hasProperty(UserConstants.PRIVATE_PROPERTIES)) {
+        Value[] pp = profileNode.getProperty(UserConstants.PRIVATE_PROPERTIES).getValues();
+        for (Value v : pp) {
+          privateProperties.add(v.getString());
+        }
       }
-    }
-    // copy the non blacklist set of properties into the users profile.
-    if (authorizable != null) {
-      // explicitly add protected properties form the user authorizable
-      if (!authorizable.isGroup() && !profileNode.hasProperty("rep:userId")) {
-        profileNode.setProperty("rep:userId", authorizable.getID());
-      }
-      Iterator<?> inames = authorizable.getPropertyNames();
-      while (inames.hasNext()) {
-        String propertyName = (String) inames.next();
-        // No need to copy in jcr:* properties, otherwise we would copy over the uuid
-        // which could lead to a lot of confusion.
-        if (!propertyName.startsWith("jcr:") && !propertyName.startsWith("rep:")) {
-          if (!privateProperties.contains(propertyName)) {
-            Value[] v = authorizable.getProperty(propertyName);
-            if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
-                propertyName).getDefinition().isProtected())) {
-              if (v.length == 1) {
-                profileNode.setProperty(propertyName, v[0]);
-              } else {
-                profileNode.setProperty(propertyName, v);
+      // copy the non blacklist set of properties into the users profile.
+      if (authorizable != null) {
+        // explicitly add protected properties form the user authorizable
+        if (!authorizable.isGroup() && !profileNode.hasProperty("rep:userId")) {
+          profileNode.setProperty("rep:userId", authorizable.getID());
+        }
+        Iterator<?> inames = authorizable.getPropertyNames();
+        while (inames.hasNext()) {
+          String propertyName = (String) inames.next();
+          // No need to copy in jcr:* properties, otherwise we would copy over the uuid
+          // which could lead to a lot of confusion.
+          if (!propertyName.startsWith("jcr:") && !propertyName.startsWith("rep:")) {
+            if (!privateProperties.contains(propertyName)) {
+              Value[] v = authorizable.getProperty(propertyName);
+              if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
+                  propertyName).getDefinition().isProtected())) {
+                if (v.length == 1) {
+                  profileNode.setProperty(propertyName, v[0]);
+                } else {
+                  profileNode.setProperty(propertyName, v);
+                }
               }
             }
+          } else {
+            LOGGER.debug("Not Updating {}", propertyName);
           }
-        } else {
-          LOGGER.debug("Not Updating {}", propertyName);
         }
       }
     }
@@ -588,8 +588,10 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
     Node profileNode = getProfileNode(session, authorizable);
     if (profileNode != null) {
       // Mirror the current state of the Authorizable's visibility and
-      // management controls. (We might think about being more selective
-      // at some point.)
+      // management controls, if the current session has the right to do
+      // so.
+      // TODO Replace these implicit side-effects with something more controllable
+      // by the client.
       refreshOwnership(session, authorizable, profileService.getHomePath(authorizable));
       updateProfileProperties(session, getProfileNode(session, authorizable),
           authorizable, change, parameters);
@@ -597,10 +599,10 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   }
 
   /**
-   * Synchronize home folder access to match the current accessibility of the
-   * Jackrabbit User or Group. Currently this is done for every update,
-   * overwriting any ACLs which might have been explicitly set on the
-   * home node.
+   * If the current session has sufficient rights, synchronize home folder
+   * access to match the current accessibility of the Jackrabbit User or
+   * Group. Currently this is done for every update, overwriting any ACLs
+   * which might have been explicitly set on the home node.
    *
    * @param session
    * @param authorizable
@@ -609,38 +611,55 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private void refreshOwnership(Session session, Authorizable authorizable,
       String homeFolderPath) throws RepositoryException {
-    PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
+    if (isAbleToControlAccess(session, homeFolderPath)) {
+      PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
 
-    Value[] managerSettings = authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS);
-    Value[] viewerSettings = authorizable.getProperty(UserConstants.PROP_GROUP_VIEWERS);
+      Value[] managerSettings = authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS);
+      Value[] viewerSettings = authorizable.getProperty(UserConstants.PROP_GROUP_VIEWERS);
 
-    // If the Authorizable has a managers list, everyone on that list gets write access.
-    // Otherwise, the Authorizable itself is the owner.
-    Principal[] managers = valuesToPrincipal(managerSettings,
-        new Principal[] { authorizable.getPrincipal() }, principalManager);
+      // If the Authorizable has a managers list, everyone on that list gets write access.
+      // Otherwise, the Authorizable itself is the owner.
+      Principal[] managers = valuesToPrincipal(managerSettings,
+          new Principal[] { authorizable.getPrincipal() }, principalManager);
 
-    // Do not automatically give read-access to anonymous and everyone, since that
-    // forces User Home folders to be public and overwrites configuration settings.
-    Principal[] viewers = valuesToPrincipal(viewerSettings, new Principal[] { },
-        principalManager);
+      // Do not automatically give read-access to anonymous and everyone, since that
+      // forces User Home folders to be public and overwrites configuration settings.
+      Principal[] viewers = valuesToPrincipal(viewerSettings, new Principal[] { },
+          principalManager);
 
-    for (Principal manager : managers) {
-      if ( manager != null && !UserConstants.ANON_USERID.equals(manager.getName()) ) {
-        LOGGER.debug("User {} is attempting to make {} a manager ", session.getUserID(),
-          manager.getName());
-        AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, manager,
-          new String[] { JCR_ALL }, null, null, null);
+      for (Principal manager : managers) {
+        if ( manager != null && !UserConstants.ANON_USERID.equals(manager.getName()) ) {
+          LOGGER.debug("User {} is attempting to make {} a manager ", session.getUserID(),
+            manager.getName());
+          AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, manager,
+            new String[] { JCR_ALL }, null, null, null);
+        }
       }
-    }
-    for (Principal viewer : viewers) {
-      if ( viewer != null && !UserConstants.ANON_USERID.equals(viewer.getName())) {
-        LOGGER.debug("User {} is attempting to make {} a viewer ", session.getUserID(),
-          viewer.getName());
-        AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, viewer,
-          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
+      for (Principal viewer : viewers) {
+        if ( viewer != null && !UserConstants.ANON_USERID.equals(viewer.getName())) {
+          LOGGER.debug("User {} is attempting to make {} a viewer ", session.getUserID(),
+            viewer.getName());
+          AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, viewer,
+            new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
+        }
       }
+      LOGGER.debug("Set ACL on Node for {} at   {} ", authorizable.getID(), homeFolderPath);
     }
-    LOGGER.debug("Set ACL on Node for {} at   {} ", authorizable.getID(), homeFolderPath);
   }
 
+  private boolean isAbleToControlAccess(Session session, String homeFolderPath) throws RepositoryException {
+    AccessControlManager accessControlManager = AccessControlUtil.getAccessControlManager(session);
+    Privilege[] modifyAclPrivileges = { accessControlManager.privilegeFromName(Privilege.JCR_MODIFY_ACCESS_CONTROL) };
+    return accessControlManager.hasPrivileges(homeFolderPath, modifyAclPrivileges);
+  }
+
+  private boolean isAbleToModify(Session session, String path) throws RepositoryException {
+    AccessControlManager accessControlManager = AccessControlUtil.getAccessControlManager(session);
+    Privilege[] modifyPrivileges = {
+        accessControlManager.privilegeFromName(Privilege.JCR_MODIFY_PROPERTIES),
+        accessControlManager.privilegeFromName(Privilege.JCR_ADD_CHILD_NODES),
+        accessControlManager.privilegeFromName(Privilege.JCR_REMOVE_CHILD_NODES)
+        };
+    return accessControlManager.hasPrivileges(path, modifyPrivileges);
+  }
 }

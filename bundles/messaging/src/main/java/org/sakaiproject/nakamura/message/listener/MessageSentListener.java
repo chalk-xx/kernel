@@ -27,7 +27,6 @@ import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
@@ -61,39 +60,32 @@ public class MessageSentListener implements EventHandler {
   private Map<MessageTransport, MessageTransport> transports = new ConcurrentHashMap<MessageTransport, MessageTransport>();
 
   @Reference
-  protected transient MessageRouterManager messageRouterManager;
-  
+  private transient MessageRouterManager messageRouterManager;
+
   @Reference
-  protected transient SlingRepository slingRepository;
-  
-  
-  private Session session;
+  private transient SlingRepository slingRepository;
+
   /**
-   * Allows us to bind a session (for junit)
+   * Default constructor for use by OSGi container.
    */
-  protected void bindSession(Session session) {
-    this.session = session;
+  public MessageSentListener() {
   }
 
-  protected void activate(ComponentContext context) {
-    try {
-      session = slingRepository.loginAdministrative(null);
-      LOG.info("Logged into the repository as an admin.");
-    } catch (RepositoryException e) {
-      LOG.warn("Unable to login to get a session for the message listener. {}",
-          e.getMessage());
-    }
-  }
-
-  protected void deactivate(ComponentContext context) {
-    if (session != null) {
-      session.logout();
-    }
+  /**
+   * Parameterized constructor for use in unit tests.
+   *
+   * @param messageRouterManager
+   * @param slingRepository
+   */
+  MessageSentListener(MessageRouterManager messageRouterManager,
+      SlingRepository slingRepository) {
+    this.messageRouterManager = messageRouterManager;
+    this.slingRepository = slingRepository;
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.osgi.service.event.EventHandler#handleEvent(org.osgi.service.event.Event)
    */
   public void handleEvent(Event event) {
@@ -102,7 +94,9 @@ public class MessageSentListener implements EventHandler {
     // get the node, call up the appropriate handler and pass off based on
     // message type
     LOG.debug("handleEvent called");
+    Session session = null;
     try {
+      session = slingRepository.loginAdministrative(null);
       String path = (String) event.getProperty(MessageConstants.EVENT_LOCATION);
       Node n = (Node) session.getItem(path);
       String resourceType = n.getProperty(
@@ -110,7 +104,7 @@ public class MessageSentListener implements EventHandler {
       if (resourceType.equals(MessageConstants.SAKAI_MESSAGE_RT)) {
 
         MessageRoutes routes = messageRouterManager.getMessageRouting(n);
-        
+
         for (MessageTransport transport : transports.values()) {
           transport.send(routes, event, n);
         }
@@ -119,6 +113,10 @@ public class MessageSentListener implements EventHandler {
       LOG.error(e.getMessage(), e);
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
+    } finally {
+      if (session != null) {
+        session.logout();
+      }
     }
   }
 

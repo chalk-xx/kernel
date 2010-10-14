@@ -33,6 +33,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 
 import javax.jcr.Item;
+import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
@@ -54,44 +55,46 @@ public class TestSitePostProcessor {
     resolver = createNiceMock(ResourceResolver.class);
     session = createNiceMock(Session.class);
     item = createNiceMock(Item.class);
-    
+
     expect(request.getResourceResolver()).andReturn(resolver);
     expect(resolver.adaptTo(eq(Session.class))).andReturn(session);
-    
+
     Modification modification = new Modification(ModificationType.MODIFY, itemPath, null);
     changes = new ArrayList<Modification>();
-    changes.add(modification);    
+    changes.add(modification);
   }
-  
+
   @Test
   public void testModifySite() throws Exception
-  {    
+  {
     expect(session.itemExists(eq(itemPath))).andReturn(true);
     expect(session.getItem(eq(itemPath))).andReturn(item);
     expect(item.isNode()).andReturn(true);
-    checkSatisfied();    
+    checkSatisfied();
   }
 
   @Test
   public void testModifySiteProperty() throws Exception
-  {  
+  {
+    Node node = createNiceMock(Node.class);
     expect(session.itemExists(eq(itemPath))).andReturn(true);
     expect(session.getItem(eq(itemPath))).andReturn(item);
     expect(item.isNode()).andReturn(false);
-    checkSatisfied();    
+    expect(item.getParent()).andReturn(node);
+    checkSatisfied();
   }
 
   @Test
   public void testModifySiteException() throws Exception
-  {    
+  {
     expect(session.itemExists(eq(itemPath))).andThrow(new RepositoryException("Exceptional"));
-    checkSatisfied();    
+    checkSatisfied();
   }
 
   private void checkSatisfied() throws Exception {
     replay(request, resolver, session, item);
     processor.process(request, changes);
-    verify(request, resolver, session, item);    
+    verify(request, resolver, session, item);
   }
-  
+
 }
