@@ -113,7 +113,7 @@ public class ReCaptchaService implements CaptchaService {
       IOUtils.copy(bodyStream, writer);
       String body = writer.toString();
 
-      LOGGER.info("reCAPTCHA output is: " + body);
+      LOGGER.debug("=== start of reCAPTCHA output ===\n" + body + "\n=== end of reCAPTCHA output ==="); // allow logging statement to show more clearly that the reCAPTCHA output contains a crlf character.
       if (!body.startsWith("true")) {
         return false;
       }
