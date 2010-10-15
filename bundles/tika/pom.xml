@@ -62,7 +62,7 @@
              <Embed-Dependency>
               commons-compress,
               pdfbox,fontbox,jempbox,
-              poi,poi-scratchpad,poi-ooxml,ooxml-schemas,
+              poi,poi-scratchpad,poi-ooxml,poi-ooxml-schemas,
               xmlbeans,
               dom4j,
               tagsoup,
