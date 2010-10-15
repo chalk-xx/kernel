@@ -73,12 +73,6 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     expect(request.getRemoteUser()).andReturn(SecurityConstants.ANONYMOUS_ID);
 
-    ResourceResolver rr = createMock(ResourceResolver.class);
-    expect(rr.adaptTo(Session.class)).andReturn(null);
-
-    expect(request.getParameter(SlingPostConstants.RP_NODE_NAME)).andReturn("g-foo");
-    expect(request.getResourceResolver()).andReturn(rr);
-
     HtmlResponse response = new HtmlResponse();
 
     replay();

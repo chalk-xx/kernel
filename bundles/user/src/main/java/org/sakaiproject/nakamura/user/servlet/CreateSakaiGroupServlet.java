@@ -205,6 +205,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
     // KERN-432 dont allow anon users to access create group.
     if ( SecurityConstants.ANONYMOUS_ID.equals(request.getRemoteUser()) ) {
       response.setStatus(403, "AccessDenied");
+      return;
     }
 
         // check that the submitted parameter values have valid values.
