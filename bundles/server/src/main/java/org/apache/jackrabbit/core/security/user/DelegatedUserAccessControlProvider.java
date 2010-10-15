@@ -23,6 +23,7 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.core.ItemImpl;
 import org.apache.jackrabbit.core.NodeImpl;
+import org.apache.jackrabbit.core.PropertyImpl;
 import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.observation.SynchronousEventListener;
 import org.apache.jackrabbit.core.security.authorization.AbstractAccessControlProvider;
@@ -44,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.Property; // Nakamura Change
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -52,7 +54,9 @@ import javax.jcr.observation.Event;
 import javax.jcr.observation.EventIterator;
 import java.security.Principal;
 import java.security.acl.Group;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -564,43 +568,69 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
         public void onEvent(EventIterator events) {
             while (events.hasNext()) {
                 Event ev = events.nextEvent();
-                try {
-                    String evPath = ev.getPath();
-                    String repMembers = session.getJCRName(UserConstants.P_MEMBERS);
-                    if (repMembers.equals(Text.getName(evPath))) {
-                      if (userNodePath != null) { // Nakamura Change
-                        // recalculate the is...Admin flags
-                        Node userNode = session.getNode(userNodePath);
-                        String nodePath = Text.getRelativeParent(evPath, 1);
-                        if (userAdminGroupPath.equals(nodePath)) {
-                            isUserAdmin = false;
-                            if (ev.getType() != Event.PROPERTY_REMOVED) {
-                                Value[] vs = getValues(session.getProperty(evPath)); // Nakamura Change
-                                for (int i = 0; i < vs.length && !isUserAdmin; i++) {
-                                    isUserAdmin = userNode.getIdentifier().equals(vs[i].getString());
-                                }
-                            }
-                        } else if (groupAdminGroupPath.equals(nodePath)) {
-                            isGroupAdmin = false;
-                            if (ev.getType() != Event.PROPERTY_REMOVED) {
-                                Value[] vs = getValues(session.getProperty(evPath)); // Nakamura Change
-                                for (int i = 0; i < vs.length && !isGroupAdmin; i++) {
-                                    isGroupAdmin = userNode.getIdentifier().equals(vs[i].getString());
-                                }
-                            }
-                        }
-                        // invalidate the cached results
-                        clearCache();
-                        // only need to clear the cache once. stop processing
-                        break;
-                      } // Nakamura Change
-                    }
-                } catch (RepositoryException e) {
-                    // should never get here
-                    log.error("Internal error ", e.getMessage());
-                }
+                addInvalidationEvent(ev);
             }
         }
+        
+        List<Event> invalidationEventQueue = new ArrayList<Event>();
+        
+        // there are 2 of these to avoid a string copy, the path string is shared amongst all threads.
+        public void addInvalidationEvent(Event ev) {
+          synchronized(invalidationEventQueue) {
+            invalidationEventQueue.add(ev);
+          }
+        }
+        
+        @Override
+        public Result getResult(Path absPath) throws RepositoryException {
+          try {
+            clearInvalidationQueue();
+          } catch ( RepositoryException e) {
+            log.debug("Failed to process pending events ",e);
+          }
+          return super.getResult(absPath);
+        }
+        
+        public void clearInvalidationQueue() throws PathNotFoundException, RepositoryException {
+          List<Event> toClean = new ArrayList<Event>();
+          synchronized (invalidationEventQueue) {
+            toClean.addAll(invalidationEventQueue);
+            invalidationEventQueue.clear();
+          }
+          for ( Event ev : toClean ) {
+            String path = ev.getPath();
+            String repMembers = session.getJCRName(UserConstants.P_MEMBERS);
+            if (repMembers.equals(Text.getName(path))) {
+              if (userNodePath != null) { // Nakamura Change
+                // recalculate the is...Admin flags
+                Node userNode = session.getNode(userNodePath);
+                String nodePath = Text.getRelativeParent(path, 1);
+                if (userAdminGroupPath.equals(nodePath)) {
+                    isUserAdmin = false;
+                    if (ev.getType() != Event.PROPERTY_REMOVED) {
+                        Value[] vs = getValues(session.getProperty(path)); // Nakamura Change
+                        for (int i = 0; i < vs.length && !isUserAdmin; i++) {
+                            isUserAdmin = userNode.getIdentifier().equals(vs[i].getString());
+                        }
+                    }
+                } else if (groupAdminGroupPath.equals(nodePath)) {
+                    isGroupAdmin = false;
+                    if (ev.getType() != Event.PROPERTY_REMOVED) {
+                        Value[] vs = getValues(session.getProperty(path)); // Nakamura Change
+                        for (int i = 0; i < vs.length && !isGroupAdmin; i++) {
+                            isGroupAdmin = userNode.getIdentifier().equals(vs[i].getString());
+                        }
+                    }
+                }
+                // invalidate the cached results
+                clearCache();
+              } // Nakamura Change
+            }
+          }
+          
+        }
+
+
     }
     
     // Start Nakamura Change

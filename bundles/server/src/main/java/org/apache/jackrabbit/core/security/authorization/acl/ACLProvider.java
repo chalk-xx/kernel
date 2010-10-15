@@ -480,7 +480,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements Access
                           break;
                       case Event.PROPERTY_REMOVED:
                       case Event.NODE_REMOVED:
-                          log.info("Remove Node at {} ",path);
+                          log.debug("Remove Node at {} ",path);
                           // can't find out if the removed ACL/ACE node was
                           // relevant for the principals
                           clearCache = true;
@@ -527,7 +527,11 @@ public class ACLProvider extends AbstractAccessControlProvider implements Access
         
         @Override
         public Result getResult(Path absPath) throws RepositoryException {
-          clearInvalidationQueue();
+          try {
+            clearInvalidationQueue();
+          } catch ( RepositoryException e) {
+            log.debug("Failed to process pending events ",e);
+          }
           return super.getResult(absPath);
         }
         
