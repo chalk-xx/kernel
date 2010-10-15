@@ -44,6 +44,16 @@
                 <version>${nakamura.version}</version>
                 <startLevel>5</startLevel>
               </jarWebSupport>
+              <!-- Uncomment bundleExclusions to exclude Derby from the build artifact -->
+              <!--
+              <bundleExclusions>
+                <bundle>
+                  <groupId>org.apache.derby</groupId>
+                  <artifactId>derby</artifactId>
+                  <version>10.5.3.0_1</version>
+                </bundle>
+              </bundleExclusions>
+              -->
               <additionalBundles>
                 <!-- contrib bundles -->
                 <bundle>

@@ -24,6 +24,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -59,6 +60,7 @@ public class ListVersionsServletTest extends AbstractEasyMockTest {
   /**
    * @throws java.lang.Exception
    */
+  @Override
   @Before
   public void setUp() throws Exception {
     super.setUp();
@@ -136,7 +138,11 @@ public class ListVersionsServletTest extends AbstractEasyMockTest {
     Session session = createNiceMock(Session.class);
     Workspace workspace = createNiceMock(Workspace.class);
     VersionManager versionManager = createNiceMock(VersionManager.class);
+    RequestPathInfo pathInfo = createNiceMock(RequestPathInfo.class);
 
+    EasyMock.expect(pathInfo.getSelectors()).andReturn(new String[0]);
+
+    EasyMock.expect(request.getRequestPathInfo()).andReturn(pathInfo);
     EasyMock.expect(request.getResource()).andReturn(resource).anyTimes();
     EasyMock.expect(resource.adaptTo(Node.class)).andReturn(node).anyTimes();
     PrintWriter pw = new PrintWriter(new ByteArrayOutputStream());
