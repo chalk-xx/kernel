@@ -124,11 +124,8 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
 
     replay();
 
-    try {
-      csgs.handleOperation(request, response, null);
-      fail();
-    } catch (RepositoryException e) {
-    }
+    csgs.handleOperation(request, response, null);
+    assertEquals(400, response.getStatusCode());
     verify();
   }
 
