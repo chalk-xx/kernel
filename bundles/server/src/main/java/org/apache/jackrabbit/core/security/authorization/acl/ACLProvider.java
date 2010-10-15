@@ -20,12 +20,14 @@ import java.security.Principal;
 import java.security.acl.Group;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Iterator;
 
 import javax.jcr.ItemNotFoundException;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.observation.Event;
@@ -43,6 +45,7 @@ import org.apache.jackrabbit.core.NodeImpl;
 import org.apache.jackrabbit.core.PropertyImpl;
 import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.id.NodeId;
+import org.apache.jackrabbit.core.observation.EventImpl;
 import org.apache.jackrabbit.core.security.SecurityConstants;
 import org.apache.jackrabbit.core.security.authorization.AbstractAccessControlProvider;
 import org.apache.jackrabbit.core.security.authorization.AbstractCompiledPermissions;
@@ -459,71 +462,136 @@ public class ACLProvider extends AbstractAccessControlProvider implements Access
         //--------------------------------------------------< EventListener >---
         /**
          * @see javax.jcr.observation.EventListener#onEvent(EventIterator)
-         */
+         */        
         public synchronized void onEvent(EventIterator events) {
-            // only invalidate cache if any of the events affects the
-            // nodes defining permissions for principals compiled here.
-            boolean clearCache = false;
-            while (events.hasNext() && !clearCache) {
-                try {
-                    Event ev = events.nextEvent();
-                    String path = ev.getPath();
-                    switch (ev.getType()) {
-                        case Event.NODE_ADDED:
-                            // test if the new node is an ACE node that affects
-                            // the permission of any of the principals listed in
-                            // principalNames.
-                            NodeImpl n = (NodeImpl) session.getNode(path);
-                            if (n.isNodeType(NT_REP_ACE) &&
-                                    principalNames.contains(n.getProperty(P_PRINCIPAL_NAME).getString())) {
-                                clearCache = true;
-                            }
-                            break;
-                        case Event.PROPERTY_REMOVED:
-                        case Event.NODE_REMOVED:
-                            // can't find out if the removed ACL/ACE node was
-                            // relevant for the principals
-                            clearCache = true;
-                            break;
-                        case Event.PROPERTY_ADDED:
-                        case Event.PROPERTY_CHANGED:
-                            // test if the added/changed prop belongs to an ACe
-                            // node and affects the permission of any of the
-                            // principals listed in principalNames.
-                            PropertyImpl p = (PropertyImpl) session.getProperty(path);
-                            NodeImpl parent = (NodeImpl) p.getParent();
-                            if (parent.isNodeType(NT_REP_ACE)) {
-                                String principalName = null;
-                                if (P_PRIVILEGES.equals(p.getQName())) {
-                                    // test if principal-name sibling-prop matches
-                                    principalName = parent.getProperty(P_PRINCIPAL_NAME).getString();
-                                } else if (P_PRINCIPAL_NAME.equals(p.getQName())) {
-                                    // a new ace or an ace change its principal-name.
-                                    principalName = p.getString();
-                                }
-                                if (principalName != null &&
-                                        principalNames.contains(principalName)) {
-                                    clearCache = true;
-                                }
-                            }
-                            break;
-                        case Event.NODE_MOVED:
-                            // protected ac nodes cannot be moved around
-                            // -> nothing to do TODO check again
-                            break;
-                        default:
-                            // illegal event-type: should never occur. ignore
-                    }
-                } catch (RepositoryException e) {
-                    // should not get here
-                    log.warn("Internal error: ", e.getMessage());
-                }
-            }
-            if (clearCache) {
-                clearCache();
-            }
+          // only invalidate cache if any of the events affects the
+          // nodes defining permissions for principals compiled here.
+          boolean clearCache = false;
+          while (events.hasNext() && !clearCache) {
+              try {
+                  Event ev = events.nextEvent();
+                  String path = ev.getPath();
+                  switch (ev.getType()) {
+                      case Event.NODE_ADDED:
+                          // test if the new node is an ACE node that affects
+                          // the permission of any of the principals listed in
+                          // principalNames.
+                          log.debug("Added Node at {} ",path);
+                          addInvalidationNodes(path);
+                          break;
+                      case Event.PROPERTY_REMOVED:
+                      case Event.NODE_REMOVED:
+                          log.info("Remove Node at {} ",path);
+                          // can't find out if the removed ACL/ACE node was
+                          // relevant for the principals
+                          clearCache = true;
+                          break;
+                      case Event.PROPERTY_ADDED:
+                      case Event.PROPERTY_CHANGED:
+                        
+                          // test if the added/changed prop belongs to an ACe
+                          // node and affects the permission of any of the
+                          // principals listed in principalNames.
+                          log.debug("Added/Changed Property at {} ",path);
+                          addInvalidationProperties(path);
+                          break;
+                      case Event.NODE_MOVED:
+                          // protected ac nodes cannot be moved around
+                          // -> nothing to do TODO check again
+                          break;
+                      default:
+                          // illegal event-type: should never occur. ignore
+                  }
+              } catch (RepositoryException e) {
+                  // should not get here
+                  log.warn("Internal error: ", e.getMessage());
+              }
+          }
+          if (clearCache) {
+              clearCache();
+          }
+      }
+        Set<String> invalidationQueueNodes = new HashSet<String>();
+        Set<String> invalidationQueueProperties = new HashSet<String>();
+        
+        // there are 2 of these to avoid a string copy, the path string is shared amongst all threads.
+        public void addInvalidationNodes(String path) {
+          synchronized(invalidationQueueNodes) {
+            invalidationQueueNodes.add(path);
+          }
         }
+        public void addInvalidationProperties(String path) {
+          synchronized(invalidationQueueProperties) {
+            invalidationQueueNodes.add(path);
+          }
+        }
+        
+        @Override
+        public Result getResult(Path absPath) throws RepositoryException {
+          clearInvalidationQueue();
+          return super.getResult(absPath);
+        }
+        
+        public void clearInvalidationQueue() throws PathNotFoundException, RepositoryException {
+          Set<String> toClean = new HashSet<String>();
+          synchronized (invalidationQueueNodes) {
+            for ( String s : invalidationQueueNodes ) {
+              toClean.add(s);
+            }
+            invalidationQueueNodes.clear();
+          }
+          boolean clearCache = false;
+          for ( String path : toClean ) {
+            NodeImpl n = (NodeImpl) session.getNode(path);
+            if (n.isNodeType(NT_REP_ACE) &&
+                    principalNames.contains(n.getProperty(P_PRINCIPAL_NAME).getString())) {
+                clearCache = true;
+            }
+            if ( clearCache ) {
+              break;
+            }
+          }
+          toClean.clear();
+          synchronized (invalidationQueueProperties) {
+            if (!clearCache) {
+              for (String s : invalidationQueueProperties) {
+                toClean.add(s);
+              }
+            }
+            invalidationQueueProperties.clear();
+          }
+          if ( !clearCache ) {
+            for ( String path : toClean ) {
+              PropertyImpl p = (PropertyImpl) session.getProperty(path);
+              NodeImpl parent = (NodeImpl) p.getParent();
+              if (parent.isNodeType(NT_REP_ACE)) {
+                  String principalName = null;
+                  if (P_PRIVILEGES.equals(p.getQName())) {
+                      // test if principal-name sibling-prop matches
+                      principalName = parent.getProperty(P_PRINCIPAL_NAME).getString();
+                  } else if (P_PRINCIPAL_NAME.equals(p.getQName())) {
+                      // a new ace or an ace change its principal-name.
+                      principalName = p.getString();
+                  }
+                  if (principalName != null &&
+                          principalNames.contains(principalName)) {
+                      clearCache = true;
+                  }
+              }
+            }
+            toClean.clear();
+          }
+          
+          if ( clearCache ) {
+            clearCache();
+          }
+          
+        }
+
+
     }
+    
+    
 
     //--------------------------------------------------------------------------
     /**
@@ -601,4 +669,6 @@ public class ACLProvider extends AbstractAccessControlProvider implements Access
             return new IteratorChain(userAces.iterator(), groupAces.iterator());
         }
     }
+
+
 }
