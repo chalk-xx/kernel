@@ -205,6 +205,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
     // KERN-432 dont allow anon users to access create group.
     if ( SecurityConstants.ANONYMOUS_ID.equals(request.getRemoteUser()) ) {
       response.setStatus(403, "AccessDenied");
+      return;
     }
 
         // check that the submitted parameter values have valid values.
@@ -284,9 +285,9 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
 
             if (authorizable != null) {
                 // principal already exists!
-                throw new RepositoryException(
-                    "A principal already exists with the requested name: "
-                        + principalName);
+              response.setStatus(400,
+                  "A principal already exists with the requested name: " + principalName);
+              return;
             } else {
                 Group group = userManager.createGroup(new Principal() {
                   public String getName() {
@@ -349,6 +350,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
 
 
   /** Returns the JCR repository used by this service. */
+  @Override
   protected SlingRepository getRepository() {
     return repository;
   }
@@ -381,6 +383,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
    * @param componentContext
    *          The OSGi <code>ComponentContext</code> of this component.
    */
+  @Override
   protected void activate(ComponentContext componentContext) {
     super.activate(componentContext);
     String groupList = (String) componentContext.getProperties().get(
