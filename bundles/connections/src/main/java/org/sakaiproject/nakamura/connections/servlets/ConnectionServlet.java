@@ -174,7 +174,7 @@ public class ConnectionServlet extends SlingAllMethodsServlet {
         writer.write(e.getMessage());
         writer.write("</p></body></html>");
       } else {
-        LOGGER.error("Connection exception: {}", e.getMessage());
+        LOGGER.info("Connection exception: {}", e.getMessage());
         LOGGER.debug("Connection exception: {}", e);
         response.sendError(e.getCode(), e.getMessage());
       }
