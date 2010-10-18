@@ -56,8 +56,8 @@ public class SearchUtil {
       try {
         return Integer.parseInt(param.getString());
       } catch (NumberFormatException e) {
-        LOGGER.warn(paramName + "parameter (" + param.getString()
-            + ") is invalid defaulting to " + defaultVal + " items ", e);
+        LOGGER.warn(paramName + " parameter (" + param.getString()
+            + ") is invalid; defaulting to " + defaultVal);
       }
     }
     return defaultVal;
