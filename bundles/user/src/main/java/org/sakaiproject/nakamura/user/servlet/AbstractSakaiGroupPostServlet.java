@@ -33,6 +33,7 @@ import org.sakaiproject.nakamura.api.user.UserConstants.Joinable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -127,6 +128,8 @@ public abstract class AbstractSakaiGroupPostServlet extends
       // second add any members posted as ":member"
       String[] membersToAdd = request.getParameterValues(paramName);
       if (membersToAdd != null) {
+        Group peerGroup = getPeerGroupOf(group, userManager);
+        List<Authorizable> membersToRemoveFromPeer = new ArrayList<Authorizable>();
         for (String member : membersToAdd) {
           Authorizable memberAuthorizable = getAuthorizable(baseResource, member,
               userManager, resolver);
@@ -152,16 +155,42 @@ public abstract class AbstractSakaiGroupPostServlet extends
               group.addMember(memberAuthorizable);
               changed = true;
             }
+            if (peerGroup != null) {
+              if (peerGroup.isMember(memberAuthorizable)) {
+                membersToRemoveFromPeer.add(memberAuthorizable);
+              }
+            }
+          }
+        }
+        if (peerGroup != null) {
+          for (Authorizable member : membersToRemoveFromPeer) {
+            peerGroup.removeMember(member);
           }
         }
       }
-
+      
       if (changed) {
         // add an entry to the changes list to record the membership
         // change
         changes.add(Modification.onModified(groupPath + "/members"));
       }
     }
+  }
+
+  private Group getPeerGroupOf(Group group, UserManager userManager) throws RepositoryException {
+    Group peerGroup = null;
+    if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
+      Value values[] = group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
+      String managersGroupId = values[0].getString();
+      peerGroup = (Group) userManager.getAuthorizable(managersGroupId);
+    } else {
+      if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
+        Value values[] = group.getProperty(UserConstants.PROP_MANAGED_GROUP);
+        String managedGroupId = values[0].getString();
+        peerGroup = (Group) userManager.getAuthorizable(managedGroupId);
+      }
+    }
+    return peerGroup;
   }
 
   /**

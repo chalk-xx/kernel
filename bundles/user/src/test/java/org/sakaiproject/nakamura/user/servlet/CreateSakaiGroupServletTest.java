@@ -182,6 +182,8 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(request.getParameterValues(":viewer")).andReturn(new String[] {});
     expect(user.getID()).andReturn("admin");
     expect(group.hasProperty(UserConstants.PROP_GROUP_MANAGERS)).andReturn(false);
+    expect(group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)).andReturn(false);
+    expect(group.hasProperty(UserConstants.PROP_MANAGED_GROUP)).andReturn(false);
     expect(group.hasProperty(UserConstants.PROP_GROUP_VIEWERS)).andReturn(false);
     expect(group.hasProperty(UserConstants.PROP_JOINABLE_GROUP)).andReturn(false);
 
