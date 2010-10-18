@@ -241,7 +241,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   @Reference
   protected transient ProfileService profileService;
 
-  private Pattern homePathPattern = Pattern.compile("^(.*)(~(\\w*?))/");
+  private Pattern homePathPattern = Pattern.compile("^(.*)(~([\\w-]*?))/");
 
   @Override
   public void init() throws ServletException {
