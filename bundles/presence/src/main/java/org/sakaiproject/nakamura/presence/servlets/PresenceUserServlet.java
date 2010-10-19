@@ -133,12 +133,16 @@ public class PresenceUserServlet extends SlingSafeMethodsServlet {
       throws ServletException, IOException {
     // get current user
     String user = request.getRemoteUser();
-    if (user.equals(UserConstants.ANON_USERID)) {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    if ( session != null ) {
+      user = session.getUserID();
+    }
+    if (user == null || UserConstants.ANON_USERID.equals(user) ) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "User must be logged in to check their status");
       return;
     }
-    LOGGER.info("GET to PresenceUserServlet (" + user + ")");
+    LOGGER.debug("GET to PresenceUserServlet (" + user + ")");
 	String requestedUser = request.getParameter("userid");
 	if (requestedUser == null){
 		response.sendError(HttpServletResponse.SC_BAD_REQUEST,
@@ -160,7 +164,7 @@ public class PresenceUserServlet extends SlingSafeMethodsServlet {
 
       Writer writer = response.getWriter();
       ExtendedJSONWriter output = new ExtendedJSONWriter(writer);
-      Session session = request.getResourceResolver().adaptTo(Session.class);
+      session = request.getResourceResolver().adaptTo(Session.class);
       // start JSON object
       output.object();
       // put in the basics
