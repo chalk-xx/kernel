@@ -24,6 +24,7 @@ import junit.framework.Assert;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.junit.After;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
+import javax.jcr.Session;
 import javax.servlet.ServletException;
 
 /**
@@ -70,7 +72,12 @@ public class PresenceControlServletTest extends AbstractEasyMockTest {
   public void testAnon() throws ServletException, IOException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    Session session = createMock(Session.class);
     expect(request.getRemoteUser()).andReturn(null);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
+    expect(session.getUserID()).andReturn(null);
     response.sendError(401,
         "User must be logged in to ping their status and set location");
     replay();
@@ -83,7 +90,13 @@ public class PresenceControlServletTest extends AbstractEasyMockTest {
     presenceService.setStatus(CURRENT_USER, "tired");
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    Session session = createMock(Session.class);
+    
     expect(request.getRemoteUser()).andReturn(CURRENT_USER);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
+    expect(session.getUserID()).andReturn(CURRENT_USER);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter printWriter = new PrintWriter(baos);
 
@@ -110,7 +123,13 @@ public class PresenceControlServletTest extends AbstractEasyMockTest {
     presenceService.setStatus(CURRENT_USER, "tired");
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    Session session = createMock(Session.class);
+    
     expect(request.getRemoteUser()).andReturn(CURRENT_USER);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
+    expect(session.getUserID()).andReturn(CURRENT_USER);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter printWriter = new PrintWriter(baos);
 
