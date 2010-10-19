@@ -141,7 +141,7 @@ public class PersonalUtils {
    */
   public static String getHomeFolder(Authorizable au) {
     String folder = PathUtils.getSubPath(au);
-    if (au.isGroup()) {
+    if (au != null && au.isGroup()) {
       folder = _GROUP + folder;
     } else {
       // Assume this is a user.
