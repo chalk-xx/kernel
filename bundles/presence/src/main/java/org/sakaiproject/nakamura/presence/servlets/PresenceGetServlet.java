@@ -47,17 +47,17 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = { "Gets the presence for the current user only." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
-@ServiceDocumentation(name = "Presence Servlet", 
+@ServiceDocumentation(name = "Presence Servlet",
     description = "Gets presence for the current user only.",
     shortDescription="Gets the presence for the current user only.",
-    bindings = @ServiceBinding(type = BindingType.TYPE, 
+    bindings = @ServiceBinding(type = BindingType.TYPE,
         bindings = "sakai/presence",
         extensions = @ServiceExtension(name="json", description={
             "the presence information is returned as a json tree."
         })
-    ), 
-    methods = { 
-         @ServiceMethod(name = "GET", 
+    ),
+    methods = {
+         @ServiceMethod(name = "GET",
              description = {
                  "Gets the presence for the current user. The servlet is bound " +
                  "to a node of type sakai/presence although at the moment, there does not appear to be any information used from that " +
@@ -97,7 +97,7 @@ public class PresenceGetServlet extends SlingSafeMethodsServlet {
       throws ServletException, IOException {
     // get current user
     String user = request.getRemoteUser();
-    if (user == null) {
+    if (user == null || "anonymous".equals(user)) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "User must be logged in to check their status");
       return;

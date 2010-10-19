@@ -45,6 +45,8 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(authorizable.isGroup()).andReturn(true).times(2);
     expect(authorizable.getID()).andReturn("g-foo").anyTimes();
     expect(authorizable.hasProperty(UserConstants.PROP_GROUP_MANAGERS)).andReturn(false);
+    expect(authorizable.hasProperty(UserConstants.PROP_MANAGERS_GROUP)).andReturn(false);
+    expect(authorizable.hasProperty(UserConstants.PROP_MANAGED_GROUP)).andReturn(false);
     expect(authorizable.hasProperty(UserConstants.PROP_GROUP_VIEWERS)).andReturn(false);
     expect(authorizable.hasProperty(UserConstants.PROP_JOINABLE_GROUP)).andReturn(false);
 
