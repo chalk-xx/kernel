@@ -351,16 +351,31 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
 
           // write content from form
           writeContent(selfRegSession, user, reqProperties, changes);
-          if (selfRegSession.hasPendingChanges()) {
-            selfRegSession.save();
+          try {
+            if (selfRegSession.hasPendingChanges()) {
+              selfRegSession.save();
+            }
+          } catch (RepositoryException e ) {
+            log.warn("Failed to create user {} ",e.getMessage());
+            log.debug("Failed to create user {} ",e.getMessage(), e);
+            response
+            .setStatus(HttpServletResponse.SC_CONFLICT, e.getMessage());
+            return;
           }
           try {
             postProcessorService.process(user, selfRegSession, ModificationType.CREATE,
                 request);
+          } catch (RepositoryException e ) {
+            log.warn("Failed to create user {} ",e.getMessage());
+            log.debug("Failed to create user {} ",e.getMessage(), e);
+            response
+            .setStatus(HttpServletResponse.SC_CONFLICT, e.getMessage());
+            return;
           } catch (Exception e) {
             log.warn(e.getMessage(), e);
             response
             .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            return;
           }
 
           // Launch an OSGi event for creating a user.
