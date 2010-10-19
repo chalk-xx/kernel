@@ -23,6 +23,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.core.SessionImpl;
+import org.apache.jackrabbit.core.observation.SynchronousEventListener;
 import org.apache.jackrabbit.core.security.SystemPrincipal;
 import org.apache.jackrabbit.core.security.user.UserManagerImpl;
 import org.apache.jackrabbit.spi.commons.conversion.NameResolver;
@@ -63,7 +64,7 @@ import java.util.Set;
  * this implementation keeps an extra membership cache, which is notified in
  * case of changes made to the members of any group.
  */
-public class DefaultPrincipalProvider extends AbstractPrincipalProvider implements EventListener {
+public class DefaultPrincipalProvider extends AbstractPrincipalProvider implements SynchronousEventListener {
 
     /**
      * the default logger

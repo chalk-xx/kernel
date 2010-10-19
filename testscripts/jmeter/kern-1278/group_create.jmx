@@ -9,17 +9,22 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="THREADS" elementType="Argument">
             <stringProp name="Argument.name">THREADS</stringProp>
-            <stringProp name="Argument.value">6</stringProp>
+            <stringProp name="Argument.value">12</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="DELAY_MS" elementType="Argument">
             <stringProp name="Argument.name">DELAY_MS</stringProp>
-            <stringProp name="Argument.value">1500</stringProp>
+            <stringProp name="Argument.value">50</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="LOOPS" elementType="Argument">
             <stringProp name="Argument.name">LOOPS</stringProp>
             <stringProp name="Argument.value">1000</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="RN" elementType="Argument">
+            <stringProp name="Argument.name">RN</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -144,7 +149,7 @@
               </elementProp>
               <elementProp name=":name" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${ID}_gr1_${__counter(FALSE)}</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}_${ID}_gr1</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">:name</stringProp>
@@ -158,7 +163,7 @@
               </elementProp>
               <elementProp name="sakai:group-title" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${ID}_gr1_${__counter(FALSE)}</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}_${ID}_gr1</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">sakai:group-title</stringProp>
@@ -172,7 +177,7 @@
               </elementProp>
               <elementProp name="sakai:group-id" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${ID}_gr1_${__counter(FALSE)}</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}_${ID}_gr1</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">sakai:group-id</stringProp>
@@ -221,7 +226,7 @@
               </elementProp>
               <elementProp name=":name" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${ID}_gr2_${__counter(FALSE)}</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}_${ID}_gr2</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">:name</stringProp>
@@ -235,7 +240,7 @@
               </elementProp>
               <elementProp name="sakai:group-title" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${ID}_gr2_${__counter(FALSE)}</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}_${ID}_gr2</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">sakai:group-title</stringProp>
@@ -249,7 +254,7 @@
               </elementProp>
               <elementProp name="sakai:group-id" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${ID}_gr2_${__counter(FALSE)}</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}_${ID}_gr2</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">sakai:group-id</stringProp>
