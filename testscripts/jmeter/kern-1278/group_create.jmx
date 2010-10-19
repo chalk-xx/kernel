@@ -24,7 +24,7 @@
           </elementProp>
           <elementProp name="RN" elementType="Argument">
             <stringProp name="Argument.name">RN</stringProp>
-            <stringProp name="Argument.value">22</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -149,7 +149,7 @@
               </elementProp>
               <elementProp name=":name" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${__counter(FALSE)}${RN}_${ID}_gr1</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}_${ID}_gr1</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">:name</stringProp>
@@ -163,7 +163,7 @@
               </elementProp>
               <elementProp name="sakai:group-title" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${__counter(FALSE)}${RN}_${ID}_gr1</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}_${ID}_gr1</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">sakai:group-title</stringProp>
@@ -177,7 +177,7 @@
               </elementProp>
               <elementProp name="sakai:group-id" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${__counter(FALSE)}${RN}_${ID}_gr1</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}_${ID}_gr1</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">sakai:group-id</stringProp>
@@ -226,7 +226,7 @@
               </elementProp>
               <elementProp name=":name" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${__counter(FALSE)}${RN}_${ID}_gr2</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}_${ID}_gr2</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">:name</stringProp>
@@ -240,7 +240,7 @@
               </elementProp>
               <elementProp name="sakai:group-title" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${__counter(FALSE)}${RN}_${ID}_gr2</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}_${ID}_gr2</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">sakai:group-title</stringProp>
@@ -254,7 +254,7 @@
               </elementProp>
               <elementProp name="sakai:group-id" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${__counter(FALSE)}${RN}_${ID}_gr2</stringProp>
+                <stringProp name="Argument.value">${__Random(1,100000)}_${ID}_gr2</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">sakai:group-id</stringProp>
