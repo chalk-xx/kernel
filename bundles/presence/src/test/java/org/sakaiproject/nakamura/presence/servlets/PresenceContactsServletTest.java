@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import javax.jcr.Node;
 import javax.jcr.PropertyIterator;
@@ -82,7 +83,13 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
   public void testAnon() throws ServletException, IOException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    Session session = createMock(Session.class);
+    
     expect(request.getRemoteUser()).andReturn(null);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
+    expect(session.getUserID()).andReturn(null);
     response.sendError(401, "User must be logged in to check their status");
     replay();
     PresenceGetServlet servlet = new PresenceGetServlet();
@@ -93,12 +100,21 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
   public void testRegularUser() throws Exception {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    JackrabbitSession session = createMock(JackrabbitSession.class);
+
+    
     expect(request.getRemoteUser()).andReturn(CURRENT_USER);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
+    expect(session.getUserID()).andReturn(CURRENT_USER);
+    
+    
+    
+    
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter printWriter = new PrintWriter(baos);
 
-    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    JackrabbitSession session = createMock(JackrabbitSession.class);
     expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resourceResolver);
 

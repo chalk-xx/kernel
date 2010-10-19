@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.presence.servlets;
 
 import java.io.IOException;
 
+import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,6 +41,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +134,11 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
     // get current user
     String user = request.getRemoteUser();
-    if (user == null) {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    if ( session != null ) {
+      user = session.getUserID();
+    }
+    if (user == null || UserConstants.ANON_USERID.equals(user) ) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "User must be logged in to ping their status and set location");
       return;
