@@ -56,7 +56,7 @@ public class PersonalUtils {
       hash = au.getProperty("path")[0].getString();
     } else {
       LOGGER
-          .warn(
+          .debug(
               "Authorizable {} has no path property set on it, grabbing hash from ItemBasedPrincipal!",
               au);
       ItemBasedPrincipal principal = (ItemBasedPrincipal) au.getPrincipal();
