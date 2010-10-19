@@ -21,6 +21,7 @@ import static org.easymock.EasyMock.expect;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.junit.After;
@@ -35,6 +36,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.jcr.Session;
 import javax.servlet.ServletException;
 
 /**
@@ -66,8 +68,13 @@ public class PresenceGetServletTest extends AbstractEasyMockTest {
 
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    Session session = createMock(Session.class);
 
     expect(request.getRemoteUser()).andReturn(null);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
+    expect(session.getUserID()).andReturn(null);
     response.sendError(401, "User must be logged in to check their status");
     replay();
 
@@ -80,6 +87,8 @@ public class PresenceGetServletTest extends AbstractEasyMockTest {
       JSONException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    Session session = createMock(Session.class);
     String uuid = "jack";
     String status = "busy";
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -88,6 +97,9 @@ public class PresenceGetServletTest extends AbstractEasyMockTest {
     presenceService.setStatus(uuid, status);
 
     expect(request.getRemoteUser()).andReturn(uuid);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
+    expect(session.getUserID()).andReturn(uuid);
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);

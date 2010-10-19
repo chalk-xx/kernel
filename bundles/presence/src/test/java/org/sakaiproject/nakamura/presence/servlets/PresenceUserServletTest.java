@@ -93,7 +93,10 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
   public void testAnon() throws ServletException, IOException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     expect(request.getRemoteUser()).andReturn(UserConstants.ANON_USERID);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(null);
     response.sendError(401, "User must be logged in to check their status");
     replay();
     servlet.doGet(request, response);
@@ -104,8 +107,11 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
       JSONException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
 
     expect(request.getRemoteUser()).andReturn(CURRENT_USER);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(null);
     expect(request.getParameter("userid")).andReturn(null);
     response.sendError(HttpServletResponse.SC_BAD_REQUEST,
         "Userid must be specified to request a user's presence");
@@ -134,8 +140,8 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     expect(profileNode.getProperties()).andReturn(propertyIterator);
     expect(profileNode.getPath()).andReturn("/profile/node/path").anyTimes();
     expect(profileNode.getName()).andReturn("profile_node_name").anyTimes();
-    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
-    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session).times(2);
+    expect(request.getResourceResolver()).andReturn(resourceResolver).times(2);
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter printWriter = new PrintWriter(baos);
@@ -143,6 +149,7 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     presenceService.setStatus(contact, status);
 
     expect(request.getRemoteUser()).andReturn(CURRENT_USER);
+    expect(session.getUserID()).andReturn(CURRENT_USER);
     expect(request.getParameter("userid")).andReturn(contact);
     bindConnectionManager();
     response.setContentType("application/json");
@@ -161,11 +168,16 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
   public void testNonContactUser() throws ServletException, IOException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    Session session = createMock(Session.class);
     String status = "busy";
     // Pick a uuid we do NOT have as a friend.
     String contact = "user-51";
     presenceService.setStatus(contact, status);
     expect(request.getRemoteUser()).andReturn(CURRENT_USER);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
+    expect(session.getUserID()).andReturn(CURRENT_USER);
     expect(request.getParameter("userid")).andReturn(contact);
     bindConnectionManager();
     response.sendError(HttpServletResponse.SC_FORBIDDEN,
