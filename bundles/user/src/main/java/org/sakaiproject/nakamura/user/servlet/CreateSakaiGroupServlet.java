@@ -324,10 +324,15 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
 
                 try {
                   postProcessorService.process(group, session, ModificationType.CREATE, request);
+                } catch (RepositoryException e) {
+                  LOGGER.info("Failed to create Group  {}",e.getMessage());
+                  response.setStatus(HttpServletResponse.SC_CONFLICT, e.getMessage());
+                  return;
                 } catch (Exception e) {
                   LOGGER.warn(e.getMessage(), e);
                   response
                      .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+                  return;
                 }
 
                 // Launch an OSGi event for creating a group.
@@ -342,7 +347,10 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                 }
             }
         } catch (RepositoryException re) {
-            throw new RepositoryException("Failed to create new group.", re);
+          LOGGER.info("Failed to create Group  {}",re.getMessage());
+          LOGGER.debug("Failed to create Group Cause {}",re,re.getMessage());
+          response.setStatus(HttpServletResponse.SC_CONFLICT, re.getMessage());
+          return;
         } finally {
             ungetSession(session);
         }
