@@ -23,6 +23,7 @@ import org.apache.commons.mail.MultiPartEmail;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
@@ -35,7 +36,10 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
+import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,8 +64,8 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
+import javax.jms.Queue;
 import javax.jms.Session;
-import javax.jms.Topic;
 
 @Component(label = "%email.out.name", description = "%email.out.description", immediate = true, metatype = true)
 public class OutgoingEmailMessageListener implements MessageListener {
@@ -77,7 +81,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
   @Property(intValue = 30)
   private static final String RETRY_INTERVAL = "sakai.email.retryIntervalMinutes";
 
-  protected static final String TOPIC_NAME = "org/sakaiproject/nakamura/message/email/outgoing";
+  protected static final String QUEUE_NAME = "org/sakaiproject/nakamura/message/email/outgoing";
 
   @Reference
   protected SlingRepository repository;
@@ -110,7 +114,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
   @SuppressWarnings("unchecked")
   public void onMessage(Message message) {
     try {
-      LOGGER.info("Started handling email jms message.");
+      LOGGER.debug("Started handling email jms message.");
 
       String nodePath = message.getStringProperty(NODE_PATH_PROPERTY);
       Object objRcpt = message.getObjectProperty(RECIPIENTS);
@@ -146,14 +150,14 @@ public class OutgoingEmailMessageListener implements MessageListener {
             if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)
                 && messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
               // make a commons-email message from the message
-              MultiPartEmail email;
+              MultiPartEmail email = null;
               try {
                 email = constructMessage(messageNode, recipients);
+                
+                  email.setSmtpPort(smtpPort);
+                  email.setHostName(smtpServer);
 
-                email.setSmtpPort(smtpPort);
-                email.setHostName(smtpServer);
-
-                email.send();
+                  email.send();
               } catch (EmailException e) {
                 String exMessage = e.getMessage();
                 Throwable cause = e.getCause();
@@ -186,7 +190,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
                   }
                 }
                 if (rescheduled) {
-                  LOGGER.info("Email rescheduled for redelivery.");
+                  LOGGER.info("Email {} rescheduled for redelivery. ", nodePath);
                 } else {
                   LOGGER.error("Unable to reschedule email for delivery: " + e.getMessage(), e);
                 }
@@ -212,26 +216,27 @@ public class OutgoingEmailMessageListener implements MessageListener {
       LOGGER.error(e.getMessage(), e);
     } catch (LoginException e) {
       LOGGER.error(e.getMessage(), e);
+    } catch (EmailDeliveryException e ) {
+      LOGGER.error(e.getMessage());      
     }
   }
 
-  private MultiPartEmail constructMessage(Node messageNode, List<String> recipients)
-      throws EmailException,
-      RepositoryException, PathNotFoundException, ValueFormatException {
+  private MultiPartEmail constructMessage(Node messageNode, List<String> recipients) throws EmailDeliveryException, RepositoryException, PathNotFoundException, ValueFormatException {
     MultiPartEmail email = new MultiPartEmail();
+    javax.jcr.Session session = messageNode.getSession();
     //TODO: the SAKAI_TO may make no sense in an email context
     // and there does not appear to be any distinction between Bcc and To in java mail.
 
     Set<String> toRecipients = new HashSet<String>();
     Set<String> bccRecipients = new HashSet<String>();
     for ( String r : recipients ) {
-      bccRecipients.add(r.trim());
+      bccRecipients.add(convertToEmail(r.trim(), session));
     }
 
     if ( messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO) ) {
       String[] tor = StringUtils.split(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO).getString(),',');
       for ( String r : tor ) {
-        r = r.trim();
+        r = convertToEmail(r.trim(), session);
         if ( bccRecipients.contains(r) ) {
           toRecipients.add(r);
           bccRecipients.remove(r);
@@ -239,21 +244,41 @@ public class OutgoingEmailMessageListener implements MessageListener {
       }
     }
     for ( String r : toRecipients ) {
-      email.addTo(r);
+      try {
+        email.addTo(convertToEmail(r, session));
+      } catch (EmailException e) {
+        throw new EmailDeliveryException("Invalid To Address [" + r + "], message is being dropped :"
+            + e.getMessage(), e);
+      }
     }
     for ( String r : bccRecipients ) {
-      email.addBcc(r);
+      try {
+        email.addBcc(convertToEmail(r, session));
+      } catch (EmailException e) {
+        throw new EmailDeliveryException("Invalid Bcc Address [" + r + "], message is being dropped :"
+            + e.getMessage(), e);
+      }
     }
 
     if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
       String from = messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM).getString();
-      email.setFrom(from);
+      try {
+        email.setFrom(convertToEmail(from, session));
+      } catch (EmailException e) {
+        throw new EmailDeliveryException("Invalid From Address [" + from + "], message is being dropped :"
+            + e.getMessage(), e);
+      }
     } else {
-      throw new EmailException("Must provide a 'from' address.");
+      throw new EmailDeliveryException("Must provide a 'from' address.");
     }
 
     if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)) {
-      email.setMsg(messageNode.getProperty(MessageConstants.PROP_SAKAI_BODY).getString());
+      try {
+        email.setMsg(messageNode.getProperty(MessageConstants.PROP_SAKAI_BODY)
+            .getString());
+      } catch (EmailException e) {
+        throw new EmailDeliveryException("Invalid Message Body, message is being dropped :" + e.getMessage(), e);
+      }
     }
 
     if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)) {
@@ -271,11 +296,41 @@ public class OutgoingEmailMessageListener implements MessageListener {
               MessageConstants.PROP_SAKAI_ATTACHMENT_DESCRIPTION).getString();
         }
         JcrEmailDataSource ds = new JcrEmailDataSource(childNode);
-        email.attach(ds, childNode.getName(), description);
+        try {
+          email.attach(ds, childNode.getName(), description);
+        } catch (EmailException e) {
+          throw new EmailDeliveryException("Invalid Attachment ["+childNode.getName()+"] message is being dropped :"+e.getMessage(), e);
+        }
       }
     }
 
     return email;
+  }
+
+  private String convertToEmail(String address, javax.jcr.Session session) {
+    if ( address.indexOf('@') < 0  ) {
+      String emailAddress = null;
+      try {
+        Authorizable user = PersonalUtils.getAuthorizable(session, address);
+        if (user != null) {
+          // We only check the profile is the recipient is a user.
+          String profilePath = PersonalUtils.getProfilePath(user);
+          if (profilePath != null && session.itemExists(profilePath)) {
+            Node profileNode = session.getNode(profilePath);
+            emailAddress = PersonalUtils.getPrimaryEmailAddress(profileNode);
+
+          }
+        }
+      } catch (RepositoryException e) {
+        LOGGER.warn("Failed to get address for user " + address + " " + e.getMessage());
+      }
+      if (emailAddress != null && emailAddress.trim().length() > 0) {
+        address = emailAddress;
+      } else {
+        address = address+"@"+smtpServer;
+      }
+    }
+    return address;
   }
 
   private void scheduleRetry(int errorCode, Node messageNode) throws RepositoryException {
@@ -295,7 +350,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
             Properties eventProps = new Properties();
             eventProps.put(NODE_PATH_PROPERTY, config.get(NODE_PATH_PROPERTY));
 
-            Event retryEvent = new Event(TOPIC_NAME, eventProps);
+            Event retryEvent = new Event(QUEUE_NAME, eventProps);
             eventAdmin.postEvent(retryEvent);
 
           }
@@ -370,7 +425,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
     try {
       connection = connFactoryService.getDefaultConnectionFactory().createConnection();
       Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-      Topic dest = session.createTopic(TOPIC_NAME);
+      Queue dest = session.createQueue(QUEUE_NAME);
       MessageConsumer consumer = session.createConsumer(dest);
       consumer.setMessageListener(this);
       connection.start();

@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -71,6 +72,7 @@ public class SmtpRouter implements MessageRouter {
       String rcpt = route.getRcpt();
       String transport = route.getTransport();
 
+      LOG.debug("Checking Message Route {} ",route);
       boolean rcptNotNull = rcpt != null;
       boolean transportNullOrInternal = transport == null || "internal".equals(transport);
 
@@ -88,6 +90,7 @@ public class SmtpRouter implements MessageRouter {
             boolean smtpPreferred = isPreferredTransportSmtp(profileNode);
             boolean smtpMessage = isMessageTypeSmtp(n);
             if (smtpPreferred || smtpMessage) {
+              LOG.debug("Message is an SMTP Message, getting email address for the user from  {} ", profileNode.getPath());
               String rcptEmailAddress = PersonalUtils.getPrimaryEmailAddress(profileNode);
 
               if (rcptEmailAddress == null || rcptEmailAddress.trim().length() == 0) {
@@ -108,6 +111,8 @@ public class SmtpRouter implements MessageRouter {
       }
     }
     routing.addAll(rewrittenRoutes);
+    
+    LOG.debug("Final Routing is [{}]", Arrays.toString(routing.toArray(new MessageRoute[routing.size()])));
   }
 
   private boolean isMessageTypeSmtp(Node n) throws RepositoryException {
@@ -117,6 +122,7 @@ public class SmtpRouter implements MessageRouter {
       String prop = n.getProperty(MessageConstants.PROP_SAKAI_TYPE).getString();
       isSmtp = MessageConstants.TYPE_SMTP.equals(prop);
     }
+   
 
     return isSmtp;
   }
