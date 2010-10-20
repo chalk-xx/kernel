@@ -87,7 +87,7 @@ public class DiscussionManagerImpl implements DiscussionManager {
         + path
         + "//*[@sling:resourceType=\"sakai/message\" and @sakai:type='discussion' and @sakai:id='"
         + messageId + "' and @sakai:marker='" + marker + "']";
-      LOG.info("Trying to find message with query: {}", queryString);
+      LOG.debug("Trying to find message with query: {}", queryString);
 
       QueryManager queryManager = session.getWorkspace().getQueryManager();
       Query query = queryManager.createQuery(queryString, Query.XPATH);
@@ -119,7 +119,7 @@ public class DiscussionManagerImpl implements DiscussionManager {
     }
     String queryString = "//*[@sling:resourceType=\"sakai/settings\" and @sakai:type='"
         + type + "' and @sakai:marker='" + marker + "']";
-    LOG.info("Trying to find settings with query: {}", queryString);
+    LOG.debug("Trying to find settings with query: {}", queryString);
     try {
       QueryManager queryManager = session.getWorkspace().getQueryManager();
       Query query = queryManager.createQuery(queryString, Query.XPATH);
@@ -135,7 +135,7 @@ public class DiscussionManagerImpl implements DiscussionManager {
       LOG.warn("Unable to check for settings of type '{}' and marker '{}'", type, marker);
     }
 
-    LOG.warn("No settings with type '{}' and marker '{}' found.", type, marker);
+    LOG.debug("No settings with type '{}' and marker '{}' found.", type, marker);
 
     return null;
   }
