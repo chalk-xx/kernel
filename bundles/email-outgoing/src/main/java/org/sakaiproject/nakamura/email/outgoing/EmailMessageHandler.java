@@ -65,7 +65,7 @@ public class EmailMessageHandler implements MessageTransport {
    *      org.osgi.service.event.Event, javax.jcr.Node)
    */
   public void send(MessageRoutes routes, Event event, Node n) {
-    LOGGER.info("Started handling an email message");
+    LOGGER.debug("Started handling an email message");
 
     // delay list instantiation to save object creation when not needed.
     List<String> recipients = null;
@@ -87,13 +87,13 @@ public class EmailMessageHandler implements MessageTransport {
             props.put(propName, propValue);
           }
         }
-        // make the message deliver to one listener.
+        // make the message deliver to one listener, that means the desination must be a queue.
         props.put(EventDeliveryConstants.DELIVERY_MODE, EventDeliveryMode.P2P);
         // make the message persistent to survive restarts.
         props.put(EventDeliveryConstants.MESSAGE_MODE, EventMessageMode.PERSISTENT);
         props.put(OutgoingEmailMessageListener.RECIPIENTS, recipients);
         props.put(OutgoingEmailMessageListener.NODE_PATH_PROPERTY, n.getPath());
-        Event emailEvent = new Event(OutgoingEmailMessageListener.TOPIC_NAME, props);
+        Event emailEvent = new Event(OutgoingEmailMessageListener.QUEUE_NAME, props);
 
         LOGGER.debug("Sending event [" + emailEvent + "]");
         eventAdmin.postEvent(emailEvent);
