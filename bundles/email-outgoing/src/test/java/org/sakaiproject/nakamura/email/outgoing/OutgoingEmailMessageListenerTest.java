@@ -252,6 +252,7 @@ public class OutgoingEmailMessageListenerTest {
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(false);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(false);
     expect(messageNode.hasNodes()).andReturn(false);
+    expect(messageNode.getSession()).andReturn(null);
     expect(
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
             MessageConstants.BOX_SENT)).andReturn(null);
@@ -307,6 +308,7 @@ public class OutgoingEmailMessageListenerTest {
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(false);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(false);
     expect(messageNode.hasNodes()).andReturn(false);
+    expect(messageNode.getSession()).andReturn(null);
     expect(
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
             MessageConstants.BOX_SENT)).andReturn(null);
@@ -357,6 +359,7 @@ public class OutgoingEmailMessageListenerTest {
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(true);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(false);
     expect(messageNode.hasNodes()).andReturn(false);
+    expect(messageNode.getSession()).andReturn(null);
     expect(
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
             MessageConstants.BOX_SENT)).andReturn(null);
@@ -409,6 +412,7 @@ public class OutgoingEmailMessageListenerTest {
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(false);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(true);
     expect(messageNode.hasNodes()).andReturn(false);
+    expect(messageNode.getSession()).andReturn(null);
     expect(
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
             MessageConstants.BOX_SENT)).andReturn(null);
@@ -518,6 +522,7 @@ public class OutgoingEmailMessageListenerTest {
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(false);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(false);
     expect(messageNode.hasNodes()).andReturn(true);
+    expect(messageNode.getSession()).andReturn(null);
     expect(messageNode.getNodes()).andReturn(nodeIterator);
     expect(
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,

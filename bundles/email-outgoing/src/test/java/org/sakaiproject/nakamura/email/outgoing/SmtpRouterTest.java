@@ -78,6 +78,7 @@ public class SmtpRouterTest {
     String authProfilePath = PersonalUtils.getProfilePath(au);
     expect(session.itemExists(authProfilePath)).andReturn(true);
     expect(session.getItem(authProfilePath)).andReturn(authProfile);
+    expect(authProfile.getPath()).andReturn(authProfilePath);
 
     replay(toProp, routeNode, transportProp, propDef, emailValue, emailProp, authProfile,
         session);
@@ -195,6 +196,7 @@ public class SmtpRouterTest {
     String authProfilePath = PersonalUtils.getProfilePath(au);
     expect(session.itemExists(authProfilePath)).andReturn(true);
     expect(session.getItem(authProfilePath)).andReturn(authProfile);
+    expect(authProfile.getPath()).andReturn(authProfilePath);
 
     replay(typeProp, messageNode, toProp, routeNode, transportProp, propDef, emailValue,
         emailProp, authProfile, session);

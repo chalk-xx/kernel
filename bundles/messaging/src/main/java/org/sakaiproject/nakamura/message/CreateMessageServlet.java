@@ -158,7 +158,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       preProcessor = new InternalCreateMessagePreProcessor();
     }
 
-    LOGGER.info("Using preprocessor: {}", preProcessor.getType());
+    LOGGER.debug("Using preprocessor: {}", preProcessor.getType());
 
     // Check if the request is properly formed for this sakai:type.
     try {
@@ -201,7 +201,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       path = msg.getPath();
       messageId = msg.getProperty(MessageConstants.PROP_SAKAI_ID).getString();
 
-      LOGGER.info("Got message node as " + msg);
+      LOGGER.debug("Got message node as " + msg);
     } catch (MessagingException e) {
       LOGGER.warn("MessagingException: " + e.getMessage());
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
@@ -293,7 +293,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       }
     };
     options.setReplaceSelectors("");
-    LOGGER.info("Sending the request out again.");
+    LOGGER.debug("Sending the request out again.");
     request.getRequestDispatcher(wrapper, options).forward(request, wrappedResponse);
     response.reset();
     try {

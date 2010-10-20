@@ -35,8 +35,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -65,6 +67,12 @@ public class OsgiJmsBridge implements EventHandler {
 
   @Property(intValue = Session.AUTO_ACKNOWLEDGE, propertyPrivate = true)
   static final String ACKNOWLEDGE_MODE = "bridge.acknowledgeMode";
+
+  @Property(value = {"org/osgi/service/log/LogEntry/LOG_DEBUG", "org/osgi/service/log/LogEntry/LOG_INFO", "org/osgi/service/log/LogEntry/LOG_TRACE"})
+  private static final String IGNORE_EVENT_TOPICS = "bridge.ignore.event.topics";
+
+  private Set<String> ignoreEventTopics = new HashSet<String>();
+  
 
   @Reference
   private ConnectionFactoryService connFactoryService;
@@ -114,6 +122,15 @@ public class OsgiJmsBridge implements EventHandler {
     acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
     serverId = clusterTrackingService.getCurrentServerId();
+    
+    String[] ignoreEventTopicsValues = (String[]) props.get(IGNORE_EVENT_TOPICS);
+    ignoreEventTopics.clear();
+    
+    if ( ignoreEventTopicsValues != null ) {
+      for ( String iet : ignoreEventTopicsValues ) {
+        ignoreEventTopics.add(iet);
+      }
+    }
 
     LOGGER.info("Session Transacted: {}, Acknowledge Mode: {}, " + "Client ID: {}",
         new Object[] { transacted, acknowledgeMode, connectionClientId });
@@ -134,6 +151,10 @@ public class OsgiJmsBridge implements EventHandler {
    */
   public void handleEvent(Event event) {
     LOGGER.trace("Receiving event");
+    if ( IGNORE_EVENT_TOPICS.contains(event.getTopic()) ) {
+      // Ignore Log messages in jms.
+      return;
+    }
     Connection conn = null;
 
     LOGGER.debug("Processing event {}", event);
@@ -221,6 +242,7 @@ public class OsgiJmsBridge implements EventHandler {
       
       // add the current user
 
+      LOGGER.debug("Sending Message {} to {}  ",msg, destination);
       producer.send(msg);
     } catch (JMSException e) {
       Throwable t = e.getCause();

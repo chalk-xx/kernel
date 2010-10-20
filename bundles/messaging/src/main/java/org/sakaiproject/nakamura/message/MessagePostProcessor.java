@@ -130,7 +130,7 @@ public class MessagePostProcessor implements SlingPostProcessor {
           // This might be heavy on performance.
           messageDict.put(EVENT_LOCATION, n.getPath());
           messageDict.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
-          LOGGER.info("Launched event for node: " + n.getPath());
+          LOGGER.debug("Launched event for node: {} ", n.getPath());
           Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT, messageDict);
           // KERN-790: Initiate a synchronous event.
           eventAdmin.sendEvent(pendingMessageEvent);
