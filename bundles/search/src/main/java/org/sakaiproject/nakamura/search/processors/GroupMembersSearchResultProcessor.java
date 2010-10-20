@@ -20,13 +20,11 @@ package org.sakaiproject.nakamura.search.processors;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.ValidatingRowIterator;
 import org.slf4j.Logger;
@@ -51,11 +49,7 @@ import javax.jcr.query.QueryResult;
 public class GroupMembersSearchResultProcessor extends NodeSearchBatchResultProcessor {
   private static final Logger logger = LoggerFactory
       .getLogger(GroupMembersSearchResultProcessor.class);
-
-  
-  @Reference
-  public SearchServiceFactory searchServiceFactory;
-  
+ 
   /**
    * {@inheritDoc}
    *
@@ -103,6 +97,7 @@ public class GroupMembersSearchResultProcessor extends NodeSearchBatchResultProc
       int maxResults = (int) SearchUtil.longRequestParameter(request,
           SearchConstants.PARAM_MAX_RESULT_SET_COUNT,
           SearchConstants.DEFAULT_PAGED_ITEMS);
+      
       SearchResultSet srs = searchServiceFactory.getSearchResultSet(iterator, maxResults);
       return srs;
     } catch (RepositoryException e) {

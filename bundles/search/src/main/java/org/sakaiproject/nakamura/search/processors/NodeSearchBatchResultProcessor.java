@@ -55,7 +55,7 @@ public class NodeSearchBatchResultProcessor implements
     SearchBatchResultProcessor {
 
   @Reference
-  private SearchServiceFactory searchServiceFactory;
+  protected SearchServiceFactory searchServiceFactory;
 
   /**
    * The non component constructor
