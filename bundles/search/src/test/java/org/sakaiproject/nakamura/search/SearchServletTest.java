@@ -35,6 +35,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import javax.jcr.Node;
+import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
@@ -136,6 +137,10 @@ public class SearchServletTest extends AbstractEasyMockTest {
     addStringRequestParameter(request, "items", "25");
     addStringRequestParameter(request, "q", "foo");
 
+    PropertyIterator propertyIterator = createNiceMock(PropertyIterator.class);
+    expect(queryNode.getProperties()).andReturn(propertyIterator);
+
+    
     RequestPathInfo info = createMock(RequestPathInfo.class);
     expect(request.getRequestPathInfo()).andReturn(info);
     expect(info.getSelectors()).andReturn(new String[] {"tidy", "2"});
@@ -213,6 +218,9 @@ public class SearchServletTest extends AbstractEasyMockTest {
     Resource resource = createMock(Resource.class);
     expect(resource.getPath()).andReturn("/var/dummy");
     expect(resource.adaptTo(Node.class)).andReturn(queryNode);
+
+    PropertyIterator propertyIterator = createNiceMock(PropertyIterator.class);
+    expect(queryNode.getProperties()).andReturn(propertyIterator);
 
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     Session session = createMock(Session.class);
