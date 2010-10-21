@@ -52,6 +52,7 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
+import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -86,6 +87,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,10 +98,12 @@ import java.util.regex.Pattern;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.Node;
+import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.Value;
+import javax.jcr.ValueFormatException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.Row;
@@ -309,7 +313,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         // KERN-1147 Response better when all parameters haven't been provided for a query
         String queryString = null;
         try {
-          queryString = processQueryTemplate(request, queryTemplate, queryLanguage,
+          queryString = processQueryTemplate(request, node, queryTemplate,  queryLanguage,
               propertyProviderName);
         } catch (MissingParameterException e) {
           response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
@@ -459,13 +463,76 @@ public class SearchServlet extends SlingSafeMethodsServlet {
    * @param queryTemplate
    *          the query template.
    * @param propertyProviderName
-   * @return A processed query template.
+   * @return A processed query template
+   * @throws ValueFormatException 
    * @throws RepositoryException
    */
   protected String processQueryTemplate(SlingHttpServletRequest request,
-      String queryTemplate, String queryLanguage, String propertyProviderName)
-      throws MissingParameterException {
+      Node queryTemplateNode, String queryTemplate, String queryLanguage, String propertyProviderName)
+      throws MissingParameterException, ValueFormatException, RepositoryException {
     Map<String, String> propertiesMap = loadUserProperties(request, propertyProviderName);
+    
+    
+    // check all the possible templates attached to this node and if there is a more suitable one, use it
+    // the property name is of the form sakai:query-template-q=*;user=ieb after the name has been unescaped
+    // any chars that match this code are escaped inthe form %uu
+    //
+    //if (ch == '%' || ch == '/' || ch == ':' || ch == '[' || ch == ']'
+    //  || ch == '*' || ch == '|'
+    //  || (ch == '.' && name.length() < 3)
+    //  || (ch == ' ' && (i == 0 || i == name.length() - 1))
+    //  || ch == '\t' || ch == '\r' || ch == '\n') {
+    //  buffer.append('%');
+    //  buffer.append(Character.toUpperCase(Character.forDigit(ch / 16, 16)));
+    //  buffer.append(Character.toUpperCase(Character.forDigit(ch % 16, 16)));
+    // see http://en.wikibooks.org/wiki/Unicode/Character_reference/0000-0FFF for encoding
+    // ie * is %2A
+    
+    
+    for ( PropertyIterator pi = queryTemplateNode.getProperties(); pi.hasNext(); ) {
+      javax.jcr.Property p = pi.nextProperty();
+      String propertyName = Text.unescapeIllegalJcrChars(p.getName());
+      LOGGER.debug("Checking Template named {} ",propertyName);
+      if (propertyName.startsWith(SAKAI_QUERY_TEMPLATE)
+          && !SAKAI_QUERY_TEMPLATE.equals(propertyName)) {
+        String[] keyValues = StringUtils.split(
+            propertyName.substring(SAKAI_QUERY_TEMPLATE.length() + 1), ';');
+        LOGGER.debug("Found Alternative Tempalte with parameters {} ",Arrays.toString(keyValues));
+        boolean matches = true;
+        for (String kv : keyValues) {
+          String[] kva = StringUtils.split(kv, "=", 2);
+          if (kva[0].startsWith("_")) {
+            if (!kva[1].equals(propertiesMap.get(kva[0]))) {
+              LOGGER.debug("Not Present in request, ignoring template {} {} ",
+                  Arrays.toString(kva), propertiesMap.get(kva[0]));
+              matches = false;
+              break;
+            } else {
+              LOGGER.debug("Present in Request {} ", Arrays.toString(kva));
+            }
+          } else {
+            RequestParameter rp = request.getRequestParameter(kva[0]);
+            String rpVal = null;
+            if (rp != null) {
+              rpVal = rp.getString();
+            }
+            if (!kva[1].equals(rpVal)) {
+              LOGGER.debug("Not Present in request, ignoring template {} {} ",
+                  Arrays.toString(kva), propertiesMap.get(rpVal));
+              matches = false;
+              break;
+            } else {
+              LOGGER.debug("Present in Request {} ", Arrays.toString(kva));
+            }
+          }
+        }
+        if (matches) {
+          queryTemplate = p.getString();
+          LOGGER.info("Using Optimised Query {} ", queryTemplate);
+          break;
+        }
+      }
+    }
 
     StringBuilder sb = new StringBuilder();
     boolean escape = false;

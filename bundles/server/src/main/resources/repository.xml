@@ -73,6 +73,7 @@
             <!-- but we need to allow at least 2 more for pre-fetching by the iterators. -->
             <param name="resultFetchSize" value="102" />
             <param name="supportHighlighting" value="true"/>
+            <param name="indexingConfiguration" value="${rep.home}/indexing_configuration.xml"/>
         </SearchIndex>
     </Workspace>
 
@@ -95,6 +96,7 @@
         <param name="extractorPoolSize " value="2"/>
          -->
         <param name="supportHighlighting" value="true"/>
+        <param name="indexingConfiguration" value="${rep.home}/indexing_configuration.xml"/>
     </SearchIndex>
 
 </Repository>
