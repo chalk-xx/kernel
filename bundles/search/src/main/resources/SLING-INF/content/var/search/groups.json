@@ -3,6 +3,7 @@
   // translating this to JCR-SQL2 caused a performance problem (0.072s -> 5s+).
   // Wait for Jukka to get the performance fixed before translating.
   "sakai:query-template": "//*[@sling:resourceType='sakai/group-home' and (jcr:contains(public/*/*/*/*/*,'{q}') or jcr:contains(public/*/*/*/*,'{q}') or jcr:contains(public/*/*/*,'{q}') or jcr:contains(public/*/*,'{q}') or jcr:contains(public/*,'{q}') or jcr:contains(pages/*/*/*/*/*,'{q}') or jcr:contains(pages/*/*/*/*,'{q}') or jcr:contains(pages/*/*/*,'{q}') or jcr:contains(pages/*/*,'{q}') or jcr:contains(pages/*,'{q}'))] order by {sortOn|@jcr:score} {sortOrder|descending}",
+  "sakai:query-template-q=%2A": "//*[@sling:resourceType='sakai/group-home'] order by {sortOn|@jcr:score} {sortOrder|descending}",
   "sakai:query-template-q=%2A%2A%2A": "//*[@sling:resourceType='sakai/group-home'] order by {sortOn|@jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Profile",
