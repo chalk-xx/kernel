@@ -40,11 +40,14 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.service.event.Event;
+import org.sakaiproject.nakamura.api.locking.LockManager;
+import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageProfileWriter;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessageTransport;
+import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
@@ -96,6 +99,9 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
 
   @Reference
   protected transient ProfileService profileService;
+  
+  @Reference
+  protected transient LockManager lockManager;
 
   /**
    * Default constructor
@@ -138,10 +144,6 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
       }
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
-    } finally {
-      if (session != null) {
-        session.logout();
-      }
     }
   }
 
@@ -164,6 +166,12 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
         if(!recipients.contains(rcpt)){
 
           String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
+          
+          try {
+            lockManager.waitForLock(toPath);
+          } catch (LockTimeoutException e1) {
+            throw new MessagingException("Unable to lock destination message store");
+          }
 
           // Copy the node into the user his folder.
           JcrUtils.deepGetOrCreateNode(session, toPath.substring(0, toPath.lastIndexOf("/")));
@@ -189,6 +197,11 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
       LOG.error(e.getMessage(), e);
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
+    } finally {
+      if (session != null) {
+        session.logout();
+      }
+      lockManager.clearLocks();
     }
   }
 

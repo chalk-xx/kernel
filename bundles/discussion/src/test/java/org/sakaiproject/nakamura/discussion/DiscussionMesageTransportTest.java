@@ -25,6 +25,8 @@ import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.locking.LockManager;
+import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
@@ -45,6 +47,7 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
 
   private DiscussionMessageTransport transport;
   private MessagingService messagingService;
+  private LockManager lockManager;
   private SlingRepository repository;
   private MessageRoutes routes;
   private JackrabbitSession adminSession;
@@ -57,6 +60,8 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
     transport = new DiscussionMessageTransport();
     transport.activateTesting();
     messagingService = createMock(MessagingService.class);
+    
+    lockManager = createMock(LockManager.class);
 
     adminSession = createMock(JackrabbitSession.class);
     adminSession.logout();
@@ -65,6 +70,7 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
     expect(repository.loginAdministrative(null)).andReturn(adminSession);
 
     transport.messagingService = messagingService;
+    transport.lockManager = lockManager;
     transport.slingRepository = repository;
   }
 
@@ -73,13 +79,13 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
 
   @Test
   public void testSend() throws ValueFormatException, VersionException, LockException,
-      ConstraintViolationException, RepositoryException {
+      ConstraintViolationException, RepositoryException, LockTimeoutException {
     MockNode node = new MockNode("/path/to/msg");
     node.setProperty(MessageConstants.PROP_SAKAI_ID, "a1b2c3d4e5f6");
     node.setProperty(MessageConstants.PROP_SAKAI_FROM, "johndoe");
     expect(messagingService.getFullPathToMessage("s-site", "a1b2c3d4e5f6", adminSession))
         .andReturn("/sites/site/store/a1b2c3d4e5f6");
-
+    expect(lockManager.waitForLock("/sites/site/store/a1b2c3d4e5f6")).andReturn(null);
     // deepGetOrCreate new node
     MockNode messageNode = new MockNode("/sites/site/store/a1b2c3d4e5f6");
     expect(adminSession.itemExists("/sites/site/store/a1b2c3d4e5f6")).andReturn(true);
@@ -91,6 +97,8 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
     MessageRoute route = new AbstractMessageRoute("discussion:s-site") {
     };
     routes.add(route);
+    
+    lockManager.clearLocks();
 
     replay();
     transport.send(routes, null, node);

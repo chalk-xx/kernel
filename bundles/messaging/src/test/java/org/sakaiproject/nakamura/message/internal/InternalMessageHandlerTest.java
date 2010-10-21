@@ -32,6 +32,7 @@ import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessagingService;
@@ -57,6 +58,7 @@ public class InternalMessageHandlerTest {
 
   private InternalMessageHandler handler;
   private MessagingService messagingService;
+  private LockManager lockManager;
   private SlingRepository slingRepository;
   private JackrabbitSession session;
   private String groupName = "g_group1";
@@ -65,10 +67,12 @@ public class InternalMessageHandlerTest {
   public void setUp() throws Exception {
     messagingService = mock(MessagingService.class);
     slingRepository = mock(SlingRepository.class);
+    lockManager = mock(LockManager.class);
     handler = new InternalMessageHandler();
     handler.activateTesting();
     handler.messagingService = messagingService;
     handler.slingRepository = slingRepository;
+    handler.lockManager = lockManager;
     session = mock(JackrabbitSession.class);
   }
 
