@@ -1,8 +1,6 @@
 {
   "sakai:query-language": "xpath",
   "sakai:query-template": "//element(*, sakai:pooled-content)[(jcr:contains(., '{q}') or jcr:contains(jcr:content, '{q}')){_meManagerGroups?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
-  "sakai:query-template-q=%2A%2A%2A": "//element(*, sakai:pooled-content)[{_meManagerGroups?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
-  "sakai:query-template-q=%2A": "//element(*, sakai:pooled-content)[{_meManagerGroups?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "PooledContent",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
