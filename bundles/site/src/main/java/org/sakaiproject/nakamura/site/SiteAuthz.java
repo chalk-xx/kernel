@@ -224,7 +224,7 @@ public class SiteAuthz {
     if (site.hasProperty(SITE_STATUS_PROPERTY)) {
       statusType = site.getProperty(SITE_STATUS_PROPERTY).getString();
     } else {
-      LOGGER.info("Site node missing status property; skipping authz settings");
+      LOGGER.debug("Site node missing status property; skipping authz settings");
       return;
     }
     if (site.hasProperty(SITE_ACCESS_TYPE_PROPERTY)) {
