@@ -1,6 +1,7 @@
 {
   "sakai:query-language": "xpath",
   "sakai:query-template": "//*[jcr:contains(.,\"{q}\")] order by @{sortOn|jcr:score} {sortOrder|descending}",
+  "sakai:query-template-q=%2A": "//* order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Node",
   "sakai:title": "Content - Any content",

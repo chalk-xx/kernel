@@ -2,6 +2,7 @@
   "sakai:query-language": "xpath",
   // see users.json and groups.json for any notes
   "sakai:query-template": "//*[(@sling:resourceType='sakai/user-home' or @sling:resourceType='sakai/group-home') and (jcr:contains(public/*/*/*/*/*,'{q}') or jcr:contains(public/*/*/*/*,'{q}') or jcr:contains(public/*/*/*,'{q}') or jcr:contains(public/*/*,'{q}') or jcr:contains(public/*,'{q}') or jcr:contains(pages/*/*/*/*/*,'{q}') or jcr:contains(pages/*/*/*/*,'{q}') or jcr:contains(pages/*/*/*,'{q}') or jcr:contains(pages/*/*,'{q}') or jcr:contains(pages/*,'{q}'))] order by {sortOn|@jcr:score} {sortOrder|descending}",
+  "sakai:query-template-q=%2A%2A%2A": "//*[@sling:resourceType='sakai/user-home' or @sling:resourceType='sakai/group-home'] order by {sortOn|@jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Profile",
   "sakai:title": "Users, Groups",
