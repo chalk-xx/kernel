@@ -41,9 +41,12 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
+import org.sakaiproject.nakamura.api.locking.LockManager;
+import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessageTransport;
+import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
@@ -76,6 +79,9 @@ public class DiscussionMessageTransport implements MessageTransport {
 
   @Reference
   protected transient MessagingService messagingService;
+  
+  @Reference
+  protected transient LockManager lockManager;
 
   @Reference
   protected transient EventAdmin eventAdmin;
@@ -108,22 +114,26 @@ public class DiscussionMessageTransport implements MessageTransport {
           String messageId = originalMessage.getProperty(PROP_SAKAI_ID).getString();
           String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
           
-
+          try {
+            lockManager.waitForLock(toPath);
+          } catch (LockTimeoutException e) {
+            throw new MessagingException("Unable to lock discussion widget message store");
+          }
           // Copy the node to the destination
-          Node n = JcrUtils.deepGetOrCreateNode(session, toPath);
+          Node newMessageNode = JcrUtils.deepGetOrCreateNode(session, toPath);
 
           PropertyIterator pi = originalMessage.getProperties();
           while (pi.hasNext()) {
             Property p = pi.nextProperty();
             if (!p.getName().contains("jcr:"))
-              n.setProperty(p.getName(), p.getValue());
+              newMessageNode.setProperty(p.getName(), p.getValue());
           }
 
           // Add some extra properties on the just created node.
-          n.setProperty(PROP_SAKAI_TYPE, route.getTransport());
-          n.setProperty(PROP_SAKAI_TO, route.getRcpt());
-          n.setProperty(PROP_SAKAI_MESSAGEBOX, BOX_INBOX);
-          n.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
+          newMessageNode.setProperty(PROP_SAKAI_TYPE, route.getTransport());
+          newMessageNode.setProperty(PROP_SAKAI_TO, route.getRcpt());
+          newMessageNode.setProperty(PROP_SAKAI_MESSAGEBOX, BOX_INBOX);
+          newMessageNode.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
 
           if (!testing) {
             // This will probably be saved in a site store. Not all the users will have
@@ -144,7 +154,7 @@ public class DiscussionMessageTransport implements MessageTransport {
             // topic.
             final Dictionary<String, String> properties = new Hashtable<String, String>();
             properties.put(UserConstants.EVENT_PROP_USERID, route.getRcpt());
-            properties.put("from", n.getProperty(PROP_SAKAI_FROM).getString());
+            properties.put("from", newMessageNode.getProperty(PROP_SAKAI_FROM).getString());
             EventUtils.sendOsgiEvent(properties, TOPIC_DISCUSSION_MESSAGE, eventAdmin);
           } catch (Exception e) {
             // Swallow all exceptions, but leave a note in the error log.
@@ -155,6 +165,7 @@ public class DiscussionMessageTransport implements MessageTransport {
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
     } finally {
+      lockManager.clearLocks();
       if (session != null) {
         session.logout();
       }
