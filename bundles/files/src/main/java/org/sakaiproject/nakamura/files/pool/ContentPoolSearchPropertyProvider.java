@@ -86,12 +86,12 @@ public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider
 
       // Get all the groups I'm a member of and add the property in the map.
       Iterator<Group> groups = au.memberOf();
-      StringBuilder sbManagingGroups = new StringBuilder(" and (");
+      StringBuilder sbManagingGroups = new StringBuilder("(");
       sbManagingGroups.append(safePath).append("/@");
       sbManagingGroups.append(POOLED_CONTENT_USER_MANAGER);
       sbManagingGroups.append("='").append(au.getID()).append("'");
 
-      StringBuilder sbViewingGroups = new StringBuilder(" and (");
+      StringBuilder sbViewingGroups = new StringBuilder("(");
       sbViewingGroups.append(safePath).append("/@");
       sbViewingGroups.append(POOLED_CONTENT_USER_VIEWER);
       sbViewingGroups.append("='").append(au.getID()).append("'");
@@ -117,7 +117,12 @@ public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider
       sbManagingGroups.append(") ");
       sbViewingGroups.append(") ");
 
+
       // Add the 2 properties to the map.
+      propertiesMap.put("_meManagerGroupsNoAnd", sbManagingGroups.toString());
+      propertiesMap.put("_meViewerGroupsNoAnd", sbViewingGroups.toString());
+      sbManagingGroups.insert(0, " and ");
+      sbViewingGroups.insert(0, " and ");
       propertiesMap.put("_meManagerGroups", sbManagingGroups.toString());
       propertiesMap.put("_meViewerGroups", sbViewingGroups.toString());
     } catch (RepositoryException e) {
