@@ -164,7 +164,7 @@
               <elementProp name="${FILE}" elementType="HTTPFileArg">
                 <stringProp name="File.path">${FILE}</stringProp>
                 <stringProp name="File.paramname">fileData</stringProp>
-                <stringProp name="File.mimetype">text/csv</stringProp>
+                <stringProp name="File.mimetype">text/plain</stringProp>
               </elementProp>
             </collectionProp>
           </elementProp>
