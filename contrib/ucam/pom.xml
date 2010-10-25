@@ -33,6 +33,11 @@
                 <artifactId>org.sakaiproject.nakamura.mysqljdbc</artifactId>
                 <version>0.9-SNAPSHOT</version>
             </bundle>
+            <bundle>
+              <groupId>uk.ac.cam.caret.nakamura</groupId>
+              <artifactId>uk.ac.cam.caret.nakamura.cued</artifactId>
+              <version>0.1-SNAPSHOT</version>
+            </bundle>
           </additionalBundles>
           <bundleExclusions>
           <!-- You can exclude particular bundles here. -->
@@ -102,6 +107,11 @@
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.mysqljdbc</artifactId>
       <version>0.9-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>uk.ac.cam.caret.nakamura</groupId>
+      <artifactId>uk.ac.cam.caret.nakamura.cued</artifactId>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <repositories>
