@@ -90,9 +90,10 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
    *      org.osgi.service.event.Event, javax.jcr.Node)
    */
   public void send(MessageRoutes routes, Event event, Node originalMessage) {
+    Session session = null;
     try {
 
-      Session session = slingRepository.loginAdministrative(null); // usage checked and Ok
+      session = slingRepository.loginAdministrative(null); // usage checked and Ok
       // KERN-577
 
       for (MessageRoute route : routes) {
@@ -140,6 +141,10 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
 
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
+    } finally {
+      if ( session != null ) {
+        session.logout();
+      }
     }
   }
 
