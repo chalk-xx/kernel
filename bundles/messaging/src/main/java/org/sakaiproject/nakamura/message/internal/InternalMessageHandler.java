@@ -131,19 +131,15 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
           // the path were we want to save messages in.
           String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID)
           .getString();
-
           sendHelper(recipients, rcpt, originalMessage, session, messageId, um);
-          if (!testing) {
-            String from = originalMessage.getProperty(PROP_SAKAI_FROM).getString();
-            String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
-            Authorizable authorizable = um.getAuthorizable(from);
-            replaceAccessControlEntry(session, toPath, authorizable.getPrincipal(),
-                new String[] { JCR_WRITE, JCR_READ, JCR_REMOVE_NODE }, null, null, null);
-          }
         }
       }
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
+    } finally {
+      if (session != null) {
+        session.logout();
+      }
     }
   }
 
@@ -184,6 +180,7 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
           n.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
+          
 
           if (session.hasPendingChanges()) {
             session.save();
@@ -198,9 +195,6 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
     } finally {
-      if (session != null) {
-        session.logout();
-      }
       lockManager.clearLocks();
     }
   }
