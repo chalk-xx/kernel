@@ -1,8 +1,8 @@
 {
   "sakai:query-language": "xpath",
   "sakai:query-template": "//element(*, nt:file)[(jcr:contains(., '{q}') or jcr:contains(jcr:content, '{q}')){_tags?}{_usedin?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
-  "sakai:query-template-q=%2A": "//element(*, nt:file)[{_tags?}{_usedin?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
-  "sakai:query-template-q=%2A%2A%2A": "//element(*, nt:file)[{_tags?}{_usedin?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
+  "sakai:query-template-q=%2A": "//element(*, nt:file)[{_tags_and_usedin?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
+  "sakai:query-template-q=%2A%2A%2A": "//element(*, nt:file)[{_tags_and_usedin?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:batchresultprocessor": "Files",
   "sakai:propertyprovider": "Files",
