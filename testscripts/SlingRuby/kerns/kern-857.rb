@@ -20,7 +20,7 @@ class TC_Kern857 < Test::Unit::TestCase
     folders = @widget_options["sakai.batch.widgets.widget_folders"]["values"]
 
     # Add our own widgets to it.
-    folders = [widgetsPath]
+    folders.concat([widgetsPath])
     setWidgetServiceConfigurationPath(folders)
 
     # Create a couple of widgets in this directory.
