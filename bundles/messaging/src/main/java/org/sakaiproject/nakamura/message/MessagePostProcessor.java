@@ -111,14 +111,21 @@ public class MessagePostProcessor implements SlingPostProcessor {
         LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
       }
     }
+    
+    
 
     List<String> handledNodes = new ArrayList<String>();
     // Check if we have any nodes that have a pending state and launch an OSGi
     // event
+    // we must save changes before launching the event.
+    if ( s.hasPendingChanges() ) {
+      s.save();
+    }
     for (Entry<Node, String> mm : messageMap.entrySet()) {
       Node n = mm.getKey();
+      String path = n.getPath();
       String state = mm.getValue();
-      if (!handledNodes.contains(n.getPath())) {
+      if (!handledNodes.contains(path)) {
         if (STATE_NONE.equals(state) || STATE_PENDING.equals(state)) {
 
           n.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
@@ -128,13 +135,17 @@ public class MessagePostProcessor implements SlingPostProcessor {
           // We can't pass in the node, because the session might expire before the event gets handled
           // This does mean that the listener will have to get the node each time, and probably create a new session for each message
           // This might be heavy on performance.
-          messageDict.put(EVENT_LOCATION, n.getPath());
+          messageDict.put(EVENT_LOCATION, path);
           messageDict.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
-          LOGGER.debug("Launched event for node: {} ", n.getPath());
+          LOGGER.debug("Launched event for node: {} ", path);
           Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT, messageDict);
           // KERN-790: Initiate a synchronous event.
-          eventAdmin.sendEvent(pendingMessageEvent);
-          handledNodes.add(n.getPath());
+          try {
+            eventAdmin.postEvent(pendingMessageEvent);
+            handledNodes.add(path);
+          } catch ( Exception e ) {
+            LOGGER.warn("Failed to post message dispatch event, cause {} ",e.getMessage(),e);
+          }
         }
       }
     }
