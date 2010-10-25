@@ -90,10 +90,22 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     propertiesMap.put("_order", doSortOrder(request));
 
     // Filter by site
-    propertiesMap.put("_usedin", doUsedIn(request));
+    String usedinClause = doUsedIn(request);
+    String tags = doUsedIn(request);
+    String tagsAndUsedIn = "";
+    if (tags.length() > 0) {
+      propertiesMap.put("_usedin", " and (" + tags + ")");
+      tagsAndUsedIn = tags;
+    }
+    
+    if (usedinClause.length() > 0) {
+      propertiesMap.put("_usedin", " and (" + usedinClause + ")");
+      tagsAndUsedIn = "(" + tagsAndUsedIn + ") and (" + usedinClause + ")";
+      
+    }
+    propertiesMap.put("_tags_and_usedin", tagsAndUsedIn);
 
-    // Filter by tags
-    propertiesMap.put("_tags", doTags(request));
+    
   }
 
   /**
@@ -117,7 +129,6 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
         usedinClause = usedinClause.substring(0, i);
       }
       if (usedinClause.length() > 0) {
-        usedinClause = " and (" + usedinClause + ")";
         return usedinClause;
       }
     }
