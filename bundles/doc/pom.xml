@@ -52,7 +52,7 @@
             <Bundle-Category> sakai-nakamura </Bundle-Category>
             <Export-Package> org.sakaiproject.nakamura.api.doc </Export-Package>
             <Private-Package> org.sakaiproject.nakamura.doc.* </Private-Package>
-            <Sling-Initial-Content>SLING-INF/content;uninstall:=false;path:=/var</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false;path:=/var</Sling-Initial-Content>
             <_include>${basedir}/target/scm-version.properties</_include>
           </instructions>
         </configuration>
