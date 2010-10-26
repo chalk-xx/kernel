@@ -4,7 +4,7 @@
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
 
 export K2_TAG="HEAD"
-export S2_TAG="tags/sakai-2.8.0-a01"
+export S2_TAG="tags/sakai-2.8.0-a02"
 export UX_TAG="HEAD"
 
 # Treat unset variables as an error when performing parameter expansion
@@ -55,14 +55,19 @@ set -o errexit
 
 # clean previous builds
 cd $BUILD_DIR
-if [ $1 == "clean" ]
+if [ $# -gt 0 ]
 then
-    echo "Starting clean build..."
-    rm -rf sakai
-    rm -rf sakai2-demo
-    rm -rf 3akai-ux
-    rm -rf sakai3
-    rm -rf ~/.m2/repository/org/sakaiproject
+    if [ $1 == "clean" ]
+    then
+        echo "Starting clean build..."
+        rm -rf sakai
+        rm -rf sakai2-demo
+        rm -rf 3akai-ux
+        rm -rf sakai3
+        rm -rf ~/.m2/repository/org/sakaiproject
+    else
+        echo "Starting incremental build..."
+    fi
 else
     echo "Starting incremental build..."
 fi
@@ -147,7 +152,9 @@ else
     # configure sakai 2 instance
     cd $BUILD_DIR
     # change default tomcat listener port numbers
-    cp -f server.xml sakai2-demo/conf/server.xml 
+    perl -pwi -e 's/\<Connector\s+port\="8080"/\<Connector port\="8880"/gi' sakai2-demo/conf/server.xml
+    perl -pwi -e 's/\<Connector\s+port\="8009"/\<Connector port\="8809"/gi' sakai2-demo/conf/server.xml
+    # sakai.properties
     echo "ui.service = $S2_TAG on HSQLDB" >> sakai2-demo/sakai/sakai.properties
     echo "version.sakai = $REPO_REV" >> sakai2-demo/sakai/sakai.properties
     echo "version.service = Built: $BUILD_DATE" >> sakai2-demo/sakai/sakai.properties
