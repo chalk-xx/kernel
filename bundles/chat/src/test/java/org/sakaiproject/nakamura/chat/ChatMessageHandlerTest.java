@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.verify;
 
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -158,7 +159,10 @@ public class ChatMessageHandlerTest {
             JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             MessageConstants.SAKAI_MESSAGE_RT)).andReturn(null);
     adminSession.save();
-
+    
+    adminSession.logout();
+    EasyMock.expectLastCall();
+    
     replay(messageNode, msgStore, adminSession);
 
     MessageRoutes routes = new MessageRoutesTest();
