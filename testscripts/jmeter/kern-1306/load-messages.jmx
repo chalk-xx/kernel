@@ -58,7 +58,7 @@
         <stringProp name="delimiter"></stringProp>
         <boolProp name="quotedData">true</boolProp>
         <boolProp name="recycle">true</boolProp>
-        <boolProp name="stopThread">true</boolProp>
+        <boolProp name="stopThread">false</boolProp>
         <stringProp name="shareMode">All threads</stringProp>
       </CSVDataSet>
       <hashTree/>
@@ -68,7 +68,7 @@
         <stringProp name="variableNames">ID,TO</stringProp>
         <stringProp name="delimiter">,</stringProp>
         <boolProp name="quotedData">true</boolProp>
-        <boolProp name="recycle">true</boolProp>
+        <boolProp name="recycle">false</boolProp>
         <boolProp name="stopThread">true</boolProp>
         <stringProp name="shareMode">All threads</stringProp>
       </CSVDataSet>

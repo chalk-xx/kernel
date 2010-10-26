@@ -10,14 +10,14 @@ perl ../usersfromcsv.pl netids01.csv $HOST $PORT
 
 NUMMESSAGES=`wc -l message-pairs.csv | awk '{print $1}'`
 echo loading $NUMMESSAGES messages
-NUMMESSAGELOOPS=$(( $NUMMESSAGES / 10 ))
-jmeter --nongui --testfile load-messages.jmx -JLOOPS=$NUMMESSAGELOOPS
+jmeter --nongui --testfile load-messages.jmx
 
 NUMCONTENT=`wc -l content.txt | awk '{print $1}'`
 echo loading $NUMCONTENT files
-NUMCONTENTLOOPS=$(( $NUMCONTENT / 2 ))
-jmeter --nongui --testfile load-files.jmx -JLOOPS=$NUMCONTENTLOOPS
+jmeter --nongui --testfile load-files.jmx
 
+NUMTAGS=`wc -l user-tags.csv | awk '{print $1}'`
 echo loading tags
+jmeter --nongui --testfile load-tags.jmx
 
 
