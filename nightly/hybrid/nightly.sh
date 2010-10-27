@@ -13,14 +13,14 @@ set -o nounset
 # environment
 export PATH=/usr/local/bin:$PATH
 export BUILD_DIR="/home/hybrid"
-export JAVA_HOME=/opt/jdk1.6.0_21
+export JAVA_HOME=/opt/jdk1.6.0_22
 export PATH=$JAVA_HOME/bin:${PATH}
 export MAVEN_HOME=/usr/local/apache-maven-2.2.1
 export M2_HOME=/usr/local/apache-maven-2.2.1
 export PATH=$MAVEN_HOME/bin:${PATH}
 export MAVEN_OPTS="-Xmx512m -XX:MaxPermSize=256m"
 export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -Dsun.lang.ClassLoader.allowArraySyntax=true -Dorg.apache.jasper.compiler.Parser.STRICT_QUOTE_ESCAPING=false -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
-export K2_OPTS="-server -Xmx512m -XX:MaxPermSize=128m -Djava.awt.headless=true"
+export K2_OPTS="-server -Xmx1024m -XX:MaxPermSize=256m -Djava.awt.headless=true"
 BUILD_DATE=`date "+%D %R"`
 
 # get some shell scripting setup out of the way...
