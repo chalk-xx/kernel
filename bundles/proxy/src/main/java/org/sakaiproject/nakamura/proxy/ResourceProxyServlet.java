@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -80,7 +81,7 @@ import javax.servlet.http.HttpServletResponse;
 		@ServiceMethod(name = "OPTIONS", description = "Proxied OPTIONS request", response = {
 				@ServiceResponse(code = 403, description = "Proxying templates may only be stored in /var/proxy"),
 				@ServiceResponse(code = 500, description = "ProxyClientException or RepositoryException") }) })
-public class ResourceProxyServlet extends SlingAllMethodsServlet {
+public class ResourceProxyServlet extends SlingAllMethodsServlet implements OptingServlet {
 
   public static final String PROXY_PATH_PREFIX = "/var/proxy/";
 
@@ -352,6 +353,21 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
 
   protected void unbindPostProcessor(ProxyPostProcessor proxyPostProcessor) {
     postProcessors.remove(proxyPostProcessor.getName());
+  }
+
+  // ---------- OptingServlet interface ----------
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.api.servlets.OptingServlet#accepts(org.apache.sling.api.SlingHttpServletRequest)
+   */
+  public boolean accepts(SlingHttpServletRequest request) {
+    if ("delete".equals(request.getParameter(":operation"))) {
+      log("Opting out of service due to existence of parameter [:operation=delete]");
+      return false;
+    } else {
+      return true;
+    }
   }
 
 }
