@@ -7,6 +7,8 @@ $counter=0;
 $first=time;
 
 $file = $ARGV[0];
+$host = $ARGV[1];
+$port = $ARGV[2];
 
 open (F, $file) || die ("Could not open $file!");
 
@@ -23,7 +25,7 @@ while ($line = <F>)
   $counter_time++;
   $counter++;
   $val=&create_profile($name); 
-  system ("curl $val -F:name=$name -Fpwd=test -FpwdConfirm=test http://admin:admin\@localhost:8080/system/userManager/user.create.html 2> /dev/null  >/dev/null;");
+  system ("curl $val -F:name=$name -Fpwd=test -FpwdConfirm=test http://admin:admin\@$host:$port/system/userManager/user.create.html 2> /dev/null  >/dev/null;");
 }
 
 close (F);

@@ -27,16 +27,19 @@
               <groupId>org.sakaiproject.nakamura</groupId>
               <artifactId>org.sakaiproject.nakamura.uxloader</artifactId>
               <version>0.5.0-ucam-2010-09-08-00-build</version>
+              <startLevel>30</startLevel> 
             </bundle>
             <bundle>
                 <groupId>org.sakaiproject.nakamura</groupId>
                 <artifactId>org.sakaiproject.nakamura.mysqljdbc</artifactId>
                 <version>0.9-SNAPSHOT</version>
+                  <startLevel>1</startLevel> 
             </bundle>
             <bundle>
               <groupId>uk.ac.cam.caret.nakamura</groupId>
               <artifactId>uk.ac.cam.caret.nakamura.cued</artifactId>
               <version>0.1-SNAPSHOT</version>
+              <startLevel>30</startLevel> 
             </bundle>
           </additionalBundles>
           <bundleExclusions>
