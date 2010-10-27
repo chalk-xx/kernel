@@ -17,8 +17,8 @@ NUMTAGS=$(( $NUMUSERS * 3 ))
 echo creating $NUMUSERS netIDs in netids01.csv
 perl ../netidusers.pl $NUMUSERS > netids01.csv
 
-echo creating $NUMMESSAGES To:/From: pairs in message-pairs.csv
-ruby generate-netid-pairs.rb $NUMMESSAGES > message-pairs.csv
+echo creating $NUMMESSAGES message recipients in recipients.csv
+ruby generate-recipient-list.rb $NUMMESSAGES > recipients.csv
 
 echo creating $NUMTAGS user profile tags in user-tags.csv
 ruby generate-user-tags.rb $NUMTAGS > user-tags.csv

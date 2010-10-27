@@ -8,7 +8,7 @@ NUMUSERS=`wc -l netids01.csv | awk '{print $1}'`
 echo loading $NUMUSERS users to http://$HOST:$PORT
 perl ../usersfromcsv.pl netids01.csv $HOST $PORT
 
-NUMMESSAGES=`wc -l message-pairs.csv | awk '{print $1}'`
+NUMMESSAGES=`wc -l recipients.csv | awk '{print $1}'`
 echo loading $NUMMESSAGES messages
 jmeter --nongui -l loadmessageslog.txt --testfile load-messages.jmx
 
