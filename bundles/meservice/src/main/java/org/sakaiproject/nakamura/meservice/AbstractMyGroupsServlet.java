@@ -31,6 +31,31 @@ public abstract class AbstractMyGroupsServlet extends SlingSafeMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(MyManagedGroupsServlet.class);
 
   public static final String PARAM_TEXT_TO_MATCH = "q";
+  
+  /**
+  *
+  */
+  public static final String PARAMS_ITEMS_PER_PAGE = "items";
+  /**
+  *
+  */
+  public static final String PARAMS_PAGE = "page";
+  /**
+   * The default amount of items in a page.
+   */
+  public static final int DEFAULT_PAGED_ITEMS = 25;
+  
+  /**
+  *
+  */
+  public static final String TOTAL = "total";
+ /**
+  *
+  */
+  public static final String JSON_RESULTS = "results";
+
+
+
 
   protected transient ProfileService profileService;
 
@@ -53,23 +78,56 @@ public abstract class AbstractMyGroupsServlet extends SlingSafeMethodsServlet {
 
       // Write out the Profiles.
       Pattern filterPattern = getFilterPattern(request.getParameter(PARAM_TEXT_TO_MATCH));
+      
+      // Check if the users wants results who are too far in the resultset to get.
+      // If we wouldn't do this, the user could ask for the 1000th page
+      // This would result in iterating over (at least) 25.000 lucene indexes and
+      // checking if the user has READ access on it.
+      long nitems = longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+          DEFAULT_PAGED_ITEMS);
+      long page = longRequestParameter(request, PARAMS_PAGE, 0);
+      long offset = page * nitems;
+      long resultSize = Math.max(nitems, offset);
+
+      
       List<String> selectors = Arrays.asList(request.getRequestPathInfo().getSelectors());
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
       ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
       writer.setTidy(selectors.contains("tidy"));
+      
+      writer.object();
+      writer.key(PARAMS_ITEMS_PER_PAGE);
+      writer.value(nitems);
+      writer.key(JSON_RESULTS);
+
+      
       writer.array();
+      int i = 0;
       for (Group group : groups.values()) {
-        ValueMap profile = profileService.getProfileMap(group, session);
-        if (profile != null) {
-          if ((filterPattern == null) || (isValueMapPattternMatch(profile, filterPattern))) {
-            writer.valueMap(profile);
+        if ( i > (offset + page) ) {
+          break;
+        } else if ( i >= offset ) {
+          ValueMap profile = profileService.getProfileMap(group, session);
+          if (profile != null) {
+            if ((filterPattern == null) || (isValueMapPattternMatch(profile, filterPattern))) {
+              writer.valueMap(profile);
+            }
+          } else {
+            LOGGER.info("No Profile found for group {}", group.getID());
           }
-        } else {
-          LOGGER.info("No Profile found for group {}", group.getID());
         }
+        i++;
       }
       writer.endArray();
+      
+      
+      writer.key(TOTAL);
+      writer.value(groups.size());
+
+      writer.endObject();
+
+      
     } catch (RepositoryException e) {
       LOGGER.error("Failed to retrieve groups for user " + userId, e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -81,6 +139,18 @@ public abstract class AbstractMyGroupsServlet extends SlingSafeMethodsServlet {
     }
   }
 
+  private long longRequestParameter(SlingHttpServletRequest request,
+      String paramName, long defaultValue) {
+    String p = request.getParameter(paramName);
+    if ( p == null || p.trim().length() == 0 ) {
+      return defaultValue;
+    }
+    try {
+      return Long.valueOf(p);
+    } catch ( Exception e) {
+      return defaultValue;
+    }
+  }
   protected abstract TreeMap<String, Group> getGroups(Authorizable member, UserManager userManager)
       throws RepositoryException;
 
