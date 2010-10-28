@@ -9,6 +9,6 @@ end
 size = users.size()
 
 (1..howmany).each do |i|
-  puts "#{users[rand(size)]},#{users[rand(size)]}"
+  puts "#{users[rand(size)]},test"
 end
   
