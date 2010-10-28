@@ -12,7 +12,7 @@ include SlingUsers
 class TC_RSSTest < Test::Unit::TestCase
   include SlingTest
 
-  def test_valid_rss_file
+  def url_broken_test_valid_rss_file
     # Do a GET request to a valid RSS file.
     @log.info("Getting BBCNews")
     res = @s.execute_get(@s.url_for("var/proxy/rss.json"), {"rss" => "http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss.xml"})
