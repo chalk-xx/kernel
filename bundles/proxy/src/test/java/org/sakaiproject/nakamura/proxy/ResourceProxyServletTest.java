@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,6 +72,9 @@ public class ResourceProxyServletTest {
   private Vector<String> headerNames;
 
   private Vector<String> parameterNames;
+
+  @Mock
+  private RequestParameterMap parameterMap;
 
   @Mock
   private ProxyClientService proxyClientService;
@@ -126,6 +130,7 @@ public class ResourceProxyServletTest {
     resourceReturnsANode();
     requestReturnsHeaderNames();
     requestReturnsParameterNames();
+    requestReturnsParameterMap();
     proxyClientServiceReturnsAProxyResponse();
     proxyResponseHasHelloWorldInputStream();
     slingResponseHasOutputStream();
@@ -143,6 +148,7 @@ public class ResourceProxyServletTest {
     resourceReturnsANode();
     requestReturnsHeaderNames();
     requestReturnsParameterNames();
+    requestReturnsParameterMap();
     requestHasBasicAuthHeaders();
     proxyClientServiceReturnsAProxyResponse();
     proxyResponseHasHelloWorldInputStream();
@@ -161,6 +167,7 @@ public class ResourceProxyServletTest {
     resourceReturnsANode();
     requestReturnsHeaderNames();
     requestReturnsParameterNames();
+    requestReturnsParameterMap();
     requestHasBasicAuthParameters();
     proxyClientServiceReturnsAProxyResponse();
     proxyResponseHasHelloWorldInputStream();
@@ -186,6 +193,7 @@ public class ResourceProxyServletTest {
     resourceReturnsANode();
     requestHasSakaiProxyRequestBodyOneHeader();
     requestReturnsHeaderNames();
+    requestReturnsParameterMap();
     proxyClientServiceReturnsAProxyResponse();
     proxyResponseHasHelloWorldInputStream();
     slingResponseHasOutputStream();
@@ -204,6 +212,7 @@ public class ResourceProxyServletTest {
     requestHasSakaiProxyRequestBodyZeroHeader();
     requestReturnsHeaderNames();
     requestReturnsParameterNames();
+    requestReturnsParameterMap();
     proxyClientServiceReturnsAProxyResponse();
     proxyResponseHasHelloWorldInputStream();
     slingResponseHasOutputStream();
@@ -221,6 +230,7 @@ public class ResourceProxyServletTest {
     resourceReturnsANode();
     requestReturnsHeaderNames();
     requestReturnsParameterNames();
+    requestReturnsParameterMap();
     requestHasACoupleOfQueryParameters();
     proxyClientServiceReturnsAProxyResponse();
     proxyResponseHasHelloWorldInputStream();
@@ -240,6 +250,7 @@ public class ResourceProxyServletTest {
     resourceReturnsANode();
     requestReturnsHeaderNames();
     requestReturnsParameterNames();
+    requestReturnsParameterMap();
     nodeHasSakaiPreprocessorProperty();
     proxyClientServiceReturnsAProxyResponse();
     proxyResponseHasHelloWorldInputStream();
@@ -261,6 +272,7 @@ public class ResourceProxyServletTest {
     resourceReturnsANode();
     requestReturnsHeaderNames();
     requestReturnsParameterNames();
+    requestReturnsParameterMap();
     nodeHasSakaiPostprocessorProperty();
     proxyClientServiceReturnsAProxyResponse();
     proxyResponseHasHelloWorldInputStream();
@@ -337,7 +349,9 @@ public class ResourceProxyServletTest {
   private void resourceReturnsANode() {
     when(resource.adaptTo(Node.class)).thenReturn(node);
   }
-
+  private void requestReturnsParameterMap() {
+    when(request.getRequestParameterMap()).thenReturn(parameterMap);
+  }
   private void requestReturnsAResource() {
     when(request.getResource()).thenReturn(resource);
   }
