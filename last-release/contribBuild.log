@@ -59,7 +59,7 @@ Its dependencies (if any) will NOT be available to the current build.
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.importer.ImportSiteArchiveServletTest
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.587 sec
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.583 sec
 
 Results :
 
@@ -114,7 +114,7 @@ Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.webapp.filter.CacheControlFilterTest
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.456 sec
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.43 sec
 
 Results :
 
@@ -178,9 +178,9 @@ Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.mailman.impl.MailmanInterfaceTest
-Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.422 sec
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.171 sec
 Running org.sakaiproject.nakamura.mailman.impl.MailmanGroupManagerTest
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.147 sec
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.156 sec
 
 Results :
 
@@ -231,25 +231,25 @@ Tests run: 12, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.ldap.PooledLDAPConnectionTest
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.329 sec
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.299 sec
 Running org.sakaiproject.nakamura.ldap.liveness.SearchExecutingLdapConnectionLivenessValidatorInitializationTest
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.152 sec
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.129 sec
 Running org.sakaiproject.nakamura.ldap.PooledLDAPConnectionFactoryTest
-Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.246 sec
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.212 sec
 Running org.sakaiproject.nakamura.ldap.SimpleLdapConnectionManagerTest
-Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.153 sec
+Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.174 sec
 Running org.sakaiproject.nakamura.ldap.liveness.MaxLifetimeLdapConnectionLivenessValidatorTest
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.02 sec
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.038 sec
 Running org.sakaiproject.nakamura.ldap.GenericObjectPoolTest
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.049 sec
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.04 sec
 Running org.sakaiproject.nakamura.ldap.liveness.SearchExecutingLdapConnectionLivenessValidatorTest
-Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.049 sec
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.041 sec
 Running org.sakaiproject.nakamura.ldap.PoolingLdapConnectionManagerTest
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 sec
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 sec
 Running org.sakaiproject.nakamura.ldap.liveness.NativeLdapConnectionLivenessValidatorTest
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 sec
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 sec
 Running org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfigTest
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 sec
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 sec
 
 Results :
 
@@ -300,11 +300,11 @@ Tests run: 60, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.persondirectory.providers.PersonProfileProviderAdapterTest
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.437 sec
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.414 sec
 Running org.sakaiproject.nakamura.api.persondirectory.PersonProviderExceptionTest
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 sec
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 sec
 Running org.sakaiproject.nakamura.persondirectory.providers.LdapPersonProviderTest
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.273 sec
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.347 sec
 
 Results :
 
@@ -355,15 +355,15 @@ Tests run: 15, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.auth.cas.CasAuthenticationHandlerTest
-Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.048 sec
+Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.014 sec
 Running org.sakaiproject.nakamura.auth.cas.CasAuthenticationTokenServiceWrapperTest
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.467 sec
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.44 sec
 Running org.sakaiproject.nakamura.auth.cas.CasAuthenticationPluginTest
 Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 sec
 Running org.sakaiproject.nakamura.auth.cas.CasLoginModulePluginTest
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.029 sec
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.028 sec
 Running org.sakaiproject.nakamura.auth.cas.CasLoginServletTest
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.085 sec
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.079 sec
 
 Results :
 
@@ -397,7 +397,7 @@ Tests run: 36, Failures: 0, Errors: 0, Skipped: 0
 [INFO] Using 'UTF-8' encoding to copy filtered resources.
 [INFO] Copying 1 resource
 Downloading: http://repo1.maven.org/maven2//org/apache/sling/org.apache.sling.jcr.resource/2.0.2-incubator/org.apache.sling.jcr.resource-2.0.2-incubator.jar
-476/?1052/?1599/?2110/?2622/?3133/?3644/?4084/?4596/?5107/?5157/?6078/?6589/?6639/?7151/?7816/?7866/?8378/?8941/?9553/?10104/?10617/?11281/?11431/?12201/?12712/?12762/?13273/?13785/?13835/?14405/?14917/?15429/?15940/?16040/?16615/?17126/?17176/?17688/?17706/?17730/?18186/?18769/?19281/?19793/?20304/?20404/?20916/?21428/?21940/?22451/?22551/?23131/?23642/?24210/?24823/?25563/?26217/?26367/?26879/?27390/?28058/?28569/?28669/?29181/?29779/?29829/?30341/?30853/?30902/?31414/?31926/?32437/?32948/?33048/?33651/?34283/?34333/?34942/?35454/?35504/?35956/?36468/?36518/?37031/?37543/?38054/?38566/?39078/?39742/?40254/?40842/?41434/?41945/?42195/?42706/?43298/?43809/?44412/?44512/?45024/?45635/?45685/?46197/?46709/?46759/?47271/?47783/?47833/?48515/?49027/?49077/?49589/?50196/?50246/?50759/?51271/?51321/?51833/?52344/?52394/?52406/?52430/?53043/?53491/?53497/?54091/?54602/?55112/?55721/?55821/?56330/?56841/?56891/?57400/?58009/?58059/?58568/?59078/?59128/?59743/?60442/?60492/?61120/?61744/?61794/?62401/?62909/?62958/?63469/?63979/?64489/?65098/?65198/?65812/?66427/?66936/?67446/?67546/?69008/?70975/?74001/?       
+476/?1052/?1599/?2110/?2622/?3133/?3644/?4084/?4596/?5107/?5157/?6078/?6589/?6639/?7151/?7816/?8328/?8892/?9503/?10015/?10567/?11231/?11431/?12201/?12712/?13224/?13735/?13835/?14405/?14917/?15429/?15940/?16040/?16615/?17126/?17176/?17688/?17706/?17730/?18186/?18769/?19281/?19793/?20304/?20816/?21328/?21840/?22352/?22931/?23442/?24010/?24522/?25283/?25948/?26529/?27040/?27552/?28220/?28731/?29330/?29841/?30353/?30864/?30902/?31414/?31926/?32437/?32948/?33048/?33651/?34283/?34892/?35404/?35856/?36368/?36880/?37393/?37904/?38415/?38928/?39440/?39892/?40403/?40991/?41583/?42095/?42606/?43198/?43709/?44312/?44824/?45336/?45947/?46459/?46971/?47483/?47995/?48677/?49189/?49703/?50309/?50821/?51333/?51844/?52356/?52406/?52430/?53043/?53491/?53497/?54091/?54602/?55112/?55721/?55821/?56330/?56841/?56891/?57400/?58009/?58518/?59029/?59643/?60329/?60971/?61595/?62201/?62710/?63219/?63730/?64240/?64850/?65360/?65974/?66588/?67097/?67609/?69258/?71409/?74001/?       
 [INFO] [compiler:compile {execution: default-compile}]
 [INFO] Compiling 3 source files to /Users/ieb/timefields/open-experiments/contrib/ldapauth/target/classes
 [INFO] [scr:scr {execution: generate-scr-scrdescriptor}]
@@ -416,9 +416,9 @@ Downloading: http://repo1.maven.org/maven2//org/apache/sling/org.apache.sling.jc
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.auth.ldap.LdapAuthenticationPluginTest
-Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.885 sec
+Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.846 sec
 Running org.sakaiproject.nakamura.auth.ldap.LdapLoginModulePluginTest
-Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.109 sec
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.089 sec
 
 Results :
 
@@ -469,13 +469,13 @@ Tests run: 30, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.auth.opensso.OpenSsoLoginServletTest
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.836 sec
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.839 sec
 Running org.sakaiproject.nakamura.auth.opensso.OpenSsoLoginModulePluginTest
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.071 sec
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.065 sec
 Running org.sakaiproject.nakamura.auth.opensso.OpenSsoAuthenticationTokenServiceWrapperTest
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.03 sec
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.028 sec
 Running org.sakaiproject.nakamura.auth.opensso.OpenSsoAuthenticationHandlerTest
-Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.474 sec
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.438 sec
 Running org.sakaiproject.nakamura.auth.opensso.OpenSsoAuthenticationPluginTest
 Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 sec
 
@@ -528,7 +528,7 @@ Tests run: 35, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.docproxy.remotefiles.RemoteFilesRepositoryProcessorTest
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.408 sec
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.381 sec
 
 Results :
 
@@ -619,7 +619,7 @@ Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.foreignprincipal.impl.ForeignPrincipalTest
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.585 sec
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.588 sec
 
 Results :
 
@@ -669,7 +669,7 @@ Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.rootconfig.impl.RootConfigurationServiceTest
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.498 sec
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.488 sec
 
 Results :
 
@@ -697,24 +697,24 @@ Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
 [INFO] ------------------------------------------------------------------------
 [INFO] Reactor Summary:
 [INFO] ------------------------------------------------------------------------
-[INFO] Sakai Nakamura Project ................................ SUCCESS [13.988s]
-[INFO] Sakai Nakamura :: Sakai Import Bundle ................. SUCCESS [26.984s]
-[INFO] Sakai Nakamura :: Filters Bundle ...................... SUCCESS [6.015s]
-[INFO] Sakai Nakamura :: Mailman Support ..................... SUCCESS [13.467s]
-[INFO] Sakai Nakamura :: LDAP Connection Bundle .............. SUCCESS [7.466s]
-[INFO] Sakai Nakamura :: Person Directory Bundle ............. SUCCESS [6.937s]
-[INFO] Sakai Nakamura :: CAS Authentication Bundle ........... SUCCESS [11.830s]
-[INFO] Sakai Nakamura :: LDAP Authentication Bundle .......... SUCCESS [9.038s]
-[INFO] Sakai Nakamura :: OpenSSO Authentication Bundle ....... SUCCESS [9.200s]
-[INFO] Sakai Nakamura :: Remote Files Connector .............. SUCCESS [6.176s]
-[INFO] Sakai Nakamura :: Site Join Workflow Bundle ........... SUCCESS [4.173s]
-[INFO] Sakai Nakamura :: Foreign Principal Provider .......... SUCCESS [9.887s]
-[INFO] Sakai Nakamura :: Root Node Configuration ............. SUCCESS [6.014s]
+[INFO] Sakai Nakamura Project ................................ SUCCESS [4.610s]
+[INFO] Sakai Nakamura :: Sakai Import Bundle ................. SUCCESS [14.252s]
+[INFO] Sakai Nakamura :: Filters Bundle ...................... SUCCESS [5.310s]
+[INFO] Sakai Nakamura :: Mailman Support ..................... SUCCESS [11.572s]
+[INFO] Sakai Nakamura :: LDAP Connection Bundle .............. SUCCESS [8.165s]
+[INFO] Sakai Nakamura :: Person Directory Bundle ............. SUCCESS [7.000s]
+[INFO] Sakai Nakamura :: CAS Authentication Bundle ........... SUCCESS [10.606s]
+[INFO] Sakai Nakamura :: LDAP Authentication Bundle .......... SUCCESS [9.318s]
+[INFO] Sakai Nakamura :: OpenSSO Authentication Bundle ....... SUCCESS [9.005s]
+[INFO] Sakai Nakamura :: Remote Files Connector .............. SUCCESS [5.812s]
+[INFO] Sakai Nakamura :: Site Join Workflow Bundle ........... SUCCESS [3.947s]
+[INFO] Sakai Nakamura :: Foreign Principal Provider .......... SUCCESS [9.274s]
+[INFO] Sakai Nakamura :: Root Node Configuration ............. SUCCESS [6.139s]
 [INFO] ------------------------------------------------------------------------
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESSFUL
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time: 2 minutes 20 seconds
-[INFO] Finished at: Tue Oct 12 10:57:34 BST 2010
-[INFO] Final Memory: 91M/340M
+[INFO] Total time: 1 minute 48 seconds
+[INFO] Finished at: Thu Oct 28 18:42:28 BST 2010
+[INFO] Final Memory: 91M/371M
 [INFO] ------------------------------------------------------------------------
