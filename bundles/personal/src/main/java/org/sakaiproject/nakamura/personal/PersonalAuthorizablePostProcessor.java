@@ -593,7 +593,8 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       // TODO Replace these implicit side-effects with something more controllable
       // by the client.
       refreshOwnership(session, authorizable, profileService.getHomePath(authorizable));
-      if (!"false".equals(parameters.containsKey(":sakai:update-profile"))) {
+      if (!parameters.containsKey(":sakai:update-profile")
+          || !"false".equals(parameters.get(":sakai:update-profile")[0])) {
         updateProfileProperties(session, getProfileNode(session, authorizable),
             authorizable, change, parameters);
       }
