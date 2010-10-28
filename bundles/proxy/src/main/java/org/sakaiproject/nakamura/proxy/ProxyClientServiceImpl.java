@@ -360,18 +360,6 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
               Part[] partsArray = parts.toArray(new Part[parts.size()]);
               postMethod.setRequestEntity(new MultipartRequestEntity(partsArray, method
                   .getParams()));
-
-
-              // OLD CODE - REMOVE WHEN TESTS ARE PASSING
-//              Object v = param.getValue();
-//              if (v instanceof String[]) {
-//                for (String val : (String[]) v) {
-//                  postMethod.addParameter(param.getKey(), val);
-//                }
-//              } else {
-//                postMethod.addParameter(param.getKey(), String.valueOf(v));
-//
-//              }
             }
           }
         } else {
