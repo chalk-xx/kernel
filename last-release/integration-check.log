@@ -17,7 +17,6 @@ kern-270.rb 1 tests, 3 assertions, 0 failures, 0 errors
 kern-275.rb 3 tests, 12 assertions, 0 failures, 0 errors
 kern-277.rb 3 tests, 22 assertions, 0 failures, 0 errors
 kern-280.rb 1 tests, 2 assertions, 0 failures, 0 errors
-kern-284.rb 2 tests, 10 assertions, 0 failures, 0 errors
 kern-288.rb 1 tests, 5 assertions, 0 failures, 0 errors
 kern-289.rb 1 tests, 7 assertions, 0 failures, 0 errors
 kern-292.rb 3 tests, 24 assertions, 0 failures, 0 errors
@@ -81,7 +80,7 @@ node-create-test.rb 5 tests, 36 assertions, 0 failures, 0 errors
 owner-authz-test.rb 1 tests, 25 assertions, 0 failures, 0 errors
 owner-principal-test.rb 1 tests, 7 assertions, 0 failures, 0 errors
 private-store-test.rb 1 tests, 8 assertions, 0 failures, 0 errors
-rss-test.rb 4 tests, 4 assertions, 0 failures, 0 errors
+rss-test.rb 3 tests, 3 assertions, 0 failures, 0 errors
 sling-search-test.rb 2 tests, 14 assertions, 0 failures, 0 errors
 sling-site-test.rb 7 tests, 43 assertions, 0 failures, 0 errors
 user-manager-test.rb 5 tests, 27 assertions, 0 failures, 0 errors
