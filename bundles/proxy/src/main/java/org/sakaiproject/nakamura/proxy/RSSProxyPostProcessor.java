@@ -168,7 +168,7 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
         if (!isValid) {
           if (e.getEventType() == XMLEvent.START_ELEMENT) {
             StartElement el = e.asStartElement();
-            String name = el.getName().toString().toLowerCase();
+            String name = el.getName().getLocalPart().toString().toLowerCase();
             if (checkedElements.containsKey(name)) {
               checkedElements.put(name, true);
             }
