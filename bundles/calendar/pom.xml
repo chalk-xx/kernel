@@ -44,7 +44,7 @@
             <Private-Package>org.sakaiproject.nakamura.calendar.*</Private-Package>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
             <Import-Package>!com.sun.*,!sun.misc,*</Import-Package>
-            <Sling-Initial-Content>SLING-INF/content;uninstall:=false</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency>ical4j,backport-util-concurrent</Embed-Dependency>
           </instructions>

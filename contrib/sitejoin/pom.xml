@@ -42,7 +42,7 @@
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
             <Private-Package>org.sakaiproject.nakamura.site.join</Private-Package>
-            <Sling-Initial-Content>SLING-INF/content;uninstall:=false</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
           </instructions>
         </configuration>
       </plugin>
