@@ -55,7 +55,7 @@
             <Export-Package> org.sakaiproject.nakamura.api.user </Export-Package>
             <Private-Package> org.sakaiproject.nakamura.user.*,
               org.apache.sling.jackrabbit.usermanager.* </Private-Package>
-            <Sling-Initial-Content>SLING-INF/content;uninstall:=false</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
             <Embed-Dependency>
               org.apache.sling.servlets.post;inline="org/apache/sling/servlets/post/impl/helper/RequestProperty*
                   |org/apache/sling/servlets/post/impl/helper/DateParser*"

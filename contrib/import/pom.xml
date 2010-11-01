@@ -42,7 +42,7 @@
 						<Export-Package> org.sakaiproject.nakamura.api.importer </Export-Package>
 						<Private-Package> org.sakaiproject.nakamura.importer.* </Private-Package>
             <Sling-Nodetypes>SLING-INF/nodetypes/types.cnd</Sling-Nodetypes>
-						<Sling-Initial-Content>SLING-INF/content;uninstall:=false</Sling-Initial-Content>
+						<Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
 						<Import-Package>
 							javax.xml.stream.*,
 							org.codehaus.stax2.*,
