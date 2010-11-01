@@ -24,7 +24,7 @@
           <instructions>
             <Export-Package>org.sakaiproject.nakamura.api.pages</Export-Package>
             <Private-Package>org.sakaiproject.nakamura.pages</Private-Package>
-            <Sling-Initial-Content>SLING-INF/content;uninstall:=false</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
           </instructions>
         </configuration>
       </plugin>

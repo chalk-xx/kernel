@@ -28,7 +28,7 @@
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
             <Export-Package> org.sakaiproject.nakamura.api.docproxy </Export-Package>
             <Private-Package> org.sakaiproject.nakamura.docproxy.* </Private-Package>
-            <Sling-Initial-Content>SLING-INF/content;uninstall:=false</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
             <Import-Package>*</Import-Package>
           </instructions>
         </configuration>

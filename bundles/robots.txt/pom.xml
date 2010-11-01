@@ -45,7 +45,7 @@
         <configuration>
           <instructions>
             <Sling-Initial-Content>
-                SLING-INF/content/root;path:=/;uninstall:=false
+                SLING-INF/content/root;path:=/;overwriteProperties:=true;uninstall:=false
             </Sling-Initial-Content>
           </instructions>
         </configuration>
