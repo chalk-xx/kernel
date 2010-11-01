@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "/jcr:root/{_connectionstore}//*[@sling:resourceType='sakai/contact' and jcr:contains(@sakai:state,'{state|ACCEPTED}') and @sakai:state!=\"NONE\"]/jcr:deref(@jcr:reference, '*')[(jcr:contains(., '{q|*}') or jcr:contains(*/*/*,'{q|*}'))] order by {sortOn|@jcr:score} {sortOrder|descending}",
+  "sakai:query-template": "/jcr:root/{_connectionstore}//*[@sling:resourceType='sakai/contact' and jcr:contains(@sakai:state,'{state|ACCEPTED}') and @sakai:state!=\"NONE\"]/jcr:deref(@jcr:reference, '*')[(jcr:contains(., '{q|*}') or jcr:contains(*/*/*,'{q|*}'))] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "Connection",
   "sakai:resultprocessor": "ConnectionFinder",

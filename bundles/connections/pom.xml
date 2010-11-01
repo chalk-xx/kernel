@@ -39,7 +39,7 @@
             <Bundle-Category> sakai-nakamura </Bundle-Category>
             <Export-Package>org.sakaiproject.nakamura.api.connections.*</Export-Package>
             <Private-Package>org.sakaiproject.nakamura.connections.*</Private-Package>
-            <Sling-Initial-Content>SLING-INF/content;uninstall:=false</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
             <Embed-Transitive>true</Embed-Transitive>
           </instructions>
         </configuration>
