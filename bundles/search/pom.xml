@@ -38,7 +38,7 @@
             <Bundle-Category> sakai-nakamura </Bundle-Category>
             <Export-Package>org.sakaiproject.nakamura.api.search.*</Export-Package>
             <Private-Package>org.sakaiproject.nakamura.search.*</Private-Package>
-            <Sling-Initial-Content>SLING-INF/content;uninstall:=false</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
             <Embed-Transitive>true</Embed-Transitive>
           </instructions>
         </configuration>

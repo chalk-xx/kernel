@@ -576,6 +576,20 @@ public class SearchServlet extends SlingSafeMethodsServlet {
             if (rp != null) {
               rpVal = rp.getString();
             }
+             
+            if ( "sortOn".equals(v) && !StringUtils.isEmpty(rpVal)) {
+              if ( defaultValue.startsWith("@") ) {
+                LOGGER.warn("Invalid Search template, you cant use sortOn parameters that " +
+                		"could produce sorts on child nodes as this is likely to stop the server dead, ignoring sort order and using default ");
+                rpVal = null;          
+              }
+              if ( rpVal.indexOf('/') >= 0 || rpVal.indexOf('@') >= 0 ) {
+                LOGGER.warn("Attempt to sort on child node, {}, ignoring ",rpVal);
+                rpVal = null;
+              }
+            }
+            
+            
             if (!StringUtils.isEmpty(rpVal)) {
               sb.append(escapeString(rpVal, queryLanguage));
             } else if (StringUtils.isEmpty(rpVal) && !StringUtils.isEmpty(defaultValue)) {
@@ -600,6 +614,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         }
       }
     }
+    
     return sb.toString();
   }
 
