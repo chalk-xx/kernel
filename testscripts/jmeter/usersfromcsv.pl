@@ -14,7 +14,7 @@ open (F, $file) || die ("Could not open $file!");
 
 while ($line = <F>)
 {
-  ($name,$password) = split ',', $line;
+  ($name,$password,firstName,lastName) = split ',', $line;
   if ($counter_time==$clean) {
       $last=time;
       $diff=$last-$first;
@@ -24,15 +24,16 @@ while ($line = <F>)
   }
   $counter_time++;
   $counter++;
-  $val=&create_profile($name); 
-  system ("curl $val -F:name=$name -Fpwd=test -FpwdConfirm=test http://admin:admin\@$host:$port/system/userManager/user.create.html 2> /dev/null  >/dev/null;");
+  $email="$name@sakai.invalid";
+  $val=&create_profile($name,$firstName,$lastName,$email); 
+  system ("curl $val -F:name=$name -Fpwd=test -FpwdConfirm=test -F:sakai:pages-template=/var/templates/site/defaultuser -F"email=$email"  http://admin:admin\@$host:$port/system/userManager/user.create.html 2> /dev/null  >/dev/null;");
 }
 
 close (F);
 
 sub create_profile{
-my ($tester)=@_;  
-  $ret=  "-F \":sakai:profile-import={\'basic\': {\'access\': \'everybody\', \'elements\': {\'email\': {\'value\': \'$tester\@sakai.invalid\'}, \'firstName\': {\'value\': '$tester'}, 'lastName': {'value': \'$tester\'}}}}\"";
+my ($tester,$firstName,$lastName,$email)=@_;  
+  $ret= "-F \":sakai:profile-import={\'basic\':{\'elements\':{\'firstName\':{\'value\':\'$firstName\'},\'lastName\':{\'value\':\'$lastName\'},\'email\':{\'value\':\'$email\'}},\'access\':\'everybody\'}}\" ";
 return $ret;
 }
 
