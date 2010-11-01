@@ -105,7 +105,7 @@ public abstract class AbstractMyGroupsServlet extends SlingSafeMethodsServlet {
       writer.array();
       int i = 0;
       for (Group group : groups.values()) {
-        if ( i > (offset + page) ) {
+        if ( i >= (offset + nitems) ) {
           break;
         } else if ( i >= offset ) {
           ValueMap profile = profileService.getProfileMap(group, session);

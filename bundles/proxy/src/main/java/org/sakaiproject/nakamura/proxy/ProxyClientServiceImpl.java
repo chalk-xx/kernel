@@ -32,11 +32,17 @@ import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.OptionsMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
+import org.apache.commons.httpclient.methods.multipart.ByteArrayPartSource;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -62,6 +68,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -83,7 +90,7 @@ import javax.servlet.http.HttpServletResponse;
 public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSource {
 
   /**
-   * 
+   *
    */
   private static final String JCR_RESOURCE_LOADER_PATH = "jcr.resource.loader.";
 
@@ -101,7 +108,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * The JCR resoruce loader prefix used in the velocity properties.
    */
   private static final String JCR_RESOURCE_LOADER = "jcr";
-  
+
   @Property(value={"rss", "trustedLoginTokenProxyPostProcessor", "someothersafepostprocessor"})
   private static final String SAFE_POSTPROCESSORS = "safe.postprocessors";
 
@@ -132,7 +139,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
 
   /**
    * Create resources used by this component.
-   * 
+   *
    * @param ctx
    * @throws Exception
    */
@@ -180,7 +187,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
 
   /**
    * Clean up resources used by this component
-   * 
+   *
    * @param ctx
    * @throws Exception
    */
@@ -191,7 +198,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
   /**
    * Executes a HTTP call using a path in the JCR to point to a template and a map of
    * properties to populate that template with. An example might be a SOAP call.
-   * 
+   *
    * <pre>
    * {http://www.w3.org/2001/12/soap-envelope}Envelope:{
    *  {http://www.w3.org/2001/12/soap-envelope}Body:{
@@ -206,9 +213,9 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    *  &gt;body:[   ]
    *  {http://www.w3.org/2001/12/soap-envelope}encodingStyle:[http://www.w3.org/2001/12/soap-encoding]
    * }
-   * 
+   *
    * </pre>
-   * 
+   *
    * @param resource
    *          the resource containing the proxy end point specification.
    * @param headers
@@ -332,16 +339,27 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
         if (requestInputStream == null && !node.hasProperty(SAKAI_PROXY_REQUEST_TEMPLATE)) {
           if (method instanceof PostMethod) {
             PostMethod postMethod = (PostMethod) method;
+            ArrayList<Part> parts = new ArrayList<Part>();
             for (Entry<String, Object> param : input.entrySet()) {
-              Object v = param.getValue();
-              if (v instanceof String[]) {
-                for (String val : (String[]) v) {
-                  postMethod.addParameter(param.getKey(), val);
+              String key = param.getKey();
+              Object value = param.getValue();
+              if (value instanceof RequestParameter[]) {
+                for (RequestParameter val : (RequestParameter[]) param.getValue()) {
+                  Part part = null;
+                  if (val.isFormField()) {
+                    part = new StringPart(param.getKey(), val.getString());
+                  } else {
+                    ByteArrayPartSource source = new ByteArrayPartSource(key, val.get());
+                    part = new FilePart(key, source);
+                  }
+                  parts.add(part);
                 }
               } else {
-                postMethod.addParameter(param.getKey(), String.valueOf(v));
-
+                parts.add(new StringPart(key, value.toString()));
               }
+              Part[] partsArray = parts.toArray(new Part[parts.size()]);
+              postMethod.setRequestEntity(new MultipartRequestEntity(partsArray, method
+                  .getParams()));
             }
           }
         } else {
@@ -441,7 +459,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
   }
 
   /**
-   * 
+   *
    */
   private void unbindNode() {
     boundNode.set(null);
@@ -456,7 +474,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see au.edu.csu.sakai.integration.api.soapclient.ResourceSource#getResource()
    */
   public Node getNode() {

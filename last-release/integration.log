@@ -45,7 +45,7 @@ kern-551.rb 10 tests, 89 assertions, 0 failures, 0 errors
 kern-552.rb 1 tests, 3 assertions, 0 failures, 0 errors
 kern-563.rb 2 tests, 7 assertions, 0 failures, 0 errors
 kern-568.rb 3 tests, 11 assertions, 0 failures, 0 errors
-kern-577.rb 1 tests, 13 assertions, 1 failures, 0 errors
+kern-577.rb 1 tests, 12 assertions, 1 failures, 0 errors
 kern-629.rb 3 tests, 35 assertions, 0 failures, 0 errors
 kern-637.rb 1 tests, 3 assertions, 0 failures, 0 errors
 kern-693.rb 5 tests, 25 assertions, 0 failures, 0 errors
@@ -82,7 +82,7 @@ node-create-test.rb 5 tests, 36 assertions, 0 failures, 0 errors
 owner-authz-test.rb 1 tests, 25 assertions, 0 failures, 0 errors
 owner-principal-test.rb 1 tests, 7 assertions, 0 failures, 0 errors
 private-store-test.rb 1 tests, 8 assertions, 0 failures, 0 errors
-rss-test.rb 4 tests, 4 assertions, 0 failures, 0 errors
+rss-test.rb 3 tests, 3 assertions, 0 failures, 0 errors
 sling-search-test.rb 2 tests, 14 assertions, 0 failures, 0 errors
 sling-site-test.rb 7 tests, 43 assertions, 0 failures, 0 errors
 user-manager-test.rb 5 tests, 27 assertions, 0 failures, 0 errors

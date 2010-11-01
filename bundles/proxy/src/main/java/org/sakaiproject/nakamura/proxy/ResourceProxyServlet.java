@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
@@ -43,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
@@ -263,50 +263,30 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet implements Opti
         }
       }
 
-      Map<String, Object> templateParams = new ConcurrentHashMap<String, Object>();
-      InputStream requestInputStream = null;
-      long inputStreamLength = -1L;
-      String inputStreamContentType = null;
-      if (userInputStream) {
-        inputStreamLength = request.getContentLength();
-        inputStreamContentType = request.getContentType();
-        requestInputStream = request.getInputStream();
-        LOGGER.info("Sending {} bytes  as {} ",inputStreamLength, inputStreamContentType);
-      } else {
-        for (Enumeration<?> enames = request.getParameterNames(); enames
-            .hasMoreElements();) {
-          String name = (String) enames.nextElement();
-          String[] pv  = request.getParameterValues(name);
-          if ( pv != null ) {
-            if ( pv.length > 1 ) {
-              templateParams.put(name, pv);
-            } else {
-              templateParams.put(name, pv[0]);
-            }
-          }
-        }
+      // collect the parameters and store into a mutable map.
+      RequestParameterMap parameterMap = request.getRequestParameterMap();
+      Map<String, Object> templateParams = new ConcurrentHashMap<String, Object>(parameterMap);
 
-        // search for special parameters.
-        if (templateParams.containsKey(BASIC_USER)) {
-          String user = (String) templateParams.get(BASIC_USER);
-          String password = (String) templateParams.get(BASIC_PASSWORD);
-          Base64 base64 = new Base64();
-          String passwordDigest = new String(base64.encode((user + ":" + password).getBytes("UTF-8")));
-          String digest = BASIC+passwordDigest.trim();
-          headers.put(AUTHORIZATION, digest);
-        }
+      // search for special parameters.
+      if (parameterMap.containsKey(BASIC_USER)) {
+        String user = parameterMap.getValue(BASIC_USER).getString();
+        String password = parameterMap.getValue(BASIC_PASSWORD).getString();
+        Base64 base64 = new Base64();
+        String passwordDigest = new String(base64.encode((user + ":" + password).getBytes("UTF-8")));
+        String digest = BASIC+passwordDigest.trim();
+        headers.put(AUTHORIZATION, digest);
+      }
 
-        // we might want to pre-process the headers
-        if (node.hasProperty(ProxyPreProcessor.SAKAI_PREPROCESSOR)) {
-          String preprocessorName = node
-              .getProperty(ProxyPreProcessor.SAKAI_PREPROCESSOR).getString();
-          ProxyPreProcessor preprocessor = preProcessors.get(preprocessorName);
-          if (preprocessor != null) {
-            preprocessor.preProcessRequest(request, headers, templateParams);
-          } else {
-            LOGGER.warn("Unable to find pre processor of name {} for node {} ",
-                preprocessorName, node.getPath());
-          }
+      // we might want to pre-process the headers
+      if (node.hasProperty(ProxyPreProcessor.SAKAI_PREPROCESSOR)) {
+        String preprocessorName = node
+            .getProperty(ProxyPreProcessor.SAKAI_PREPROCESSOR).getString();
+        ProxyPreProcessor preprocessor = preProcessors.get(preprocessorName);
+        if (preprocessor != null) {
+          preprocessor.preProcessRequest(request, headers, templateParams);
+        } else {
+          LOGGER.warn("Unable to find pre processor of name {} for node {} ",
+              preprocessorName, node.getPath());
         }
       }
       ProxyPostProcessor postProcessor = defaultPostProcessor;
@@ -324,7 +304,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet implements Opti
       }
 
       ProxyResponse proxyResponse = proxyClientService.executeCall(node, headers,
-          templateParams, requestInputStream, inputStreamLength, inputStreamContentType);
+          templateParams, null, -1, null);
       try {
         postProcessor.process(templateParams, response, proxyResponse);
       } finally {
