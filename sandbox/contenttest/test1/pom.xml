@@ -45,7 +45,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <Sling-Initial-Content>SLING-INF/content;uninstall:=false;path:=/contenttest</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false;path:=/contenttest</Sling-Initial-Content>
           </instructions>
         </configuration>
       </plugin>

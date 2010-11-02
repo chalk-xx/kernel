@@ -43,7 +43,7 @@
         <configuration>
           <instructions>
             <Sling-Initial-Content>
-              SLING-INF;uninstall:=false;path:=/hellofromfileinstall
+              SLING-INF;overwriteProperties:=true;uninstall:=false;path:=/hellofromfileinstall
             </Sling-Initial-Content>
           </instructions>
         </configuration>
