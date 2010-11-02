@@ -14,7 +14,8 @@ open (F, $file) || die ("Could not open $file!");
 
 while ($line = <F>)
 {
-  ($name,$password,firstName,lastName) = split ',', $line;
+  ($name,$password,$firstName,$lastName) = split ',', $line;
+  chomp($lastName);
   if ($counter_time==$clean) {
       $last=time;
       $diff=$last-$first;
@@ -26,7 +27,7 @@ while ($line = <F>)
   $counter++;
   $email="$name@sakai.invalid";
   $val=&create_profile($name,$firstName,$lastName,$email); 
-  system ("curl $val -F:name=$name -Fpwd=test -FpwdConfirm=test -F:sakai:pages-template=/var/templates/site/defaultuser -F"email=$email"  http://admin:admin\@$host:$port/system/userManager/user.create.html 2> /dev/null  >/dev/null;");
+  system ("curl $val -F:name=$name -Fpwd=test -FpwdConfirm=test -F:sakai:pages-template=/var/templates/site/defaultuser -Femail=$email  http://admin:admin\@$host:$port/system/userManager/user.create.html 2> /dev/null  >/dev/null;");
 }
 
 close (F);
