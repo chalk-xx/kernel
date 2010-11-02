@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 
-# takes a file path to a csv file as an argument and then adds the users from that file to nakamura
+# Reads a CSV file with user IDs and passwords, a file of first names, and a file of last names,
+# and combines them into CSV rows of "ID,password,firstName,lastName", which can then be
+# read by usersfromcsv.pl.
 $clean=100;
 $counter_time=0;
 $counter=0;
