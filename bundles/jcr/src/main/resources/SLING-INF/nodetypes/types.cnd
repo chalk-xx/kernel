@@ -3,8 +3,8 @@
 <nt  = 'http://www.jcp.org/jcr/nt/1.0'>
 
 // Add a mixin that allows nodes to accept other properties, (eg nt:file)
-[sakai:propertiesmix] > mix:versionable mixin
-
+[sakai:propertiesmix]  > mix:referenceable
+  mixin
   - '*' (undefined)
     copy
     multiple
