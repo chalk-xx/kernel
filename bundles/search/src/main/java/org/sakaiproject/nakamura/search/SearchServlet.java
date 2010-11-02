@@ -206,6 +206,10 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   public static final String TIDY = "tidy";
   public static final String INFINITY = "infinity";
 
+  private static Pattern ALL_WILDCARDS = Pattern.compile("[?*~]+");
+  private static Pattern FUZZY_SEARCH = Pattern.compile(".*~$");
+  private static Pattern MINIMAL_LEADING_WILDCARD = Pattern.compile("^\\*\\w\\w.*");
+
   private Map<String, SearchBatchResultProcessor> batchProcessors = new ConcurrentHashMap<String, SearchBatchResultProcessor>();
   private Map<Long, SearchBatchResultProcessor> batchProcessorsById = new ConcurrentHashMap<Long, SearchBatchResultProcessor>();
 
@@ -464,18 +468,19 @@ public class SearchServlet extends SlingSafeMethodsServlet {
    *          the query template.
    * @param propertyProviderName
    * @return A processed query template
-   * @throws ValueFormatException 
+   * @throws ValueFormatException
    * @throws RepositoryException
    */
   protected String processQueryTemplate(SlingHttpServletRequest request,
       Node queryTemplateNode, String queryTemplate, String queryLanguage, String propertyProviderName)
       throws MissingParameterException, ValueFormatException, RepositoryException {
     Map<String, String> propertiesMap = loadUserProperties(request, propertyProviderName);
-    
-    
+    Map<String, String> filteredRequestParametersMap = new HashMap<String, String>();
+
+
     // check all the possible templates attached to this node and if there is a more suitable one, use it
     // the property name is of the form sakai:query-template-q=*;user=ieb after the name has been unescaped
-    // any chars that match this code are escaped inthe form %uu
+    // any chars that match this code are escaped in the form %uu
     //
     //if (ch == '%' || ch == '/' || ch == ':' || ch == '[' || ch == ']'
     //  || ch == '*' || ch == '|'
@@ -487,8 +492,11 @@ public class SearchServlet extends SlingSafeMethodsServlet {
     //  buffer.append(Character.toUpperCase(Character.forDigit(ch % 16, 16)));
     // see http://en.wikibooks.org/wiki/Unicode/Character_reference/0000-0FFF for encoding
     // ie * is %2A
-    
-    
+    //
+    // Alternative templates of the form "PARAM_NAME=*" are treated specially. The
+    // specified parameter's value is checked for destructive combinations and modified
+    // as needed.
+
     for ( PropertyIterator pi = queryTemplateNode.getProperties(); pi.hasNext(); ) {
       javax.jcr.Property p = pi.nextProperty();
       String propertyName = Text.unescapeIllegalJcrChars(p.getName());
@@ -497,11 +505,14 @@ public class SearchServlet extends SlingSafeMethodsServlet {
           && !SAKAI_QUERY_TEMPLATE.equals(propertyName)) {
         String[] keyValues = StringUtils.split(
             propertyName.substring(SAKAI_QUERY_TEMPLATE.length() + 1), ';');
-        LOGGER.debug("Found Alternative Tempalte with parameters {} ",Arrays.toString(keyValues));
+        LOGGER.debug("Found Alternative Template with parameters {} ",Arrays.toString(keyValues));
         boolean matches = true;
         for (String kv : keyValues) {
           String[] kva = StringUtils.split(kv, "=", 2);
           if (kva[0].startsWith("_")) {
+            if (isWildcardTemplate(kva[1])) {
+              propertiesMap.put(kva[0], filterWildcardParameter(propertiesMap.get(kva[0])));
+            }
             if (!kva[1].equals(propertiesMap.get(kva[0]))) {
               LOGGER.debug("Not Present in request, ignoring template {} {} ",
                   Arrays.toString(kva), propertiesMap.get(kva[0]));
@@ -515,6 +526,10 @@ public class SearchServlet extends SlingSafeMethodsServlet {
             String rpVal = null;
             if (rp != null) {
               rpVal = rp.getString();
+            }
+            if (isWildcardTemplate(kva[1])) {
+              rpVal = filterWildcardParameter(rpVal);
+              filteredRequestParametersMap.put(kva[0], rpVal);
             }
             if (!kva[1].equals(rpVal)) {
               LOGGER.debug("Not Present in request, ignoring template {} {} ",
@@ -570,26 +585,27 @@ public class SearchServlet extends SlingSafeMethodsServlet {
                   + "} in query template");
             }
           } else {
-
-            RequestParameter rp = request.getRequestParameter(v);
-            String rpVal = null;
-            if (rp != null) {
-              rpVal = rp.getString();
+            String rpVal = filteredRequestParametersMap.get(v);
+            if (rpVal == null) {
+              RequestParameter rp = request.getRequestParameter(v);
+              if (rp != null) {
+                rpVal = rp.getString();
+              }
             }
-             
+
             if ( "sortOn".equals(v) && !StringUtils.isEmpty(rpVal)) {
               if ( defaultValue.startsWith("@") ) {
                 LOGGER.warn("Invalid Search template, you cant use sortOn parameters that " +
                 		"could produce sorts on child nodes as this is likely to stop the server dead, ignoring sort order and using default ");
-                rpVal = null;          
+                rpVal = null;
               }
               if ( rpVal.indexOf('/') >= 0 || rpVal.indexOf('@') >= 0 ) {
                 LOGGER.warn("Attempt to sort on child node, {}, ignoring ",rpVal);
                 rpVal = null;
               }
             }
-            
-            
+
+
             if (!StringUtils.isEmpty(rpVal)) {
               sb.append(escapeString(rpVal, queryLanguage));
             } else if (StringUtils.isEmpty(rpVal) && !StringUtils.isEmpty(defaultValue)) {
@@ -614,8 +630,59 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         }
       }
     }
-    
+
     return sb.toString();
+  }
+
+  private boolean isWildcardTemplate(String templateValue) {
+    return "*".equals(templateValue);
+  }
+
+  /**
+   * Filter potentially destructive wildcard searches. The rules are as follows:
+   * <ul>
+   * <li>Search terms are split by whitespace, ignoring niceties like Phrase terms, OR vs. AND, etc.
+   * <li>Fuzzy searches cannot be combined with multiple character wildcard searches. If both "~" terms
+   *     and "*" terms are found, the "~" terms are discarded.
+   * <li>Only one fuzzy search term is allowed. Any "~" terms after the first one is discarded.
+   * <li>Search terms which consist entirely of wildcards will result in the entire
+   *     parameter being replaced by the single term "*".
+   * <li>Search terms starting with "*" must contain more than one letter. Single letters
+   *     prefixed by "*" will result in the entire parameter being replaced by the single
+   *     term "*".
+   * </ul>
+   */
+  private String filterWildcardParameter(String originalParameterValue) {
+    String filtered = originalParameterValue;
+    if (originalParameterValue != null && !"*".equals(originalParameterValue)) {
+      boolean hasWildcards = originalParameterValue.contains("*");
+      if (hasWildcards || originalParameterValue.contains("~")) {
+        String searchTerms[] = originalParameterValue.split("\\s+");
+        List<String> filteredTerms = new ArrayList<String>();
+        boolean discardFuzzyTerms = hasWildcards;
+        for (String searchTerm : searchTerms) {
+          if (ALL_WILDCARDS.matcher(searchTerm).matches()) {
+            LOGGER.info("Replacing search parameter '{}' by '*'", originalParameterValue);
+            return "*";
+          } else if (FUZZY_SEARCH.matcher(searchTerm).matches()) {
+            if (!discardFuzzyTerms) {
+              filteredTerms.add(searchTerm);
+              discardFuzzyTerms = true; // Only one to a customer
+            } else {
+              LOGGER.info("Discarding '{}' from search parameter '{}'", searchTerm, originalParameterValue);
+            }
+          } else if (searchTerm.startsWith("*") &&
+              !MINIMAL_LEADING_WILDCARD.matcher(searchTerm).matches()) {
+            LOGGER.info("Replacing search parameter '{}' by '*'", originalParameterValue);
+            return "*";
+          } else {
+            filteredTerms.add(searchTerm);
+          }
+        }
+        filtered = StringUtils.join(filteredTerms, " ");
+      }
+    }
+    return filtered;
   }
 
   /**
