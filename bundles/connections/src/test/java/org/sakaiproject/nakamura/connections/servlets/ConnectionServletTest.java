@@ -39,6 +39,7 @@ import org.sakaiproject.nakamura.api.connections.ConnectionOperation;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -157,14 +158,14 @@ public class ConnectionServletTest {
     when(request.getRequestPathInfo()).thenReturn(info);
   }
 
-  private void setTargetUserId(String target, SlingHttpServletRequest request) {
+  private void setTargetUserId(String target, SlingHttpServletRequest request) throws UnsupportedEncodingException {
 
     RequestParameter param;
     if (target == null) {
       param = null;
     } else {
       param = mock(RequestParameter.class);
-      when(param.getString()).thenReturn(target);
+      when(param.getString("UTF-8")).thenReturn(target);
     }
     when(request.getRequestParameter("targetUserId")).thenReturn(param);
   }
