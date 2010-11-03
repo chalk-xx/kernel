@@ -509,8 +509,9 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         boolean matches = true;
         for (String kv : keyValues) {
           String[] kva = StringUtils.split(kv, "=", 2);
+          boolean isWildcardTemplate = "*".equals(kva[1]);
           if (kva[0].startsWith("_")) {
-            if (isWildcardTemplate(kva[1])) {
+            if (isWildcardTemplate) {
               propertiesMap.put(kva[0], filterWildcardParameter(propertiesMap.get(kva[0])));
             }
             if (!kva[1].equals(propertiesMap.get(kva[0]))) {
@@ -527,7 +528,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
             if (rp != null) {
               rpVal = rp.getString();
             }
-            if (isWildcardTemplate(kva[1])) {
+            if (isWildcardTemplate) {
               rpVal = filterWildcardParameter(rpVal);
               filteredRequestParametersMap.put(kva[0], rpVal);
             }
@@ -632,10 +633,6 @@ public class SearchServlet extends SlingSafeMethodsServlet {
     }
 
     return sb.toString();
-  }
-
-  private boolean isWildcardTemplate(String templateValue) {
-    return "*".equals(templateValue);
   }
 
   /**
