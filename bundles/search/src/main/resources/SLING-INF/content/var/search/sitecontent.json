@@ -2,7 +2,6 @@
   "sakai:query-language": "xpath",
   "sakai:query-template": "//*[@sling:resourceType='sakai/site'{_site?}]//*[@jcr:primaryType != 'nt:frozenNode' and @sling:resourceType and (jcr:contains(.,'{q}') or jcr:contains(jcr:content,'{q}'))]/rep:excerpt() order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sakai:query-template-q=%2A": "//*[@sling:resourceType='sakai/site'{_site?}]//*[@jcr:primaryType != 'nt:frozenNode' and @sling:resourceType]/rep:excerpt() order by @{sortOn|jcr:score} {sortOrder|descending}",
-  "sakai:query-template-q=%2A%2A%2A": "//*[@sling:resourceType='sakai/site'{_site?}]//*[@jcr:primaryType != 'nt:frozenNode' and @sling:resourceType]/rep:excerpt() order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:batchresultprocessor": "SiteContent",
   "sakai:propertyprovider": "Content",
@@ -11,7 +10,7 @@
   "sakai:shortDescription": "Search for any type node of node under a site that matches the searchterm, is at the latest version and has a sling:resourceType property.",
   "sakai:parameters" : [
                         "{\"name\" : \"q\", \"description\" : \"The term you want to match against. This will match any property AND content on the node\"}",
-                        "{\"name\" : \"site\", \"description\" : \"This will filter the nodes to look for all nodes who have a property 'sakai:site' matching the value of this request parameter.\"}"      
+                        "{\"name\" : \"site\", \"description\" : \"This will filter the nodes to look for all nodes who have a property 'sakai:site' matching the value of this request parameter.\"}"
       ],
   "sakai:description": [
                         "Search under all the sites looking for nodes that have properties or content matching the searchterm.",

@@ -2,7 +2,6 @@
   "sakai:query-language": "xpath",
   "sakai:query-template": "//element(*, sakai:pooled-content)[(jcr:contains(., '{q}') or jcr:contains(jcr:content, '{q}')){_meManagerGroups?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sakai:query-template-q=%2A": "//element(*, sakai:pooled-content)[{_meManagerGroupsNoAnd?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
-  "sakai:query-template-q=%2A%2A%2A": "//element(*, sakai:pooled-content)[{_meManagerGroupsNoAnd?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "PooledContent",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
@@ -12,6 +11,6 @@
   "sakai:parameters" : [
   	  "{\"name\" : \"q\", \"description\" : \"The search term you wish to search on. This will search trough the actual content of the file and any properties on the node.\"}",
       "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. Default is jcr:score\"}",
-      "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'ascending' or 'descending'.\"}"      
+      "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'ascending' or 'descending'.\"}"
   ],
 }
