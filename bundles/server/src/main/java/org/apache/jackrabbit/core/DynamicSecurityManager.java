@@ -240,11 +240,9 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      */
     public void dispose(String workspaceName) {
         checkInitialized();
-        synchronized (acProviders) {
-            AccessControlProviderHolder prov = acProviders.remove(workspaceName);
-            if (prov != null) {
-                prov.close();
-            }
+        AccessControlProviderHolder prov = acProviders.remove(workspaceName);
+        if (prov != null) {
+            prov.close();
         }
     }
 
@@ -253,12 +251,10 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      */
     public void close() {
         checkInitialized();
-        synchronized (acProviders) {
-            for (AccessControlProviderHolder accessControlProvider : acProviders.values()) {
-                accessControlProvider.close();
-            }
-            acProviders.clear();
+        for (AccessControlProviderHolder accessControlProvider : acProviders.values()) {
+            accessControlProvider.close();
         }
+        acProviders.clear();
     }
 
     /**
@@ -569,23 +565,24 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
 
             WorkspaceConfig conf = repository.getConfig().getWorkspaceConfig(workspaceName);
             WorkspaceSecurityConfig secConf = (conf == null) ?  null : conf.getSecurityConfig();
-            synchronized (acProviders) {
-                provider = acProviderFactory.createProvider(systemSession, secConf);
-                getAccessControlProviderHolder(workspaceName).set(provider, systemSession);
-            }
+            provider = acProviderFactory.createProvider(systemSession, secConf);
+            getAccessControlProviderHolder(workspaceName).set(provider, systemSession);
         }
         return provider;
     }
 
     private AccessControlProviderHolder getAccessControlProviderHolder(String workspaceName) {
-      synchronized (acProviders) {
         AccessControlProviderHolder accessControlProviderHolder = acProviders.get(workspaceName);
         if ( accessControlProviderHolder == null ) {
-          accessControlProviderHolder = new AccessControlProviderHolder(workspaceName, 60000L*5L, 1000);
-          acProviders.put(workspaceName, accessControlProviderHolder);
+          synchronized (acProviders) {
+            accessControlProviderHolder = acProviders.get(workspaceName);
+            if ( accessControlProviderHolder == null ) {
+              accessControlProviderHolder = new AccessControlProviderHolder(workspaceName, 60000L*5L, 1000);
+              acProviders.put(workspaceName, accessControlProviderHolder);
+            }
+          }
         }
         return accessControlProviderHolder;        
-      }
     }
 
     /**
