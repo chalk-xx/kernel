@@ -484,7 +484,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements Access
                           log.debug("Remove Node at {} ",path);
                           // can't find out if the removed ACL/ACE node was
                           // relevant for the principals
-                          clearCache = true;
+                          setClearCache();
                           break;
                       case Event.PROPERTY_ADDED:
                       case Event.PROPERTY_CHANGED:
@@ -507,12 +507,16 @@ public class ACLProvider extends AbstractAccessControlProvider implements Access
                   log.warn("Internal error: ", e.getMessage());
               }
           }
-          if (clearCache) {
-              clearCache();
-          }
+          
       }
         Set<String> invalidationQueueNodes = new HashSet<String>();
         Set<String> invalidationQueueProperties = new HashSet<String>();
+        boolean clearCache = false;
+        
+        public void setClearCache() {
+          clearCache = true;
+        }
+       
         
         // there are 2 of these to avoid a string copy, the path string is shared amongst all threads.
         public void addInvalidationNodes(String path) {
@@ -537,56 +541,65 @@ public class ACLProvider extends AbstractAccessControlProvider implements Access
         }
         
         public void clearInvalidationQueue() throws PathNotFoundException, RepositoryException {
-          Set<String> toClean = new HashSet<String>();
-          synchronized (invalidationQueueNodes) {
-            for ( String s : invalidationQueueNodes ) {
-              toClean.add(s);
-            }
-            invalidationQueueNodes.clear();
-          }
-          boolean clearCache = false;
-          for ( String path : toClean ) {
-            NodeImpl n = (NodeImpl) session.getNode(path);
-            if (n.isNodeType(NT_REP_ACE) &&
-                    principalNames.contains(n.getProperty(P_PRINCIPAL_NAME).getString())) {
-                clearCache = true;
-            }
-            if ( clearCache ) {
-              break;
-            }
-          }
-          toClean.clear();
-          synchronized (invalidationQueueProperties) {
-            if (!clearCache) {
-              for (String s : invalidationQueueProperties) {
+          if ( !clearCache ) {
+            Set<String> toClean = new HashSet<String>();
+            synchronized (invalidationQueueNodes) {
+              for ( String s : invalidationQueueNodes ) {
                 toClean.add(s);
               }
+              invalidationQueueNodes.clear();
             }
-            invalidationQueueProperties.clear();
-          }
-          if ( !clearCache ) {
             for ( String path : toClean ) {
-              PropertyImpl p = (PropertyImpl) session.getProperty(path);
-              NodeImpl parent = (NodeImpl) p.getParent();
-              if (parent.isNodeType(NT_REP_ACE)) {
-                  String principalName = null;
-                  if (P_PRIVILEGES.equals(p.getQName())) {
-                      // test if principal-name sibling-prop matches
-                      principalName = parent.getProperty(P_PRINCIPAL_NAME).getString();
-                  } else if (P_PRINCIPAL_NAME.equals(p.getQName())) {
-                      // a new ace or an ace change its principal-name.
-                      principalName = p.getString();
-                  }
-                  if (principalName != null &&
-                          principalNames.contains(principalName)) {
-                      clearCache = true;
-                  }
+              NodeImpl n = (NodeImpl) session.getNode(path);
+              if (n.isNodeType(NT_REP_ACE) &&
+                      principalNames.contains(n.getProperty(P_PRINCIPAL_NAME).getString())) {
+                  clearCache = true;
+              }
+              if ( clearCache ) {
+                break;
               }
             }
             toClean.clear();
+            synchronized (invalidationQueueProperties) {
+              if (!clearCache) {
+                for (String s : invalidationQueueProperties) {
+                  toClean.add(s);
+                }
+              }
+              invalidationQueueProperties.clear();
+            }
+            if ( !clearCache ) {
+              for ( String path : toClean ) {
+                PropertyImpl p = (PropertyImpl) session.getProperty(path);
+                NodeImpl parent = (NodeImpl) p.getParent();
+                if (parent.isNodeType(NT_REP_ACE)) {
+                    String principalName = null;
+                    if (P_PRIVILEGES.equals(p.getQName())) {
+                        // test if principal-name sibling-prop matches
+                        principalName = parent.getProperty(P_PRINCIPAL_NAME).getString();
+                    } else if (P_PRINCIPAL_NAME.equals(p.getQName())) {
+                        // a new ace or an ace change its principal-name.
+                        principalName = p.getString();
+                    }
+                    if (principalName != null &&
+                            principalNames.contains(principalName)) {
+                        clearCache = true;
+                    }
+                }
+              }
+              toClean.clear();
+            }
+          } else {
+            synchronized (invalidationQueueNodes) {
+              invalidationQueueNodes.clear();
+            }
+            synchronized (invalidationQueueProperties) {
+              invalidationQueueProperties.clear();
+            }            
           }
           
           if ( clearCache ) {
+            clearCache = false;
             clearCache();
           }
           
