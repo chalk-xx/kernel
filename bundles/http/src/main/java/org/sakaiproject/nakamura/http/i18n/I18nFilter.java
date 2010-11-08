@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -73,9 +74,7 @@ import javax.servlet.http.HttpServletResponseWrapper;
     @Property(name = "sling.filter.scope", value = "REQUEST", propertyPrivate = true),
     @Property(name = I18nFilter.FILTERED_PATTERN, value = I18nFilter.DEFAULT_FILTERED_PATTERN),
     @Property(name = I18nFilter.BUNDLES_PATH, value = I18nFilter.DEFAULT_BUNDLES_PATH),
-    @Property(name = I18nFilter.MESSAGE_KEY_PREFIX_PATTERN, value = I18nFilter.DEFAULT_MESSAGE_KEY_PREFIX),
     @Property(name = I18nFilter.MESSAGE_KEY_PATTERN, value = I18nFilter.DEFAULT_MESSAGE_KEY_PATTERN),
-    @Property(name = I18nFilter.MESSAGE_KEY_SUFFIX_PATTERN, value = I18nFilter.DEFAULT_MESSAGE_KEY_SUFFIX),
     @Property(name = I18nFilter.SHOW_MISSING_KEYS, boolValue = I18nFilter.DEFAULT_SHOW_MISSING_KEYS)
 })
 public class I18nFilter implements Filter {
@@ -83,25 +82,17 @@ public class I18nFilter implements Filter {
 
   static final String FILTERED_PATTERN = "sakai.filter.i18n.pattern";
   static final String BUNDLES_PATH = "sakai.filter.i18n.bundles.path";
-  static final String MESSAGE_KEY_PREFIX_PATTERN = "sakai.filter.i18n.message_key.prefix";
   static final String MESSAGE_KEY_PATTERN = "sakai.filter.i18n.message_key.pattern";
-  static final String MESSAGE_KEY_SUFFIX_PATTERN = "sakai.filter.i18n.message_key.suffix";
   static final String SHOW_MISSING_KEYS = "sakai.filter.i18n.message_key.show_missing";
 
-//  public static final String[] DEFAULT_FILTERED_PATTERNS = new String[] {
-//      "^/dev/.+html$", "/devwidgets/.+html$", "^/dev/$" };
-  public static final String DEFAULT_FILTERED_PATTERN = "^/(dev|devwidgets)(/|/.+\\.html)*$";
+  public static final String DEFAULT_FILTERED_PATTERN = "^/(dev|devwidgets)/(.+\\.html)*$";
   public static final String DEFAULT_BUNDLES_PATH = "/dev/_bundle";
-  public static final String DEFAULT_MESSAGE_KEY_PREFIX = "__MSG__";
-  public static final String DEFAULT_MESSAGE_KEY_PATTERN = ".+";
-  public static final String DEFAULT_MESSAGE_KEY_SUFFIX = "__";
+  public static final String DEFAULT_MESSAGE_KEY_PATTERN = "__MSG__(.+)__";
   public static final boolean DEFAULT_SHOW_MISSING_KEYS = true;
 
   private Pattern filteredPattern;
   private String bundlesPath;
-  private String keyPrefix;
   private String keyPattern;
-  private String keySuffix;
   private Pattern messageKeyPattern;
   private boolean showMissingKeys;
 
@@ -110,20 +101,12 @@ public class I18nFilter implements Filter {
     String pattern = OsgiUtil.toString(props.get(FILTERED_PATTERN),
         DEFAULT_FILTERED_PATTERN);
     filteredPattern = Pattern.compile(pattern);
-//    pathPatterns = new Pattern[spatterns.length];
-//    for (int i = 0; i < spatterns.length; i++) {
-//      pathPatterns[i] = Pattern.compile(spatterns[i]);
-//    }
 
     bundlesPath = OsgiUtil.toString(props.get(BUNDLES_PATH), DEFAULT_BUNDLES_PATH);
 
-    keyPrefix = OsgiUtil.toString(props.get(MESSAGE_KEY_PREFIX_PATTERN),
-        DEFAULT_MESSAGE_KEY_PREFIX);
     keyPattern = OsgiUtil.toString(props.get(MESSAGE_KEY_PATTERN),
         DEFAULT_MESSAGE_KEY_PATTERN);
-    keySuffix = OsgiUtil.toString(props.get(MESSAGE_KEY_SUFFIX_PATTERN),
-        DEFAULT_MESSAGE_KEY_SUFFIX);
-    messageKeyPattern = Pattern.compile(keyPrefix + "(" + keyPattern + ")" + keySuffix);
+    messageKeyPattern = Pattern.compile(keyPattern);
 
     showMissingKeys = OsgiUtil.toBoolean(props.get(SHOW_MISSING_KEYS), DEFAULT_SHOW_MISSING_KEYS);
   }
@@ -205,7 +188,7 @@ public class I18nFilter implements Filter {
           } else if (defaultJson.has(key)) {
             message = defaultJson.getString(key);
           } else {
-            String msg = "Message key not found [" + key + "]";
+            String msg = "{MESSAGE KEY NOT FOUND [" + key + "]}";
             logger.warn(msg);
             if (showMissingKeys) {
               message = msg;
@@ -242,12 +225,18 @@ public class I18nFilter implements Filter {
     UserManager um = AccessControlUtil.getUserManager(session);
     Authorizable au = um.getAuthorizable(session.getUserID());
     Locale l = Locale.getDefault();
-//    if (au.getPropertyNames().containsKey("locale")) {
-//      String locale[] = au.getProperty("locale").toString().split("_");
-//      if (locale.length == 2) {
-//        l = new Locale(locale[0], locale[1]);
-//      }
-//    }
+
+    Iterator<String> props = au.getPropertyNames();
+    while (props.hasNext()) {
+      String prop = props.next();
+      if ("locale".equals(prop)) {
+        String locale[] = au.getProperty("locale").toString().split("_");
+        if (locale.length == 2) {
+          l = new Locale(locale[0], locale[1]);
+        }
+        break;
+      }
+    }
     return l;
   }
 
