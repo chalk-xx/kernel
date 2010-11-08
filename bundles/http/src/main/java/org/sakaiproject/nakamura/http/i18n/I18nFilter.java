@@ -131,6 +131,12 @@ public class I18nFilter implements Filter {
    */
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
+
+    if ("true".equals(request.getParameter("raw"))) {
+      chain.doFilter(request, response);
+      return;
+    }
+
     SlingHttpServletRequest srequest = (SlingHttpServletRequest) request;
     SlingHttpServletResponse sresponse = (SlingHttpServletResponse) response;
 
@@ -145,17 +151,19 @@ public class I18nFilter implements Filter {
 
     // allow the chain to process so we can capture the response
     chain.doFilter(request, response);
-    String output = response.toString();
 
     // if the path was set to be filtered, get the output and filter it
     // otherwise the response isn't wrapped and doesn't require us to intervene
-    if (filter && output != null && output.length() > 0) {
-      long start = new Date().getTime();
+    if (filter) {
+      String output = response.toString();
+      if (output != null && output.length() > 0) {
+        long start = new Date().getTime();
 
-      writeFilteredResponse(srequest, sresponse, output);
+        writeFilteredResponse(srequest, sresponse, output);
 
-      long end = new Date().getTime();
-      logger.debug("Filtered {} in {}ms", path, (end - start));
+        long end = new Date().getTime();
+        logger.debug("Filtered {} in {}ms", path, (end - start));
+      }
     }
   }
 

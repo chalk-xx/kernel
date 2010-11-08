@@ -127,6 +127,20 @@ public class I18nFilterTest {
   }
 
   @Test
+  public void dontFilterIfRawRequested() throws Exception {
+    when(request.getParameter("raw")).thenReturn("true");
+
+    filter.doFilter(request, response, chain);
+
+    ArgumentCaptor<ServletResponse> acResponse = ArgumentCaptor
+        .forClass(ServletResponse.class);
+    verifyZeroInteractions(response);
+    verify(chain).doFilter(eq(request), acResponse.capture());
+
+    assertFalse(acResponse.getClass().isInstance(I18nFilterServletResponse.class));
+  }
+
+  @Test
   public void dontFilterUnmatchedPath() throws Exception {
     when(request.getPathInfo()).thenReturn("/unfiltered");
 
