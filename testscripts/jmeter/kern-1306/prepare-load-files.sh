@@ -2,6 +2,7 @@
 
 if [ ! -d TestContent ]
 then
+   echo "grabbing files from NYU"
    curl https://files.nyu.edu/maw1/public/kern-1306/TestContent.zip > TestContent.zip
    curl https://files.nyu.edu/maw1/public/kern-1306/file-uploads.csv > file-uploads.csv
    unzip TestContent.zip
