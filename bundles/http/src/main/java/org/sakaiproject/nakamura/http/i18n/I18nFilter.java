@@ -35,12 +35,9 @@ import org.osgi.framework.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.CharArrayWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
@@ -56,11 +53,8 @@ import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
 
 /**
  * Filter to transform __MSG_*__ i18n message keys into i18n messages.
@@ -68,8 +62,8 @@ import javax.servlet.http.HttpServletResponseWrapper;
 @Component(metatype = true)
 @Service
 @Properties(value = {
-    @Property(name = Constants.SERVICE_DESCRIPTION, value = "Nakamura Cache-Control Filter"),
     @Property(name = Constants.SERVICE_VENDOR, value = "The Sakai Foundation"),
+    @Property(name = Constants.SERVICE_DESCRIPTION, value = "Nakamura i18n Filter"),
     @Property(name = Constants.SERVICE_RANKING, intValue = 10, propertyPrivate = true),
     @Property(name = "sling.filter.scope", value = "REQUEST", propertyPrivate = true),
     @Property(name = I18nFilter.FILTERED_PATTERN, value = I18nFilter.DEFAULT_FILTERED_PATTERN),
@@ -78,17 +72,17 @@ import javax.servlet.http.HttpServletResponseWrapper;
     @Property(name = I18nFilter.SHOW_MISSING_KEYS, boolValue = I18nFilter.DEFAULT_SHOW_MISSING_KEYS)
 })
 public class I18nFilter implements Filter {
+  public static final String DEFAULT_FILTERED_PATTERN = "^/(dev|devwidgets)/(.+\\.html)*$";
+  public static final String DEFAULT_BUNDLES_PATH = "/dev/_bundle";
+  public static final String DEFAULT_MESSAGE_KEY_PATTERN = "__MSG__(.+?)__";
+  public static final boolean DEFAULT_SHOW_MISSING_KEYS = true;
+
   private static final Logger logger = LoggerFactory.getLogger(I18nFilter.class);
 
   static final String FILTERED_PATTERN = "sakai.filter.i18n.pattern";
   static final String BUNDLES_PATH = "sakai.filter.i18n.bundles.path";
   static final String MESSAGE_KEY_PATTERN = "sakai.filter.i18n.message_key.pattern";
   static final String SHOW_MISSING_KEYS = "sakai.filter.i18n.message_key.show_missing";
-
-  public static final String DEFAULT_FILTERED_PATTERN = "^/(dev|devwidgets)/(.+\\.html)*$";
-  public static final String DEFAULT_BUNDLES_PATH = "/dev/_bundle";
-  public static final String DEFAULT_MESSAGE_KEY_PATTERN = "__MSG__(.+)__";
-  public static final boolean DEFAULT_SHOW_MISSING_KEYS = true;
 
   private Pattern filteredPattern;
   private String bundlesPath;
@@ -108,15 +102,25 @@ public class I18nFilter implements Filter {
         DEFAULT_MESSAGE_KEY_PATTERN);
     messageKeyPattern = Pattern.compile(keyPattern);
 
-    showMissingKeys = OsgiUtil.toBoolean(props.get(SHOW_MISSING_KEYS), DEFAULT_SHOW_MISSING_KEYS);
+    showMissingKeys = OsgiUtil.toBoolean(props.get(SHOW_MISSING_KEYS),
+        DEFAULT_SHOW_MISSING_KEYS);
   }
 
+  // ---------- Filter interface ----------
   /**
    * {@inheritDoc}
    *
    * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
    */
   public void init(FilterConfig filterConfig) throws ServletException {
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see javax.servlet.Filter#destroy()
+   */
+  public void destroy() {
   }
 
   /**
@@ -144,8 +148,14 @@ public class I18nFilter implements Filter {
     String output = response.toString();
 
     // if the path was set to be filtered, get the output and filter it
+    // otherwise the response isn't wrapped and doesn't require us to intervene
     if (filter && output != null && output.length() > 0) {
+      long start = new Date().getTime();
+
       writeFilteredResponse(srequest, sresponse, output);
+
+      long end = new Date().getTime();
+      logger.debug("Filtered {} in {}ms", path, (end - start));
     }
   }
 
@@ -188,7 +198,7 @@ public class I18nFilter implements Filter {
           } else if (defaultJson.has(key)) {
             message = defaultJson.getString(key);
           } else {
-            String msg = "{MESSAGE KEY NOT FOUND [" + key + "]}";
+            String msg = "[MESSAGE KEY NOT FOUND '" + key + "']";
             logger.warn(msg);
             if (showMissingKeys) {
               message = msg;
@@ -199,7 +209,7 @@ public class I18nFilter implements Filter {
           int keyStart = sb.indexOf(msgKey);
           while (keyStart >= 0) {
             sb.replace(keyStart, keyStart + msgKey.length(), message);
-            keyStart = sb.indexOf(msgKey);
+            keyStart = sb.indexOf(msgKey, keyStart);
           }
 
           // track the group so we don't try to replace it again
@@ -212,6 +222,8 @@ public class I18nFilter implements Filter {
       logger.error(e.getMessage(), e);
     }
 
+    response.setContentLength(sb.length());
+
     // send the output to the actual response
     try {
       response.getWriter().write(sb.toString());
@@ -220,22 +232,27 @@ public class I18nFilter implements Filter {
     }
   }
 
-  private Locale getLocale(Session session) throws RepositoryException {
-    // get locale from authorizable
-    UserManager um = AccessControlUtil.getUserManager(session);
-    Authorizable au = um.getAuthorizable(session.getUserID());
+  private Locale getLocale(Session session) {
     Locale l = Locale.getDefault();
 
-    Iterator<String> props = au.getPropertyNames();
-    while (props.hasNext()) {
-      String prop = props.next();
-      if ("locale".equals(prop)) {
-        String locale[] = au.getProperty("locale").toString().split("_");
-        if (locale.length == 2) {
-          l = new Locale(locale[0], locale[1]);
+    // get locale from authorizable
+    try {
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Authorizable au = um.getAuthorizable(session.getUserID());
+
+      Iterator<String> props = au.getPropertyNames();
+      while (props.hasNext()) {
+        String prop = props.next();
+        if ("locale".equals(prop)) {
+          String locale[] = au.getProperty("locale")[0].getString().split("_");
+          if (locale.length == 2) {
+            l = new Locale(locale[0], locale[1]);
+          }
+          break;
         }
-        break;
       }
+    } catch (RepositoryException e) {
+      logger.warn("Unable to determine locale; using default [{}]", l.toString());
     }
     return l;
   }
@@ -248,66 +265,5 @@ public class I18nFilter implements Filter {
     String langData = content.getProperty("jcr:data").getString();
     JSONObject langJson = new JSONObject(langData);
     return langJson;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see javax.servlet.Filter#destroy()
-   */
-  public void destroy() {
-  }
-
-  /**
-   * Response wrapper to filter i18n keys into language messages.
-   */
-  private static final class I18nFilterServletResponse extends HttpServletResponseWrapper {
-    private final CharArrayWriter caw;
-    private final ByteArrayOutputStream baos;
-
-    public I18nFilterServletResponse(HttpServletResponse response) {
-      super(response);
-      caw = new CharArrayWriter();
-      baos = new ByteArrayOutputStream();
-    }
-
-    @Override
-    public ServletOutputStream getOutputStream() throws IOException {
-      // calling super will throw an exception if that's the right thing to do
-      super.getOutputStream();
-
-      // we've passed the super call, return a stream
-      return new ServletOutputStream() {
-
-        @Override
-        public void write(int b) throws IOException {
-          baos.write(b);
-        }
-      };
-    }
-
-    @Override
-    public PrintWriter getWriter() throws IOException{
-      // calling super will throw an exception if that's the right thing to do
-      super.getWriter();
-
-      // we've passed the super call, return a print writer
-      return new PrintWriter(caw);
-    }
-
-    @Override
-    public String toString() {
-      String retval = null;
-      if (baos.size() > 0) {
-        try {
-          retval = baos.toString("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-          // let retval be null
-        }
-      } else if (caw.size() > 0) {
-        retval = caw.toString();
-      }
-      return retval;
-    }
   }
 }
