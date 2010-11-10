@@ -62,9 +62,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -130,7 +130,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
       writer.object();
       // User info
       writer.key("user");
-      writeUserJSON(writer, session, au);
+      writeUserJSON(writer, session, au, request);
 
       // Dump this user his info
       writer.key("profile");
@@ -317,7 +317,8 @@ public class MeServlet extends SlingSafeMethodsServlet {
    * @throws JSONException
    */
   protected void writeUserJSON(ExtendedJSONWriter write, Session session,
-      Authorizable authorizable) throws RepositoryException, JSONException {
+      Authorizable authorizable, SlingHttpServletRequest request)
+      throws RepositoryException, JSONException {
 
     String user = session.getUserID();
     boolean isAnonymous = (UserConstants.ANON_USERID.equals(user));
@@ -338,7 +339,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
 
       write.object();
       writeGeneralInfo(write, authorizable, subjects, properties);
-      writeLocale(write, properties);
+      writeLocale(write, properties, request);
       write.endObject();
     }
 
@@ -351,11 +352,11 @@ public class MeServlet extends SlingSafeMethodsServlet {
    * @param properties
    * @throws JSONException
    */
-  protected void writeLocale(ExtendedJSONWriter write, Map<String, Object> properties)
-      throws JSONException {
+  protected void writeLocale(ExtendedJSONWriter write, Map<String, Object> properties,
+      SlingHttpServletRequest request) throws JSONException {
 
     /* Get the correct locale */
-    Locale l = Locale.getDefault();
+    Locale l = request.getLocale();
     if (properties.containsKey(LOCALE_FIELD)) {
       String locale[] = properties.get(LOCALE_FIELD).toString().split("_");
       if (locale.length == 2) {
