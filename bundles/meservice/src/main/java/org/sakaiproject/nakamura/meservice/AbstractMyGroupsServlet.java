@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
@@ -31,9 +32,12 @@ public abstract class AbstractMyGroupsServlet extends SlingSafeMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(MyManagedGroupsServlet.class);
 
   public static final String PARAM_TEXT_TO_MATCH = "q";
-  
+
   /**
+  * This and related code attempts to mimic the usual client-server API for paged searching.
   *
+  * TODO Replace the MyGroupsServlet and MyManagedGroupsServlet with search queries.
+  * (This was not possible when the servlets were first written, but should be now.)
   */
   public static final String PARAMS_ITEMS_PER_PAGE = "items";
   /**
@@ -44,7 +48,7 @@ public abstract class AbstractMyGroupsServlet extends SlingSafeMethodsServlet {
    * The default amount of items in a page.
    */
   public static final int DEFAULT_PAGED_ITEMS = 25;
-  
+
   /**
   *
   */
@@ -76,58 +80,57 @@ public abstract class AbstractMyGroupsServlet extends SlingSafeMethodsServlet {
       Authorizable authorizable = userManager.getAuthorizable(userId);
       TreeMap<String, Group> groups = getGroups(authorizable, userManager);
 
-      // Write out the Profiles.
+      // Get the specified search query filter, if any.
       Pattern filterPattern = getFilterPattern(request.getParameter(PARAM_TEXT_TO_MATCH));
-      
-      // Check if the users wants results who are too far in the resultset to get.
-      // If we wouldn't do this, the user could ask for the 1000th page
-      // This would result in iterating over (at least) 25.000 lucene indexes and
-      // checking if the user has READ access on it.
+
+      // Filter the Profiles so as to set up proper paging.
+      List<ValueMap> filteredProfiles = new ArrayList<ValueMap>();
+      for (Group group : groups.values()) {
+        ValueMap profile = profileService.getProfileMap(group, session);
+        if (profile != null) {
+          if ((filterPattern == null) || (isValueMapPattternMatch(profile, filterPattern))) {
+            filteredProfiles.add(profile);
+          }
+        } else {
+          LOGGER.info("No Profile found for group {}", group.getID());
+        }
+      }
+
+      // Write out the Profiles.
       long nitems = longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
           DEFAULT_PAGED_ITEMS);
       long page = longRequestParameter(request, PARAMS_PAGE, 0);
       long offset = page * nitems;
-      long resultSize = Math.max(nitems, offset);
 
-      
       List<String> selectors = Arrays.asList(request.getRequestPathInfo().getSelectors());
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
       ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
       writer.setTidy(selectors.contains("tidy"));
-      
+
       writer.object();
       writer.key(PARAMS_ITEMS_PER_PAGE);
       writer.value(nitems);
       writer.key(JSON_RESULTS);
 
-      
       writer.array();
       int i = 0;
-      for (Group group : groups.values()) {
+      for (ValueMap profile : filteredProfiles) {
         if ( i >= (offset + nitems) ) {
           break;
         } else if ( i >= offset ) {
-          ValueMap profile = profileService.getProfileMap(group, session);
-          if (profile != null) {
-            if ((filterPattern == null) || (isValueMapPattternMatch(profile, filterPattern))) {
-              writer.valueMap(profile);
-            }
-          } else {
-            LOGGER.info("No Profile found for group {}", group.getID());
-          }
+          writer.valueMap(profile);
         }
         i++;
       }
       writer.endArray();
-      
-      
+
       writer.key(TOTAL);
-      writer.value(groups.size());
+      writer.value(filteredProfiles.size());
 
       writer.endObject();
 
-      
+
     } catch (RepositoryException e) {
       LOGGER.error("Failed to retrieve groups for user " + userId, e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
