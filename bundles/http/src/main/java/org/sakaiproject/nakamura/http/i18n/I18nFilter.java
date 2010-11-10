@@ -17,28 +17,23 @@
  */
 package org.sakaiproject.nakamura.http.i18n;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.framework.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -55,6 +50,7 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Filter to transform __MSG_*__ i18n message keys into i18n messages.
@@ -66,25 +62,22 @@ import javax.servlet.ServletResponse;
     @Property(name = Constants.SERVICE_DESCRIPTION, value = "Nakamura i18n Filter"),
     @Property(name = Constants.SERVICE_RANKING, intValue = 10, propertyPrivate = true),
     @Property(name = "sling.filter.scope", value = "REQUEST", propertyPrivate = true),
-    @Property(name = I18nFilter.FILTERED_PATTERN, value = I18nFilter.DEFAULT_FILTERED_PATTERN),
     @Property(name = I18nFilter.BUNDLES_PATH, value = I18nFilter.DEFAULT_BUNDLES_PATH),
     @Property(name = I18nFilter.MESSAGE_KEY_PATTERN, value = I18nFilter.DEFAULT_MESSAGE_KEY_PATTERN),
     @Property(name = I18nFilter.SHOW_MISSING_KEYS, boolValue = I18nFilter.DEFAULT_SHOW_MISSING_KEYS)
 })
 public class I18nFilter implements Filter {
-  public static final String DEFAULT_FILTERED_PATTERN = "^/(dev|devwidgets)/(.+\\.html)*$";
+  public static final String PARAM_LANGUAGE = "l";
   public static final String DEFAULT_BUNDLES_PATH = "/dev/_bundle";
   public static final String DEFAULT_MESSAGE_KEY_PATTERN = "__MSG__(.+?)__";
   public static final boolean DEFAULT_SHOW_MISSING_KEYS = true;
 
   private static final Logger logger = LoggerFactory.getLogger(I18nFilter.class);
 
-  static final String FILTERED_PATTERN = "sakai.filter.i18n.pattern";
   static final String BUNDLES_PATH = "sakai.filter.i18n.bundles.path";
   static final String MESSAGE_KEY_PATTERN = "sakai.filter.i18n.message_key.pattern";
   static final String SHOW_MISSING_KEYS = "sakai.filter.i18n.message_key.show_missing";
 
-  private Pattern filteredPattern;
   private String bundlesPath;
   private String keyPattern;
   private Pattern messageKeyPattern;
@@ -92,10 +85,6 @@ public class I18nFilter implements Filter {
 
   @Activate @Modified
   public void modified(Map<?, ?> props) {
-    String pattern = OsgiUtil.toString(props.get(FILTERED_PATTERN),
-        DEFAULT_FILTERED_PATTERN);
-    filteredPattern = Pattern.compile(pattern);
-
     bundlesPath = OsgiUtil.toString(props.get(BUNDLES_PATH), DEFAULT_BUNDLES_PATH);
 
     keyPattern = OsgiUtil.toString(props.get(MESSAGE_KEY_PATTERN),
@@ -137,31 +126,32 @@ public class I18nFilter implements Filter {
       return;
     }
 
+    // get path info
     SlingHttpServletRequest srequest = (SlingHttpServletRequest) request;
-    SlingHttpServletResponse sresponse = (SlingHttpServletResponse) response;
-
+    HttpServletResponse httpResponse = (HttpServletResponse) response;
     String path = srequest.getPathInfo();
 
     // check that the path is something we should filter.
     boolean filter = false;
-    if (path != null && filteredPattern.matcher(path).matches()) {
-      response = new I18nFilterServletResponse(sresponse);
+    if ((path.startsWith("/dev/") || path.startsWith("/devwidgets/"))
+        && path.endsWith(".html")) {
+      httpResponse = new CapturingHttpServletResponse(httpResponse);
       filter = true;
     }
 
     // allow the chain to process so we can capture the response
-    chain.doFilter(request, response);
+    chain.doFilter(request, httpResponse);
 
     // if the path was set to be filtered, get the output and filter it
     // otherwise the response isn't wrapped and doesn't require us to intervene
     if (filter) {
-      String output = response.toString();
-      if (output != null && output.length() > 0) {
-        long start = new Date().getTime();
+      String output = httpResponse.toString();
+      if (!StringUtils.isBlank(output)) {
+        long start = System.currentTimeMillis();
 
-        writeFilteredResponse(srequest, sresponse, output);
+        writeFilteredResponse(srequest, response, output);
 
-        long end = new Date().getTime();
+        long end = System.currentTimeMillis();
         logger.debug("Filtered {} in {}ms", path, (end - start));
       }
     }
@@ -177,16 +167,14 @@ public class I18nFilter implements Filter {
    * @throws IOException
    */
   private void writeFilteredResponse(SlingHttpServletRequest srequest,
-      SlingHttpServletResponse response, String output) throws IOException {
+      ServletResponse response, String output) throws IOException {
     StringBuilder sb = new StringBuilder(output);
     try {
       Session session = srequest.getResourceResolver().adaptTo(Session.class);
       Node bundlesNode = session.getNode(bundlesPath);
 
-      // get user's locale
-      Locale locale = getLocale(session);
-
       // load the language bundle
+      Locale locale = getLocale(srequest);
       JSONObject langJson = getJsonBundle(bundlesNode, locale.toString() + ".json");
 
       // load the default bundle
@@ -240,28 +228,17 @@ public class I18nFilter implements Filter {
     }
   }
 
-  private Locale getLocale(Session session) {
-    Locale l = Locale.getDefault();
+  private Locale getLocale(SlingHttpServletRequest request) {
+    Locale l = null;
+    String lang = request.getParameter(PARAM_LANGUAGE);
 
-    // get locale from authorizable
-    try {
-      UserManager um = AccessControlUtil.getUserManager(session);
-      Authorizable au = um.getAuthorizable(session.getUserID());
-
-      Iterator<String> props = au.getPropertyNames();
-      while (props.hasNext()) {
-        String prop = props.next();
-        if ("locale".equals(prop)) {
-          String locale[] = au.getProperty("locale")[0].getString().split("_");
-          if (locale.length == 2) {
-            l = new Locale(locale[0], locale[1]);
-          }
-          break;
-        }
-      }
-    } catch (RepositoryException e) {
-      logger.warn("Unable to determine locale; using default [{}]", l.toString());
+    if (lang != null) {
+      String[] parts = lang.split("_");
+      l = new Locale(parts[0], parts[1]);
+    } else {
+      l = request.getLocale();
     }
+
     return l;
   }
 

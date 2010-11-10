@@ -39,14 +39,14 @@ import javax.servlet.http.HttpServletResponse;
  *
  */
 @RunWith(MockitoJUnitRunner.class)
-public class I18nFilterServletResponseTest {
+public class CapturingHttpServletResponseTest {
   @Mock HttpServletResponse response;
 
   ServletOutputStream sos;
   StringWriter sw;
   PrintWriter pw;
   ByteArrayOutputStream baos;
-  I18nFilterServletResponse i18nResponse;
+  CapturingHttpServletResponse i18nResponse;
 
   @Before
   public void setUp() throws Exception {
@@ -64,7 +64,7 @@ public class I18nFilterServletResponseTest {
     };
     when(response.getOutputStream()).thenReturn(sos);
 
-    i18nResponse = new I18nFilterServletResponse(response);
+    i18nResponse = new CapturingHttpServletResponse(response);
   }
 
   @Test

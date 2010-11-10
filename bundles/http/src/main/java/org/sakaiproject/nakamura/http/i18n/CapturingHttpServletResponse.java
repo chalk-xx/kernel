@@ -30,11 +30,11 @@ import javax.servlet.http.HttpServletResponseWrapper;
 /**
  * Response wrapper to filter i18n keys into language messages.
  */
-public class I18nFilterServletResponse extends HttpServletResponseWrapper {
+public class CapturingHttpServletResponse extends HttpServletResponseWrapper {
   private final CharArrayWriter caw;
   private final ByteArrayOutputStream baos;
 
-  public I18nFilterServletResponse(HttpServletResponse response) {
+  public CapturingHttpServletResponse(HttpServletResponse response) {
     super(response);
     caw = new CharArrayWriter();
     baos = new ByteArrayOutputStream();

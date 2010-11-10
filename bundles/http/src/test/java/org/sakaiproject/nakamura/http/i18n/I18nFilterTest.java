@@ -24,16 +24,16 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.After;
 import org.junit.Before;
@@ -47,6 +47,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -56,12 +57,13 @@ import java.util.Properties;
 
 import javax.jcr.Node;
 import javax.jcr.Session;
-import javax.jcr.Value;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -74,7 +76,7 @@ public class I18nFilterTest {
   @Mock(answer = Answers.RETURNS_DEEP_STUBS) Node deutschNode;
   @Mock(answer = Answers.RETURNS_DEEP_STUBS) Node defaultNode;
   @Mock SlingHttpServletRequest request;
-  @Mock SlingHttpServletResponse response;
+  @Mock HttpServletResponse response;
   @Mock ResourceResolver resourceResolver;
   @Mock FilterChain chain;
   @Mock JackrabbitSession session;
@@ -85,6 +87,7 @@ public class I18nFilterTest {
   Properties props;
   I18nFilter filter;
   StringWriter sw;
+  ByteArrayOutputStream baos;
 
   @Before
   public void setUp() throws Exception {
@@ -96,6 +99,9 @@ public class I18nFilterTest {
     filter.modified(props);
 
     sw = new StringWriter();
+    baos = new ByteArrayOutputStream();
+
+    when(request.getLocale()).thenReturn(new Locale("en", "US"));
 
     when(request.getResourceResolver()).thenReturn(resourceResolver);
     when(resourceResolver.adaptTo(Session.class)).thenReturn(session);
@@ -137,7 +143,7 @@ public class I18nFilterTest {
     verifyZeroInteractions(response);
     verify(chain).doFilter(eq(request), acResponse.capture());
 
-    assertFalse(acResponse.getClass().isInstance(I18nFilterServletResponse.class));
+    assertFalse(acResponse.getClass().isInstance(CapturingHttpServletResponse.class));
   }
 
   @Test
@@ -151,7 +157,7 @@ public class I18nFilterTest {
     verifyZeroInteractions(response);
     verify(chain).doFilter(eq(request), acResponse.capture());
 
-    assertFalse(acResponse.getClass().isInstance(I18nFilterServletResponse.class));
+    assertFalse(acResponse.getClass().isInstance(CapturingHttpServletResponse.class));
   }
 
   @Test
@@ -165,7 +171,7 @@ public class I18nFilterTest {
     verifyZeroInteractions(response);
     verify(chain).doFilter(eq(request), acResponse.capture());
 
-    assertFalse(acResponse.getClass().isInstance(I18nFilterServletResponse.class));
+    assertFalse(acResponse.getClass().isInstance(CapturingHttpServletResponse.class));
   }
 
   @Test
@@ -173,7 +179,7 @@ public class I18nFilterTest {
     when(request.getPathInfo()).thenReturn("/dev/index.html");
 
     // inject some data into the response for the filter to use
-    writeToResponse("__MSG__BAD_REPLACEMENT__");
+    writeToResponse("__MSG__BAD_REPLACEMENT__", false);
 
     filter.doFilter(request, response, chain);
 
@@ -182,7 +188,7 @@ public class I18nFilterTest {
     verify(chain).doFilter(eq(request), acResponse.capture());
     verify(response, atLeastOnce()).getWriter();
 
-    assertTrue(acResponse.getValue() instanceof I18nFilterServletResponse);
+    assertTrue(acResponse.getValue() instanceof CapturingHttpServletResponse);
     String output = sw.toString();
     assertNotNull(output);
     assertFalse(output.contains("__MSG__BAD_REPLACEMENT__"));
@@ -197,7 +203,7 @@ public class I18nFilterTest {
     when(request.getPathInfo()).thenReturn("/dev/index.html");
 
     // inject some data into the response for the filter to use
-    writeToResponse("__MSG__BAD_REPLACEMENT__");
+    writeToResponse("__MSG__BAD_REPLACEMENT__", false);
 
     filter.doFilter(request, response, chain);
 
@@ -206,7 +212,7 @@ public class I18nFilterTest {
     verify(chain).doFilter(eq(request), acResponse.capture());
     verify(response, atLeastOnce()).getWriter();
 
-    assertTrue(acResponse.getValue() instanceof I18nFilterServletResponse);
+    assertTrue(acResponse.getValue() instanceof CapturingHttpServletResponse);
     String output = sw.toString();
     assertNotNull(output);
     assertFalse(output.contains("__MSG__BAD_REPLACEMENT__"));
@@ -218,7 +224,7 @@ public class I18nFilterTest {
     when(request.getPathInfo()).thenReturn("/dev/index.html");
 
     // inject some data into the response for the filter to use
-    writeToResponse("__MSG__REPLACE_ME_DEFAULT__");
+    writeToResponse("__MSG__REPLACE_ME_DEFAULT__", false);
 
     filter.doFilter(request, response, chain);
 
@@ -227,7 +233,7 @@ public class I18nFilterTest {
     verify(chain).doFilter(eq(request), acResponse.capture());
     verify(response, atLeastOnce()).getWriter();
 
-    assertTrue(acResponse.getValue() instanceof I18nFilterServletResponse);
+    assertTrue(acResponse.getValue() instanceof CapturingHttpServletResponse);
     String output = sw.toString();
     assertNotNull(output);
     assertFalse(output.contains("__MSG__REPLACE_ME_DEFAULT__"));
@@ -239,7 +245,7 @@ public class I18nFilterTest {
     when(request.getPathInfo()).thenReturn("/dev/index.html");
 
     // inject some data into the response for the filter to use
-    writeToResponse("__MSG__REPLACE_ME__");
+    writeToResponse("__MSG__REPLACE_ME__", false);
 
     filter.doFilter(request, response, chain);
 
@@ -248,7 +254,7 @@ public class I18nFilterTest {
     verify(chain).doFilter(eq(request), acResponse.capture());
     verify(response, atLeastOnce()).getWriter();
 
-    assertTrue(acResponse.getValue() instanceof I18nFilterServletResponse);
+    assertTrue(acResponse.getValue() instanceof CapturingHttpServletResponse);
     String output = sw.toString();
     assertNotNull(output);
     assertFalse(output.contains("__MSG__REPLACE_ME__"));
@@ -260,7 +266,7 @@ public class I18nFilterTest {
     when(request.getPathInfo()).thenReturn("/dev/index.html");
 
     // inject some data into the response for the filter to use
-    writeToResponse("__MSG__REPLACE_ME__, __MSG__REPLACE_ME__");
+    writeToResponse("__MSG__REPLACE_ME__, __MSG__REPLACE_ME__", false);
 
     filter.doFilter(request, response, chain);
 
@@ -269,7 +275,7 @@ public class I18nFilterTest {
     verify(chain).doFilter(eq(request), acResponse.capture());
     verify(response, atLeastOnce()).getWriter();
 
-    assertTrue(acResponse.getValue() instanceof I18nFilterServletResponse);
+    assertTrue(acResponse.getValue() instanceof CapturingHttpServletResponse);
     String output = sw.toString();
     assertNotNull(output);
     assertFalse(output.contains("MSG__REPLACE_ME"));
@@ -277,20 +283,50 @@ public class I18nFilterTest {
   }
 
   @Test
-  public void getLocaleFromAuthz() throws Exception {
+  public void filterMatchedPathFailToOutputStream() throws Exception {
+    when(request.getPathInfo()).thenReturn("/dev/index.html");
+
+    // inject some data into the response for the filter to use
+    writeToResponse("__MSG__REPLACE_ME__", true);
+
+    // throw an exception when getting the writer so that an attempt is made to get the
+    // output stream
+    reset(response);
+    when(response.getWriter()).thenThrow(new IllegalStateException());
+    when(response.getOutputStream()).thenReturn(new ServletOutputStream() {
+      @Override
+      public void write(int arg0) throws IOException {
+        baos.write(arg0);
+      }
+    });
+
+    filter.doFilter(request, response, chain);
+
+    ArgumentCaptor<ServletResponse> acResponse = ArgumentCaptor
+        .forClass(ServletResponse.class);
+    verify(chain).doFilter(eq(request), acResponse.capture());
+    verify(response, atLeastOnce()).getWriter();
+
+    assertTrue(acResponse.getValue() instanceof CapturingHttpServletResponse);
+    String output = sw.toString();
+    assertTrue(StringUtils.isBlank(output));
+
+    output = baos.toString("UTF-8");
+    assertFalse(StringUtils.isBlank(output));
+    assertFalse(output.contains("__MSG__REPLACE_ME__"));
+    assertTrue(output.contains("Yay, In the language bundle!"));
+  }
+
+  @Test
+  public void getLocaleFromRequest() throws Exception {
     // set the locale property in the authorizable
-    when(propNames.hasNext()).thenReturn(true).thenReturn(false);
-    when(propNames.next()).thenReturn("locale");
-    Value[] vals = new Value[1];
-    vals[0] = mock(Value.class);
-    when(vals[0].getString()).thenReturn("de_DE");
-    when(sessionUser.getProperty("locale")).thenReturn(vals);
+    when(request.getParameter(I18nFilter.PARAM_LANGUAGE)).thenReturn("de_DE");
 
     // setup a filtered path
     when(request.getPathInfo()).thenReturn("/dev/index.html");
 
     // inject some data into the response for the filter to use
-    writeToResponse("__MSG__REPLACE_ME__");
+    writeToResponse("__MSG__REPLACE_ME__", false);
 
     // run the filter
     filter.doFilter(request, response, chain);
@@ -302,20 +338,25 @@ public class I18nFilterTest {
     verify(chain).doFilter(eq(request), acResponse.capture());
     verify(response, atLeastOnce()).getWriter();
 
-    assertTrue(acResponse.getValue() instanceof I18nFilterServletResponse);
+    assertTrue(acResponse.getValue() instanceof CapturingHttpServletResponse);
     String output = sw.toString();
     assertNotNull(output);
     assertFalse(output.contains("MSG__REPLACE_ME"));
     assertTrue(output.contains("Wie geht es ihnen?"));
   }
 
-  private void writeToResponse(final String key) throws IOException, ServletException {
+  private void writeToResponse(final String key, final boolean useOutputStream) throws IOException, ServletException {
     doAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         ServletResponse response = (ServletResponse) args[1];
         try {
-          response.getWriter().write("<html><body>" + key + "</body></html>");
+          if (!useOutputStream) {
+            response.getWriter().write("<html><body>" + key + "</body></html>");
+          } else {
+            response.getOutputStream().write(
+                ("<html><body>" + key + "</body></html>").getBytes("UTF-8"));
+          }
         } catch (IOException e) {
           // doesn't matter
         }
