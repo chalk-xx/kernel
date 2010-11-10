@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.proxy.ProxyResponse;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletOutputStream;
@@ -81,19 +82,13 @@ public class RSSProxyPostProcessorTest {
   }
 
   @Test
-  public void componentContextIsNotNeeded() {
-    proxyPostProcessor.activate(null);
-    proxyPostProcessor.deactivate(null);
-  }
-
-  @Test
   public void rejectsUnsupportedContentType() throws Exception {
     //given
     proxyResponseCanReturnHeaders();
     proxyResponseHeaderContainsUnsupportedContentType();
 
     //when
-    proxyPostProcessor.activate(null);
+    proxyPostProcessor.activate(new HashMap<String, Object>());
     proxyPostProcessor.process(null, response, proxyResponse);
 
     //then
@@ -108,7 +103,7 @@ public class RSSProxyPostProcessorTest {
     responseHasOutputStreamAvailable();
 
     //when
-    proxyPostProcessor.activate(null);
+    proxyPostProcessor.activate(new HashMap<String, Object>());
     proxyPostProcessor.process(null, response, proxyResponse);
 
     //then
@@ -122,7 +117,7 @@ public class RSSProxyPostProcessorTest {
     proxyResponseHasInvalidRss();
 
     //when
-    proxyPostProcessor.activate(null);
+    proxyPostProcessor.activate(new HashMap<String, Object>());
     proxyPostProcessor.process(null, response, proxyResponse);
 
     //then
@@ -136,7 +131,7 @@ public class RSSProxyPostProcessorTest {
     proxyResponseHasIllFormedXml();
 
     //when
-    proxyPostProcessor.activate(null);
+    proxyPostProcessor.activate(new HashMap());
     proxyPostProcessor.process(null, response, proxyResponse);
 
     //then

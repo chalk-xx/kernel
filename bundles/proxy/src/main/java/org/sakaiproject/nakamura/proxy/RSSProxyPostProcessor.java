@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.proxy.ProxyPostProcessor;
 import org.sakaiproject.nakamura.api.proxy.ProxyResponse;
@@ -58,20 +59,33 @@ import javax.xml.stream.events.XMLEvent;
 @Component(label = "ProxyPostProcessor for RSS", description = "Post processor who checks if requests are valid RSS requests.", immediate = true)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai foundation"),
-    @Property(name = "service.description", value = "Post processor who checks if requests are valid RSS requests.") })
+    @Property(name = "service.description", value = "Post processor who checks if requests are valid RSS requests."),
+    @Property(name = RSSProxyPostProcessor.EVENTS_THRESHOLD, intValue = RSSProxyPostProcessor.DEFAULT_EVENTS_THRESHOLD),
+    @Property(name = RSSProxyPostProcessor.MAX_LENGTH, intValue = RSSProxyPostProcessor.DEFAULT_MAX_LENGTH)
+})
 public class RSSProxyPostProcessor implements ProxyPostProcessor {
 
+  public static final int DEFAULT_MAX_LENGTH = 10000000;
+  public static final int DEFAULT_EVENTS_THRESHOLD = 100;
+
+  static final String EVENTS_THRESHOLD = "sakai.rss.elements.threshold";
+  static final String MAX_LENGTH = "sakai.rss.length.max";
+
   private XMLInputFactory xmlInputFactory;
+  private int eventsThreshold;
+  private int maxLength;
 
   // Maximum size is 10 megabyte.
-  private static final int MAX_RSS_LENGTH = 10000000;
-  private static final int MAX_XML_EVENTS = 100;
   public static final Logger logger = LoggerFactory
       .getLogger(RSSProxyPostProcessor.class);
 
   private List<String> contentTypes;
 
-  protected void activate(ComponentContext ctxt) {
+  protected void activate(Map<?, ?> props) {
+    eventsThreshold = OsgiUtil.toInteger(props.get(EVENTS_THRESHOLD),
+        DEFAULT_EVENTS_THRESHOLD);
+    maxLength = OsgiUtil.toInteger(props.get(MAX_LENGTH), DEFAULT_MAX_LENGTH);
+
     xmlInputFactory = new WstxInputFactory();
     xmlInputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
     xmlInputFactory.setProperty(XMLInputFactory.IS_VALIDATING, false);
@@ -112,9 +126,9 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
     String[] contentLengthHeader = headers.get("Content-Length");
     if (contentLengthHeader != null) {
       int length = Integer.parseInt(contentLengthHeader[0]);
-      if (length > MAX_RSS_LENGTH) {
+      if (length > maxLength) {
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-            "This RSS feed is too big. The maximum for a feed is: " + MAX_RSS_LENGTH);
+            "This RSS feed is too big. The maximum for a feed is: " + maxLength);
         return;
       }
     }
@@ -185,7 +199,7 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
 
           }
 
-          if (i > MAX_XML_EVENTS) {
+          if (i > eventsThreshold) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                 "This file is too complex.");
             return;
@@ -194,13 +208,15 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
         }
       }
 
+      logger.info("{} elements processed.", i);
+
       if (!isValid) {
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid RSS file.");
         return;
       }
 
       // Check if we are not streaming a gigantic file..
-      if (out.size() > MAX_RSS_LENGTH) {
+      if (out.size() > maxLength) {
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "This file is too big.");
         return;
       }
