@@ -108,6 +108,9 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
     contentTypes.add("application/xml");
     contentTypes.add("text/plain");
 
+    // Formats are stored as:
+    //   key = First tag after prologue. Include version if pertinent.
+    //   value = Set of required tags.
     formats = new HashMap<String, Set<String>>();
 
     // RSS 0.91
