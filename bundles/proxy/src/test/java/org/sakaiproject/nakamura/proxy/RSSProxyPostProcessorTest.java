@@ -78,7 +78,7 @@ public class RSSProxyPostProcessorTest {
     proxyPostProcessor.process(null, response, proxyResponse);
 
     //then
-    verify(response).sendError(eq(HttpServletResponse.SC_INTERNAL_SERVER_ERROR), anyString());
+    verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), anyString());
   }
 
   @Test
@@ -92,7 +92,7 @@ public class RSSProxyPostProcessorTest {
     proxyPostProcessor.process(null, response, proxyResponse);
 
     //then
-    verify(response).sendError(eq(HttpServletResponse.SC_INTERNAL_SERVER_ERROR), anyString());
+    verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), anyString());
   }
 
   @Test
@@ -135,7 +135,7 @@ public class RSSProxyPostProcessorTest {
     proxyPostProcessor.process(null, response, proxyResponse);
 
     //then
-    verify(response).sendError(eq(HttpServletResponse.SC_INTERNAL_SERVER_ERROR), anyString());
+    verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), anyString());
   }
 
   private void proxyResponseHeaderContainsUnsupportedContentType() {
