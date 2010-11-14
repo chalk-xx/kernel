@@ -59,7 +59,7 @@ Its dependencies (if any) will NOT be available to the current build.
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.importer.ImportSiteArchiveServletTest
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.626 sec
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.514 sec
 
 Results :
 
@@ -114,7 +114,7 @@ Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.webapp.filter.CacheControlFilterTest
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.468 sec
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.427 sec
 
 Results :
 
@@ -178,9 +178,9 @@ Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.mailman.impl.MailmanInterfaceTest
-Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.524 sec
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.396 sec
 Running org.sakaiproject.nakamura.mailman.impl.MailmanGroupManagerTest
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.219 sec
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.119 sec
 
 Results :
 
@@ -231,25 +231,25 @@ Tests run: 12, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.ldap.PooledLDAPConnectionTest
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.298 sec
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.322 sec
 Running org.sakaiproject.nakamura.ldap.liveness.SearchExecutingLdapConnectionLivenessValidatorInitializationTest
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.13 sec
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.163 sec
 Running org.sakaiproject.nakamura.ldap.PooledLDAPConnectionFactoryTest
-Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.299 sec
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.206 sec
 Running org.sakaiproject.nakamura.ldap.SimpleLdapConnectionManagerTest
-Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.142 sec
+Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.128 sec
 Running org.sakaiproject.nakamura.ldap.liveness.MaxLifetimeLdapConnectionLivenessValidatorTest
 Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 sec
 Running org.sakaiproject.nakamura.ldap.GenericObjectPoolTest
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.034 sec
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.039 sec
 Running org.sakaiproject.nakamura.ldap.liveness.SearchExecutingLdapConnectionLivenessValidatorTest
-Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.074 sec
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.047 sec
 Running org.sakaiproject.nakamura.ldap.PoolingLdapConnectionManagerTest
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 sec
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 sec
 Running org.sakaiproject.nakamura.ldap.liveness.NativeLdapConnectionLivenessValidatorTest
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 sec
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 sec
 Running org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfigTest
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.027 sec
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 sec
 
 Results :
 
@@ -300,11 +300,11 @@ Tests run: 60, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.persondirectory.providers.PersonProfileProviderAdapterTest
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.392 sec
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.434 sec
 Running org.sakaiproject.nakamura.api.persondirectory.PersonProviderExceptionTest
 Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 sec
 Running org.sakaiproject.nakamura.persondirectory.providers.LdapPersonProviderTest
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.287 sec
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.28 sec
 
 Results :
 
@@ -355,15 +355,15 @@ Tests run: 15, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.auth.cas.CasAuthenticationHandlerTest
-Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.076 sec
+Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.048 sec
 Running org.sakaiproject.nakamura.auth.cas.CasAuthenticationTokenServiceWrapperTest
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.446 sec
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.425 sec
 Running org.sakaiproject.nakamura.auth.cas.CasAuthenticationPluginTest
 Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 sec
 Running org.sakaiproject.nakamura.auth.cas.CasLoginModulePluginTest
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.032 sec
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.03 sec
 Running org.sakaiproject.nakamura.auth.cas.CasLoginServletTest
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.071 sec
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.081 sec
 
 Results :
 
@@ -416,9 +416,9 @@ Downloading: http://repo1.maven.org/maven2//org/apache/sling/org.apache.sling.jc
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.auth.ldap.LdapAuthenticationPluginTest
-Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.847 sec
+Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.929 sec
 Running org.sakaiproject.nakamura.auth.ldap.LdapLoginModulePluginTest
-Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.109 sec
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.128 sec
 
 Results :
 
@@ -469,15 +469,15 @@ Tests run: 30, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.auth.opensso.OpenSsoLoginServletTest
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.783 sec
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.776 sec
 Running org.sakaiproject.nakamura.auth.opensso.OpenSsoLoginModulePluginTest
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.076 sec
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.064 sec
 Running org.sakaiproject.nakamura.auth.opensso.OpenSsoAuthenticationTokenServiceWrapperTest
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.049 sec
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.03 sec
 Running org.sakaiproject.nakamura.auth.opensso.OpenSsoAuthenticationHandlerTest
-Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.503 sec
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.473 sec
 Running org.sakaiproject.nakamura.auth.opensso.OpenSsoAuthenticationPluginTest
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 sec
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 sec
 
 Results :
 
@@ -528,7 +528,7 @@ Tests run: 35, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.docproxy.remotefiles.RemoteFilesRepositoryProcessorTest
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.413 sec
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.388 sec
 
 Results :
 
@@ -619,7 +619,7 @@ Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.foreignprincipal.impl.ForeignPrincipalTest
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.525 sec
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.54 sec
 
 Results :
 
@@ -669,7 +669,7 @@ Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
  T E S T S
 -------------------------------------------------------
 Running org.sakaiproject.nakamura.rootconfig.impl.RootConfigurationServiceTest
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.512 sec
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.554 sec
 
 Results :
 
@@ -697,24 +697,24 @@ Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
 [INFO] ------------------------------------------------------------------------
 [INFO] Reactor Summary:
 [INFO] ------------------------------------------------------------------------
-[INFO] Sakai Nakamura Project ................................ SUCCESS [4.649s]
-[INFO] Sakai Nakamura :: Sakai Import Bundle ................. SUCCESS [15.517s]
-[INFO] Sakai Nakamura :: Filters Bundle ...................... SUCCESS [9.272s]
-[INFO] Sakai Nakamura :: Mailman Support ..................... SUCCESS [12.900s]
-[INFO] Sakai Nakamura :: LDAP Connection Bundle .............. SUCCESS [8.811s]
-[INFO] Sakai Nakamura :: Person Directory Bundle ............. SUCCESS [6.901s]
-[INFO] Sakai Nakamura :: CAS Authentication Bundle ........... SUCCESS [10.619s]
-[INFO] Sakai Nakamura :: LDAP Authentication Bundle .......... SUCCESS [9.422s]
-[INFO] Sakai Nakamura :: OpenSSO Authentication Bundle ....... SUCCESS [9.087s]
-[INFO] Sakai Nakamura :: Remote Files Connector .............. SUCCESS [5.335s]
-[INFO] Sakai Nakamura :: Site Join Workflow Bundle ........... SUCCESS [4.287s]
-[INFO] Sakai Nakamura :: Foreign Principal Provider .......... SUCCESS [10.114s]
-[INFO] Sakai Nakamura :: Root Node Configuration ............. SUCCESS [5.866s]
+[INFO] Sakai Nakamura Project ................................ SUCCESS [5.146s]
+[INFO] Sakai Nakamura :: Sakai Import Bundle ................. SUCCESS [16.434s]
+[INFO] Sakai Nakamura :: Filters Bundle ...................... SUCCESS [5.100s]
+[INFO] Sakai Nakamura :: Mailman Support ..................... SUCCESS [12.411s]
+[INFO] Sakai Nakamura :: LDAP Connection Bundle .............. SUCCESS [8.561s]
+[INFO] Sakai Nakamura :: Person Directory Bundle ............. SUCCESS [7.578s]
+[INFO] Sakai Nakamura :: CAS Authentication Bundle ........... SUCCESS [10.973s]
+[INFO] Sakai Nakamura :: LDAP Authentication Bundle .......... SUCCESS [9.886s]
+[INFO] Sakai Nakamura :: OpenSSO Authentication Bundle ....... SUCCESS [8.898s]
+[INFO] Sakai Nakamura :: Remote Files Connector .............. SUCCESS [6.080s]
+[INFO] Sakai Nakamura :: Site Join Workflow Bundle ........... SUCCESS [4.876s]
+[INFO] Sakai Nakamura :: Foreign Principal Provider .......... SUCCESS [15.524s]
+[INFO] Sakai Nakamura :: Root Node Configuration ............. SUCCESS [7.618s]
 [INFO] ------------------------------------------------------------------------
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESSFUL
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time: 1 minute 56 seconds
-[INFO] Finished at: Fri Oct 29 12:41:25 BST 2010
-[INFO] Final Memory: 91M/370M
+[INFO] Total time: 2 minutes 2 seconds
+[INFO] Finished at: Sat Nov 13 10:40:07 GMT 2010
+[INFO] Final Memory: 91M/373M
 [INFO] ------------------------------------------------------------------------
