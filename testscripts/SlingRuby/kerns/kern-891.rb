@@ -15,7 +15,7 @@ include SlingSites
 include SlingMessage
 include SlingFile
 
-class TC_MyFileTest < Test::Unit::TestCase
+class TC_MyFileTest_891 < Test::Unit::TestCase
   include SlingTest
 
   def setup
