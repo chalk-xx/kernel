@@ -24,7 +24,7 @@ class TC_MyFileTest_577 < Test::Unit::TestCase
   end
 
   def test_upload_file
-    m = Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '')
     @log.info("Creating user simon"+m)
     simon = create_user("simon"+m)
 
@@ -69,6 +69,8 @@ class TC_MyFileTest_577 < Test::Unit::TestCase
     res = @ff.createlink("#{publicSimon}/files/alfa", "/sites/simon#{m}/_files/alfa", site['jcr:uuid'])
     assert_equal(200, res.code.to_i(), "Expected to be able to link this file.")
 
+	# Pause to let Lucene index the text before searching.
+	sleep(1)
 
     # Do a search for my files and expect 2
     res = @ff.myfiles("*")
@@ -95,7 +97,7 @@ class TC_MyFileTest_577 < Test::Unit::TestCase
   end
 
   def old_functionality
-    m = Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '');
     @log.info("Creating user simon"+m)
     simon = create_user("simon"+m)
 
