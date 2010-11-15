@@ -8,7 +8,7 @@ require 'test/unit.rb'
 include SlingSearch
 include SlingUsers
 
-class TC_Kern740Test < Test::Unit::TestCase
+class TC_Kern734Test < Test::Unit::TestCase
   include SlingTest
   
   #
