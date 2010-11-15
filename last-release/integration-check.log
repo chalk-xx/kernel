@@ -45,6 +45,7 @@ kern-551.rb 10 tests, 89 assertions, 0 failures, 0 errors
 kern-552.rb 1 tests, 3 assertions, 0 failures, 0 errors
 kern-563.rb 2 tests, 7 assertions, 0 failures, 0 errors
 kern-568.rb 3 tests, 11 assertions, 0 failures, 0 errors
+kern-577.rb 1 tests, 14 assertions, 0 failures, 0 errors
 kern-629.rb 3 tests, 35 assertions, 0 failures, 0 errors
 kern-637.rb 1 tests, 3 assertions, 0 failures, 0 errors
 kern-693.rb 5 tests, 25 assertions, 0 failures, 0 errors
