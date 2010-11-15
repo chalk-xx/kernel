@@ -6,7 +6,7 @@ require 'ruby-lib-dir.rb'
 require 'sling/test'
 include SlingUsers
 
-class TC_Kern1024Test < Test::Unit::TestCase
+class TC_Kern1020Test < Test::Unit::TestCase
   include SlingTest
 
   def test_find_all_groups

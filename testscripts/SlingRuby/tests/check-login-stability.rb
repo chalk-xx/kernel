@@ -9,7 +9,7 @@ require 'test/unit.rb'
 include SlingSearch
 include SlingUsers
 
-class TC_FormAuthTest < Test::Unit::TestCase
+class TC_LoginStability < Test::Unit::TestCase
   include SlingTest
 
   def check_user_valid(u,iterations)

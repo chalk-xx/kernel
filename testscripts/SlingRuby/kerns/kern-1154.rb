@@ -6,7 +6,7 @@ require 'ruby-lib-dir.rb'
 require 'sling/test'
 include SlingUsers
 
-class TC_Kern1064Test < Test::Unit::TestCase
+class TC_Kern1154Test < Test::Unit::TestCase
   include SlingTest
 
   # Cause of SAKIII-1099.
