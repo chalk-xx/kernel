@@ -352,9 +352,9 @@ KERN-1187
       <version>4.0.7-0.9</version>
     </bundle>
     <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>javax.xml.bind.jaxb</artifactId>
-      <version>2.1</version>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api-osgi</artifactId>
+      <version>2.2.1</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
