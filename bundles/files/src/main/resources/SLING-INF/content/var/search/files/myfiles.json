@@ -1,7 +1,7 @@
 {
   "sakai:query-language": "xpath",
   "sakai:query-template": "/{_mySpace}//element(*, nt:file)[(jcr:contains(., '{q}') or jcr:contains(jcr:content, '{q}') or fn:name() = '{q}'){_usedin?}{_tags?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
-  "sakai:query-template-q=%2A": "/{_mySpace}//element(*, nt:file)[(fn:name() = '{q}'){_usedin?}{_tags?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
+  "sakai:query-template-q=%2A": "/{_mySpace}//element(*, nt:file) order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:batchresultprocessor": "Files",
   "sakai:propertyprovider": "Files",
