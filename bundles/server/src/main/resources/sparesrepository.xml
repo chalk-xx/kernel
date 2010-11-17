@@ -43,7 +43,7 @@
 
         </AccessManager>
 
-        <LoginModule class="org.apache.sling.jcr.jackrabbit.server.impl.security.PluggableDefaultLoginModule">
+        <LoginModule class="org.sakaiproject.nakamura.api.lite.jackrabbit.SparseLoginModule">
             <param name="anonymousId" value="anonymous"/>
             <param name="adminId" value="admin"/>
         </LoginModule>
