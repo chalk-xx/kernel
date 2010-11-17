@@ -186,6 +186,13 @@
       <artifactId>org.sakaiproject.nakamura.tika</artifactId>
       <version>0.7-0.9-SNAPSHOT</version>
     </dependency>
+    
+    
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.core</artifactId>
+      <version>0.9-SNAPSHOT</version>
+    </dependency>
 
   </dependencies>
 </project>

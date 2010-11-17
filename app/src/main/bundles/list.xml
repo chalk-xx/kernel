@@ -2,6 +2,11 @@
 <bundles>
     <startLevel level="0">
         <bundle>
+            <groupId>org.sakaiproject.nakamura</groupId>
+            <artifactId>org.sakaiproject.nakamura.core</artifactId>
+            <version>0.9-SNAPSHOT</version>
+        </bundle>
+        <bundle>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>1.4</version>

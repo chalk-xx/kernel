@@ -14,5 +14,5 @@ then
 else
   suspend=n
 fi
-java $d32 -Xmx512m -server -Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=$suspend -jar app/target/org.sakaiproject.nakamura.app-${K2VERSION}.jar -f - $*
+java $d32 -Xmx512m -XX:MaxPermSize=256m -server -Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=$suspend -jar app/target/org.sakaiproject.nakamura.app-${K2VERSION}.jar -f - $*
 

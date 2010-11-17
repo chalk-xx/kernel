@@ -320,13 +320,15 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             String workspaceName = systemSession.getWorkspace().getName();
             try {
                 SessionImpl sImpl = (SessionImpl) session;
-                UserManagerImpl uMgr;
+                UserManager uMgr;
                 if (workspaceName.equals(sImpl.getWorkspace().getName())) {
                     uMgr = createUserManager(sImpl);
                 } else {
                     SessionImpl s = (SessionImpl) sImpl.createSession(workspaceName);
                     uMgr = createUserManager(s);
-                    sImpl.addListener(uMgr);
+                    if ( uMgr instanceof SessionListener) {
+                    	sImpl.addListener((SessionListener) uMgr);
+                    }
                 }
                 return uMgr;
             } catch (NoSuchWorkspaceException e) {
@@ -452,7 +454,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * @return user manager
      * @throws RepositoryException if an error occurs
      */
-    protected UserManagerImpl createUserManager(SessionImpl session) throws RepositoryException {
+    protected UserManager createUserManager(SessionImpl session) throws RepositoryException {
         UserManagerConfig umc = getConfig().getUserManagerConfig();
         Properties params = (umc == null) ? null : umc.getParameters();
 
@@ -460,10 +462,10 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
         // only the system session assigned with that workspace will get the
         // system user manager (special implementation that asserts the existance
         // of the admin user).
-        UserManagerImpl um;
+        UserManager um;
         if (umc != null) {
             Class<?>[] paramTypes = new Class[] { SessionImpl.class, String.class, Properties.class };
-            um = (UserManagerImpl) umc.getUserManager(UserManagerImpl.class, paramTypes, (SessionImpl) session, adminId, params);
+            um = (UserManager) umc.getUserManager(UserManager.class, paramTypes, (SessionImpl) session, adminId, params);
             // TODO: should we make sure the implementation doesn't allow
             // TODO: to change the autosave behavior? since the user manager
             // TODO: writes to a separate workspace this would cause troubles.
