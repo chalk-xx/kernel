@@ -54,14 +54,12 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 				} else {
 					return new SparseUser(
 							(org.sakaiproject.nakamura.api.lite.authorizable.User) auth,
-							authorizableManager, valueFactory, sparseRepository.getAuthenticator());
+							authorizableManager, valueFactory);
 				}
 			}
 		} catch (AccessDeniedException e) {
 			throw new javax.jcr.AccessDeniedException(e.getMessage(), e);
 		} catch (StorageClientException e) {
-			throw new RepositoryException(e.getMessage(), e);
-		} catch (ConnectionPoolException e) {
 			throw new RepositoryException(e.getMessage(), e);
 		}
 		return null;
