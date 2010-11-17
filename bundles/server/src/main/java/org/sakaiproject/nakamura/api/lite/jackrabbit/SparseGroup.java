@@ -45,7 +45,7 @@ public class SparseGroup extends SparseAuthorizable implements Group {
 									(org.sakaiproject.nakamura.api.lite.authorizable.Group) a, authorizableManager, valueFactory);
 							return true;
 						} else if ( a instanceof org.sakaiproject.nakamura.api.lite.authorizable.User) {
-							authorizble = new SparseUser((org.sakaiproject.nakamura.api.lite.authorizable.User) a, authorizableManager, valueFactory, null);
+							authorizble = new SparseUser((org.sakaiproject.nakamura.api.lite.authorizable.User) a, authorizableManager, valueFactory);
 							return true;
 						}
 					} catch (AccessDeniedException e) {
@@ -94,7 +94,7 @@ public class SparseGroup extends SparseAuthorizable implements Group {
 							return true;
 						} else if ( a instanceof org.sakaiproject.nakamura.api.lite.authorizable.User ) {
 							authorizable = new SparseUser(
-									(org.sakaiproject.nakamura.api.lite.authorizable.User) a, authorizableManager, valueFactory, null);
+									(org.sakaiproject.nakamura.api.lite.authorizable.User) a, authorizableManager, valueFactory);
 							return true;
 						}
 					} catch (AccessDeniedException e) {
