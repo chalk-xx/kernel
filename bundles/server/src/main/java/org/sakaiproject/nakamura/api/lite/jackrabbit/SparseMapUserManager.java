@@ -1,9 +1,7 @@
 package org.sakaiproject.nakamura.api.lite.jackrabbit;
 
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Properties;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.UnsupportedRepositoryOperationException;
@@ -34,7 +32,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 	private ValueFactory valueFactory;
 	private Repository sparseRepository;
 
-	public SparseMapUserManager(SessionImpl jcrSession, String adminId, Properties config)
+	public SparseMapUserManager(SessionImpl jcrSession)
 			throws ConnectionPoolException, StorageClientException,
 			AccessDeniedException {
 		sparseRepository = SparseComponentHolder
@@ -56,12 +54,14 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 				} else {
 					return new SparseUser(
 							(org.sakaiproject.nakamura.api.lite.authorizable.User) auth,
-							authorizableManager, valueFactory);
+							authorizableManager, valueFactory, sparseRepository.getAuthenticator());
 				}
 			}
 		} catch (AccessDeniedException e) {
 			throw new javax.jcr.AccessDeniedException(e.getMessage(), e);
 		} catch (StorageClientException e) {
+			throw new RepositoryException(e.getMessage(), e);
+		} catch (ConnectionPoolException e) {
 			throw new RepositoryException(e.getMessage(), e);
 		}
 		return null;
@@ -107,7 +107,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 			RepositoryException {
 		try {
 			boolean created = authorizableManager.createUser(userID,
-					principal.getName(), password, new HashMap<String, Object>());
+					principal.getName(), password, null);
 			if (created) {
 				return (User) getAuthorizable(userID);
 			} else {
@@ -126,7 +126,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 		try {
 			String id = principal.getName();
 			boolean created = authorizableManager.createGroup(
-					principal.getName(), principal.getName(), new HashMap<String, Object>());
+					principal.getName(), principal.getName(), null);
 			if (created) {
 				return (Group) getAuthorizable(id);
 			} else {

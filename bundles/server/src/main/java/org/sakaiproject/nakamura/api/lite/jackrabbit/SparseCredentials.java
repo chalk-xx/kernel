@@ -3,27 +3,28 @@ package org.sakaiproject.nakamura.api.lite.jackrabbit;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 
-import javax.jcr.Credentials;
+import javax.jcr.SimpleCredentials;
 
-import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.apache.jackrabbit.core.security.authentication.CryptedSimpleCredentials;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Authenticator;
 
-public class SparseCredentials implements Credentials {
+public class SparseCredentials extends CryptedSimpleCredentials {
 
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4605339370727057403L;
-	private User user;
+	private Authenticator authenticator;
 
 	public SparseCredentials(
-			User user) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		this.user = user;
+			org.sakaiproject.nakamura.api.lite.authorizable.User sparseUser, Authenticator authenticator) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+		super(sparseUser.getId(), "ignore");
+		this.authenticator = authenticator;
 	}
-	
 
-	public String getUserId() {
-		return user.getId();
+	@Override
+	public boolean matches(SimpleCredentials credentials)
+			throws NoSuchAlgorithmException, UnsupportedEncodingException {
+		if ( getUserID().equals(credentials.getUserID()) ) {
+			return (authenticator.authenticate(credentials.getUserID(), new String(credentials.getPassword())) != null);
+		}
+		return false;
 	}
 	
 }

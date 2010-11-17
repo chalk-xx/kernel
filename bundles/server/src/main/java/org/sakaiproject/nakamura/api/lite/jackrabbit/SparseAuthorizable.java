@@ -11,6 +11,7 @@ import javax.jcr.Value;
 import javax.jcr.ValueFactory;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -36,7 +37,18 @@ public class SparseAuthorizable implements Authorizable {
 		this.valueFactory = valueFactory;
 		this.sparseAuthorizable = authorizable;
 		this.authorizableManager = authorizableManager;
-		this.principal = new SparsePrincipal(authorizable.getId());	
+		final String path = StorageClientUtils.shardPath(authorizable.getId());
+		final String principalId = authorizable.getId();
+		this.principal = new ItemBasedPrincipal() {
+
+			public String getName() {
+				return principalId;
+			}
+
+			public String getPath() throws RepositoryException {
+				return path;
+			}
+		};
 	}
 
 	public String getID() throws RepositoryException {
