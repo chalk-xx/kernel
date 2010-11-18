@@ -4,7 +4,7 @@
         <bundle>
             <groupId>org.sakaiproject.nakamura</groupId>
             <artifactId>org.sakaiproject.nakamura.core</artifactId>
-            <version>0.9-SNAPSHOT</version>
+            <version>0.10-SNAPSHOT</version>
         </bundle>
         <bundle>
             <groupId>commons-io</groupId>

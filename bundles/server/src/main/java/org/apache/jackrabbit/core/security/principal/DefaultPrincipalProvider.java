@@ -80,7 +80,7 @@ public class DefaultPrincipalProvider extends AbstractPrincipalProvider implemen
     /**
      * Principal-Base of this Provider
      */
-    private final UserManagerImpl userManager;
+    private final UserManager userManager;
 
     private final EveryonePrincipal everyonePrincipal;
 
@@ -96,7 +96,7 @@ public class DefaultPrincipalProvider extends AbstractPrincipalProvider implemen
      * @throws RepositoryException if an error accessing the repository occurs.
      */
     public DefaultPrincipalProvider(Session securitySession,
-                                    UserManagerImpl userManager) throws RepositoryException {
+                                    UserManager userManager) throws RepositoryException {
 
         this.userManager = userManager;
         everyonePrincipal = EveryonePrincipal.getInstance();
@@ -117,19 +117,21 @@ public class DefaultPrincipalProvider extends AbstractPrincipalProvider implemen
             pPrincipalName = "rep:principalName";
         }
 
-        String groupPath = userManager.getGroupsPath();
-        String userPath = userManager.getUsersPath();
-        String targetPath = groupPath;
-        while (!Text.isDescendantOrEqual(targetPath, userPath)) {
-            targetPath = Text.getRelativeParent(targetPath, 1);
+        if ( userManager instanceof UserManagerImpl ) {
+	        String groupPath = ((UserManagerImpl) userManager).getGroupsPath();
+	        String userPath = ((UserManagerImpl) userManager).getUsersPath();
+	        String targetPath = groupPath;
+	        while (!Text.isDescendantOrEqual(targetPath, userPath)) {
+	            targetPath = Text.getRelativeParent(targetPath, 1);
+	        }
+	        securitySession.getWorkspace().getObservationManager().addEventListener(this,
+	                Event.NODE_ADDED | Event.NODE_REMOVED | Event.PROPERTY_ADDED | Event.PROPERTY_CHANGED | Event.PROPERTY_REMOVED,
+	                targetPath,
+	                true,
+	                null,
+	                ntNames,
+	                false);
         }
-        securitySession.getWorkspace().getObservationManager().addEventListener(this,
-                Event.NODE_ADDED | Event.NODE_REMOVED | Event.PROPERTY_ADDED | Event.PROPERTY_CHANGED | Event.PROPERTY_REMOVED,
-                targetPath,
-                true,
-                null,
-                ntNames,
-                false);
     }
 
     //------------------------------------------< AbstractPrincipalProvider >---

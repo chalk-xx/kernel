@@ -17,26 +17,6 @@
  */
 package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
 
-import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.JackrabbitAccessControlList;
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
-import org.apache.jackrabbit.api.security.principal.PrincipalManager;
-import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.User;
-import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipal;
-import org.apache.sling.jcr.jackrabbit.server.security.dynamic.ISO8601Date;
-import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleACLModifier;
-import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RulesBasedAce;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.osgi.framework.BundleContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
@@ -60,6 +40,28 @@ import javax.jcr.security.AccessControlPolicy;
 import javax.jcr.security.AccessControlPolicyIterator;
 import javax.jcr.security.Privilege;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.JackrabbitAccessControlList;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
+import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipal;
+import org.apache.sling.jcr.jackrabbit.server.security.dynamic.ISO8601Date;
+import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleACLModifier;
+import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RulesBasedAce;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.osgi.framework.BundleContext;
+import org.sakaiproject.nakamura.lite.storage.ConnectionPoolException;
+import org.sakaiproject.nakamura.lite.storage.StorageClientException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  */
@@ -70,7 +72,7 @@ public class RepositoryBaseTest {
   private static RepositoryBase repositoryBase;
 
   public static RepositoryBase getRepositoryBase() throws IOException,
-      RepositoryException {
+      RepositoryException, ConnectionPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
     if (repositoryBase == null) {
       bundleContext = Mockito.mock(BundleContext.class);
       repositoryBase = new RepositoryBase(bundleContext);
@@ -95,7 +97,7 @@ public class RepositoryBaseTest {
 
   @Test
   public void testAnonLoginStartup() throws LoginException, RepositoryException,
-      IOException {
+      IOException, ConnectionPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     Session session = null;
     try {
@@ -113,7 +115,7 @@ public class RepositoryBaseTest {
 
   @Test
   public void testAdminLoginStartup() throws LoginException, RepositoryException,
-      IOException {
+      IOException, ConnectionPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     Session session = null;
     try {
@@ -146,7 +148,7 @@ public class RepositoryBaseTest {
 
   @Test
   public void testStandardPrincipal() throws LoginException, RepositoryException,
-      IOException {
+      IOException, ConnectionPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     JackrabbitSession session = null;
     try {
@@ -183,7 +185,14 @@ public class RepositoryBaseTest {
   }
 
   @Test
-  public void testAcePrincipal() throws LoginException, RepositoryException, IOException {
+	public void testAcePrincipal()
+			throws LoginException,
+			RepositoryException,
+			IOException,
+			ConnectionPoolException,
+			StorageClientException,
+			org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+			ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     JackrabbitSession session = null;
     try {
@@ -206,7 +215,7 @@ public class RepositoryBaseTest {
   }
 
   @Test
-  public void testAddRuleBasedPrincipal() throws RepositoryException, IOException {
+  public void testAddRuleBasedPrincipal() throws RepositoryException, IOException, ConnectionPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     JackrabbitSession session = null;
     try {
@@ -301,7 +310,13 @@ public class RepositoryBaseTest {
   }
 
   @Test
-  public void testDateBaseACL() throws IOException, RepositoryException {
+	public void testDateBaseACL()
+			throws IOException,
+			RepositoryException,
+			ConnectionPoolException,
+			StorageClientException,
+			org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+			ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     JackrabbitSession session = null;
     try {
@@ -486,7 +501,11 @@ public class RepositoryBaseTest {
 
   @Test
   public void testUserAccessControl() throws LoginException, RepositoryException,
-      IOException {
+			IOException,
+			ConnectionPoolException,
+			StorageClientException,
+			org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+			ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     JackrabbitSession session = null;
     try {
