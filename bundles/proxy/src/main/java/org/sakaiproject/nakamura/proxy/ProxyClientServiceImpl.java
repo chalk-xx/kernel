@@ -254,6 +254,25 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
             throw new ProxyClientException("Invalid Endpoint template, relies on request to resolve valid URL", e);
           }
         }
+        
+        // Search through all keys in input Map, looking for
+        // a velocity replacement variable.
+        // If a match is found, change Map value from RequestParameter[] to String
+        // so that the VelocityContext constructor can process the input Map correctly.
+        for (Entry<String, Object> param : input.entrySet()) {
+          String key = param.getKey();
+          String templateKey = "${" + key + "}";
+          if (endpointURL.contains(templateKey)) {
+            // get to here if "velocity replacement variable" and "input Map key" match.
+            // Note endpointURL contains the velocity replacement variable e.g. ${rss}
+            Object value = param.getValue();
+            if (value instanceof RequestParameter[]) {
+              // now change input value object from RequestParameter[] to String
+              RequestParameter[] requestParameters = (RequestParameter[]) value;
+              param.setValue(requestParameters[0].getString() );
+            }
+          }
+        }
 
         VelocityContext context = new VelocityContext(input);
 

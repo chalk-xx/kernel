@@ -312,7 +312,6 @@ public class CreateSiteServlet extends AbstractSiteServlet {
    * @throws RepositoryException
    */
   private boolean isCreateSiteGranted(Session session, Session adminSession, String sitePath, Authorizable currentUser) throws RepositoryException {
-    UserManager userManager = AccessControlUtil.getUserManager(session);
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
 
     Node firstRealNode = null;
@@ -342,16 +341,9 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         Property p = siteMarker.getProperty(SITE_CREATE_PRIVILEGE);
         Value[] authorizableIds = p.getValues();
         for (Value authorizable : authorizableIds) {
-          Authorizable grantedAuthorizable = userManager.getAuthorizable(authorizable
-              .getString());
-          String grantedAuthorizableName = grantedAuthorizable.getPrincipal().getName();
-          if (principals.contains(grantedAuthorizableName)) {
-            granted = true;
-            break;
-          }
           while (principalIterator.hasNext()) {
             Principal principal = principalIterator.nextPrincipal();
-            if (principal.getName().equals(grantedAuthorizableName)) {
+            if (principal.getName().equals(authorizable.getString())) {
               granted = true;
               break;
             }

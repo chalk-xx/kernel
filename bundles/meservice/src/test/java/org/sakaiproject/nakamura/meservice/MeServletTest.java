@@ -78,6 +78,7 @@ public class MeServletTest extends AbstractEasyMockTest {
   private MessagingService messagingService;
   private MeServlet servlet;
 
+  @Override
   @Before
   public void setUp() throws Exception {
     super.setUp();
@@ -142,7 +143,7 @@ public class MeServletTest extends AbstractEasyMockTest {
     properties.put("timezone", "America/Los_Angeles");
 
     write.object();
-    servlet.writeLocale(write, properties);
+    servlet.writeLocale(write, properties, request);
     write.endObject();
     w.flush();
     String s = baos.toString("UTF-8");

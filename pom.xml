@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>base</artifactId>
-  <version>0.9-SNAPSHOT</version>
+  <version>0.10-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Sakai Nakamura Project</name>
   <description> Sakai Nakamura is an OSGi server built ontop of Apache Sling, supporting Sakai 3. </description>
@@ -39,7 +39,6 @@
         <module>bundles/connections</module>
         <module>bundles/version</module>
         <module>bundles/memory</module>
-        <module>bundles/jaxb</module>
         <module>bundles/jaxp-api</module>
         <module>bundles/json-lib</module>
         <module>bundles/jpa</module>
@@ -65,13 +64,7 @@
         <module>bundles/batch</module>
         <module>bundles/activation-mail</module>
         <module>bundles/email-outgoing</module>
-        <module>bundles/commons/commons-email</module>
-        <module>bundles/commons/commons-pool</module>
         <module>bundles/commons/commons-httpclient</module>
-        <module>bundles/commons/commons-codec</module>
-        <module>bundles/specs/jms</module>
-        <module>bundles/specs/jmx</module>
-        <module>bundles/specs/ejb</module>
         <module>bundles/activemq</module>
         <module>bundles/activity</module>
         <module>bundles/cluster</module>

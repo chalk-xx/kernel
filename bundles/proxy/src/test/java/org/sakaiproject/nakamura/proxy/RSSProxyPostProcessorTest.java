@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.proxy.ProxyResponse;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletOutputStream;
@@ -77,13 +78,7 @@ public class RSSProxyPostProcessorTest {
     proxyPostProcessor.process(null, response, proxyResponse);
 
     //then
-    verify(response).sendError(eq(HttpServletResponse.SC_INTERNAL_SERVER_ERROR), anyString());
-  }
-
-  @Test
-  public void componentContextIsNotNeeded() {
-    proxyPostProcessor.activate(null);
-    proxyPostProcessor.deactivate(null);
+    verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), anyString());
   }
 
   @Test
@@ -93,11 +88,11 @@ public class RSSProxyPostProcessorTest {
     proxyResponseHeaderContainsUnsupportedContentType();
 
     //when
-    proxyPostProcessor.activate(null);
+    proxyPostProcessor.activate(new HashMap<String, Object>());
     proxyPostProcessor.process(null, response, proxyResponse);
 
     //then
-    verify(response).sendError(eq(HttpServletResponse.SC_INTERNAL_SERVER_ERROR), anyString());
+    verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), anyString());
   }
 
   @Test
@@ -108,7 +103,7 @@ public class RSSProxyPostProcessorTest {
     responseHasOutputStreamAvailable();
 
     //when
-    proxyPostProcessor.activate(null);
+    proxyPostProcessor.activate(new HashMap<String, Object>());
     proxyPostProcessor.process(null, response, proxyResponse);
 
     //then
@@ -122,7 +117,7 @@ public class RSSProxyPostProcessorTest {
     proxyResponseHasInvalidRss();
 
     //when
-    proxyPostProcessor.activate(null);
+    proxyPostProcessor.activate(new HashMap<String, Object>());
     proxyPostProcessor.process(null, response, proxyResponse);
 
     //then
@@ -136,11 +131,11 @@ public class RSSProxyPostProcessorTest {
     proxyResponseHasIllFormedXml();
 
     //when
-    proxyPostProcessor.activate(null);
+    proxyPostProcessor.activate(new HashMap());
     proxyPostProcessor.process(null, response, proxyResponse);
 
     //then
-    verify(response).sendError(eq(HttpServletResponse.SC_INTERNAL_SERVER_ERROR), anyString());
+    verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), anyString());
   }
 
   private void proxyResponseHeaderContainsUnsupportedContentType() {

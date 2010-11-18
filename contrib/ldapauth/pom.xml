@@ -22,11 +22,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.9-SNAPSHOT</version>
+    <version>0.10-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.auth.ldap</artifactId>
   <packaging>bundle</packaging>
-  <version>0.9-SNAPSHOT</version>
+  <version>0.10-SNAPSHOT</version>
   <name>Sakai Nakamura :: LDAP Authentication Bundle</name>
   <build>
     <plugins>
@@ -73,7 +73,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
-      <version>0.9-SNAPSHOT</version>
+      <version>0.10-SNAPSHOT</version>
     </dependency>
 
 <!-- JCR -->
@@ -118,12 +118,12 @@
 	<dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.9-SNAPSHOT</version>
+      <version>0.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>0.9-SNAPSHOT</version>
+      <version>0.10-SNAPSHOT</version>
     </dependency>
     
     <dependency>
