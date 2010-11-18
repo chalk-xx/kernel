@@ -23,8 +23,8 @@ import javax.jcr.query.QueryResult;
 import org.junit.Assert;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.lite.storage.ConnectionPoolException;
-import org.sakaiproject.nakamura.lite.storage.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.storage.StorageClientException;
 
 /**
  * Validates that its possible to aggregate content

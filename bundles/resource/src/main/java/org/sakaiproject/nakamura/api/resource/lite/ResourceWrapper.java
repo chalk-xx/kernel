@@ -20,7 +20,7 @@ package org.sakaiproject.nakamura.api.resource.lite;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.sakaiproject.nakamura.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 
 /**
  * Wrapper for {@link Content} objects to become a {@link Resource}
