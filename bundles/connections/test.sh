@@ -10,18 +10,18 @@ curl -u admin:admin -F:name=ian -Fpwd=ian -FpwdConfirm=ian http://localhost:8080
 # now try to do a request from aaron to nico
 curl -u aaron:aaron -F"toRelationships=serverside" -F"fromRelationships=clientside" -F"sakai:types=friend" -F"sakai:types=coworker" -X POST http://localhost:8080/_user/contacts/nico.invite.html
 # now try to fetch the connection nodes
-curl -u nico:nico http://localhost:8080/_user/contacts/invited.json
-curl -u aaron:aaron http://localhost:8080/_user/contacts/pending.json
+curl -u nico:nico http://localhost:8080/_user/contacts/find?state=INVITED
+curl -u aaron:aaron http://localhost:8080/_user/contacts/find?state=PENDING
 # now try to accept it
 curl -u nico:nico -X POST http://localhost:8080/_user/contacts/aaron.accept.html
 # now try to fetch the updated connection nodes
-curl -u nico:nico  http://localhost:8080/_user/contacts/accepted.json
-curl -u aaron:aaron  http://localhost:8080/_user/contacts/accepted.json
+curl -u nico:nico  http://localhost:8080/_user/contacts/find?state=ACCEPTED
+curl -u aaron:aaron  http://localhost:8080/_user/contacts/find?state=ACCEPTED
 
 # Now try to remove the connection.
 curl -u nico:nico -X POST http://localhost:8080/_user/contacts/aaron.remove.html
-curl -u nico:nico  http://localhost:8080/_user/contacts/accepted.json
-curl -u aaron:aaron  http://localhost:8080/_user/contacts/accepted.json
+curl -u nico:nico  http://localhost:8080/_user/contacts/find?state=ACCEPTED
+curl -u aaron:aaron  http://localhost:8080/_user/contacts/find?state=ACCEPTED
 
 curl -u aaron:aaron http://localhost:8080/_user/contacts/5a/7a/6a/18/aaron/d6/59/c1/0e/nico.tidy.json
 curl -u nico:nico http://localhost:8080/_user/contacts/d6/59/c1/0e/nico/5a/7a/6a/18/aaron.tidy.json
@@ -31,5 +31,5 @@ curl -u aaron:aaron -F"sakai:types=ex-coworker" -X POST http://localhost:8080/_u
 curl -u nico:nico -X POST http://localhost:8080/_user/contacts/aaron.accept.html
 
 # What do we have?
-curl -u nico:nico  http://localhost:8080/_user/contacts/accepted.json
-curl -u aaron:aaron  http://localhost:8080/_user/contacts/accepted.json
+curl -u nico:nico  http://localhost:8080/_user/contacts/find?state=ACCEPTED
+curl -u aaron:aaron  http://localhost:8080/_user/contacts/find?state=ACCEPTED
