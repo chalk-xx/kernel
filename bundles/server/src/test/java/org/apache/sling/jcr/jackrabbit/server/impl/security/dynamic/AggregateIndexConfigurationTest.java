@@ -1,16 +1,10 @@
 package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
 
-import org.apache.jackrabbit.commons.cnd.TemplateBuilderFactory.NodeTypeTemplateBuilder;
-import org.apache.jackrabbit.core.SessionImpl;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import javax.jcr.Binary;
 import javax.jcr.Node;
@@ -20,13 +14,17 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 import javax.jcr.ValueFactory;
-import javax.jcr.nodetype.NodeDefinition;
 import javax.jcr.nodetype.NodeTypeManager;
 import javax.jcr.nodetype.NodeTypeTemplate;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
-import javax.jcr.query.RowIterator;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.lite.storage.ConnectionPoolException;
+import org.sakaiproject.nakamura.lite.storage.StorageClientException;
 
 /**
  * Validates that its possible to aggregate content
@@ -37,7 +35,10 @@ public class AggregateIndexConfigurationTest {
   private static final String FILE_CONTENT = "The Quick Brown Fox Jumped over the Gate";
 
   @Test
-  public void testAggregateIndex() throws IOException, RepositoryException, InterruptedException {
+	public void testAggregateIndex() throws IOException, RepositoryException,
+			InterruptedException, ConnectionPoolException,
+			StorageClientException, AccessDeniedException,
+			ClassNotFoundException {
     RepositoryBase repositoryBase = RepositoryBaseTest.getRepositoryBase();
     Repository repository = repositoryBase.getRepository();
     Session session = repository.login(new SimpleCredentials("admin", "admin".toCharArray()));

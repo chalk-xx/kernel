@@ -500,7 +500,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * @throws RepositoryException If an error occurs.
      */
     protected PrincipalProvider createDefaultPrincipalProvider() throws RepositoryException {
-        PrincipalProvider defaultPP = new DefaultPrincipalProvider(this.systemSession, (UserManagerImpl) systemUserManager);
+        PrincipalProvider defaultPP = new DefaultPrincipalProvider(this.systemSession, (UserManager) systemUserManager);
         defaultPP.init(new Properties());
         return defaultPP;
     }

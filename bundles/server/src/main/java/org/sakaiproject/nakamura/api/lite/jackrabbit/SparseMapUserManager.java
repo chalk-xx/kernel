@@ -1,7 +1,9 @@
 package org.sakaiproject.nakamura.api.lite.jackrabbit;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Properties;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.UnsupportedRepositoryOperationException;
@@ -32,7 +34,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 	private ValueFactory valueFactory;
 	private Repository sparseRepository;
 
-	public SparseMapUserManager(SessionImpl jcrSession)
+	public SparseMapUserManager(SessionImpl jcrSession, String adminId, Properties config)
 			throws ConnectionPoolException, StorageClientException,
 			AccessDeniedException {
 		sparseRepository = SparseComponentHolder
@@ -105,7 +107,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 			RepositoryException {
 		try {
 			boolean created = authorizableManager.createUser(userID,
-					principal.getName(), password, null);
+					principal.getName(), password, new HashMap<String, Object>());
 			if (created) {
 				return (User) getAuthorizable(userID);
 			} else {
@@ -124,7 +126,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 		try {
 			String id = principal.getName();
 			boolean created = authorizableManager.createGroup(
-					principal.getName(), principal.getName(), null);
+					principal.getName(), principal.getName(), new HashMap<String, Object>());
 			if (created) {
 				return (Group) getAuthorizable(id);
 			} else {
