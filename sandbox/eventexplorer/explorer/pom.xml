@@ -4,7 +4,7 @@
   <parent>
     <artifactId>eventexplorer</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.9-SNAPSHOT</version>
+    <version>0.10-SNAPSHOT</version>
   </parent>
   <packaging>pom</packaging>
   <name>Sakai Nakamura :: Event listeners Project</name>
