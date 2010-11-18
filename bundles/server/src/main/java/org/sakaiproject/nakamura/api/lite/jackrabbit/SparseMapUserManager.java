@@ -19,9 +19,9 @@ import org.apache.jackrabbit.core.SessionListener;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.storage.StorageClientException;
 import org.sakaiproject.nakamura.lite.authorizable.AuthorizableManagerImpl;
-import org.sakaiproject.nakamura.lite.storage.ConnectionPoolException;
-import org.sakaiproject.nakamura.lite.storage.StorageClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

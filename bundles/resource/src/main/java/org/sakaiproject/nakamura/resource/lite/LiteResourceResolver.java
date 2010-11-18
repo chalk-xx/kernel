@@ -24,11 +24,11 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.storage.StorageClientException;
 import org.sakaiproject.nakamura.api.resource.lite.ResourceWrapper;
-import org.sakaiproject.nakamura.lite.content.Content;
-import org.sakaiproject.nakamura.lite.content.ContentManagerImpl;
-import org.sakaiproject.nakamura.lite.storage.ConnectionPoolException;
-import org.sakaiproject.nakamura.lite.storage.StorageClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,7 +115,7 @@ public class LiteResourceResolver implements ResourceResolver {
     Session session = null;
     try {
       session = repository.loginAdministrative();
-      ContentManagerImpl cm = session.getContentManager();
+      ContentManager cm = session.getContentManager();
       Content content = cm.get(path);
       return new ResourceWrapper(content, this);
     } catch (ConnectionPoolException e) {

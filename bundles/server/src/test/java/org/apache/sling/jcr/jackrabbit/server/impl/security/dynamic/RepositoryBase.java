@@ -34,11 +34,11 @@ import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvi
 import org.osgi.framework.BundleContext;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.jackrabbit.SparseComponentHolder;
+import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.storage.StorageClientException;
 import org.sakaiproject.nakamura.lite.ConfigurationImpl;
 import org.sakaiproject.nakamura.lite.authorizable.AuthorizableActivator;
-import org.sakaiproject.nakamura.lite.storage.ConnectionPoolException;
 import org.sakaiproject.nakamura.lite.storage.StorageClient;
-import org.sakaiproject.nakamura.lite.storage.StorageClientException;
 import org.sakaiproject.nakamura.lite.storage.mem.MemoryStorageClientConnectionPool;
 
 import com.google.common.collect.Maps;

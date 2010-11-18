@@ -16,7 +16,7 @@ import org.apache.jackrabbit.core.security.authentication.Authentication;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Authenticator;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
-import org.sakaiproject.nakamura.lite.storage.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
 
 public class SparseLoginModule extends AbstractLoginModule {
 

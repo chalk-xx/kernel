@@ -27,11 +27,11 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.storage.StorageClientException;
 import org.sakaiproject.nakamura.api.resource.lite.ResourceWrapper;
-import org.sakaiproject.nakamura.lite.content.Content;
-import org.sakaiproject.nakamura.lite.content.ContentManagerImpl;
-import org.sakaiproject.nakamura.lite.storage.ConnectionPoolException;
-import org.sakaiproject.nakamura.lite.storage.StorageClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,10 +44,11 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Component(immediate = true, metatype = true)
 @Service
-@Property(name = ResourceProvider.ROOTS, value = "/")
+@Property(name = ResourceProvider.ROOTS, value = "/lite")
 public class LiteResourceProvider implements ResourceProvider {
   private static final Logger logger = LoggerFactory
       .getLogger(LiteResourceProvider.class);
+
   @Reference
   private Repository repository;
 
@@ -60,7 +61,7 @@ public class LiteResourceProvider implements ResourceProvider {
   public Resource getResource(ResourceResolver resourceResolver, String path) {
     try {
       Session session = repository.loginAdministrative();
-      ContentManagerImpl cm = session.getContentManager();
+      ContentManager cm = session.getContentManager();
       Content content = cm.get(path);
       return new ResourceWrapper(content, resourceResolver);
     } catch (ConnectionPoolException e) {
