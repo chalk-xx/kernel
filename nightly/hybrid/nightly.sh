@@ -3,9 +3,9 @@
 #Sakai 2+3 Hybrid Nightly
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
 
-export K2_TAG="HEAD"
-export S2_TAG="tags/sakai-2.8.0-a02"
-export UX_TAG="HEAD"
+export K2_TAG="0.9"
+export S2_TAG="tags/sakai-2.8.0-a04"
+export UX_TAG="v_0.5.0_release"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -144,10 +144,10 @@ else
     # svn checkout -q https://source.sakaiproject.org/svn/providers/branches/SAK-17222-2.7 providers
     # enable NakamuraUserDirectoryProvider
     perl -pwi -e 's/<\/beans>/\t<bean id="org.sakaiproject.user.api.UserDirectoryProvider"\n\t\tclass="org.sakaiproject.provider.user.NakamuraUserDirectoryProvider"\n\t\tinit-method="init">\n\t\t<property name="threadLocalManager">\n\t\t\t<ref bean="org.sakaiproject.thread_local.api.ThreadLocalManager" \/>\n\t\t<\/property>\n\t<\/bean>\n<\/beans>/gi' providers/component/src/webapp/WEB-INF/components.xml
-    # # KERN-360 Servlet and TrustedLoginFilter RESTful services
-    # cp -R $BUILD_DIR/sakai3/nakamura/hybrid .
-    # find hybrid -name pom.xml -exec perl -pwi -e 's/2\.8-SNAPSHOT/2\.7\.1/g' {} \;
-    # perl -pwi -e 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml
+    mvn -B -e clean install sakai:deploy -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
+    # add hybrid webapp module
+    svn checkout -q https://source.sakaiproject.org/svn/hybrid/tags/hybrid-1.1.0 hybrid
+    cd hybrid
     mvn -B -e clean install sakai:deploy -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
     # configure sakai 2 instance
     cd $BUILD_DIR
