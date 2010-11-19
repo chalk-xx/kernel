@@ -253,7 +253,8 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 String path = principal.getPath();
                 userNode = (NodeImpl) session.getNode(path);
             } catch (RepositoryException e) {
-                log.warn("Error while retrieving user node.", e.getMessage());
+            	e.printStackTrace();
+                log.warn("Error while retrieving user node.  {} ", e.getMessage());
             }
         }
         return userNode;

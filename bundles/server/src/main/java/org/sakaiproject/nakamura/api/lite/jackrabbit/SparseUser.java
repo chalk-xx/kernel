@@ -9,6 +9,7 @@ import javax.jcr.ValueFactory;
 
 import org.apache.jackrabbit.api.security.user.Impersonation;
 import org.apache.jackrabbit.api.security.user.User;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.lite.storage.StorageClientException;
@@ -21,8 +22,8 @@ public class SparseUser extends SparseAuthorizable implements User {
 
 	public SparseUser(
 			org.sakaiproject.nakamura.api.lite.authorizable.User user,
-			AuthorizableManager authorizableManager, ValueFactory valueFactory) {
-		super(user, authorizableManager, valueFactory);
+			AuthorizableManager authorizableManager, AccessControlManager accessControlManager, ValueFactory valueFactory) {
+		super(user, authorizableManager, accessControlManager, valueFactory);
 	}
 
 	public boolean isAdmin() {

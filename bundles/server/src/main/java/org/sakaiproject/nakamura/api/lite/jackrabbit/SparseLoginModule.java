@@ -11,8 +11,10 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
 
+import org.apache.jackrabbit.core.security.SystemPrincipal;
 import org.apache.jackrabbit.core.security.authentication.AbstractLoginModule;
 import org.apache.jackrabbit.core.security.authentication.Authentication;
+import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Authenticator;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
@@ -71,6 +73,11 @@ public class SparseLoginModule extends AbstractLoginModule {
 		User auser = authenticator.systemAuthenticate(userId);
 		if (auser != null) {
 			this.user = auser;
+			if ( User.ADMIN_USER.equals(userId)) {
+				return new AdminPrincipal(userId);
+			} else if ( User.SYSTEM_USER.equals(userId)) {
+				return new SystemPrincipal();
+			}
 			return new SparsePrincipal(userId);
 		}
 		return null;
