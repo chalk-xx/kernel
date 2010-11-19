@@ -12,6 +12,8 @@ import javax.security.auth.Subject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.user.Impersonation;
+import org.apache.jackrabbit.core.security.SystemPrincipal;
+import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
 import org.apache.jackrabbit.core.security.principal.PrincipalIteratorAdapter;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
@@ -37,11 +39,18 @@ public class SparseImpersonationImpl implements Impersonation {
 		final Iterator<String> imperson = Iterables.of(StringUtils.split(impersonators,';')).iterator();
 		return new PrincipalIteratorAdapter(new Iterator<Principal>() {
 
-			private SparsePrincipal principal;
+			private Principal principal;
 
 			public boolean hasNext() {
 				if ( imperson.hasNext()) {
-					principal = new SparsePrincipal(imperson.next());
+					String userId = imperson.next();
+					if ( User.ADMIN_USER.equals(userId)) {
+						principal = new AdminPrincipal(userId);
+					} else if ( User.SYSTEM_USER.equals(userId)) {
+						principal = new SystemPrincipal();
+					} else {
+						principal = new SparsePrincipal(imperson.next());
+					}
 					return true;
 				}
 				principal = null;
@@ -60,6 +69,9 @@ public class SparseImpersonationImpl implements Impersonation {
 
 	public boolean grantImpersonation(Principal principal)
 			throws RepositoryException {
+		if ( principal instanceof AdminPrincipal || principal instanceof SystemPrincipal ) {
+			return false;
+		}
 		User u = sparseUser.getSparseUser();
 		String impersonators = StorageClientUtils.toString(u.getProperty(User.PRINCIPALS_FIELD));
 		Set<String> imp = new HashSet<String>();
@@ -76,6 +88,9 @@ public class SparseImpersonationImpl implements Impersonation {
 
 	public boolean revokeImpersonation(Principal principal)
 			throws RepositoryException {
+		if ( principal instanceof AdminPrincipal || principal instanceof SystemPrincipal ) {
+			return false;
+		}
 		User u = sparseUser.getSparseUser();
 		String impersonators = StorageClientUtils.toString(u.getProperty(User.PRINCIPALS_FIELD));
 		Set<String> imp = new HashSet<String>();
@@ -91,7 +106,18 @@ public class SparseImpersonationImpl implements Impersonation {
 	}
 
 	public boolean allows(Subject subject) throws RepositoryException {
-		// TODO Auto-generated method stub
+		if ( !subject.getPrincipals(AdminPrincipal.class).isEmpty() || !subject.getPrincipals(SystemPrincipal.class).isEmpty() ) {
+			return true;
+		}
+		User u = sparseUser.getSparseUser();
+		String impersonators = StorageClientUtils.toString(u.getProperty(User.PRINCIPALS_FIELD));
+		Set<String> imp = new HashSet<String>();
+		Collections.addAll(imp, StringUtils.split(impersonators,';'));
+		for ( Principal p : subject.getPrincipals() ) {
+			if ( imp.contains(p.getName()) ) {
+				return true;
+			}
+		}
 		return false;
 	}
 

@@ -16,6 +16,7 @@ import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.SessionListener;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
 import org.sakaiproject.nakamura.api.lite.storage.StorageClientException;
@@ -31,6 +32,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 	private AuthorizableManagerImpl authorizableManager;
 	private ValueFactory valueFactory;
 	private Repository sparseRepository;
+	private AccessControlManager accessControlManager;
 
 	public SparseMapUserManager(SessionImpl jcrSession)
 			throws ConnectionPoolException, StorageClientException,
@@ -39,6 +41,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 				.getSparseRepositoryInstance();
 		session = sparseRepository.loginAdministrative(jcrSession.getUserID());
 		authorizableManager = session.getAuthorizableManager();
+		accessControlManager = session.getAccessControlManager();
 		valueFactory = jcrSession.getValueFactory();
 	}
 
@@ -50,15 +53,16 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 				if (auth instanceof org.sakaiproject.nakamura.api.lite.authorizable.Group) {
 					return new SparseGroup(
 							(org.sakaiproject.nakamura.api.lite.authorizable.Group) auth,
-							authorizableManager, valueFactory);
+							authorizableManager, accessControlManager, valueFactory);
 				} else {
 					return new SparseUser(
 							(org.sakaiproject.nakamura.api.lite.authorizable.User) auth,
-							authorizableManager, valueFactory);
+							authorizableManager, accessControlManager, valueFactory);
 				}
 			}
 		} catch (AccessDeniedException e) {
-			throw new javax.jcr.AccessDeniedException(e.getMessage(), e);
+			LOGGER.info("Getting {} denied: {}",id,e.getMessage());
+			return null;
 		} catch (StorageClientException e) {
 			throw new RepositoryException(e.getMessage(), e);
 		}
@@ -86,7 +90,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 			throws AuthorizableExistsException, RepositoryException {
 		try {
 			boolean created = authorizableManager.createUser(userID, userID,
-					password, null);
+					password, new HashMap<String, Object>());
 			if (created) {
 				return (User) getAuthorizable(userID);
 			} else {
