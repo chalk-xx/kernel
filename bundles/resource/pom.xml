@@ -27,8 +27,8 @@
   <artifactId>org.sakaiproject.nakamura.resource</artifactId>
   <packaging>bundle</packaging>
   <version>0.10-SNAPSHOT</version>
-  <name>Sakai Nakamura :: Sling Resource Extensione Bundle</name>
-  <description>Sling Resource Extension budle containing adaptations of existing extension points</description>
+  <name>Sakai Nakamura :: Sling Resource Extension Bundle</name>
+  <description>Sling Resource Extension bundle containing adaptations of existing extension points</description>
   <build>
     <plugins>
       <plugin>
@@ -71,6 +71,10 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.jcr</groupId>
+      <artifactId>jcr</artifactId>
     </dependency>
   </dependencies>
 </project>

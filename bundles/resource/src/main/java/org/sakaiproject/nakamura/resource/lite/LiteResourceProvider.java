@@ -44,7 +44,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Component(immediate = true, metatype = true)
 @Service
-@Property(name = ResourceProvider.ROOTS, value = "/lite")
+@Property(name = ResourceProvider.ROOTS, value = "/")
 public class LiteResourceProvider implements ResourceProvider {
   private static final Logger logger = LoggerFactory
       .getLogger(LiteResourceProvider.class);
@@ -52,6 +52,7 @@ public class LiteResourceProvider implements ResourceProvider {
   @Reference
   private Repository repository;
 
+  // ---------- ResourceProvider interface ----------
   /**
    * {@inheritDoc}
    *
@@ -60,10 +61,16 @@ public class LiteResourceProvider implements ResourceProvider {
    */
   public Resource getResource(ResourceResolver resourceResolver, String path) {
     try {
-      Session session = repository.loginAdministrative();
+      javax.jcr.Session jcrSession = resourceResolver.adaptTo(javax.jcr.Session.class);
+      // get login information
+      Session session = repository.loginAdministrative(jcrSession.getUserID());
       ContentManager cm = session.getContentManager();
       Content content = cm.get(path);
-      return new ResourceWrapper(content, resourceResolver);
+      Resource resource = null;
+      if (content != null) {
+        resource = new ResourceWrapper(content, resourceResolver);
+      }
+      return resource;
     } catch (ConnectionPoolException e) {
       logger.error(e.getMessage(), e);
     } catch (StorageClientException e) {
