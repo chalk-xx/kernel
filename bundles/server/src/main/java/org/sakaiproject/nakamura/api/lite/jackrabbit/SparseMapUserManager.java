@@ -1,14 +1,5 @@
 package org.sakaiproject.nakamura.api.lite.jackrabbit;
 
-import java.security.Principal;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Properties;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.UnsupportedRepositoryOperationException;
-import javax.jcr.ValueFactory;
-
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
 import org.apache.jackrabbit.api.security.user.Group;
@@ -19,18 +10,27 @@ import org.apache.jackrabbit.core.SessionListener;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
 import org.sakaiproject.nakamura.api.lite.storage.StorageClientException;
-import org.sakaiproject.nakamura.lite.authorizable.AuthorizableManagerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Properties;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.UnsupportedRepositoryOperationException;
+import javax.jcr.ValueFactory;
 
 public class SparseMapUserManager implements UserManager, SessionListener {
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(SparseMapUserManager.class);
 	private Session session;
-	private AuthorizableManagerImpl authorizableManager;
+	private AuthorizableManager authorizableManager;
 	private ValueFactory valueFactory;
 	private Repository sparseRepository;
 
