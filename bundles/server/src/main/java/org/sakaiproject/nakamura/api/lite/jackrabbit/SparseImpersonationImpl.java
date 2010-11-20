@@ -49,7 +49,7 @@ public class SparseImpersonationImpl implements Impersonation {
 					} else if ( User.SYSTEM_USER.equals(userId)) {
 						principal = new SystemPrincipal();
 					} else {
-						principal = new SparsePrincipal(imperson.next());
+						principal = new SparsePrincipal(imperson.next(), this.getClass().getName(), SparseMapUserManager.USERS_PATH);
 					}
 					return true;
 				}
@@ -73,7 +73,7 @@ public class SparseImpersonationImpl implements Impersonation {
 			return false;
 		}
 		User u = sparseUser.getSparseUser();
-		String impersonators = StorageClientUtils.toString(u.getProperty(User.PRINCIPALS_FIELD));
+		String impersonators = StorageClientUtils.toString(u.getProperty(User.IMPERSONATORS_FIELD));
 		Set<String> imp = new HashSet<String>();
 		Collections.addAll(imp, StringUtils.split(impersonators,';'));
 		String name = principal.getName();
@@ -92,7 +92,7 @@ public class SparseImpersonationImpl implements Impersonation {
 			return false;
 		}
 		User u = sparseUser.getSparseUser();
-		String impersonators = StorageClientUtils.toString(u.getProperty(User.PRINCIPALS_FIELD));
+		String impersonators = StorageClientUtils.toString(u.getProperty(User.IMPERSONATORS_FIELD));
 		Set<String> imp = new HashSet<String>();
 		Collections.addAll(imp, StringUtils.split(impersonators,';'));
 		String name = principal.getName();
@@ -110,7 +110,7 @@ public class SparseImpersonationImpl implements Impersonation {
 			return true;
 		}
 		User u = sparseUser.getSparseUser();
-		String impersonators = StorageClientUtils.toString(u.getProperty(User.PRINCIPALS_FIELD));
+		String impersonators = StorageClientUtils.toString(u.getProperty(User.IMPERSONATORS_FIELD));
 		Set<String> imp = new HashSet<String>();
 		Collections.addAll(imp, StringUtils.split(impersonators,';'));
 		for ( Principal p : subject.getPrincipals() ) {

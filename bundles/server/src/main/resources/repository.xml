@@ -27,27 +27,30 @@
 
     <DataStore class="org.apache.jackrabbit.core.data.FileDataStore"/>
 
-    <Security appName="Jackrabbit">
+  <Security appName="Jackrabbit">
 
-        <SecurityManager class="org.apache.jackrabbit.core.DynamicSecurityManager" workspaceName="security" >
+    <SecurityManager class="org.apache.jackrabbit.core.DynamicSecurityManager"
+      workspaceName="security">
 
-          <UserManager class="org.apache.jackrabbit.core.security.user.UserManagerImpl">
-            <param name="defaultDepth" value="2" />
-            <param name="autoExpandTree" value="true" />
-            <param name="autoExpandSize" value="500" />
+          <UserManager class="org.sakaiproject.nakamura.api.lite.jackrabbit.SparseMapUserManager">
           </UserManager>
-       </SecurityManager>
+    </SecurityManager>
 
-       <!--  <AccessManager class="org.apache.jackrabbit.core.security.DefaultAccessManager"> -->
-        <AccessManager class="org.apache.sling.jcr.jackrabbit.server.impl.security.PluggableDefaultAccessManager">
+    <!--
+      <AccessManager
+      class="org.apache.jackrabbit.core.security.DefaultAccessManager">
+    -->
+    <AccessManager
+      class="org.apache.sling.jcr.jackrabbit.server.impl.security.PluggableDefaultAccessManager">
 
-        </AccessManager>
+    </AccessManager>
 
-        <LoginModule class="org.apache.sling.jcr.jackrabbit.server.impl.security.PluggableDefaultLoginModule">
+
+        <LoginModule class="org.sakaiproject.nakamura.api.lite.jackrabbit.SparseLoginModule">
             <param name="anonymousId" value="anonymous"/>
             <param name="adminId" value="admin"/>
         </LoginModule>
-    </Security>
+  </Security>
 
     <Workspaces rootPath="${rep.home}/workspaces" defaultWorkspace="default"/>
 

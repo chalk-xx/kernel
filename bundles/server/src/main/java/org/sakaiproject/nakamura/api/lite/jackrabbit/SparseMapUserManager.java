@@ -7,13 +7,13 @@ import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.SessionListener;
+import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
-import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
-import org.sakaiproject.nakamura.api.lite.storage.StorageClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,21 +30,25 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(SparseMapUserManager.class);
+	static final String SECURITY_ROOT_PATH = "/rep:security";
+	static final String AUTHORIZABLES_PATH = SECURITY_ROOT_PATH + "/rep:authorizables";
+	static final String USERS_PATH = AUTHORIZABLES_PATH + "/rep:users";
+	static final String GROUPS_PATH = AUTHORIZABLES_PATH + "/rep:groups";
 	private Session session;
 	private AuthorizableManager authorizableManager;
 	private ValueFactory valueFactory;
 	private Repository sparseRepository;
 	private AccessControlManager accessControlManager;
 
-	public SparseMapUserManager(SessionImpl jcrSession)
-			throws ConnectionPoolException, StorageClientException,
-			AccessDeniedException {
-		sparseRepository = SparseComponentHolder
-				.getSparseRepositoryInstance();
+	public SparseMapUserManager(SessionImpl jcrSession, String adminId,
+			Properties config) throws ConnectionPoolException,
+			StorageClientException, AccessDeniedException {
+		sparseRepository = SparseComponentHolder.getSparseRepositoryInstance();
 		session = sparseRepository.loginAdministrative(jcrSession.getUserID());
 		authorizableManager = session.getAuthorizableManager();
 		accessControlManager = session.getAccessControlManager();
 		valueFactory = jcrSession.getValueFactory();
+
 	}
 
 	public Authorizable getAuthorizable(String id) throws RepositoryException {
@@ -55,15 +59,17 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 				if (auth instanceof org.sakaiproject.nakamura.api.lite.authorizable.Group) {
 					return new SparseGroup(
 							(org.sakaiproject.nakamura.api.lite.authorizable.Group) auth,
-							authorizableManager, accessControlManager, valueFactory);
+							authorizableManager, accessControlManager,
+							valueFactory);
 				} else {
 					return new SparseUser(
 							(org.sakaiproject.nakamura.api.lite.authorizable.User) auth,
-							authorizableManager, accessControlManager, valueFactory);
+							authorizableManager, accessControlManager,
+							valueFactory);
 				}
 			}
 		} catch (AccessDeniedException e) {
-			LOGGER.info("Getting {} denied: {}",id,e.getMessage());
+			LOGGER.info("Getting {} denied: {}", id, e.getMessage());
 			return null;
 		} catch (StorageClientException e) {
 			throw new RepositoryException(e.getMessage(), e);
@@ -111,7 +117,8 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 			RepositoryException {
 		try {
 			boolean created = authorizableManager.createUser(userID,
-					principal.getName(), password, null);
+					principal.getName(), password,
+					new HashMap<String, Object>());
 			if (created) {
 				return (User) getAuthorizable(userID);
 			} else {
@@ -130,7 +137,8 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 		try {
 			String id = principal.getName();
 			boolean created = authorizableManager.createGroup(
-					principal.getName(), principal.getName(), null);
+					principal.getName(), principal.getName(),
+					new HashMap<String, Object>());
 			if (created) {
 				return (Group) getAuthorizable(id);
 			} else {

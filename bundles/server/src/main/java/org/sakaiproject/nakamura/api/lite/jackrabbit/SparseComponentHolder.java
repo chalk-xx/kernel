@@ -1,29 +1,36 @@
 package org.sakaiproject.nakamura.api.lite.jackrabbit;
 
-import java.util.Map;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
+import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component
+// @Component manual creation
 public class SparseComponentHolder {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SparseComponentHolder.class);
 	private static Repository sparseRepositoryInstance;
-	@Reference
-	private Repository repository;
-	@Activate
-	public void activate(Map<String, Object> properties) {
+	private SakaiActivator sakaiActivator;
+	
+	public void activate(ComponentContext componentContext) {
+		BundleContext bundleContext = componentContext.getBundleContext();
+		sakaiActivator = new SakaiActivator();
+		sakaiActivator.start(bundleContext);
+	}
+	
+	public void deactivate(ComponentContext componentContext) {
+		BundleContext bundleContext = componentContext.getBundleContext();
+		sakaiActivator.stop(bundleContext);
+		sakaiActivator = null;
+	}
+	
+	public void bindRepository(Repository repository) {
 		SparseComponentHolder.setSparseRespository(repository);
 	}
-	@Deactivate
-	public void deactivate(Map<String, Object> properties) {
-		SparseComponentHolder.setSparseRespository(null);	
+	public void unbindRepository(Repository repository) {
+		SparseComponentHolder.setSparseRespository(null);
 	}
 	
 	public static void setSparseRespository(Repository repository) {

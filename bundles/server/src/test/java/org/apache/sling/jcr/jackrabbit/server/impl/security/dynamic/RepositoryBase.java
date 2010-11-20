@@ -32,6 +32,8 @@ import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.config.RepositoryConfig;
 import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider;
 import org.osgi.framework.BundleContext;
+import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.jackrabbit.SparseComponentHolder;
 import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
@@ -62,9 +64,7 @@ public class RepositoryBase {
 		this.bundleContext = bundleContext;
 	}
 
-	public void start() throws IOException, RepositoryException,
-			ConnectionPoolException, StorageClientException,
-			AccessDeniedException, ClassNotFoundException {
+	public void start() throws IOException, RepositoryException {
 		File home = new File("target/testrepo");
 		if (home.exists()) {
 			FileUtils.deleteDirectory(home);
@@ -72,7 +72,17 @@ public class RepositoryBase {
 		InputStream ins = this.getClass().getClassLoader()
 				.getResourceAsStream("test-repository.xml");
 
-		setupSakaiActivator();
+		try {
+			setupSakaiActivator();
+		} catch (ConnectionPoolException e) {
+			throw new RepositoryException(e.getMessage(),e);
+		} catch (StorageClientException e) {
+			throw new RepositoryException(e.getMessage(),e);
+		} catch (AccessDeniedException e) {
+			throw new RepositoryException(e.getMessage(),e);
+		} catch (ClassNotFoundException e) {
+			throw new RepositoryException(e.getMessage(),e);
+		}
 		RepositoryConfig crc = RepositoryConfig.create(ins,
 				home.getAbsolutePath());
 		repository = RepositoryImpl.create(crc);

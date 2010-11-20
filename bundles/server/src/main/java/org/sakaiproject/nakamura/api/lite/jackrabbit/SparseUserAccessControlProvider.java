@@ -12,7 +12,6 @@ import org.apache.jackrabbit.core.ItemImpl;
 import org.apache.jackrabbit.core.security.authorization.AbstractAccessControlProvider;
 import org.apache.jackrabbit.core.security.authorization.AccessControlEditor;
 import org.apache.jackrabbit.core.security.authorization.CompiledPermissions;
-import org.apache.jackrabbit.core.security.authorization.PrivilegeRegistry;
 import org.apache.jackrabbit.spi.Path;
 
 public class SparseUserAccessControlProvider extends AbstractAccessControlProvider  {

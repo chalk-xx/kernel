@@ -64,12 +64,12 @@ import java.util.Set;
  * this implementation keeps an extra membership cache, which is notified in
  * case of changes made to the members of any group.
  */
-public class DefaultPrincipalProvider extends AbstractPrincipalProvider implements SynchronousEventListener {
+public class DynamicPrincipalProvider extends AbstractPrincipalProvider implements SynchronousEventListener {
 
     /**
      * the default logger
      */
-    private static Logger log = LoggerFactory.getLogger(DefaultPrincipalProvider.class);
+    private static Logger log = LoggerFactory.getLogger(DynamicPrincipalProvider.class);
 
     /**
      * a cache for group memberships: maps principal-name to a set of principals
@@ -95,7 +95,7 @@ public class DefaultPrincipalProvider extends AbstractPrincipalProvider implemen
      * @param userManager Used to retrieve the principals.
      * @throws RepositoryException if an error accessing the repository occurs.
      */
-    public DefaultPrincipalProvider(Session securitySession,
+    public DynamicPrincipalProvider(Session securitySession,
                                     UserManager userManager) throws RepositoryException {
 
         this.userManager = userManager;
