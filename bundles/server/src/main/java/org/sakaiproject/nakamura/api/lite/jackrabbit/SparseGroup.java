@@ -10,11 +10,11 @@ import javax.jcr.ValueFactory;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.util.Iterables;
-import org.sakaiproject.nakamura.lite.storage.StorageClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +28,7 @@ public class SparseGroup extends SparseAuthorizable implements Group {
 			AuthorizableManager authorizableManager,
 			AccessControlManager accessControlManager, ValueFactory valueFactory) {
 		super(group, authorizableManager, accessControlManager, valueFactory);
+		this.principal = new SparsePrincipal(group.getId(), this.getClass().getName(), SparseMapUserManager.USERS_PATH);
 	}
 
 	public Iterator<Authorizable> getDeclaredMembers()

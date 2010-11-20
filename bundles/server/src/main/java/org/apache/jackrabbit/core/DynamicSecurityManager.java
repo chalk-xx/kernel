@@ -59,6 +59,7 @@ import org.apache.jackrabbit.core.security.authorization.WorkspaceAccessManager;
 import org.apache.jackrabbit.core.security.authorization.acl.DynamicAccessControlProviderFactoryImpl; // Nakamura Change
 import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
 import org.apache.jackrabbit.core.security.principal.DefaultPrincipalProvider;
+import org.apache.jackrabbit.core.security.principal.DynamicPrincipalProvider;
 import org.apache.jackrabbit.core.security.principal.PrincipalManagerImpl;
 import org.apache.jackrabbit.core.security.principal.PrincipalProvider;
 import org.apache.jackrabbit.core.security.principal.PrincipalProviderRegistry;
@@ -500,7 +501,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * @throws RepositoryException If an error occurs.
      */
     protected PrincipalProvider createDefaultPrincipalProvider() throws RepositoryException {
-        PrincipalProvider defaultPP = new DefaultPrincipalProvider(this.systemSession, (UserManager) systemUserManager);
+        PrincipalProvider defaultPP = new DynamicPrincipalProvider(this.systemSession, (UserManager) systemUserManager);
         defaultPP.init(new Properties());
         return defaultPP;
     }

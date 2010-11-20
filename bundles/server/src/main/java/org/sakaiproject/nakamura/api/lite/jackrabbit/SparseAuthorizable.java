@@ -14,6 +14,7 @@ import javax.jcr.ValueFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -22,7 +23,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.util.Iterables;
 import org.sakaiproject.nakamura.lite.Security;
-import org.sakaiproject.nakamura.lite.storage.StorageClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +32,7 @@ public class SparseAuthorizable implements Authorizable {
 			.getLogger(SparseAuthorizable.class);
 	protected org.sakaiproject.nakamura.api.lite.authorizable.Authorizable sparseAuthorizable;
 	AuthorizableManager authorizableManager;
-	private Principal principal;
+	Principal principal;
 	ValueFactory valueFactory;
 	AccessControlManager accessControlManager;
 
@@ -44,7 +44,6 @@ public class SparseAuthorizable implements Authorizable {
 		this.sparseAuthorizable = authorizable;
 		this.authorizableManager = authorizableManager;
 		this.accessControlManager = accessControlManager;
-		this.principal = new SparsePrincipal(authorizable.getId());
 	}
 
 	public String getID() throws RepositoryException {
