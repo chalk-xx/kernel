@@ -33,7 +33,7 @@ public class SparseCredentialsAuthentication implements Authentication {
 			String testUserId = simpleCredentials.getUserID();
 			if ( testUserId != null && testUserId.equals(user.getId())) {
 				User user = authenticator.authenticate(simpleCredentials.getUserID(), new String(simpleCredentials.getPassword()));
-				LOGGER.info("+++++++++++ Login to {} {}",simpleCredentials.getUserID(),user==null?"Ok":"Failed");
+				LOGGER.info("+++++++++++ Login to {} {}",simpleCredentials.getUserID(),user==null?"FAILED":"OK "+user.getId());
 				return user != null;
 			}
 		}
