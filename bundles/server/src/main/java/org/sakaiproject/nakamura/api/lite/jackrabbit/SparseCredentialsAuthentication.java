@@ -7,9 +7,12 @@ import javax.jcr.SimpleCredentials;
 import org.apache.jackrabbit.core.security.authentication.Authentication;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Authenticator;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SparseCredentialsAuthentication implements Authentication {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(SparseCredentialsAuthentication.class);
 	private Authenticator authenticator;
 	private User user;
 
@@ -30,9 +33,11 @@ public class SparseCredentialsAuthentication implements Authentication {
 			String testUserId = simpleCredentials.getUserID();
 			if ( testUserId != null && testUserId.equals(user.getId())) {
 				User user = authenticator.authenticate(simpleCredentials.getUserID(), new String(simpleCredentials.getPassword()));
+				LOGGER.info("+++++++++++ Login to {} {}",simpleCredentials.getUserID(),user==null?"Ok":"Failed");
 				return user != null;
 			}
 		}
+		LOGGER.info("--------- LOGIN FAILED Credentials: {} ",credentials);
 		return false;
 	}
 

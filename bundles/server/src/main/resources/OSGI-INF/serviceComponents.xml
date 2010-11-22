@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+<components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
+    <scr:component enabled="true" immediate="true" name="org.sakaiproject.nakamura.api.lite.jackrabbit.SparseComponentHolder" activate="activate" deactivate="deactivate">
+        <implementation class="org.sakaiproject.nakamura.api.lite.jackrabbit.SparseComponentHolder"/>
+        <reference name="Repository" interface="org.sakaiproject.nakamura.api.lite.Repository" cardinality="1..1" policy="static" bind="bindRepository" unbind="unbindRepository"/>
+        <property name="service.vendor" value="The Sakai Foundation"/>
+        <property name="service.pid" value="org.sakaiproject.nakamura.api.lite.jackrabbit.SparseComponentHolder"/>
+    </scr:component>
     <scr:component enabled="true" immediate="true" name="org.apache.sling.jcr.jackrabbit.server.JndiRegistrationSupport">
         <implementation class="org.apache.sling.jcr.jackrabbit.server.impl.JndiRegistrationSupport"/>
         <property name="java.naming.factory.initial" value="org.apache.jackrabbit.core.jndi.provider.DummyInitialContextFactory"/>
@@ -46,6 +52,6 @@
             <provide interface="org.apache.jackrabbit.core.security.principal.PrincipalProvider"/>
         </service>
         <property name="service.vendor" value="The Sakai Foundation"/>
-        <property name="service.pid" value="org.sakaiproject.nakamura.api.discussion.DiscussionManager"/>
+        <property name="service.pid" value="org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider"/>
     </scr:component>
 </components>

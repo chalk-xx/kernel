@@ -9,10 +9,14 @@ public class SparsePrincipal implements ItemBasedPrincipal {
 
 	private String principalId;
 	private String path;
-
-	public SparsePrincipal(String principalId) {
+	private String location;
+	public static final String USER_REPO_LOCATION = "/rep:security/rep:authorizables/rep:users";
+	public static final String GROUP_REPO_LOCATION = "/rep:security/rep:authorizables/rep:groups";
+	
+	public SparsePrincipal(String principalId, String location, String basePath) {
 		this.principalId = principalId;
-		this.path = StorageClientUtils.shardPath(principalId);
+		this.path = basePath +"/"+StorageClientUtils.shardPath(principalId);
+		this.location = location;
 
 	}
 
@@ -22,6 +26,11 @@ public class SparsePrincipal implements ItemBasedPrincipal {
 
 	public String getPath() throws RepositoryException {
 		return path;
+	}
+	
+	@Override
+	public String toString() {
+		return "sparse:"+principalId+" from "+location;
 	}
 
 }

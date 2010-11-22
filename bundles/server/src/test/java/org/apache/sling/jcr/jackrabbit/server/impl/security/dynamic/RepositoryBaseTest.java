@@ -57,8 +57,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.osgi.framework.BundleContext;
-import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
-import org.sakaiproject.nakamura.api.lite.storage.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -592,7 +592,7 @@ public class RepositoryBaseTest {
           "testpassword".toCharArray()));
       userManager = session.getUserManager();
 
-      System.err.println("Trying to get Authorizable for "+group2Principal.getName());
+      System.err.println(testUser+" Trying to get Authorizable for "+group2Principal.getName());
       Group group2 = (Group) userManager.getAuthorizable(group2Principal);
       Assert.assertNull(group2);// should not have been able to read group2.
 
@@ -601,7 +601,9 @@ public class RepositoryBaseTest {
       session = (JackrabbitSession) repo.login(new SimpleCredentials(testViewerUser,
           "testpassword".toCharArray()));
       userManager = session.getUserManager();
+      System.err.println(testViewerUser+" Trying to get Authorizable for "+group2Principal.getName());
       group2 = (Group) userManager.getAuthorizable(group2Principal);
+      Assert.assertNotNull(group2);
       v = group2.getProperty("rep:group-managers");
       Assert.assertNotNull(v);
       Assert.assertEquals(1,v.length);
