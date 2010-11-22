@@ -48,7 +48,6 @@ public class SparseUser extends SparseAuthorizable implements User {
 	}
 
 	public Impersonation getImpersonation() throws RepositoryException {
-		// TODO Auto-generated method stub
 		return new SparseImpersonationImpl(this);
 	}
 
