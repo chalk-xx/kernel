@@ -31,7 +31,8 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(SparseMapUserManager.class);
 	static final String SECURITY_ROOT_PATH = "/rep:security";
-	static final String AUTHORIZABLES_PATH = SECURITY_ROOT_PATH + "/rep:authorizables";
+	static final String AUTHORIZABLES_PATH = SECURITY_ROOT_PATH
+			+ "/rep:authorizables";
 	static final String USERS_PATH = AUTHORIZABLES_PATH + "/rep:users";
 	static final String GROUPS_PATH = AUTHORIZABLES_PATH + "/rep:groups";
 	private Session session;
@@ -84,14 +85,44 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 
 	public Iterator<Authorizable> findAuthorizables(String propertyName,
 			String value) throws RepositoryException {
-		// TODO Auto-generated method stub
-		return null;
+		return findAuthorizables(propertyName, value, SEARCH_TYPE_AUTHORIZABLE);
 	}
 
 	public Iterator<Authorizable> findAuthorizables(String propertyName,
 			String value, int searchType) throws RepositoryException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			switch (searchType) {
+			case SEARCH_TYPE_AUTHORIZABLE:
+				return new SparseAuthorizableIterator(
+						authorizableManager
+								.findAuthorizable(
+										propertyName,
+										value,
+										org.sakaiproject.nakamura.api.lite.authorizable.Authorizable.class),
+						authorizableManager, accessControlManager, valueFactory);
+			case SEARCH_TYPE_GROUP:
+				return new SparseAuthorizableIterator(
+						authorizableManager
+								.findAuthorizable(
+										propertyName,
+										value,
+										org.sakaiproject.nakamura.api.lite.authorizable.Group.class),
+						authorizableManager, accessControlManager, valueFactory);
+			case SEARCH_TYPE_USER:
+				return new SparseAuthorizableIterator(
+						authorizableManager
+								.findAuthorizable(
+										propertyName,
+										value,
+										org.sakaiproject.nakamura.api.lite.authorizable.User.class),
+						authorizableManager, accessControlManager, valueFactory);
+			default:
+				throw new IllegalArgumentException("Invalid search type "
+						+ searchType);
+			}
+		} catch (StorageClientException e) {
+			throw new RepositoryException(e.getMessage(), e);
+		}
 	}
 
 	public User createUser(String userID, String password)
