@@ -187,43 +187,20 @@ public class SakaiAuthorizableResourceProviderTest extends AbstractEasyMockTest 
     Resource parent = createNiceMock(Resource.class);
     JackrabbitSession session = createNiceMock(JackrabbitSession.class);
     PrincipalManager prinipalManager = createMock(PrincipalManager.class);
-    PrincipalIterator principalIterator = createMock(PrincipalIterator.class);
     UserManager userManager = createMock(UserManager.class);
-    User user1 = createMock(User.class);
-    User user2 = createMock(User.class);
     
     EasyMock.expect(parent.getPath()).andReturn(SakaiAuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PATH);
     EasyMock.expect(parent.getResourceResolver()).andReturn(resourceResolver).anyTimes();
     EasyMock.expect(resourceResolver.adaptTo(Session.class)).andReturn(session).anyTimes();
     EasyMock.expect(session.getPrincipalManager()).andReturn(prinipalManager).anyTimes();
     EasyMock.expect(session.getUserManager()).andReturn(userManager).anyTimes();
-    EasyMock.expect(prinipalManager.getPrincipals(1)).andReturn(principalIterator);
-    EasyMock.expect(principalIterator.hasNext()).andReturn(true);
-
-    Principal p1 = new UserPrincipal("ieb");
-    EasyMock.expect(principalIterator.nextPrincipal()).andReturn(p1);
-    EasyMock.expect(userManager.getAuthorizable("ieb")).andReturn(user1);
-    EasyMock.expect(user1.isGroup()).andReturn(false).times(2);
- 
-    EasyMock.expect(principalIterator.hasNext()).andReturn(true);
-    Principal p2 = new UserPrincipal("ieb1");
-    EasyMock.expect(principalIterator.nextPrincipal()).andReturn(p2);
-    EasyMock.expect(userManager.getAuthorizable("ieb1")).andReturn(user2);
-    EasyMock.expect(principalIterator.hasNext()).andReturn(false);
-    EasyMock.expect(user2.isGroup()).andReturn(false).times(2);
  
    
     replay();
     SakaiAuthorizableResourceProvider srp = new SakaiAuthorizableResourceProvider();
     Iterator<Resource> resources  = srp.listChildren(parent);
+    Assert.assertNull(resources);
     
-    
-    int i = 0;
-    for ( ; resources.hasNext(); ) {
-      resources.next();
-      i++;
-    }
-    Assert.assertEquals(2, i);
     verify();
   }
 
@@ -234,43 +211,20 @@ public class SakaiAuthorizableResourceProviderTest extends AbstractEasyMockTest 
     Resource parent = createNiceMock(Resource.class);
     JackrabbitSession session = createNiceMock(JackrabbitSession.class);
     PrincipalManager prinipalManager = createMock(PrincipalManager.class);
-    PrincipalIterator principalIterator = createMock(PrincipalIterator.class);
     UserManager userManager = createMock(UserManager.class);
-    Group g1 = createMock(Group.class);
-    Group g2 = createMock(Group.class);
     
     EasyMock.expect(parent.getPath()).andReturn(SakaiAuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PATH);
     EasyMock.expect(parent.getResourceResolver()).andReturn(resourceResolver).anyTimes();
     EasyMock.expect(resourceResolver.adaptTo(Session.class)).andReturn(session).anyTimes();
     EasyMock.expect(session.getPrincipalManager()).andReturn(prinipalManager).anyTimes();
     EasyMock.expect(session.getUserManager()).andReturn(userManager).anyTimes();
-    EasyMock.expect(prinipalManager.getPrincipals(2)).andReturn(principalIterator);
-    EasyMock.expect(principalIterator.hasNext()).andReturn(true);
-
-    Principal p1 = new UserPrincipal("g-test1");
-    EasyMock.expect(principalIterator.nextPrincipal()).andReturn(p1);
-    EasyMock.expect(userManager.getAuthorizable("g-test1")).andReturn(g1);
-    EasyMock.expect(g1.isGroup()).andReturn(true).times(2);
- 
-    EasyMock.expect(principalIterator.hasNext()).andReturn(true);
-    Principal p2 = new UserPrincipal("g-test2");
-    EasyMock.expect(principalIterator.nextPrincipal()).andReturn(p2);
-    EasyMock.expect(userManager.getAuthorizable("g-test2")).andReturn(g2);
-    EasyMock.expect(principalIterator.hasNext()).andReturn(false);
-    EasyMock.expect(g2.isGroup()).andReturn(false).times(2);
  
    
     replay();
     SakaiAuthorizableResourceProvider srp = new SakaiAuthorizableResourceProvider();
     Iterator<Resource> resources  = srp.listChildren(parent);
-    
-    
-    int i = 0;
-    for ( ; resources.hasNext(); ) {
-      resources.next();
-      i++;
-    }
-    Assert.assertEquals(2, i);
+    Assert.assertNull(resources);
+
     verify();
   }
 }
