@@ -47,7 +47,9 @@ import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.jackrabbit.core.security.AnonymousPrincipal;
 import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipal;
+import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.ISO8601Date;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleACLModifier;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RulesBasedAce;
@@ -160,9 +162,8 @@ public class RepositoryBaseTest {
 
       Principal principal = principalManager.getPrincipal("admin");
       Assert.assertNotNull(principal);
-      Assert.assertTrue(principal instanceof ItemBasedPrincipal);
-      ItemBasedPrincipal ibp = (ItemBasedPrincipal) principal;
-      Assert.assertEquals("admin", ibp.getName());
+      Assert.assertTrue(principal instanceof AdminPrincipal);
+      Assert.assertEquals("admin", principal.getName());
 
       principal = principalManager.getPrincipal("everyone");
       Assert.assertNotNull(principal);
@@ -170,7 +171,7 @@ public class RepositoryBaseTest {
 
       principal = principalManager.getPrincipal("anonymous");
       Assert.assertNotNull(principal);
-      Assert.assertTrue(principal instanceof ItemBasedPrincipal);
+      Assert.assertTrue(principal instanceof AnonymousPrincipal);
       Assert.assertEquals("anonymous", principal.getName());
 
       /*
