@@ -89,7 +89,6 @@ public class SakaiAuthorizableResourceProvider implements ResourceProvider {
      * .sling.api.resource.ResourceResolver, java.lang.String)
      */
     public Resource getResource(ResourceResolver resourceResolver, String path) {
-        log.info("Athorizable getResource {}", path);
 
         // handle resources for the virtual container resources
         if (path.equals(SYSTEM_USER_MANAGER_PATH)) {
@@ -122,10 +121,9 @@ public class SakaiAuthorizableResourceProvider implements ResourceProvider {
                 Session session = resourceResolver.adaptTo(Session.class);
                 if (session != null) {
                     UserManager userManager = AccessControlUtil.getUserManager(session);
-                    log.info("Got user manager {} ",userManager);
                     if (userManager != null) {
                         Authorizable authorizable = userManager.getAuthorizable(pid);
-                        log.info("Got authorizable {} for {} ",authorizable,pid);
+                        log.debug("Got authorizable {} for {} ",authorizable,pid);
                         if (authorizable != null) {
                             // found the Authorizable, so return the resource
                             // that wraps it.
