@@ -17,15 +17,7 @@
  */
 package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
+import com.google.common.collect.Maps;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.jackrabbit.core.RepositoryImpl;
@@ -36,14 +28,20 @@ import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.jackrabbit.SparseComponentHolder;
-import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
-import org.sakaiproject.nakamura.api.lite.storage.StorageClientException;
 import org.sakaiproject.nakamura.lite.ConfigurationImpl;
 import org.sakaiproject.nakamura.lite.authorizable.AuthorizableActivator;
 import org.sakaiproject.nakamura.lite.storage.StorageClient;
 import org.sakaiproject.nakamura.lite.storage.mem.MemoryStorageClientConnectionPool;
 
-import com.google.common.collect.Maps;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
 
 /**
  *
@@ -104,8 +102,8 @@ public class RepositoryBase {
 	 * @throws AccessDeniedException
 	 * @throws StorageClientException
 	 * @throws ConnectionPoolException
-	 * @throws ClassNotFoundException 
-	 * 
+	 * @throws ClassNotFoundException
+	 *
 	 */
 	private void setupSakaiActivator() throws ConnectionPoolException,
 			StorageClientException, AccessDeniedException, ClassNotFoundException {
@@ -126,7 +124,7 @@ public class RepositoryBase {
 		sakaiActivator = new SakaiActivator();
 		sakaiActivator.start(bundleContext);
 
-		
+
 		// setup the Sparse Content Repository.
 		connectionPool = new MemoryStorageClientConnectionPool();
 		connectionPool.activate(new HashMap<String, Object>());
