@@ -72,8 +72,10 @@ import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
+import javax.jcr.ValueFormatException;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
+import javax.jcr.nodetype.PropertyDefinition;
 import javax.jcr.security.AccessControlManager;
 import javax.jcr.security.Privilege;
 import javax.jcr.version.VersionException;
@@ -216,7 +218,11 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
               if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
                   propertyName).getDefinition().isProtected())) {
                 if (v.length == 1) {
-                  profileNode.setProperty(propertyName, v[0]);
+                	try {
+                		profileNode.setProperty(propertyName, v[0]);
+                	} catch ( ValueFormatException vfe ) {
+                		profileNode.setProperty(propertyName, v);
+                	}
                 } else {
                   profileNode.setProperty(propertyName, v);
                 }
