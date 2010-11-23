@@ -5,6 +5,7 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 import javax.jcr.ValueFactory;
 
 import org.apache.jackrabbit.api.security.user.Impersonation;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 public class SparseUser extends SparseAuthorizable implements User {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SparseUser.class);
+	private String oldPassword;
 
 	public SparseUser(
 			org.sakaiproject.nakamura.api.lite.authorizable.User user,
@@ -46,6 +48,16 @@ public class SparseUser extends SparseAuthorizable implements User {
 		}
 		return null;
 	}
+	
+	@Override
+	public void setProperty(String name, Value value)
+			throws RepositoryException {
+		if ( ":oldpassword".equals(name)) {
+			oldPassword = value.getString();
+		} else {
+			super.setProperty(name, value);
+		}
+	}
 
 	public Impersonation getImpersonation() throws RepositoryException {
 		return new SparseImpersonationImpl(this);
@@ -53,11 +65,13 @@ public class SparseUser extends SparseAuthorizable implements User {
 
 	public void changePassword(String password) throws RepositoryException {
 		try {
-			authorizableManager.changePassword(getSparseUser(),password);
+			authorizableManager.changePassword(getSparseUser(),password, oldPassword);
 		} catch (StorageClientException e) {
 			throw new RepositoryException(e.getMessage(), e);
 		} catch (AccessDeniedException e) {
 			throw new javax.jcr.AccessDeniedException(e.getMessage(), e);
+		} finally {
+			oldPassword = null;
 		}
 	}
 
