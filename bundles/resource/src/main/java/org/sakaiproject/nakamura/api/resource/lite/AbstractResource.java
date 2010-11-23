@@ -33,7 +33,7 @@ import java.util.Iterator;
  * interface.
  * <p>
  * Implementations of the {@link Resource} interface are strongly encouraged to either
- * extend from this class or the {@link ResourceWrapper} class instead of implementing the
+ * extend from this class or the {@link SparseContentResource} class instead of implementing the
  * {@link Resource} from the ground up. This will ensure to always be able to support new
  * methods that might be introduced in the {@link Resource} interface in the future.
  *

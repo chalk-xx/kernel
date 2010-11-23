@@ -17,18 +17,18 @@
  */
 package org.sakaiproject.nakamura.resource.lite;
 
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.sling.api.resource.LoginException;
+import com.google.common.collect.Iterators;
+
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
-import org.sakaiproject.nakamura.api.lite.storage.StorageClientException;
-import org.sakaiproject.nakamura.api.resource.lite.ResourceWrapper;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +45,17 @@ import javax.servlet.http.HttpServletRequest;
 public class LiteResourceResolver implements ResourceResolver {
   private static final Logger logger = LoggerFactory.getLogger(LiteResourceResolver.class);
 
-  @Reference
+//  @Reference
   private Repository repository;
+  private String userId;
+
+  /**
+   *
+   */
+  public LiteResourceResolver(Repository repository, String userId) {
+    this.repository = repository;
+    this.userId = userId;
+  }
 
   /**
    * {@inheritDoc}
@@ -76,6 +85,7 @@ public class LiteResourceResolver implements ResourceResolver {
    * {@inheritDoc}
    * @see org.apache.sling.api.resource.ResourceResolver#resolve(javax.servlet.http.HttpServletRequest)
    */
+  @Deprecated
   public Resource resolve(HttpServletRequest request) {
     return getResource(null, request.getPathInfo());
   }
@@ -85,7 +95,7 @@ public class LiteResourceResolver implements ResourceResolver {
    * @see org.apache.sling.api.resource.ResourceResolver#map(java.lang.String)
    */
   public String map(String resourcePath) {
-    return null;
+    return resourcePath;
   }
 
   /**
@@ -93,7 +103,7 @@ public class LiteResourceResolver implements ResourceResolver {
    * @see org.apache.sling.api.resource.ResourceResolver#map(javax.servlet.http.HttpServletRequest, java.lang.String)
    */
   public String map(HttpServletRequest request, String resourcePath) {
-    return null;
+    return map(resourcePath);
   }
 
   /**
@@ -110,14 +120,14 @@ public class LiteResourceResolver implements ResourceResolver {
    */
   public Resource getResource(Resource base, String path) {
     if (base != null) {
-      path += base.getPath();
+      path = base.getPath() + path;
     }
     Session session = null;
     try {
-      session = repository.loginAdministrative();
+      session = repository.loginAdministrative(userId);
       ContentManager cm = session.getContentManager();
       Content content = cm.get(path);
-      return new ResourceWrapper(content, this);
+      return new SparseContentResource(content, cm, this);
     } catch (ConnectionPoolException e) {
       logger.error(e.getMessage(), e);
     } catch (StorageClientException e) {
@@ -141,7 +151,7 @@ public class LiteResourceResolver implements ResourceResolver {
    * @see org.apache.sling.api.resource.ResourceResolver#getSearchPath()
    */
   public String[] getSearchPath() {
-    return null;
+    return new String[0];
   }
 
   /**
@@ -157,7 +167,7 @@ public class LiteResourceResolver implements ResourceResolver {
    * @see org.apache.sling.api.resource.ResourceResolver#findResources(java.lang.String, java.lang.String)
    */
   public Iterator<Resource> findResources(String query, String language) {
-    return null;
+    return Iterators.emptyIterator();
   }
 
   /**
@@ -165,25 +175,7 @@ public class LiteResourceResolver implements ResourceResolver {
    * @see org.apache.sling.api.resource.ResourceResolver#queryResources(java.lang.String, java.lang.String)
    */
   public Iterator<Map<String, Object>> queryResources(String query, String language) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.apache.sling.api.resource.ResourceResolver#clone(java.util.Map)
-   */
-  public ResourceResolver clone(Map<String, Object> authenticationInfo)
-      throws LoginException {
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.apache.sling.api.resource.ResourceResolver#isLive()
-   */
-  public boolean isLive() {
-    return false;
+    return Iterators.emptyIterator();
   }
 
   /**
@@ -198,23 +190,6 @@ public class LiteResourceResolver implements ResourceResolver {
    * @see org.apache.sling.api.resource.ResourceResolver#getUserID()
    */
   public String getUserID() {
-    return null;
+    return userId;
   }
-
-  /**
-   * {@inheritDoc}
-   * @see org.apache.sling.api.resource.ResourceResolver#getAttributeNames()
-   */
-  public Iterator<String> getAttributeNames() {
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.apache.sling.api.resource.ResourceResolver#getAttribute(java.lang.String)
-   */
-  public Object getAttribute(String name) {
-    return null;
-  }
-
 }

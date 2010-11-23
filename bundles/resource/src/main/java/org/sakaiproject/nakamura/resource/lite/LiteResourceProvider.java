@@ -24,14 +24,14 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.lite.storage.ConnectionPoolException;
-import org.sakaiproject.nakamura.api.lite.storage.StorageClientException;
-import org.sakaiproject.nakamura.api.resource.lite.ResourceWrapper;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +44,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Component(immediate = true, metatype = true)
 @Service
-@Property(name = ResourceProvider.ROOTS, value = "/")
+@Property(name = ResourceProvider.ROOTS, value = "/test")
 public class LiteResourceProvider implements ResourceProvider {
   private static final Logger logger = LoggerFactory
       .getLogger(LiteResourceProvider.class);
@@ -60,25 +60,33 @@ public class LiteResourceProvider implements ResourceProvider {
    *      java.lang.String)
    */
   public Resource getResource(ResourceResolver resourceResolver, String path) {
+    Resource retRes = null;
+    Session session = null;
     try {
       javax.jcr.Session jcrSession = resourceResolver.adaptTo(javax.jcr.Session.class);
       // get login information
-      Session session = repository.loginAdministrative(jcrSession.getUserID());
+      String userId = jcrSession.getUserID();
+      session = repository.loginAdministrative(userId);
       ContentManager cm = session.getContentManager();
       Content content = cm.get(path);
-      Resource resource = null;
       if (content != null) {
-        resource = new ResourceWrapper(content, resourceResolver);
+        retRes = new SparseContentResource(content, cm, new LiteResourceResolver(
+            repository, userId));
       }
-      return resource;
     } catch (ConnectionPoolException e) {
       logger.error(e.getMessage(), e);
     } catch (StorageClientException e) {
       logger.error(e.getMessage(), e);
     } catch (AccessDeniedException e) {
       logger.error(e.getMessage(), e);
+    } finally {
+      try {
+        session.logout();
+      } catch (ConnectionPoolException e) {
+        // nothing we can do
+      }
     }
-    return null;
+    return retRes;
   }
 
   /**
