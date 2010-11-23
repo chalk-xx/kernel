@@ -33,9 +33,12 @@ import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -364,7 +367,16 @@ public class SiteAuthz {
       // Site names exist in a hierarchical namespace but group names exist
       // in a flat namespace. To lessen the chance of conflicts, use the
       // node UUID to generate site-dependent group names.
-      String siteId = site.getIdentifier();
+      String id = site.getIdentifier();
+      // we need to compact the identifier, it wastes loads of space as a hex GUID with - spacing.
+      byte[] b = null;
+	  try {
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		b = md.digest(id.getBytes());
+	  } catch (NoSuchAlgorithmException e1) {
+		b = id.replaceAll("-", "").getBytes();
+	  }
+      String siteId = StringUtils.encode(b, StringUtils.URL_SAFE_ENCODING);
       Session session = site.getSession();
       ValueFactory valueFactory = session.getValueFactory();
       String maintenanceRole = getMaintenanceRole();
