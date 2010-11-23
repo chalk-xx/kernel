@@ -197,5 +197,10 @@ public class SparseGroup extends SparseAuthorizable implements Group {
 	private org.sakaiproject.nakamura.api.lite.authorizable.Group getSparseGroup() {
 		return (org.sakaiproject.nakamura.api.lite.authorizable.Group) sparseAuthorizable;
 	}
+	
+	@Override
+	public boolean isGroup() {
+		return true;
+	}
 
 }
