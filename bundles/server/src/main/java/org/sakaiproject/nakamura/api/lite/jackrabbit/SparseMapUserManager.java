@@ -1,5 +1,14 @@
 package org.sakaiproject.nakamura.api.lite.jackrabbit;
 
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Properties;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.UnsupportedRepositoryOperationException;
+import javax.jcr.ValueFactory;
+
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
 import org.apache.jackrabbit.api.security.user.Group;
@@ -16,15 +25,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.security.Principal;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Properties;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.UnsupportedRepositoryOperationException;
-import javax.jcr.ValueFactory;
 
 public class SparseMapUserManager implements UserManager, SessionListener {
 

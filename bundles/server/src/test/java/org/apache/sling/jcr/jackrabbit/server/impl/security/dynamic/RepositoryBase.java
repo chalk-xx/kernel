@@ -17,7 +17,15 @@
  */
 package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
 
-import com.google.common.collect.Maps;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.jackrabbit.core.RepositoryImpl;
@@ -33,15 +41,7 @@ import org.sakaiproject.nakamura.lite.authorizable.AuthorizableActivator;
 import org.sakaiproject.nakamura.lite.storage.StorageClient;
 import org.sakaiproject.nakamura.lite.storage.mem.MemoryStorageClientConnectionPool;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
+import com.google.common.collect.Maps;
 
 /**
  *
@@ -102,8 +102,8 @@ public class RepositoryBase {
 	 * @throws AccessDeniedException
 	 * @throws StorageClientException
 	 * @throws ConnectionPoolException
-	 * @throws ClassNotFoundException
-	 *
+	 * @throws ClassNotFoundException 
+	 * 
 	 */
 	private void setupSakaiActivator() throws ConnectionPoolException,
 			StorageClientException, AccessDeniedException, ClassNotFoundException {
@@ -124,7 +124,7 @@ public class RepositoryBase {
 		sakaiActivator = new SakaiActivator();
 		sakaiActivator.start(bundleContext);
 
-
+		
 		// setup the Sparse Content Repository.
 		connectionPool = new MemoryStorageClientConnectionPool();
 		connectionPool.activate(new HashMap<String, Object>());
