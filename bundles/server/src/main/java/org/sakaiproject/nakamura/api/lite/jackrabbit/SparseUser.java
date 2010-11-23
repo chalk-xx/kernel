@@ -10,6 +10,9 @@ import javax.jcr.ValueFactory;
 
 import org.apache.jackrabbit.api.security.user.Impersonation;
 import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.core.security.AnonymousPrincipal;
+import org.apache.jackrabbit.core.security.SystemPrincipal;
+import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -26,7 +29,16 @@ public class SparseUser extends SparseAuthorizable implements User {
 			org.sakaiproject.nakamura.api.lite.authorizable.User user,
 			AuthorizableManager authorizableManager, AccessControlManager accessControlManager, ValueFactory valueFactory) {
 		super(user, authorizableManager, accessControlManager, valueFactory);
-		this.principal = new SparsePrincipal(user.getId(), this.getClass().getName(), SparseMapUserManager.USERS_PATH);
+		String userId = user.getId();
+		if (org.sakaiproject.nakamura.api.lite.authorizable.User.ADMIN_USER.equals(userId)) {
+			this.principal = new AdminPrincipal(userId);
+		} else if (org.sakaiproject.nakamura.api.lite.authorizable.User.ANON_USER.equals(userId)) {
+			this.principal = new AnonymousPrincipal();
+		} else if (org.sakaiproject.nakamura.api.lite.authorizable.User.SYSTEM_USER.equals(userId)) {
+			this.principal = new SystemPrincipal();
+		} else {
+			this.principal = new SparsePrincipal(userId, this.getClass().getName(), SparseMapUserManager.USERS_PATH);
+		}
 
 	}
 
