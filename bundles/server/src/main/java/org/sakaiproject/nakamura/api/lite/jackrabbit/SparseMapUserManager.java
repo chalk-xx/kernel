@@ -4,6 +4,7 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.UnsupportedRepositoryOperationException;
@@ -26,6 +27,8 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mysql.jdbc.jdbc2.optional.SuspendableXAConnection;
+
 public class SparseMapUserManager implements UserManager, SessionListener {
 
 	private static final Logger LOGGER = LoggerFactory
@@ -40,16 +43,31 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 	private ValueFactory valueFactory;
 	private Repository sparseRepository;
 	private AccessControlManager accessControlManager;
+	private SessionImpl jcrSession;
+	private AtomicInteger systemSessionCounter = new AtomicInteger();
+	private AtomicInteger sessionCounter = new AtomicInteger();
 
 	public SparseMapUserManager(SessionImpl jcrSession, String adminId,
 			Properties config) throws ConnectionPoolException,
 			StorageClientException, AccessDeniedException {
 		sparseRepository = SparseComponentHolder.getSparseRepositoryInstance();
 		session = sparseRepository.loginAdministrative(jcrSession.getUserID());
+		
 		authorizableManager = session.getAuthorizableManager();
 		accessControlManager = session.getAccessControlManager();
 		valueFactory = jcrSession.getValueFactory();
+		this.jcrSession = jcrSession;
+		jcrSession.addListener(this);
+		int systemSessions = systemSessionCounter.get();
+		int sessions = sessionCounter.get();
+		if ( "org.apache.jackrabbit.core.SystemSession".equals(session.getClass().getName()) ) {
+			systemSessions = systemSessionCounter.incrementAndGet();
+		} else {
+			sessions = sessionCounter.incrementAndGet();
+		}
+		LOGGER.info("Logged into sparse triggered bu Session {} {} {} ",new Object[]{jcrSession, sessions, systemSessions});
 
+		
 	}
 
 	public Authorizable getAuthorizable(String id) throws RepositoryException {
@@ -203,9 +221,24 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 	public void loggedOut(SessionImpl session) {
 		try {
 			this.session.logout();
+			int systemSessions = systemSessionCounter.get();
+			int sessions = sessionCounter.get();
+			if ( "org.apache.jackrabbit.core.SystemSession".equals(session.getClass().getName()) ) {
+				systemSessions = systemSessionCounter.decrementAndGet();
+			} else {
+				sessions = sessionCounter.decrementAndGet();
+			}
+			LOGGER.info("Logged out of sparse triggered bu Session {} {} {} ",new Object[]{session, sessions, systemSessions});
+			if ( session != jcrSession ) {
+				LOGGER.warn("Odd session are not the same on login logout {} {} ",jcrSession,session);
+			}
 		} catch (ConnectionPoolException e) {
-			LOGGER.debug("Failed to logout ", e);
+			LOGGER.error("Failed to logout ", e);
 		}
+	}
+
+	public org.sakaiproject.nakamura.api.lite.Session getSession() {
+		return session;
 	}
 
 }
