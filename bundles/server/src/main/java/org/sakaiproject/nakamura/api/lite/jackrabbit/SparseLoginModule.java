@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.jcr.AccessDeniedException;
 import javax.jcr.Credentials;
 import javax.jcr.GuestCredentials;
 import javax.jcr.RepositoryException;
@@ -21,6 +22,7 @@ import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.security.AnonymousPrincipal;
 import org.apache.jackrabbit.core.security.SystemPrincipal;
 import org.apache.jackrabbit.core.security.authentication.AbstractLoginModule;
@@ -35,8 +37,7 @@ import org.apache.sling.jcr.jackrabbit.server.impl.security.CallbackHandlerWrapp
 import org.apache.sling.jcr.jackrabbit.server.impl.security.TrustedCredentials;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
-import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
-import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Authenticator;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
@@ -47,33 +48,41 @@ public class SparseLoginModule extends AbstractLoginModule {
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(SparseLoginModule.class);
-	private Repository repository;
 	private Authenticator authenticator;
 	private User user;
 
 	@Override
 	protected void doInit(CallbackHandler callbackHandler, Session session,
 			@SuppressWarnings("rawtypes") Map options) throws LoginException {
-		repository = SparseComponentHolder.getSparseRepositoryInstance();
-
-        LoginModulePlugin[] modules = Activator.getLoginModules();
-        for (int i = 0; i < modules.length; i++) {
-            modules[i].doInit(callbackHandler, session, options);
-        }
-
-		CredentialsCallback cb = new CredentialsCallback();
 		try {
-			callbackHandler.handle(new Callback[] { cb });
-		} catch (IOException e1) {
-			LOGGER.warn(e1.getMessage(), e1);
-		} catch (UnsupportedCallbackException e1) {
-			LOGGER.warn(e1.getMessage(), e1);
-		}
-		try {
-			authenticator = repository.getAuthenticator();
-		} catch (ConnectionPoolException e) {
+			SessionImpl sessionImpl = (SessionImpl) session;
+			SparseMapUserManager userManager = (SparseMapUserManager) sessionImpl
+					.getUserManager();
+			org.sakaiproject.nakamura.api.lite.Session sparseSession = userManager
+					.getSession();
+
+			LoginModulePlugin[] modules = Activator.getLoginModules();
+			for (int i = 0; i < modules.length; i++) {
+				modules[i].doInit(callbackHandler, session, options);
+			}
+
+			CredentialsCallback cb = new CredentialsCallback();
+			try {
+				callbackHandler.handle(new Callback[] { cb });
+			} catch (IOException e1) {
+				LOGGER.warn(e1.getMessage(), e1);
+			} catch (UnsupportedCallbackException e1) {
+				LOGGER.warn(e1.getMessage(), e1);
+			}
+			authenticator = sparseSession.getAuthenticator();
+		} catch (StorageClientException e) {
+			throw new LoginException(e.getMessage());
+		} catch (AccessDeniedException e) {
+			throw new LoginException(e.getMessage());
+		} catch (RepositoryException e) {
 			throw new LoginException(e.getMessage());
 		}
+
 	}
 
 	/**
@@ -95,23 +104,22 @@ public class SparseLoginModule extends AbstractLoginModule {
 	@Override
 	protected boolean impersonate(Principal principal, Credentials credentials)
 			throws RepositoryException, LoginException {
-        if ( credentials instanceof AdministrativeCredentials ) {
-            return true;
-        }
-        if ( credentials instanceof AnonCredentials ) {
-            return false;
-        }
+		if (credentials instanceof AdministrativeCredentials) {
+			return true;
+		}
+		if (credentials instanceof AnonCredentials) {
+			return false;
+		}
 
-        LoginModulePlugin[] modules = Activator.getLoginModules();
-        for (int i = 0; i < modules.length; i++) {
-            if (modules[i].canHandle(credentials)) {
-                int result = modules[i].impersonate(principal, credentials);
-                if (result != LoginModulePlugin.IMPERSONATION_DEFAULT) {
-                    return result == LoginModulePlugin.IMPERSONATION_SUCCESS;
-                }
-            }
-        }
-
+		LoginModulePlugin[] modules = Activator.getLoginModules();
+		for (int i = 0; i < modules.length; i++) {
+			if (modules[i].canHandle(credentials)) {
+				int result = modules[i].impersonate(principal, credentials);
+				if (result != LoginModulePlugin.IMPERSONATION_DEFAULT) {
+					return result == LoginModulePlugin.IMPERSONATION_SUCCESS;
+				}
+			}
+		}
 
 		User user = authenticator.systemAuthenticate(principal.getName());
 		if (user != null) {
@@ -161,16 +169,16 @@ public class SparseLoginModule extends AbstractLoginModule {
 			};
 		}
 
-        LoginModulePlugin[] modules = Activator.getLoginModules();
-        for (int i = 0; i < modules.length; i++) {
-            if (modules[i].canHandle(creds)) {
-                AuthenticationPlugin pa = modules[i].getAuthentication(
-                    principal, creds);
-                if (pa != null) {
-                    return new AuthenticationPluginWrapper(pa, modules[i]);
-                }
-            }
-        }
+		LoginModulePlugin[] modules = Activator.getLoginModules();
+		for (int i = 0; i < modules.length; i++) {
+			if (modules[i].canHandle(creds)) {
+				AuthenticationPlugin pa = modules[i].getAuthentication(
+						principal, creds);
+				if (pa != null) {
+					return new AuthenticationPluginWrapper(pa, modules[i]);
+				}
+			}
+		}
 
 		if (user != null) {
 			Authentication authentication = new SparseCredentialsAuthentication(
@@ -189,15 +197,15 @@ public class SparseLoginModule extends AbstractLoginModule {
 		if (credentials instanceof TrustedCredentials) {
 			return ((TrustedCredentials) credentials).getPrincipal();
 		}
-        LoginModulePlugin[] modules = Activator.getLoginModules();
-        for (int i = 0; i < modules.length; i++) {
-            if (modules[i].canHandle(credentials)) {
-                Principal p = modules[i].getPrincipal(credentials);
-                if (p != null) {
-                    return p;
-                }
-            }
-        }
+		LoginModulePlugin[] modules = Activator.getLoginModules();
+		for (int i = 0; i < modules.length; i++) {
+			if (modules[i].canHandle(credentials)) {
+				Principal p = modules[i].getPrincipal(credentials);
+				if (p != null) {
+					return p;
+				}
+			}
+		}
 		String userId = getUserID(credentials);
 		LOGGER.debug("Got User ID as [{}]", userId);
 		User auser = authenticator.systemAuthenticate(userId);
@@ -207,7 +215,7 @@ public class SparseLoginModule extends AbstractLoginModule {
 				return new AdminPrincipal(userId);
 			} else if (User.SYSTEM_USER.equals(userId)) {
 				return new SystemPrincipal();
-			} else if ( User.ANON_USER.equals(userId)) {
+			} else if (User.ANON_USER.equals(userId)) {
 				return new AnonymousPrincipal();
 			}
 			LOGGER.debug("Sparse User Principal {}", userId);
@@ -247,19 +255,20 @@ public class SparseLoginModule extends AbstractLoginModule {
 		}
 		return creds;
 	}
-    /**
-     * @see org.apache.jackrabbit.core.security.authentication.AbstractLoginModule#getPrincipals
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    @Override
-    protected Set getPrincipals() {
-        Set principals = super.getPrincipals();
-        LoginModulePlugin[] modules = Activator.getLoginModules();
-        for (int i = 0; i < modules.length; i++) {
-            modules[i].addPrincipals(principals);
-        }
-        return principals;
-    }
+
+	/**
+	 * @see org.apache.jackrabbit.core.security.authentication.AbstractLoginModule#getPrincipals
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+	protected Set getPrincipals() {
+		Set principals = super.getPrincipals();
+		LoginModulePlugin[] modules = Activator.getLoginModules();
+		for (int i = 0; i < modules.length; i++) {
+			modules[i].addPrincipals(principals);
+		}
+		return principals;
+	}
 
 	private static final String KEY_LOGIN_NAME = "javax.security.auth.login.name";
 
