@@ -23,12 +23,16 @@ import static org.sakaiproject.nakamura.api.personal.PersonalConstants.PUBLIC;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants._GROUP;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants._USER;
 
+import java.security.Principal;
+
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.osgi.framework.AdminPermission;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,8 +63,14 @@ public class PersonalUtils {
           .debug(
               "Authorizable {} has no path property set on it, grabbing hash from ItemBasedPrincipal!",
               au);
-      ItemBasedPrincipal principal = (ItemBasedPrincipal) au.getPrincipal();
-      hash = principal.getPath();
+      Principal p = au.getPrincipal();
+      if ( p instanceof ItemBasedPrincipal ) {
+    	  ItemBasedPrincipal principal = (ItemBasedPrincipal) p;
+          hash = principal.getPath();
+      } else {
+    	  String n = org.apache.commons.lang.StringUtils.leftPad(p.getName(),5,'_');
+    	  hash = n.substring(0,1)+"/"+n.substring(0,2)+"/"+n.substring(0,3)+"/"+n+"/"; 
+      }
     }
     return hash;
   }
