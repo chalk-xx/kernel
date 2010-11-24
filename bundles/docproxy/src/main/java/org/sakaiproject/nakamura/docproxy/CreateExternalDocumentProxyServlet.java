@@ -33,6 +33,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +94,7 @@ public class CreateExternalDocumentProxyServlet extends SlingAllMethodsServlet {
     try {
       String userId = request.getRemoteUser();
       // Anonymous users can't do anything.
-      if (userId.equals("anonymous")) {
+      if (UserConstants.ANON_USERID.equals(userId)) {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
             "Anonymous users can't post anything.");
         return;

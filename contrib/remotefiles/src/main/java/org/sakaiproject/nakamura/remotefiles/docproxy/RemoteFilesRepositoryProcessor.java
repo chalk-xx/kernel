@@ -27,6 +27,7 @@ import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.remotefiles.RemoteFilesRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +73,7 @@ public class RemoteFilesRepositoryProcessor implements ExternalRepositoryProcess
       throws DocProxyException {
     try {
       String currentUserId = node.getSession().getUserID();
-      if ("anonymous".equals(currentUserId)) throw new DocProxyException(402, "anonymous user may not access remote files repository");
+      if (UserConstants.ANON_USERID.equals(currentUserId)) throw new DocProxyException(402, "anonymous user may not access remote files repository");
       return getFile(path, currentUserId);
     } catch (RepositoryException e) {
       throw new DocProxyException(500, "caused by RepositoryException getting session for requested Node");
@@ -87,7 +88,7 @@ public class RemoteFilesRepositoryProcessor implements ExternalRepositoryProcess
       throws DocProxyException {
     try {
       String currentUserId = node.getSession().getUserID();
-       if ("anonymous".equals(currentUserId)) throw new DocProxyException(401, "anonymous user may not access remote files repository");
+       if (UserConstants.ANON_USERID.equals(currentUserId)) throw new DocProxyException(401, "anonymous user may not access remote files repository");
       return getFile(path, currentUserId);
     } catch (RepositoryException e) {
       throw new DocProxyException(500, "caused by RepositoryException getting session for requested Node");
@@ -140,7 +141,7 @@ public class RemoteFilesRepositoryProcessor implements ExternalRepositoryProcess
       String contentType = new MimetypesFileTypeMap().getContentType(path.substring(path.lastIndexOf("/") + 1));
       properties.put("contentType", contentType);
       String currentUserId = node.getSession().getUserID();
-      if ("anonymous".equals(currentUserId)) throw new DocProxyException(401, "anonymous user may not access remote files");
+      if (UserConstants.ANON_USERID.equals(currentUserId)) throw new DocProxyException(401, "anonymous user may not access remote files");
       byte[] fileData = new byte[documentStream.available()];
       documentStream.read(fileData);
       LOGGER.info("calling updateFile. currentUserId:" + currentUserId + " path:" + path + " bytes:" + documentStream.available());
