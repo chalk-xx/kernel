@@ -268,6 +268,9 @@ public class SparseAuthorizable implements Authorizable {
 		AclModification.addAcl(true, Permissions.CAN_READ,
 				org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE,
 				modifications);
+		AclModification.addAcl(true, Permissions.CAN_READ,
+				org.sakaiproject.nakamura.api.lite.authorizable.User.ANON_USER,
+				modifications);
 		accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES,
 				sparseAuthorizable.getId(), modifications
 						.toArray(new AclModification[modifications.size()]));
@@ -286,6 +289,11 @@ public class SparseAuthorizable implements Authorizable {
 					.addAcl(true,
 							Permissions.CAN_READ,
 							org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE,
+							modifications);
+			AclModification
+					.addAcl(true,
+							Permissions.CAN_READ,
+							org.sakaiproject.nakamura.api.lite.authorizable.User.ANON_USER,
 							modifications);
 		}
 		if (modifications.size() > 0) {
@@ -309,11 +317,13 @@ public class SparseAuthorizable implements Authorizable {
 			AclModification.addAcl(true, Permissions.CAN_READ, viewer,
 					modifications);
 		}
-		// deny everyone, there is a default read assumption on all users and groups.
-		AclModification
-		.addAcl(false,
-				Permissions.CAN_READ,
+		// deny everyone, there is a default read assumption on all users and
+		// groups.
+		AclModification.addAcl(false, Permissions.CAN_READ,
 				org.sakaiproject.nakamura.api.lite.authorizable.Group.EVERYONE,
+				modifications);
+		AclModification.addAcl(false, Permissions.CAN_READ,
+				org.sakaiproject.nakamura.api.lite.authorizable.User.ANON_USER,
 				modifications);
 		accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES,
 				sparseAuthorizable.getId(), modifications
