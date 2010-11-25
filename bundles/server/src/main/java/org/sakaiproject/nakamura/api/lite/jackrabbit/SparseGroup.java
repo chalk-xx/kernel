@@ -28,7 +28,7 @@ public class SparseGroup extends SparseAuthorizable implements Group {
 			AuthorizableManager authorizableManager,
 			AccessControlManager accessControlManager, ValueFactory valueFactory) {
 		super(group, authorizableManager, accessControlManager, valueFactory);
-		this.principal = new SparsePrincipal(group.getId(), this.getClass().getName(), SparseMapUserManager.USERS_PATH);
+		this.principal = new SparsePrincipal(group.getId(), this.getClass().getName(), SparseMapUserManager.GROUPS_PATH);
 	}
 
 	public Iterator<Authorizable> getDeclaredMembers()
