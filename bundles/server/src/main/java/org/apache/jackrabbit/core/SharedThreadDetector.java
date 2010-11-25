@@ -15,15 +15,15 @@ public class SharedThreadDetector {
   private Exception bindingTrace;
   private Thread initThread;
   private int i;
-  private Session session;
+  private Object sharedObject;
 
-  public SharedThreadDetector(Session sesison) {
+  public SharedThreadDetector(Object sharedObject) {
     initThread = Thread.currentThread();
     bindingTrace = new Exception("Bound At");
-    this.session = sesison;
+    this.sharedObject = sharedObject;
   }
 
-  public void check(Session session) {
+  public void check(Object checkObject) {
     Thread cthread = Thread.currentThread();
     if (initThread != cthread) {
       Exception e = new Exception("Rebound " + i + " at");
@@ -34,9 +34,9 @@ public class SharedThreadDetector {
         PrintWriter pw = new PrintWriter(sw);
         pw.append("Violation Bound to ").append(String.valueOf(initThread));
         pw.append(" called by ").append(String.valueOf(cthread)).append("\n");
-        pw.append(" Session ").append(String.valueOf(this.session)).append("\n");
-        if (session != this.session) {
-          pw.append(" Calling Session Changed to ").append(String.valueOf(session))
+        pw.append(" Session ").append(String.valueOf(this.sharedObject)).append("\n");
+        if (checkObject != this.sharedObject) {
+          pw.append(" Calling Session Changed to ").append(String.valueOf(checkObject))
               .append("\n");
         }
         bindingTrace.printStackTrace(pw);
@@ -47,7 +47,7 @@ public class SharedThreadDetector {
       i++;
       initThread = Thread.currentThread();
       bindingTrace = e;
-      this.session = session;
+      this.sharedObject = checkObject;
     }
   }
 
