@@ -22,7 +22,7 @@ import javax.jcr.query.QueryResult;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 
@@ -36,7 +36,7 @@ public class AggregateIndexConfigurationTest {
 
   @Test
 	public void testAggregateIndex() throws IOException, RepositoryException,
-			InterruptedException, ConnectionPoolException,
+			InterruptedException, ClientPoolException,
 			StorageClientException, AccessDeniedException,
 			ClassNotFoundException {
     RepositoryBase repositoryBase = RepositoryBaseTest.getRepositoryBase();
