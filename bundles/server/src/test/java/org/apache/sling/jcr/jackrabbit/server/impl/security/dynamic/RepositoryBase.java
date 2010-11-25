@@ -32,14 +32,14 @@ import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.config.RepositoryConfig;
 import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider;
 import org.osgi.framework.BundleContext;
-import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.jackrabbit.SparseComponentHolder;
 import org.sakaiproject.nakamura.lite.ConfigurationImpl;
 import org.sakaiproject.nakamura.lite.authorizable.AuthorizableActivator;
 import org.sakaiproject.nakamura.lite.storage.StorageClient;
-import org.sakaiproject.nakamura.lite.storage.mem.MemoryStorageClientConnectionPool;
+import org.sakaiproject.nakamura.lite.storage.mem.MemoryStorageClientPool;
 
 import com.google.common.collect.Maps;
 
@@ -52,7 +52,7 @@ public class RepositoryBase {
 	private BundleContext bundleContext;
 	private org.sakaiproject.nakamura.lite.RepositoryImpl sparseRepository;
 	private ConfigurationImpl configuration;
-	private MemoryStorageClientConnectionPool connectionPool;
+	private MemoryStorageClientPool connectionPool;
 	private StorageClient client;
 
 	/**
@@ -72,7 +72,7 @@ public class RepositoryBase {
 
 		try {
 			setupSakaiActivator();
-		} catch (ConnectionPoolException e) {
+		} catch (ClientPoolException e) {
 			throw new RepositoryException(e.getMessage(),e);
 		} catch (StorageClientException e) {
 			throw new RepositoryException(e.getMessage(),e);
@@ -101,11 +101,11 @@ public class RepositoryBase {
 	/**
 	 * @throws AccessDeniedException
 	 * @throws StorageClientException
-	 * @throws ConnectionPoolException
+	 * @throws ClientPoolException
 	 * @throws ClassNotFoundException 
 	 * 
 	 */
-	private void setupSakaiActivator() throws ConnectionPoolException,
+	private void setupSakaiActivator() throws ClientPoolException,
 			StorageClientException, AccessDeniedException, ClassNotFoundException {
 		System.err.println("Bundle is " + bundleContext);
 		DynamicPrincipalManagerFactoryImpl dynamicPrincipalManagerFactoryImpl = new DynamicPrincipalManagerFactoryImpl(
@@ -126,9 +126,9 @@ public class RepositoryBase {
 
 		
 		// setup the Sparse Content Repository.
-		connectionPool = new MemoryStorageClientConnectionPool();
+		connectionPool = new MemoryStorageClientPool();
 		connectionPool.activate(new HashMap<String, Object>());
-		client = connectionPool.openConnection();
+		client = connectionPool.getClient();
 		configuration = new ConfigurationImpl();
 		Map<String, Object> properties = Maps.newHashMap();
 		properties.put("keyspace", "n");
@@ -148,6 +148,7 @@ public class RepositoryBase {
 	}
 
 	public void stop() {
+		client.close();
 		repository.shutdown();
 		sakaiActivator.stop(bundleContext);
 	}

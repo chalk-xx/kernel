@@ -17,7 +17,7 @@ import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.SessionListener;
-import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -26,8 +26,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.mysql.jdbc.jdbc2.optional.SuspendableXAConnection;
 
 public class SparseMapUserManager implements UserManager, SessionListener {
 
@@ -48,7 +46,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 	private AtomicInteger sessionCounter = new AtomicInteger();
 
 	public SparseMapUserManager(SessionImpl jcrSession, String adminId,
-			Properties config) throws ConnectionPoolException,
+			Properties config) throws ClientPoolException,
 			StorageClientException, AccessDeniedException {
 		sparseRepository = SparseComponentHolder.getSparseRepositoryInstance();
 		session = sparseRepository.loginAdministrative(jcrSession.getUserID());
@@ -232,7 +230,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 			if ( session != jcrSession ) {
 				LOGGER.warn("Odd session are not the same on login logout {} {} ",jcrSession,session);
 			}
-		} catch (ConnectionPoolException e) {
+		} catch (ClientPoolException e) {
 			LOGGER.error("Failed to logout ", e);
 		}
 	}

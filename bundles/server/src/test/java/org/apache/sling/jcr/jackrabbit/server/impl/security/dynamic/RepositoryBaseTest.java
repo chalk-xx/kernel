@@ -59,7 +59,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.osgi.framework.BundleContext;
-import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +74,7 @@ public class RepositoryBaseTest {
   private static RepositoryBase repositoryBase;
 
   public static RepositoryBase getRepositoryBase() throws IOException,
-      RepositoryException, ConnectionPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
+      RepositoryException, ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
     if (repositoryBase == null) {
       bundleContext = Mockito.mock(BundleContext.class);
       repositoryBase = new RepositoryBase(bundleContext);
@@ -99,7 +99,7 @@ public class RepositoryBaseTest {
 
   @Test
   public void testAnonLoginStartup() throws LoginException, RepositoryException,
-      IOException, ConnectionPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
+      IOException, ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     Session session = null;
     try {
@@ -117,7 +117,7 @@ public class RepositoryBaseTest {
 
   @Test
   public void testAdminLoginStartup() throws LoginException, RepositoryException,
-      IOException, ConnectionPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
+      IOException, ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     Session session = null;
     try {
@@ -150,7 +150,7 @@ public class RepositoryBaseTest {
 
   @Test
   public void testStandardPrincipal() throws LoginException, RepositoryException,
-      IOException, ConnectionPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
+      IOException, ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     JackrabbitSession session = null;
     try {
@@ -190,7 +190,7 @@ public class RepositoryBaseTest {
 			throws LoginException,
 			RepositoryException,
 			IOException,
-			ConnectionPoolException,
+			ClientPoolException,
 			StorageClientException,
 			org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
 			ClassNotFoundException {
@@ -216,7 +216,7 @@ public class RepositoryBaseTest {
   }
 
   @Test
-  public void testAddRuleBasedPrincipal() throws RepositoryException, IOException, ConnectionPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
+  public void testAddRuleBasedPrincipal() throws RepositoryException, IOException, ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     JackrabbitSession session = null;
     try {
@@ -314,7 +314,7 @@ public class RepositoryBaseTest {
 	public void testDateBaseACL()
 			throws IOException,
 			RepositoryException,
-			ConnectionPoolException,
+			ClientPoolException,
 			StorageClientException,
 			org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
 			ClassNotFoundException {
@@ -503,7 +503,7 @@ public class RepositoryBaseTest {
   @Test
   public void testUserAccessControl() throws LoginException, RepositoryException,
 			IOException,
-			ConnectionPoolException,
+			ClientPoolException,
 			StorageClientException,
 			org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
 			ClassNotFoundException {
