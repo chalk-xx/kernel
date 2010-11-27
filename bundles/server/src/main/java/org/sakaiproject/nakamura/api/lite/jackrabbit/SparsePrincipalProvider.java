@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 public class SparsePrincipalProvider implements PrincipalProvider {
 
@@ -132,8 +133,7 @@ public class SparsePrincipalProvider implements PrincipalProvider {
 		} catch (StorageClientException e) {
 			LOGGER.debug(e.getMessage(), e);
 		}
-		return new PrincipalIteratorAdapter(
-				(Iterator<? extends Principal>) ImmutableList.of().iterator());
+		return new PrincipalIteratorAdapter(Collections.EMPTY_LIST);
 	}
 
 	public PrincipalIterator getGroupMembership(Principal principal) {
