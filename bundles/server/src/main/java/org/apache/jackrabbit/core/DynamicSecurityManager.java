@@ -58,14 +58,13 @@ import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFa
 import org.apache.jackrabbit.core.security.authorization.WorkspaceAccessManager;
 import org.apache.jackrabbit.core.security.authorization.acl.DynamicAccessControlProviderFactoryImpl; // Nakamura Change
 import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
-import org.apache.jackrabbit.core.security.principal.DefaultPrincipalProvider;
-import org.apache.jackrabbit.core.security.principal.DynamicPrincipalProvider;
 import org.apache.jackrabbit.core.security.principal.PrincipalManagerImpl;
 import org.apache.jackrabbit.core.security.principal.PrincipalProvider;
 import org.apache.jackrabbit.core.security.principal.PrincipalProviderRegistry;
 // import org.apache.jackrabbit.core.security.principal.ProviderRegistryImpl; Nakamura Change
 import org.apache.jackrabbit.core.security.user.UserManagerImpl;
 import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivator; //Nakamura Change
+import org.sakaiproject.nakamura.api.lite.jackrabbit.SparsePrincipalProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -501,7 +500,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * @throws RepositoryException If an error occurs.
      */
     protected PrincipalProvider createDefaultPrincipalProvider() throws RepositoryException {
-        PrincipalProvider defaultPP = new DynamicPrincipalProvider(this.systemSession, (UserManager) systemUserManager);
+        PrincipalProvider defaultPP = new SparsePrincipalProvider();
         defaultPP.init(new Properties());
         return defaultPP;
     }
