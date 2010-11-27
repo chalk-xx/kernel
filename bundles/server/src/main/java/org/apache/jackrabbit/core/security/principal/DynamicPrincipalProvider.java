@@ -100,7 +100,6 @@ public class DynamicPrincipalProvider extends AbstractPrincipalProvider implemen
 
         this.userManager = userManager;
         everyonePrincipal = EveryonePrincipal.getInstance();
-        membershipCache = new ConcurrentLRUMap<String, Set<Principal>>();
 
         // listen to modifications of group-membership
         String[] ntNames = new String[2];
@@ -118,6 +117,8 @@ public class DynamicPrincipalProvider extends AbstractPrincipalProvider implemen
         }
 
         if ( userManager instanceof UserManagerImpl ) {
+        	// only cache if we can can invalidate the cache
+            membershipCache = new ConcurrentLRUMap<String, Set<Principal>>();
 	        String groupPath = ((UserManagerImpl) userManager).getGroupsPath();
 	        String userPath = ((UserManagerImpl) userManager).getUsersPath();
 	        String targetPath = groupPath;
@@ -131,6 +132,8 @@ public class DynamicPrincipalProvider extends AbstractPrincipalProvider implemen
 	                null,
 	                ntNames,
 	                false);
+        } else {
+        	membershipCache = null;
         }
     }
 
@@ -222,8 +225,10 @@ public class DynamicPrincipalProvider extends AbstractPrincipalProvider implemen
      */
     public PrincipalIterator getGroupMembership(Principal userPrincipal) {
         checkInitialized();
-        Set<Principal> mship;
-        mship = membershipCache.get(userPrincipal.getName());
+        Set<Principal> mship = null;
+        if ( membershipCache != null ) {
+        	mship = membershipCache.get(userPrincipal.getName());
+        }
         if (mship == null) {
             // recursively collect group membership
             mship = collectGroupMembership(userPrincipal);
@@ -232,7 +237,9 @@ public class DynamicPrincipalProvider extends AbstractPrincipalProvider implemen
             if (!mship.contains(everyonePrincipal) && everyonePrincipal.isMember(userPrincipal)) {
                 mship.add(everyonePrincipal);
             }
-            membershipCache.put(userPrincipal.getName(), mship);
+            if ( membershipCache != null ) {
+            	membershipCache.put(userPrincipal.getName(), mship);
+            }
         }
         return new PrincipalIteratorAdapter(mship);
 
@@ -244,7 +251,9 @@ public class DynamicPrincipalProvider extends AbstractPrincipalProvider implemen
     @Override
     public void close() {
         super.close();
-        membershipCache.clear();
+        if ( membershipCache != null ) {
+        	membershipCache.clear();
+        }
     }
 
     /**
@@ -287,7 +296,9 @@ public class DynamicPrincipalProvider extends AbstractPrincipalProvider implemen
                     || type == Event.PROPERTY_REMOVED) {
                 try {
                     if (pMembers.equals(Text.getName(ev.getPath()))) {
-                        membershipCache.clear();
+                        if ( membershipCache != null ) {
+                        	membershipCache.clear();
+                        }
                         break;
                     }
                 } catch (RepositoryException e) {
