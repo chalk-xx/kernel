@@ -7,6 +7,8 @@ import javax.jcr.RepositoryException;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.principal.JackrabbitPrincipal;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 
 public class SparsePrincipal implements ItemBasedPrincipal {
 
@@ -21,6 +23,10 @@ public class SparsePrincipal implements ItemBasedPrincipal {
 		this.path = basePath +"/"+StorageClientUtils.shardPath(principalId);
 		this.location = location;
 
+	}
+
+	public SparsePrincipal(Authorizable ath, String location) {
+		this(ath.getId(),location,(ath instanceof Group)?GROUP_REPO_LOCATION:USER_REPO_LOCATION);
 	}
 
 	public String getName() {
