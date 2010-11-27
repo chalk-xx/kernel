@@ -101,6 +101,7 @@ class TC_Kern926Test < Test::Unit::TestCase
     res = @fm.upload_pooled_file(name, "Add the time to make it sort of random #{Time.now.to_f}.", 'text/plain')
     json = JSON.parse(res.body)
     id = json[name]
+    url = @fm.url_for_pooled_file(id)
 
     # Search the files that I manage .. should be 1
     res = @fm.search_my_managed("*")
@@ -133,12 +134,31 @@ class TC_Kern926Test < Test::Unit::TestCase
     assert_not_nil(group, "Expected to be able to create a group.")
     group.add_members(@s, [groupuser.name])
     res = @fm.manage_members(id, group.name, nil, nil, nil)
+    assert_equal("200",res.code)
+    res = @s.execute_get("#{url}.tidy.10.json")
+    @log.info("Got File at #{url} as #{res.body}")
+    
+    props  = @um.get_group_props(group.name)
+    members = props["members"]
+    assert_not_nil(members)
+    assert_equal(members.include?(groupuser.name),true)
+
+    @log.info("Got Group Props for #{group.name} as #{props["members"]} which contains #{groupuser.name}")
+
+    
 
     # The group user should now see 1 file.
     @s.switch_user(groupuser)
+    # is does groupuser have group as one of its principals, it should do
+    props  = @um.get_user_props(groupuser.name)
+    principals = props["principals"]
+    assert_not_nil(principals)
+    assert_equal(principals.include?(group.name),true)
+    @log.info("Got User principals for #{groupuser.name} as #{principals} which contains #{group.name}")
+    
     res = @fm.search_my_viewed("*")
     files = JSON.parse(res.body)
-    assert_equal(1, files["total"], "Expected 1 file.")
+    assert_equal(1, files["total"], "Expected 1 file. #{res.body}")
   end
 
 end
