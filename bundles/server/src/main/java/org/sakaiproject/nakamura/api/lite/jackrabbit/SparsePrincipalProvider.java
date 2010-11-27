@@ -2,6 +2,7 @@ package org.sakaiproject.nakamura.api.lite.jackrabbit;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -136,14 +137,12 @@ public class SparsePrincipalProvider implements PrincipalProvider {
 		return new PrincipalIteratorAdapter(Collections.EMPTY_LIST);
 	}
 
-	public PrincipalIterator getGroupMembership(Principal principal) {
+	public PrincipalIterator getGroupMembership(final Principal principal) {
 		final List<String> memberIds = new ArrayList<String>();
 		try {
 			org.sakaiproject.nakamura.api.lite.authorizable.Authorizable a = authorizableManager
 					.findAuthorizable(principal.getName());
-			if (a instanceof Group) {
-				Collections.addAll(memberIds, ((Group) a).getMembers());
-			}
+			Collections.addAll(memberIds, a.getPrincipals());
 		} catch (AccessDeniedException e) {
 			LOGGER.debug(e.getMessage(), e);
 		} catch (StorageClientException e) {
@@ -154,11 +153,12 @@ public class SparsePrincipalProvider implements PrincipalProvider {
 			memberIds.add(everyonePrincipal.getName());
 			addToCache(principal);
 		}
+		LOGGER.info("Starting with membership of {}",Arrays.toString(memberIds.toArray(new String[memberIds.size()])));
 
 		return new PrincipalIteratorAdapter(new Iterator<Principal>() {
 
-			private int p;
-			private Principal principal;
+			private int p = 0;
+			private Principal prin = null;
 
 			public boolean hasNext() {
 				while (p < memberIds.size()) {
@@ -166,7 +166,7 @@ public class SparsePrincipalProvider implements PrincipalProvider {
 					p++;
 					try {
 						if (everyonePrincipal.getName().equals(id)) {
-							principal = everyonePrincipal;
+							prin = everyonePrincipal;
 							return true;
 						} else {
 							org.sakaiproject.nakamura.api.lite.authorizable.Authorizable a = authorizableManager
@@ -178,20 +178,20 @@ public class SparsePrincipalProvider implements PrincipalProvider {
 									}
 								}
 								if (cache.containsKey(id)) {
-									principal = cache.get(id);
+									prin = cache.get(id);
 								} else {
-									principal = new SparsePrincipal(a, this
+									prin = new SparsePrincipal(a, this
 											.getClass().getName());
-									addToCache(principal);
+									addToCache(prin);
 								}
 								return true;
 							} else if (a instanceof org.sakaiproject.nakamura.api.lite.authorizable.User) {
 								if (cache.containsKey(id)) {
-									principal = cache.get(id);
+									prin = cache.get(id);
 								} else {
-									principal = new SparsePrincipal(a, this
+									prin = new SparsePrincipal(a, this
 											.getClass().getName());
-									addToCache(principal);
+									addToCache(prin);
 								}
 								return true;
 							}
@@ -202,11 +202,12 @@ public class SparsePrincipalProvider implements PrincipalProvider {
 						LOGGER.debug(e.getMessage(), e);
 					}
 				}
+				LOGGER.info("++++++++++++++++ Final Membership for {} was {} ",principal.getName(), Arrays.toString(memberIds.toArray(new String[memberIds.size()])));
 				return false;
 			}
 
 			public Principal next() {
-				return principal;
+				return prin;
 			}
 
 			public void remove() {
