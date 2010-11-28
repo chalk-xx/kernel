@@ -17,6 +17,29 @@
  */
 package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.JackrabbitAccessControlList;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
+import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.jackrabbit.core.security.AnonymousPrincipal;
+import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipal;
+import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
+import org.apache.sling.jcr.jackrabbit.server.security.dynamic.ISO8601Date;
+import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleACLModifier;
+import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RulesBasedAce;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.osgi.framework.BundleContext;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
@@ -40,30 +63,6 @@ import javax.jcr.security.AccessControlPolicy;
 import javax.jcr.security.AccessControlPolicyIterator;
 import javax.jcr.security.Privilege;
 
-import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.JackrabbitAccessControlList;
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
-import org.apache.jackrabbit.api.security.principal.PrincipalManager;
-import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.User;
-import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.core.security.AnonymousPrincipal;
-import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipal;
-import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
-import org.apache.sling.jcr.jackrabbit.server.security.dynamic.ISO8601Date;
-import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleACLModifier;
-import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RulesBasedAce;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.osgi.framework.BundleContext;
-import org.sakaiproject.nakamura.api.lite.ClientPoolException;
-import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  *
  */
@@ -74,7 +73,9 @@ public class RepositoryBaseTest {
   private static RepositoryBase repositoryBase;
 
   public static RepositoryBase getRepositoryBase() throws IOException,
-      RepositoryException, ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
+      RepositoryException, ClientPoolException, StorageClientException,
+      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      ClassNotFoundException {
     if (repositoryBase == null) {
       bundleContext = Mockito.mock(BundleContext.class);
       repositoryBase = new RepositoryBase(bundleContext);
@@ -99,7 +100,9 @@ public class RepositoryBaseTest {
 
   @Test
   public void testAnonLoginStartup() throws LoginException, RepositoryException,
-      IOException, ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
+      IOException, ClientPoolException, StorageClientException,
+      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     Session session = null;
     try {
@@ -117,7 +120,9 @@ public class RepositoryBaseTest {
 
   @Test
   public void testAdminLoginStartup() throws LoginException, RepositoryException,
-      IOException, ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
+      IOException, ClientPoolException, StorageClientException,
+      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     Session session = null;
     try {
@@ -150,7 +155,9 @@ public class RepositoryBaseTest {
 
   @Test
   public void testStandardPrincipal() throws LoginException, RepositoryException,
-      IOException, ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
+      IOException, ClientPoolException, StorageClientException,
+      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     JackrabbitSession session = null;
     try {
@@ -186,14 +193,10 @@ public class RepositoryBaseTest {
   }
 
   @Test
-	public void testAcePrincipal()
-			throws LoginException,
-			RepositoryException,
-			IOException,
-			ClientPoolException,
-			StorageClientException,
-			org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
-			ClassNotFoundException {
+  public void testAcePrincipal() throws LoginException, RepositoryException, IOException,
+      ClientPoolException, StorageClientException,
+      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     JackrabbitSession session = null;
     try {
@@ -216,7 +219,10 @@ public class RepositoryBaseTest {
   }
 
   @Test
-  public void testAddRuleBasedPrincipal() throws RepositoryException, IOException, ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
+  public void testAddRuleBasedPrincipal() throws RepositoryException, IOException,
+      ClientPoolException, StorageClientException,
+      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     JackrabbitSession session = null;
     try {
@@ -286,8 +292,8 @@ public class RepositoryBaseTest {
           vf.createValue(range[3]) };
       ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, vf.createValue(range[0]));
 
-      Map<String, Object> propMap = ruleAclModifier.setProperties(resourcePath, session, principal,
-          ruleProperties);
+      Map<String, Object> propMap = ruleAclModifier.setProperties(resourcePath, session,
+          principal, ruleProperties);
       Assert.assertEquals(1, propMap.size());
       Assert.assertTrue(propMap.containsKey(RulesBasedAce.P_ACTIVE_RANGE));
       Property sp = (Property) propMap.get(RulesBasedAce.P_ACTIVE_RANGE);
@@ -295,13 +301,14 @@ public class RepositoryBaseTest {
 
       LOGGER.info("Setting Active Range to an array ++++++++++++++++");
       ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, ranges);
-      propMap = ruleAclModifier.setProperties(resourcePath, session, principal, ruleProperties);
+      propMap = ruleAclModifier.setProperties(resourcePath, session, principal,
+          ruleProperties);
       LOGGER.info("Setting Active Range to an array ----------------");
       Assert.assertTrue(propMap.containsKey(RulesBasedAce.P_ACTIVE_RANGE));
-      Property[] p = (Property[]) propMap.get(RulesBasedAce.P_ACTIVE_RANGE); 
+      Property[] p = (Property[]) propMap.get(RulesBasedAce.P_ACTIVE_RANGE);
       Assert.assertEquals(3, p.length);
       for (int i = 0; i < 3; i++) {
-        Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE+i, p[i].getName());
+        Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE + i, p[i].getName());
         Assert.assertEquals(range[i + 1], p[i].getString());
       }
     } finally {
@@ -311,13 +318,10 @@ public class RepositoryBaseTest {
   }
 
   @Test
-	public void testDateBaseACL()
-			throws IOException,
-			RepositoryException,
-			ClientPoolException,
-			StorageClientException,
-			org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
-			ClassNotFoundException {
+  public void testDateBaseACL() throws IOException, RepositoryException,
+      ClientPoolException, StorageClientException,
+      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     JackrabbitSession session = null;
     try {
@@ -327,31 +331,29 @@ public class RepositoryBaseTest {
       LOGGER.info("Done Opening Admin Session ");
       PrincipalManager principalManager = session.getPrincipalManager();
 
-      String testNode = "testDateBaseACLNode"+System.currentTimeMillis();
-      String testUserId = "testUser"+System.currentTimeMillis();
+      String testNode = "testDateBaseACLNode" + System.currentTimeMillis();
+      String testUserId = "testUser" + System.currentTimeMillis();
 
       Node node = session.getRootNode().addNode(testNode);
 
       String resourcePath = node.getPath();
 
-
-
-
       // create a user
       UserManager userManager = session.getUserManager();
       userManager.createUser(testUserId, "testpassword");
 
-      if ( session.hasPendingChanges() ) {
+      if (session.hasPendingChanges()) {
         session.save();
       }
       session.logout();
 
       // login as testUserId and test the theory we can see the node.
 
-      LOGGER.info("Opening {} Session For testing read of  {} , Should be OK ", testUserId, testNode);
-      session = (JackrabbitSession) repo.login(new SimpleCredentials(testUserId, "testpassword"
-          .toCharArray()));
-      Node testN = session.getNode("/"+testNode);
+      LOGGER.info("Opening {} Session For testing read of  {} , Should be OK ",
+          testUserId, testNode);
+      session = (JackrabbitSession) repo.login(new SimpleCredentials(testUserId,
+          "testpassword".toCharArray()));
+      Node testN = session.getNode("/" + testNode);
       Assert.assertNotNull(testN);
       session.logout();
       LOGGER.info("Was OK reading {} ", testNode);
@@ -396,14 +398,12 @@ public class RepositoryBaseTest {
 
       acl.addEntry(principal, privileges, false); // deny all for ieb
 
-
       accessControlManager.setPolicy(resourcePath, acl);
       // At this point the ACL is in place, but its not rules based
       // Next we set some properties on that ACL using the principal as a Key
-      // and activate it. At this moment ieb should still be able to read the node, as the ACE
+      // and activate it. At this moment ieb should still be able to read the node, as the
+      // ACE
       // although deny binds to some strange principal.
-
-
 
       // make the ACL a rules based.
       RuleACLModifier ruleAclModifier = new RuleACLModifier();
@@ -414,33 +414,35 @@ public class RepositoryBaseTest {
       // set the time so this ACL is active.
       long now = System.currentTimeMillis();
       ISO8601Date start = new ISO8601Date();
-        start.setTimeInMillis(now - 3600000L);
-        ISO8601Date end = new ISO8601Date();
-        end.setTimeInMillis(now + 3600000L);
-      String  range = start.toString() + "/" + end.toString();
-      System.err.println("Date Range is "+range);
+      start.setTimeInMillis(now - 3600000L);
+      ISO8601Date end = new ISO8601Date();
+      end.setTimeInMillis(now + 3600000L);
+      String range = start.toString() + "/" + end.toString();
+      System.err.println("Date Range is " + range);
 
       ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, vf.createValue(range));
 
-      Map<String, Object> propMap = ruleAclModifier.setProperties(resourcePath, session, principal,
-          ruleProperties);
+      Map<String, Object> propMap = ruleAclModifier.setProperties(resourcePath, session,
+          principal, ruleProperties);
       Assert.assertTrue(propMap.containsKey(RulesBasedAce.P_ACTIVE_RANGE));
-      Property p = (Property) propMap.get(RulesBasedAce.P_ACTIVE_RANGE); 
+      Property p = (Property) propMap.get(RulesBasedAce.P_ACTIVE_RANGE);
       Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE, p.getName());
       Assert.assertEquals(range, p.getString());
 
-      if ( session.hasPendingChanges() ) {
+      if (session.hasPendingChanges()) {
         session.save();
       }
       session.logout();
 
-      LOGGER.info("Opening {} Session For testing read of  {} , Should Fail ", testUserId, testNode);
-      session = (JackrabbitSession) repo.login(new SimpleCredentials(testUserId, "testpassword"
-          .toCharArray()));
+      LOGGER.info("Opening {} Session For testing read of  {} , Should Fail ",
+          testUserId, testNode);
+      session = (JackrabbitSession) repo.login(new SimpleCredentials(testUserId,
+          "testpassword".toCharArray()));
       try {
-        testN = session.getNode("/"+testNode);
-        Assert.fail(); // the Rules based ACL should have prevented me from accessing the node.
-      } catch ( PathNotFoundException e) {
+        testN = session.getNode("/" + testNode);
+        Assert.fail(); // the Rules based ACL should have prevented me from accessing the
+                       // node.
+      } catch (PathNotFoundException e) {
         // OK
       }
       session.logout();
@@ -450,8 +452,6 @@ public class RepositoryBaseTest {
       // log back in as admin, to make the ACL active.
       session = (JackrabbitSession) repo.login(new SimpleCredentials("admin", "admin"
           .toCharArray()));
-
-
 
       // make the ACL a rules based.
       ruleAclModifier = new RuleACLModifier();
@@ -464,10 +464,10 @@ public class RepositoryBaseTest {
       start = new ISO8601Date();
       start.setTimeInMillis(now + 3600000L);
       end = new ISO8601Date();
-      end.setTimeInMillis(now + 2*3600000L);
+      end.setTimeInMillis(now + 2 * 3600000L);
       range = start.toString() + "/" + end.toString();
 
-      System.err.println("Date Range is "+range);
+      System.err.println("Date Range is " + range);
 
       ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, vf.createValue(range));
 
@@ -475,23 +475,23 @@ public class RepositoryBaseTest {
           ruleProperties);
       Assert.assertEquals(1, propMap.size());
       Assert.assertTrue(propMap.containsKey(RulesBasedAce.P_ACTIVE_RANGE));
-      p = (Property) propMap.get(RulesBasedAce.P_ACTIVE_RANGE);      
+      p = (Property) propMap.get(RulesBasedAce.P_ACTIVE_RANGE);
       Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE, p.getName());
       Assert.assertEquals(range, p.getString());
 
-      if ( session.hasPendingChanges() ) {
+      if (session.hasPendingChanges()) {
         session.save();
       }
       session.logout();
 
-      LOGGER.info("Opening {} Session For testing read of  {} , Should be OK ", testUserId, testNode);
+      LOGGER.info("Opening {} Session For testing read of  {} , Should be OK ",
+          testUserId, testNode);
 
-      session = (JackrabbitSession) repo.login(new SimpleCredentials(testUserId, "testpassword"
-          .toCharArray()));
-      testN = session.getNode("/"+testNode);
+      session = (JackrabbitSession) repo.login(new SimpleCredentials(testUserId,
+          "testpassword".toCharArray()));
+      testN = session.getNode("/" + testNode);
       session.logout();
       LOGGER.info("Was OK {} ", testNode);
-
 
     } finally {
       session.logout();
@@ -499,14 +499,11 @@ public class RepositoryBaseTest {
 
   }
 
-
   @Test
   public void testUserAccessControl() throws LoginException, RepositoryException,
-			IOException,
-			ClientPoolException,
-			StorageClientException,
-			org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
-			ClassNotFoundException {
+      IOException, ClientPoolException, StorageClientException,
+      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      ClassNotFoundException {
     Repository repo = getRepositoryBase().getRepository();
     JackrabbitSession session = null;
     try {
@@ -562,8 +559,8 @@ public class RepositoryBaseTest {
       }
       testUserU = (User) userManager.getAuthorizable(testViewerUser);
       try {
-        testUserU.setProperty("mytestvale", session.getValueFactory().createValue(
-            "cant-do-this-wrong-user"));
+        testUserU.setProperty("mytestvale",
+            session.getValueFactory().createValue("cant-do-this-wrong-user"));
         Assert.fail();
       } catch (AccessDeniedException e) {
         // Ok
@@ -572,13 +569,13 @@ public class RepositoryBaseTest {
         session.save();
       }
       Group group1 = (Group) userManager.getAuthorizable(groupPrincipal);
-      Value [] v = group1.getProperty("rep:group-managers");
+      Value[] v = group1.getProperty("rep:group-managers");
       Assert.assertNotNull(v);
-      Assert.assertEquals(1,v.length);
+      Assert.assertEquals(1, v.length);
       Assert.assertEquals("dummy", v[0].getString());
       try {
-        group1.setProperty("mytestvale", session.getValueFactory().createValue(
-            "cant-do-this-wrong-user"));
+        group1.setProperty("mytestvale",
+            session.getValueFactory().createValue("cant-do-this-wrong-user"));
         Assert.fail();
       } catch (AccessDeniedException e) {
         // Ok
@@ -593,7 +590,8 @@ public class RepositoryBaseTest {
           "testpassword".toCharArray()));
       userManager = session.getUserManager();
 
-      System.err.println(testUser+" Trying to get Authorizable for "+group2Principal.getName());
+      System.err.println(testUser + " Trying to get Authorizable for "
+          + group2Principal.getName());
       Group group2 = (Group) userManager.getAuthorizable(group2Principal);
       Assert.assertNull(group2);// should not have been able to read group2.
 
@@ -602,17 +600,18 @@ public class RepositoryBaseTest {
       session = (JackrabbitSession) repo.login(new SimpleCredentials(testViewerUser,
           "testpassword".toCharArray()));
       userManager = session.getUserManager();
-      System.err.println(testViewerUser+" Trying to get Authorizable for "+group2Principal.getName());
+      System.err.println(testViewerUser + " Trying to get Authorizable for "
+          + group2Principal.getName());
       group2 = (Group) userManager.getAuthorizable(group2Principal);
       Assert.assertNotNull(group2);
       v = group2.getProperty("rep:group-managers");
       Assert.assertNotNull(v);
-      Assert.assertEquals(1,v.length);
+      Assert.assertEquals(1, v.length);
       Assert.assertEquals(testManagerUser, v[0].getString());
 
       try {
-        group2.setProperty("mytestvale", session.getValueFactory().createValue(
-            "cant-do-this-wrong-user"));
+        group2.setProperty("mytestvale",
+            session.getValueFactory().createValue("cant-do-this-wrong-user"));
         Assert.fail();
       } catch (AccessDeniedException e) {
         // Ok
@@ -627,10 +626,10 @@ public class RepositoryBaseTest {
       Assert.assertNotNull(group2); // should be able to see the group
       v = group2.getProperty("rep:group-managers");
       Assert.assertNotNull(v);
-      Assert.assertEquals(1,v.length);
+      Assert.assertEquals(1, v.length);
       Assert.assertEquals(testManagerUser, v[0].getString());
-      group2.setProperty("mytestvale", session.getValueFactory().createValue(
-          "cant-do-this-wrong-user"));
+      group2.setProperty("mytestvale",
+          session.getValueFactory().createValue("cant-do-this-wrong-user"));
 
     } finally {
       session.logout();
