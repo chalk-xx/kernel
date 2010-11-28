@@ -153,7 +153,6 @@ public class SparsePrincipalProvider implements PrincipalProvider {
 			memberIds.add(everyonePrincipal.getName());
 			addToCache(principal);
 		}
-		LOGGER.info("Starting with membership of {}",Arrays.toString(memberIds.toArray(new String[memberIds.size()])));
 
 		return new PrincipalIteratorAdapter(new Iterator<Principal>() {
 
@@ -202,7 +201,6 @@ public class SparsePrincipalProvider implements PrincipalProvider {
 						LOGGER.debug(e.getMessage(), e);
 					}
 				}
-				LOGGER.info("++++++++++++++++ Final Membership for {} was {} ",principal.getName(), Arrays.toString(memberIds.toArray(new String[memberIds.size()])));
 				return false;
 			}
 
