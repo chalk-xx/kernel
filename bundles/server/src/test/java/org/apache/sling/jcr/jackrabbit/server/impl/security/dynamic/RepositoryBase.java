@@ -17,15 +17,7 @@
  */
 package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
+import com.google.common.collect.Maps;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.jackrabbit.core.RepositoryImpl;
@@ -41,123 +33,124 @@ import org.sakaiproject.nakamura.lite.authorizable.AuthorizableActivator;
 import org.sakaiproject.nakamura.lite.storage.StorageClient;
 import org.sakaiproject.nakamura.lite.storage.mem.MemoryStorageClientPool;
 
-import com.google.common.collect.Maps;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
 
 /**
  *
  */
 public class RepositoryBase {
-	private RepositoryImpl repository;
-	private SakaiActivator sakaiActivator;
-	private BundleContext bundleContext;
-	private org.sakaiproject.nakamura.lite.RepositoryImpl sparseRepository;
-	private ConfigurationImpl configuration;
-	private MemoryStorageClientPool connectionPool;
-	private StorageClient client;
+  private RepositoryImpl repository;
+  private SakaiActivator sakaiActivator;
+  private BundleContext bundleContext;
+  private org.sakaiproject.nakamura.lite.RepositoryImpl sparseRepository;
+  private ConfigurationImpl configuration;
+  private MemoryStorageClientPool connectionPool;
+  private StorageClient client;
 
-	/**
+  /**
    *
    */
-	public RepositoryBase(BundleContext bundleContext) {
-		this.bundleContext = bundleContext;
-	}
+  public RepositoryBase(BundleContext bundleContext) {
+    this.bundleContext = bundleContext;
+  }
 
-	public void start() throws IOException, RepositoryException {
-		File home = new File("target/testrepo");
-		if (home.exists()) {
-			FileUtils.deleteDirectory(home);
-		}
-		InputStream ins = this.getClass().getClassLoader()
-				.getResourceAsStream("test-repository.xml");
+  public void start() throws IOException, RepositoryException {
+    File home = new File("target/testrepo");
+    if (home.exists()) {
+      FileUtils.deleteDirectory(home);
+    }
+    InputStream ins = this.getClass().getClassLoader()
+        .getResourceAsStream("test-repository.xml");
 
-		try {
-			setupSakaiActivator();
-		} catch (ClientPoolException e) {
-			throw new RepositoryException(e.getMessage(),e);
-		} catch (StorageClientException e) {
-			throw new RepositoryException(e.getMessage(),e);
-		} catch (AccessDeniedException e) {
-			throw new RepositoryException(e.getMessage(),e);
-		} catch (ClassNotFoundException e) {
-			throw new RepositoryException(e.getMessage(),e);
-		}
-		RepositoryConfig crc = RepositoryConfig.create(ins,
-				home.getAbsolutePath());
-		repository = RepositoryImpl.create(crc);
-		Session session = repository.login(new SimpleCredentials("admin",
-				"admin".toCharArray()));
-		session.getWorkspace()
-				.getNamespaceRegistry()
-				.registerNamespace("sakai",
-						"http://www.sakaiproject.org/nakamura/2.0");
-		session.getWorkspace().getNamespaceRegistry()
-				.registerNamespace("sling", "http://sling.apache.org/testing");
-		if (session.hasPendingChanges()) {
-			session.save();
-		}
-		session.logout();
-	}
+    try {
+      setupSakaiActivator();
+    } catch (ClientPoolException e) {
+      throw new RepositoryException(e.getMessage(), e);
+    } catch (StorageClientException e) {
+      throw new RepositoryException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      throw new RepositoryException(e.getMessage(), e);
+    } catch (ClassNotFoundException e) {
+      throw new RepositoryException(e.getMessage(), e);
+    }
+    RepositoryConfig crc = RepositoryConfig.create(ins, home.getAbsolutePath());
+    repository = RepositoryImpl.create(crc);
+    Session session = repository.login(new SimpleCredentials("admin", "admin"
+        .toCharArray()));
+    session.getWorkspace().getNamespaceRegistry()
+        .registerNamespace("sakai", "http://www.sakaiproject.org/nakamura/2.0");
+    session.getWorkspace().getNamespaceRegistry()
+        .registerNamespace("sling", "http://sling.apache.org/testing");
+    if (session.hasPendingChanges()) {
+      session.save();
+    }
+    session.logout();
+  }
 
-	/**
-	 * @throws AccessDeniedException
-	 * @throws StorageClientException
-	 * @throws ClientPoolException
-	 * @throws ClassNotFoundException 
-	 * 
-	 */
-	private void setupSakaiActivator() throws ClientPoolException,
-			StorageClientException, AccessDeniedException, ClassNotFoundException {
-		System.err.println("Bundle is " + bundleContext);
-		DynamicPrincipalManagerFactoryImpl dynamicPrincipalManagerFactoryImpl = new DynamicPrincipalManagerFactoryImpl(
-				bundleContext);
-		RuleProcessorManagerImpl ruleProcessorManagerImpl = new RuleProcessorManagerImpl(
-				bundleContext);
-		PrincipalProviderRegistryManagerImpl principalProviderRegistryManagerImpl = new PrincipalProviderRegistryManagerImpl(
-				bundleContext);
-		principalProviderRegistryManagerImpl
-				.addProvider(new RulesPrincipalProvider());
-		SakaiActivator
-				.setDynamicPrincipalManagerFactory(dynamicPrincipalManagerFactoryImpl);
-		SakaiActivator.setRuleProcessorManager(ruleProcessorManagerImpl);
-		SakaiActivator
-				.setPrincipalProviderManager(principalProviderRegistryManagerImpl);
-		sakaiActivator = new SakaiActivator();
-		sakaiActivator.start(bundleContext);
+  /**
+   * @throws AccessDeniedException
+   * @throws StorageClientException
+   * @throws ClientPoolException
+   * @throws ClassNotFoundException
+   * 
+   */
+  private void setupSakaiActivator() throws ClientPoolException, StorageClientException,
+      AccessDeniedException, ClassNotFoundException {
+    System.err.println("Bundle is " + bundleContext);
+    DynamicPrincipalManagerFactoryImpl dynamicPrincipalManagerFactoryImpl = new DynamicPrincipalManagerFactoryImpl(
+        bundleContext);
+    RuleProcessorManagerImpl ruleProcessorManagerImpl = new RuleProcessorManagerImpl(
+        bundleContext);
+    PrincipalProviderRegistryManagerImpl principalProviderRegistryManagerImpl = new PrincipalProviderRegistryManagerImpl(
+        bundleContext);
+    principalProviderRegistryManagerImpl.addProvider(new RulesPrincipalProvider());
+    SakaiActivator.setDynamicPrincipalManagerFactory(dynamicPrincipalManagerFactoryImpl);
+    SakaiActivator.setRuleProcessorManager(ruleProcessorManagerImpl);
+    SakaiActivator.setPrincipalProviderManager(principalProviderRegistryManagerImpl);
+    sakaiActivator = new SakaiActivator();
+    sakaiActivator.start(bundleContext);
 
-		
-		// setup the Sparse Content Repository.
-		connectionPool = new MemoryStorageClientPool();
-		connectionPool.activate(new HashMap<String, Object>());
-		client = connectionPool.getClient();
-		configuration = new ConfigurationImpl();
-		Map<String, Object> properties = Maps.newHashMap();
-		properties.put("keyspace", "n");
-		properties.put("acl-column-family", "ac");
-		properties.put("authorizable-column-family", "au");
-		properties.put("content-column-family", "cn");
-		configuration.activate(properties);
-		AuthorizableActivator authorizableActivator = new AuthorizableActivator(
-				client, configuration);
-		authorizableActivator.setup();
+    // setup the Sparse Content Repository.
+    connectionPool = new MemoryStorageClientPool();
+    connectionPool.activate(new HashMap<String, Object>());
+    client = connectionPool.getClient();
+    configuration = new ConfigurationImpl();
+    Map<String, Object> properties = Maps.newHashMap();
+    properties.put("keyspace", "n");
+    properties.put("acl-column-family", "ac");
+    properties.put("authorizable-column-family", "au");
+    properties.put("content-column-family", "cn");
+    configuration.activate(properties);
+    AuthorizableActivator authorizableActivator = new AuthorizableActivator(client,
+        configuration);
+    authorizableActivator.setup();
 
-		sparseRepository = new org.sakaiproject.nakamura.lite.RepositoryImpl();
-		sparseRepository.setConfiguration(configuration);
-		sparseRepository.setConnectionPool(connectionPool);
-		sparseRepository.activate(new HashMap<String, Object>());
-		SparseComponentHolder.setSparseRespository(sparseRepository);
-	}
+    sparseRepository = new org.sakaiproject.nakamura.lite.RepositoryImpl();
+    sparseRepository.setConfiguration(configuration);
+    sparseRepository.setConnectionPool(connectionPool);
+    sparseRepository.activate(new HashMap<String, Object>());
+    SparseComponentHolder.setSparseRespository(sparseRepository);
+  }
 
-	public void stop() {
-		client.close();
-		repository.shutdown();
-		sakaiActivator.stop(bundleContext);
-	}
+  public void stop() {
+    client.close();
+    repository.shutdown();
+    sakaiActivator.stop(bundleContext);
+  }
 
-	/**
-	 * @return the repository
-	 */
-	public RepositoryImpl getRepository() {
-		return repository;
-	}
+  /**
+   * @return the repository
+   */
+  public RepositoryImpl getRepository() {
+    return repository;
+  }
 
 }
