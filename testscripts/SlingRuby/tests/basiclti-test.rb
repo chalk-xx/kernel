@@ -11,7 +11,7 @@ require 'rexml/streamlistener'
 include REXML
 include SlingUsers
 
-class TC_Kern566Test < Test::Unit::TestCase
+class TC_BasicLTI < Test::Unit::TestCase
   include SlingTest
 
   def setup
