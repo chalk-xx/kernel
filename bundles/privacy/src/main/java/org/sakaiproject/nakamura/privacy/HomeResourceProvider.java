@@ -61,10 +61,10 @@ public class HomeResourceProvider implements ResourceProvider {
       return null;
     }
     char c = path.charAt(1);
-    if ( !(c == '~'  || c == 'u' || c =='g')  ) {
+    if (!(c == '~' || c == 'u' || c == 'g')) {
       return null;
     }
-    if ("/~".equals(path) || "/user".equals(path)  || "/group".equals(path) ) {
+    if ("/~".equals(path) || "/user".equals(path) || "/group".equals(path)) {
       return null;
     }
     try {
@@ -80,12 +80,12 @@ public class HomeResourceProvider implements ResourceProvider {
     String subPath = null;
     if (path.startsWith("/~")) {
       subPath = path.substring("/~".length());
-    } else if ( path.startsWith("/user/") ) {
+    } else if (path.startsWith("/user/")) {
       subPath = path.substring("/user/".length());
-    } else if ( path.startsWith("/group/")) {
+    } else if (path.startsWith("/group/")) {
       subPath = path.substring("/group/".length());
-    } 
-    if ( subPath != null ) {
+    }
+    if (subPath != null) {
       String[] elements = StringUtils.split(subPath, "/", 2);
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Got Elements Path [{}] ", Arrays.toString(elements));
@@ -94,6 +94,7 @@ public class HomeResourceProvider implements ResourceProvider {
         Session session = resourceResolver.adaptTo(Session.class);
         UserManager um = AccessControlUtil.getUserManager(session);
         Authorizable a = um.getAuthorizable(elements[0]);
+        String userPath = null;
         if (a != null) {
           Principal p = a.getPrincipal();
           if (p instanceof ItemBasedPrincipal) {
@@ -104,24 +105,30 @@ public class HomeResourceProvider implements ResourceProvider {
               principalPathStart = "/rep:security/rep:authorizables/rep:groups";
               targetStart = "/_group";
             }
-            String userPath = targetStart
-                + ibp.getPath().substring(principalPathStart.length());
-            if (elements.length == 2) {
-              userPath = userPath + "/" + elements[1];
-            }
-            Resource r = resourceResolver.resolve(userPath);
-            LOGGER.debug("Resolving [{}] to [{}] ", userPath, r);
-            if (r != null) {
-              // are the last elements the same ?
-              if (getLastElement(r.getPath()).equals(getLastElement(subPath))) {
-                r.getResourceMetadata().put(HomeResourceProvider.HOME_RESOURCE_PROVIDER,
-                    this);
-                return r;
-              } else {
-                if (LOGGER.isDebugEnabled()) {
-                  LOGGER.debug("Rejected [{}] != [{}] ", getLastElement(r.getPath()),
-                      getLastElement(subPath));
-                }
+            userPath = targetStart + ibp.getPath().substring(principalPathStart.length());
+
+          } else if (p.getName().equals("admin")) {
+            userPath = "/_user/a/ad/admin";
+          } else if (p.getName().equals("anonymous")) {
+            userPath = "/_user/a/an/anonymous";
+          }
+        }
+        if (userPath != null) {
+          if (elements.length == 2) {
+            userPath = userPath + "/" + elements[1];
+          }
+          Resource r = resourceResolver.resolve(userPath);
+          LOGGER.debug("Resolving [{}] to [{}] ", userPath, r);
+          if (r != null) {
+            // are the last elements the same ?
+            if (getLastElement(r.getPath()).equals(getLastElement(subPath))) {
+              r.getResourceMetadata().put(HomeResourceProvider.HOME_RESOURCE_PROVIDER,
+                  this);
+              return r;
+            } else {
+              if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Rejected [{}] != [{}] ", getLastElement(r.getPath()),
+                    getLastElement(subPath));
               }
             }
           }
