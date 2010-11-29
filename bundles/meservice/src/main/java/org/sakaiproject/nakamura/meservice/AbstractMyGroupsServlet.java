@@ -17,8 +17,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
@@ -57,7 +59,16 @@ public abstract class AbstractMyGroupsServlet extends SlingSafeMethodsServlet {
   *
   */
   public static final String JSON_RESULTS = "results";
+  private static final Set<String> IGNORE_PROPERTIES = new HashSet<String>();
+  private static final String[] IGNORE_PROPERTY_NAMES = new String[] {
+    "members", "principals", "sakai:managers-group"
+  };
 
+  static {
+    for ( String ignore : IGNORE_PROPERTY_NAMES) {
+      IGNORE_PROPERTIES.add(ignore);
+    }
+  }
 
 
 
@@ -191,8 +202,11 @@ public abstract class AbstractMyGroupsServlet extends SlingSafeMethodsServlet {
   private boolean isValueMapPattternMatch(ValueMap valueMap, Pattern queryFilter) {
     for (Entry<String, Object> entry : valueMap.entrySet()) {
       Object rawValue = entry.getValue();
-      if (isObjectPatternMatch(rawValue, queryFilter)) {
-        return true;
+      if ( !IGNORE_PROPERTIES.contains(entry.getKey())) {
+        if (isObjectPatternMatch(rawValue, queryFilter)) {
+          LOGGER.info("Matched Property {} {} ",entry.getKey(), rawValue);
+          return true;
+        }
       }
     }
     return false;
