@@ -63,7 +63,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
 
   public SparseMapUserManager(SessionImpl jcrSession, String adminId, Properties config)
       throws ClientPoolException, StorageClientException, AccessDeniedException {
-    sparseRepository = SparseComponentHolder.getSparseRepositoryInstance();
+    sparseRepository = SparseRepositoryHolder.getSparseRepositoryInstance();
     session = sparseRepository.loginAdministrative(jcrSession.getUserID());
 
     authorizableManager = session.getAuthorizableManager();

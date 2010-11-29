@@ -24,11 +24,12 @@ import org.sakaiproject.nakamura.api.lite.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// @Component manual creation
-public class SparseComponentHolder {
+// @Component(immediate=true, metatype=true) manually configured in serviceComponents.xml
+// @Service
+public class SparseRepositoryHolder implements JackrabbitRepositoryStartupService {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(SparseComponentHolder.class);
+      .getLogger(SparseRepositoryHolder.class);
   private static Repository sparseRepositoryInstance;
   private SakaiActivator sakaiActivator;
 
@@ -45,11 +46,11 @@ public class SparseComponentHolder {
   }
 
   public void bindRepository(Repository repository) {
-    SparseComponentHolder.setSparseRespository(repository);
+    SparseRepositoryHolder.setSparseRespository(repository);
   }
 
   public void unbindRepository(Repository repository) {
-    SparseComponentHolder.setSparseRespository(null);
+    SparseRepositoryHolder.setSparseRespository(null);
   }
 
   public static void setSparseRespository(Repository repository) {
