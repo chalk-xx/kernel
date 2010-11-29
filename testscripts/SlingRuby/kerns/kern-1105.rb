@@ -86,7 +86,6 @@ class TC_KERN1105_Test < Test::Unit::TestCase
         assert_not_nil(json["user"]["properties"]["firstName"]);
         assert_not_nil(json["user"]["properties"]["lastName"]);
         assert_not_nil(json["user"]["properties"]["email"]);
-        assert_not_nil(json["user"]["properties"]["path"]);
         assert_not_nil(json["user"]["declaredMembership"]);
         assert_not_nil(json["user"]["membership"]);
 				count += 1;
