@@ -20,7 +20,7 @@ package org.sakaiproject.nakamura.message;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.resource.SubPathProducer;
+import org.sakaiproject.nakamura.util.SubPathProducer;
 import org.sakaiproject.nakamura.message.resource.MessageSubPathProducer;
 
 /**

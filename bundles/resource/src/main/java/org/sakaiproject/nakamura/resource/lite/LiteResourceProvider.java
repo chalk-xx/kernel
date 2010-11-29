@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -73,7 +73,7 @@ public class LiteResourceProvider implements ResourceProvider {
         retRes = new SparseContentResource(content, cm, new LiteResourceResolver(
             repository, userId));
       }
-    } catch (ConnectionPoolException e) {
+    } catch (ClientPoolException e) {
       logger.error(e.getMessage(), e);
     } catch (StorageClientException e) {
       logger.error(e.getMessage(), e);
@@ -82,8 +82,8 @@ public class LiteResourceProvider implements ResourceProvider {
     } finally {
       try {
         session.logout();
-      } catch (ConnectionPoolException e) {
-        // nothing we can do
+      } catch (ClientPoolException e) {
+        logger.debug(e.getMessage(), e);
       }
     }
     return retRes;

@@ -27,7 +27,7 @@ import net.fortuna.ical4j.model.component.VToDo;
 import net.fortuna.ical4j.model.property.DateProperty;
 
 import org.apache.commons.lang.time.FastDateFormat;
-import org.sakaiproject.nakamura.api.resource.SubPathProducer;
+import org.sakaiproject.nakamura.util.SubPathProducer;
 import org.sakaiproject.nakamura.util.DateUtils;
 
 import java.util.Calendar;

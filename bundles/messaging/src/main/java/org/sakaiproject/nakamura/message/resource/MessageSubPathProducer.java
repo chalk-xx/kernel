@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.nakamura.message.resource;
 
-import org.sakaiproject.nakamura.api.resource.SubPathProducer;
+import org.sakaiproject.nakamura.util.SubPathProducer;
 import org.sakaiproject.nakamura.util.PathUtils;
 
 /**

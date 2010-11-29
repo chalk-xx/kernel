@@ -21,7 +21,7 @@ import com.google.common.collect.Iterators;
 
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -128,7 +128,7 @@ public class LiteResourceResolver implements ResourceResolver {
       ContentManager cm = session.getContentManager();
       Content content = cm.get(path);
       return new SparseContentResource(content, cm, this);
-    } catch (ConnectionPoolException e) {
+    } catch (ClientPoolException e) {
       logger.error(e.getMessage(), e);
     } catch (StorageClientException e) {
       logger.error(e.getMessage(), e);
@@ -138,7 +138,7 @@ public class LiteResourceResolver implements ResourceResolver {
       if (session != null) {
         try {
           session.logout();
-        } catch (ConnectionPoolException e) {
+        } catch (ClientPoolException e) {
           logger.error(e.getMessage(), e);
         }
       }
