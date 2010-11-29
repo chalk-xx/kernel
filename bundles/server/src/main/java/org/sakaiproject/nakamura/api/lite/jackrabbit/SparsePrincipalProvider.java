@@ -77,7 +77,7 @@ public class SparsePrincipalProvider implements PrincipalProvider {
    */
   public SparsePrincipalProvider() throws RepositoryException {
     try {
-      sparseRepository = SparseComponentHolder.getSparseRepositoryInstance();
+      sparseRepository = SparseRepositoryHolder.getSparseRepositoryInstance();
       session = sparseRepository.loginAdministrative();
       authorizableManager = session.getAuthorizableManager();
       accesControlManager = session.getAccessControlManager();
