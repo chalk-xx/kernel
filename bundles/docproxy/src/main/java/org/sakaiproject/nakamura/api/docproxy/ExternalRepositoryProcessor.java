@@ -113,9 +113,9 @@ public interface ExternalRepositoryProcessor {
    * @throws DocProxyException
    *           The search failed for some reason, this should contain an appropriate HTTP
    *           status code and message.
-   * @return a lazy iterator of ExternalDocumentResults.
+   * @return an ExternalSearchResultSet.
    */
-  public Iterator<ExternalDocumentResult> search(Node node,
+  public ExternalSearchResultSet search(Node node,
       Map<String, Object> searchProperties) throws DocProxyException;
 
    /**
@@ -139,4 +139,5 @@ public interface ExternalRepositoryProcessor {
    * @return What kind of external repository this processor should handle.
    */
   public String getType();
+
 }

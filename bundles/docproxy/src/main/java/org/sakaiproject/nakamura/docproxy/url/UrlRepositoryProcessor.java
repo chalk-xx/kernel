@@ -51,6 +51,8 @@ import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
+import org.sakaiproject.nakamura.api.docproxy.ExternalSearchResultSet;
+import org.sakaiproject.nakamura.docproxy.ExternalSearchResultSetImpl;
 import org.sakaiproject.nakamura.util.Signature;
 
 /**
@@ -204,7 +206,7 @@ public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
    * org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor#search(javax.jcr
    * .Node, java.util.Map)
    */
-  public Iterator<ExternalDocumentResult> search(Node node,
+  public ExternalSearchResultSet search(Node node,
       Map<String, Object> searchProperties) throws DocProxyException {
     try {
       PostMethod method = new PostMethod(searchUrl);
@@ -213,7 +215,8 @@ public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
       }
       executeMethod(method, node);
       List<ExternalDocumentResult> results = parseSearch(method.getResponseBodyAsStream());
-      return results.iterator();
+      ExternalSearchResultSet resultSet = new ExternalSearchResultSetImpl(results.iterator(), (long)results.size());
+      return resultSet;
     } catch (XMLStreamException e) {
       throw new DocProxyException(500, e.getMessage());
     } catch (IOException e) {

@@ -27,6 +27,8 @@ import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
+import org.sakaiproject.nakamura.api.docproxy.ExternalSearchResultSet;
+import org.sakaiproject.nakamura.docproxy.ExternalSearchResultSetImpl;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.remotefiles.RemoteFilesRepository;
 import org.slf4j.Logger;
@@ -107,7 +109,7 @@ public class RemoteFilesRepositoryProcessor implements ExternalRepositoryProcess
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor#search(javax.jcr.Node, java.util.Map)
    */
-  public Iterator<ExternalDocumentResult> search(Node node,
+  public ExternalSearchResultSet search(Node node,
       Map<String, Object> searchProperties) throws DocProxyException {
     try {
       String currentUserId = node.getSession().getUserID();
@@ -118,7 +120,8 @@ public class RemoteFilesRepositoryProcessor implements ExternalRepositoryProcess
           searchResults.add(new RemoteFilesDocumentResult(doc, remoteFilesRepository));
         }
       }
-      return searchResults.iterator();
+      ExternalSearchResultSet resultSet = new ExternalSearchResultSetImpl(searchResults.iterator(), (long)searchResults.size());
+      return resultSet;
     } catch (RepositoryException e) {
       throw new RuntimeException("RepositoryException: " + e.getMessage());
     }
