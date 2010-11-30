@@ -1,0 +1,10 @@
+{
+  "sakai:query-language": "xpath",
+  "sakai:query-template": "//*[@sakai:tag-uuid]",
+  "sling:resourceType": "sakai/search",
+  "sakai:batchresultprocessor": "TagCloud",
+  "sakai:title": "Tag Cloud",
+  "sakai:shortDescription": "Returns the most-used tags with the counts of their usage.",
+  "sakai:description": "Searches the entire repository for things which have been tagged and returns the most popular tags.",
+  "sakai:response": "TBD"
+}
