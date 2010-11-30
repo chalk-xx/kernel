@@ -3,9 +3,10 @@
 #Sakai 2+3 Hybrid Nightly
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
 
-export K2_TAG="0.9"
+export K2_TAG="HEAD"
 export S2_TAG="tags/sakai-2.8.0-a04"
-export UX_TAG="v_0.5.0_release"
+export UX_TAG="HEAD"
+export HYBRID_TAG="trunk"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -118,7 +119,7 @@ K2_ARTIFACT=`find . -name "org.sakaiproject.nakamura.app*[^sources].jar"`
 # configure TrustedLoginTokenProxyPreProcessor via file install
 mkdir -p load
 echo 'sharedSecret=e2KS54H35j6vS5Z38nK40' > load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
-echo 'port=80' >> load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
+echo 'port=8080' >> load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
 echo 'hostname=localhost' >> load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
 java $K2_OPTS -jar $K2_ARTIFACT -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
@@ -146,7 +147,8 @@ else
     perl -pwi -e 's/<\/beans>/\t<bean id="org.sakaiproject.user.api.UserDirectoryProvider"\n\t\tclass="org.sakaiproject.provider.user.NakamuraUserDirectoryProvider"\n\t\tinit-method="init">\n\t\t<property name="threadLocalManager">\n\t\t\t<ref bean="org.sakaiproject.thread_local.api.ThreadLocalManager" \/>\n\t\t<\/property>\n\t<\/bean>\n<\/beans>/gi' providers/component/src/webapp/WEB-INF/components.xml
     mvn -B -e clean install sakai:deploy -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
     # add hybrid webapp module
-    svn checkout -q https://source.sakaiproject.org/svn/hybrid/tags/hybrid-1.1.0 hybrid
+    echo "\nBuilding hybrid/$HYBRID_TAG"
+    svn checkout -q https://source.sakaiproject.org/svn/hybrid/$HYBRID_TAG hybrid
     cd hybrid
     mvn -B -e clean install sakai:deploy -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
     # configure sakai 2 instance
