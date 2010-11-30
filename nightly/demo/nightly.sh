@@ -62,7 +62,7 @@ mvn -B -e clean install
 echo "Starting sakai3 instance..."
 cd app/target/
 K2_ARTIFACT=`find . -name "org.sakaiproject.nakamura.app*[^sources].jar"`
-java $K2_OPTS -jar $K2_ARTIFACT -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
+java $K2_OPTS -jar $K2_ARTIFACT -p 8080 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # final cleanup
 cd $BUILD_DIR
@@ -74,4 +74,6 @@ sleep 600
 echo "Running integration tests..."
 cd $BUILD_DIR/sakai3/nakamura
 date > $BUILD_DIR/logs/sakai3-integration-tests.log.txt
+uname -a >> $BUILD_DIR/logs/sakai3-integration-tests.log.txt 2>&1
+java -version >> $BUILD_DIR/logs/sakai3-integration-tests.log.txt 2>&1
 ./tools/runalltests.rb >> $BUILD_DIR/logs/sakai3-integration-tests.log.txt 2>&1
