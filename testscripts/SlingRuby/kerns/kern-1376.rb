@@ -41,7 +41,7 @@ class TC_Kern1376Test < Test::Unit::TestCase
       "p" => "/p/#{contentid}"
     })
     assert_equal("200", res.code, "Should have found activity feed")
-    puts res.body
+    @log.info("Activity feed is #{res.body}")
     activityfeed = JSON.parse(res.body)
     assert_equal(3, activityfeed["total"])
     assert_equal("Third activity", activityfeed["results"][0]["sakai:activityMessage"])
