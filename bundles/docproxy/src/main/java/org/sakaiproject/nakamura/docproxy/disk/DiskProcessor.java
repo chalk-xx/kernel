@@ -35,6 +35,8 @@ import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
+import org.sakaiproject.nakamura.api.docproxy.ExternalSearchResultSet;
+import org.sakaiproject.nakamura.docproxy.ExternalSearchResultSetImpl;
 import org.sakaiproject.nakamura.util.IOUtils;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
@@ -126,7 +128,7 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
     return TYPE;
   }
 
-  public Iterator<ExternalDocumentResult> search(Node node,
+  public ExternalSearchResultSet search(Node node,
       Map<String, Object> searchProperties) throws DocProxyException {
     // We will search in the same directory (and subs) as the README dir.
     File defaultFile = getRootFile(node);
@@ -182,7 +184,8 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
     List<ExternalDocumentResult> results = new ArrayList<ExternalDocumentResult>();
     // Get children.
     getChildren(defaultFile, results, filter);
-    return results.iterator();
+    ExternalSearchResultSet resultSet = new ExternalSearchResultSetImpl(results.iterator(), results.size());
+    return resultSet;
   }
 
   /**

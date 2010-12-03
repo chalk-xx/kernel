@@ -37,6 +37,7 @@ import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyUtils;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
+import org.sakaiproject.nakamura.api.docproxy.ExternalSearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -80,6 +81,7 @@ public class ExternalDocumentSearchServlet extends SlingSafeMethodsServlet {
 
   private static final String SEARCH_DEFINITION_REGEX = "{(\\w+)(|(\\w+))?}";
 protected ExternalRepositoryProcessorTracker tracker;
+  protected ExternalSearchResultSet resultSet;
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(ExternalDocumentSearchServlet.class);
   private static final long serialVersionUID = 8016289526361989976L;
@@ -115,8 +117,8 @@ protected ExternalRepositoryProcessorTracker tracker;
       handleProperties(searchProperties, node, request);
 
       // Process search
-      Iterator<ExternalDocumentResult> results = processor.search(proxyNode,
-          searchProperties);
+      resultSet = processor.search(proxyNode, searchProperties);
+      Iterator<ExternalDocumentResult> results = resultSet.getResultIterator();
 
       // Do the default search paging.
       long toSkip = SearchUtil.getPaging(request);
@@ -134,6 +136,8 @@ protected ExternalRepositoryProcessorTracker tracker;
 
 
       ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
+      write.object();
+      write.key(SearchConstants.JSON_RESULTS);
       write.array();
       long nitems = SearchUtil.longRequestParameter(request,
           SearchConstants.PARAMS_ITEMS_PER_PAGE, SearchConstants.DEFAULT_PAGED_ITEMS);
@@ -142,6 +146,13 @@ protected ExternalRepositoryProcessorTracker tracker;
         DocProxyUtils.writeMetaData(write, result);
       }
       write.endArray();
+
+      write.key(SearchConstants.PARAMS_ITEMS_PER_PAGE);
+      write.value(nitems);
+      write.key(SearchConstants.TOTAL);
+      write.value(resultSet.getSize());
+
+      write.endObject();
 
     } catch (RepositoryException e) {
       LOGGER.error(

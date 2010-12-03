@@ -54,6 +54,7 @@ import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,7 +154,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
   protected Authorizable checkValidUserId(Session session, String userId)
       throws ConnectionException {
     Authorizable authorizable;
-    if ("anonymous".equals(session.getUserID()) || "anonymous".equals(userId)) {
+    if (UserConstants.ANON_USERID.equals(session.getUserID()) || UserConstants.ANON_USERID.equals(userId)) {
       throw new ConnectionException(403, "Cant make a connection with anonymous.");
     }
     try {

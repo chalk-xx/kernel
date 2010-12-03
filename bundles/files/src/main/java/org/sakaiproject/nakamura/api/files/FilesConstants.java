@@ -108,4 +108,12 @@ public interface FilesConstants {
    */
   public static final String POOLED_CONTENT_CREATED_FOR = "sakai:pool-content-created-for";
 
+  /**
+   * Selector for feed of related content which is accessible by any logged-in user.
+   */
+  public static final String POOLED_CONTENT_RELATED_SELECTOR = "related";
+  /**
+   * Selector for feed of related content which is publicly accessible.
+   */
+  public static final String POOLED_CONTENT_PUBLIC_RELATED_SELECTOR = "relatedpublic";
 }

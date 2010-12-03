@@ -35,6 +35,7 @@ import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyUtils;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 
@@ -185,7 +186,7 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       }
 
       // Anonymous users can't do anything.
-      if (request.getRemoteUser().equals("anonymous")) {
+      if (UserConstants.ANON_USERID.equals(request.getRemoteUser())) {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
             "Anonymous users can't post anything.");
         return;

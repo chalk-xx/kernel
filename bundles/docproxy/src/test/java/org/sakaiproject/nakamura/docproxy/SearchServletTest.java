@@ -25,6 +25,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.json.JSONArray;
+import org.apache.sling.commons.json.JSONTokener;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.After;
@@ -104,8 +105,10 @@ public class SearchServletTest extends AbstractDocProxyServlet {
     write.flush();
 
     String s = baos.toString("UTF-8");
-    JSONArray o = new JSONArray(s);
-
+    JSONTokener t = new JSONTokener(s);
+    t.skipTo('[');
+    String ja = new String(t.nextTo(']')+']');
+    JSONArray o = new JSONArray(ja);
     assertEquals(5, o.length());
   }
 }

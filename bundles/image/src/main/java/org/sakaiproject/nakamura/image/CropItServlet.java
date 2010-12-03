@@ -37,6 +37,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
@@ -88,7 +89,7 @@ public class CropItServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
 
     // Check if the current user is logged in.
-    if (request.getRemoteUser().equals("anonymous")) {
+    if (UserConstants.ANON_USERID.equals(request.getRemoteUser())) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "Anonymous user cannot crop images.");
       return;
