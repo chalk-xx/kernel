@@ -415,7 +415,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           .privilegeFromName(Privilege.JCR_MODIFY_ACCESS_CONTROL) };
       boolean canManageSite = accessControlManager.hasPrivileges(sitePath, modifyACLs);
       LOG.info("hasPrivileges(modifyAccessControl)=" + canManageSite);
-      if ("anonymous".equals(session.getUserID())) {
+      if (UserConstants.ANON_USERID.equals(session.getUserID())) {
         launchProps.put(ROLES, "None");
       } else if (canManageSite) {
         launchProps.put(ROLES, "Instructor");

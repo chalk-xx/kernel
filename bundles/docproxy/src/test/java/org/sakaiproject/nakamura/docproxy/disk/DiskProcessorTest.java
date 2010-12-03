@@ -1,3 +1,4 @@
+
 /*
  * Licensed to the Sakai Foundation (SF) under one
  * or more contributor license agreements. See the NOTICE file
@@ -38,6 +39,7 @@ import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
+import org.sakaiproject.nakamura.api.docproxy.ExternalSearchResultSet;
 import org.sakaiproject.nakamura.util.IOUtils;
 
 import java.io.ByteArrayInputStream;
@@ -139,9 +141,12 @@ public class DiskProcessorTest {
     searchProperties.put("ends-with", "foo");
 
     // Perform actual search.
-    Iterator<ExternalDocumentResult> results = diskProcessor.search(proxyNode,
+    ExternalSearchResultSet resultSet;
+    resultSet = diskProcessor.search(proxyNode,
         searchProperties);
 
+    Iterator<ExternalDocumentResult> results = resultSet.getResultIterator();
+    
     // Quickly loop over the results to get a count
     int size = 0;
     while (results.hasNext()) {

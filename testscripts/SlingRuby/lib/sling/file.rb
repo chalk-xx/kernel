@@ -22,10 +22,8 @@ module SlingFile
     end
 
     def createTag(tagName, url, props = {})
-      props.update("./jcr:primaryType" => "nt:folder")
-      props.update("./jcr:mixinTypes" => "sakai:propertiesmix")
-      props.update("./sling:resourceType" => "sakai/tag")
-      props.update("./sakai:tag-name" => tagName)
+      props.update("sling:resourceType" => "sakai/tag")
+      props.update("sakai:tag-name" => tagName)
       return @sling.execute_post(@sling.url_for(url), props)
     end
 

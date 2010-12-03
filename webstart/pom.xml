@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+    <!--
+        Licensed to the Apache Software Foundation (ASF) under one or more contributor license
+        agreements. See the NOTICE file distributed with this work for additional information
+        regarding copyright ownership. The ASF licenses this file to you under the Apache License,
+        Version 2.0 (the "License"); you may not use this file except in compliance with the
+        License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+        Unless required by applicable law or agreed to in writing, software distributed under the
+        License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+        either express or implied. See the License for the specific language governing permissions
+        and limitations under the License.
+    -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>base</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>org.sakaiproject.nakamura.webstart</artifactId>
+    <packaging>pom</packaging>
+    <version>0.10-SNAPSHOT</version>
+
+    <name>Sakai Nakamura :: Webstart Package</name>
+    <description> Webstart Package </description>
+
+    <properties>
+       <finalhostlocation>http://people.caret.cam.ac.uk/~ib236/sakaioae/</finalhostlocation>
+    </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo.webstart</groupId>
+        <artifactId>webstart-maven-plugin</artifactId>
+        <executions>
+          
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>jnlp-inline</goal> <!-- use jnlp, jnlp-inline or jnlp-single as appropriate -->
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+
+          <!--
+          Set to true to exclude all transitive dependencies. Default is false.
+          -->
+          <excludeTransitive>false</excludeTransitive>
+
+          <!-- The path where the libraries are stored within the jnlp structure. not required. by default the libraries are within the working directory -->
+          <libPath>lib</libPath>
+
+          <!-- JNLP generation -->
+          <jnlp>
+            <!-- default values -->
+            <!--inputTemplateResourcePath>${project.basedir}</inputTemplateResourcePath-->
+            <!--inputTemplate>src/main/jnlp/template.vm</inputTemplate--> <!-- relative to inputTemplateResourcePath -->
+            <outputFile>sakaioae.jnlp</outputFile> <!-- defaults to launch.jnlp -->
+
+            <!-- used to automatically identify the jar containing the main class. -->
+            <!-- this is perhaps going to change -->
+            <mainClass>org.apache.sling.launchpad.app.Main</mainClass>
+          </jnlp>
+
+
+          <!-- SIGNING -->
+          <sign>
+            <keystore>keystore</keystore>
+            <keypass>keypass</keypass>  <!-- we need to override passwords easily from the command line. ${keypass} -->
+            <storepass>storepass</storepass> <!-- ${storepass} -->
+            <!--storetype>fillme</storetype-->
+            <alias>alias</alias>
+
+            <!--validity>fillme</validity-->
+
+            <!-- only required for generating the keystore -->
+            <dnameCn>Nakamura</dnameCn>
+            <dnameOu>Server Development Team</dnameOu>
+            <dnameO>The Sakai Foundation</dnameO>
+            <dnameC>Planet Earth</dnameC>
+
+            <verify>true</verify> <!-- verify that the signing operation succeeded -->
+
+            <!-- KEYSTORE MANAGEMENT -->
+            <keystoreConfig>
+              <delete>true</delete> <!-- delete the keystore -->
+
+              <gen>true</gen>       <!-- optional shortcut to generate the store. -->
+            </keystoreConfig>
+          </sign>
+
+          <!-- BUILDING PROCESS -->
+
+          <pack200>true</pack200>
+          <gzip>true</gzip> <!-- default force when pack200 false, true when pack200 selected ?? -->
+
+          <!-- causes a version attribute to be output in each jar resource element, optional, default is false -->
+          <outputJarVersions>true</outputJarVersions>
+
+          <!--install>false</install--> <!-- not yet supported -->
+          <verbose>true</verbose>
+
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.app</artifactId>
+      <version>0.10-SNAPSHOT</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+    <repositories>
+        <repository>
+            <id>sakai-maven</id>
+            <name>Sakai Maven Repo</name>
+            <layout>default</layout>
+            <url>http://source.sakaiproject.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
+</project>
+
