@@ -1,6 +1,6 @@
 package org.sakaiproject.nakamura.api.personal;
 
-import java.util.Date;
+import java.util.Calendar;
 
 public interface PersonalTrackingStore {
   /**
@@ -15,6 +15,6 @@ public interface PersonalTrackingStore {
    * @param userid the id of the user who performed the activity
    * @param timestamp date and time of the activity
    */
-  void recordActivity(String resourceId, String resourceType, String activityType, String userId, Date timestamp);
+  void recordActivity(String resourceId, String resourceType, String activityType, String userId, Calendar timestamp);
   
 }

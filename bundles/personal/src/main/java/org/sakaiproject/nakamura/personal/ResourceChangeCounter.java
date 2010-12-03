@@ -27,7 +27,7 @@ import org.osgi.service.event.EventHandler;
 import org.sakaiproject.nakamura.api.personal.PersonalTrackingStore;
 import org.sakaiproject.nakamura.util.PathUtils;
 
-import java.util.Date;
+import java.util.Calendar;
 
 @Component(inherit = true, label = "%sakai-event.name", immediate = true)
 @Service
@@ -75,7 +75,7 @@ public class ResourceChangeCounter implements EventHandler {
     }
       
     }
-    store.recordActivity(resourceId, resourceType, activityType, userId, new Date());
+    store.recordActivity(resourceId, resourceType, activityType, userId, Calendar.getInstance());
     
   }
 
