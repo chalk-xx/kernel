@@ -4,11 +4,11 @@
     codebase="${finalhostlocation}"
     href="sakaioae.jnlp">
   <information>
-    <title>Sakai Open Achademic Environment (Nakamura Server)</title>
+    <title>Sakai Open Academic Environment (Nakamura Server)</title>
     <vendor>The Sakai Foundation</vendor>
     <homepage href="http://confluence.sakaiproject.org/display/KERNDOC"/>
     <description>
-         Sakai Open Achademic Environment, Nakamura Server Web start package.
+         Sakai Open Academic Environment, Nakamura Server Web start package.
          This package will start a server on you machine on port 8080,
          accessable at http://localhost:8080/dev/ username admin, password admin
     </description>
