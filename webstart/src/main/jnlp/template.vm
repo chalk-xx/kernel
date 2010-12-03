@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp
+    spec="1.5+"
+    codebase="${finalhostlocation}"
+    href="sakaioae.jnlp">
+  <information>
+    <title>Sakai Open Achademic Environment (Nakamura Server)</title>
+    <vendor>The Sakai Foundation</vendor>
+    <homepage href="http://confluence.sakaiproject.org/display/KERNDOC"/>
+    <description>
+         Sakai Open Achademic Environment, Nakamura Server Web start package.
+         This package will start a server on you machine on port 8080,
+         accessable at http://localhost:8080/dev/ username admin, password admin
+    </description>
+    <offline-allowed/>
+  </information>
+  <security>
+     <all-permissions/>
+  </security>
+  <resources>
+    <j2se version="1.5+" java-vm-args=" -Xmx512m -XX:MaxPermSize=256m -server " />
+
+    <jar href="lib/org.sakaiproject.nakamura.app-0.10-SNAPSHOT.jar" main="true"/>
+
+  </resources>
+  <application-desc main-class="org.sakaiproject.nakamura.app.JNPLMain" />
+</jnlp>
+
+
