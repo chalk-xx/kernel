@@ -30,8 +30,10 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -59,7 +61,7 @@ import javax.servlet.http.HttpServletResponse;
  * Servlet endpoint for comments associated to a piece of pooled content.
  */
 @SlingServlet(methods = {"GET", "POST", "DELETE"}, extensions = "comments", resourceTypes = { "sakai/pooled-content" })
-public class ContentPoolCommentServlet extends SlingAllMethodsServlet {
+public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements OptingServlet {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ContentPoolCommentServlet.class);
   private static final long serialVersionUID = 1L;
@@ -74,6 +76,20 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet {
 
   @Reference
   private ProfileService profileService;
+
+  /**
+   * Determine if we will accept this request. Had to add this because something is
+   * triggering this servlet to take GET requests even though the extension != comments.
+   *
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.api.servlets.OptingServlet#accepts(org.apache.sling.api.SlingHttpServletRequest)
+   */
+  public boolean accepts(SlingHttpServletRequest request) {
+    RequestPathInfo rpi = request.getRequestPathInfo();
+    boolean willAccept = "comments".equals(rpi.getExtension());
+    return willAccept;
+  }
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
