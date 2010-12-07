@@ -66,7 +66,7 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "sakai.cache.paths", value = { 
         "dev;.lastmodified:unset;.cookies:unset;.requestCache:3600;.expires:3456000;Vary: Accept-Encoding", 
         "devwidgets;.lastmodified:unset;.cookies:unset;.requestCache:3600;.expires:3456000;Vary: Accept-Encoding",
-        "p;Cache-Control:no-cache" }, 
+        "p;Cache-Control:no-cache","var/search/public;.lastmodified:unset;.cookies:unset;.requestCache:3600;.expires:3456000;Vary: Accept-Encoding" }, 
         description = "List of subpaths and max age for all content under subpath in seconds, setting to 0 makes it non cacheing"),
     @Property(name = "sakai.cache.patterns", value = { 
         "root;.*(js|css)$;.lastmodified:unset;.cookies:unset;.requestCache:3600;.expires:3456000;Vary: Accept-Encoding",
