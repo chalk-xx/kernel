@@ -96,7 +96,8 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
             String resourcePath = profileService.getProfilePath(au);
             Node resourceNode = session.getNode(resourcePath);
             if (resourceNode == null) {
-              throw new RepositoryException();
+              // this happens if the group is not public
+              continue;
             }
             String resourceName = resourceNode.getProperty("sakai:group-title").getString();
             resources.add(new ResourceActivity(resourceId, 0, resourceName));
