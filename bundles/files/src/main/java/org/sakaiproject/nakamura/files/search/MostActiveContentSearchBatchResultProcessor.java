@@ -87,7 +87,8 @@ public class MostActiveContentSearchBatchResultProcessor implements
           if (!resources.contains(new ResourceActivity(resourceId))) {
             Node resourceNode = FileUtils.resolveNode(resourceId, session);
             if (resourceNode == null) {
-              throw new RepositoryException();
+              // this can happen if this content is no longer public
+              continue;
             }
             String resourceName = resourceNode.getProperty("sakai:pooled-content-file-name").getString();
             resources.add(new ResourceActivity(resourceId, 0, resourceName));
