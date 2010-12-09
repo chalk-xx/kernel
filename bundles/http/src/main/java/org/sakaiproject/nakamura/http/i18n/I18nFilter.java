@@ -21,21 +21,20 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +56,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Component(metatype = true)
 @Service
-@Properties(value = {
+@org.apache.felix.scr.annotations.Properties(value = {
     @Property(name = Constants.SERVICE_VENDOR, value = "The Sakai Foundation"),
     @Property(name = Constants.SERVICE_DESCRIPTION, value = "Nakamura i18n Filter"),
     @Property(name = Constants.SERVICE_RANKING, intValue = 10, propertyPrivate = true),
@@ -175,10 +174,10 @@ public class I18nFilter implements Filter {
 
       // load the language bundle
       Locale locale = getLocale(srequest);
-      JSONObject langJson = getJsonBundle(bundlesNode, locale.toString() + ".json");
+      Properties bndLang = getLangBundle(bundlesNode, locale.toString());
 
       // load the default bundle
-      JSONObject defaultJson = getJsonBundle(bundlesNode, "default.json");
+      Properties bndLangDefault = getLangBundle(bundlesNode, "default");
 
       // check for message keys and replace them with the appropriate message
       Matcher m = messageKeyPattern.matcher(output);
@@ -189,10 +188,10 @@ public class I18nFilter implements Filter {
         if (!matchedKeys.contains(key)) {
           String message = "";
 
-          if (langJson.has(key)) {
-            message = langJson.getString(key);
-          } else if (defaultJson.has(key)) {
-            message = defaultJson.getString(key);
+          if (bndLang.containsKey(key)) {
+            message = bndLang.getProperty(key);
+          } else if (bndLangDefault.containsKey(key)) {
+            message = bndLangDefault.getProperty(key);
           } else {
             String msg = "[MESSAGE KEY NOT FOUND '" + key + "']";
             logger.warn(msg);
@@ -213,8 +212,6 @@ public class I18nFilter implements Filter {
         }
       }
     } catch (RepositoryException e) {
-      logger.error(e.getMessage(), e);
-    } catch (JSONException e) {
       logger.error(e.getMessage(), e);
     }
 
@@ -242,13 +239,14 @@ public class I18nFilter implements Filter {
     return l;
   }
 
-  private JSONObject getJsonBundle(Node bundlesNode, String name)
+  private Properties getLangBundle(Node bundlesNode, String name)
       throws PathNotFoundException, RepositoryException, ValueFormatException,
-      JSONException {
-    Node langNode = bundlesNode.getNode(name);
+      IOException {
+    Node langNode = bundlesNode.getNode(name + ".properties");
     Node content = langNode.getNode("jcr:content");
     String langData = content.getProperty("jcr:data").getString();
-    JSONObject langJson = new JSONObject(langData);
-    return langJson;
+    Properties props = new Properties();
+    props.load(new StringReader(langData));
+    return props;
   }
 }

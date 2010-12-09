@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.personal;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
@@ -25,7 +26,8 @@ import org.sakaiproject.nakamura.api.personal.PersonalTrackingStore;
 import org.sakaiproject.nakamura.util.JcrUtils;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.util.Calendar;
+import java.util.UUID;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -34,30 +36,38 @@ import javax.jcr.Session;
 @Component(immediate = true)
 @Service(value = PersonalTrackingStore.class)
 public class JCRPersonalTrackingStore implements PersonalTrackingStore {
-  
+
   @Reference
   private transient SlingRepository slingRepository;
-  
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.personal.PersonalTrackingStore#recordActivity(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.util.Date)
+   * 
+   * @see org.sakaiproject.nakamura.api.personal.PersonalTrackingStore#recordActivity(java.lang.String,
+   *      java.lang.String, java.lang.String, java.lang.String, java.util.Date)
    */
   public void recordActivity(String resourceId, String resourceType, String activityType,
-      String userId, Date timestamp) {
+      String userId, Calendar timestamp) {
     Session session = null;
     try {
       session = slingRepository.loginAdministrative(null);
-      Node activityNode = JcrUtils.deepGetOrCreateNode(session, "/activity/" + resourceType + "/" + resourceId, "nt:unstructured");
-      if (!activityNode.hasProperty("count")) {
-        activityNode.setProperty("count", 0);
+      Node trackingNode = JcrUtils.deepGetOrCreateNode(session, "/activity/" + resourceType + "/" + resourceId);
+      if (!trackingNode.hasProperty("count")) {
+        trackingNode.setProperty("count", 0);
       }
-      
-      BigDecimal activityCount = activityNode.getProperty("count").getDecimal();
-      activityNode.setProperty("count", activityCount.add(BigDecimal.ONE));
-      
-      activityNode.setProperty("resourceType", resourceType);
-      activityNode.setProperty("activityType", activityType);
+      if (!trackingNode.hasProperty("sling:resourceType")) {
+        trackingNode.setProperty("sling:resourceType", "sakai/resource-activity");
+      }
+      String generatedNodeName = Base64.encodeBase64URLSafeString(asShorterByteArray(UUID.randomUUID()));
+      Node activityNode = trackingNode.addNode(generatedNodeName);
+      BigDecimal activityCount = trackingNode.getProperty("count").getDecimal();
+      activityNode.setProperty("sling:resourceType", "sakai/resource-update");
+      trackingNode.setProperty("count", activityCount.add(BigDecimal.ONE));
+      activityNode.setProperty("resourceId", resourceId);
+      activityNode.setProperty("resourcetype", resourceType);
+      activityNode.setProperty("activitytype", activityType);
+      activityNode.setProperty("timestamp", timestamp);
+      activityNode.setProperty("userid", userId);
       if (session.hasPendingChanges()) {
         session.save();
       }
@@ -68,6 +78,36 @@ public class JCRPersonalTrackingStore implements PersonalTrackingStore {
         session.logout();
       }
     }
+
+  }
+
+  private byte[] asByteArray(UUID uuid) {
+
+    long msb = uuid.getMostSignificantBits();
+    long lsb = uuid.getLeastSignificantBits();
+    byte[] buffer = new byte[16];
+
+    for (int i = 0; i < 8; i++) {
+      buffer[i] = (byte) (msb >>> 8 * (7 - i));
+    }
+    for (int i = 8; i < 16; i++) {
+      buffer[i] = (byte) (lsb >>> 8 * (7 - i));
+    }
+
+    return buffer;
+
+  }
+  
+  private byte[] asShorterByteArray(UUID uuid) {
+
+    long msb = uuid.getMostSignificantBits();
+    byte[] buffer = new byte[8];
+
+    for (int i = 0; i < 8; i++) {
+      buffer[i] = (byte) (msb >>> 8 * (7 - i));
+    }
+
+    return buffer;
 
   }
 

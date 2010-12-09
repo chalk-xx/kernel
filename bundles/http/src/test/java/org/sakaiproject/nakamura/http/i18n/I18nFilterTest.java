@@ -112,17 +112,17 @@ public class I18nFilterTest {
     when(um.getAuthorizable(Matchers.anyString())).thenReturn(sessionUser);
     when(sessionUser.getPropertyNames()).thenReturn(propNames);
 
-    when(bundlesNode.getNode(Locale.getDefault().toString() + ".json")).thenReturn(langNode);
+    when(bundlesNode.getNode(Locale.getDefault().toString() + ".properties")).thenReturn(langNode);
     when(langNode.getNode("jcr:content").getProperty("jcr:data").getString()).thenReturn(
-        "{'REPLACE_ME':'Yay, In the language bundle!'}");
+        "REPLACE_ME=Yay, In the language bundle!");
 
-    when(bundlesNode.getNode("de_DE.json")).thenReturn(deutschNode);
+    when(bundlesNode.getNode("de_DE.properties")).thenReturn(deutschNode);
     when(deutschNode.getNode("jcr:content").getProperty("jcr:data").getString()).thenReturn(
-        "{'REPLACE_ME':'Wie geht es ihnen?'}");
+        "REPLACE_ME=Wie geht es ihnen?");
 
-    when(bundlesNode.getNode("default.json")).thenReturn(defaultNode);
+    when(bundlesNode.getNode("default.properties")).thenReturn(defaultNode);
     when(defaultNode.getNode("jcr:content").getProperty("jcr:data").getString()).thenReturn(
-        "{'REPLACE_ME':'Yay, In the default bundle!', 'REPLACE_ME_DEFAULT':'Default replacement'}");
+        "REPLACE_ME=Yay, In the default bundle!\nREPLACE_ME_DEFAULT=Default replacement");
 
     when(response.getWriter()).thenReturn(new PrintWriter(sw));
   }
@@ -334,7 +334,7 @@ public class I18nFilterTest {
     ArgumentCaptor<ServletResponse> acResponse = ArgumentCaptor
         .forClass(ServletResponse.class);
     // verify that the proper locale was searched for in JCR
-    verify(bundlesNode).getNode("de_DE.json");
+    verify(bundlesNode).getNode("de_DE.properties");
     verify(chain).doFilter(eq(request), acResponse.capture());
     verify(response, atLeastOnce()).getWriter();
 

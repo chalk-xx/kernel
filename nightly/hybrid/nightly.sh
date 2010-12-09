@@ -4,7 +4,7 @@
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
 
 export K2_TAG="HEAD"
-export S2_TAG="tags/sakai-2.8.0-a04"
+export S2_TAG="tags/sakai-2.8.0-b01"
 export UX_TAG="HEAD"
 export HYBRID_TAG="trunk"
 
@@ -174,7 +174,7 @@ else
     echo "x.sakai.token.localhost.sharedSecret=default-setting-change-before-use" >> sakai2-demo/sakai/sakai.properties
     # declare shared secret for trusted login from nakamura
     echo "org.sakaiproject.hybrid.util.TrustedLoginFilter.sharedSecret=e2KS54H35j6vS5Z38nK40" >> sakai2-demo/sakai/sakai.properties
-    echo "org.sakaiproject.hybrid.util.TrustedLoginFilter.safeHosts=localhost;127.0.0.1;129.79.26.127" >> sakai2-demo/sakai/sakai.properties
+    echo "org.sakaiproject.hybrid.util.TrustedLoginFilter.safeHosts=localhost;127.0.0.1;0:0:0:0:0:0:0:1%0;129.79.26.127" >> sakai2-demo/sakai/sakai.properties
     # enabled Basic LTI provider
     echo "imsblti.provider.enabled=true" >> sakai2-demo/sakai/sakai.properties
     echo "imsblti.provider.allowedtools=sakai.forums:sakai.messages:sakai.synoptic.messagecenter:sakai.poll:sakai.profile:sakai.profile2:sakai.announcements:sakai.synoptic.announcement:sakai.assignment.grades:sakai.summary.calendar:sakai.schedule:sakai.chat:sakai.dropbox:sakai.resources:sakai.gradebook.tool:sakai.help:sakai.mailbox:sakai.news:sakai.podcasts:sakai.postem:sakai.site.roster:sakai.rwiki:sakai.syllabus:sakai.singleuser:sakai.samigo:sakai.sitestats" >> sakai2-demo/sakai/sakai.properties

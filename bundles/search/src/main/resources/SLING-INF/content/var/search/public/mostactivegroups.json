@@ -1,0 +1,8 @@
+{
+  "sakai:query-language": "xpath",
+  "sakai:query-template": "//activity/group//*[@sling:resourceType='sakai/resource-update'] order by @timestamp descending",
+  "sling:resourceType": "sakai/search",
+  "sakai:batchresultprocessor": "MostActiveGroups",
+  "sakai:title": "Groups - Most Active",
+  "sakai:shortDescription": "Returns feed of most active group."
+}
