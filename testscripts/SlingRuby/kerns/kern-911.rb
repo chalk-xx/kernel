@@ -18,13 +18,13 @@ class TC_Kern911Test < Test::Unit::TestCase
     m = Time.now.to_i.to_s
     htmlBody = "<html><body>#{m}</body></html>"
     fileName = "testpage-#{m}.html"
-    @s.create_file_node("/", fileName, fileName, htmlBody, "text/html")
-    res = @s.execute_get(@s.url_for("/#{fileName}"))
+    @s.create_file_node("test-#{m}", fileName, fileName, htmlBody, "text/html")
+    res = @s.execute_get(@s.url_for("test-#{m}/#{fileName}"))
     assert_equal(htmlBody, res.body, "Expected content to upload cleanly")
 
     # Batch GET of new resource.
     str = [{
-          "url" => "/#{fileName}",
+          "url" => "test-#{m}/#{fileName}",
           "method" => "GET"
     }
     ]
@@ -34,7 +34,7 @@ class TC_Kern911Test < Test::Unit::TestCase
     res = @s.execute_get(@s.url_for("system/batch"), parameters)
     @log.info(res.body)
     jsonRes = JSON.parse(res.body)["results"]
-    assert_equal(jsonRes[0]["url"], "/#{fileName}", "Expected the requested URL")
+    assert_equal(jsonRes[0]["url"], "test-#{m}/#{fileName}", "Expected the requested URL")
     assert_equal(jsonRes[0]["status"], 200, "Expected to get a successful statuscode. #{jsonRes[0]["body"]} ")
     innerBody = jsonRes[0]["body"]
     assert_equal(htmlBody, innerBody, "Expected the same content as with a non-batched GET")
