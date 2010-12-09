@@ -86,7 +86,7 @@ public class TagCloudSearchBatchResultProcessor implements SearchBatchResultProc
     }
 
     // write the most-used tags to the JSONWriter
-    Collections.sort(tags);
+    Collections.sort(tags, Collections.reverseOrder());
     write.object();
     write.key("tags");
     write.array();
