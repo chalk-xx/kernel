@@ -62,6 +62,9 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
   
   @Reference
   protected transient ProfileService profileService;
+  
+  private final int DEFAULT_DAYS = 30;
+  private final int MAXIMUM_DAYS = 90;
 
   /**
    * {@inheritDoc}
@@ -76,16 +79,18 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
     List<ResourceActivity> resources = new ArrayList<ResourceActivity>();
     Session session = request.getResourceResolver().adaptTo(Session.class);
 
+    
+    int daysAgo = deriveDateWindow(request);
+    
     // count all the activity
     while (iterator.hasNext()) {
       Row row = iterator.nextRow();
       Node node = RowUtils.getNode(row, session);
       if (node.hasProperty("timestamp")) {
         Calendar timestamp = node.getProperty("timestamp").getDate();
-        // TODO make the timespan of the report a parameter of the search
-        Calendar thirtyDaysAgo = new GregorianCalendar();
-        thirtyDaysAgo.add(Calendar.DAY_OF_MONTH, -30);
-        if (timestamp.before(thirtyDaysAgo)) {
+        Calendar specifiedDaysAgo = new GregorianCalendar();
+        specifiedDaysAgo.add(Calendar.DAY_OF_MONTH, -daysAgo);
+        if (timestamp.before(specifiedDaysAgo)) {
           // we stop counting once we get to the old stuff
           break;
         } else {
@@ -127,6 +132,22 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
     write.endArray();
     write.endObject();
 
+  }
+  
+  private int deriveDateWindow(SlingHttpServletRequest request) {
+    int daysAgo = DEFAULT_DAYS;
+    String requestedDaysParam = request.getParameter("days");
+    if (requestedDaysParam != null) {
+        try {
+          int requestedDays = Integer.parseInt(requestedDaysParam);
+          if (requestedDays <= MAXIMUM_DAYS) {
+            daysAgo = requestedDays;
+          }
+        } catch (NumberFormatException e) {
+          // malformed parameter, so we'll just stick with the default number of days
+        }
+    }
+    return daysAgo;
   }
 
   /**
