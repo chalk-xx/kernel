@@ -139,6 +139,12 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
 
     RequestPathInfo rpi = request.getRequestPathInfo();
     String poolId = rpi.getExtension();
+    String[] selectors = rpi.getSelectors();
+    String alternativeStream = null;
+    if ( selectors != null && selectors.length > 0 ) {
+      alternativeStream = poolId;
+      poolId = selectors[0];
+    }
 
     // Anonymous users cannot upload files.
     if (UserConstants.ANON_USERID.equals(userId)) {
@@ -167,12 +173,12 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
             // Generate an ID and store it.
             if ( poolId == null ) {
               String createPoolId = generatePoolId();
-              createFile(hash(createPoolId), adminSession, p, au, true);
+              createFile(hash(createPoolId), null, adminSession, p, au, true);
               results.put(p.getFileName(), createPoolId);
               statusCode = HttpServletResponse.SC_CREATED;
             } else {
               Session session = request.getResourceResolver().adaptTo(Session.class);
-              createFile(hash(poolId), session, p, au, false);
+              createFile(hash(poolId), alternativeStream, session, p, au, false);
               if ( session.hasPendingChanges() ) {
                 session.save();
               }
@@ -215,7 +221,7 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
     }
   }
 
-  private void createFile(String path, Session session, RequestParameter value,
+  private void createFile(String path, String alternativeStream, Session session, RequestParameter value,
       Authorizable au, boolean create) throws RepositoryException, IOException {
     // Get the content type.
     String contentType = getContentType(value);
@@ -263,13 +269,29 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
       // Make the creator a manager of this pooled content.
       addMember(session, path, au, POOLED_CONTENT_USER_MANAGER);
     } else {
+      
       Node fileNode = session.getNode(path);
-      Node resourceNode = fileNode.getNode(JCR_CONTENT);
-      resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
-      resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
-      resourceNode.setProperty(JcrConstants.JCR_DATA, session.getValueFactory()
-          .createBinary(value.getInputStream()));
-      LOGGER.debug("Updating Resource Node with new Content ");
+      if ( alternativeStream == null ) {
+        Node resourceNode = fileNode.getNode(JCR_CONTENT);
+        resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+        resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
+        resourceNode.setProperty(JcrConstants.JCR_DATA, session.getValueFactory()
+            .createBinary(value.getInputStream()));
+        LOGGER.debug("Updating Resource Node with new Content ");
+      } else {
+        Node resourceNode = null;
+        if ( fileNode.hasNode(alternativeStream) ) {
+          resourceNode = fileNode.getNode(alternativeStream);
+        } else {
+          resourceNode = fileNode.addNode(alternativeStream, NT_RESOURCE);
+        }
+        resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+        resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
+        resourceNode.setProperty(JcrConstants.JCR_DATA, session.getValueFactory()
+            .createBinary(value.getInputStream()));
+        LOGGER.debug("Updating Alternative Stream {} with new Content  ", alternativeStream);
+        
+      }
     }
 
   }
