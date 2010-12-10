@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
@@ -249,6 +248,7 @@ public class I18nFilter implements Filter {
     InputStream in = content.getProperty("jcr:data").getBinary().getStream();
     props.load(in);
     in.close();
+    System.err.println("Got "+props);
     return props;
   }
 }
