@@ -116,4 +116,8 @@ public interface FilesConstants {
    * Selector for feed of related content which is publicly accessible.
    */
   public static final String POOLED_CONTENT_PUBLIC_RELATED_SELECTOR = "relatedpublic";
+  
+  
+  public static final String POOLED_NEEDS_UPDATE = "sakai:needsprocessing";
+
 }

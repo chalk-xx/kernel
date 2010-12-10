@@ -27,6 +27,7 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_NT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_RT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_NEEDS_UPDATE;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Properties;
@@ -227,6 +228,7 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
       fileNode.setProperty(POOLED_CONTENT_FILENAME, value.getFileName());
       fileNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_RT);
       fileNode.setProperty(POOLED_CONTENT_CREATED_FOR, au.getID());
+      fileNode.setProperty(POOLED_NEEDS_UPDATE, "true");
       Node resourceNode = fileNode.addNode(JCR_CONTENT, NT_RESOURCE);
       resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
       resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
