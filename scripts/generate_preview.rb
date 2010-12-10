@@ -2,6 +2,7 @@
 require 'ruby-lib-dir.rb'
 require 'sling/sling'
 require 'RMagick'
+require 'fileutils'
 include SlingInterface
 include Magick
 
@@ -45,26 +46,32 @@ Dir["*"].each do |id|
       content_file = @s.execute_get(@s.url_for("p/#{id}"))
       File.open("#{cf}_img", 'wb') { |f| f.write(content_file.body) }
     
-      thumbnail = Image.read("#{cf}_img").first
-      # using resize_to_fill rather than resize_to_fit to give a maximized preview
-      thumbnail.resize_to_fill!(640, 640)
-      thumbnail.write("#{cf}.jpg")
+      begin
+        thumbnail = Image.read("#{cf}_img").first
+        # using resize_to_fill rather than resize_to_fit to give a maximized preview
+        thumbnail.resize_to_fill!(640, 640)
+        thumbnail.write("#{cf}.jpg")
     
-      # upload thumbnail to server (HTTP POST)
-      if ( File.exists?("#{cf}.jpg") ) 
-        nbytes = File.size("#{cf}.jpg")
-        content = nil
-        File.open("#{cf}.jpg", "rb" ) { |f| content = f.read(nbytes) }
-        @s.execute_file_post(@s.url_for("system/pool/createfile.#{id}.preview"), "thumbnail", "thumbnail", content, "image/jpeg" )
-        puts ("Uploaded Thmbnail to curl #{@s.url_for("p/#{id}.preview.jpg")} ")
-        # change flag sakai:needsprocessing to 0 (HTTP POST)
-        @s.execute_post(@s.url_for("p/#{id}"), { "sakai:needsprocessing" => "false" } )
-      else 
+        # upload thumbnail to server (HTTP POST)
+        if ( File.exists?("#{cf}.jpg") ) 
+          nbytes = File.size("#{cf}.jpg")
+          content = nil
+          File.open("#{cf}.jpg", "rb" ) { |f| content = f.read(nbytes) }
+          @s.execute_file_post(@s.url_for("system/pool/createfile.#{id}.preview"), "thumbnail", "thumbnail", content, "image/jpeg" )
+          puts ("Uploaded Thmbnail to curl #{@s.url_for("p/#{id}.preview.jpg")} ")
+          # change flag sakai:needsprocessing to 0 (HTTP POST)
+          @s.execute_post(@s.url_for("p/#{id}"), { "sakai:needsprocessing" => "false" } )
+        else 
+          raise
+        end
+      rescue
         @s.execute_post(@s.url_for("p/#{id}"), { "sakai:needsprocessing" => "failed: no preview" } )
+        File.delete("#{id}")
+      else
+        # clean up working space
+        File.delete("#{id}", "#{cf}_img", "#{cf}.jpg")
       end   
     
-      # clean up working space
-      File.delete("#{id}", "#{cf}_img", "#{cf}.jpg")
     else 
       File.delete("#{id}")
     end
