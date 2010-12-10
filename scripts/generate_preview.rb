@@ -47,7 +47,7 @@ Dir["*"].each do |id|
     
       thumbnail = Image.read("#{cf}_img").first
       # using resize_to_fill rather than resize_to_fit to give a maximized preview
-      thumbnail.resize_to_fill!(100, 100)
+      thumbnail.resize_to_fill!(640, 640)
       thumbnail.write("#{cf}.jpg")
     
       # upload thumbnail to server (HTTP POST)
