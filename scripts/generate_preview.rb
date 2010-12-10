@@ -43,7 +43,7 @@ Dir["*"].each do |id|
       # download content and create thumbnail in a file (HTTP GET)
 
       content_file = @s.execute_get(@s.url_for("p/#{id}"))
-      File.open("#{cf}_img", 'w') { |f| f.write(content_file.body) }
+      File.open("#{cf}_img", 'wb') { |f| f.write(content_file.body) }
     
       thumbnail = Image.read("#{cf}_img").first
       # using resize_to_fill rather than resize_to_fit to give a maximized preview
@@ -51,10 +51,17 @@ Dir["*"].each do |id|
       thumbnail.write("#{cf}.jpg")
     
       # upload thumbnail to server (HTTP POST)
-      @s.execute_file_post(@s.url_for("p/#{id}/"), "thumbnail", "thumbnail", "#{cf}.jpg", "image/jpeg" )
-    
-      # change flag sakai:needsprocessing to 0 (HTTP POST)
-      @s.execute_post(@s.url_for("p/#{id}"), { "sakai:needsprocessing" => "false" } )
+      if ( File.exists?("#{cf}.jpg") ) 
+        nbytes = File.size("#{cf}.jpg")
+        content = nil
+        File.open("#{cf}.jpg", "rb" ) { |f| content = f.read(nbytes) }
+        @s.execute_file_post(@s.url_for("system/pool/createfile.#{id}.preview"), "thumbnail", "thumbnail", content, "image/jpeg" )
+        puts ("Uploaded Thmbnail to curl #{@s.url_for("p/#{id}.preview.jpg")} ")
+        # change flag sakai:needsprocessing to 0 (HTTP POST)
+        @s.execute_post(@s.url_for("p/#{id}"), { "sakai:needsprocessing" => "false" } )
+      else 
+        @s.execute_post(@s.url_for("p/#{id}"), { "sakai:needsprocessing" => "failed: no preview" } )
+      end   
     
       # clean up working space
       File.delete("#{id}", "#{cf}_img", "#{cf}.jpg")
