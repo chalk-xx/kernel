@@ -248,7 +248,6 @@ public class I18nFilter implements Filter {
     InputStream in = content.getProperty("jcr:data").getBinary().getStream();
     props.load(in);
     in.close();
-    System.err.println("Got "+props);
     return props;
   }
 }
