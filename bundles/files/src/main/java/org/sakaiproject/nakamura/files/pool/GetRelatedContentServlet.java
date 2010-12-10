@@ -17,9 +17,12 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
+import static org.sakaiproject.nakamura.api.files.FilesConstants.ACCESS_SCHEME_PROPERTY;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.LOGGED_IN_ACCESS_SCHEME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_PUBLIC_RELATED_SELECTOR;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_RELATED_SELECTOR;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_RT;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.PUBLIC_ACCESS_SCHEME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
 import org.apache.commons.lang.StringUtils;
@@ -73,15 +76,7 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
 
   public static final int MAX_RESULTS = 10;
 
-  // TODO These all need to be made part of the client-server contract.
-
-  // Property which can be used to include access scheme in the search.
-  public static final String ACCESS_SCHEME_PROPERTY = "sakai:permissions";
-  // The access scheme which lets any logged-in user see the item.
-  public static final String LOGGED_IN_ACCESS_SCHEME = "everyone";
-  // The access scheme which makes the item visible even to sessions which have not logged in.
-  public static final String PUBLIC_ACCESS_SCHEME = "public";
-
+  // Set up the access-scheme-based queries.
   private static final String LOGGED_IN_QUERY =
     "(@" + ACCESS_SCHEME_PROPERTY + "='" + LOGGED_IN_ACCESS_SCHEME + "' or @" +
     ACCESS_SCHEME_PROPERTY + "='" + PUBLIC_ACCESS_SCHEME + "')";
@@ -111,8 +106,12 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
     // Collect tags to search against.
     Node node = request.getResource().adaptTo(Node.class);
     try {
+      ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
+      writer.setTidy(selectors.contains("tidy"));
+      writer.array();
       if (node.hasProperty(SAKAI_TAG_UUIDS)) {
-        // each node that has been tagged has one or more tag UUIDs riding with it
+        String nodePath = node.getPath();
+        // Each node that has been tagged has one or more tag UUIDs riding with it
         Value[] uuidValues = JcrUtils.getValues(node, SAKAI_TAG_UUIDS);
         if (uuidValues.length > 0) {
           Set<String> tagUuids = new HashSet<String>(uuidValues.length);
@@ -123,27 +122,22 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
               append(StringUtils.join(tagUuids, "' or @sakai:tag-uuid='")).
               append("')");
         }
-      }
-
-      // Close the query.
-      sb.append("] order by @jcr:score descending");
-      String queryString = sb.toString();
-      Session session = node.getSession();
-      QueryManager queryManager = session.getWorkspace().getQueryManager();
-      Query query = queryManager.createQuery(queryString, Query.XPATH);
-      QueryResult queryResult = query.execute();
-      SearchResultSet resultSet = searchServiceFactory.getSearchResultSet(queryResult.getRows(), MAX_RESULTS);
-      ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
-      writer.setTidy(selectors.contains("tidy"));
-      writer.array();
-      RowIterator iterator = resultSet.getRowIterator();
-      int count = 0;
-      while ((count < MAX_RESULTS) && iterator.hasNext()) {
-        Row row = iterator.nextRow();
-        Node relatedNode = row.getNode();
-        if (relatedNode != node) {
-          ExtendedJSONWriter.writeNodeToWriter(writer, relatedNode);
-          count++;
+        sb.append("] order by @jcr:score descending");
+        String queryString = sb.toString();
+        Session session = node.getSession();
+        QueryManager queryManager = session.getWorkspace().getQueryManager();
+        Query query = queryManager.createQuery(queryString, Query.XPATH);
+        QueryResult queryResult = query.execute();
+        SearchResultSet resultSet = searchServiceFactory.getSearchResultSet(queryResult.getRows(), MAX_RESULTS);
+        RowIterator iterator = resultSet.getRowIterator();
+        int count = 0;
+        while ((count < MAX_RESULTS) && iterator.hasNext()) {
+          Row row = iterator.nextRow();
+          Node relatedNode = row.getNode();
+          if (!nodePath.equals(relatedNode.getPath())) {
+            ExtendedJSONWriter.writeNodeToWriter(writer, relatedNode);
+            count++;
+          }
         }
       }
       writer.endArray();
