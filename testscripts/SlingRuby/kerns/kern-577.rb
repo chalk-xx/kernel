@@ -51,10 +51,9 @@ class TC_MyFileTest_577 < Test::Unit::TestCase
     res = @s.execute_get(@s.url_for("#{publicSimon}/tags/footag.json"))
     tag = JSON.parse(res.body)
     assert_not_nil(tag, "No response when creating a tag.")
-    assert_not_nil(tag['jcr:uuid'], "Expected a uuid for a tag.")
 
     # Tag the alfa file.
-    res = @ff.tag("#{publicSimon}/files/alfa", tag['jcr:uuid'])
+    res = @ff.tag("#{publicSimon}/files/alfa", "#{publicSimon}/tags/footag")
     assert_equal(200, res.code.to_i(), "Expected to be able to tag an uploaded file.")
 
     # Tag a file with a non-existing tag.
