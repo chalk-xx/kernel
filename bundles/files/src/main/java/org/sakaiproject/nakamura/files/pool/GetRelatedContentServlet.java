@@ -32,6 +32,13 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -62,9 +69,32 @@ import javax.servlet.http.HttpServletResponse;
  * versions of the feed: one which contains items available to to any logged-in
  * user (with a "sakai:permissions" property of "everyone"), and one which contains
  * only publicly accessible items (with a "sakai:permissions" property of "public").
- *
- * TODO Servlet documentation.
  */
+@ServiceDocumentation(name = "GetRelatedContentServlet", shortDescription = "Get up to ten related nodes",
+    description = {
+      "This servlet returns an array of content related to the targeted node.",
+      "Currently, relatedness is determined by the number of shared tags."
+    },
+    bindings = {
+      @ServiceBinding(type = BindingType.TYPE, bindings = { POOLED_CONTENT_RT },
+          extensions = @ServiceExtension(name = "json", description = "This servlet outputs JSON data."),
+          selectors = {
+            @ServiceSelector(name = POOLED_CONTENT_RELATED_SELECTOR, description = "Will retrieve related content with an access scheme of 'everyone'."),
+            @ServiceSelector(name = POOLED_CONTENT_PUBLIC_RELATED_SELECTOR, description = "Will retrieve related content with an access scheme of 'public'."),
+            @ServiceSelector(name = "tidy", description = "Optional sub-selector. Will send back 'tidy' output.")
+          }
+      )
+    },
+    methods = {
+      @ServiceMethod(name = "GET",  parameters = {},
+          description = { "This servlet only responds to GET requests." },
+          response = {
+            @ServiceResponse(code = 200, description = "Succesful request, json can be found in the body"),
+            @ServiceResponse(code = 500, description = "Failure to retrieve tags or files, an explanation can be found in the HTMl.")
+          }
+      )
+    }
+)
 @SlingServlet(methods = { "GET" },
     extensions = { "json" },
     resourceTypes = { POOLED_CONTENT_RT },
