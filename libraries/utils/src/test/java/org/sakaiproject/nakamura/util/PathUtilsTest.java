@@ -186,23 +186,29 @@ public class PathUtilsTest {
 
   @Test
   public void testTranslate() {
-    assertEquals("/~ieb/testing", PathUtils.translateAuthorizablePath("/_user/i/ie/ieb/testing"));
-    assertEquals("/~ieb/", PathUtils.translateAuthorizablePath("/_user/i/ie/ieb/"));
-    assertEquals("/~ieb", PathUtils.translateAuthorizablePath("/_user/i/ie/ieb"));
-    assertEquals("/~ieb", PathUtils.translateAuthorizablePath("/_user/i/ie/ieb/ieb"));
-    assertEquals("/~ieb/ieb", PathUtils.translateAuthorizablePath("/_user/i/ie/ieb/ieb/ieb"));
-    assertEquals("/~ieb236/testing/a/b/c", PathUtils.translateAuthorizablePath("/_user/i/ie/ieb/ieb236/testing/a/b/c"));
-    assertEquals("/~ieb/testing", PathUtils.translateAuthorizablePath("/_group/i/ie/ieb/testing"));
-    assertEquals("/~ieb/", PathUtils.translateAuthorizablePath("/_group/i/ie/ieb/"));
-    assertEquals("/~ieb", PathUtils.translateAuthorizablePath("/_group/i/ie/ieb"));
-    assertEquals("/~ieb", PathUtils.translateAuthorizablePath("/_group/i/ie/ieb/ieb"));
-    assertEquals("/~ieb/ieb", PathUtils.translateAuthorizablePath("/_group/i/ie/ieb/ieb/ieb"));
-    assertEquals("/~ieb/testing/a/b/c", PathUtils.translateAuthorizablePath("/_group/i/ieb/ieb/testing/a/b/c"));
-    assertEquals("/~ieb236/testing/a/b/c", PathUtils.translateAuthorizablePath("/_group/i/ie/ieb/ieb236/testing/a/b/c"));
+    assertEquals("/~ieb/testing", PathUtils.translateAuthorizablePath("/_user/WJ/JO/TQ/ieb/testing"));
+    assertEquals("/~ieb/", PathUtils.translateAuthorizablePath("/_user/WJ/JO/TQ/ieb/"));
+    assertEquals("/~ieb", PathUtils.translateAuthorizablePath("/_user/WJ/JO/TQ/ieb"));
+    assertEquals("/~ieb", PathUtils.translateAuthorizablePath("/_user/WJ/JO/TQ/ieb"));
+    assertEquals("/~ieb/ieb", PathUtils.translateAuthorizablePath("/_user/WJ/JO/TQ/ieb/ieb"));
+    assertEquals("/~ieb236/testing/a/b/c", PathUtils.translateAuthorizablePath("/_user/WJ/JO/TQ/ieb236/testing/a/b/c"));
+    assertEquals("/~ieb/testing", PathUtils.translateAuthorizablePath("/_group/WJ/JO/TQ/ieb/testing"));
+    assertEquals("/~ieb/", PathUtils.translateAuthorizablePath("/_group/WJ/JO/TQ/ieb/"));
+    assertEquals("/~ieb", PathUtils.translateAuthorizablePath("/_group/WJ/JO/TQ/ieb"));
+    assertEquals("/~ieb", PathUtils.translateAuthorizablePath("/_group/WJ/JO/TQ/ieb"));
+    assertEquals("/~ieb/ieb", PathUtils.translateAuthorizablePath("/_group/WJ/JO/TQ/ieb/ieb"));
+    assertEquals("/~ieb/testing/a/b/c", PathUtils.translateAuthorizablePath("/_group/WJ/JO/TQ/ieb/testing/a/b/c"));
+    assertEquals("/~ieb236/testing/a/b/c", PathUtils.translateAuthorizablePath("/_group/WJ/JO/TQ/ieb236/testing/a/b/c"));
     assertEquals("/_group", PathUtils.translateAuthorizablePath("/_group"));
     assertEquals("/_group/", PathUtils.translateAuthorizablePath("/_group/"));
     assertEquals("/_user", PathUtils.translateAuthorizablePath("/_user"));
     assertEquals("/_user/", PathUtils.translateAuthorizablePath("/_user/"));
     assertEquals("/anything/", PathUtils.translateAuthorizablePath("/anything/"));
+    assertEquals("/anything/", PathUtils.translateAuthorizablePath("/anything/"));
+    
+    assertEquals("/~ieb/public/authprofile", PathUtils.translateAuthorizablePath("/_user/WJ/JO/TQ/ieb/public/authprofile"));
+    
+    
+    
   }
 }
