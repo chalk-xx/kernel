@@ -35,12 +35,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
+ *
  * Work around performance issue with Sling's DefaultGetServlet. The JsonResourceWriter
  * ends up unnecessarily reading the complete stream for a binary property's value
  * just to report its length. Nakamura's ExtendedJSONWriter instead fetches the
  * property length directly, a much more efficient operation.
- *
- * TODO Enter patch for Sling.
+ * 
+ * The above statement is no longer true. Slings JsonResourceWriter has been patched.
  */
 @SlingServlet(methods = { "GET" }, extensions = { "json" }, resourceTypes = { "sakai/pooled-content" })
 public class GetContentPoolServlet extends SlingAllMethodsServlet implements OptingServlet {

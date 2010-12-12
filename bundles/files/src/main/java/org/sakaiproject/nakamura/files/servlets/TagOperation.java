@@ -28,6 +28,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.AbstractSlingPostOperation;
@@ -85,7 +86,7 @@ public class TagOperation extends AbstractSlingPostOperation {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.servlets.post.AbstractSlingPostOperation#doRun(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
@@ -101,7 +102,7 @@ public class TagOperation extends AbstractSlingPostOperation {
       return;
     }
 
-    Session session = request.getResourceResolver().adaptTo(Session.class);
+    ResourceResolver resourceResolver = request.getResourceResolver();
     Node tagNode = null;
     Node node = request.getResource().adaptTo(Node.class);
 
@@ -121,7 +122,7 @@ public class TagOperation extends AbstractSlingPostOperation {
 
     // Grab the tagNode.
     try {
-      tagNode = FileUtils.resolveNode(key.getString(), session);
+      tagNode = FileUtils.resolveNode(key.getString(), resourceResolver);
       if (tagNode == null) {
         response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Provided key not found.");
         return;
@@ -186,7 +187,7 @@ public class TagOperation extends AbstractSlingPostOperation {
 
   /**
    * Checks if the node already has the uuid in it's properties.
-   * 
+   *
    * @param node
    * @param uuid
    * @return

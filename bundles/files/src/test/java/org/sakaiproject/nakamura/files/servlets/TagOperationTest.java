@@ -193,6 +193,9 @@ public class TagOperationTest {
     Node tagNode = new MockNode(path);
     tagNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, FilesConstants.RT_SAKAI_TAG);
     tagNode.setProperty(FilesConstants.SAKAI_TAG_NAME, "urban");
+    Resource tagResource = mock(Resource.class);
+    when(tagResource.adaptTo(Node.class)).thenReturn(tagNode);
+    when(resolver.resolve(path)).thenReturn(tagResource);
 
     // The file we want to tag.
     Node fileNode = mock(Node.class);
@@ -209,7 +212,6 @@ public class TagOperationTest {
     when(fileNode.hasProperty(FilesConstants.SAKAI_TAGS)).thenReturn(true);
 
     // Stuff to check if this is a correct request
-    when(session.getNode(path)).thenReturn(tagNode);
     RequestParameter pathParam = mock(RequestParameter.class);
     when(resolver.adaptTo(Session.class)).thenReturn(session);
     when(resource.adaptTo(Node.class)).thenReturn(fileNode);

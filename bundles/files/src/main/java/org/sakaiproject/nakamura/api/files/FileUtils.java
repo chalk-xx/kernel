@@ -27,6 +27,7 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -449,28 +450,35 @@ public class FileUtils {
    * @param pathOrIdentifier
    *          One of three possible parameters: 1) A fully qualified path to a Node (e.g.
    *          "/foo/bar/baz"), 2) a Node's UUID, or 3) the PoolId from a ContentPool.
-   * @param session
+   * @param resourceResolver
    * @return If the Node cannot be resolved, <code>null</code> will be returned.
    * @throws IllegalArgumentException
    */
-  public static Node resolveNode(final String pathOrIdentifier, final Session session) {
+  public static Node resolveNode(final String pathOrIdentifier, final ResourceResolver resourceResolver) {
     if (pathOrIdentifier == null || "".equals(pathOrIdentifier)) {
       throw new IllegalArgumentException("Passed argument was null or empty");
     }
-    if (session == null) {
-      throw new IllegalArgumentException("Session cannot be null");
+    if (resourceResolver == null) {
+      throw new IllegalArgumentException("Resource resolver cannot be null");
     }
     Node node = null;
     try {
       if (pathOrIdentifier.startsWith("/")) { // it is a path specification
-        node = session.getNode(pathOrIdentifier);
+        node = resourceResolver.resolve(pathOrIdentifier).adaptTo(Node.class);
       } else {
-        // assume we have a UUID and try to resolve
+        // Not a full resource path, so try the two flavors of ID.
+        Session session = resourceResolver.adaptTo(Session.class);
+        // First, assume we have a UUID and try to resolve
         try {
           node = session.getNodeByIdentifier(pathOrIdentifier);
         } catch (RepositoryException e) {
           log.debug("Swallowed exception; i.e. normal operation: {}",
               e.getLocalizedMessage(), e);
+        }
+        if (node == null) {
+          // must not have been a UUID; resolve via poolId
+          final String poolPath = CreateContentPoolServlet.hash(pathOrIdentifier);
+          node = session.getNode(poolPath);
         }
       }
     } catch (PathNotFoundException e) {
@@ -479,18 +487,6 @@ public class FileUtils {
       // Normal execution path - ignore
     } catch (Throwable e) {
       log.error(e.getLocalizedMessage(), e);
-    }
-    if (node == null) {
-      // must not have been a UUID; resolve via poolId
-      try {
-        //
-        final String poolPath = CreateContentPoolServlet.hash(pathOrIdentifier);
-        node = session.getNode(poolPath);
-      } catch (PathNotFoundException e) {
-        // Normal execution path - ignore
-      } catch (Throwable e) {
-        log.error(e.getLocalizedMessage(), e);
-      }
     }
     return node;
   }

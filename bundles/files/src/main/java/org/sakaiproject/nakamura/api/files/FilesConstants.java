@@ -116,4 +116,20 @@ public interface FilesConstants {
    * Selector for feed of related content which is publicly accessible.
    */
   public static final String POOLED_CONTENT_PUBLIC_RELATED_SELECTOR = "relatedpublic";
+
+  /**
+   * Property which stores the UX access scheme for the node.
+   */
+  public static final String ACCESS_SCHEME_PROPERTY = "sakai:permissions";
+  /**
+   * The access scheme which lets any logged-in user see the item.
+   */
+  public static final String LOGGED_IN_ACCESS_SCHEME = "everyone";
+  /**
+   * The access scheme which makes the item visible even to sessions which have not logged in.
+   */
+  public static final String PUBLIC_ACCESS_SCHEME = "public";
+
+  public static final String POOLED_NEEDS_UPDATE = "sakai:needsprocessing";
+
 }
