@@ -26,6 +26,7 @@ import org.apache.jackrabbit.core.security.principal.PrincipalIteratorAdapter;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.util.Iterables;
+import org.sakaiproject.nakamura.api.lite.util.PreemptiveIterator;
 
 import java.security.Principal;
 import java.util.Collections;
@@ -54,11 +55,11 @@ public class SparseImpersonationImpl implements Impersonation {
     }
     final Iterator<String> imperson = Iterables.of(StringUtils.split(impersonators, ';'))
         .iterator();
-    return new PrincipalIteratorAdapter(new Iterator<Principal>() {
+    return new PrincipalIteratorAdapter(new PreemptiveIterator<Principal>() {
 
       private Principal principal;
 
-      public boolean hasNext() {
+      protected boolean internalHasNext() {
         if (imperson.hasNext()) {
           String userId = imperson.next();
           if (User.ADMIN_USER.equals(userId)) {
@@ -75,13 +76,10 @@ public class SparseImpersonationImpl implements Impersonation {
         return false;
       }
 
-      public Principal next() {
+      protected Principal internalNext() {
         return principal;
       }
 
-      public void remove() {
-        throw new UnsupportedOperationException();
-      }
     });
   }
 

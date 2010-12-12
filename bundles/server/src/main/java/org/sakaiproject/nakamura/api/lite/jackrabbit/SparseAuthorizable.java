@@ -29,6 +29,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.util.Iterables;
+import org.sakaiproject.nakamura.api.lite.util.PreemptiveIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,11 +78,12 @@ public class SparseAuthorizable implements Authorizable {
   public Iterator<Group> declaredMemberOf() throws RepositoryException {
     final Iterator<String> memberIterator = Iterables.of(
         sparseAuthorizable.getPrincipals()).iterator();
-    return new Iterator<Group>() {
+    return new PreemptiveIterator<Group>() {
 
       private SparseGroup group;
 
-      public boolean hasNext() {
+
+      protected boolean internalHasNext() {
         while (memberIterator.hasNext()) {
           try {
             String id = memberIterator.next();
@@ -103,25 +105,22 @@ public class SparseAuthorizable implements Authorizable {
         return false;
       }
 
-      public Group next() {
+      protected Group internalNext() {
         return group;
       }
 
-      public void remove() {
-        throw new UnsupportedOperationException();
-      }
     };
   }
 
   public Iterator<Group> memberOf() throws RepositoryException {
     final List<String> memberIds = new ArrayList<String>();
     Collections.addAll(memberIds, sparseAuthorizable.getPrincipals());
-    return new Iterator<Group>() {
+    return new PreemptiveIterator<Group>() {
 
       private int p;
       private SparseGroup group;
 
-      public boolean hasNext() {
+      protected boolean internalHasNext() {
         while (p < memberIds.size()) {
           String id = memberIds.get(p);
           p++;
@@ -148,13 +147,10 @@ public class SparseAuthorizable implements Authorizable {
         return false;
       }
 
-      public Group next() {
+      protected Group internalNext() {
         return group;
       }
 
-      public void remove() {
-        throw new UnsupportedOperationException();
-      }
     };
   }
 

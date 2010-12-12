@@ -35,13 +35,14 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.lite.util.PreemptiveIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
@@ -154,12 +155,12 @@ public class SparsePrincipalProvider implements PrincipalProvider {
       addToCache(principal);
     }
 
-    return new PrincipalIteratorAdapter(new Iterator<Principal>() {
+    return new PrincipalIteratorAdapter(new PreemptiveIterator<Principal>() {
 
       private int p = 0;
       private Principal prin = null;
 
-      public boolean hasNext() {
+      protected boolean internalHasNext() {
         while (p < memberIds.size()) {
           String id = memberIds.get(p);
           p++;
@@ -194,21 +195,18 @@ public class SparsePrincipalProvider implements PrincipalProvider {
               }
             }
           } catch (AccessDeniedException e) {
-            LOGGER.debug(e.getMessage(), e);
+            LOGGER.info(e.getMessage(), e);
           } catch (StorageClientException e) {
-            LOGGER.debug(e.getMessage(), e);
+            LOGGER.info(e.getMessage(), e);
           }
         }
         return false;
       }
 
-      public Principal next() {
+      protected Principal internalNext() {
         return prin;
       }
 
-      public void remove() {
-        throw new UnsupportedOperationException();
-      }
     });
   }
 
