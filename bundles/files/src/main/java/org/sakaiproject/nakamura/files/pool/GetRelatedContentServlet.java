@@ -17,9 +17,12 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
+import static org.sakaiproject.nakamura.api.files.FilesConstants.ACCESS_SCHEME_PROPERTY;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.LOGGED_IN_ACCESS_SCHEME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_PUBLIC_RELATED_SELECTOR;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_RELATED_SELECTOR;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_RT;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.PUBLIC_ACCESS_SCHEME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
 import org.apache.commons.lang.StringUtils;
@@ -29,6 +32,13 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -59,9 +69,32 @@ import javax.servlet.http.HttpServletResponse;
  * versions of the feed: one which contains items available to to any logged-in
  * user (with a "sakai:permissions" property of "everyone"), and one which contains
  * only publicly accessible items (with a "sakai:permissions" property of "public").
- *
- * TODO Servlet documentation.
  */
+@ServiceDocumentation(name = "GetRelatedContentServlet", shortDescription = "Get up to ten related nodes",
+    description = {
+      "This servlet returns an array of content related to the targeted node.",
+      "Currently, relatedness is determined by the number of shared tags."
+    },
+    bindings = {
+      @ServiceBinding(type = BindingType.TYPE, bindings = { POOLED_CONTENT_RT },
+          extensions = @ServiceExtension(name = "json", description = "This servlet outputs JSON data."),
+          selectors = {
+            @ServiceSelector(name = POOLED_CONTENT_RELATED_SELECTOR, description = "Will retrieve related content with an access scheme of 'everyone'."),
+            @ServiceSelector(name = POOLED_CONTENT_PUBLIC_RELATED_SELECTOR, description = "Will retrieve related content with an access scheme of 'public'."),
+            @ServiceSelector(name = "tidy", description = "Optional sub-selector. Will send back 'tidy' output.")
+          }
+      )
+    },
+    methods = {
+      @ServiceMethod(name = "GET",  parameters = {},
+          description = { "This servlet only responds to GET requests." },
+          response = {
+            @ServiceResponse(code = 200, description = "Succesful request, json can be found in the body"),
+            @ServiceResponse(code = 500, description = "Failure to retrieve tags or files, an explanation can be found in the HTMl.")
+          }
+      )
+    }
+)
 @SlingServlet(methods = { "GET" },
     extensions = { "json" },
     resourceTypes = { POOLED_CONTENT_RT },
@@ -73,15 +106,7 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
 
   public static final int MAX_RESULTS = 10;
 
-  // TODO These all need to be made part of the client-server contract.
-
-  // Property which can be used to include access scheme in the search.
-  public static final String ACCESS_SCHEME_PROPERTY = "sakai:permissions";
-  // The access scheme which lets any logged-in user see the item.
-  public static final String LOGGED_IN_ACCESS_SCHEME = "everyone";
-  // The access scheme which makes the item visible even to sessions which have not logged in.
-  public static final String PUBLIC_ACCESS_SCHEME = "public";
-
+  // Set up the access-scheme-based queries.
   private static final String LOGGED_IN_QUERY =
     "(@" + ACCESS_SCHEME_PROPERTY + "='" + LOGGED_IN_ACCESS_SCHEME + "' or @" +
     ACCESS_SCHEME_PROPERTY + "='" + PUBLIC_ACCESS_SCHEME + "')";
@@ -111,8 +136,12 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
     // Collect tags to search against.
     Node node = request.getResource().adaptTo(Node.class);
     try {
+      ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
+      writer.setTidy(selectors.contains("tidy"));
+      writer.array();
       if (node.hasProperty(SAKAI_TAG_UUIDS)) {
-        // each node that has been tagged has one or more tag UUIDs riding with it
+        String nodePath = node.getPath();
+        // Each node that has been tagged has one or more tag UUIDs riding with it
         Value[] uuidValues = JcrUtils.getValues(node, SAKAI_TAG_UUIDS);
         if (uuidValues.length > 0) {
           Set<String> tagUuids = new HashSet<String>(uuidValues.length);
@@ -123,27 +152,22 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
               append(StringUtils.join(tagUuids, "' or @sakai:tag-uuid='")).
               append("')");
         }
-      }
-
-      // Close the query.
-      sb.append("] order by @jcr:score descending");
-      String queryString = sb.toString();
-      Session session = node.getSession();
-      QueryManager queryManager = session.getWorkspace().getQueryManager();
-      Query query = queryManager.createQuery(queryString, Query.XPATH);
-      QueryResult queryResult = query.execute();
-      SearchResultSet resultSet = searchServiceFactory.getSearchResultSet(queryResult.getRows(), MAX_RESULTS);
-      ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
-      writer.setTidy(selectors.contains("tidy"));
-      writer.array();
-      RowIterator iterator = resultSet.getRowIterator();
-      int count = 0;
-      while ((count < MAX_RESULTS) && iterator.hasNext()) {
-        Row row = iterator.nextRow();
-        Node relatedNode = row.getNode();
-        if (relatedNode != node) {
-          ExtendedJSONWriter.writeNodeToWriter(writer, relatedNode);
-          count++;
+        sb.append("] order by @jcr:score descending");
+        String queryString = sb.toString();
+        Session session = node.getSession();
+        QueryManager queryManager = session.getWorkspace().getQueryManager();
+        Query query = queryManager.createQuery(queryString, Query.XPATH);
+        QueryResult queryResult = query.execute();
+        SearchResultSet resultSet = searchServiceFactory.getSearchResultSet(queryResult.getRows(), MAX_RESULTS);
+        RowIterator iterator = resultSet.getRowIterator();
+        int count = 0;
+        while ((count < MAX_RESULTS) && iterator.hasNext()) {
+          Row row = iterator.nextRow();
+          Node relatedNode = row.getNode();
+          if (!nodePath.equals(relatedNode.getPath())) {
+            ExtendedJSONWriter.writeNodeToWriter(writer, relatedNode);
+            count++;
+          }
         }
       }
       writer.endArray();
