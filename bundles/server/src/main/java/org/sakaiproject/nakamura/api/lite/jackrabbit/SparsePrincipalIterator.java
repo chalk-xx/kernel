@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.api.lite.jackrabbit;
 
 import org.apache.jackrabbit.core.security.principal.PrincipalIteratorAdapter;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.util.PreemptiveIterator;
 
 import java.security.Principal;
 import java.util.Iterator;
@@ -26,11 +27,12 @@ import java.util.Iterator;
 public class SparsePrincipalIterator extends PrincipalIteratorAdapter {
 
   public SparsePrincipalIterator(final Iterator<? extends Authorizable> iterator) {
-    super(new Iterator<Principal>() {
+    super(new PreemptiveIterator<Principal>() {
 
+      
       Principal principal;
 
-      public boolean hasNext() {
+      protected boolean internalHasNext() {
         while (iterator.hasNext()) {
           Authorizable a = iterator.next();
           if (a != null) {
@@ -42,12 +44,8 @@ public class SparsePrincipalIterator extends PrincipalIteratorAdapter {
         return false;
       }
 
-      public Principal next() {
+      protected Principal internalNext() {
         return principal;
-      }
-
-      public void remove() {
-        throw new UnsupportedOperationException();
       }
 
     });

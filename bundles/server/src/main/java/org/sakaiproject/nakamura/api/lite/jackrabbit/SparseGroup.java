@@ -24,6 +24,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.util.Iterables;
+import org.sakaiproject.nakamura.api.lite.util.PreemptiveIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,11 +51,11 @@ public class SparseGroup extends SparseAuthorizable implements Group {
   public Iterator<Authorizable> getDeclaredMembers() throws RepositoryException {
     final Iterator<String> memberIterator = Iterables.of(getSparseGroup().getMembers())
         .iterator();
-    return new Iterator<Authorizable>() {
+    return new PreemptiveIterator<Authorizable>() {
 
       private SparseAuthorizable authorizble;
 
-      public boolean hasNext() {
+      protected boolean internalHasNext() {
         while (memberIterator.hasNext()) {
           try {
             String id = memberIterator.next();
@@ -81,26 +82,23 @@ public class SparseGroup extends SparseAuthorizable implements Group {
         return false;
       }
 
-      public Authorizable next() {
+      protected Authorizable internalNext() {
         return authorizble;
       }
 
-      public void remove() {
-        throw new UnsupportedOperationException();
-      }
     };
   }
 
   public Iterator<Authorizable> getMembers() throws RepositoryException {
     final List<String> memberIds = new ArrayList<String>();
     Collections.addAll(memberIds, getSparseGroup().getMembers());
-    return new Iterator<Authorizable>() {
+    return new PreemptiveIterator<Authorizable>() {
 
       private int p;
       private SparseAuthorizable authorizable;
 
-      public boolean hasNext() {
-        while (p < memberIds.size()) {
+      protected boolean internalHasNext() {
+       while (p < memberIds.size()) {
           String id = memberIds.get(p);
           p++;
           try {
@@ -131,13 +129,10 @@ public class SparseGroup extends SparseAuthorizable implements Group {
         return false;
       }
 
-      public Authorizable next() {
+      protected Authorizable internalNext() {
         return authorizable;
       }
 
-      public void remove() {
-        throw new UnsupportedOperationException();
-      }
     };
   }
 

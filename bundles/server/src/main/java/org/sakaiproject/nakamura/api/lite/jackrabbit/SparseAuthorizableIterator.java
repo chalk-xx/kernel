@@ -22,12 +22,13 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.lite.util.PreemptiveIterator;
 
 import java.util.Iterator;
 
 import javax.jcr.ValueFactory;
 
-public class SparseAuthorizableIterator implements Iterator<Authorizable> {
+public class SparseAuthorizableIterator extends PreemptiveIterator<Authorizable> {
 
   private Authorizable authorizable;
   private Iterator<org.sakaiproject.nakamura.api.lite.authorizable.Authorizable> authorizableIterator;
@@ -45,7 +46,7 @@ public class SparseAuthorizableIterator implements Iterator<Authorizable> {
     this.valueFactory = valueFactory;
   }
 
-  public boolean hasNext() {
+  protected boolean internalHasNext() {
     while (authorizableIterator.hasNext()) {
       org.sakaiproject.nakamura.api.lite.authorizable.Authorizable a = authorizableIterator
           .next();
@@ -62,12 +63,8 @@ public class SparseAuthorizableIterator implements Iterator<Authorizable> {
     return false;
   }
 
-  public Authorizable next() {
+  protected Authorizable internalNext() {
     return authorizable;
-  }
-
-  public void remove() {
-    throw new UnsupportedOperationException();
   }
 
 }
