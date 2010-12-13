@@ -43,10 +43,12 @@ import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -55,7 +57,9 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Properties;
 
+import javax.jcr.Binary;
 import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.jcr.Session;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -112,17 +116,39 @@ public class I18nFilterTest {
     when(um.getAuthorizable(Matchers.anyString())).thenReturn(sessionUser);
     when(sessionUser.getPropertyNames()).thenReturn(propNames);
 
-    when(bundlesNode.getNode(Locale.getDefault().toString() + ".properties")).thenReturn(langNode);
+    when(bundlesNode.getNode(request.getLocale().toString() + ".properties")).thenReturn(
+        langNode);
+    Property binary1Property = Mockito.mock(Property.class);
+    when(langNode.getNode("jcr:content").getProperty("jcr:data")).thenReturn(
+        binary1Property);
+    Binary binary1 = Mockito.mock(Binary.class);
+    when(binary1Property.getBinary()).thenReturn(binary1);
+    when(binary1.getStream()).thenReturn(
+        new ByteArrayInputStream("REPLACE_ME=Yay, In the language bundle!"
+            .getBytes("UTF-8")));
+
     when(langNode.getNode("jcr:content").getProperty("jcr:data").getString()).thenReturn(
         "REPLACE_ME=Yay, In the language bundle!");
 
     when(bundlesNode.getNode("de_DE.properties")).thenReturn(deutschNode);
-    when(deutschNode.getNode("jcr:content").getProperty("jcr:data").getString()).thenReturn(
-        "REPLACE_ME=Wie geht es ihnen?");
+    Property binary2Property = Mockito.mock(Property.class);
+    when(deutschNode.getNode("jcr:content").getProperty("jcr:data")).thenReturn(
+        binary2Property);
+    Binary binary2 = Mockito.mock(Binary.class);
+    when(binary2Property.getBinary()).thenReturn(binary2);
+    when(binary2.getStream()).thenReturn(
+        new ByteArrayInputStream("REPLACE_ME=Wie geht es ihnen?".getBytes("UTF-8")));
 
     when(bundlesNode.getNode("default.properties")).thenReturn(defaultNode);
-    when(defaultNode.getNode("jcr:content").getProperty("jcr:data").getString()).thenReturn(
-        "REPLACE_ME=Yay, In the default bundle!\nREPLACE_ME_DEFAULT=Default replacement");
+    Property binary3Property = Mockito.mock(Property.class);
+    when(defaultNode.getNode("jcr:content").getProperty("jcr:data")).thenReturn(
+        binary3Property);
+    Binary binary3 = Mockito.mock(Binary.class);
+    when(binary3Property.getBinary()).thenReturn(binary3);
+    when(binary3.getStream()).thenReturn(
+        new ByteArrayInputStream(
+            "REPLACE_ME=Yay, In the default bundle!\nREPLACE_ME_DEFAULT=Default replacement"
+                .getBytes("UTF-8")));
 
     when(response.getWriter()).thenReturn(new PrintWriter(sw));
   }

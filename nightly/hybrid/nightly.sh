@@ -4,9 +4,9 @@
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
 
 export K2_TAG="HEAD"
-export S2_TAG="tags/sakai-2.8.0-b01"
+export S2_TAG="branches/sakai-2.8.x"
 export UX_TAG="HEAD"
-export HYBRID_TAG="trunk"
+export HYBRID_TAG="branches/hybrid-1.1.x"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -157,10 +157,10 @@ else
     perl -pwi -e 's/\<Connector\s+port\="8080"/\<Connector port\="8880"/gi' sakai2-demo/conf/server.xml
     perl -pwi -e 's/\<Connector\s+port\="8009"/\<Connector port\="8809"/gi' sakai2-demo/conf/server.xml
     # sakai.properties
-    echo "ui.service = $S2_TAG on HSQLDB" >> sakai2-demo/sakai/sakai.properties
+    echo "ui.service = $S2_TAG + $HYBRID_TAG on HSQLDB" >> sakai2-demo/sakai/sakai.properties
     echo "version.sakai = $REPO_REV" >> sakai2-demo/sakai/sakai.properties
     echo "version.service = Built: $BUILD_DATE" >> sakai2-demo/sakai/sakai.properties
-    echo "serverName=sakai23-hybrid.sakaiproject.org" >> sakai2-demo/sakai/sakai.properties
+    echo "serverName=sakai3-nightly.uits.indiana.edu" >> sakai2-demo/sakai/sakai.properties
     echo "webservices.allowlogin=true" >> sakai2-demo/sakai/sakai.properties
     echo "webservice.portalsecret=nightly" >> sakai2-demo/sakai/sakai.properties
     echo "samigo.answerUploadRepositoryPath=/tmp/sakai2-hybrid/" >> sakai2-demo/sakai/sakai.properties

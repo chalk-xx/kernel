@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.AbstractSlingPostOperation;
@@ -96,7 +97,7 @@ public class DeleteTagOperation extends AbstractSlingPostOperation {
       return;
     }
 
-    Session session = request.getResourceResolver().adaptTo(Session.class);
+    ResourceResolver resourceResolver = request.getResourceResolver();
     Node tagNode = null;
     Node node = request.getResource().adaptTo(Node.class);
 
@@ -116,7 +117,7 @@ public class DeleteTagOperation extends AbstractSlingPostOperation {
 
     // Grab the tagNode.
     try {
-      tagNode = FileUtils.resolveNode(key.getString(), session);
+      tagNode = FileUtils.resolveNode(key.getString(), resourceResolver);
       if (tagNode == null) {
         response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Provided key not found.");
         return;

@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.files.FileUtils;
@@ -56,13 +57,13 @@ public class MostActiveContentSearchBatchResultProcessor implements
 
   @Reference
   private SearchServiceFactory searchServiceFactory;
-  
+
   private final int DEFAULT_DAYS = 30;
   private final int MAXIMUM_DAYS = 90;
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor#writeNodes(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.commons.json.io.JSONWriter,
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.RowIterator)
@@ -71,10 +72,11 @@ public class MostActiveContentSearchBatchResultProcessor implements
       Aggregator aggregator, RowIterator iterator) throws JSONException,
       RepositoryException {
     List<ResourceActivity> resources = new ArrayList<ResourceActivity>();
-    Session session = request.getResourceResolver().adaptTo(Session.class);
+    ResourceResolver resourceResolver = request.getResourceResolver();
+    Session session = resourceResolver.adaptTo(Session.class);
 
     int daysAgo = deriveDateWindow(request);
-    
+
     // count all the activity
     while (iterator.hasNext()) {
       Row row = iterator.nextRow();
@@ -89,7 +91,7 @@ public class MostActiveContentSearchBatchResultProcessor implements
         } else {
           String resourceId = node.getProperty("resourceId").getString();
           if (!resources.contains(new ResourceActivity(resourceId))) {
-            Node resourceNode = FileUtils.resolveNode(resourceId, session);
+            Node resourceNode = FileUtils.resolveNode(resourceId, resourceResolver);
             if (resourceNode == null) {
               // this can happen if this content is no longer public
               continue;
@@ -99,7 +101,7 @@ public class MostActiveContentSearchBatchResultProcessor implements
           }
           // increment the count for this particular resource.
           resources.get(resources.indexOf(new ResourceActivity(resourceId))).activityScore++;
-          
+
         }
       }
     }
@@ -142,7 +144,7 @@ public class MostActiveContentSearchBatchResultProcessor implements
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
@@ -159,7 +161,7 @@ public class MostActiveContentSearchBatchResultProcessor implements
       throw new SearchException(500, "Unable to execute query.");
     }
   }
-  
+
   public class ResourceActivity implements Comparable<ResourceActivity>{
     public String id;
     public ResourceActivity(String id) {
