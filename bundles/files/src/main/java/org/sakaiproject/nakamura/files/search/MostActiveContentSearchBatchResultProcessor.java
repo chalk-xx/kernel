@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.files.FileUtils;
@@ -131,7 +130,7 @@ public class MostActiveContentSearchBatchResultProcessor implements
     if (requestedDaysParam != null) {
         try {
           int requestedDays = Integer.parseInt(requestedDaysParam);
-          if (requestedDays <= MAXIMUM_DAYS) {
+          if ((requestedDays > 0) && (requestedDays <= MAXIMUM_DAYS)) {
             daysAgo = requestedDays;
           }
         } catch (NumberFormatException e) {
