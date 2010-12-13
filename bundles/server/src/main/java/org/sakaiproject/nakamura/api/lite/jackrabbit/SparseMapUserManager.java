@@ -78,7 +78,7 @@ public class SparseMapUserManager implements UserManager, SessionListener {
     } else {
       sessions = sessionCounter.incrementAndGet();
     }
-    LOGGER.info("Logged into sparse triggered bu Session {} {} {} ", new Object[] {
+    LOGGER.debug("Logged into sparse triggered bu Session {} {} {} ", new Object[] {
         jcrSession, sessions, systemSessions });
 
   }
@@ -222,10 +222,10 @@ public class SparseMapUserManager implements UserManager, SessionListener {
       } else {
         sessions = sessionCounter.decrementAndGet();
       }
-      LOGGER.info("Logged out of sparse triggered bu Session {} {} {} ", new Object[] {
+      LOGGER.debug("Logged out of sparse triggered bu Session {} {} {} ", new Object[] {
           session, sessions, systemSessions });
       if (session != jcrSession) {
-        LOGGER.warn("Odd session are not the same on login logout {} {} ", jcrSession,
+        LOGGER.debug("Odd session are not the same on login logout {} {} ", jcrSession,
             session);
       }
     } catch (ClientPoolException e) {
