@@ -116,7 +116,7 @@ public class I18nFilterTest {
     when(um.getAuthorizable(Matchers.anyString())).thenReturn(sessionUser);
     when(sessionUser.getPropertyNames()).thenReturn(propNames);
 
-    when(bundlesNode.getNode(Locale.getDefault().toString() + ".properties")).thenReturn(
+    when(bundlesNode.getNode(request.getLocale().toString() + ".properties")).thenReturn(
         langNode);
     Property binary1Property = Mockito.mock(Property.class);
     when(langNode.getNode("jcr:content").getProperty("jcr:data")).thenReturn(
