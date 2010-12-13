@@ -86,12 +86,12 @@ else
     cd 3akai-ux
     git checkout -b "build-$UX_TAG" $UX_TAG
     # enable My Sakai 2 Sites widget
-    # // "personalportal":true --> "personalportal":true,
-    perl -pwi -e 's/\/\/\s+"personalportal"\:true/"personalportal"\:true\,/gi' devwidgets/s23courses/config.json
-    # //"grouppages":true, --> "grouppages":true,
-    perl -pwi -e 's/\/\/"grouppages"\:true\,/"grouppages"\:true\,/gi' devwidgets/sakai2tools/config.json
-    # //"grouppages":true, --> "grouppages":true,
-    perl -pwi -e 's/\/\/"grouppages"\:true\,/"grouppages"\:true\,/gi' devwidgets/basiclti/config.json
+    # "personalportal":false --> "personalportal":true
+    perl -pwi -e 's/"personalportal"\s*\:\s*false/"personalportal"\:true/gi' devwidgets/mysakai2/config.json
+    # "showSakai2" : false --> "showSakai2" : true
+    perl -pwi -e 's/showSakai2\s*\:\s*false/showSakai2 \: true/gi' dev/configuration/config.js
+    # "useLiveSakai2Feeds" : false --> "useLiveSakai2Feeds" : true
+    perl -pwi -e 's/useLiveSakai2Feeds\s*\:\s*false/useLiveSakai2Feeds \: true/gi' dev/configuration/config.js
     mvn -B -e clean install
     date > ../.lastbuild
 fi
