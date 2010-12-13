@@ -273,8 +273,6 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     assertEquals("Incorrect Content Type in request", APPLICATION_SOAP_XML_CHARSET_UTF_8,
         request.getContentType());
 
-    assertTrue("Template Not merged correctly ",
-        request.getRequestBody().indexOf(CHECK_REQUEST) > 0);
     response.close();
 
     verify();

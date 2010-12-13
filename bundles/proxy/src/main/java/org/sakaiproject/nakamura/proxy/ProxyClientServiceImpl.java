@@ -255,27 +255,34 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
           }
         }
         
-        // Search through all keys in input Map, looking for
-        // a velocity replacement variable.
-        // If a match is found, change Map value from RequestParameter[] to String
-        // so that the VelocityContext constructor can process the input Map correctly.
-        for (Entry<String, Object> param : input.entrySet()) {
-          String key = param.getKey();
-          String templateKey = "${" + key + "}";
-          if (endpointURL.contains(templateKey)) {
-            // get to here if "velocity replacement variable" and "input Map key" match.
-            // Note endpointURL contains the velocity replacement variable e.g. ${rss}
-            Object value = param.getValue();
+        // Find all velocity replacement variable(s) in the endpointURL,
+        // copy any equivalent keys from the input Map, to a new Map that
+        // can be process by Velocity. In the new Map, the Map value field
+        // has been changed from RequestParameter[] to String.
+
+        Map<String, String> inputContext = new HashMap<String, String>();
+
+        int startPosition = endpointURL.indexOf("${");
+        while(startPosition > -1) {
+          int endPosition = endpointURL.indexOf("}", startPosition);
+          if (endPosition > -1) {
+            String key = endpointURL.substring(startPosition + 2, endPosition);
+            Object value = input.get(key);
             if (value instanceof RequestParameter[]) {
               // now change input value object from RequestParameter[] to String
+              // and add to inputContext Map.
               RequestParameter[] requestParameters = (RequestParameter[]) value;
-              param.setValue(requestParameters[0].getString() );
+              inputContext.put(key, requestParameters[0].getString());
             }
+            // look for the next velocity replacement variable
+            startPosition = endpointURL.indexOf("${", endPosition);
+          } else {
+            break;
           }
         }
 
-        VelocityContext context = new VelocityContext(input);
-
+        VelocityContext context = new VelocityContext(inputContext);
+        
         // add in the config properties from the bundle overwriting everythign else.
         context.put("config", configProperties);
 
