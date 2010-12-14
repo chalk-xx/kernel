@@ -79,30 +79,36 @@ public class MostActiveContentSearchBatchResultProcessor implements
 
     // count all the activity
     while (iterator.hasNext()) {
-      Row row = iterator.nextRow();
-      Node node = RowUtils.getNode(row, session);
-      if (node.hasProperty("timestamp")) {
-        Calendar timestamp = node.getProperty("timestamp").getDate();
-        Calendar specifiedDaysAgo = new GregorianCalendar();
-        specifiedDaysAgo.add(Calendar.DAY_OF_MONTH, -daysAgo);
-        if (timestamp.before(specifiedDaysAgo)) {
-          // we stop counting once we get to the old stuff
-          break;
-        } else {
-          String resourceId = node.getProperty("resourceId").getString();
-          if (!resources.contains(new ResourceActivity(resourceId))) {
-            Node resourceNode = FileUtils.resolveNode(resourceId, resourceResolver);
-            if (resourceNode == null) {
-              // this can happen if this content is no longer public
-              continue;
+      try {
+        Row row = iterator.nextRow();
+        Node node = RowUtils.getNode(row, session);
+        if (node.hasProperty("timestamp")) {
+          Calendar timestamp = node.getProperty("timestamp").getDate();
+          Calendar specifiedDaysAgo = new GregorianCalendar();
+          specifiedDaysAgo.add(Calendar.DAY_OF_MONTH, -daysAgo);
+          if (timestamp.before(specifiedDaysAgo)) {
+            // we stop counting once we get to the old stuff
+            break;
+          } else {
+            String resourceId = node.getProperty("resourceId").getString();
+            if (!resources.contains(new ResourceActivity(resourceId))) {
+              Node resourceNode = FileUtils.resolveNode(resourceId, resourceResolver);
+              if (resourceNode == null) {
+                // this can happen if this content is no longer public
+                continue;
+              }
+              String resourceName = resourceNode.getProperty("sakai:pooled-content-file-name").getString();
+              resources.add(new ResourceActivity(resourceId, 0, resourceName));
             }
-            String resourceName = resourceNode.getProperty("sakai:pooled-content-file-name").getString();
-            resources.add(new ResourceActivity(resourceId, 0, resourceName));
-          }
-          // increment the count for this particular resource.
-          resources.get(resources.indexOf(new ResourceActivity(resourceId))).activityScore++;
+            // increment the count for this particular resource.
+            resources.get(resources.indexOf(new ResourceActivity(resourceId))).activityScore++;
 
+          }
         }
+      } catch (RepositoryException e) {
+        // if something is wrong with this particular resourceNode,
+        // we don't let it wreck the whole feed
+        continue;
       }
     }
 
