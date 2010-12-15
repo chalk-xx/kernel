@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.api.lite.jackrabbit;
+package org.sakaiproject.nakamura.lite.jackrabbit;
 
 import org.apache.sling.jcr.jackrabbit.server.impl.SlingServerRepository;
 
