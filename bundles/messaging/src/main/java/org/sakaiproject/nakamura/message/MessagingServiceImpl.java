@@ -35,8 +35,6 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.site.SiteException;
-import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -71,9 +69,6 @@ public class MessagingServiceImpl implements MessagingService {
   protected transient LockManager lockManager;
 
   @Reference
-  protected transient SiteService siteService;
-  
-  @Reference
   protected transient ProfileService profileService;
 
   private Pattern homePathPattern = Pattern.compile("(~(.*?))/");
@@ -81,21 +76,21 @@ public class MessagingServiceImpl implements MessagingService {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagingServiceImpl.class);
 
-  
-    
+
+
   /**
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @throws MessagingException
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.MessagingService#create(org.apache.sling.api.resource.Resource)
    */
   public Node create(Session session, Map<String, Object> mapProperties)
       throws MessagingException {
     return create(session, mapProperties, null);
   }
-  
+
   private String generateMessageId() {
     String messageId = String.valueOf(Thread.currentThread().getId())
         + String.valueOf(System.currentTimeMillis());
@@ -107,11 +102,11 @@ public class MessagingServiceImpl implements MessagingService {
   }
 
   /**
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @throws MessagingException
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.MessagingService#create(org.apache.sling.api.resource.Resource)
    */
   public Node create(Session session, Map<String, Object> mapProperties, String messageId)
@@ -140,7 +135,7 @@ public class MessagingServiceImpl implements MessagingService {
       String messagePath = PathUtils.toSimpleShardPath(messagePathBase, messageId, "");
       try {
         msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
-        
+
         for (Entry<String, Object> e : mapProperties.entrySet()) {
           String val = e.getValue().toString();
           try {
@@ -158,7 +153,7 @@ public class MessagingServiceImpl implements MessagingService {
         if (session.hasPendingChanges()) {
           session.save();
         }
-        
+
       } catch (RepositoryException e) {
         LOGGER.warn("RepositoryException on trying to save message."
             + e.getMessage());
@@ -171,9 +166,9 @@ public class MessagingServiceImpl implements MessagingService {
   }
 
   /**
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.MessagingService#getMessageStorePathFromMessageNode(javax.jcr.Node)
    */
   public String getMessageStorePathFromMessageNode(Node msg)
@@ -192,10 +187,10 @@ public class MessagingServiceImpl implements MessagingService {
   }
 
   /**
-   * 
+   *
    * {@inheritDoc}
-   * @throws RepositoryException 
-   * @throws PathNotFoundException 
+   * @throws RepositoryException
+   * @throws PathNotFoundException
    * @see org.sakaiproject.nakamura.api.message.MessagingService#copyMessage(java.lang.String, java.lang.String, java.lang.String)
    */
   public void copyMessageNode(Node sourceMessage, String targetStore) throws PathNotFoundException, RepositoryException {
@@ -211,7 +206,7 @@ public class MessagingServiceImpl implements MessagingService {
 
 
   /**
-   * 
+   *
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.message.MessagingService#isMessageStore(javax.jcr.Node)
    */
@@ -230,9 +225,9 @@ public class MessagingServiceImpl implements MessagingService {
   }
 
   /**
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.MessagingService#getFullPathToMessage(java.lang.String,
    *      java.lang.String)
    */
@@ -242,31 +237,20 @@ public class MessagingServiceImpl implements MessagingService {
   }
 
   /**
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.MessagingService#getFullPathToStore(java.lang.String)
    */
   public String getFullPathToStore(String rcpt, Session session) throws MessagingException {
     String path = "";
     try {
-      if (rcpt.startsWith("s-")) {
-        // This is a site.
-        Node n = siteService.findSiteByName(session, rcpt.substring(2));
-        path = n.getPath() + "/store";
-      } else { 
-        if (rcpt.startsWith("w-")) {
-          // This is a widget
-          return expandHomeDirectoryInPath(session,rcpt.substring(2));
+      if (rcpt.startsWith("w-")) {
+        // This is a widget
+        return expandHomeDirectoryInPath(session,rcpt.substring(2));
       }
-        else {
-      }
-        Authorizable au = PersonalUtils.getAuthorizable(session, rcpt);
-        path = PersonalUtils.getHomeFolder(au) + "/" + MessageConstants.FOLDER_MESSAGES;
-      }
-    } catch (SiteException e) {
-      LOGGER.warn("Caught SiteException when trying to get the full path to {} store.", rcpt,e);
-      throw new MessagingException(e.getStatusCode(), e.getMessage());
+      Authorizable au = PersonalUtils.getAuthorizable(session, rcpt);
+      path = PersonalUtils.getHomeFolder(au) + "/" + MessageConstants.FOLDER_MESSAGES;
     } catch (RepositoryException e) {
       LOGGER.warn("Caught RepositoryException when trying to get the full path to {} store.", rcpt,e);
       throw new MessagingException(500, e.getMessage());
@@ -286,7 +270,7 @@ public class MessagingServiceImpl implements MessagingService {
     expanded.add(localRecipient);
     return expanded;
   }
-  
+
   private String expandHomeDirectoryInPath(Session session, String path)
   throws AccessDeniedException, UnsupportedRepositoryOperationException,
   RepositoryException {

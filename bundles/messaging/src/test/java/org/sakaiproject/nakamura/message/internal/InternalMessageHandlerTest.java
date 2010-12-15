@@ -62,14 +62,13 @@ public class InternalMessageHandlerTest {
   private SlingRepository slingRepository;
   private JackrabbitSession session;
   private String groupName = "g_group1";
-  
+
   @Before
   public void setUp() throws Exception {
     messagingService = mock(MessagingService.class);
     slingRepository = mock(SlingRepository.class);
     lockManager = mock(LockManager.class);
     handler = new InternalMessageHandler();
-    handler.activateTesting();
     handler.messagingService = messagingService;
     handler.slingRepository = slingRepository;
     handler.lockManager = lockManager;
@@ -78,7 +77,7 @@ public class InternalMessageHandlerTest {
 
   @Test
   public void testHandle() throws Exception {
-         
+
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     when(request.getRemoteUser()).thenReturn("admin");
     Authorizable admin = createAuthorizable("admin", false);
@@ -88,34 +87,34 @@ public class InternalMessageHandlerTest {
     when(session.getUserManager()).thenReturn(um);
     when(request.getResourceResolver()).thenReturn(resolver);
     when(resolver.adaptTo(Session.class)).thenReturn(session);
-    
-    
+
+
     String path = "/path/to/msg";
     String newPath = "/path/to/new/msg";
     String to = "internal:admin";
-    
+
     testMessage(path, newPath, to);
-    
+
     //Set up group members:
-    
+
     List<Authorizable> members = new ArrayList<Authorizable>();
     members.add(admin);
-    
-    
+
+
     registerAuthorizable(group, um, groupName);
     for (Authorizable member : members) {
       when(group.isMember(member)).thenReturn(true);
     }
     when(group.isGroup()).thenReturn(true);
     when(group.getDeclaredMembers()).thenReturn(members.iterator());
-        
+
     path = "/path/to/msg2";
     newPath = "/path/to/new/msg2";
     to = "internal:" + groupName;
     testMessage(path, newPath, to);
 
   }
-  
+
   private void testMessage(String path, String newPath, String to) throws ValueFormatException, VersionException, LockException, ConstraintViolationException, RepositoryException{
  // Original message created to send
     Node originalMessage = new MockNode(path);
@@ -136,7 +135,7 @@ public class InternalMessageHandlerTest {
 
     when(messagingService.getFullPathToMessage("admin", "foo", session)).thenReturn(
         newPath);
-    
+
     MessageRoutes routes = new MessageRoutesImpl(originalMessage);
 
     handler.send(routes, null, originalMessage);
@@ -149,7 +148,7 @@ public class InternalMessageHandlerTest {
         MessageConstants.PROP_SAKAI_SENDSTATE).getString());
     newNode.remove();
   }
-  
+
   private void registerAuthorizable(Authorizable authorizable, UserManager um, String name)
   throws RepositoryException {
     ItemBasedPrincipal p = mock(ItemBasedPrincipal.class);
@@ -164,7 +163,7 @@ public class InternalMessageHandlerTest {
     when(authorizable.getID()).thenReturn(name);
     when(um.getAuthorizable(name)).thenReturn(authorizable);
   }
-  
+
   protected Authorizable createAuthorizable(String id, boolean isGroup)
   throws RepositoryException {
     Authorizable au;
@@ -184,7 +183,7 @@ public class InternalMessageHandlerTest {
     when(au.getProperty("path")).thenReturn(new Value[] { v });
     return au;
   }
-  
+
   protected UserManager createUserManager(UserManager um,
       Authorizable... authorizables) throws RepositoryException {
     if (um == null) {
