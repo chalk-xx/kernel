@@ -1,7 +1,5 @@
 package org.sakaiproject.nakamura.files.pool;
 
-import static javax.jcr.security.Privilege.JCR_ALL;
-import static javax.jcr.security.Privilege.JCR_READ;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_MEMBERS_NODE;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
@@ -11,15 +9,12 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.util.JcrUtils;
 
 import java.security.Principal;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
 
 public abstract class AbstractContentPoolServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -7948412093724982414L;

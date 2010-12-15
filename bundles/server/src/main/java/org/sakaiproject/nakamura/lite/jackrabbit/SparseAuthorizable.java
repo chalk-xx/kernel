@@ -224,7 +224,7 @@ public class SparseAuthorizable implements Authorizable {
       String[] parts = StringUtils.split(s, ',');
       Value[] v = new Value[parts.length];
       for (int i = 0; i < parts.length; i++) {
-        v[i] = valueFactory.createValue(parts[i]);
+        v[i] = valueFactory.createValue(StorageClientUtils.arrayUnEscape(parts[i]));
       }
       return v;
     }

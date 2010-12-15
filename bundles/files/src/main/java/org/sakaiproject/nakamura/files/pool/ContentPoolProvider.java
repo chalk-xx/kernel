@@ -21,21 +21,25 @@ package org.sakaiproject.nakamura.files.pool;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.api.SlingException;
-import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 
-import javax.jcr.AccessDeniedException;
 import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletRequest;
 
-@Component(name = "org.sakaiproject.nakamura.files.pool.ContentPoolProvider", immediate = true, metatype = true, description = "%contentpool.description", label = "%contentpool.name")
+@Component( immediate = true, metatype = true)
 @Service(value = ResourceProvider.class)
 @Property(name = ResourceProvider.ROOTS, value = { "/", "/p" })
 public class ContentPoolProvider implements ResourceProvider {
@@ -79,13 +83,16 @@ public class ContentPoolProvider implements ResourceProvider {
     try {
       return resolveMappedResource(resourceResolver, path);
     } catch (RepositoryException e) {
-      LOGGER.warn(e.getMessage(), e);
+      LOGGER.warn(e.getMessage(),e);
+    } catch (StorageClientException e) {
+      LOGGER.warn(e.getMessage(),e);
+    } catch (AccessDeniedException e) {
+      LOGGER.warn(e.getMessage(),e);
     }
     return null;
   }
 
-  private Resource resolveMappedResource(ResourceResolver resourceResolver, String path)
-      throws RepositoryException {
+  private Resource resolveMappedResource(ResourceResolver resourceResolver, String path) throws RepositoryException, StorageClientException, AccessDeniedException {
     String poolId = null;
 
     if (path.startsWith("/p/")) {
@@ -110,46 +117,20 @@ public class ContentPoolProvider implements ResourceProvider {
         return null;
       }
       LOGGER.debug("Pool ID is [{}]", poolId);
-      String poolPath = null;
-      try {
-        poolPath = CreateContentPoolServlet.hash(poolId) + selectors;
-      } catch (Exception e) {
-        throw new RepositoryException("Unable to hash pool ID " + e.getMessage(), e);
+      Session session = JackrabbitSparseUtils.getSparseSession(resourceResolver.adaptTo(javax.jcr.Session.class));
+      ContentManager contentManager = session.getContentManager();
+      Content content = contentManager.get(poolId);
+      if ( content != null ) {
+         SparseContentResource cpr = new SparseContentResource(content, session, resourceResolver);
+         cpr.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
+         cpr.getResourceMetadata().setResolutionPathInfo(selectors);
+         return cpr;
+        
       }
-      Resource r = resourceResolver.resolve(poolPath);
-      if (r instanceof NonExistingResource) {
-        LOGGER.debug("Pool ID does not exist, reject and dont allow creation on POST {} ",
-            poolPath);
-        throw new SlingException("Resources may not be created at /p by the user",
-            new AccessDeniedException("Cant create user specified pool resoruce"));
-      }
-      LOGGER.debug("Resolving [{}] to [{}] ", poolPath, r);
-      if (r != null) {
-        // are the last elements the same ?
-        if (getLastElement(r.getPath()).equals("/" + poolId)) {
-          r.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
-          r.getResourceMetadata().setResolutionPathInfo(selectors);
-          return r;
-        } else {
-          if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Rejected [{}] != [{}] ", getLastElement(r.getPath()), "/"
-                + poolId);
-          }
-        }
-      }
-
     }
     return null;
   }
 
-  private String getLastElement(String path) {
-    for (int i = path.length() - 1; i >= 0; i--) {
-      if (path.charAt(i) == '/') {
-        return path.substring(i);
-      }
-    }
-    return "/" + path;
-  }
 
   public Iterator<Resource> listChildren(Resource parent) {
     if (LOGGER.isDebugEnabled()) {

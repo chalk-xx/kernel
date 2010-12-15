@@ -5,9 +5,7 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager;
 
-import javax.jcr.AccessDeniedException;
 import javax.jcr.RepositoryException;
-import javax.jcr.UnsupportedRepositoryOperationException;
 
 public class JackrabbitSparseUtils {
   

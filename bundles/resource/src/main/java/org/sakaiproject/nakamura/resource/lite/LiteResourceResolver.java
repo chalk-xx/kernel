@@ -127,7 +127,7 @@ public class LiteResourceResolver implements ResourceResolver {
       session = repository.loginAdministrative(userId);
       ContentManager cm = session.getContentManager();
       Content content = cm.get(path);
-      return new SparseContentResource(content, cm, this);
+      return new SparseContentResource(content, session, this);
     } catch (ClientPoolException e) {
       logger.error(e.getMessage(), e);
     } catch (StorageClientException e) {

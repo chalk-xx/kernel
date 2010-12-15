@@ -25,6 +25,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -47,13 +48,16 @@ public class SparseContentResource extends AbstractResource {
   private static final Logger logger = LoggerFactory.getLogger(SparseContentResource.class);
 
   private Content content;
-  private ContentManager contentManager;
+  private Session session;
   private ResourceResolver resourceResolver;
   private ResourceMetadata metadata;
 
-  public SparseContentResource(Content content, ContentManager contentManager, ResourceResolver resourceResolver) {
+  private ContentManager contentManager;
+
+  public SparseContentResource(Content content, Session session, ResourceResolver resourceResolver) throws StorageClientException {
     this.content = content;
-    this.contentManager = contentManager;
+    this.session = session;
+    this.contentManager = session.getContentManager();
     this.resourceResolver = resourceResolver;
 
     Map<String, Object> props = content.getProperties();

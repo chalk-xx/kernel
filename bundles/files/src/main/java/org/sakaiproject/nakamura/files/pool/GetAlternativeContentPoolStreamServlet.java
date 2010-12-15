@@ -23,7 +23,6 @@ import static org.apache.sling.api.servlets.HttpConstants.HEADER_LAST_MODIFIED;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
@@ -40,9 +39,6 @@ import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

@@ -32,9 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -104,14 +101,8 @@ public class ContentPoolFilter implements Filter {
       if (resource.getResourceMetadata().get(ContentPoolProvider.CONTENT_RESOURCE_PROVIDER) instanceof ContentPoolProvider) {
         return false;
       }
-      Session session = resource.getResourceResolver().adaptTo(Session.class);
-      String currentUser = session.getUserID();
-      if (ADMIN_USER.equals(currentUser)) {
+      if (ADMIN_USER.equals(srequest.getRemoteUser())) {
         return false;
-      }
-      Node node = resource.adaptTo(Node.class);
-      if ( node == null ) {
-        return false; // webdav
       }
       LOGGER.debug("/_p protected ");
       return true;
