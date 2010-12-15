@@ -132,7 +132,7 @@ public class MostActiveContentSearchBatchResultProcessor implements
     if (requestedDaysParam != null) {
         try {
           int requestedDays = Integer.parseInt(requestedDaysParam);
-          if (requestedDays <= MAXIMUM_DAYS) {
+          if ((requestedDays > 0) && (requestedDays <= MAXIMUM_DAYS)) {
             daysAgo = requestedDays;
           }
         } catch (NumberFormatException e) {
