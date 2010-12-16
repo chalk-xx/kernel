@@ -1,8 +1,8 @@
 {
+    "jcr:primaryType": "nt:unstructured",
     "Narrow": {
         "sling:resourceType": "sakai/tag",
         "sakai:tag-name": "<Narrow your search>",
-        "jcr:primaryType": "nt:unstructured",
         "Admissions": {
             "sling:resourceType": "sakai/tag",
             "sakai:tag-name": "Admissions"
@@ -31,7 +31,6 @@
     "Divisions": {
         "sling:resourceType": "sakai/tag",
         "sakai:tag-name": "Divisions",
-        "jcr:primaryType": "nt:unstructured",
         "Humanities": {
             "sling:resourceType": "sakai/tag",
             "sakai:tag-name": "Humanities"
@@ -56,7 +55,6 @@
     "Colleges": {
         "sling:resourceType": "sakai/tag",
         "sakai:tag-name": "Colleges",
-        "jcr:primaryType": "nt:unstructured",
         "The Collegiate System": {
             "sling:resourceType": "sakai/tag",
             "sakai:tag-name": "The Collegiate System"

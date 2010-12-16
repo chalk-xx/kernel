@@ -1,8 +1,8 @@
 {
+    "jcr:primaryType": "nt:unstructured",
     "Bloomington": {
         "sling:resourceType": "sakai/tag",
         "sakai:tag-name": "Bloomington",
-        "jcr:primaryType": "nt:unstructured",
         "OPT": {
             "sling:resourceType": "sakai/tag",
             "sakai:tag-name": "Optometry",
@@ -27,7 +27,6 @@
     "Continuing Study": {
         "sling:resourceType": "sakai/tag",
         "sakai:tag-name": "Continuing Study",
-        "jcr:primaryType": "nt:unstructured",
         "SCS3": {
             "sling:resourceType": "sakai/tag",
             "sakai:tag-name": "Continuing Stdy Undergraduate",
@@ -52,7 +51,6 @@
     "IUPUI": {
         "sling:resourceType": "sakai/tag",
         "sakai:tag-name": "IUPUI",
-        "jcr:primaryType": "nt:unstructured",
         "ENGR": {
             "sling:resourceType": "sakai/tag",
             "sakai:tag-name": "Engineering",
