@@ -688,5 +688,10 @@ org.sakaiproject.nakamura.jpaprovider
       <artifactId>org.sakaiproject.nakamura.robots.txt</artifactId>
       <version>0.10-SNAPSHOT</version>
     </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.directory</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </bundle>
    </startLevel>
 </bundles>
