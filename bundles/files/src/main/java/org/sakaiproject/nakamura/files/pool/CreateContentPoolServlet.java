@@ -33,6 +33,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestPathInfo;
+import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONObject;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
@@ -104,7 +105,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code=500,description="Failure with HTML explanation.")}
 
         ))
-public class CreateContentPoolServlet extends AbstractContentPoolServlet {
+public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
   @Reference
   protected ClusterTrackingService clusterTrackingService;
@@ -262,7 +263,7 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
     } else {
       Content content = contentManager.get(poolId);
       contentManager.writeBody(poolId, value.getInputStream(),alternativeStream);
-      content.setProperty(contentManager.getAltField(Content.MIMETYPE, alternativeStream), contentType);
+      content.setProperty(StorageClientUtils.getAltField(Content.MIMETYPE, alternativeStream), contentType);
       contentManager.update(content);
     }
   }

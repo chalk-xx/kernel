@@ -20,9 +20,11 @@ package org.sakaiproject.nakamura.files.pool;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.nakamura.api.resource.lite.ResourceJsonWriter;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +51,7 @@ public class GetContentPoolServlet extends SlingAllMethodsServlet implements Opt
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    Node node = request.getResource().adaptTo(Node.class);
+    Resource resource = request.getResource();
 
     // Check selectors.
     boolean isTidy = false;
@@ -80,13 +82,11 @@ public class GetContentPoolServlet extends SlingAllMethodsServlet implements Opt
     ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
     writer.setTidy(isTidy);
     try {
-      ExtendedJSONWriter.writeNodeTreeToWriter(writer, node, recursion);
+      
+      ResourceJsonWriter.writeResourceTreeToWriter(writer, resource, recursion);
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.info("Caught JSONException {}", e.getMessage());
-    } catch (RepositoryException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      LOGGER.info("Caught RepositoryException {}", e.getMessage());
     }
   }
 

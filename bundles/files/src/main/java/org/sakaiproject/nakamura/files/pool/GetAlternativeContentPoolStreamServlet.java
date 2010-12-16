@@ -27,16 +27,21 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Calendar;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.ServletException;
@@ -65,31 +70,35 @@ public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServl
       throws ServletException, IOException {
     try {
       Resource resource = request.getResource();
-      Node node = resource.adaptTo(Node.class);
-      
+      Content node = resource.adaptTo(Content.class);
+      ContentManager contentManager = resource.adaptTo(ContentManager.class);
       String alternativeStream = getAlternativeStream(request);
+      InputStream dataStream = contentManager.getInputStream(node.getPath(), alternativeStream);
 
-      if (!node.hasNode(alternativeStream)) {
+      if ( dataStream == null ) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
         return;
       }
-
-      Node streamNode = node.getNode(alternativeStream);
-      ResourceMetadata meta = resource.getResourceMetadata();
-      long modifTime = meta.getModificationTime();
+      
+      Map<String, Object> properties = node.getProperties();
+      long modifTime = StorageClientUtils.toLong(properties.get(StorageClientUtils.getAltField(Content.LASTMODIFIED, alternativeStream)));
       if (unmodified(request, modifTime)) {
         response.setStatus(SC_NOT_MODIFIED);
         return;
       }
 
-      setHeaders(streamNode, resource, response);
-      // return full resource
-      Property dataProperty = streamNode.getProperty(JcrConstants.JCR_DATA);
-      setContentLength(response, dataProperty.getLength());
-      InputStream dataStream = dataProperty.getBinary().getStream();
+      setHeaders(properties, resource, response, alternativeStream);
+      setContentLength(properties, response, alternativeStream);
       IOUtils.copyLarge(dataStream, response.getOutputStream());
       dataStream.close();
-    } catch (RepositoryException e) {
+    } catch (ClientPoolException e) {
+      LOGGER.warn(e.getMessage(),e);
+      throw new ServletException(e.getMessage(), e);
+    } catch (StorageClientException e) {
+      LOGGER.warn(e.getMessage(),e);
+      throw new ServletException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      LOGGER.warn(e.getMessage(),e);
       throw new ServletException(e.getMessage(), e);
     }
   }
@@ -153,22 +162,14 @@ public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServl
    * @param response
    * @throws RepositoryException
    */
-  private void setHeaders(Node node, Resource resource, SlingHttpServletResponse response)
-      throws RepositoryException {
+  private void setHeaders(Map<String, Object> properties, Resource resource, SlingHttpServletResponse response, String alternativeStream) {
 
-    long modifTime = 0;
-    if (node.hasProperty(JcrConstants.JCR_LASTMODIFIED)) {
-      Calendar lastModified = node.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
-      modifTime = lastModified.getTimeInMillis();
-    }
+    long modifTime = StorageClientUtils.toLong(properties.get(StorageClientUtils.getAltField(Content.LASTMODIFIED, alternativeStream)));
     if (modifTime > 0) {
       response.setDateHeader(HEADER_LAST_MODIFIED, modifTime);
     }
 
-    String contentType = null;
-    if (node.hasProperty(JcrConstants.JCR_MIMETYPE)) {
-      contentType = node.getProperty(JcrConstants.JCR_MIMETYPE).getString();
-    }
+    String contentType = StorageClientUtils.toString(properties.get(StorageClientUtils.getAltField(Content.MIMETYPE, alternativeStream)));
     if (contentType == null) {
       final String ct = getServletContext().getMimeType(resource.getPath());
       if (ct != null) {
@@ -179,10 +180,7 @@ public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServl
       response.setContentType(contentType);
     }
 
-    String encoding = null;
-    if (node.hasProperty(JcrConstants.JCR_ENCODING)) {
-      encoding = node.getProperty(JcrConstants.JCR_ENCODING).getString();
-    }
+    String encoding = StorageClientUtils.toString(properties.get(StorageClientUtils.getAltField(Content.ENCODING, alternativeStream)));
     if (encoding != null) {
       response.setCharacterEncoding(encoding);
     }
@@ -200,7 +198,8 @@ public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServl
    *          The content length to be set. If this value is equal to or less than zero,
    *          the header is not set.
    */
-  private void setContentLength(final HttpServletResponse response, final long length) {
+  private void setContentLength(Map<String,Object> properties, HttpServletResponse response, String alternativeStream) {
+    long length = StorageClientUtils.toLong(properties.get(StorageClientUtils.getAltField(Content.LENGTH_FIELD, alternativeStream)));
     if (length > 0) {
       if (length < Integer.MAX_VALUE) {
         response.setContentLength((int) length);
