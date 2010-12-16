@@ -140,4 +140,3 @@ class TC_Kern693Test < Test::Unit::TestCase
     assert_equal(originalsiteid, props["description"]);
   end
 end
-

@@ -39,4 +39,3 @@ class TC_Kern702Test < Test::Unit::TestCase
   end
 
 end
-

@@ -58,4 +58,3 @@ class TC_Kern723Test < Test::Unit::TestCase
   end
 
 end
-

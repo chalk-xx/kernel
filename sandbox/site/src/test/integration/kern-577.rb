@@ -162,4 +162,3 @@ class TC_MyFileTest_577 < Test::Unit::TestCase
   end
 
 end
-

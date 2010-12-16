@@ -27,7 +27,7 @@ class TC_MySiteTest < Test::Unit::TestCase
     res = create_site(sitecontainerid,"Site "+m,sitename)
     assert_not_nil(res, "Expected site to be created ")
 	@log.info("Site path #{res} ")
-	
+
     res = @s.execute_get(@siteurl+".json");
 	assert_equal("200",res.code,"Expectect to get site json at #{@siteurl}.json, result was #{res.body} ")
 	@log.debug(res.body)
@@ -87,7 +87,7 @@ class TC_MySiteTest < Test::Unit::TestCase
 
   def test_join
     @m = Time.now.to_i.to_s
-    return do_join("someothersite"+@m, "g-mysitegroup"+@m, "mysiteuser"+@m)    
+    return do_join("someothersite"+@m, "g-mysitegroup"+@m, "mysiteuser"+@m)
   end
 
   def test_join_and_search
@@ -114,5 +114,3 @@ class TC_MySiteTest < Test::Unit::TestCase
   end
 
 end
-
-

@@ -23,7 +23,7 @@ class TC_Kern726Test < Test::Unit::TestCase
       "status" => "offline")
     siteresource = "#{siteparent}/#{siteid}/testresource"
     res = @s.execute_post(@s.url_for("/sites/#{siteresource}"),
-    	"myprop" => "myvalue")
+	"myprop" => "myvalue")
     assert_equal("201", res.code, "Site creator should be able to add resource")
     @s.switch_user(otheruser)
     # Since the site is offline, non-members should not see it.
@@ -53,4 +53,3 @@ class TC_Kern726Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Non-members should be able to create site under existing site's parent")
   end
 end
-

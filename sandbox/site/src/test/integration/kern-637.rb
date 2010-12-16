@@ -32,4 +32,3 @@ class TC_Kern637Test < Test::Unit::TestCase
     assert(!(props["sakai:is-site-template"]), "Expected site not is-site-template")
   end
 end
-
