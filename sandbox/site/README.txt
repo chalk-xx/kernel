@@ -1,5 +1,7 @@
 This is the SiteService bundle that manages Sakai Site nodes.
 
+As of December 2010, this bundle is deprecated and moved to sandbox. We are moving SiteService-related integration tests from their old home in testscripts/SlingRuby to sandbox/site/src/test/integration.
+
 Sakai Site Nodes are normal content nodes, addressable by any URL, with the resourceType sakai/site.
 
 To create or convert an existing node into a site node perform a post setting the resourceType
