@@ -58,5 +58,3 @@ class TC_Kern259Test < Test::Unit::TestCase
   end
 
 end
-
-

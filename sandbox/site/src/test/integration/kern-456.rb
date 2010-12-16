@@ -27,4 +27,3 @@ class TC_Kern456Test < Test::Unit::TestCase
   end
 
 end
-

@@ -24,5 +24,3 @@ class TC_Kern325Test < Test::Unit::TestCase
   end
 
 end
-
-

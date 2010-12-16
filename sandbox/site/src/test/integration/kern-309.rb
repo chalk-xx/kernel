@@ -27,7 +27,7 @@ class TC_Kern309Test < Test::Unit::TestCase
     res = create_site(sitecontainerid,"Site "+@m,sitename)
     assert_not_nil(res, "Expected site to be created ")
     @log.info("Site path #{res} ")
-        
+
     res = @s.execute_get(@siteurl+".json");
     assert_equal("200",res.code,"Expectect to get site json at #{@siteurl}.json, result was #{res.body} ")
     @log.debug(res.body)
@@ -41,26 +41,24 @@ class TC_Kern309Test < Test::Unit::TestCase
 	nico = create_user("nico"+@m)
 	@s.switch_user(u)
     do_site_create()
-	
+
 	# try and create subnodes.
-	
+
 	node = create_node(@siteid+"/tessubnode", {})
 	assert_not_nil(node,"expected the child node at #{@siteid}/tessubnode to have been created by the site owner")
-	
+
 	# set an acl on the subnode, using an existing group
 	@s.set_node_acl_entries(node, nico, { "jcr:removeNode" => "granted",
                                              "jcr:modifyProperties" => "granted",
                                              "jcr:removeChildNodes" => "granted",
-                                             "jcr:write" => "granted", 
+                                             "jcr:write" => "granted",
                                              "jcr:addChildNodes" => "granted" })
 	@s.switch_user(nico)
 	child = create_node(@siteid+"/tessubnode/nicosubnode", {})
 	assert_not_nil(child,"expected the child node at #{@siteid}//tessubnode/nicosubnode to be created by a user granted access")
-	
-	
+
+
   end
 
 
 end
-
-

@@ -18,7 +18,7 @@ class TC_Kern485Test < Test::Unit::TestCase
   def checkGetAccess(path, user, expected)
     @s.switch_user(user)
     res = @s.execute_get(@s.url_for(path+".json"))
-    assert_equal(expected, res.code, "Expected #{expected} for GET #{path} from" + user.to_s())  	
+    assert_equal(expected, res.code, "Expected #{expected} for GET #{path} from" + user.to_s())
   end
 
   def test_site_creator_access
@@ -40,4 +40,3 @@ class TC_Kern485Test < Test::Unit::TestCase
   end
 
 end
-
