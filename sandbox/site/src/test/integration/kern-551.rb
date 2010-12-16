@@ -415,4 +415,3 @@ class TC_Kern551Test < Test::Unit::TestCase
   end
 
 end
-
