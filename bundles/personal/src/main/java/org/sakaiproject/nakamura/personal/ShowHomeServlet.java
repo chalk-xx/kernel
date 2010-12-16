@@ -39,14 +39,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * The <code>SiteServiceGetServlet</code>
+ * The <code>ShowHomeServlet</code>
  */
 @Component(immediate = true, label = "%home.showServlet.label", description = "%home.showServlet.desc")
 @SlingServlet(resourceTypes = { "sakai/user-home", "sakai/group-home" }, methods = { "GET" }, generateComponent = false)
-@ServiceDocumentation(name = "Show Site", description = " Shows the content of /dev/show.html when requested ", shortDescription = "Shows html page for users", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = {
+@ServiceDocumentation(name = "Show Home", description = " Shows the content of /dev/show.html when requested ", shortDescription = "Shows html page for users", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = {
     "sakai/user-home", "sakai/group-home" }),
 
-methods = @ServiceMethod(name = "GET", description = { "Shows  a HTML page when the user or groups home is accessed" }, response = { @ServiceResponse(code = 200, description = "A HTML template for the site, or json tree of the site depending on the request.") }))
+methods = @ServiceMethod(name = "GET", description = { "Shows  a HTML page when the user or groups home is accessed" }, response = { @ServiceResponse(code = 200, description = "A HTML view of the User or Group entity's home space.") }))
 public class ShowHomeServlet extends SlingSafeMethodsServlet implements OptingServlet {
 
   private static final long serialVersionUID = 613629169503411716L;

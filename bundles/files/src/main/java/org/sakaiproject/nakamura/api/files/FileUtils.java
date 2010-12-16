@@ -85,7 +85,6 @@ public class FileUtils {
 
     boolean hasMixin = JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN) && fileNode.canAddMixin(REQUIRED_MIXIN);
     // If the fileNode doesn't have the required referenceable mixin, we need to set it.
-    // Also, if we want to link this file into a site. We have to be
     if (!hasMixin) {
       // The required mixin is not on the node.
       // Set it.
@@ -136,7 +135,7 @@ public class FileUtils {
   /**
    * Writes all the properties of a sakai/file node. Also checks what the permissions are
    * for a session and where the links are.<br/>
-   * Same as calling {@link #writeFileNode(Node, Session, JSONWriter, SiteService, 0)}
+   * Same as calling {@link #writeFileNode(Node, Session, JSONWriter, 0)}
    *
    * @param node
    * @param write
@@ -191,7 +190,6 @@ public class FileUtils {
    *
    * @param node
    * @param write
-   * @param siteService
    * @throws JSONException
    * @throws RepositoryException
    */

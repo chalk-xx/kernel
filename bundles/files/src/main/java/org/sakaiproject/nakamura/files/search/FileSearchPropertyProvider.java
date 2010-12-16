@@ -79,7 +79,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     // Sorting order
     propertiesMap.put("_order", doSortOrder(request));
 
-    // Filter by site
+    // Filter by links.
     String usedinClause = doUsedIn(request);
     String tags = doUsedIn(request);
     String tagsAndUsedIn = "";

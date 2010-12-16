@@ -80,20 +80,20 @@ import javax.servlet.http.HttpServletResponse;
 @ServiceDocumentation(
     name = "CreateMessageServlet",
     shortDescription = "Create a message.",
-    description = "Create a message by doing a POST to messagestore.create.html . By default there are stores under each site and at /_user/u/us/user/message and /_group/g/gr/group/message",
-    bindings = @ServiceBinding(type = BindingType.TYPE, 
-        bindings = "sakai/messagestore", 
-        selectors = @ServiceSelector(name = "create")), 
+    description = "Create a message by doing a POST to messagestore.create.html . By default there are stores at /_user/u/us/user/message and /_group/g/gr/group/message",
+    bindings = @ServiceBinding(type = BindingType.TYPE,
+        bindings = "sakai/messagestore",
+        selectors = @ServiceSelector(name = "create")),
     methods = @ServiceMethod(name = "POST",
         description = "Create a message. <br />" +
         "A message will only be sent if it has the sakai:messagebox property set to 'sent' and the sakai:sendstate property set to 'pending'. " +
         "This means the actual sending of a message can be done by just doing a request to a message-node. " +
-        "This servlet will only create message nodes. " + 
+        "This servlet will only create message nodes. " +
         "All other POST headers sent along in this request will end up as properties on the message-node. <br />" +
         "Example:<br />" +
         "curl -d\"sakai:to=internal:user1\" -d\"sakai:subject=Title\" -d\"sakai:type=internal\" -d\"sakai:body=Loremlipsum\" -d\"sakai:messagebox=outbox\" -d\"sakai:category=message\" -d\"sakai:sendstate=pending\" http://user2:test2@localhost:8080/_user/message.create.html",
         response = {
-          @ServiceResponse(code = 200, description = "The servlet will send a JSON response which holds 2 keys." + 
+          @ServiceResponse(code = 200, description = "The servlet will send a JSON response which holds 2 keys." +
             "<ul><li>id: The id for the newly created message.</li><li>message: This is an object which will hold all the key/values for the newly created message.</li></ul>"),
           @ServiceResponse(code = 400, description = "The request did not contain all the (correct) parameters."),
           @ServiceResponse(code = 401, description = "The user is not logged. Anonymous users are not allowed to send messages."),
@@ -110,7 +110,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 3813877071190736742L;
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateMessageServlet.class);
-  
+
   protected Map<String, CreateMessagePreProcessor> processors = new ConcurrentHashMap<String, CreateMessagePreProcessor>();
 
   @Reference
@@ -118,7 +118,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.message.AbstractMessageServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
@@ -130,7 +130,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     // This is the message store resource.
     Resource baseResource = request.getResource();
     Session session = request.getResourceResolver().adaptTo(Session.class);
-    
+
     // Current user.
     String user = request.getRemoteUser();
 
@@ -222,7 +222,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     ResourceWrapper wrapper = new ResourceWrapper(request.getResource()) {
       /**
        * {@inheritDoc}
-       * 
+       *
        * @see org.apache.sling.api.resource.ResourceWrapper#getPath()
        */
       @Override
@@ -232,7 +232,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
 
       /**
        * {@inheritDoc}
-       * 
+       *
        * @see org.apache.sling.api.resource.ResourceWrapper#getResourceType()
        */
       @Override
@@ -242,7 +242,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
 
       /**
        * {@inheritDoc}
-       * 
+       *
        * @see org.apache.sling.api.resource.ResourceWrapper#getResourceMetadata()
        */
       @Override
@@ -265,7 +265,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
 
       /**
        * {@inheritDoc}
-       * 
+       *
        * @see javax.servlet.ServletResponseWrapper#flushBuffer()
        */
       @Override
@@ -274,7 +274,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
 
       /**
        * {@inheritDoc}
-       * 
+       *
        * @see javax.servlet.ServletResponseWrapper#getOutputStream()
        */
       @Override
@@ -284,7 +284,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
 
       /**
        * {@inheritDoc}
-       * 
+       *
        * @see javax.servlet.ServletResponseWrapper#getWriter()
        */
       @Override

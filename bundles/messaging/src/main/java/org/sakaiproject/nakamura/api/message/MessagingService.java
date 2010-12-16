@@ -40,7 +40,7 @@ public interface MessagingService {
    * Creates a new message for the user associated with the provided session. Message
    * properties are extracted from the supplied map. The messageId supplied must be
    * guaranteed unique
-   * 
+   *
    * @param resource
    * @param mapProperties
    * @param messageId
@@ -54,7 +54,7 @@ public interface MessagingService {
   /**
    * Creates a new message for the user associated with the provided session. Message
    * properties are extracted from the supplied map
-   * 
+   *
    * @param resource
    * @param mapProperties
    * @return
@@ -77,7 +77,7 @@ public interface MessagingService {
   /**
    * Gets the absolute path to the message store from a message. ex:
    * /_private/D0/33/E2/admin/messages
-   * 
+   *
    * @param msg
    *          A message node
    * @return
@@ -88,7 +88,7 @@ public interface MessagingService {
 
   /**
    * Gets the full JCR path for a given recipient and a message ID.
-   * @param rcpt The recipient. Can be either a site, group or a user. Sites should be prefixed with s-, groups with g-.
+   * @param rcpt The recipient. Can be a group or a user.
    * @param messageId The ID of the message.
    * @param session
    * @return The JCR path to that message.
@@ -98,7 +98,7 @@ public interface MessagingService {
 
   /**
    * Gets the full JCR path to a store for a recipient.
-   * @param rcpt The recipient. Can be either a site, group or a user. Sites should be prefixed with s-, groups with g-.
+   * @param rcpt The recipient. Can be a group or a user.
    * @param session
    * @return The JCR path to the store.
    * @throws MessagingException
@@ -107,7 +107,7 @@ public interface MessagingService {
 
   /**
    * Copies a message with id <em>messageId</em> from <em>source</em> to <em>target</em>
-   * 
+   *
    * @param adminSession
    * @param sourceMessage
    * @param targetMessageStore
@@ -118,7 +118,7 @@ public interface MessagingService {
 
   /**
    * Checks if the provided node is a message store node.
-   * 
+   *
    * @param n
    * @return
    */

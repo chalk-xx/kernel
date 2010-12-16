@@ -67,9 +67,6 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceParameter(name = ":operation", description = "The value HAS TO BE <i>link</i>."),
     @ServiceParameter(name = "link", description = {
         "The absolute path in JCR where the link should be put.",
-        "This can be multivalued. It has to be the same size as the site parameter though." }),
-    @ServiceParameter(name = "site", description = {
-        "Required: absolute path to a site that should be associated with this file.",
         "This can be multivalued. It has to be the same size as the site parameter though." }) }, response = {
     @ServiceResponse(code = 201, description = {
         "The link was created.",

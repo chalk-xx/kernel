@@ -74,9 +74,6 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
   // how deep to traverse the file structure
   private int depth = 0;
 
-  /**
-   * @param siteService
-   */
   public FileSearchBatchResultProcessor(SearchServiceFactory searchServiceFactory) {
     this.searchServiceFactory = searchServiceFactory;
   }
