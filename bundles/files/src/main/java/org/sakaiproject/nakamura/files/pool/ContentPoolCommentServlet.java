@@ -17,16 +17,15 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
-import com.google.common.collect.ImmutableMap;
-
-import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_MEMBERS_NODE;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_RT;
+
+import com.google.common.collect.ImmutableMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
@@ -35,27 +34,27 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
-import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Calendar;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
+import javax.jcr.RepositoryException;
+import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -113,10 +112,9 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
 
     try {
       ContentManager contentManager = resource.adaptTo(ContentManager.class);
-      Session session = resource.adaptTo(Session.class);
-      AuthorizableManager authorizableManager = resource.adaptTo(Session.class)
-          .getAuthorizableManager();
       Content comments = contentManager.get(poolContent.getPath() + "/" + COMMENTS);
+      javax.jcr.Session jcrSession = resource.getResourceResolver().adaptTo(javax.jcr.Session.class);
+      UserManager userManager = AccessControlUtil.getUserManager(jcrSession);
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
 
@@ -130,11 +128,16 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
         for (Content comment : comments.listChildren()) {
           Map<String, Object> properties = comment.getProperties();
           String authorId = StorageClientUtils.toString(properties.get(AUTHOR));
-          Authorizable author = authorizableManager.findAuthorizable(authorId);
-          ValueMap profile = profileService.getCompactProfileMap(author, session);
           w.object();
 
-          w.valueMapInternals(profile);
+          try {
+            User author = (User) userManager.getAuthorizable(authorId);
+            ValueMap profile = profileService.getCompactProfileMap(author, jcrSession);
+            w.valueMapInternals(profile);
+          } catch (RepositoryException e ) {
+            w.key(AUTHOR);
+            w.value(authorId);
+          }
 
           w.key(COMMENT);
           w.value(StorageClientUtils.toString(properties.get(COMMENT)));
@@ -153,6 +156,21 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       w.endArray();
       w.endObject();
     } catch (JSONException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      LOGGER.error(e.getMessage(), e);
+    } catch (StorageClientException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      LOGGER.error(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      LOGGER.error(e.getMessage(), e);
+    } catch (javax.jcr.AccessDeniedException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      LOGGER.error(e.getMessage(), e);
+    } catch (UnsupportedRepositoryOperationException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      LOGGER.error(e.getMessage(), e);
+    } catch (RepositoryException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.error(e.getMessage(), e);
     }
@@ -189,7 +207,7 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
 
       Content comments = contentManager.get(path);
       if (comments == null) {
-        comments = new Content(path, Collections.EMPTY_MAP);
+        comments = new Content(path, new HashMap<String, Object>());
         contentManager.update(comments);
       }
 

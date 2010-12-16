@@ -35,7 +35,6 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.files.pool.CreateContentPoolServlet;
 import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
@@ -50,7 +49,6 @@ import java.util.List;
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
@@ -476,15 +474,12 @@ public class FileUtils {
               e.getLocalizedMessage(), e);
         }
         if (node == null) {
+          
           // must not have been a UUID; resolve via poolId
-          final String poolPath = CreateContentPoolServlet.hash(pathOrIdentifier);
-          node = session.getNode(poolPath);
+          //final String poolPath = CreateContentPoolServlet.hash(pathOrIdentifier);
+          //node = session.getNode(poolPath);
         }
       }
-    } catch (PathNotFoundException e) {
-      // Normal execution path - ignore
-    } catch (ItemNotFoundException e) {
-      // Normal execution path - ignore
     } catch (Throwable e) {
       log.error(e.getLocalizedMessage(), e);
     }

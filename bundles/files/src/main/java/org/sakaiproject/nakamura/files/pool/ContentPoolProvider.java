@@ -92,7 +92,7 @@ public class ContentPoolProvider implements ResourceProvider {
     return null;
   }
 
-  private Resource resolveMappedResource(ResourceResolver resourceResolver, String path) throws RepositoryException, StorageClientException, AccessDeniedException {
+  private Resource resolveMappedResource(ResourceResolver resourceResolver, String path) throws  StorageClientException, AccessDeniedException, RepositoryException {
     String poolId = null;
 
     if (path.startsWith("/p/")) {
