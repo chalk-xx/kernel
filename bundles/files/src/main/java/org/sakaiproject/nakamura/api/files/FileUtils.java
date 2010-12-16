@@ -24,16 +24,12 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.files.pool.CreateContentPoolServlet;
 import org.sakaiproject.nakamura.util.DateUtils;
@@ -43,9 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.AccessControlException;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
@@ -55,9 +49,6 @@ import javax.jcr.Property;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.security.AccessControlManager;
-import javax.jcr.security.Privilege;
 
 /**
  * Some utility function regarding file management.
@@ -76,9 +67,6 @@ public class FileUtils {
    *          {@link UserConstants.ANON_USERID} an AccessDeniedException will be thrown.
    * @param linkPath
    *          The absolute path in JCR where the link should be placed.
-   * @param sitePath
-   *          An optional absolute path in JCR to a site. If this parameter is null, it
-   *          will be ignored.
    * @param slingRepository
    *          The {@link SlingRepository} to use to login as an administrative.
    * @return The newly created node.
@@ -87,7 +75,7 @@ public class FileUtils {
    * @throws RepositoryException
    *           Something else went wrong.
    */
-  public static Node createLink(Node fileNode, String linkPath, String sitePath,
+  public static Node createLink(Node fileNode, String linkPath,
       SlingRepository slingRepository) throws AccessDeniedException, RepositoryException {
     Session session = fileNode.getSession();
     String userId = session.getUserID();
@@ -98,7 +86,7 @@ public class FileUtils {
     boolean hasMixin = JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN) && fileNode.canAddMixin(REQUIRED_MIXIN);
     // If the fileNode doesn't have the required referenceable mixin, we need to set it.
     // Also, if we want to link this file into a site. We have to be
-    if (!hasMixin || sitePath != null) {
+    if (!hasMixin) {
       // The required mixin is not on the node.
       // Set it.
       Session adminSession = null;
@@ -110,14 +98,6 @@ public class FileUtils {
         Node adminFileNode = (Node) adminSession.getItem(path);
         if (!hasMixin) {
           adminFileNode.addMixin(REQUIRED_MIXIN);
-        }
-
-        // Used in a site.
-        if (sitePath != null) {
-          Node siteNode = (Node) session.getItem(sitePath);
-          String site = siteNode.getIdentifier();
-          JcrUtils.addUniqueValue(adminSession, adminFileNode, "sakai:sites", site,
-              PropertyType.STRING);
         }
 
         if (adminSession.hasPendingChanges()) {
@@ -163,9 +143,8 @@ public class FileUtils {
    * @throws JSONException
    * @throws RepositoryException
    */
-  public static void writeFileNode(Node node, Session session, JSONWriter write,
-      SiteService siteService) throws JSONException, RepositoryException {
-    writeFileNode(node, session, write, siteService, 0);
+  public static void writeFileNode(Node node, Session session, JSONWriter write) throws JSONException, RepositoryException {
+    writeFileNode(node, session, write, 0);
   }
 
   /**
@@ -181,7 +160,7 @@ public class FileUtils {
    * @throws RepositoryException
    */
   public static void writeFileNode(Node node, Session session, JSONWriter write,
-      SiteService siteService, int maxDepth) throws JSONException, RepositoryException {
+      int maxDepth) throws JSONException, RepositoryException {
 
     write.object();
 
@@ -204,9 +183,6 @@ public class FileUtils {
       }
     }
 
-    // Get all the sites where this file is referenced.
-    getSites(node, write, siteService);
-
     write.endObject();
   }
 
@@ -219,8 +195,8 @@ public class FileUtils {
    * @throws JSONException
    * @throws RepositoryException
    */
-  public static void writeLinkNode(Node node, Session session, JSONWriter write,
-      SiteService siteService) throws JSONException, RepositoryException {
+  public static void writeLinkNode(Node node, Session session, JSONWriter write)
+      throws JSONException, RepositoryException {
     write.object();
     // Write all the properties.
     ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
@@ -233,7 +209,7 @@ public class FileUtils {
       write.key("file");
       try {
         Node fileNode = session.getNodeByIdentifier(uuid);
-        writeFileNode(fileNode, session, write, siteService);
+        writeFileNode(fileNode, session, write);
       } catch (ItemNotFoundException e) {
         write.value(false);
       }
@@ -282,75 +258,6 @@ public class FileUtils {
     } catch (RepositoryException e) {
       return false;
     }
-  }
-
-  /**
-   * Gets all the sites where this file is used and parses the info for it.
-   *
-   * @param node
-   * @param write
-   * @throws RepositoryException
-   * @throws JSONException
-   */
-  @SuppressWarnings(justification = "Need to trap subsystem errors ", value = { "REC_CATCH_EXCEPTION" })
-  private static void getSites(Node node, JSONWriter write, SiteService siteService)
-      throws RepositoryException, JSONException {
-
-    write.key("usedIn");
-    write.object();
-    write.key("sites");
-    write.array();
-
-    // sakai:sites contains uuid's of sites where the file is being referenced.
-    Value[] sites = JcrUtils.getValues(node, "sakai:sites");
-    Session session = node.getSession();
-
-    int total = 0;
-    try {
-      List<String> handledSites = new ArrayList<String>();
-      AccessControlManager acm = AccessControlUtil.getAccessControlManager(session);
-      Privilege read = acm.privilegeFromName(Privilege.JCR_READ);
-      Privilege[] privs = new Privilege[] { read };
-      for (Value v : sites) {
-        String path = v.getString();
-        if (!handledSites.contains(path)) {
-          handledSites.add(path);
-          Node siteNode = session.getNodeByIdentifier(v.getString());
-
-          boolean hasAccess = acm.hasPrivileges(path, privs);
-          if (siteService.isSite(siteNode) && hasAccess) {
-            writeSiteInfo(siteNode, write, siteService);
-            total++;
-          }
-        }
-      }
-    } catch (Exception e) {
-      // We ignore every exception it has when looking up sites.
-      // it is dirty ..
-      log.info("Catched exception when looking up used sites for a file. "
-          + e.getMessage());
-    }
-    write.endArray();
-    write.key("total");
-    write.value(total);
-    write.endObject();
-  }
-
-  /**
-   * Parses the info for a site.
-   *
-   * @param siteNode
-   * @param write
-   * @throws JSONException
-   * @throws RepositoryException
-   */
-  protected static void writeSiteInfo(Node siteNode, JSONWriter write,
-      SiteService siteService) throws JSONException, RepositoryException {
-    write.object();
-    write.key("member-count");
-    write.value(String.valueOf(siteService.getMemberCount(siteNode)));
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, siteNode);
-    write.endObject();
   }
 
   /**

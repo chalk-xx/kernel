@@ -39,7 +39,6 @@ import org.apache.sling.commons.testing.jcr.MockPropertyIterator;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.sakaiproject.nakamura.api.site.SiteService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -72,11 +71,10 @@ public class FilesUtilsTest {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Writer w = new PrintWriter(baos);
     JSONWriter write = new JSONWriter(w);
-    SiteService siteService = mock(SiteService.class);
 
     Node node = createFileNode();
 
-    FileUtils.writeFileNode(node, session, write, siteService);
+    FileUtils.writeFileNode(node, session, write);
 
     w.flush();
     String s = baos.toString("UTF-8");
@@ -138,7 +136,6 @@ public class FilesUtilsTest {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Writer w = new PrintWriter(baos);
     JSONWriter write = new JSONWriter(w);
-    SiteService siteService = mock(SiteService.class);
 
     Node node = new MockNode("/path/to/link");
     node.setProperty(FilesConstants.SAKAI_LINK, "uuid");
@@ -146,7 +143,7 @@ public class FilesUtilsTest {
     Node fileNode = createFileNode();
     when(session.getNodeByIdentifier("uuid")).thenReturn(fileNode);
 
-    FileUtils.writeLinkNode(node, session, write, siteService);
+    FileUtils.writeLinkNode(node, session, write);
     w.flush();
     String s = baos.toString("UTF-8");
     JSONObject j = new JSONObject(s);
@@ -197,31 +194,12 @@ public class FilesUtilsTest {
     when(linkNode.getPrimaryNodeType()).thenReturn(nodeType);
     when(nodeType.getName()).thenReturn("nt:unstructured");
 
-    FileUtils.createLink(fileNode, linkPath, null, slingRepository);
+    FileUtils.createLink(fileNode, linkPath, slingRepository);
 
     verify(fileNode).addMixin(FilesConstants.REQUIRED_MIXIN);
     verify(session).save();
     verify(adminSession).save();
     verify(adminSession).logout();
-  }
-
-  @Test
-  public void testWriteSiteInfo() throws JSONException, RepositoryException, IOException {
-    Node siteNode = new MockNode("/sites/foo");
-    SiteService siteService = mock(SiteService.class);
-    when(siteService.getMemberCount(siteNode)).thenReturn(11);
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    Writer w = new PrintWriter(baos);
-    JSONWriter write = new JSONWriter(w);
-
-    FileUtils.writeSiteInfo(siteNode, write, siteService);
-    w.flush();
-
-    String s = baos.toString("UTF-8");
-    JSONObject o = new JSONObject(s);
-    assertEquals("11", o.get("member-count"));
-    assertEquals(siteNode.getPath(), o.get("jcr:path"));
-
   }
 
   @Test

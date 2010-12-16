@@ -36,7 +36,6 @@ import org.junit.Test;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.search.RowIteratorImpl;
 
 import java.io.ByteArrayOutputStream;
@@ -60,14 +59,10 @@ import javax.jcr.query.RowIterator;
 public class FileSearchBatchResultProcessorTest {
 
   private FileSearchBatchResultProcessor processor;
-  private SiteService siteService;
 
   @Before
   public void setUp() {
     processor = new FileSearchBatchResultProcessor();
-    siteService = mock(SiteService.class);
-
-    processor.siteService = siteService;
   }
 
   public void testGetResultSet() throws SearchException, RepositoryException {

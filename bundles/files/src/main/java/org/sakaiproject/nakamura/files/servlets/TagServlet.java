@@ -38,7 +38,6 @@ import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
-import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.files.search.FileSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
@@ -93,9 +92,6 @@ import javax.servlet.http.HttpServletResponse;
 public class TagServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = -8815248520601921760L;
-
-  @Reference
-  protected transient SiteService siteService;
 
   private transient FileSearchBatchResultProcessor proc;
 
@@ -184,7 +180,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
     // For good measurement
     if (proc == null) {
-      proc = new FileSearchBatchResultProcessor(siteService, searchServiceFactory);
+      proc = new FileSearchBatchResultProcessor(searchServiceFactory);
     }
     proc.setDepth(depth);
 
