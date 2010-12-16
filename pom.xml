@@ -85,6 +85,7 @@
         <module>bundles/userinitializer</module>
         <module>bundles/http</module>
         <module>bundles/robots.txt</module>
+        <module>bundles/directory</module>
       </modules>
     </profile>
     <profile>
