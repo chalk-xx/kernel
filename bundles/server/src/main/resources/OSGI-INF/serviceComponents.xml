@@ -5,7 +5,7 @@
         <service servicefactory="false">
             <provide interface="org.sakaiproject.nakamura.lite.jackrabbit.JackrabbitRepositoryStartupService"/>
         </service>
-        <reference name="Repository" interface="org.sakaiproject.nakamura.lite.Repository" cardinality="1..1" policy="static" bind="bindRepository" unbind="unbindRepository"/>
+        <reference name="Repository" interface="org.sakaiproject.nakamura.api.lite.Repository" cardinality="1..1" policy="static" bind="bindRepository" unbind="unbindRepository"/>
         <property name="service.vendor" value="The Sakai Foundation"/>
         <property name="service.pid" value="org.sakaiproject.nakamura.lite.jackrabbit.SparseComponentHolder"/>
     </scr:component>

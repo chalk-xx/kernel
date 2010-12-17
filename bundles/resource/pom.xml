@@ -42,7 +42,8 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <Export-Package>org.sakaiproject.nakamura.api.resource</Export-Package>
+            <Export-Package>org.sakaiproject.nakamura.api.resource.*</Export-Package>
+            <Private-Package>org.sakaiproject.nakamura.resource.*</Private-Package>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
           </instructions>
         </configuration>

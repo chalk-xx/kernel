@@ -25,7 +25,7 @@
 	<Security appName="Jackrabbit">
 		<SecurityManager class="org.apache.jackrabbit.core.DynamicSecurityManager"
 			workspaceName="security">
- 			<UserManager class="org.sakaiproject.nakamura.api.lite.jackrabbit.SparseMapUserManager">
+ 			<UserManager class="org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager">
           </UserManager>
         </SecurityManager>
 
@@ -37,7 +37,7 @@
 			class="org.apache.sling.jcr.jackrabbit.server.impl.security.PluggableDefaultAccessManager">
 		</AccessManager>
 
-        <LoginModule class="org.sakaiproject.nakamura.api.lite.jackrabbit.SparseLoginModule">
+        <LoginModule class="org.sakaiproject.nakamura.lite.jackrabbit.SparseLoginModule">
             <param name="anonymousId" value="anonymous"/>
             <param name="adminId" value="admin"/>
         </LoginModule>
