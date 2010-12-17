@@ -27,7 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
-import org.sakaiproject.nakamura.api.site.SiteService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,17 +37,14 @@ import java.util.List;
 public class FileSearchPropertyProviderTest {
 
   private ConnectionManager connectionManager;
-  private SiteService siteService;
   private FileSearchPropertyProvider provider;
 
   @Before
   public void setUp() {
-    siteService = mock(SiteService.class);
     connectionManager = mock(ConnectionManager.class);
 
     provider = new FileSearchPropertyProvider();
     provider.connectionManager = connectionManager;
-    provider.siteService = siteService;
   }
 
   @Test

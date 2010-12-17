@@ -47,7 +47,6 @@ public class ActivitySearchResultProviderTest extends AbstractEasyMockTest {
   public void testLoadProperties() throws RepositoryException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     expect(request.getRemoteUser()).andReturn("admin");
-    addStringRequestParameter(request, "site", "/sites/mysite");
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
     Authorizable admin = createAuthorizable("admin", false, true);
@@ -56,7 +55,7 @@ public class ActivitySearchResultProviderTest extends AbstractEasyMockTest {
     expect(session.getUserManager()).andReturn(um);
     expect(request.getResourceResolver()).andReturn(resolver);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
-    
+
     replay();
     ActivitySearchPropertyProvider provider = new ActivitySearchPropertyProvider();
     Map<String, String> propertiesMap = new HashMap<String, String>();
@@ -65,9 +64,6 @@ public class ActivitySearchResultProviderTest extends AbstractEasyMockTest {
     String expected = ISO9075.encodePath("/_user/a/ad/admin/private/"
         + ActivityConstants.ACTIVITY_FEED_NAME);
     assertEquals(expected, actual);
-    String siteFeed = propertiesMap.get("_siteFeed");
-    assertEquals("/sites/mysite/" + ActivityConstants.ACTIVITY_FEED_NAME,
-        siteFeed);
   }
 
   @Test

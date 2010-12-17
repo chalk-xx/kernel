@@ -25,9 +25,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.activity.ActivityUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -72,15 +70,6 @@ public class ActivitySearchPropertyProvider implements SearchPropertyProvider {
     // Encode the path
     path = ISO9075.encodePath(path);
     propertiesMap.put("_myFeed", path);
-
-    // Encode the site path.
-    RequestParameter siteParam = request.getRequestParameter("site");
-    if (siteParam != null && !siteParam.getString().equals("")) {
-      String sitePath = siteParam.getString();
-      sitePath += "/" + ActivityConstants.ACTIVITY_FEED_NAME;
-      sitePath = ISO9075.encodePath(sitePath);
-      propertiesMap.put("_siteFeed", sitePath);
-    }
 
   }
 

@@ -182,12 +182,13 @@ else
     echo "imsblti.provider.12345.secret=secret" >> sakai2-demo/sakai/sakai.properties
     echo "webservices.allow=.+" >> sakai2-demo/sakai/sakai.properties
     # enable debugging for hybrid related code
-    echo "log.config.count=5" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.count=6" >> sakai2-demo/sakai/sakai.properties
     echo "log.config.1 = ALL.org.sakaiproject.log.impl" >> sakai2-demo/sakai/sakai.properties
-    echo "log.config.2 = ERROR.org.sakaiproject" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.2 = WARN.org.sakaiproject" >> sakai2-demo/sakai/sakai.properties
     echo "log.config.3 = DEBUG.org.sakaiproject.provider.user" >> sakai2-demo/sakai/sakai.properties
-    echo "log.config.4 = DEBUG.org.sakaiproject.login.filter" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.4 = DEBUG.org.sakaiproject.login" >> sakai2-demo/sakai/sakai.properties
     echo "log.config.5 = DEBUG.org.sakaiproject.hybrid" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.6 = DEBUG.org.sakaiproject.blti" >> sakai2-demo/sakai/sakai.properties
     date > $BUILD_DIR/sakai/.lastbuild
 fi
 

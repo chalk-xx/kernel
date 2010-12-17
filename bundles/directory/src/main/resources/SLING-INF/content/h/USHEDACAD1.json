@@ -1,0 +1,79 @@
+{
+    "jcr:primaryType": "nt:unstructured",
+    "Bloomington": {
+        "sling:resourceType": "sakai/tag",
+        "sakai:tag-name": "Bloomington",
+        "OPT": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Optometry",
+            "OPT4": {
+                "sling:resourceType": "sakai/tag",
+                "sakai:tag-name": "Optometry Undergraduate",
+                "OPTCXXS": {
+                    "sling:resourceType": "sakai/tag",
+                    "sakai:tag-name": "Opt Technology/Opticianry AS"
+                }
+            },
+            "OPT8": {
+                "sling:resourceType": "sakai/tag",
+                "sakai:tag-name": "Optometry Grad -GrSch",
+                "OPTPOPTXX": {
+                    "sling:resourceType": "sakai/tag",
+                    "sakai:tag-name": "Physiological Optics MS"
+                }
+            }
+        }
+    },
+    "Continuing Study": {
+        "sling:resourceType": "sakai/tag",
+        "sakai:tag-name": "Continuing Study",
+        "SCS3": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Continuing Stdy Undergraduate",
+            "GSTAGS": {
+                "sling:resourceType": "sakai/tag",
+                "sakai:tag-name": "General Studies AAGS"
+            },
+            "GSTBS": {
+                "sling:resourceType": "sakai/tag",
+                "sakai:tag-name": "General Studies BGS"
+            }
+        },
+        "SCS7": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Continuing Stdy Graduate",
+            "ADED": {
+                "sling:resourceType": "sakai/tag",
+                "sakai:tag-name": "Adult Education MS"
+            }
+        }
+    },
+    "IUPUI": {
+        "sling:resourceType": "sakai/tag",
+        "sakai:tag-name": "IUPUI",
+        "ENGR": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Engineering",
+            "ENGR3": {
+                "sling:resourceType": "sakai/tag",
+                "sakai:tag-name": "Engineering Undergraduate",
+                "BMEBSPU": {
+                    "sling:resourceType": "sakai/tag",
+                    "sakai:tag-name": "Biomedical Engineering"
+                }
+            },
+            "ENGR7": {
+                "sling:resourceType": "sakai/tag",
+                "sakai:tag-name": "Engineering Graduate",
+                "MEMSXX": {
+                    "sling:resourceType": "sakai/tag",
+                    "sakai:tag-name": "Mechanical Engr MSME"
+                },
+                "MECEBXXSMS": {
+                    "sling:resourceType": "sakai/tag",
+                    "sakai:tag-name": "Elec and Comp Engr BS/MS"
+                }
+            }
+        }
+    }
+}
