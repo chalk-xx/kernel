@@ -27,11 +27,14 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import javax.jcr.Node;
+import javax.jcr.Session;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -101,7 +104,14 @@ public class ContentPoolFilter implements Filter {
       if (resource.getResourceMetadata().get(ContentPoolProvider.CONTENT_RESOURCE_PROVIDER) instanceof ContentPoolProvider) {
         return false;
       }
-      if (ADMIN_USER.equals(srequest.getRemoteUser())) {
+      Session session = resource.getResourceResolver().adaptTo(Session.class);
+      if (ADMIN_USER.equals(session.getUserID())) {
+        return false;
+      }
+      Node node = resource.adaptTo(Node.class);
+      Content content = resource.adaptTo(Content.class);
+      if ( node == null && content == null ) {
+        //webdav
         return false;
       }
       LOGGER.debug("/_p protected ");

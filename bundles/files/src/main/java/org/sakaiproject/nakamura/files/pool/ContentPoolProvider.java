@@ -21,12 +21,14 @@ package org.sakaiproject.nakamura.files.pool;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.api.SlingException;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
@@ -39,7 +41,7 @@ import java.util.Iterator;
 import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletRequest;
 
-@Component( immediate = true, metatype = true)
+@Component(immediate = true, metatype = true)
 @Service(value = ResourceProvider.class)
 @Property(name = ResourceProvider.ROOTS, value = { "/", "/p" })
 public class ContentPoolProvider implements ResourceProvider {
@@ -83,16 +85,17 @@ public class ContentPoolProvider implements ResourceProvider {
     try {
       return resolveMappedResource(resourceResolver, path);
     } catch (RepositoryException e) {
-      LOGGER.warn(e.getMessage(),e);
+      LOGGER.warn(e.getMessage(), e);
     } catch (StorageClientException e) {
-      LOGGER.warn(e.getMessage(),e);
+      LOGGER.warn(e.getMessage(), e);
     } catch (AccessDeniedException e) {
-      LOGGER.warn(e.getMessage(),e);
+      LOGGER.warn(e.getMessage(), e);
     }
     return null;
   }
 
-  private Resource resolveMappedResource(ResourceResolver resourceResolver, String path) throws  StorageClientException, AccessDeniedException, RepositoryException {
+  private Resource resolveMappedResource(ResourceResolver resourceResolver, String path)
+      throws StorageClientException, AccessDeniedException, RepositoryException {
     String poolId = null;
 
     if (path.startsWith("/p/")) {
@@ -116,21 +119,26 @@ public class ContentPoolProvider implements ResourceProvider {
         // - /p/717AugiABkcKGOOYxGyzoEsa -> return JcrNodeResource
         return null;
       }
-      LOGGER.debug("Pool ID is [{}]", poolId);
-      Session session = JackrabbitSparseUtils.getSparseSession(resourceResolver.adaptTo(javax.jcr.Session.class));
+      LOGGER.info("Pool ID is [{}]", poolId);
+      Session session = JackrabbitSparseUtils.getSparseSession(resourceResolver
+          .adaptTo(javax.jcr.Session.class));
       ContentManager contentManager = session.getContentManager();
       Content content = contentManager.get(poolId);
-      if ( content != null ) {
-         SparseContentResource cpr = new SparseContentResource(content, session, resourceResolver);
-         cpr.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
-         cpr.getResourceMetadata().setResolutionPathInfo(selectors);
-         return cpr;
-        
+      if (content != null) {
+        LOGGER.info("Content {} ", content);
+        SparseContentResource cpr = new SparseContentResource(content, session,
+            resourceResolver);
+        cpr.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
+        cpr.getResourceMetadata().setResolutionPathInfo(selectors);
+        return cpr;
+      } else {
+        throw new SlingException("Creating a pool item is not allowed via this URL ",
+            new AccessDeniedException(Security.ZONE_CONTENT, poolId,
+                "Cant create Pool Item", ""));
       }
     }
     return null;
   }
-
 
   public Iterator<Resource> listChildren(Resource parent) {
     if (LOGGER.isDebugEnabled()) {

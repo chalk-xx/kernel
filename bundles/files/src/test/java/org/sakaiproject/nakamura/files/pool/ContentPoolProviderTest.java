@@ -18,10 +18,14 @@
 
 package org.sakaiproject.nakamura.files.pool;
 
+import com.google.common.collect.ImmutableMap;
+
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import junit.framework.Assert;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingException;
 import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
@@ -31,6 +35,20 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.stubbing.Answer;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
+import org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager;
+
+import javax.jcr.AccessDeniedException;
+import javax.jcr.RepositoryException;
+import javax.jcr.UnsupportedRepositoryOperationException;
 
 public class ContentPoolProviderTest {
 
@@ -38,16 +56,27 @@ public class ContentPoolProviderTest {
   private ResourceResolver resourceResolver;
   @Mock
   private Resource resource;
+  @Mock
+  private JackrabbitSession jackrabbitSession;
+  @Mock
+  private SparseMapUserManager sparseMapUserManager;
+  
+  private Repository repository;
+  
   private ContentPoolProvider cp;
 
-  public ContentPoolProviderTest() {
+  public ContentPoolProviderTest() throws ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
     MockitoAnnotations.initMocks(this);
     cp = new ContentPoolProvider();
+    BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
+    repository = baseMemoryRepository.getRepository();
   }
 
   @SuppressWarnings(value = { "DLS_DEAD_LOCAL_STORE" }, justification = "Unit testing fail mode")
   @Test
-  public void testNonExisting() {
+  public void testNonExisting() throws AccessDeniedException,
+      UnsupportedRepositoryOperationException, RepositoryException,
+      StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException {
     Mockito.when(resourceResolver.resolve(Mockito.anyString())).thenReturn(resource);
     Mockito
         .when(resourceResolver.resolve(Mockito.eq("/_p/j/yy/qe/u1/nonexisting")))
@@ -55,6 +84,12 @@ public class ContentPoolProviderTest {
     Mockito.when(resource.getPath()).thenReturn("/_p/AA/BB/CC/DD/testing");
     ResourceMetadata resourceMetadata = new ResourceMetadata();
     Mockito.when(resource.getResourceMetadata()).thenReturn(resourceMetadata);
+    
+    Mockito.when(resourceResolver.adaptTo(javax.jcr.Session.class)).thenReturn(jackrabbitSession);
+    
+    Mockito.when(jackrabbitSession.getUserManager()).thenReturn(sparseMapUserManager);
+    Session session = repository.loginAdministrative();
+    Mockito.when(sparseMapUserManager.getSession()).thenReturn(session);
 
     Resource result = cp.getResource(resourceResolver, "/");
     Assert.assertNull(result);

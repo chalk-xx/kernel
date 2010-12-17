@@ -161,7 +161,9 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       AuthorizableManager authorizableManager = adminSession.getAuthorizableManager();
       // We need the authorizable for the user node that we'll create under the file.
       
+      
       Authorizable au = authorizableManager.findAuthorizable(userId);
+      System.err.println("User ID "+userId+" found as "+au);
 
       // Loop over all the parameters
       // All the ones that are files will be stored.
@@ -219,7 +221,9 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
     } finally {
       // Make sure we're logged out.
       try {
-        adminSession.logout();
+        if ( adminSession != null ) {
+          adminSession.logout();
+        }
       } catch (ClientPoolException e) {
         LOGGER.warn(e.getMessage(), e);
       }

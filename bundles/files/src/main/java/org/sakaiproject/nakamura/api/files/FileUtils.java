@@ -474,7 +474,7 @@ public class FileUtils {
               e.getLocalizedMessage(), e);
         }
         if (node == null) {
-          
+          log.warn("Unable to Tag Content Pool at this time, tried {} ",pathOrIdentifier);
           // must not have been a UUID; resolve via poolId
           //final String poolPath = CreateContentPoolServlet.hash(pathOrIdentifier);
           //node = session.getNode(poolPath);

@@ -113,8 +113,9 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
     try {
       // Get hold of the actual file.
       Resource resource = request.getResource();
-      javax.jcr.Session session = request.getResourceResolver().adaptTo(
+      javax.jcr.Session session = resource.getResourceResolver().adaptTo(
           javax.jcr.Session.class);
+      
       UserManager userManager = AccessControlUtil.getUserManager(session);
       Content node = resource.adaptTo(Content.class);
 
@@ -140,13 +141,13 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       writer.object();
       writer.key("managers");
       writer.array();
-      for (String manager : managers) {
+      for (String manager : nonNullStringArray(managers)) {
         writeProfileMap(session, userManager, writer, manager, detailed);
       }
       writer.endArray();
       writer.key("viewers");
       writer.array();
-      for (String viewer : viewers) {
+      for (String viewer : nonNullStringArray(viewers)) {
         writeProfileMap(session, userManager, writer, viewer, detailed);
       }
       writer.endArray();
@@ -205,10 +206,11 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
     try {
       // Get the node.
       Resource resource = request.getResource();
-      Content node = resource.adaptTo(Content.class);
-      ContentManager contentManager = resource.adaptTo(ContentManager.class);
       Session session = resource.adaptTo(Session.class);
       AccessControlManager accessControlManager = session.getAccessControlManager();
+      
+      Content node = resource.adaptTo(Content.class);
+      ContentManager contentManager = resource.adaptTo(ContentManager.class);
 
       Map<String, Object> properties = node.getProperties();
       String[] managers = StorageClientUtils.toStringArray(properties
@@ -216,19 +218,32 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       String[] viewers = StorageClientUtils.toStringArray(properties
           .get(POOLED_CONTENT_USER_VIEWER));
 
-      Set<String> managerSet = Sets.newHashSet(managers);
-      Set<String> viewersSet = Sets.newHashSet(viewers);
+      
+      Set<String> managerSet = null;
+      if ( managers == null ) {
+        managerSet = Sets.newHashSet();
+      } else {
+        managerSet = Sets.newHashSet(managers);
+      }
+      
+      Set<String> viewersSet = null;
+      if ( viewers == null ) {
+        viewersSet = Sets.newHashSet();
+      } else {
+        viewersSet = Sets.newHashSet(viewers);
+      }
 
       List<AclModification> aclModifications = Lists.newArrayList();
 
-      for (String addManager : request.getParameterValues(":manager")) {
+      for (String addManager : nonNullStringArray(request.getParameterValues(":manager"))) {
         if (!managerSet.contains(addManager)) {
           managerSet.add(addManager);
           AclModification.addAcl(true, Permissions.CAN_MANAGE, addManager,
               aclModifications);
         }
       }
-      for (String removeManager : request.getParameterValues(":manager@Delete")) {
+      
+      for (String removeManager : nonNullStringArray(request.getParameterValues(":manager@Delete"))) {
         if (managerSet.contains(removeManager)) {
           managerSet.remove(removeManager);
           AclModification.removeAcl(true, Permissions.CAN_MANAGE, removeManager,
@@ -236,13 +251,13 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
         }
       }
 
-      for (String addViewer : request.getParameterValues(":viewer")) {
+      for (String addViewer : nonNullStringArray(request.getParameterValues(":viewer"))) {
         if (!viewersSet.contains(addViewer)) {
           viewersSet.add(addViewer);
           AclModification.addAcl(true, Permissions.CAN_READ, addViewer, aclModifications);
         }
       }
-      for (String removeViewer : request.getParameterValues(":viewer@Delete")) {
+      for (String removeViewer : nonNullStringArray(request.getParameterValues(":viewer@Delete"))) {
         if (viewersSet.contains(removeViewer)) {
           viewersSet.remove(removeViewer);
           if (!managerSet.contains(removeViewer)) {
@@ -287,7 +302,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
     } catch (AccessDeniedException e) {
       LOGGER.error("Could not set some permissions on [{}] Cause:{}",
           request.getPathInfo(), e.getMessage());
-      LOGGER.debug("Cause: ", e);
+      LOGGER.info(e.getMessage(), e);
       response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not set permissions.");
     } catch (StorageClientException e) {
       LOGGER.error("Could not set some permissions on [{}] Cause:{}",
@@ -295,5 +310,12 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       LOGGER.debug("Cause: ", e);
       response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not set permissions.");
     }
+  }
+
+  private String[] nonNullStringArray(String[] parameterValues) {
+    if ( parameterValues == null ) {
+      return new String[0];
+    }
+    return parameterValues;
   }
 }

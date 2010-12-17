@@ -28,6 +28,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -104,9 +105,11 @@ public class TagOperation extends AbstractSlingPostOperation {
 
     ResourceResolver resourceResolver = request.getResourceResolver();
     Node tagNode = null;
-    Node node = request.getResource().adaptTo(Node.class);
+    Resource resource = request.getResource();
+    Node node = resource.adaptTo(Node.class);
 
     if (node == null) {
+      LOGGER.info("Missing Resource Node {} ", resource.getPath());
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
           "A tag operation must be performed on an actual resource");
       return;
@@ -124,7 +127,8 @@ public class TagOperation extends AbstractSlingPostOperation {
     try {
       tagNode = FileUtils.resolveNode(key.getString(), resourceResolver);
       if (tagNode == null) {
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Provided key not found.");
+        LOGGER.info("Missing Tag Node {} ",key.getString());
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Provided key not found. Key was "+key.getString());
         return;
       }
       if (!FileUtils.isTag(tagNode)) {

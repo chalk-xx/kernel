@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
+import com.google.common.collect.ImmutableMap;
+
 import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static org.junit.Assert.assertEquals;
@@ -34,15 +36,26 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
+import org.sakaiproject.nakamura.lite.jackrabbit.SparseRepositoryHolder;
 import org.sakaiproject.nakamura.profile.ProfileServiceImpl;
 import org.sakaiproject.nakamura.testutils.mockito.MockitoTestUtils;
 
@@ -53,6 +66,7 @@ import java.security.Principal;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.ValueFactory;
 import javax.jcr.Workspace;
 import javax.jcr.query.Query;
@@ -96,25 +110,58 @@ public class ManageMembersContentPoolServletTest {
   private Privilege readPrivilege;
   @Mock
   private UserManager userManager;
+  @Mock
+  private ResourceResolver resourceResolver;
 
   private ManageMembersContentPoolServlet servlet;
   private PrintWriter printWriter;
   private StringWriter stringWriter;
   private AccessControlList acl;
+  private BaseMemoryRepository baseMemoryRepository;
+  private Repository sparseRepository;
+  private org.sakaiproject.nakamura.api.lite.Session sparseSession;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
+    baseMemoryRepository = new BaseMemoryRepository();
+    sparseRepository = baseMemoryRepository.getRepository();
+    sparseSession = sparseRepository.loginAdministrative();
+    sparseSession.getAuthorizableManager().createUser("ieb", "Ian Boston", "test",
+        ImmutableMap.of("x", (Object) "y"));
+    sparseSession.getContentManager().update(
+        new Content("pooled-content-id", ImmutableMap.of("x", (Object) "y",
+            POOLED_CONTENT_USER_MANAGER, "alice,ieb", POOLED_CONTENT_USER_VIEWER,
+            "bob,mark,john")));
+    sparseSession.getAccessControlManager().setAcl(
+        Security.ZONE_CONTENT,
+        "pooled-content-id",
+        new AclModification[] { new AclModification(AclModification.grantKey("ieb"),
+            Permissions.CAN_MANAGE.getPermission(), Operation.OP_REPLACE) });
+    sparseSession.logout();
+    sparseSession = sparseRepository.loginAdministrative("ieb");
     servlet = new ManageMembersContentPoolServlet();
-    servlet.slingRepository = slingRepository;
+    // servlet.slingRepository = slingRepository;
 
     // TODO With this, we are testing the internals of the ProfileServiceImpl
     // class as well as the internals of the MeServlet class. Mocking it would
     // reduce the cost of test maintenance.
     servlet.profileService = new ProfileServiceImpl();
+    when(resource.getResourceResolver()).thenReturn(resourceResolver);
+    when(resourceResolver.adaptTo(Session.class)).thenReturn(session);
 
+    when(resource.adaptTo(org.sakaiproject.nakamura.api.lite.Session.class)).thenReturn(
+        sparseSession);
+    Content contentNode = sparseSession.getContentManager().get("pooled-content-id");
+    Assert.assertNotNull(contentNode);
+    when(resource.adaptTo(Content.class)).thenReturn(contentNode);
+    when(resource.adaptTo(ContentManager.class)).thenReturn(
+        sparseSession.getContentManager());
     // Mock the request and the filenode.
     when(request.getResource()).thenReturn(resource);
+    
+    
+    // TODO: Port profile Nodes to Sparse at some point
     when(resource.adaptTo(Node.class)).thenReturn(fileNode);
     when(fileNode.getSession()).thenReturn(session, adminSession);
     when(fileNode.getPath()).thenReturn("/path/to/pooled/content/file");
@@ -124,59 +171,73 @@ public class ManageMembersContentPoolServletTest {
     Node rootNode = mock(Node.class);
     when(session.getRootNode()).thenReturn(rootNode);
     when(rootNode.hasNode("_user/a/al/alice/public/authprofile")).thenReturn(true);
-    when(session.getNode("/_user/a/al/alice/public/authprofile")).thenReturn(new MockNode("/_user/a/al/alice/public/authprofile"));
+    when(session.getNode("/_user/a/al/alice/public/authprofile")).thenReturn(
+        new MockNode("/_user/a/al/alice/public/authprofile"));
     when(rootNode.hasNode("_user/b/bo/bob/public/authprofile")).thenReturn(true);
-    when(session.getNode("/_user/b/bo/bob/public/authprofile")).thenReturn(new MockNode("/_user/b/bo/bob/public/authprofile"));
+    when(session.getNode("/_user/b/bo/bob/public/authprofile")).thenReturn(
+        new MockNode("/_user/b/bo/bob/public/authprofile"));
+    
+    
+    
+    if ( false ) {
 
     // Handle setting ACLs.
-    when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
-    when(adminSession.getPrincipalManager()).thenReturn(principalManager);
-    when(adminSession.getAccessControlManager()).thenReturn(acm);
-    when(adminSession.getUserManager()).thenReturn(userManager);
-    when(adminSession.getValueFactory()).thenReturn(valueFactory);
-    when(adminSession.getNode(fileNode.getPath())).thenReturn(fileNode);
-    when(acm.privilegeFromName(JCR_ALL)).thenReturn(allPrivilege);
-    when(acm.privilegeFromName(JCR_READ)).thenReturn(readPrivilege);
-    acl = mock(AccessControlList.class);
-    when(acl.getAccessControlEntries()).thenReturn(new AccessControlEntry[0]);
-    AccessControlPolicy[] acp = new AccessControlPolicy[] { acl };
-    when(acm.getPolicies(Mockito.anyString())).thenReturn(acp);
 
+      // this code is for JCR Nodes
+      when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
+      when(adminSession.getPrincipalManager()).thenReturn(principalManager);
+      when(adminSession.getAccessControlManager()).thenReturn(acm);
+      when(adminSession.getUserManager()).thenReturn(userManager);
+      when(adminSession.getValueFactory()).thenReturn(valueFactory);
+      when(adminSession.getNode(fileNode.getPath())).thenReturn(fileNode);
+      when(acm.privilegeFromName(JCR_ALL)).thenReturn(allPrivilege);
+      when(acm.privilegeFromName(JCR_READ)).thenReturn(readPrivilege);
+      acl = mock(AccessControlList.class);
+      when(acl.getAccessControlEntries()).thenReturn(new AccessControlEntry[0]);
+      AccessControlPolicy[] acp = new AccessControlPolicy[] { acl };
+      when(acm.getPolicies(Mockito.anyString())).thenReturn(acp);
+    }
     // Make sure we can write to something.
     stringWriter = new StringWriter();
     printWriter = new PrintWriter(stringWriter);
     when(response.getWriter()).thenReturn(printWriter);
 
     // Mock the users for this file.
-    Workspace workspace = mock(Workspace.class);
-    QueryManager qm = mock(QueryManager.class);
-    Query q = mock(Query.class);
-    QueryResult qr = mock(QueryResult.class);
-    NodeIterator iterator = mock(NodeIterator.class);
 
-    when(adminSession.getWorkspace()).thenReturn(workspace);
-    when(workspace.getQueryManager()).thenReturn(qm);
-    when(qm.createQuery(Mockito.anyString(), Mockito.anyString())).thenReturn(q);
-    when(q.execute()).thenReturn(qr);
-    when(qr.getNodes()).thenReturn(iterator);
+    if (false) {
+      // this code is for JCR Content Nodes
+      // TODO: delete
 
-    MockNode aliceNode = new MockNode(fileNode.getPath() + "/members/a/al/alice");
-    aliceNode.setProperty(POOLED_CONTENT_USER_MANAGER, "alice");
-    when(adminSession.itemExists(aliceNode.getPath())).thenReturn(true);
-    when(adminSession.getItem(aliceNode.getPath())).thenReturn(aliceNode);
-    when(adminSession.getNode(aliceNode.getPath())).thenReturn(aliceNode);
-    Authorizable alice = MockitoTestUtils.createAuthorizable("alice", false);
-    when(userManager.getAuthorizable("alice")).thenReturn(alice);
+      Workspace workspace = mock(Workspace.class);
+      QueryManager qm = mock(QueryManager.class);
+      Query q = mock(Query.class);
+      QueryResult qr = mock(QueryResult.class);
+      NodeIterator iterator = mock(NodeIterator.class);
 
-    MockNode bobNode = new MockNode(fileNode.getPath() + "/members/b/bo/bob");
-    bobNode.setProperty(POOLED_CONTENT_USER_VIEWER, "bob");
-    when(adminSession.itemExists(bobNode.getPath())).thenReturn(true);
-    when(adminSession.getItem(bobNode.getPath())).thenReturn(bobNode);
-    Authorizable bob = MockitoTestUtils.createAuthorizable("bob", false);
-    when(userManager.getAuthorizable("bob")).thenReturn(bob);
+      when(adminSession.getWorkspace()).thenReturn(workspace);
+      when(workspace.getQueryManager()).thenReturn(qm);
+      when(qm.createQuery(Mockito.anyString(), Mockito.anyString())).thenReturn(q);
+      when(q.execute()).thenReturn(qr);
+      when(qr.getNodes()).thenReturn(iterator);
 
-    when(iterator.hasNext()).thenReturn(true, true, false);
-    when(iterator.nextNode()).thenReturn(aliceNode, bobNode);
+      MockNode aliceNode = new MockNode(fileNode.getPath() + "/members/a/al/alice");
+      aliceNode.setProperty(POOLED_CONTENT_USER_MANAGER, "alice");
+      when(adminSession.itemExists(aliceNode.getPath())).thenReturn(true);
+      when(adminSession.getItem(aliceNode.getPath())).thenReturn(aliceNode);
+      when(adminSession.getNode(aliceNode.getPath())).thenReturn(aliceNode);
+      Authorizable alice = MockitoTestUtils.createAuthorizable("alice", false);
+      when(userManager.getAuthorizable("alice")).thenReturn(alice);
+
+      MockNode bobNode = new MockNode(fileNode.getPath() + "/members/b/bo/bob");
+      bobNode.setProperty(POOLED_CONTENT_USER_VIEWER, "bob");
+      when(adminSession.itemExists(bobNode.getPath())).thenReturn(true);
+      when(adminSession.getItem(bobNode.getPath())).thenReturn(bobNode);
+      Authorizable bob = MockitoTestUtils.createAuthorizable("bob", false);
+      when(userManager.getAuthorizable("bob")).thenReturn(bob);
+
+      when(iterator.hasNext()).thenReturn(true, true, false);
+      when(iterator.nextNode()).thenReturn(aliceNode, bobNode);
+    }
   }
 
   @Test
@@ -187,8 +248,8 @@ public class ManageMembersContentPoolServletTest {
 
     // If all went right, we should have 1 manager Alice and one viewer bob.
     JSONObject json = new JSONObject(stringWriter.toString());
-    assertEquals(1, json.getJSONArray("managers").length());
-    assertEquals(1, json.getJSONArray("viewers").length());
+    assertEquals(2, json.getJSONArray("managers").length());
+    assertEquals(3, json.getJSONArray("viewers").length());
     assertEquals("alice", json.getJSONArray("managers").getJSONObject(0).get("userid"));
     assertEquals("bob", json.getJSONArray("viewers").getJSONObject(0).get("userid"));
   }
@@ -241,8 +302,6 @@ public class ManageMembersContentPoolServletTest {
 
     // Verify we saved everything and then properly logged out.
     verify(response).setStatus(200);
-    verify(adminSession).save();
-    verify(adminSession).logout();
   }
 
   @Test
@@ -292,7 +351,5 @@ public class ManageMembersContentPoolServletTest {
 
     // Verify we saved everything and then properly logged out.
     verify(response).setStatus(200);
-    verify(adminSession).save();
-    verify(adminSession).logout();
   }
 }
