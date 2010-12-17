@@ -356,7 +356,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       Binary content = valueFactory.createBinary(in);
       node.setProperty(JcrConstants.JCR_CONTENT, content);
       final String linkPath = sitePath + "/_files/" + fileName;
-      FileUtils.createLink(node, linkPath, sitePath, slingRepository);
+      FileUtils.createLink(node, linkPath, slingRepository);
     } catch (RepositoryException e) {
       throw new Error(e);
     } catch (IOException e) {
