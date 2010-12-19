@@ -38,7 +38,6 @@ import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
-import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.RowUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,20 +69,12 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       .getLogger(FileSearchBatchResultProcessor.class);
 
   @Reference
-  protected transient SiteService siteService;
-
-  @Reference
   private SearchServiceFactory searchServiceFactory;
 
   // how deep to traverse the file structure
   private int depth = 0;
 
-  /**
-   * @param siteService
-   */
-  public FileSearchBatchResultProcessor(SiteService siteService,
-      SearchServiceFactory searchServiceFactory) {
-    this.siteService = siteService;
+  public FileSearchBatchResultProcessor(SearchServiceFactory searchServiceFactory) {
     this.searchServiceFactory = searchServiceFactory;
   }
 
@@ -232,9 +223,9 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
     }
 
     if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
-      FileUtils.writeLinkNode(node, session, write, siteService);
+      FileUtils.writeLinkNode(node, session, write);
     } else {
-      FileUtils.writeFileNode(node, session, write, siteService, depth);
+      FileUtils.writeFileNode(node, session, write, depth);
     }
   }
 }

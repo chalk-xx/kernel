@@ -55,7 +55,6 @@
         <module>bundles/server</module>
         <module>bundles/image</module>
         <module>bundles/proxy</module>
-        <module>bundles/site</module>
         <module>bundles/search</module>
         <module>bundles/discussion</module>
         <module>bundles/smtp</module>
@@ -85,6 +84,7 @@
         <module>bundles/userinitializer</module>
         <module>bundles/http</module>
         <module>bundles/robots.txt</module>
+        <module>bundles/directory</module>
       </modules>
     </profile>
     <profile>

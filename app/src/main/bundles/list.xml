@@ -571,11 +571,6 @@ org.sakaiproject.nakamura.jpaprovider
    <startLevel level="20" >
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.site</artifactId>
-      <version>0.10-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.meservice</artifactId>
       <version>0.10-SNAPSHOT</version>
     </bundle>
@@ -696,6 +691,11 @@ org.sakaiproject.nakamura.jpaprovider
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.robots.txt</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.directory</artifactId>
       <version>0.10-SNAPSHOT</version>
     </bundle>
    </startLevel>

@@ -49,17 +49,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * 
+ *
  */
 @SlingServlet(methods = { "GET" }, extensions={"*"}, resourceTypes = { "sakai/pooled-content" })
 public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServlet
     implements OptingServlet {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 6605017133790005483L;
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(GetAlternativeContentPoolStreamServlet.class);
   private static final Set<String> RESERVED_SELECTORS = new HashSet<String>();
   static {
     RESERVED_SELECTORS.add("selector-used-elsewhere");
@@ -109,7 +107,7 @@ public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServl
     String[] selectors = rpi.getSelectors();
     if (selectors != null && selectors.length > 0) {
       alternativeStream = selectors[0];
-    }  
+    }
     return alternativeStream;
   }
 
@@ -118,7 +116,7 @@ public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServl
    * in if no extension has been specified was specified in the request. (Sling servlet
    * resolution uses a servlet's declared list of "extensions" for score weighing, not for
    * filtering.)
-   * 
+   *
    * @see org.apache.sling.api.servlets.OptingServlet#accepts(org.apache.sling.api.SlingHttpServletRequest)
    */
   public boolean accepts(SlingHttpServletRequest request) {
@@ -126,7 +124,7 @@ public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServl
     String[] selectors = rpi.getSelectors();
     if ( selectors != null && selectors.length == 1 ) {
       if (!RESERVED_SELECTORS.contains(selectors[0])) {
-        return true; 
+        return true;
       }
     }
     return false;
@@ -136,7 +134,7 @@ public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServl
    * Returns <code>true</code> if the request has a <code>If-Modified-Since</code> header
    * whose date value is later than the last modification time given as
    * <code>modifTime</code>.
-   * 
+   *
    * @param request
    *          The <code>ComponentRequest</code> checked for the
    *          <code>If-Modified-Since</code> header.
@@ -191,7 +189,7 @@ public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServl
    * than <code>Integer.MAX_VALUE</code> it is converted to a string and the
    * <code>setHeader(String, String)</code> method is called instead of the
    * <code>setContentLength(int)</code> method.
-   * 
+   *
    * @param response
    *          The response on which to set the <code>Content-Length</code> header.
    * @param length

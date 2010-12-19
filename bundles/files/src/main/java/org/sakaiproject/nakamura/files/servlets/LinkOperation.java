@@ -40,7 +40,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
-import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
@@ -52,7 +51,6 @@ import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -64,14 +62,11 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "sling.post.operation", value = "link"),
     @Property(name = "service.description", value = "Creates an internal link to a file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-    
+
 @ServiceDocumentation(name = "LinkOperation", shortDescription = "Link a node to a file", description = { "Link a node to another node in the repository." }, methods = { @ServiceMethod(name = "POST", description = { "This operation has to be performed on the file NOT the target. In the current implementation we use file link nodes that connect the original uploaded file to another location. This practice will continue except we will obviously link to wherever the file was uploaded." }, parameters = {
     @ServiceParameter(name = ":operation", description = "The value HAS TO BE <i>link</i>."),
     @ServiceParameter(name = "link", description = {
         "The absolute path in JCR where the link should be put.",
-        "This can be multivalued. It has to be the same size as the site parameter though." }),
-    @ServiceParameter(name = "site", description = {
-        "Required: absolute path to a site that should be associated with this file.",
         "This can be multivalued. It has to be the same size as the site parameter though." }) }, response = {
     @ServiceResponse(code = 201, description = {
         "The link was created.",
@@ -83,19 +78,15 @@ public class LinkOperation extends AbstractSlingPostOperation {
   public static final Logger log = LoggerFactory.getLogger(LinkOperation.class);
   private static final long serialVersionUID = -6206802633585722105L;
   private static final String LINK_PARAM = "link";
-  private static final String SITE_PARAM = "site";
 
   @Reference
   protected transient SlingRepository slingRepository;
 
   @Reference
-  protected transient SiteService siteService;
-
-  @Reference
   protected transient EventAdmin eventAdmin;
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.servlets.post.AbstractSlingPostOperation#doRun(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
@@ -110,12 +101,11 @@ public class LinkOperation extends AbstractSlingPostOperation {
     }
 
     String link = request.getParameter(LINK_PARAM);
-    String site = request.getParameter(SITE_PARAM);
     Resource resource = request.getResource();
     if ( resource == null ) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
       "A link operation must be performed on an actual resource");
-      return;      
+      return;
     }
     Node node = resource.adaptTo(Node.class);
     if (node == null || ResourceUtil.isNonExistingResource(resource)) {
@@ -129,30 +119,12 @@ public class LinkOperation extends AbstractSlingPostOperation {
       return;
     }
 
-    if (site != null) {
-      try {
-        Session session = request.getResourceResolver().adaptTo(Session.class);
-        Node siteNode = (Node) session.getNodeByIdentifier(site);
-        if (siteNode == null || !siteService.isSite(siteNode)) {
-          response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
-              "The site parameter doesn't point to a valid site.");
-          return;
-        }
-        site = siteNode.getPath();
-      } catch (RepositoryException e) {
-        // We assume it went wrong because of a bad parameter.
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
-            "The site parameter doesn't point to a valid site.");
-        return;
-      }
-    }
-
     try {
-      FileUtils.createLink(node, link, site, slingRepository);
+      FileUtils.createLink(node, link, slingRepository);
     } catch (RepositoryException e) {
       log.warn("Failed to create a link.", e);
     }
-    
+
     // Send an OSGi event.
     try {
       Dictionary<String, String> properties = new Hashtable<String, String>();
