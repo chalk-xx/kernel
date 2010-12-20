@@ -30,7 +30,7 @@ import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.servlets.OptingServlet;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +49,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  */
 @SlingServlet(methods = { "GET" }, extensions={"*"}, resourceTypes = { "sakai/pooled-content" })
-public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServlet
+public class GetAlternativeContentPoolStreamServlet extends SlingSafeMethodsServlet
     implements OptingServlet {
   /**
    *

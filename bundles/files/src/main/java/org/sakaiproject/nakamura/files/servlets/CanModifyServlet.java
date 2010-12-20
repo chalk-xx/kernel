@@ -20,7 +20,7 @@ package org.sakaiproject.nakamura.files.servlets;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -51,13 +51,9 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceMethod(name = "GET", description = "Check to see if user has privileges to modify a resource.", parameters = { @ServiceParameter(name = "verbose", description = "Optional: set to true if you want verbose output") }, response = {
         @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
         @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
-        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.") }),
-    @ServiceMethod(name = "POST", description = "Check to see if user has privileges to modify a resource.", parameters = { @ServiceParameter(name = "verbose", description = "Optional: set to true if you want verbose output") }, response = {
-        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
-        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
-        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.") }) })
+        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.") })})
 @SlingServlet(methods = { "GET", "POST" }, selectors = { "canModify" }, extensions = { "json" }, resourceTypes = { "sling/servlet/default" })
-public class CanModifyServlet extends SlingAllMethodsServlet {
+public class CanModifyServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = 9008556018380828590L;
   private static final Logger LOG = LoggerFactory.getLogger(CanModifyServlet.class);
 
@@ -126,17 +122,5 @@ public class CanModifyServlet extends SlingAllMethodsServlet {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.api.SlingHttpServletResponse)
-   */
-  @Override
-  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
-    this.doGet(request, response);
-    return;
-  }
 
 }
