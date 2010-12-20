@@ -57,6 +57,7 @@ public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServl
   /**
    *
    */
+  private static final Logger LOGGER = LoggerFactory.getLogger(GetAlternativeContentPoolStreamServlet.class);
   private static final long serialVersionUID = 6605017133790005483L;
   private static final Set<String> RESERVED_SELECTORS = new HashSet<String>();
   static {
