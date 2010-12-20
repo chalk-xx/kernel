@@ -1,7 +1,6 @@
 require 'test/unit.rb'
 require 'sling/sling'
 require 'sling/users'
-require 'sling/sites'
 require 'sling/search'
 require 'tempfile'
 require 'logger'
@@ -17,12 +16,10 @@ module SlingTest
   def setup
     @s = SlingInterface::Sling.new()
     @um = SlingUsers::UserManager.new(@s)
-    @sm = SlingSites::SiteManager.new(@s)
     @search = SlingSearch::SearchManager.new(@s)
     @created_nodes = []
     @created_users = []
     @created_groups = []
-    @created_sites = []
     @delete = true
     @log = Logger.new(STDOUT)
     @log.level = @@log_level
@@ -32,7 +29,6 @@ module SlingTest
     if ( @delete ) then
 		@s.switch_user(SlingUsers::User.admin_user)
 		@created_nodes.reverse.each { |n| @s.delete_node(n) }
-		@created_sites.each { |s| @sm.delete_site(s) }
 		@created_groups.each { |g| @um.delete_group(g) }
 		@created_users.each { |u| @um.delete_user(u.name) }
 	end
@@ -64,13 +60,6 @@ module SlingTest
     assert_not_nil(g, "Expected group to be created: #{groupname}")
     @created_groups << groupname
     return g
-  end
-
-  def create_site(path,title,id)
-    s = @sm.create_site(path,title,id)
-    assert_not_nil(s, "Expected site to be created: #{path}")
-    @created_sites << (path+id)
-    return s
   end
 
 end

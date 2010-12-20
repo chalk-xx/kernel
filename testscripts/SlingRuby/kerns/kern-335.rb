@@ -10,7 +10,6 @@ require 'test/unit.rb'
 include SlingSearch
 include SlingInterface
 include SlingUsers
-include SlingSites
 include SlingMessage
 
 class TC_Kern335Test < Test::Unit::TestCase

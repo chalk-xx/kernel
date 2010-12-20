@@ -9,7 +9,6 @@ require 'sling/contacts'
 require 'test/unit.rb'
 include SlingInterface
 include SlingUsers
-include SlingSites
 include SlingContacts
 
 class TC_MyContactTest < Test::Unit::TestCase
