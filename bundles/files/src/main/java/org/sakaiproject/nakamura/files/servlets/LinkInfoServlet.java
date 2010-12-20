@@ -22,7 +22,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -65,7 +65,7 @@ import javax.servlet.ServletException;
         @ServiceResponse(code = 500, description = "Failure, explanation in HTML code.") }
     )
 )
-public class LinkInfoServlet extends SlingAllMethodsServlet {
+public class LinkInfoServlet extends SlingSafeMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LinkInfoServlet.class);
   private static final long serialVersionUID = -527034533334782419L;
