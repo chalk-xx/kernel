@@ -22,7 +22,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.OptingServlet;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.resource.lite.ResourceJsonWriter;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -44,7 +44,7 @@ import javax.servlet.http.HttpServletResponse;
  * The above statement is no longer true. Slings JsonResourceWriter has been patched.
  */
 @SlingServlet(methods = { "GET" }, extensions = { "json" }, resourceTypes = { "sakai/pooled-content" })
-public class GetContentPoolServlet extends SlingAllMethodsServlet implements OptingServlet {
+public class GetContentPoolServlet extends SlingSafeMethodsServlet implements OptingServlet {
   private static final long serialVersionUID = -382733858518678148L;
   private static final Logger LOGGER = LoggerFactory.getLogger(GetContentPoolServlet.class);
 

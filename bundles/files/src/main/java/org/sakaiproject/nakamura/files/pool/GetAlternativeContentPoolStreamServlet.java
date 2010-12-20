@@ -37,6 +37,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,7 +53,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  */
 @SlingServlet(methods = { "GET" }, extensions={"*"}, resourceTypes = { "sakai/pooled-content" })
-public class GetAlternativeContentPoolStreamServlet extends SlingAllMethodsServlet
+public class GetAlternativeContentPoolStreamServlet extends SlingSafeMethodsServlet
     implements OptingServlet {
   /**
    *
