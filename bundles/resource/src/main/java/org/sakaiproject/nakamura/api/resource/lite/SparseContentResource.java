@@ -82,6 +82,8 @@ public class SparseContentResource extends AbstractResource {
       retval = (Type) content;
     } else if (type == ContentManager.class) {
       retval = (Type) contentManager;
+    } else if (type == Session.class) {
+      retval = (Type) session;
     } else if (type == InputStream.class) {
       try {
         StringWriter sw = new StringWriter();
@@ -101,6 +103,7 @@ public class SparseContentResource extends AbstractResource {
         logger.error(e.getMessage(), e);
       }
     } else if (type == ValueMap.class) {
+      // FIXME: this wont work, properties are raw storage properties that need processing.
       ValueMapDecorator vm = new ValueMapDecorator(content.getProperties());
       retval = (Type) vm;
     } else {
@@ -108,7 +111,6 @@ public class SparseContentResource extends AbstractResource {
     }
     return retval;
   }
-
   /**
    * {@inheritDoc}
    * @see org.apache.sling.api.resource.Resource#getPath()
@@ -122,7 +124,7 @@ public class SparseContentResource extends AbstractResource {
    * @see org.apache.sling.api.resource.Resource#getResourceType()
    */
   public String getResourceType() {
-    return "sparseContent";
+    return StorageClientUtils.toString(content.getProperties().get("sling:resourceType"));
   }
 
   /**
@@ -130,7 +132,7 @@ public class SparseContentResource extends AbstractResource {
    * @see org.apache.sling.api.resource.Resource#getResourceSuperType()
    */
   public String getResourceSuperType() {
-    return null;
+    return "sparseContent";
   }
 
   /**

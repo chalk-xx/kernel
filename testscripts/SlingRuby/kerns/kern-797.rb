@@ -49,11 +49,12 @@ class TC_MyFileTest_797 < Test::Unit::TestCase
     url = "/p/#{poolId}.canModify.json?verbose=true";
     resp = @s.execute_get(@s.url_for(url));
     assert_equal(200, resp.code.to_i, "Should be OK");
+    puts(resp.body)
     json = JSON.parse(resp.body)
     # creator canModify own file
     assert_equal(true, json["/p/#{poolId}"])
     assert_not_nil(json["privileges"])
-    assert_equal(true, json["privileges"]["jcr:all"])
+    assert_equal(true, json["privileges"]["All"])
 
     # Check canModify on /var
 
