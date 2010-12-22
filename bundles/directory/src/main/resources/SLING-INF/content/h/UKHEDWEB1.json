@@ -1,0 +1,79 @@
+{
+    "jcr:primaryType": "nt:unstructured",
+    "Narrow": {
+        "sling:resourceType": "sakai/tag",
+        "sakai:tag-name": "<Narrow your search>",
+        "Admissions": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Admissions"
+            },
+        "Undergraduate Courses": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Undergraduate Courses"
+        },
+        "Graduate Courses": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Graduate Courses"
+        },
+        "International Students": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "International Students"
+        },
+        "Lifelong Learning": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Lifelong Learning"
+        },
+        "Online and Distance Courses": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Online and Distance Courses"
+        }
+    },
+    "Divisions": {
+        "sling:resourceType": "sakai/tag",
+        "sakai:tag-name": "Divisions",
+        "Humanities": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Humanities"
+        },
+        "Mathematics Physical Life": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Mathematics, Physical & Life"
+        },
+        "Sciences": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Sciences"
+        },
+        "Medical Sciences": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Medical Sciences"
+        },
+        "Social Sciences": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Social Sciences"
+        }
+    },
+    "Colleges": {
+        "sling:resourceType": "sakai/tag",
+        "sakai:tag-name": "Colleges",
+        "The Collegiate System": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "The Collegiate System"
+        },
+        "The Colleges and Halls": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "The Colleges and Halls"
+        },
+        "Choosing a College": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Choosing a College"
+        },
+        "Map of the Colleges and Halls": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Map of the Colleges and Halls"
+        },
+        "Student Comments": {
+            "sling:resourceType": "sakai/tag",
+            "sakai:tag-name": "Student Comments"
+        }
+    }
+}

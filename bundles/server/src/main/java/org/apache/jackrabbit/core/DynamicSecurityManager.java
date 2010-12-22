@@ -64,7 +64,7 @@ import org.apache.jackrabbit.core.security.principal.PrincipalProviderRegistry;
 // import org.apache.jackrabbit.core.security.principal.ProviderRegistryImpl; Nakamura Change
 import org.apache.jackrabbit.core.security.user.UserManagerImpl;
 import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivator; //Nakamura Change
-import org.sakaiproject.nakamura.api.lite.jackrabbit.SparsePrincipalProvider;
+import org.sakaiproject.nakamura.lite.jackrabbit.SparsePrincipalProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

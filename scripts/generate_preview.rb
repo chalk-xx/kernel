@@ -11,8 +11,8 @@ BASE_DIR = "thumbnails"
 WORK_DIR = "work"
 Dir.mkdir(BASE_DIR) if (!File.directory?(BASE_DIR))
 Dir.mkdir(WORK_DIR) if (!File.directory?(WORK_DIR))
-
-@s = Sling.new()
+server=ARGV[0]
+@s = Sling.new(server)
 ################ @s.switch_user(user)
 res = @s.execute_get(@s.url_for("var/search/needsprocessing.json"))
 if ( res.code != "200" )

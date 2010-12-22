@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
 import static org.sakaiproject.nakamura.api.files.FilesConstants.REQUIRED_MIXIN;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_LINK;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_LINK;
@@ -24,18 +27,19 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.files.pool.CreateContentPoolServlet;
 import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
@@ -43,21 +47,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.AccessControlException;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.security.AccessControlManager;
-import javax.jcr.security.Privilege;
 
 /**
  * Some utility function regarding file management.
@@ -69,16 +69,13 @@ public class FileUtils {
   /**
    * Create a link to a file. There is no need to call a session.save, the change is
    * persistent.
-   *
+   * 
    * @param fileNode
    *          The node that represents the file. This node has to be retrieved via the
    *          normal user his {@link Session session}. If the userID equals
    *          {@link UserConstants.ANON_USERID} an AccessDeniedException will be thrown.
    * @param linkPath
    *          The absolute path in JCR where the link should be placed.
-   * @param sitePath
-   *          An optional absolute path in JCR to a site. If this parameter is null, it
-   *          will be ignored.
    * @param slingRepository
    *          The {@link SlingRepository} to use to login as an administrative.
    * @return The newly created node.
@@ -87,7 +84,7 @@ public class FileUtils {
    * @throws RepositoryException
    *           Something else went wrong.
    */
-  public static Node createLink(Node fileNode, String linkPath, String sitePath,
+  public static boolean createLink(Node fileNode, String linkPath,
       SlingRepository slingRepository) throws AccessDeniedException, RepositoryException {
     Session session = fileNode.getSession();
     String userId = session.getUserID();
@@ -95,10 +92,10 @@ public class FileUtils {
       throw new AccessDeniedException();
     }
 
-    boolean hasMixin = JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN) && fileNode.canAddMixin(REQUIRED_MIXIN);
+    boolean hasMixin = JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN)
+        && fileNode.canAddMixin(REQUIRED_MIXIN);
     // If the fileNode doesn't have the required referenceable mixin, we need to set it.
-    // Also, if we want to link this file into a site. We have to be
-    if (!hasMixin || sitePath != null) {
+    if (!hasMixin) {
       // The required mixin is not on the node.
       // Set it.
       Session adminSession = null;
@@ -110,14 +107,6 @@ public class FileUtils {
         Node adminFileNode = (Node) adminSession.getItem(path);
         if (!hasMixin) {
           adminFileNode.addMixin(REQUIRED_MIXIN);
-        }
-
-        // Used in a site.
-        if (sitePath != null) {
-          Node siteNode = (Node) session.getItem(sitePath);
-          String site = siteNode.getIdentifier();
-          JcrUtils.addUniqueValue(adminSession, adminFileNode, "sakai:sites", site,
-              PropertyType.STRING);
         }
 
         if (adminSession.hasPendingChanges()) {
@@ -137,7 +126,7 @@ public class FileUtils {
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
     if (!"sling:Folder".equals(linkNode.getPrimaryNodeType().getName())) {
       // sling folder allows single and multiple properties, no need for the mixin.
-      if ( linkNode.canAddMixin(REQUIRED_MIXIN) ) {
+      if (linkNode.canAddMixin(REQUIRED_MIXIN)) {
         linkNode.addMixin(REQUIRED_MIXIN);
       }
     }
@@ -150,28 +139,51 @@ public class FileUtils {
       session.save();
     }
 
-    return linkNode;
+    return true;
+  }
+
+  public static boolean createLink(Content content, String link,
+      org.sakaiproject.nakamura.api.lite.Session session) throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, StorageClientException {
+    String userId = session.getUserId();
+    if (User.ANON_USER.equals(userId)) {
+      throw new org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException(
+          Security.ZONE_CONTENT, link, "Cant create a link", userId);
+    }
+    ContentManager contentManager = session.getContentManager();
+    Content linkNode = contentManager.get(link);
+    if (linkNode == null) {
+      linkNode = new Content(link, ImmutableMap.of(
+          JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+          (Object) StorageClientUtils.toStore(RT_SAKAI_LINK), SAKAI_LINK,
+          StorageClientUtils.toStore(content.getPath())));
+    } else {
+      linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+          StorageClientUtils.toStore(RT_SAKAI_LINK));
+      linkNode.setProperty(SAKAI_LINK, StorageClientUtils.toStore(content.getPath()));
+    }
+    contentManager.update(linkNode);
+    return true;
   }
 
   /**
    * Writes all the properties of a sakai/file node. Also checks what the permissions are
    * for a session and where the links are.<br/>
-   * Same as calling {@link #writeFileNode(Node, Session, JSONWriter, SiteService, 0)}
-   *
+   * Same as calling {@link #writeFileNode(Node, Session, JSONWriter, 0)}
+   * 
    * @param node
    * @param write
    * @throws JSONException
    * @throws RepositoryException
    */
-  public static void writeFileNode(Node node, Session session, JSONWriter write,
-      SiteService siteService) throws JSONException, RepositoryException {
-    writeFileNode(node, session, write, siteService, 0);
+  public static void writeFileNode(Node node, Session session, JSONWriter write)
+      throws JSONException, RepositoryException {
+    writeFileNode(node, session, write, 0);
   }
 
   /**
    * Writes all the properties of a sakai/file node. Also checks what the permissions are
    * for a session and where the links are.
-   *
+   * 
    * @param node
    * @param write
    * @param objectInProgress
@@ -181,7 +193,7 @@ public class FileUtils {
    * @throws RepositoryException
    */
   public static void writeFileNode(Node node, Session session, JSONWriter write,
-      SiteService siteService, int maxDepth) throws JSONException, RepositoryException {
+      int maxDepth) throws JSONException, RepositoryException {
 
     write.object();
 
@@ -204,23 +216,19 @@ public class FileUtils {
       }
     }
 
-    // Get all the sites where this file is referenced.
-    getSites(node, write, siteService);
-
     write.endObject();
   }
 
   /**
    * Writes all the properties for a linked node.
-   *
+   * 
    * @param node
    * @param write
-   * @param siteService
    * @throws JSONException
    * @throws RepositoryException
    */
-  public static void writeLinkNode(Node node, Session session, JSONWriter write,
-      SiteService siteService) throws JSONException, RepositoryException {
+  public static void writeLinkNode(Node node, Session session, JSONWriter write)
+      throws JSONException, RepositoryException {
     write.object();
     // Write all the properties.
     ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
@@ -233,7 +241,7 @@ public class FileUtils {
       write.key("file");
       try {
         Node fileNode = session.getNodeByIdentifier(uuid);
-        writeFileNode(fileNode, session, write, siteService);
+        writeFileNode(fileNode, session, write);
       } catch (ItemNotFoundException e) {
         write.value(false);
       }
@@ -244,7 +252,7 @@ public class FileUtils {
 
   /**
    * Gives the permissions for this user.
-   *
+   * 
    * @param node
    * @param session
    * @param write
@@ -267,7 +275,7 @@ public class FileUtils {
 
   /**
    * Checks if the current user has a permission on a path.
-   *
+   * 
    * @param session
    * @param path
    * @param permission
@@ -285,77 +293,8 @@ public class FileUtils {
   }
 
   /**
-   * Gets all the sites where this file is used and parses the info for it.
-   *
-   * @param node
-   * @param write
-   * @throws RepositoryException
-   * @throws JSONException
-   */
-  @SuppressWarnings(justification = "Need to trap subsystem errors ", value = { "REC_CATCH_EXCEPTION" })
-  private static void getSites(Node node, JSONWriter write, SiteService siteService)
-      throws RepositoryException, JSONException {
-
-    write.key("usedIn");
-    write.object();
-    write.key("sites");
-    write.array();
-
-    // sakai:sites contains uuid's of sites where the file is being referenced.
-    Value[] sites = JcrUtils.getValues(node, "sakai:sites");
-    Session session = node.getSession();
-
-    int total = 0;
-    try {
-      List<String> handledSites = new ArrayList<String>();
-      AccessControlManager acm = AccessControlUtil.getAccessControlManager(session);
-      Privilege read = acm.privilegeFromName(Privilege.JCR_READ);
-      Privilege[] privs = new Privilege[] { read };
-      for (Value v : sites) {
-        String path = v.getString();
-        if (!handledSites.contains(path)) {
-          handledSites.add(path);
-          Node siteNode = session.getNodeByIdentifier(v.getString());
-
-          boolean hasAccess = acm.hasPrivileges(path, privs);
-          if (siteService.isSite(siteNode) && hasAccess) {
-            writeSiteInfo(siteNode, write, siteService);
-            total++;
-          }
-        }
-      }
-    } catch (Exception e) {
-      // We ignore every exception it has when looking up sites.
-      // it is dirty ..
-      log.info("Catched exception when looking up used sites for a file. "
-          + e.getMessage());
-    }
-    write.endArray();
-    write.key("total");
-    write.value(total);
-    write.endObject();
-  }
-
-  /**
-   * Parses the info for a site.
-   *
-   * @param siteNode
-   * @param write
-   * @throws JSONException
-   * @throws RepositoryException
-   */
-  protected static void writeSiteInfo(Node siteNode, JSONWriter write,
-      SiteService siteService) throws JSONException, RepositoryException {
-    write.object();
-    write.key("member-count");
-    write.value(String.valueOf(siteService.getMemberCount(siteNode)));
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, siteNode);
-    write.endObject();
-  }
-
-  /**
    * Check if a node is a proper sakai tag.
-   *
+   * 
    * @param node
    *          The node to check if it is a tag.
    * @return true if the node is a tag, false if it is not.
@@ -373,7 +312,7 @@ public class FileUtils {
   /**
    * Add's a tag on a node. If the tag has a name defined in the {@link Property property}
    * sakai:tag-name it will be added in the fileNode as well.
-   *
+   * 
    * @param adminSession
    *          The session that can be used to modify the fileNode.
    * @param fileNode
@@ -381,12 +320,12 @@ public class FileUtils {
    * @param tagNode
    *          The node that represents the tag.
    */
-  public static void addTag(Session adminSession, Node fileNode, Node tagNode)
+  public static boolean addTag(Session adminSession, Node fileNode, Node tagNode)
       throws RepositoryException {
-    if (tagNode == null || fileNode == null) {
+    if (fileNode == null) {
       throw new RuntimeException(
           "Cant tag non existant nodes, sorry, both must exist prior to tagging. File:"
-              + fileNode + " Node To Tag:" + tagNode);
+              + fileNode);
     }
     // Grab the node via the adminSession
     String path = fileNode.getPath();
@@ -394,28 +333,83 @@ public class FileUtils {
 
     // Check if the mixin is on the node.
     // This is nescecary for nt:file nodes.
+
+    return addTag(adminSession, fileNode, getTags(tagNode));
+  }
+
+  public static boolean addTag(ContentManager contentManager, Content contentNode,
+      Node tagNode)
+      throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      StorageClientException, RepositoryException {
+    if (contentNode == null) {
+      throw new RuntimeException(
+          "Cant tag non existant nodes, sorry, both must exist prior to tagging. File:"
+              + contentNode);
+    }
+    return addTag(contentManager, contentNode, getTags(tagNode));
+  }
+
+  private static boolean addTag(Session adminSession, Node fileNode, String[] tags)
+      throws RepositoryException {
+    boolean added = false;
     if (!JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN)) {
-      if ( fileNode.canAddMixin(REQUIRED_MIXIN)) {
+      if (fileNode.canAddMixin(REQUIRED_MIXIN)) {
         fileNode.addMixin(REQUIRED_MIXIN);
       }
     }
+    if (JcrUtils.addUniqueValue(adminSession, fileNode, SAKAI_TAG_UUIDS, tags[0],
+        PropertyType.STRING)) {
+      added = true;
+    }
+    if (JcrUtils.addUniqueValue(adminSession, fileNode, SAKAI_TAGS, tags[1],
+        PropertyType.STRING)) {
+      added = true;
+    }
+    return added;
+  }
 
-    // Add the reference from the tag to the node.
+  private static String[] getTags(Node tagNode) throws RepositoryException {
     String tagUuid = tagNode.getIdentifier();
     String tagName = tagNode.getName();
     if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
       tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
     }
-    JcrUtils.addUniqueValue(adminSession, fileNode, SAKAI_TAG_UUIDS, tagUuid,
-        PropertyType.STRING);
-    JcrUtils.addUniqueValue(adminSession, fileNode, SAKAI_TAGS, tagName,
-        PropertyType.STRING);
+    return new String[] { tagUuid, tagName };
+  }
 
+  private static boolean addTag(ContentManager contentManager, Content content,
+      String[] tags)
+      throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      StorageClientException {
+    boolean sendEvent = false;
+    Map<String, Object> properties = content.getProperties();
+    Set<String> uuidSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray(StorageClientUtils.toStringArray(properties
+        .get(SAKAI_TAG_UUIDS))));
+    if (!uuidSet.contains(tags[0])) {
+      uuidSet.add(tags[0]);
+      content.setProperty(SAKAI_TAG_UUIDS,
+          StorageClientUtils.toStore(uuidSet.toArray(new String[uuidSet.size()])));
+      sendEvent = true;
+    }
+    Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray(StorageClientUtils.toStringArray(properties
+        .get(SAKAI_TAG_NAME))));
+    if (!nameSet.contains(tags[1])) {
+      nameSet.add(tags[1]);
+      content.setProperty(SAKAI_TAG_NAME,
+          StorageClientUtils.toStore(nameSet.toArray(new String[nameSet.size()])));
+      sendEvent = true;
+    }
+
+    if (sendEvent) {
+      contentManager.update(content);
+      return true;
+    }
+    return false;
   }
 
   /**
    * Delete a tag from a node.
-   *
+   * 
    * @param adminSession
    * @param fileNode
    * @param tagNode
@@ -432,21 +426,71 @@ public class FileUtils {
     fileNode = (Node) adminSession.getItem(path);
 
     // Add the reference from the tag to the node.
-    String tagUuid = tagNode.getIdentifier();
-    String tagName = tagNode.getName();
-    if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
-      tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
-    }
+    deleteTag(adminSession, fileNode, getTags(tagNode));
+  }
 
-    JcrUtils.deleteValue(adminSession, fileNode, SAKAI_TAG_UUIDS, tagUuid);
-    JcrUtils.deleteValue(adminSession, fileNode, SAKAI_TAGS, tagName);
+  /**
+   * Delete a tag from a node.
+   * 
+   * @param adminSession
+   * @param fileNode
+   * @param tagNode
+   * @throws RepositoryException
+   * @throws StorageClientException
+   * @throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException
+   */
+  public static void deleteTag(ContentManager contentManager, Content contentNode,
+      Node tagNode) throws RepositoryException,
+      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      StorageClientException {
+    if (contentNode == null || contentNode == null) {
+      throw new RuntimeException("Can't delete tag from non existent nodes. File:"
+          + contentNode + " Node To Tag:" + tagNode);
+    }
+    // Add the reference from the tag to the node.
+    deleteTag(contentManager, contentNode, getTags(tagNode));
+  }
+
+  private static void deleteTag(Session adminSession, Node fileNode, String[] tags)
+      throws RepositoryException {
+    JcrUtils.deleteValue(adminSession, fileNode, SAKAI_TAG_UUIDS, tags[0]);
+    JcrUtils.deleteValue(adminSession, fileNode, SAKAI_TAGS, tags[1]);
+  }
+
+  private static boolean deleteTag(ContentManager contentManager, Content content,
+      String[] tags)
+      throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      StorageClientException {
+    boolean updated = false;
+    Map<String, Object> properties = content.getProperties();
+    Set<String> uuidSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray(StorageClientUtils.toStringArray(properties
+        .get(SAKAI_TAG_UUIDS))));
+    if (uuidSet.contains(tags[0])) {
+      uuidSet.remove(tags[0]);
+      content.setProperty(SAKAI_TAG_UUIDS,
+          StorageClientUtils.toStore(uuidSet.toArray(new String[uuidSet.size()])));
+      updated = true;
+    }
+    Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray(StorageClientUtils.toStringArray(properties
+        .get(SAKAI_TAG_NAME))));
+    if (nameSet.contains(tags[1])) {
+      nameSet.remove(tags[1]);
+      content.setProperty(SAKAI_TAG_NAME,
+          StorageClientUtils.toStore(nameSet.toArray(new String[nameSet.size()])));
+      updated = true;
+    }
+    if (updated) {
+      contentManager.update(content);
+      return true;
+    }
+    return false;
   }
 
   /**
    * Resolves a Node given one of three possible passed parameters: 1) A fully qualified
    * path to a Node (e.g. "/foo/bar/baz"), 2) a Node's UUID, or 3) the PoolId from a
    * ContentPool.
-   *
+   * 
    * @param pathOrIdentifier
    *          One of three possible parameters: 1) A fully qualified path to a Node (e.g.
    *          "/foo/bar/baz"), 2) a Node's UUID, or 3) the PoolId from a ContentPool.
@@ -454,7 +498,8 @@ public class FileUtils {
    * @return If the Node cannot be resolved, <code>null</code> will be returned.
    * @throws IllegalArgumentException
    */
-  public static Node resolveNode(final String pathOrIdentifier, final ResourceResolver resourceResolver) {
+  public static Node resolveNode(final String pathOrIdentifier,
+      final ResourceResolver resourceResolver) {
     if (pathOrIdentifier == null || "".equals(pathOrIdentifier)) {
       throw new IllegalArgumentException("Passed argument was null or empty");
     }
@@ -476,15 +521,12 @@ public class FileUtils {
               e.getLocalizedMessage(), e);
         }
         if (node == null) {
+          log.warn("Unable to Tag Content Pool at this time, tried {} ", pathOrIdentifier);
           // must not have been a UUID; resolve via poolId
-          final String poolPath = CreateContentPoolServlet.hash(pathOrIdentifier);
-          node = session.getNode(poolPath);
+          // final String poolPath = CreateContentPoolServlet.hash(pathOrIdentifier);
+          // node = session.getNode(poolPath);
         }
       }
-    } catch (PathNotFoundException e) {
-      // Normal execution path - ignore
-    } catch (ItemNotFoundException e) {
-      // Normal execution path - ignore
     } catch (Throwable e) {
       log.error(e.getLocalizedMessage(), e);
     }

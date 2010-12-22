@@ -48,13 +48,13 @@ import java.util.Properties;
  * be moved into a separate file, for things like annotations, etc, to use. However, I'm not sure I
  * understand what the scr plugin is doing here enough, yet, to do that refactor. This is something which
  * is high on my todo-list. -- dan
- * 
+ *
  * ieb: Please leave as NakamuraConstants. OSGi forces the constant declaration and the ManagedService
  * to be in the same class *if* you want the standard OSGi configuration tools to work. We are therefore
  * forced to bind the API to the impl (yuck!) to avoid writing the constants names in multiple places.
- * We *could* unbind but then we would have to reference then API twice and its possible that this would 
- * break the scr plugin. I have tried to make this cleaner, but OSGi will not let us. 
- * 
+ * We *could* unbind but then we would have to reference then API twice and its possible that this would
+ * break the scr plugin. I have tried to make this cleaner, but OSGi will not let us.
+ *
  */
 
 /**
@@ -93,16 +93,6 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
    */
   @Property(value = "/configuration/defaults/usertypes/profile-default.json")
   public static final String JCR_PROFILE_DEFAUT_TEMPLATES = "jcrprofile.templates.default";
-  /**
-   * The template locations for site creation.
-   */
-  @Property(value = "project=/configuration/defaults/sitetypes/project-site.json;course=/configuration/defaults/sitetypes/course-site.json;")
-  public static final String JCR_SITE_TEMPLATES = "jcrsite.templates";
-  /**
-   * Default site template.
-   */
-  @Property(value = "/configuration/defaults/sitetypes/default-site.json")
-  public static final String JCR_SITE_DEFAULT_TEMPLATE = "jcrsite.templates.default";
 
   /**
    * The property name defining the users public data
@@ -230,7 +220,7 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
   /**
    * @throws IOException
    * @throws IOException
-   * 
+   *
    */
 
   private void loadPropertiesFromStream(Map<String, String> map, InputStream in)
@@ -282,7 +272,7 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.osgi.service.cm.ManagedService#updated(java.util.Dictionary)
    */
   @SuppressWarnings("rawtypes")
@@ -312,7 +302,7 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.configuration.ConfigurationService#getProperty()
    */
   public String getProperty(String key) {
@@ -321,7 +311,7 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.configuration.ConfigurationService#addListener(org.sakaiproject.nakamura.api.configuration.ConfigutationListener)
    */
   public void addListener(ConfigurationListener listener) {
@@ -330,7 +320,7 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.configuration.ConfigurationService#removeListener(org.sakaiproject.nakamura.api.configuration.ConfigutationListener)
    */
   public void removeListener(ConfigurationListener listener) {

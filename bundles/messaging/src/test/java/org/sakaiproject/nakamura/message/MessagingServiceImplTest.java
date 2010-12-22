@@ -21,7 +21,6 @@ import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -40,8 +39,6 @@ import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
-import org.sakaiproject.nakamura.api.site.SiteException;
-import org.sakaiproject.nakamura.api.site.SiteService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,26 +56,18 @@ import javax.jcr.ValueFormatException;
 public class MessagingServiceImplTest {
 
   private MessagingServiceImpl messagingServiceImpl;
-  private SiteService siteService;
   private JackrabbitSession session;
 
-  private String siteName = "physics-101";
-  private String sitePath = "/sites/" + siteName;
-  private String siteNameException = "fubar";
   private String userName = "admin";
   private String groupName = "g-physics-101-viewers";
 
   @Before
   public void setUp() throws Exception {
-    Node siteNode = createMock(Node.class);
-    expect(siteNode.getPath()).andReturn(sitePath);
-    replay(siteNode);
-
     session = createMock(JackrabbitSession.class);
     Authorizable user = createMock(Authorizable.class);
     expect(user.getID()).andReturn(userName).anyTimes();
     expect(user.isGroup()).andReturn(false).anyTimes();
-    
+
     ItemBasedPrincipal principal = createMock(ItemBasedPrincipal.class);
     expect(user.getPrincipal()).andReturn(principal).anyTimes();
     expect(principal.getPath()).andReturn("/rep:system/rep:authorizables/rep:users/a/ad/admin").anyTimes();
@@ -87,12 +76,12 @@ public class MessagingServiceImplTest {
     expect(user.getProperty("path")).andReturn(new Value[]{value}).anyTimes();
     expect(value.getString()).andReturn("/a/ad/admin").anyTimes();
 
-    
-    
+
+
     Authorizable group = createMock(Authorizable.class);
     expect(group.getID()).andReturn(groupName).anyTimes();
     expect(group.isGroup()).andReturn(true).anyTimes();
-    
+
     ItemBasedPrincipal gprincipal = createMock(ItemBasedPrincipal.class);
     expect(group.getPrincipal()).andReturn(gprincipal).anyTimes();
     expect(gprincipal.getPath()).andReturn("/rep:system/rep:authorizables/rep:groups/g/g_/g_p/g_physics_101_viewers").anyTimes();
@@ -107,49 +96,27 @@ public class MessagingServiceImplTest {
     expect(um.getAuthorizable(groupName)).andReturn(group).anyTimes();
 
     replay(um, user, group, principal, value, gprincipal, gvalue);
-    
+
     expect(session.getUserManager()).andReturn(um).anyTimes();
 
-    siteService = createMock(SiteService.class);
-    expect(siteService.findSiteByName(session, siteName)).andReturn(siteNode).anyTimes();
-    expect(siteService.findSiteByName(session, siteNameException)).andThrow(
-        new SiteException(400, "fubar")).anyTimes();
-    replay(siteService);
-
     messagingServiceImpl = new MessagingServiceImpl();
-    messagingServiceImpl.siteService = siteService;
   }
 
   @After
   public void tearDown() {
-    messagingServiceImpl.siteService = null;
-    verify(siteService);
   }
 
   @Test
   public void testFullPathToStoreSite() {
     replay(session);
-    
-    // Sites
-    String path = messagingServiceImpl.getFullPathToStore("s-physics-101", session);
-    assertEquals(sitePath + "/store", path);
 
     // Groups
-    path = messagingServiceImpl.getFullPathToStore(groupName, session);
+    String path = messagingServiceImpl.getFullPathToStore(groupName, session);
     assertEquals("/_group/g/g_/g_p/g_physics_101_viewers/message", path);
 
     // Users
     path = messagingServiceImpl.getFullPathToStore(userName, session);
     assertEquals("/_user/a/ad/admin/message", path);
-
-    // Site Exception
-    try {
-      path = messagingServiceImpl.getFullPathToStore("s-" + siteNameException, session);
-      fail("This should fail.");
-    } catch (MessagingException e) {
-      assertEquals(400, e.getCode());
-      assertEquals("fubar", e.getMessage());
-    }
   }
 
   @Test
@@ -184,7 +151,7 @@ public class MessagingServiceImplTest {
   @Test
   public void testGetFullPathToMessage() {
     replay(session);
-    
+
     String messageId = "cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c";
     String path = messagingServiceImpl.getFullPathToMessage(userName, messageId, session);
     assertEquals(
@@ -233,7 +200,7 @@ public class MessagingServiceImplTest {
     expect(lockManager.waitForLock("/_user/a/ad/admin/message")).andReturn(null);
     lockManager.clearLocks();
     replay(lockManager, session);
-    
+
     messagingServiceImpl.lockManager = lockManager;
     Node result = messagingServiceImpl.create(session, mapProperties, messageId);
     assertEquals("foo", result.getProperty(MessageConstants.PROP_SAKAI_ID).getString());
@@ -254,7 +221,7 @@ public class MessagingServiceImplTest {
     expect(lockManager.waitForLock("/_user/a/ad/admin/message")).andReturn(null);
     lockManager.clearLocks();
     replay(session, lockManager);
-    
+
     messagingServiceImpl.lockManager = lockManager;
     try {
       messagingServiceImpl.create(session, mapProperties, messageId);

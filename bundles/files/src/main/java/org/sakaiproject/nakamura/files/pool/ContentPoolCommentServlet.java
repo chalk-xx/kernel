@@ -17,17 +17,15 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
-import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_MEMBERS_NODE;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_RT;
+
+import com.google.common.collect.ImmutableMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
@@ -36,32 +34,36 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
-import javax.jcr.query.QueryResult;
+import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * Servlet endpoint for comments associated to a piece of pooled content.
  */
-@SlingServlet(methods = {"GET", "POST", "DELETE"}, extensions = "comments", resourceTypes = { "sakai/pooled-content" })
-public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements OptingServlet {
+@SlingServlet(methods = { "GET", "POST", "DELETE" }, extensions = "comments", resourceTypes = { "sakai/pooled-content" })
+public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
+    OptingServlet {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ContentPoolCommentServlet.class);
   private static final long serialVersionUID = 1L;
@@ -72,17 +74,17 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
   private static final String CREATED = "created";
 
   @Reference
-  private SlingRepository repository;
+  private ProfileService profileService;
 
   @Reference
-  private ProfileService profileService;
+  private Repository repository;
 
   /**
    * Determine if we will accept this request. Had to add this because something is
    * triggering this servlet to take GET requests even though the extension != comments.
-   *
+   * 
    * {@inheritDoc}
-   *
+   * 
    * @see org.apache.sling.api.servlets.OptingServlet#accepts(org.apache.sling.api.SlingHttpServletRequest)
    */
   public boolean accepts(SlingHttpServletRequest request) {
@@ -95,7 +97,7 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     Resource resource = request.getResource();
-    Node node = resource.adaptTo(Node.class);
+    Content poolContent = resource.adaptTo(Content.class);
 
     boolean isTidy = false;
     String[] selectors = request.getRequestPathInfo().getSelectors();
@@ -108,10 +110,11 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       }
     }
 
-    Session adminSession = null;
     try {
-      adminSession = repository.loginAdministrative(null);
-
+      ContentManager contentManager = resource.adaptTo(ContentManager.class);
+      Content comments = contentManager.get(poolContent.getPath() + "/" + COMMENTS);
+      javax.jcr.Session jcrSession = resource.getResourceResolver().adaptTo(javax.jcr.Session.class);
+      UserManager userManager = AccessControlUtil.getUserManager(jcrSession);
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
 
@@ -121,31 +124,32 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       w.key(COMMENTS);
       w.array();
 
-      if (node.hasNode(COMMENTS)) {
-        UserManager userManager = AccessControlUtil.getUserManager(adminSession);
-
-        Node comments = node.getNode(COMMENTS);
-        NodeIterator nodes = comments.getNodes();
-        while (nodes.hasNext()) {
-          Node n = nodes.nextNode();
-
-          String authorId = n.getProperty(AUTHOR).getString();
-          Authorizable author = userManager.getAuthorizable(authorId);
-          ValueMap profile = profileService.getCompactProfileMap(author, adminSession);
+      if (comments != null) {
+        for (Content comment : comments.listChildren()) {
+          Map<String, Object> properties = comment.getProperties();
+          String authorId = StorageClientUtils.toString(properties.get(AUTHOR));
           w.object();
 
-          w.valueMapInternals(profile);
+          try {
+            User author = (User) userManager.getAuthorizable(authorId);
+            ValueMap profile = profileService.getCompactProfileMap(author, jcrSession);
+            w.valueMapInternals(profile);
+          } catch (RepositoryException e ) {
+            w.key(AUTHOR);
+            w.value(authorId);
+          }
 
           w.key(COMMENT);
-          w.value(n.getProperty(COMMENT).getString());
+          w.value(StorageClientUtils.toString(properties.get(COMMENT)));
 
           w.key(COMMENT_ID);
-          w.value(n.getName());
+          w.value(comment.getPath());
 
           w.key(CREATED);
-          w.value(n.getProperty(CREATED).getString());
+          w.value(StorageClientUtils.toString(properties.get(CREATED)));
 
           w.endObject();
+
         }
       }
 
@@ -154,13 +158,21 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.error(e.getMessage(), e);
+    } catch (StorageClientException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      LOGGER.error(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      LOGGER.error(e.getMessage(), e);
+    } catch (javax.jcr.AccessDeniedException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      LOGGER.error(e.getMessage(), e);
+    } catch (UnsupportedRepositoryOperationException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      LOGGER.error(e.getMessage(), e);
     } catch (RepositoryException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.error(e.getMessage(), e);
-    } finally {
-      if (adminSession != null) {
-        adminSession.logout();
-      }
     }
   }
 
@@ -188,28 +200,41 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
     Resource resource = request.getResource();
     Session adminSession = null;
     try {
-      adminSession = repository.loginAdministrative(null);
-      Node node = resource.adaptTo(Node.class);
+      adminSession = repository.loginAdministrative();
+      ContentManager contentManager = adminSession.getContentManager();
+      Content node = resource.adaptTo(Content.class);
       String path = node.getPath() + "/" + COMMENTS;
-      Node commentsNode = JcrUtils.deepGetOrCreateNode(adminSession, path);
+
+      Content comments = contentManager.get(path);
+      if (comments == null) {
+        comments = new Content(path, new HashMap<String, Object>());
+        contentManager.update(comments);
+      }
 
       // have the node name be the number of the comments there are
       Calendar cal = Calendar.getInstance();
       String newNodeName = Long.toString(cal.getTimeInMillis());
-      Node newComment = commentsNode.addNode(newNodeName);
-      newComment.setProperty(AUTHOR, user);
-      newComment.setProperty(COMMENT, body);
-      newComment.setProperty(CREATED, cal);
+      Content newComment = new Content(path + "/" + newNodeName, ImmutableMap.of(AUTHOR,
+          StorageClientUtils.toStore(request.getRemoteUser()), COMMENT,
+          StorageClientUtils.toStore(body), CREATED, StorageClientUtils.toStore(cal)));
 
-      // save the session and return a 'created' status
-      adminSession.save();
+      contentManager.update(newComment);
+
       response.setStatus(HttpServletResponse.SC_CREATED);
-    } catch (RepositoryException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      LOGGER.error(e.getMessage(), e);
+    } catch (ClientPoolException e) {
+      LOGGER.warn(e.getMessage(), e);
+      throw new ServletException(e.getMessage(), e);
+    } catch (StorageClientException e) {
+      LOGGER.warn(e.getMessage(), e);
+      throw new ServletException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      LOGGER.warn(e.getMessage(), e);
+      throw new ServletException(e.getMessage(), e);
     } finally {
-      if (adminSession != null) {
+      try {
         adminSession.logout();
+      } catch (ClientPoolException e) {
+        LOGGER.warn(e.getMessage(), e);
       }
     }
   }
@@ -224,8 +249,9 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
     try {
       // check that user is a manager of the content item
       Resource resource = request.getResource();
-      Node node = resource.adaptTo(Node.class);
-      if (!isManager(node, user)) {
+      Content poolItem = resource.adaptTo(Content.class);
+
+      if (!isManager(poolItem, user)) {
         response.sendError(HttpServletResponse.SC_FORBIDDEN,
             "Must be a manager of the pooled content item to delete a comment.");
         return;
@@ -238,56 +264,41 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
         return;
       }
 
-      String path = resource.getPath() + "/" + COMMENTS + "/" + commentId;
-
-      adminSession = repository.loginAdministrative(null);
-      adminSession.removeItem(path);
-      adminSession.save();
+      String path = poolItem.getPath() + "/" + COMMENTS + "/" + commentId;
+      ContentManager contentManager = resource.adaptTo(ContentManager.class);
+      contentManager.delete(path);
       response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-    } catch (RepositoryException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      LOGGER.error(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      LOGGER.warn(e.getMessage(), e);
+      throw new ServletException(e.getMessage(), e);
+    } catch (StorageClientException e) {
+      LOGGER.warn(e.getMessage(), e);
+      throw new ServletException(e.getMessage(), e);
     } finally {
       if (adminSession != null) {
-        adminSession.logout();
+        try {
+          adminSession.logout();
+        } catch (ClientPoolException e) {
+          LOGGER.warn(e.getMessage(), e);
+        }
       }
     }
   }
 
   /**
    * Gets all the "members" for a file.
-   *
+   * 
    * @param node
    *          The node that represents the file.
    * @return A map where each key is a userid, the value is a boolean that states if it is
    *         a manager or not.
    * @throws RepositoryException
    */
-  private boolean isManager(Node node, String userId) throws RepositoryException {
-    boolean isManager = false;
-
-    Session session = node.getSession();
-
-    // Perform a query that gets all the "member" nodes.
-    String path = ISO9075.encodePath(node.getPath());
-    StringBuilder sb = new StringBuilder("/jcr:root/");
-    sb.append(path).append(POOLED_CONTENT_MEMBERS_NODE).append("//*[@").append(SLING_RESOURCE_TYPE_PROPERTY);
-    sb.append("='").append(POOLED_CONTENT_USER_RT).append("']");
-    QueryManager qm = session.getWorkspace().getQueryManager();
-    Query q = qm.createQuery(sb.toString(), "xpath");
-    QueryResult qr = q.execute();
-    NodeIterator iterator = qr.getNodes();
-
-    // Loop over the "member" nodes.
-    while (iterator.hasNext()) {
-      Node memberNode = iterator.nextNode();
-      if (userId.equals(memberNode.getName())
-          && memberNode.hasProperty(POOLED_CONTENT_USER_MANAGER)) {
-        isManager = true;
-        break;
-      }
-    }
-
-    return isManager;
+  private boolean isManager(Content poolItem, String userId) {
+    Map<String, Object> properties = poolItem.getProperties();
+    String managers = StorageClientUtils.toString(properties
+        .get(POOLED_CONTENT_USER_MANAGER));
+    // assuming there is no , in the principals
+    return ( managers.indexOf(userId) > 0 );
   }
 }

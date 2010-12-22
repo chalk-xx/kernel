@@ -18,12 +18,6 @@
 
 package org.sakaiproject.nakamura.message.internal;
 
-import static javax.jcr.security.Privilege.JCR_READ;
-import static javax.jcr.security.Privilege.JCR_REMOVE_NODE;
-import static javax.jcr.security.Privilege.JCR_WRITE;
-import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
-import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_FROM;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -52,8 +46,6 @@ import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.site.SiteException;
-import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
@@ -83,8 +75,6 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
   private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_INTERNAL;
 
-  private boolean testing = false;
-
   @Reference
   protected transient SlingRepository slingRepository;
 
@@ -92,14 +82,11 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
   protected transient MessagingService messagingService;
 
   @Reference
-  protected transient SiteService siteService;
-
-  @Reference
   protected transient PresenceService presenceService;
 
   @Reference
   protected transient ProfileService profileService;
-  
+
   @Reference
   protected transient LockManager lockManager;
 
@@ -162,7 +149,7 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
         if(!recipients.contains(rcpt)){
 
           String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
-          
+
           try {
             lockManager.waitForLock(toPath);
           } catch (LockTimeoutException e1) {
@@ -180,7 +167,7 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
           n.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
-          
+
 
           if (session.hasPendingChanges()) {
             session.save();
@@ -216,46 +203,28 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
    */
   public void writeProfileInformation(Session session, String recipient, JSONWriter write) {
     try {
-      if (recipient.startsWith("s-")) {
-        // This is a site.
-        recipient = recipient.substring(2);
-        Node siteNode = siteService.findSiteByName(session, recipient);
-        ExtendedJSONWriter.writeNodeToWriter(write, siteNode);
-      } else {
-        // Look up the recipient and check if it is an authorizable.
-        UserManager um = AccessControlUtil.getUserManager(session);
-        Authorizable au = um.getAuthorizable(recipient);
-        if (au != null) {
-          write.object();
-          ValueMap map = profileService.getCompactProfileMap(au, session);
-          ((ExtendedJSONWriter)write).valueMapInternals(map);
-          if (au instanceof User) {
-            // Pass in the presence.
-            PresenceUtils.makePresenceJSON(write, au.getID(), presenceService, true);
-          }
-          write.endObject();
-        } else {
-          // No idea what this recipient is.
-          // Just output it.
-          write.value(recipient);
+      // Look up the recipient and check if it is an authorizable.
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Authorizable au = um.getAuthorizable(recipient);
+      if (au != null) {
+        write.object();
+        ValueMap map = profileService.getCompactProfileMap(au, session);
+        ((ExtendedJSONWriter)write).valueMapInternals(map);
+        if (au instanceof User) {
+          // Pass in the presence.
+          PresenceUtils.makePresenceJSON(write, au.getID(), presenceService, true);
         }
-
+        write.endObject();
+      } else {
+        // No idea what this recipient is.
+        // Just output it.
+        write.value(recipient);
       }
-    } catch (SiteException e) {
-      LOG.error(e.getMessage(), e);
     } catch (JSONException e) {
       LOG.error(e.getMessage(), e);
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
     }
-  }
-
-  /**
-   * This method should only be called for unit testing purposes. It will disable the ACL
-   * settings.
-   */
-  protected void activateTesting() {
-    testing = true;
   }
 
 }

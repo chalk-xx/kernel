@@ -17,28 +17,17 @@
  */
 package org.sakaiproject.nakamura.files.search;
 
-import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.*;
 import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.files.FileUtils;
-import org.sakaiproject.nakamura.api.search.Aggregator;
-import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
-import org.sakaiproject.nakamura.api.search.SearchException;
-import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.api.search.*;
 import org.sakaiproject.nakamura.util.RowUtils;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -47,6 +36,7 @@ import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
+import java.util.*;
 
 @Component(immediate = true, label = "MostActiveContentSearchBatchResultProcessor", description = "Formatter for most active content")
 @Service(value = SearchBatchResultProcessor.class)
@@ -54,6 +44,8 @@ import javax.jcr.query.RowIterator;
     @Property(name = "sakai.search.batchprocessor", value = "MostActiveContent") })
 public class MostActiveContentSearchBatchResultProcessor implements
     SearchBatchResultProcessor {
+
+  private Logger logger = LoggerFactory.getLogger(MostActiveContentSearchBatchResultProcessor.class);
 
   @Reference
   private SearchServiceFactory searchServiceFactory;
@@ -78,31 +70,38 @@ public class MostActiveContentSearchBatchResultProcessor implements
     int daysAgo = deriveDateWindow(request);
 
     // count all the activity
+    logger.info("Computing the most active content feed.");
     while (iterator.hasNext()) {
-      Row row = iterator.nextRow();
-      Node node = RowUtils.getNode(row, session);
-      if (node.hasProperty("timestamp")) {
-        Calendar timestamp = node.getProperty("timestamp").getDate();
-        Calendar specifiedDaysAgo = new GregorianCalendar();
-        specifiedDaysAgo.add(Calendar.DAY_OF_MONTH, -daysAgo);
-        if (timestamp.before(specifiedDaysAgo)) {
-          // we stop counting once we get to the old stuff
-          break;
-        } else {
-          String resourceId = node.getProperty("resourceId").getString();
-          if (!resources.contains(new ResourceActivity(resourceId))) {
-            Node resourceNode = FileUtils.resolveNode(resourceId, resourceResolver);
-            if (resourceNode == null) {
-              // this can happen if this content is no longer public
-              continue;
+      try {
+        Row row = iterator.nextRow();
+        Node node = RowUtils.getNode(row, session);
+        if (node.hasProperty("timestamp")) {
+          Calendar timestamp = node.getProperty("timestamp").getDate();
+          Calendar specifiedDaysAgo = new GregorianCalendar();
+          specifiedDaysAgo.add(Calendar.DAY_OF_MONTH, -daysAgo);
+          if (timestamp.before(specifiedDaysAgo)) {
+            // we stop counting once we get to the old stuff
+            break;
+          } else {
+            String resourceId = node.getProperty("resourceId").getString();
+            if (!resources.contains(new ResourceActivity(resourceId))) {
+              Node resourceNode = FileUtils.resolveNode(resourceId, resourceResolver);
+              if (resourceNode == null) {
+                // this can happen if this content is no longer public
+                continue;
+              }
+              String resourceName = resourceNode.getProperty("sakai:pooled-content-file-name").getString();
+              resources.add(new ResourceActivity(resourceId, 0, resourceName));
             }
-            String resourceName = resourceNode.getProperty("sakai:pooled-content-file-name").getString();
-            resources.add(new ResourceActivity(resourceId, 0, resourceName));
-          }
-          // increment the count for this particular resource.
-          resources.get(resources.indexOf(new ResourceActivity(resourceId))).activityScore++;
+            // increment the count for this particular resource.
+            resources.get(resources.indexOf(new ResourceActivity(resourceId))).activityScore++;
 
+          }
         }
+      } catch (RepositoryException e) {
+        // if something is wrong with this particular resourceNode,
+        // we don't let it wreck the whole feed
+        continue;
       }
     }
 
@@ -132,7 +131,7 @@ public class MostActiveContentSearchBatchResultProcessor implements
     if (requestedDaysParam != null) {
         try {
           int requestedDays = Integer.parseInt(requestedDaysParam);
-          if (requestedDays <= MAXIMUM_DAYS) {
+          if ((requestedDays > 0) && (requestedDays <= MAXIMUM_DAYS)) {
             daysAgo = requestedDays;
           }
         } catch (NumberFormatException e) {

@@ -58,8 +58,7 @@ Import-Package: com.microsoft.sqlserver.jdbc;resolution:=optional,java
  ",org.osgi.service.cm;version="1.2",org.osgi.service.component;versio
  n="1.0",org.osgi.service.log;version="1.3",org.osgi.util.tracker;vers
  ion="1.3",org.postgresql;resolution:=optional,org.slf4j;version="1.5"
- ,org.w3c.dom,org.xml.sax,org.xml.sax.helpers,org.sakaiproject.nakamur
- a.api.lite
+ ,org.w3c.dom,org.xml.sax,org.xml.sax.helpers
 Bnd-LastModified: 1282504205185
 Export-Package: org.apache.sling.jcr.jackrabbit.server;uses:="javax.jc
  r";version="2.1.0",org.apache.sling.jcr.jackrabbit.server.security.ac
@@ -72,7 +71,8 @@ Export-Package: org.apache.sling.jcr.jackrabbit.server;uses:="javax.jc
  jackrabbit.util,org.apache.jackrabbit.spi.commons.conversion,org.apac
  he.jackrabbit.spi,javax.security.auth,org.apache.jackrabbit.commons.i
  terator";version="2.1.1",org.apache.sling.jcr.jackrabbit.server.secur
- ity.dynamic,org.apache.sling.jcr.jackrabbit.server.index
+ ity.dynamic,org.apache.sling.jcr.jackrabbit.server.index,org.sakaipro
+ ject.nakamura.api.lite.jackrabbit
 Bundle-Version: 2.1.0.sakai
 Ignore-Package: org.apache.jackrabbit.test
 Bundle-Name: Apache Sling Jackrabbit Embedded Repository

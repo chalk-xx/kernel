@@ -25,6 +25,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -47,13 +48,16 @@ public class SparseContentResource extends AbstractResource {
   private static final Logger logger = LoggerFactory.getLogger(SparseContentResource.class);
 
   private Content content;
-  private ContentManager contentManager;
+  private Session session;
   private ResourceResolver resourceResolver;
   private ResourceMetadata metadata;
 
-  public SparseContentResource(Content content, ContentManager contentManager, ResourceResolver resourceResolver) {
+  private ContentManager contentManager;
+
+  public SparseContentResource(Content content, Session session, ResourceResolver resourceResolver) throws StorageClientException {
     this.content = content;
-    this.contentManager = contentManager;
+    this.session = session;
+    this.contentManager = session.getContentManager();
     this.resourceResolver = resourceResolver;
 
     Map<String, Object> props = content.getProperties();
@@ -78,6 +82,8 @@ public class SparseContentResource extends AbstractResource {
       retval = (Type) content;
     } else if (type == ContentManager.class) {
       retval = (Type) contentManager;
+    } else if (type == Session.class) {
+      retval = (Type) session;
     } else if (type == InputStream.class) {
       try {
         StringWriter sw = new StringWriter();
@@ -97,6 +103,7 @@ public class SparseContentResource extends AbstractResource {
         logger.error(e.getMessage(), e);
       }
     } else if (type == ValueMap.class) {
+      // FIXME: this wont work, properties are raw storage properties that need processing.
       ValueMapDecorator vm = new ValueMapDecorator(content.getProperties());
       retval = (Type) vm;
     } else {
@@ -104,7 +111,6 @@ public class SparseContentResource extends AbstractResource {
     }
     return retval;
   }
-
   /**
    * {@inheritDoc}
    * @see org.apache.sling.api.resource.Resource#getPath()
@@ -118,7 +124,7 @@ public class SparseContentResource extends AbstractResource {
    * @see org.apache.sling.api.resource.Resource#getResourceType()
    */
   public String getResourceType() {
-    return "sparseContent";
+    return StorageClientUtils.toString(content.getProperties().get("sling:resourceType"));
   }
 
   /**
@@ -126,7 +132,7 @@ public class SparseContentResource extends AbstractResource {
    * @see org.apache.sling.api.resource.Resource#getResourceSuperType()
    */
   public String getResourceSuperType() {
-    return null;
+    return "sparseContent";
   }
 
   /**

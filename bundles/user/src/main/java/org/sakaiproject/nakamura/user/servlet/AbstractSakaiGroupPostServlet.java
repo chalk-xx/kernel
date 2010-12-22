@@ -51,7 +51,7 @@ import javax.jcr.ValueFormatException;
 public abstract class AbstractSakaiGroupPostServlet extends
     AbstractAuthorizablePostServlet {
   private static final long serialVersionUID = 1159063041816944076L;
-  
+
   /**
    * The JCR Repository we access to resolve resources
    *
@@ -98,7 +98,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
               userManager, resolver);
           if (memberAuthorizable != null) {
             if(!UserConstants.ANON_USERID.equals(resolver.getUserID())
-                && memberAuthorizable.getID().equals(resolver.getUserID())){              
+                && memberAuthorizable.getID().equals(resolver.getUserID())){
               //since the current user is the member being removed,
               //we can grab admin session since user should be able to delete themselves from a group
               Session adminSession = getSession();
@@ -119,9 +119,9 @@ public abstract class AbstractSakaiGroupPostServlet extends
               changed = true;
             }
           }
-        }                 
+        }
       }
-    
+
 
       Joinable groupJoin = getJoinable(group);
 
@@ -134,9 +134,9 @@ public abstract class AbstractSakaiGroupPostServlet extends
           Authorizable memberAuthorizable = getAuthorizable(baseResource, member,
               userManager, resolver);
           if (memberAuthorizable != null) {
-            if(!UserConstants.ANON_USERID.equals(resolver.getUserID()) 
-                && Joinable.yes.equals(groupJoin) 
-                && memberAuthorizable.getID().equals(resolver.getUserID())){          
+            if(!UserConstants.ANON_USERID.equals(resolver.getUserID())
+                && Joinable.yes.equals(groupJoin)
+                && memberAuthorizable.getID().equals(resolver.getUserID())){
               //we can grab admin session since group allows all users to join
               Session adminSession = getSession();
               try{
@@ -168,7 +168,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
           }
         }
       }
-      
+
       if (changed) {
         // add an entry to the changes list to record the membership
         // change
@@ -336,9 +336,8 @@ public abstract class AbstractSakaiGroupPostServlet extends
       }
     }
   }
-  
+
   /**
-   * @param site
    * @return true if the authz group is joinable
    * @throws RepositoryException
    * @throws PathNotFoundException

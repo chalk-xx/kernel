@@ -28,6 +28,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -42,6 +43,10 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
@@ -103,10 +108,13 @@ public class TagOperation extends AbstractSlingPostOperation {
     }
 
     ResourceResolver resourceResolver = request.getResourceResolver();
-    Node tagNode = null;
-    Node node = request.getResource().adaptTo(Node.class);
+    Resource resource = request.getResource();
+    Node node = resource.adaptTo(Node.class);
+    Content content = resource.adaptTo(Content.class);
+    ContentManager contentManager = resource.adaptTo(ContentManager.class);
 
-    if (node == null) {
+    if (node == null  && content == null) {
+      LOGGER.info("Missing Resource  {} ", resource.getPath());
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
           "A tag operation must be performed on an actual resource");
       return;
@@ -120,43 +128,52 @@ public class TagOperation extends AbstractSlingPostOperation {
       return;
     }
 
-    // Grab the tagNode.
-    try {
-      tagNode = FileUtils.resolveNode(key.getString(), resourceResolver);
-      if (tagNode == null) {
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Provided key not found.");
+      Node tagNode = null;
+      try {
+        tagNode = FileUtils.resolveNode(key.getString(), resourceResolver);
+        if (tagNode == null) {
+          LOGGER.info("Missing Tag Node {} ",key.getString());
+          response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Provided key not found. Key was "+key.getString());
+          return;
+        }
+        if (!FileUtils.isTag(tagNode)) {
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
+              "Provided key doesn't point to a tag.");
+          return;
+        }
+      } catch (RepositoryException e1) {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Could not locate the tag.");
         return;
       }
-      if (!FileUtils.isTag(tagNode)) {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
-            "Provided key doesn't point to a tag.");
-        return;
-      }
-    } catch (RepositoryException e1) {
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Could not locate the tag.");
-      return;
-    }
-
-    String uuid = tagNode.getIdentifier();
-
-    try {
-      // We check if the node already has this tag.
-      // If it does, we ignore it..
-      if (!hasUuid(node, uuid)) {
-        Session adminSession = null;
-        try {
-          adminSession = slingRepository.loginAdministrative(null);
-
-          LOGGER.info("Tagging [{}] with  [{}] [{}] ",
-              new Object[] { node, tagNode, uuid });
-          // Add the tag on the file.
-          FileUtils.addTag(adminSession, node, tagNode);
-
-          // Save our modifications.
-          if (adminSession.hasPendingChanges()) {
-            adminSession.save();
+  
+      String uuid = tagNode.getIdentifier();
+      boolean sendEvent = false;
+      
+      try {
+        // We check if the node already has this tag.
+        // If it does, we ignore it..
+        if (node != null && !hasUuid(node, uuid)) {
+          Session adminSession = null;
+          try {
+            adminSession = slingRepository.loginAdministrative(null);
+  
+            LOGGER.info("Tagging [{}] with  [{}] [{}] ",
+                new Object[] { node, tagNode, uuid });
+            // Add the tag on the file.
+            sendEvent = FileUtils.addTag(adminSession, node, tagNode);
+  
+            // Save our modifications.
+            if (adminSession.hasPendingChanges()) {
+              adminSession.save();
+            }
+            
+          } finally {
+            adminSession.logout();
           }
-
+        } else if ( content != null ) {
+          sendEvent = FileUtils.addTag(contentManager, content, tagNode );
+        }
+        if ( sendEvent ) {
           // Send an OSGi event.
           try {
             String tagName = tagNode.getName();
@@ -173,15 +190,19 @@ public class TagOperation extends AbstractSlingPostOperation {
             // We just log it to the error log.
             LOGGER.error("Could not send an OSGi event for tagging a file", e);
           }
-        } finally {
-          adminSession.logout();
-        }
-      }
 
-    } catch (RepositoryException e) {
-      LOGGER.error("Failed to Tag item ",e);
-      response.setStatus(500, e.getMessage());
-    }
+        }
+  
+      } catch (RepositoryException e) {
+        LOGGER.error("Failed to Tag item ",e);
+        response.setStatus(500, e.getMessage());
+      } catch (AccessDeniedException e) {
+        LOGGER.error("Failed to Tag item ",e);
+        response.setStatus(500, e.getMessage());
+      } catch (StorageClientException e) {
+        LOGGER.error("Failed to Tag item ",e);
+        response.setStatus(500, e.getMessage());
+      }
 
   }
 

@@ -26,7 +26,7 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -73,7 +73,7 @@ import javax.servlet.ServletException;
         }
     )
 )
-public class LinkServlet extends SlingAllMethodsServlet {
+public class LinkServlet extends SlingSafeMethodsServlet {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(LinkServlet.class);
   private static final long serialVersionUID = -1536743371265952323L;
@@ -89,6 +89,8 @@ public class LinkServlet extends SlingAllMethodsServlet {
 
     Resource resource = request.getResource();
     Node node = (Node) resource.adaptTo(Node.class);
+    
+    // TODO: make this work with a Content node.
 
     try {
       if (node.hasProperty(FilesConstants.SAKAI_LINK)) {

@@ -17,14 +17,9 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
-import static javax.jcr.security.Privilege.JCR_ALL;
-import static org.apache.jackrabbit.JcrConstants.JCR_CONTENT;
-import static org.apache.jackrabbit.JcrConstants.NT_RESOURCE;
-import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_CREATED_FOR;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_FILENAME;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_NT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_RT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_NEEDS_UPDATE;
@@ -34,16 +29,12 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.JcrConstants;
-import org.apache.jackrabbit.api.security.principal.PrincipalManager;
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestPathInfo;
+import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -52,9 +43,23 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,16 +68,12 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
-import java.util.Calendar;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.security.Privilege;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -104,12 +105,13 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code=500,description="Failure with HTML explanation.")}
 
         ))
-public class CreateContentPoolServlet extends AbstractContentPoolServlet {
+public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
   @Reference
   protected ClusterTrackingService clusterTrackingService;
+  
   @Reference
-  protected SlingRepository slingRepository;
+  protected Repository sparseRepository;
 
   private static final long serialVersionUID = -5099697955361286370L;
 
@@ -117,7 +119,6 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
       .toCharArray();
   public static final char[] HASHENCODING = "abcdefghijklmnopqrstuvwxyz1234567890"
       .toCharArray();
-  public static final String POOLED_CONTENT_ROOT = "/_p";
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateContentPoolServlet.class);
@@ -156,10 +157,13 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
     Session adminSession = null;
     try {
       // Grab an admin session so we can create files in the pool space.
-      adminSession = slingRepository.loginAdministrative(null);
-
+      adminSession = sparseRepository.loginAdministrative();
+      AuthorizableManager authorizableManager = adminSession.getAuthorizableManager();
       // We need the authorizable for the user node that we'll create under the file.
-      Authorizable au = PersonalUtils.getAuthorizable(adminSession, userId);
+      
+      
+      Authorizable au = authorizableManager.findAuthorizable(userId);
+      System.err.println("User ID "+userId+" found as "+au);
 
       // Loop over all the parameters
       // All the ones that are files will be stored.
@@ -173,15 +177,12 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
             // Generate an ID and store it.
             if ( poolId == null ) {
               String createPoolId = generatePoolId();
-              createFile(hash(createPoolId), null, adminSession, p, au, true);
+              createFile(createPoolId, null, adminSession, p, au, true);
               results.put(p.getFileName(), createPoolId);
               statusCode = HttpServletResponse.SC_CREATED;
             } else {
               Session session = request.getResourceResolver().adaptTo(Session.class);
-              createFile(hash(poolId), alternativeStream, session, p, au, false);
-              if ( session.hasPendingChanges() ) {
-                session.save();
-              }
+              createFile(poolId, alternativeStream, session, p, au, false);
               // Add it to the map so we can output something to the UI.
               results.put(p.getFileName(), poolId);
               statusCode = HttpServletResponse.SC_OK;
@@ -192,10 +193,6 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
         }
       }
 
-      // Persist any changes to JCR.
-      if (adminSession.hasPendingChanges()) {
-        adminSession.save();
-      }
 
       // Make sure we're outputting proper json.
       if ( statusCode == HttpServletResponse.SC_BAD_REQUEST ) {
@@ -209,91 +206,70 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
         JSONObject jsonObject = new JSONObject(results);
         response.getWriter().write(jsonObject.toString());
       }
-    } catch (RepositoryException e) {
+    } catch (NoSuchAlgorithmException e) {
       LOGGER.warn(e.getMessage(), e);
       throw new ServletException(e.getMessage(), e);
-    } catch (NoSuchAlgorithmException e) {
+    } catch (ClientPoolException e) {
+      LOGGER.warn(e.getMessage(), e);
+      throw new ServletException(e.getMessage(), e);
+    } catch (StorageClientException e) {
+      LOGGER.warn(e.getMessage(), e);
+      throw new ServletException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
       LOGGER.warn(e.getMessage(), e);
       throw new ServletException(e.getMessage(), e);
     } finally {
       // Make sure we're logged out.
-      adminSession.logout();
+      try {
+        if ( adminSession != null ) {
+          adminSession.logout();
+        }
+      } catch (ClientPoolException e) {
+        LOGGER.warn(e.getMessage(), e);
+      }
     }
   }
 
-  private void createFile(String path, String alternativeStream, Session session, RequestParameter value,
-      Authorizable au, boolean create) throws RepositoryException, IOException {
+  private void createFile(String poolId, String alternativeStream, Session session, RequestParameter value,
+      Authorizable au, boolean create) throws IOException, AccessDeniedException, StorageClientException {
     // Get the content type.
     String contentType = getContentType(value);
+    ContentManager contentManager = session.getContentManager();
+    AccessControlManager accessControlManager = session.getAccessControlManager();
     if ( create ) {
-      ensurePoolRoot(session);
-
       // Create a proper nt:file node in jcr with some properties on it to make it possible
       // to locate this pool file without having to use the path.
-      Node fileNode = JcrUtils.deepGetOrCreateNode(session, path, POOLED_CONTENT_NT);
-      fileNode.setProperty(POOLED_CONTENT_FILENAME, value.getFileName());
-      fileNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_RT);
-      fileNode.setProperty(POOLED_CONTENT_CREATED_FOR, au.getID());
-      fileNode.setProperty(POOLED_NEEDS_UPDATE, "true");
-      Node resourceNode = fileNode.addNode(JCR_CONTENT, NT_RESOURCE);
-      resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
-      resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
-      resourceNode.setProperty(JcrConstants.JCR_DATA, session.getValueFactory()
-          .createBinary(value.getInputStream()));
-
-      // By default, non-viewers and non-managers can't see or do anything.
-      PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-      Principal anon = new Principal() {
-        public String getName() {
-          return UserConstants.ANON_USERID;
-        }
-      };
-      Principal everyone = principalManager.getEveryone();
-      AccessControlUtil.replaceAccessControlEntry(session, path, anon, null,
-          new String[] { JCR_ALL }, null, null);
-      AccessControlUtil.replaceAccessControlEntry(session, path, everyone, null,
-          new String[] { JCR_ALL }, null, null);
-
-      // Create a members node under the pooled content node.
-      // We do this so we're still able to query the repository and find the files where a
-      // user/group is viewer/manager of.
-      // Viewer and manager nodes will be stored at /_p/a1/b2/c3/d4/FILENODE/members/e5/f6/g7/h8/USERNODE so we
-      // can keep full ACL permissions on them.
-      // We want to ACL control these member nodes because sometimes it's not allowed to see
-      // who can view a file.
-      String membersPath = getMembersPath(path);
-      JcrUtils.deepGetOrCreateNode(session, membersPath);
-      replaceAccessControlEntry(session, membersPath, anon, null, new String[] { JCR_ALL }, null, null);
-      replaceAccessControlEntry(session, membersPath, everyone, null, new String[] { JCR_ALL }, null, null);
-
-      // Make the creator a manager of this pooled content.
-      addMember(session, path, au, POOLED_CONTENT_USER_MANAGER);
-    } else {
+      Map<String, Object> contentProperties = new HashMap<String, Object>();
+      contentProperties.put(POOLED_CONTENT_FILENAME, StorageClientUtils.toStore(value.getFileName()));
+      contentProperties.put(SLING_RESOURCE_TYPE_PROPERTY, StorageClientUtils.toStore(POOLED_CONTENT_RT));
+      contentProperties.put(POOLED_CONTENT_CREATED_FOR, StorageClientUtils.toStore(au.getId()));
+      contentProperties.put(POOLED_NEEDS_UPDATE, StorageClientUtils.toStore("true"));
+      contentProperties.put(Content.MIMETYPE, StorageClientUtils.toStore(contentType));
+      contentProperties.put(POOLED_CONTENT_USER_MANAGER, StorageClientUtils.toStore(new String[]{au.getId()}) );
       
-      Node fileNode = session.getNode(path);
-      if ( alternativeStream == null ) {
-        Node resourceNode = fileNode.getNode(JCR_CONTENT);
-        resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
-        resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
-        resourceNode.setProperty(JcrConstants.JCR_DATA, session.getValueFactory()
-            .createBinary(value.getInputStream()));
-        LOGGER.debug("Updating Resource Node with new Content ");
-      } else {
-        Node resourceNode = null;
-        if ( fileNode.hasNode(alternativeStream) ) {
-          resourceNode = fileNode.getNode(alternativeStream);
-        } else {
-          resourceNode = fileNode.addNode(alternativeStream, NT_RESOURCE);
-        }
-        resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
-        resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
-        resourceNode.setProperty(JcrConstants.JCR_DATA, session.getValueFactory()
-            .createBinary(value.getInputStream()));
-        LOGGER.debug("Updating Alternative Stream {} with new Content  ", alternativeStream);
-        
-      }
-    }
+      Content content = new Content(poolId,contentProperties);
+      
+      contentManager.update(content);
+      
+      contentManager.writeBody(poolId, value.getInputStream());
+      
+      
+      // deny anon everyting
+      // deny everyone everything
+      // grant the user everything.
+      List<AclModification> modifications = new ArrayList<AclModification>();
+      AclModification.addAcl(false, Permissions.ALL, User.ANON_USER, modifications);
+      AclModification.addAcl(false, Permissions.ALL, Group.EVERYONE, modifications);
+      AclModification.addAcl(true, Permissions.CAN_MANAGE, au.getId(), modifications);
+      accessControlManager.setAcl(Security.ZONE_CONTENT, poolId, modifications.toArray(new AclModification[modifications.size()]));
 
+
+    } else {
+      Content content = contentManager.get(poolId);
+      contentManager.writeBody(poolId, value.getInputStream(),alternativeStream);
+      content.setProperty(StorageClientUtils.getAltField(Content.MIMETYPE, alternativeStream), contentType);
+      contentManager.update(content);
+    }
   }
 
   /**
@@ -321,15 +297,6 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
     return contentType;
   }
 
-  public static String hash(String poolId) throws NoSuchAlgorithmException,
-      UnsupportedEncodingException {
-    MessageDigest md = MessageDigest.getInstance("SHA-1");
-    String encodedId = StringUtils.encode(md.digest(poolId.getBytes("UTF-8")),
-        HASHENCODING);
-    LOGGER.debug("Hashing [{}] gave [{}] ", poolId, encodedId);
-    return POOLED_CONTENT_ROOT + "/" + encodedId.charAt(0) + "/" + encodedId.substring(1, 3) + "/"
-        + encodedId.substring(3, 5) + "/" + encodedId.substring(5, 7) + "/" + poolId;
-  }
 
   private String generatePoolId() throws UnsupportedEncodingException,
       NoSuchAlgorithmException {
@@ -340,21 +307,6 @@ public class CreateContentPoolServlet extends AbstractContentPoolServlet {
     }
   }
 
-  /**
-   * Ensure that the root of pooled content exists with the proper access controls.
-   * @param session
-   * @throws RepositoryException
-   */
-  private void ensurePoolRoot(Session session) throws RepositoryException {
-    if (!session.nodeExists(POOLED_CONTENT_ROOT)) {
-      JcrUtils.deepGetOrCreateNode(session, POOLED_CONTENT_ROOT);
-      PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-      Principal everyone = principalManager.getEveryone();
-      String[] grants = { Privilege.JCR_REMOVE_CHILD_NODES };
-      AccessControlUtil.replaceAccessControlEntry(session, POOLED_CONTENT_ROOT, everyone,
-          grants, new String[0], new String[0], null);
-      LOGGER.debug("Created pooled content root at {}", POOLED_CONTENT_ROOT);
-    }
-  }
+
 
 }

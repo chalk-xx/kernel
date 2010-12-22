@@ -131,8 +131,8 @@ then
 else
     echo "Building sakai2/$S2_TAG..."
     # untar tomcat
-    tar -xzf apache-tomcat-5.5.30.tar.gz 
-    mv apache-tomcat-5.5.30 sakai2-demo
+    tar -xzf apache-tomcat-5.5.31.tar.gz
+    mv apache-tomcat-5.5.31 sakai2-demo
     mkdir -p sakai2-demo/sakai
     svn checkout -q "https://source.sakaiproject.org/svn/sakai/$S2_TAG" sakai
     cd sakai/
@@ -144,7 +144,8 @@ else
     # rm -rf providers
     # svn checkout -q https://source.sakaiproject.org/svn/providers/branches/SAK-17222-2.7 providers
     # enable NakamuraUserDirectoryProvider
-    perl -pwi -e 's/<\/beans>/\t<bean id="org.sakaiproject.user.api.UserDirectoryProvider"\n\t\tclass="org.sakaiproject.provider.user.NakamuraUserDirectoryProvider"\n\t\tinit-method="init">\n\t\t<property name="threadLocalManager">\n\t\t\t<ref bean="org.sakaiproject.thread_local.api.ThreadLocalManager" \/>\n\t\t<\/property>\n\t<\/bean>\n<\/beans>/gi' providers/component/src/webapp/WEB-INF/components.xml
+    perl -pwi -e 's/<\/beans>/\t<bean id="org.sakaiproject.user.api.UserDirectoryProvider"\n\t\tclass="org.sakaiproject.provider.user.NakamuraUserDirectoryProvider"\n\t\tinit-method="init">\n\t\t<property name="threadLocalManager">\n\t\t\t<ref bean="org.sakaiproject.thread_local.api.ThreadLocalManager" \/>\n\t\t<\/property>\n\t\t<property name="serverConfigurationService">\n\t\t\t<ref bean="org.sakaiproject.component.api.ServerConfigurationService" \/>\n\t\t<\/property>\n\t<\/bean>\n<\/beans>/gi' providers/component/src/webapp/WEB-INF/components.xml
+    rm -f providers/component/src/webapp/WEB-INF/components-demo.xml
     mvn -B -e clean install sakai:deploy -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
     # add hybrid webapp module
     echo "\nBuilding hybrid/$HYBRID_TAG"
@@ -154,8 +155,8 @@ else
     # configure sakai 2 instance
     cd $BUILD_DIR
     # change default tomcat listener port numbers
-    perl -pwi -e 's/\<Connector\s+port\="8080"/\<Connector port\="8880"/gi' sakai2-demo/conf/server.xml
-    perl -pwi -e 's/\<Connector\s+port\="8009"/\<Connector port\="8809"/gi' sakai2-demo/conf/server.xml
+    perl -pwi -e 's/\<Connector\s+port\s*\=\s*"8080"/\<Connector port\="8880"/gi' sakai2-demo/conf/server.xml
+    perl -pwi -e 's/\<Connector\s+port\s*\=\s*"8009"/\<Connector port\="8809"/gi' sakai2-demo/conf/server.xml
     # sakai.properties
     echo "ui.service = $S2_TAG + $HYBRID_TAG on HSQLDB" >> sakai2-demo/sakai/sakai.properties
     echo "version.sakai = $REPO_REV" >> sakai2-demo/sakai/sakai.properties
@@ -181,12 +182,13 @@ else
     echo "imsblti.provider.12345.secret=secret" >> sakai2-demo/sakai/sakai.properties
     echo "webservices.allow=.+" >> sakai2-demo/sakai/sakai.properties
     # enable debugging for hybrid related code
-    echo "log.config.count=5" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.count=6" >> sakai2-demo/sakai/sakai.properties
     echo "log.config.1 = ALL.org.sakaiproject.log.impl" >> sakai2-demo/sakai/sakai.properties
-    echo "log.config.2 = OFF.org.sakaiproject" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.2 = WARN.org.sakaiproject" >> sakai2-demo/sakai/sakai.properties
     echo "log.config.3 = DEBUG.org.sakaiproject.provider.user" >> sakai2-demo/sakai/sakai.properties
-    echo "log.config.4 = DEBUG.org.sakaiproject.login.filter" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.4 = DEBUG.org.sakaiproject.login" >> sakai2-demo/sakai/sakai.properties
     echo "log.config.5 = DEBUG.org.sakaiproject.hybrid" >> sakai2-demo/sakai/sakai.properties
+    echo "log.config.6 = DEBUG.org.sakaiproject.blti" >> sakai2-demo/sakai/sakai.properties
     date > $BUILD_DIR/sakai/.lastbuild
 fi
 

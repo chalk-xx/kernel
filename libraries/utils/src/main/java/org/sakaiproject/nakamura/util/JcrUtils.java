@@ -288,7 +288,7 @@ public class JcrUtils {
    * @throws RepositoryException
    *           Something went wrong.
    */
-  public static void addUniqueValue(Session session, Node node, String propertyName,
+  public static boolean addUniqueValue(Session session, Node node, String propertyName,
       String value, int type) throws RepositoryException {
     boolean containsValue = false;
     Value[] oldVals = getValues(node, propertyName);
@@ -298,7 +298,7 @@ public class JcrUtils {
       containsValue = v.getString().equals(value);
       if (containsValue) {
         // This value is already on the property, no need to loop over the rest.
-        return;
+        return false;
       }
       newVals[i] = v;
     }
@@ -307,6 +307,7 @@ public class JcrUtils {
     newVals[oldVals.length] = session.getValueFactory().createValue(value, type);
     // store it on property.
     node.setProperty(propertyName, newVals);
+    return true;
   }
 
   /**

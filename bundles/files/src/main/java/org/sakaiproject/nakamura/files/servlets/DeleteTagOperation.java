@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -40,6 +41,10 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
@@ -97,16 +102,6 @@ public class DeleteTagOperation extends AbstractSlingPostOperation {
       return;
     }
 
-    ResourceResolver resourceResolver = request.getResourceResolver();
-    Node tagNode = null;
-    Node node = request.getResource().adaptTo(Node.class);
-
-    if (node == null) {
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
-          "A tag operation must be performed on an actual resource");
-      return;
-    }
-
     // Check if the uuid is in the request.
     RequestParameter key = request.getRequestParameter("key");
     if (key == null || "".equals(key.getString())) {
@@ -114,6 +109,20 @@ public class DeleteTagOperation extends AbstractSlingPostOperation {
           "Missing parameter: key");
       return;
     }
+
+    ResourceResolver resourceResolver = request.getResourceResolver();
+    Node tagNode = null;
+    Resource resource = request.getResource();
+    Node node = resource.adaptTo(Node.class);
+    Content content = resource.adaptTo(Content.class);
+    ContentManager contentManager = resource.adaptTo(ContentManager.class);
+
+    if (node == null && content == null) {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
+          "A tag operation must be performed on an actual resource");
+      return;
+    }
+
 
     // Grab the tagNode.
     try {
@@ -137,7 +146,7 @@ public class DeleteTagOperation extends AbstractSlingPostOperation {
     try {
       // We check if the node already has this tag.
       // If it does, we ignore it..
-      if (hasUuid(node, uuid)) {
+      if (node != null && hasUuid(node, uuid)) {
         Session adminSession = null;
         try {
           adminSession = slingRepository.loginAdministrative(null);
@@ -151,30 +160,21 @@ public class DeleteTagOperation extends AbstractSlingPostOperation {
           if (adminSession.hasPendingChanges()) {
             adminSession.save();
           }
-
-          // Send an OSGi event.
-//          try {
-//            String tagName = tagNode.getName();
-//            if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
-//              tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
-//            }
-//            Hashtable<String, String> properties = new Hashtable<String, String>();
-//            properties.put(UserConstants.EVENT_PROP_USERID, user);
-//            properties.put("tag-name", tagName);
-//            EventUtils.sendOsgiEvent(request.getResource(), properties, TOPIC_FILES_TAG,
-//                eventAdmin);
-//          } catch (Exception e) {
-//            // We do NOT interrupt the normal workflow if sending an event fails.
-//            // We just log it to the error log.
-//            LOGGER.error("Could not send an OSGi event for tagging a file", e);
-//          }
         } finally {
           adminSession.logout();
         }
+      } else if ( content != null ) {
+        FileUtils.deleteTag(contentManager, content, tagNode);
       }
 
     } catch (RepositoryException e) {
-      LOGGER.error("Failed to Tag item ",e);
+      LOGGER.error("Failed to Delete Tag ",e);
+      response.setStatus(500, e.getMessage());
+    } catch (AccessDeniedException e) {
+      LOGGER.error("Failed to Delete Tag ",e);
+      response.setStatus(500, e.getMessage());
+    } catch (StorageClientException e) {
+      LOGGER.error("Failed to Delete Tag ",e);
       response.setStatus(500, e.getMessage());
     }
 

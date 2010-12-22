@@ -132,7 +132,7 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.site</artifactId>
+      <artifactId>org.sakaiproject.nakamura.search</artifactId>
       <version>0.10-SNAPSHOT</version>
     </dependency>
 

@@ -99,9 +99,12 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
             UserManager um = AccessControlUtil.getUserManager(session);
             Authorizable au = um.getAuthorizable(resourceId);
             String resourcePath = profileService.getProfilePath(au);
-            Node resourceNode = session.getNode(resourcePath);
-            if (resourceNode == null) {
+            Node resourceNode = null;
+            try {
+              resourceNode = session.getNode(resourcePath);
+            } catch (Exception e) {
               // this happens if the group is not public
+              // or if the group path simply doesn't exist
               continue;
             }
             String resourceName = resourceNode.getProperty("sakai:group-title").getString();
@@ -140,7 +143,7 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
     if (requestedDaysParam != null) {
         try {
           int requestedDays = Integer.parseInt(requestedDaysParam);
-          if (requestedDays <= MAXIMUM_DAYS) {
+          if ((requestedDays > 0) && (requestedDays <= MAXIMUM_DAYS)) {
             daysAgo = requestedDays;
           }
         } catch (NumberFormatException e) {

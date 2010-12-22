@@ -20,17 +20,17 @@ package org.sakaiproject.nakamura.files.pool;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.OptingServlet;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.nakamura.api.resource.lite.ResourceJsonWriter;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -44,14 +44,14 @@ import javax.servlet.http.HttpServletResponse;
  * The above statement is no longer true. Slings JsonResourceWriter has been patched.
  */
 @SlingServlet(methods = { "GET" }, extensions = { "json" }, resourceTypes = { "sakai/pooled-content" })
-public class GetContentPoolServlet extends SlingAllMethodsServlet implements OptingServlet {
+public class GetContentPoolServlet extends SlingSafeMethodsServlet implements OptingServlet {
   private static final long serialVersionUID = -382733858518678148L;
   private static final Logger LOGGER = LoggerFactory.getLogger(GetContentPoolServlet.class);
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    Node node = request.getResource().adaptTo(Node.class);
+    Resource resource = request.getResource();
 
     // Check selectors.
     boolean isTidy = false;
@@ -82,13 +82,11 @@ public class GetContentPoolServlet extends SlingAllMethodsServlet implements Opt
     ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
     writer.setTidy(isTidy);
     try {
-      ExtendedJSONWriter.writeNodeTreeToWriter(writer, node, recursion);
+      
+      ResourceJsonWriter.writeResourceTreeToWriter(writer, resource, recursion);
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.info("Caught JSONException {}", e.getMessage());
-    } catch (RepositoryException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      LOGGER.info("Caught RepositoryException {}", e.getMessage());
     }
   }
 

@@ -38,7 +38,6 @@ import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
-import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.RowUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,29 +69,15 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       .getLogger(FileSearchBatchResultProcessor.class);
 
   @Reference
-  protected transient SiteService siteService;
-
-  @Reference
   private SearchServiceFactory searchServiceFactory;
 
-  // how deep to traverse the file structure
-  private int depth = 0;
-
-  /**
-   * @param siteService
-   */
-  public FileSearchBatchResultProcessor(SiteService siteService,
-      SearchServiceFactory searchServiceFactory) {
-    this.siteService = siteService;
+  public FileSearchBatchResultProcessor(SearchServiceFactory searchServiceFactory) {
     this.searchServiceFactory = searchServiceFactory;
   }
 
   public FileSearchBatchResultProcessor() {
   }
 
-  public void setDepth(int depth) {
-    this.depth = depth;
-  }
 
   /**
    * {@inheritDoc}
@@ -163,6 +148,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
 
   /**
    * {@inheritDoc}
+   * @param depth 
    *
    * @see org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor#writeNodes(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.commons.json.io.JSONWriter,
@@ -179,8 +165,12 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       if (aggregator != null) {
         aggregator.add(node);
       }
-
-      handleNode(node, session, write);
+      Integer iDepth = (Integer) request.getAttribute("depth");
+      int depth = 0;
+      if ( iDepth != null ) {
+        depth = iDepth.intValue();
+      }
+      handleNode(node, session, write, depth);
     }
   }
 
@@ -197,18 +187,19 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
    *          Where we have to start (this will skip the specified amount on the iterator)
    * @param end
    *          The point where we should end.
+   * @param depth 
    * @throws RepositoryException
    * @throws JSONException
    */
   public void writeNodes(SlingHttpServletRequest request, JSONWriter write,
-      NodeIterator iterator, long start, long end) throws RepositoryException,
+      NodeIterator iterator, long start, long end, int depth) throws RepositoryException,
       JSONException {
 
     Session session = request.getResourceResolver().adaptTo(Session.class);
     iterator.skip(start);
     for (long i = start; i < end && iterator.hasNext(); i++) {
       Node node = iterator.nextNode();
-      handleNode(node, session, write);
+      handleNode(node, session, write, depth);
     }
   }
 
@@ -221,10 +212,11 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
    *          The {@link Session} to use to grab more information.
    * @param write
    *          The {@link JSONWriter} to use.
+   * @param depth 
    * @throws JSONException
    * @throws RepositoryException
    */
-  protected void handleNode(Node node, Session session, JSONWriter write)
+  protected void handleNode(Node node, Session session, JSONWriter write, int depth)
       throws JSONException, RepositoryException {
     String type = "";
     if (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
@@ -232,9 +224,9 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
     }
 
     if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
-      FileUtils.writeLinkNode(node, session, write, siteService);
+      FileUtils.writeLinkNode(node, session, write);
     } else {
-      FileUtils.writeFileNode(node, session, write, siteService, depth);
+      FileUtils.writeFileNode(node, session, write, depth);
     }
   }
 }

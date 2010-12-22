@@ -30,7 +30,7 @@ import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFa
 import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.RuleProcessorManager;
 import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivator;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.DynamicPrincipalManager;
-import org.sakaiproject.nakamura.api.lite.jackrabbit.SparseUserAccessControlProvider;
+import org.sakaiproject.nakamura.lite.jackrabbit.SparseUserAccessControlProvider;
 // End Nakamura Change
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -70,7 +70,7 @@ public class LiteResourceProvider implements ResourceProvider {
       ContentManager cm = session.getContentManager();
       Content content = cm.get(path);
       if (content != null) {
-        retRes = new SparseContentResource(content, cm, new LiteResourceResolver(
+        retRes = new SparseContentResource(content, session, new LiteResourceResolver(
             repository, userId));
       }
     } catch (ClientPoolException e) {

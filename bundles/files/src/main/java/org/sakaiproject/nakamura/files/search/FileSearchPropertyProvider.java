@@ -25,7 +25,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
@@ -33,12 +32,9 @@ import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
-import org.sakaiproject.nakamura.api.site.SiteException;
-import org.sakaiproject.nakamura.api.site.SiteService;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -46,16 +42,13 @@ import javax.jcr.query.Query;
 
 /**
  * Provides properties to process the search
- * 
+ *
  */
 @Component(immediate = true, label = "FileSearchPropertyProvider", description = "Property provider for file searches")
 @Service(value = SearchPropertyProvider.class)
 @Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "sakai.search.provider", value = "Files") })
 public class FileSearchPropertyProvider implements SearchPropertyProvider {
-
-  @Reference
-  protected SiteService siteService;
 
   @Reference
   protected ConnectionManager connectionManager;
@@ -82,14 +75,11 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     // Set the contacts.
     propertiesMap.put("_mycontacts", getMyContacts(user));
 
-    // Set all mysites.
-    propertiesMap.put("_mysites", getMySites(session, user));
-
     // request specific.
     // Sorting order
     propertiesMap.put("_order", doSortOrder(request));
 
-    // Filter by site
+    // Filter by links.
     String usedinClause = doUsedIn(request);
     String tags = doUsedIn(request);
     String tagsAndUsedIn = "";
@@ -97,20 +87,20 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
       propertiesMap.put("_usedin", " and (" + tags + ")");
       tagsAndUsedIn = tags;
     }
-    
+
     if (usedinClause.length() > 0) {
       propertiesMap.put("_usedin", " and (" + usedinClause + ")");
       tagsAndUsedIn = "(" + tagsAndUsedIn + ") and (" + usedinClause + ")";
-      
+
     }
     propertiesMap.put("_tags_and_usedin", tagsAndUsedIn);
 
-    
+
   }
 
   /**
    * Filter files by looking up where they are used.
-   * 
+   *
    * @param request
    * @return
    */
@@ -148,7 +138,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
   /**
    * Returns default sort order.
-   * 
+   *
    * @param request
    * @return
    */
@@ -170,7 +160,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
   /**
    * Gets a clause for a query by looking at the sakai:tags request parameter.
-   * 
+   *
    * @param request
    * @return
    */
@@ -198,39 +188,8 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
   }
 
   /**
-   * Get a user his sites.
-   * 
-   * @param session
-   * @param user
-   * @return
-   */
-  @SuppressWarnings(justification = "siteService is OSGi managed", value = {
-      "NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD" })
-  protected String getMySites(Session session, String user) {
-    try {
-      StringBuilder sb = new StringBuilder();
-      Map<String, List<Group>> membership = siteService.getMembership(session, user);
-      for (Entry<String, List<Group>> site : membership.entrySet()) {
-        sb.append("@sakai:sites=\"").append(site.getKey()).append("\" or ");
-      }
-      String sites = sb.toString();
-      int i = sites.lastIndexOf(" or ");
-      if (i > -1) {
-        sites = sites.substring(0, i);
-      }
-      if (sites.length() > 0) {
-        sites = " and (" + sites + ")";
-      }
-      return sites;
-
-    } catch (SiteException e1) {
-      return "";
-    }
-  }
-
-  /**
    * Escape a parameter string so it doesn't contain anything that might break the query.
-   * 
+   *
    * @param value
    * @param queryLanguage
    * @return
@@ -249,7 +208,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
   /**
    * Get a string of all the connected users.
-   * 
+   *
    * @param user
    *          The user to get the contacts for.
    * @return and (@sakai:user=\"simon\" or @sakai:user=\"ieb\")
