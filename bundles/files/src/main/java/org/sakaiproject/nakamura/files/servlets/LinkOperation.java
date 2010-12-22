@@ -40,6 +40,10 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
@@ -62,7 +66,6 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "sling.post.operation", value = "link"),
     @Property(name = "service.description", value = "Creates an internal link to a file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-
 @ServiceDocumentation(name = "LinkOperation", shortDescription = "Link a node to a file", description = { "Link a node to another node in the repository." }, methods = { @ServiceMethod(name = "POST", description = { "This operation has to be performed on the file NOT the target. In the current implementation we use file link nodes that connect the original uploaded file to another location. This practice will continue except we will obviously link to wherever the file was uploaded." }, parameters = {
     @ServiceParameter(name = ":operation", description = "The value HAS TO BE <i>link</i>."),
     @ServiceParameter(name = "link", description = {
@@ -84,9 +87,10 @@ public class LinkOperation extends AbstractSlingPostOperation {
 
   @Reference
   protected transient EventAdmin eventAdmin;
+
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.apache.sling.servlets.post.AbstractSlingPostOperation#doRun(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
@@ -101,40 +105,59 @@ public class LinkOperation extends AbstractSlingPostOperation {
     }
 
     String link = request.getParameter(LINK_PARAM);
-    Resource resource = request.getResource();
-    if ( resource == null ) {
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
-      "A link operation must be performed on an actual resource");
-      return;
-    }
-    Node node = resource.adaptTo(Node.class);
-    if (node == null || ResourceUtil.isNonExistingResource(resource)) {
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
-          "A link operation must be performed on an actual resource");
-      return;
-    }
     if (link == null) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
           "A link parameter has to be provided.");
       return;
     }
 
-    try {
-      FileUtils.createLink(node, link, slingRepository);
-    } catch (RepositoryException e) {
-      log.warn("Failed to create a link.", e);
+    Resource resource = request.getResource();
+    if (resource == null) {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
+          "A link operation must be performed on an actual resource");
+      return;
     }
 
-    // Send an OSGi event.
-    try {
-      Dictionary<String, String> properties = new Hashtable<String, String>();
-      properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
-      EventUtils.sendOsgiEvent(request.getResource(), properties, TOPIC_FILES_LINK,
-          eventAdmin);
-    } catch (Exception e) {
-      // We do NOT interrupt the normal workflow if sending an event fails.
-      // We just log it to the error log.
-      log.error("Could not send an OSGi event for tagging a file", e);
+    if (ResourceUtil.isNonExistingResource(resource)) {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
+          "A link operation must be performed on an actual resource");
+      return;
+    }
+    Node node = resource.adaptTo(Node.class);
+    Content content = resource.adaptTo(Content.class);
+    Session session = resource.adaptTo(Session.class);
+
+    boolean sendEvent = false;
+
+    if (node != null) {
+      try {
+        sendEvent = FileUtils.createLink(node, link, slingRepository);
+      } catch (RepositoryException e) {
+        log.warn("Failed to create a link.", e);
+      }
+    } else if (content != null) {
+      try {
+        sendEvent = FileUtils.createLink(content, link, session);
+      } catch (AccessDeniedException e) {
+        log.warn("Failed to create a link.", e);
+      } catch (StorageClientException e) {
+        log.warn("Failed to create a link.", e);
+      }
+
+    }
+
+    if (sendEvent) {
+      // Send an OSGi event.
+      try {
+        Dictionary<String, String> properties = new Hashtable<String, String>();
+        properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
+        EventUtils.sendOsgiEvent(request.getResource(), properties, TOPIC_FILES_LINK,
+            eventAdmin);
+      } catch (Exception e) {
+        // We do NOT interrupt the normal workflow if sending an event fails.
+        // We just log it to the error log.
+        log.error("Could not send an OSGi event for tagging a file", e);
+      }
     }
   }
 }

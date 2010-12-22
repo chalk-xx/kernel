@@ -89,6 +89,8 @@ public class LinkServlet extends SlingSafeMethodsServlet {
 
     Resource resource = request.getResource();
     Node node = (Node) resource.adaptTo(Node.class);
+    
+    // TODO: make this work with a Content node.
 
     try {
       if (node.hasProperty(FilesConstants.SAKAI_LINK)) {

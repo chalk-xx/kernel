@@ -93,10 +93,10 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = -8815248520601921760L;
 
-  private transient FileSearchBatchResultProcessor proc;
-
   @Reference
   protected transient SearchServiceFactory searchServiceFactory;
+
+  
 
   /**
    * {@inheritDoc}
@@ -130,6 +130,8 @@ public class TagServlet extends SlingSafeMethodsServlet {
         }
       }
     }
+    
+    request.setAttribute("depth", depth);
 
     JSONWriter write = new JSONWriter(response.getWriter());
     write.setTidy(tidy);
@@ -164,6 +166,10 @@ public class TagServlet extends SlingSafeMethodsServlet {
    */
   protected void sendFiles(Node tag, SlingHttpServletRequest request, JSONWriter write,
       int depth) throws RepositoryException, JSONException, SearchException {
+    
+    // TODO this also needs to find content nodes.
+    // It can do that by using the content manager to do a query to match sakai:tag-uuid == uuid
+    
     // We expect tags to be referencable, if this tag is not..
     // it will throw an exception.
     String uuid = tag.getIdentifier();
@@ -178,11 +184,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
     QueryManager qm = session.getWorkspace().getQueryManager();
     Query query = qm.createQuery(statement, Query.XPATH);
 
-    // For good measurement
-    if (proc == null) {
-      proc = new FileSearchBatchResultProcessor(searchServiceFactory);
-    }
-    proc.setDepth(depth);
+    FileSearchBatchResultProcessor proc = new FileSearchBatchResultProcessor(searchServiceFactory);
 
     SearchResultSet rs = proc.getSearchResultSet(request, query);
     write.array();

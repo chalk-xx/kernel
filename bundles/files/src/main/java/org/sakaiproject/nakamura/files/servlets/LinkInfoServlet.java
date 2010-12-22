@@ -74,6 +74,7 @@ public class LinkInfoServlet extends SlingSafeMethodsServlet {
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
 
+    // TODO: make this work with Content.
     try {
       Node node = (Node) request.getResource().adaptTo(Node.class);
       Session session = request.getResourceResolver().adaptTo(Session.class);

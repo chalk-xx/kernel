@@ -113,7 +113,7 @@ public class FileSearchBatchResultProcessorTest {
     JSONWriter write = new JSONWriter(w);
     Session session = mock(Session.class);
 
-    processor.handleNode(node, session, write);
+    processor.handleNode(node, session, write, 0);
 
     w.flush();
     String s = baos.toString("UTF-8");
@@ -137,7 +137,7 @@ public class FileSearchBatchResultProcessorTest {
     PrintWriter w = new PrintWriter(baos);
     JSONWriter write = new JSONWriter(w);
 
-    processor.handleNode(node, session, write);
+    processor.handleNode(node, session, write, 0);
 
     w.flush();
     String s = baos.toString("UTF-8");
