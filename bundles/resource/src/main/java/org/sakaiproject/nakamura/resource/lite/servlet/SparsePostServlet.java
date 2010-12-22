@@ -16,6 +16,14 @@
  */
 package org.sakaiproject.nakamura.resource.lite.servlet;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.References;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceNotFoundException;
@@ -55,39 +63,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.Servlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * POST servlet that implements the sling client library "protocol"
- * 
- * @scr.component immediate="true" label="%servlet.post.name"
- *                description="%servlet.post.description"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description" value="Sling Post Servlet"
- * @scr.property name="service.vendor" value="The Apache Software Foundation"
- * 
- *               Use this as the default servlet for POST requests for Sling
- * @scr.property name="sling.servlet.prefix" value="-1" type="Integer" private="true"
- * 
- * 
- * @scr.property name="sling.servlet.paths" values.0="sling/servlet/default/POST"
- *               private="true"
- * 
- *               Get all SlingPostProcessors
- * @scr.reference name="postProcessor"
- *                interface="org.apache.sling.servlets.post.SlingPostProcessor"
- *                cardinality="0..n" policy="dynamic"
- * @scr.reference name="postOperation"
- *                interface="org.apache.sling.servlets.post.SlingPostOperation"
- *                cardinality="0..n" policy="dynamic"
- * @scr.reference name="nodeNameGenerator"
- *                interface="org.apache.sling.servlets.post.NodeNameGenerator"
- *                cardinality="0..n" policy="dynamic"
- * @scr.reference name="contentImporter"
- *                interface="org.apache.sling.jcr.contentloader.ContentImporter"
- *                cardinality="0..1" policy="dynamic"
  */
+@Component(immediate = true, label = "%servlet.post.name", description = "%servlet.post.description")
+@Service(Servlet.class)
+@Properties({ @Property(name = "service.description", value = "Sling Post Servlet"),
+    @Property(name = "service.vendor", value = "The Apache Software Foundation"),
+    // Use this as the default servlet for POST requests for Sling
+    @Property(name = "sling.servlet.prefix", intValue = -1, propertyPrivate = true),
+    @Property(name = "sling.servlet.paths", value = "sling/servlet/default/POST", propertyPrivate = true), })
+// Get all SlingPostProcessors
+@References({
+    @Reference(name = "postProcessor", referenceInterface = SlingPostProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
+    @Reference(name = "postOperation", referenceInterface = SlingPostOperation.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
+    @Reference(name = "nodeNameGenerator", referenceInterface = NodeNameGenerator.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC) })
 public class SparsePostServlet extends SlingAllMethodsServlet implements OptingServlet {
 
   private static final long serialVersionUID = 1837674988291697074L;
@@ -97,45 +91,31 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
    */
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  /**
-   * @scr.property values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z" values.1="ISO8601"
-   *               values.2="yyyy-MM-dd'T'HH:mm:ss.SSSZ" values.3="yyyy-MM-dd'T'HH:mm:ss"
-   *               values.4="yyyy-MM-dd" values.5="dd.MM.yyyy HH:mm:ss"
-   *               values.6="dd.MM.yyyy"
-   */
-  private static final String PROP_DATE_FORMAT = "servlet.post.dateFormats";
-
-  /**
-   * @scr.property values.0="title" values.1="jcr:title" values.2="name"
-   *               values.3="description" values.4="jcr:description" values.5="abstract"
-   *               values.6="text" values.7="jcr:text"
-   */
-  private static final String PROP_NODE_NAME_HINT_PROPERTIES = "servlet.post.nodeNameHints";
-
-  /**
-   * @scr.property value="20" type="Integer"
-   */
-  private static final String PROP_NODE_NAME_MAX_LENGTH = "servlet.post.nodeNameMaxLength";
-
-  /**
-   * @scr.property valueRef="DEFAULT_CHECKIN_ON_CREATE" type="Boolean"
-   */
-  private static final String PROP_CHECKIN_ON_CREATE = "servlet.post.checkinNewVersionableNodes";
-
-  /**
-   * @scr.property valueRef="DEFAULT_AUTO_CHECKOUT" type="Boolean"
-   */
-  private static final String PROP_AUTO_CHECKOUT = "servlet.post.autoCheckout";
-  /**
-   * @scr.property valueRef="DEFAULT_AUTO_CHECKIN" type="Boolean"
-   */
-  private static final String PROP_AUTO_CHECKIN = "servlet.post.autoCheckin";
-
   private static final boolean DEFAULT_CHECKIN_ON_CREATE = false;
 
   private static final boolean DEFAULT_AUTO_CHECKOUT = false;
 
   private static final boolean DEFAULT_AUTO_CHECKIN = true;
+
+  @Property({ "EEE MMM dd yyyy HH:mm:ss 'GMT'Z", "ISO8601", "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+      "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy" })
+  private static final String PROP_DATE_FORMAT = "servlet.post.dateFormats";
+
+  @Property({ "title", "jcr:title", "name", "description", "jcr:description", "abstract",
+      "text", "jcr:text" })
+  private static final String PROP_NODE_NAME_HINT_PROPERTIES = "servlet.post.nodeNameHints";
+
+  @Property(intValue = 20)
+  private static final String PROP_NODE_NAME_MAX_LENGTH = "servlet.post.nodeNameMaxLength";
+
+  @Property(boolValue = DEFAULT_CHECKIN_ON_CREATE)
+  private static final String PROP_CHECKIN_ON_CREATE = "servlet.post.checkinNewVersionableNodes";
+
+  @Property(boolValue = DEFAULT_AUTO_CHECKOUT)
+  private static final String PROP_AUTO_CHECKOUT = "servlet.post.autoCheckout";
+
+  @Property(boolValue = DEFAULT_AUTO_CHECKIN)
+  private static final String PROP_AUTO_CHECKIN = "servlet.post.autoCheckin";
 
   private static final String PARAM_CHECKIN_ON_CREATE = ":checkinNewVersionableNodes";
 
@@ -250,7 +230,7 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
 
   /**
    * Creates an instance of a HtmlResponse.
-   * 
+   *
    * @param req
    *          The request being serviced
    * @return a {@link org.apache.sling.servlets.post.impl.helper.JSONResponse} if any of
@@ -288,7 +268,7 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
 
   /**
    * compute redirect URL (SLING-126)
-   * 
+   *
    * @param ctx
    *          the post processor
    * @return the redirect location or <code>null</code>
