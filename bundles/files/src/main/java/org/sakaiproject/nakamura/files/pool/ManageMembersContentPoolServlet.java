@@ -141,13 +141,13 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       writer.object();
       writer.key("managers");
       writer.array();
-      for (String manager : nonNullStringArray(managers)) {
+      for (String manager : StorageClientUtils.nonNullStringArray(managers)) {
         writeProfileMap(session, userManager, writer, manager, detailed);
       }
       writer.endArray();
       writer.key("viewers");
       writer.array();
-      for (String viewer : nonNullStringArray(viewers)) {
+      for (String viewer : StorageClientUtils.nonNullStringArray(viewers)) {
         writeProfileMap(session, userManager, writer, viewer, detailed);
       }
       writer.endArray();
@@ -235,7 +235,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
 
       List<AclModification> aclModifications = Lists.newArrayList();
 
-      for (String addManager : nonNullStringArray(request.getParameterValues(":manager"))) {
+      for (String addManager : StorageClientUtils.nonNullStringArray(request.getParameterValues(":manager"))) {
         if (!managerSet.contains(addManager)) {
           managerSet.add(addManager);
           AclModification.addAcl(true, Permissions.CAN_MANAGE, addManager,
@@ -243,7 +243,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
         }
       }
       
-      for (String removeManager : nonNullStringArray(request.getParameterValues(":manager@Delete"))) {
+      for (String removeManager : StorageClientUtils.nonNullStringArray(request.getParameterValues(":manager@Delete"))) {
         if (managerSet.contains(removeManager)) {
           managerSet.remove(removeManager);
           AclModification.removeAcl(true, Permissions.CAN_MANAGE, removeManager,
@@ -251,13 +251,13 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
         }
       }
 
-      for (String addViewer : nonNullStringArray(request.getParameterValues(":viewer"))) {
+      for (String addViewer : StorageClientUtils.nonNullStringArray(request.getParameterValues(":viewer"))) {
         if (!viewersSet.contains(addViewer)) {
           viewersSet.add(addViewer);
           AclModification.addAcl(true, Permissions.CAN_READ, addViewer, aclModifications);
         }
       }
-      for (String removeViewer : nonNullStringArray(request.getParameterValues(":viewer@Delete"))) {
+      for (String removeViewer : StorageClientUtils.nonNullStringArray(request.getParameterValues(":viewer@Delete"))) {
         if (viewersSet.contains(removeViewer)) {
           viewersSet.remove(removeViewer);
           if (!managerSet.contains(removeViewer)) {
@@ -312,10 +312,5 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
     }
   }
 
-  private String[] nonNullStringArray(String[] parameterValues) {
-    if ( parameterValues == null ) {
-      return new String[0];
-    }
-    return parameterValues;
-  }
+
 }

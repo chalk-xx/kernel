@@ -383,16 +383,16 @@ public class FileUtils {
       StorageClientException {
     boolean sendEvent = false;
     Map<String, Object> properties = content.getProperties();
-    Set<String> uuidSet = Sets.newHashSet(StorageClientUtils.toStringArray(properties
-        .get(SAKAI_TAG_UUIDS)));
+    Set<String> uuidSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray(StorageClientUtils.toStringArray(properties
+        .get(SAKAI_TAG_UUIDS))));
     if (!uuidSet.contains(tags[0])) {
       uuidSet.add(tags[0]);
       content.setProperty(SAKAI_TAG_UUIDS,
           StorageClientUtils.toStore(uuidSet.toArray(new String[uuidSet.size()])));
       sendEvent = true;
     }
-    Set<String> nameSet = Sets.newHashSet(StorageClientUtils.toStringArray(properties
-        .get(SAKAI_TAG_NAME)));
+    Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray(StorageClientUtils.toStringArray(properties
+        .get(SAKAI_TAG_NAME))));
     if (!nameSet.contains(tags[1])) {
       nameSet.add(tags[1]);
       content.setProperty(SAKAI_TAG_NAME,
@@ -463,16 +463,16 @@ public class FileUtils {
       StorageClientException {
     boolean updated = false;
     Map<String, Object> properties = content.getProperties();
-    Set<String> uuidSet = Sets.newHashSet(StorageClientUtils.toStringArray(properties
-        .get(SAKAI_TAG_UUIDS)));
+    Set<String> uuidSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray(StorageClientUtils.toStringArray(properties
+        .get(SAKAI_TAG_UUIDS))));
     if (uuidSet.contains(tags[0])) {
       uuidSet.remove(tags[0]);
       content.setProperty(SAKAI_TAG_UUIDS,
           StorageClientUtils.toStore(uuidSet.toArray(new String[uuidSet.size()])));
       updated = true;
     }
-    Set<String> nameSet = Sets.newHashSet(StorageClientUtils.toStringArray(properties
-        .get(SAKAI_TAG_NAME)));
+    Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray(StorageClientUtils.toStringArray(properties
+        .get(SAKAI_TAG_NAME))));
     if (nameSet.contains(tags[1])) {
       nameSet.remove(tags[1]);
       content.setProperty(SAKAI_TAG_NAME,
