@@ -7,8 +7,8 @@ import org.apache.sling.servlets.post.SlingPostProcessor;
 
 public class MoveOperation implements SlingPostOperation {
 
-  public void run(SlingHttpServletRequest arg0, HtmlResponse arg1,
-      SlingPostProcessor[] arg2) {
+  public void run(SlingHttpServletRequest request, HtmlResponse response,
+      SlingPostProcessor[] postprocessors) {
     // TODO Auto-generated method stub
     
   }
