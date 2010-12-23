@@ -20,6 +20,8 @@ package org.sakaiproject.nakamura.util;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 
 import java.io.Writer;
 import java.util.Map;
@@ -122,6 +124,59 @@ public class ExtendedJSONWriter extends JSONWriter {
             write.value(PathUtils.translateAuthorizablePath(value));
           } else {
             write.value(value);
+          }
+        }
+      }
+    }
+  }
+
+  public static void writeNodeContentsToWriter(JSONWriter write, Content content)
+      throws JSONException {
+    // Since removal of bigstore we add in jcr:path and jcr:name
+    write.key("jcr:path");
+    write.value(PathUtils.translateAuthorizablePath(content.getPath()));
+    // TODO should we use the last node of the path as the name or get the name from a property? -CFH
+//    write.key("jcr:name");
+//    write.value(content.getName());
+
+    // TODO figure out how to determine property type or just return as string -CFH
+    Map<String, Object> props = content.getProperties();
+    for (Entry<String, Object> prop : props.entrySet()) {
+      String propName = prop.getKey();
+      Object propValue = prop.getValue();
+
+      write.key(propName);
+      PropertyDefinition propertyDefinition = prop.getDefinition();
+      int propertyType = prop.getType();
+      if ( PropertyType.BINARY == propertyType ) {
+        if (propertyDefinition.isMultiple()) {
+          write.array();
+          for (long l : prop.getLengths()) {
+            write.value("binary-length:"+String.valueOf(l));
+          }
+          write.endArray();
+        } else {
+          write.value("binary-length:"+String.valueOf(prop.getLength()));
+        }
+      } else {
+        if (propertyDefinition.isMultiple()) {
+          Value[] values = prop.getValues();
+          write.array();
+          for (Value value : values) {
+            Object ovalue = stringValue(value);
+            if (isUserPath(propName, ovalue)) {
+              write.value(PathUtils.translateAuthorizablePath(ovalue));
+            } else {
+              write.value(ovalue);
+            }
+          }
+          write.endArray();
+        } else {
+          String stringValue = StorageClientUtils.toString(propValue);
+          if (isUserPath(propName, stringValue)) {
+            write.value(PathUtils.translateAuthorizablePath(stringValue));
+          } else {
+            write.value(stringValue);
           }
         }
       }
@@ -256,6 +311,11 @@ public class ExtendedJSONWriter extends JSONWriter {
     writeNodeTreeToWriter(write, node, objectInProgress, maxDepth, 0);
   }
 
+  public static void writeNodeTreeToWriter(JSONWriter write, Content content,
+      boolean objectInProgress, int maxDepth) throws RepositoryException, JSONException {
+    writeNodeTreeToWriter(write, content, objectInProgress, maxDepth, 0);
+  }
+
   /**
    * Represent an entire JCR tree in JSON format.
    *
@@ -291,6 +351,28 @@ public class ExtendedJSONWriter extends JSONWriter {
         Node childNode = iterator.nextNode();
         write.key(childNode.getName());
         writeNodeTreeToWriter(write, childNode, false, maxDepth, currentLevel + 1);
+      }
+    }
+
+    if (!objectInProgress) {
+      write.endObject();
+    }
+  }
+
+  protected static void writeNodeTreeToWriter(JSONWriter write, Content content,
+      boolean objectInProgress, int maxDepth, int currentLevel)
+      throws RepositoryException, JSONException {
+    // Write this node's properties.
+    if (!objectInProgress) {
+      write.object();
+    }
+    writeNodeContentsToWriter(write, content);
+
+    if (maxDepth == -1 || currentLevel < maxDepth) {
+      // Write all the child nodes.
+      for (Content child : content.listChildren()) {
+        write.key(child.getPath());
+        writeNodeTreeToWriter(write, child, false, maxDepth, currentLevel + 1);
       }
     }
 

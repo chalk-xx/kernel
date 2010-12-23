@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.resource.lite.servlet.operations;
 
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 
@@ -57,7 +56,7 @@ public class SparsePropertyValueHandler {
 
   /**
    * String constant for type name as used in serialization.
-   * 
+   *
    * @since JCR 2.0
    */
   public static final String TYPENAME_DECIMAL = "Decimal";
@@ -89,14 +88,14 @@ public class SparsePropertyValueHandler {
 
   /**
    * String constant for type name as used in serialization.
-   * 
+   *
    * @since JCR 2.0
    */
   public static final String TYPENAME_WEAKREFERENCE = "WeakReference";
 
   /**
    * String constant for type name as used in serialization.
-   * 
+   *
    * @since JCR 2.0
    */
   public static final String TYPENAME_URI = "URI";
@@ -126,7 +125,7 @@ public class SparsePropertyValueHandler {
   /**
    * Removes the property with the given name from the parent node if it exists and if
    * it's not a mandatory property.
-   * 
+   *
    * @param parent
    *          the parent node
    * @param name
@@ -146,7 +145,7 @@ public class SparsePropertyValueHandler {
 
   /**
    * set property without processing, except for type hints
-   * 
+   *
    * @param parent
    *          the parent node
    * @param prop

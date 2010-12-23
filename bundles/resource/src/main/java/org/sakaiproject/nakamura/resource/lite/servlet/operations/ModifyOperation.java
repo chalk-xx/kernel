@@ -20,12 +20,6 @@ package org.sakaiproject.nakamura.resource.lite.servlet.operations;
 
 import com.google.common.collect.Maps;
 
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-
 import org.apache.sling.api.SlingException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.NonExistingResource;
@@ -36,9 +30,14 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.NodeNameGenerator;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.apache.sling.servlets.post.VersioningConfiguration;
-import org.apache.sling.servlets.post.impl.helper.RequestProperty;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletContext;
 
 /**
  * The <code>ModifyOperation</code> class implements the default operation called by the
@@ -89,7 +88,7 @@ public class ModifyOperation extends AbstractCreateOperation {
       }
     }
 
-    
+
     SparsePropertyValueHandler propHandler = new SparsePropertyValueHandler(dateParser, changes);
 
     Map<String, Content> contentMap = Maps.newHashMap();
@@ -177,7 +176,7 @@ public class ModifyOperation extends AbstractCreateOperation {
     if (doGenerateName) {
       try {
         path = generateName(request, path);
-      } catch (RepositoryException re) {
+      } catch (StorageClientException re) {
         throw new SlingException("Failed to generate name", re);
       }
     }

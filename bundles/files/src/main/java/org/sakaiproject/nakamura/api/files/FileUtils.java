@@ -17,15 +17,15 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-
 import static org.sakaiproject.nakamura.api.files.FilesConstants.REQUIRED_MIXIN;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_LINK;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_LINK;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -35,6 +35,9 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permission;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -69,7 +72,7 @@ public class FileUtils {
   /**
    * Create a link to a file. There is no need to call a session.save, the change is
    * persistent.
-   * 
+   *
    * @param fileNode
    *          The node that represents the file. This node has to be retrieved via the
    *          normal user his {@link Session session}. If the userID equals
@@ -169,7 +172,7 @@ public class FileUtils {
    * Writes all the properties of a sakai/file node. Also checks what the permissions are
    * for a session and where the links are.<br/>
    * Same as calling {@link #writeFileNode(Node, Session, JSONWriter, 0)}
-   * 
+   *
    * @param node
    * @param write
    * @throws JSONException
@@ -180,10 +183,16 @@ public class FileUtils {
     writeFileNode(node, session, write, 0);
   }
 
+  public static void writeFileNode(Content content,
+      org.sakaiproject.nakamura.api.lite.Session session, JSONWriter write)
+      throws JSONException, StorageClientException {
+    writeFileNode(content, session, write, 0);
+  }
+
   /**
    * Writes all the properties of a sakai/file node. Also checks what the permissions are
    * for a session and where the links are.
-   * 
+   *
    * @param node
    * @param write
    * @param objectInProgress
@@ -219,9 +228,41 @@ public class FileUtils {
     write.endObject();
   }
 
+  public static void writeFileNode(Content content,
+      org.sakaiproject.nakamura.api.lite.Session session, JSONWriter write, int maxDepth)
+      throws JSONException, StorageClientException {
+    ContentManager contentManager = session.getContentManager();
+    write.object();
+
+    // dump all the properties.
+    ExtendedJSONWriter.writeNodeTreeToWriter(write, content, true, maxDepth);
+    // The permissions for this session.
+    writePermissions(content, session, write);
+
+    for (Content child : content.listChildren()) {
+      if (JcrConstants.JCR_CONTENT.equals(child.getPath())) {
+        write.key(JcrConstants.JCR_LASTMODIFIED);
+        // TODO figure out how to get date from property -CFH
+        Calendar cal = child.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
+        write.value(DateUtils.iso8601(cal));
+        write.key(JcrConstants.JCR_MIMETYPE);
+        write.value(StorageClientUtils.toString(child.getProperty(JcrConstants.JCR_MIMETYPE)));
+
+        if (child.hasProperty(JcrConstants.JCR_DATA)) {
+          write.key(JcrConstants.JCR_DATA);
+          // TODO figure out how to get length of data -CFH
+          write.value(child.getProperty(JcrConstants.JCR_DATA).getLength());
+        }
+        break;
+      }
+    }
+
+    write.endObject();
+  }
+
   /**
    * Writes all the properties for a linked node.
-   * 
+   *
    * @param node
    * @param write
    * @throws JSONException
@@ -250,9 +291,37 @@ public class FileUtils {
     write.endObject();
   }
 
+  public static void writeLinkNode(Content content,
+      org.sakaiproject.nakamura.api.lite.Session session, JSONWriter writer)
+      throws StorageClientException, JSONException {
+    ContentManager contentManager = session.getContentManager();
+
+    writer.object();
+
+    // Write all the properties.
+    ExtendedJSONWriter.writeNodeContentsToWriter(writer, content);
+
+    // permissions
+    writePermissions(content, session, writer);
+
+    // Write the actual file.
+    if (content.hasProperty(SAKAI_LINK)) {
+      String linkPath = StorageClientUtils.toString(content.getProperty(SAKAI_LINK));
+      writer.key("file");
+      try {
+        Content fileNode = contentManager.get(linkPath);
+        writeFileNode(fileNode, session, writer);
+      } catch (org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException e) {
+        writer.value(false);
+      }
+    }
+
+    writer.endObject();
+  }
+
   /**
    * Gives the permissions for this user.
-   * 
+   *
    * @param node
    * @param session
    * @param write
@@ -273,9 +342,27 @@ public class FileUtils {
     write.endObject();
   }
 
+  private static void writePermissions(Content content,
+      org.sakaiproject.nakamura.api.lite.Session session, JSONWriter writer)
+      throws StorageClientException, JSONException {
+    AccessControlManager acm = session.getAccessControlManager();
+    String path = content.getPath();
+
+    writer.key("permissions");
+    writer.object();
+    writer.key("set_property");
+    // TODO does CAN_WRITE == set_property -CFH
+    writer.value(hasPermission(acm, path, Permissions.CAN_WRITE));
+    writer.key("read");
+    writer.value(hasPermission(acm, path, Permissions.CAN_READ));
+    writer.key("remove");
+    writer.value(hasPermission(acm, path, Permissions.CAN_DELETE));
+    writer.endObject();
+  }
+
   /**
    * Checks if the current user has a permission on a path.
-   * 
+   *
    * @param session
    * @param path
    * @param permission
@@ -292,9 +379,21 @@ public class FileUtils {
     }
   }
 
+  private static boolean hasPermission(AccessControlManager acm, String path,
+      Permission permission) {
+    try {
+      acm.check(Security.ZONE_CONTENT, path, permission);
+      return true;
+    } catch (org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException e) {
+      return false;
+    } catch (StorageClientException e) {
+      return false;
+    }
+  }
+
   /**
    * Check if a node is a proper sakai tag.
-   * 
+   *
    * @param node
    *          The node to check if it is a tag.
    * @return true if the node is a tag, false if it is not.
@@ -312,7 +411,7 @@ public class FileUtils {
   /**
    * Add's a tag on a node. If the tag has a name defined in the {@link Property property}
    * sakai:tag-name it will be added in the fileNode as well.
-   * 
+   *
    * @param adminSession
    *          The session that can be used to modify the fileNode.
    * @param fileNode
@@ -409,7 +508,7 @@ public class FileUtils {
 
   /**
    * Delete a tag from a node.
-   * 
+   *
    * @param adminSession
    * @param fileNode
    * @param tagNode
@@ -431,7 +530,7 @@ public class FileUtils {
 
   /**
    * Delete a tag from a node.
-   * 
+   *
    * @param adminSession
    * @param fileNode
    * @param tagNode
@@ -490,7 +589,7 @@ public class FileUtils {
    * Resolves a Node given one of three possible passed parameters: 1) A fully qualified
    * path to a Node (e.g. "/foo/bar/baz"), 2) a Node's UUID, or 3) the PoolId from a
    * ContentPool.
-   * 
+   *
    * @param pathOrIdentifier
    *          One of three possible parameters: 1) A fully qualified path to a Node (e.g.
    *          "/foo/bar/baz"), 2) a Node's UUID, or 3) the PoolId from a ContentPool.

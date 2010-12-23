@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -32,14 +33,13 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.files.FileUtils;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.ServletException;
 
 /**
@@ -73,14 +73,15 @@ public class LinkInfoServlet extends SlingSafeMethodsServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+    Resource resource = request.getResource();
+    Content content = resource.adaptTo(Content.class);
+    org.sakaiproject.nakamura.api.lite.Session session = resource
+        .adaptTo(org.sakaiproject.nakamura.api.lite.Session.class);
 
-    // TODO: make this work with Content.
     try {
-      Node node = (Node) request.getResource().adaptTo(Node.class);
-      Session session = request.getResourceResolver().adaptTo(Session.class);
       JSONWriter write = new JSONWriter(response.getWriter());
-      FileUtils.writeLinkNode(node, session, write);
-    } catch (RepositoryException e) {
+      FileUtils.writeLinkNode(content, session, write);
+    } catch (StorageClientException e) {
       LOGGER.warn("Unable to get file info for link.");
       response.sendError(500, "Unable get file info.");
 

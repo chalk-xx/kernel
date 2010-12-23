@@ -46,7 +46,7 @@ public class SparseContentInternalFileHandler implements LinkHandler {
   public void handleFile(SlingHttpServletRequest request,
       SlingHttpServletResponse response, String to) throws ServletException, IOException {
     // JcrInternalFileHandler converted a node ID to a path then redirected.
-    // TODO check that it is safe to assume "to" is the path since sparse content is path based
+    // TODO check that it is safe to assume "to" is the path since sparse content is path based -CFH
     response.sendRedirect(to);
   }
 

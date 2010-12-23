@@ -61,6 +61,11 @@
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.core</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </dependency>
           <!-- OSGi Libraries -->
     <dependency>
       <groupId>org.apache.felix</groupId>
