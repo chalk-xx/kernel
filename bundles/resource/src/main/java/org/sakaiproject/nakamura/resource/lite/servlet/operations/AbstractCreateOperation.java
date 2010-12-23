@@ -22,18 +22,12 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.NodeNameGenerator;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.apache.sling.servlets.post.VersioningConfiguration;
-import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.jcr.RepositoryException;
@@ -58,27 +52,6 @@ abstract class AbstractCreateOperation extends AbstractSlingPostOperation {
     this.extraNodeNameGenerators = extraNodeNameGenerators;
   }
 
-  /**
-   * Create node(s) according to current request
-   * @throws AccessDeniedException 
-   * 
-   * @throws RepositoryException
-   *           if a repository error occurs
-   */
-  protected Content processCreate(ContentManager contentManager,
-      Map<String, RequestProperty> reqProperties, HtmlResponse response,
-      List<Modification> changes, VersioningConfiguration versioningConfiguration)
-      throws StorageClientException, AccessDeniedException {
-
-    String path = response.getPath();
-
-    if (!contentManager.exists(path)) {
-      response.setCreateRequest(true);
-      return new Content(path, null);
-    } else {
-      return contentManager.get(path);
-    }
-  }
 
   /**
    * Collects the properties that form the content to be written back to the repository.
