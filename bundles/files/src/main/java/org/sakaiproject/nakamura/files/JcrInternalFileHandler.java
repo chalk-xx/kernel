@@ -65,6 +65,7 @@ public class JcrInternalFileHandler implements LinkHandler {
       path = to;
     }
 
+    System.err.println("Got path "+path+" to "+to);
     response.sendRedirect(path);
   }
 }

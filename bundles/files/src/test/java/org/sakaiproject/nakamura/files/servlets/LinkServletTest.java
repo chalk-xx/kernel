@@ -98,7 +98,7 @@ public class LinkServletTest {
     when(request.getResource()).thenReturn(resource);
 
     servlet.doGet(request, response);
-
+    
     verify(response).sendError(500, "Unable to handle linked file.");
   }
 

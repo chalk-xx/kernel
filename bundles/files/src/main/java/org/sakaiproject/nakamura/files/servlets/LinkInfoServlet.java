@@ -40,31 +40,23 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.ServletException;
 
 /**
  * Dumps the info for a link.
- *
+ * 
  */
 @SlingServlet(resourceTypes = { "sakai/link" }, methods = { "GET" }, selectors = { "info" })
 @Properties(value = {
     @Property(name = "service.description", value = "Gives info about the actual file"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-@ServiceDocumentation(
-    name = "LinkInfoServlet",
-    shortDescription = "Get the info for a certain link.",
-    description = "Dumps all the information for a sakai/link",
-    bindings = @ServiceBinding(
-        type = BindingType.TYPE,
-        selectors = @ServiceSelector(name = "info", description = "Dump the info for a sakai/link."),
-        bindings = "sakai/link"
-    ),
-    methods = @ServiceMethod(name = "GET", response = {
-        @ServiceResponse(code = 200, description = "Returns a JSON response which holds all the properties for this link node. "
+@ServiceDocumentation(name = "LinkInfoServlet", shortDescription = "Get the info for a certain link.", description = "Dumps all the information for a sakai/link", bindings = @ServiceBinding(type = BindingType.TYPE, selectors = @ServiceSelector(name = "info", description = "Dump the info for a sakai/link."), bindings = "sakai/link"), methods = @ServiceMethod(name = "GET", response = {
+    @ServiceResponse(code = 200, description = "Returns a JSON response which holds all the properties for this link node. "
         + "But it also returns the information of the file it links to."),
-        @ServiceResponse(code = 500, description = "Failure, explanation in HTML code.") }
-    )
-)
+    @ServiceResponse(code = 500, description = "Failure, explanation in HTML code.") }))
 public class LinkInfoServlet extends SlingSafeMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LinkInfoServlet.class);
@@ -74,19 +66,31 @@ public class LinkInfoServlet extends SlingSafeMethodsServlet {
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     Resource resource = request.getResource();
+    Node node = resource.adaptTo(Node.class);
     Content content = resource.adaptTo(Content.class);
-    org.sakaiproject.nakamura.api.lite.Session session = resource
-        .adaptTo(org.sakaiproject.nakamura.api.lite.Session.class);
-
-    try {
-      JSONWriter write = new JSONWriter(response.getWriter());
-      FileUtils.writeLinkNode(content, session, write);
-    } catch (StorageClientException e) {
-      LOGGER.warn("Unable to get file info for link.");
-      response.sendError(500, "Unable get file info.");
-
-    } catch (JSONException e) {
-      response.sendError(500, "Unable to parse JSON.");
+    if (node != null) {
+      try {
+        Session jcrSession = request.getResourceResolver().adaptTo(Session.class);
+        JSONWriter write = new JSONWriter(response.getWriter());
+        FileUtils.writeLinkNode(node, jcrSession, write);
+      } catch (JSONException e) {
+        response.sendError(500, "Unable to parse JSON.");
+      } catch (RepositoryException e) {
+        LOGGER.warn("Unable to get file info for link.");
+        response.sendError(500, "Unable get file info.");
+      }
+    } else {
+      try {
+        org.sakaiproject.nakamura.api.lite.Session session = resource
+            .adaptTo(org.sakaiproject.nakamura.api.lite.Session.class);
+        JSONWriter write = new JSONWriter(response.getWriter());
+        FileUtils.writeLinkNode(content, session, write);
+      } catch (StorageClientException e) {
+        LOGGER.warn("Unable to get file info for link.");
+        response.sendError(500, "Unable get file info.");
+      } catch (JSONException e) {
+        response.sendError(500, "Unable to parse JSON.");
+      }
     }
   }
 }
