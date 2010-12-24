@@ -135,50 +135,19 @@ public class ExtendedJSONWriter extends JSONWriter {
     // Since removal of bigstore we add in jcr:path and jcr:name
     write.key("jcr:path");
     write.value(PathUtils.translateAuthorizablePath(content.getPath()));
-    // TODO should we use the last node of the path as the name or get the name from a property? -CFH
-//    write.key("jcr:name");
-//    write.value(content.getName());
+    write.key("jcr:name");
+    write.value(StorageClientUtils.getObjectName(content.getPath()));
 
-    // TODO figure out how to determine property type or just return as string -CFH
     Map<String, Object> props = content.getProperties();
     for (Entry<String, Object> prop : props.entrySet()) {
       String propName = prop.getKey();
-      Object propValue = prop.getValue();
+      String propValue = StorageClientUtils.toString(prop.getValue());
 
       write.key(propName);
-      PropertyDefinition propertyDefinition = prop.getDefinition();
-      int propertyType = prop.getType();
-      if ( PropertyType.BINARY == propertyType ) {
-        if (propertyDefinition.isMultiple()) {
-          write.array();
-          for (long l : prop.getLengths()) {
-            write.value("binary-length:"+String.valueOf(l));
-          }
-          write.endArray();
-        } else {
-          write.value("binary-length:"+String.valueOf(prop.getLength()));
-        }
+      if (isUserPath(propName, propValue)) {
+        write.value(PathUtils.translateAuthorizablePath(propValue));
       } else {
-        if (propertyDefinition.isMultiple()) {
-          Value[] values = prop.getValues();
-          write.array();
-          for (Value value : values) {
-            Object ovalue = stringValue(value);
-            if (isUserPath(propName, ovalue)) {
-              write.value(PathUtils.translateAuthorizablePath(ovalue));
-            } else {
-              write.value(ovalue);
-            }
-          }
-          write.endArray();
-        } else {
-          String stringValue = StorageClientUtils.toString(propValue);
-          if (isUserPath(propName, stringValue)) {
-            write.value(PathUtils.translateAuthorizablePath(stringValue));
-          } else {
-            write.value(stringValue);
-          }
-        }
+        write.value(propValue);
       }
     }
   }
@@ -312,7 +281,7 @@ public class ExtendedJSONWriter extends JSONWriter {
   }
 
   public static void writeNodeTreeToWriter(JSONWriter write, Content content,
-      boolean objectInProgress, int maxDepth) throws RepositoryException, JSONException {
+      boolean objectInProgress, int maxDepth) throws JSONException {
     writeNodeTreeToWriter(write, content, objectInProgress, maxDepth, 0);
   }
 
@@ -361,7 +330,7 @@ public class ExtendedJSONWriter extends JSONWriter {
 
   protected static void writeNodeTreeToWriter(JSONWriter write, Content content,
       boolean objectInProgress, int maxDepth, int currentLevel)
-      throws RepositoryException, JSONException {
+      throws JSONException {
     // Write this node's properties.
     if (!objectInProgress) {
       write.object();

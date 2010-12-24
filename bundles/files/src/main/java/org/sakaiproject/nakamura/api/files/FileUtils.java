@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import java.security.AccessControlException;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Map;
 import java.util.Set;
 
@@ -238,25 +239,15 @@ public class FileUtils {
     ExtendedJSONWriter.writeNodeTreeToWriter(write, content, true, maxDepth);
     // The permissions for this session.
     writePermissions(content, session, write);
-
-    for (Content child : content.listChildren()) {
-      if (JcrConstants.JCR_CONTENT.equals(child.getPath())) {
-        write.key(JcrConstants.JCR_LASTMODIFIED);
-        // TODO figure out how to get date from property -CFH
-        Calendar cal = child.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
-        write.value(DateUtils.iso8601(cal));
-        write.key(JcrConstants.JCR_MIMETYPE);
-        write.value(StorageClientUtils.toString(child.getProperty(JcrConstants.JCR_MIMETYPE)));
-
-        if (child.hasProperty(JcrConstants.JCR_DATA)) {
-          write.key(JcrConstants.JCR_DATA);
-          // TODO figure out how to get length of data -CFH
-          write.value(child.getProperty(JcrConstants.JCR_DATA).getLength());
-        }
-        break;
-      }
-    }
-
+    
+    write.key(JcrConstants.JCR_LASTMODIFIED);
+    Calendar cal = new GregorianCalendar();
+    cal.setTimeInMillis(StorageClientUtils.toLong(content.getProperty(Content.LASTMODIFIED)));
+    write.value(DateUtils.iso8601(cal));
+    write.key(JcrConstants.JCR_MIMETYPE);
+    write.value(StorageClientUtils.toString(content.getProperty(Content.MIMETYPE)));
+    write.key(JcrConstants.JCR_DATA);
+    write.value(StorageClientUtils.toLong(content.getProperty(Content.LENGTH_FIELD)));
     write.endObject();
   }
 
