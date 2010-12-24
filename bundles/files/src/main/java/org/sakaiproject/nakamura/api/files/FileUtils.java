@@ -351,7 +351,11 @@ public class FileUtils {
     writer.key("permissions");
     writer.object();
     writer.key("set_property");
-    // TODO does CAN_WRITE == set_property -CFH
+    // TODO does CAN_WRITE == set_property -CFH : yes, ieb
+    // TODO: make this a bit more efficient, checking permissions one by one is going to rely on 
+    //       caching to make it efficient. It would be better to get the permissions bitmap and then
+    //       check it to see what has been set. That might require a niew methods in the AccessControl
+    //       manager API.
     writer.value(hasPermission(acm, path, Permissions.CAN_WRITE));
     writer.key("read");
     writer.value(hasPermission(acm, path, Permissions.CAN_READ));
