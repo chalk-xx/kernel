@@ -22,6 +22,9 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.JcrConstants;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.version.VersionService;
 
 import javax.jcr.Node;
@@ -62,6 +65,10 @@ public class VersionServiceImpl implements VersionService {
       node.getSession().save();
     }
     return version;
+  }
+  
+  public void saveVersion(String path, ContentManager contentManager ) throws StorageClientException, AccessDeniedException {
+    contentManager.saveVersion(path);
   }
 
 }
