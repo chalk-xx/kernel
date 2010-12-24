@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sakaiproject.nakamura.resource.lite.servlet;
+package org.sakaiproject.nakamura.resource.lite.servlet.post;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -37,22 +37,22 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.apache.sling.servlets.post.SlingPostOperation;
 import org.apache.sling.servlets.post.SlingPostProcessor;
 import org.apache.sling.servlets.post.VersioningConfiguration;
-import org.apache.sling.servlets.post.impl.helper.DateParser;
-import org.apache.sling.servlets.post.impl.helper.DefaultNodeNameGenerator;
-import org.apache.sling.servlets.post.impl.helper.JSONResponse;
-import org.apache.sling.servlets.post.impl.helper.MediaRangeList;
-import org.apache.sling.servlets.post.impl.operations.CheckinOperation;
-import org.apache.sling.servlets.post.impl.operations.CheckoutOperation;
-import org.apache.sling.servlets.post.impl.operations.CopyOperation;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
-import org.sakaiproject.nakamura.resource.lite.servlet.operations.DeleteOperation;
-import org.sakaiproject.nakamura.resource.lite.servlet.operations.ImportOperation;
-import org.sakaiproject.nakamura.resource.lite.servlet.operations.ModifyOperation;
-import org.sakaiproject.nakamura.resource.lite.servlet.operations.MoveOperation;
-import org.sakaiproject.nakamura.resource.lite.servlet.operations.NopOperation;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.DateParser;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.DefaultNodeNameGenerator;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.JSONResponse;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.MediaRangeList;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.CheckinOperation;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.CheckoutOperation;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.CopyOperation;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.DeleteOperation;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.ImportOperation;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.ModifyOperation;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.MoveOperation;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.NopOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +76,7 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "service.vendor", value = "The Apache Software Foundation"),
     // Use this as the default servlet for POST requests for Sling
     @Property(name = "sling.servlet.prefix", intValue = -1, propertyPrivate = true),
-    @Property(name = "sling.servlet.paths", value = "sling/servlet/default/POST", propertyPrivate = true), })
+    @Property(name = "sling.servlet.paths", value = "sling/servlet/default/POST", propertyPrivate = true) })
 // Get all SlingPostProcessors
 @References({
     @Reference(name = "postProcessor", referenceInterface = SlingPostProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
@@ -245,7 +245,6 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
    *         or a {@link org.apache.sling.api.servlets.HtmlResponse} otherwise
    */
   HtmlResponse createHtmlResponse(SlingHttpServletRequest req) {
-    @SuppressWarnings({ "MismatchedQueryAndUpdateOfCollection" })
     MediaRangeList mediaRangeList = new MediaRangeList(req);
     if (JSONResponse.RESPONSE_CONTENT_TYPE.equals(mediaRangeList.prefer("text/html",
         JSONResponse.RESPONSE_CONTENT_TYPE))) {

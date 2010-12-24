@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.sakaiproject.nakamura.resource.lite.servlet.operations;
+package org.sakaiproject.nakamura.resource.lite.servlet.post.operations;
 
 import com.google.common.collect.Maps;
 
@@ -29,11 +29,16 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.NodeNameGenerator;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.apache.sling.servlets.post.VersioningConfiguration;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.DateParser;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.RequestProperty;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparseFileUploadHandler;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparsePropertyValueHandler;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -62,11 +67,10 @@ public class ModifyOperation extends AbstractCreateOperation {
 
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
-      ContentManager contentManager, List<Modification> changes)  {
+      ContentManager contentManager, List<Modification> changes) throws StorageClientException, AccessDeniedException, IOException  {
 
     Map<String, RequestProperty> reqProperties = collectContent(request, response);
 
-    VersioningConfiguration versioningConfiguration = getVersioningConfiguration(request);
 
 
     for (RequestProperty property : reqProperties.values()) {
@@ -79,7 +83,7 @@ public class ModifyOperation extends AbstractCreateOperation {
       } else if (property.hasRepositoryCopySource()) {
         String from = property.getRepositorySource();
         String to = property.getPath();
-        contentManager.copy(from, to);
+        contentManager.copy(from, to, true);
         changes.add(Modification.onCopied(from, to));
         property.setDelete(false);
       } else if ( property.isDelete()) {

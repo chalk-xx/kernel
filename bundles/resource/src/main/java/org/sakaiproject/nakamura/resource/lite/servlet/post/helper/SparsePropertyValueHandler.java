@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.sakaiproject.nakamura.resource.lite.servlet.operations;
+package org.sakaiproject.nakamura.resource.lite.servlet.post.helper;
 
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;

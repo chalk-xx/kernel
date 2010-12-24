@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.sakaiproject.nakamura.resource.lite.servlet.operations;
+package org.sakaiproject.nakamura.resource.lite.servlet.post.operations;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
@@ -26,6 +26,7 @@ import org.apache.sling.servlets.post.NodeNameGenerator;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.RequestProperty;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.resource.lite.servlet.operations;
+package org.sakaiproject.nakamura.resource.lite.servlet.post.operations;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;

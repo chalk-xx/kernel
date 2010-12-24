@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sakaiproject.nakamura.resource.lite.servlet.operations;
+package org.sakaiproject.nakamura.resource.lite.servlet.post.operations;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -183,7 +184,7 @@ public abstract class AbstractSlingPostOperation implements SlingPostOperation {
 
     protected abstract void doRun(SlingHttpServletRequest request,
             HtmlResponse response,
-            ContentManager contentManager, List<Modification> changes) throws StorageClientException;
+            ContentManager contentManager, List<Modification> changes) throws StorageClientException, AccessDeniedException, IOException;
 
     /**
      * Returns an iterator on <code>Resource</code> instances addressed in the
