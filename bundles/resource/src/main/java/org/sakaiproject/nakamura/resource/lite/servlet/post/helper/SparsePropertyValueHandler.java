@@ -187,6 +187,9 @@ public class SparsePropertyValueHandler {
   }
 
   private Object fromRequest(String type, String[] values) {
+    if ( type == null ) {
+      return values;
+    }
     if (type.equals(TYPENAME_STRING)) {
       return values;
     } else if (type.equals(TYPENAME_BINARY)) {

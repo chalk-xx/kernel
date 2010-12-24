@@ -35,6 +35,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.request.RequestPathInfo;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Assert;
@@ -53,6 +54,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 import org.sakaiproject.nakamura.lite.RepositoryImpl;
+import org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager;
 
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -79,6 +81,8 @@ public class CreateContentPoolServletTest {
   private SlingRepository slingRepository;
   @Mock
   private JackrabbitSession adminSession;
+  @Mock
+  private JackrabbitSession jcrSesson;
   @Mock
   private UserManager userManager;
   @Mock
@@ -121,6 +125,10 @@ public class CreateContentPoolServletTest {
   private RequestParameter requestParameterNot;
   @Mock
   private RequestPathInfo requestPathInfo;
+  @Mock
+  private ResourceResolver resourceResolver;
+  @Mock
+  private SparseMapUserManager sparseMapUserManager;
   private RepositoryImpl repository;
 
   public CreateContentPoolServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
@@ -142,7 +150,12 @@ public class CreateContentPoolServletTest {
     // activate
     when(clusterTrackingService.getCurrentServerId()).thenReturn("serverID");
     when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
-
+    
+    when(request.getResourceResolver()).thenReturn(resourceResolver);
+    when(resourceResolver.adaptTo(javax.jcr.Session.class)).thenReturn(jcrSesson);
+    Session session = repository.loginAdministrative("ieb");
+    when(jcrSesson.getUserManager()).thenReturn(sparseMapUserManager);
+    when(sparseMapUserManager.getSession()).thenReturn(session);
 
     when(request.getRequestPathInfo()).thenReturn(requestPathInfo);
     when(requestPathInfo.getExtension()).thenReturn(null);

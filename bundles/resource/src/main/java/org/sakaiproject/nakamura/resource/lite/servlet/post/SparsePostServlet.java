@@ -23,7 +23,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.References;
-import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceNotFoundException;
@@ -63,20 +63,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.Servlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * POST servlet that implements the sling client library "protocol"
+ * POST servlet that implements the sling client library "protocol" for sparse content.
  */
-@Component(immediate = true, label = "%servlet.post.name", description = "%servlet.post.description")
-@Service(Servlet.class)
-@Properties({ @Property(name = "service.description", value = "Sling Post Servlet"),
-    @Property(name = "service.vendor", value = "The Apache Software Foundation"),
-    // Use this as the default servlet for POST requests for Sling
-    @Property(name = "sling.servlet.prefix", intValue = -1, propertyPrivate = true),
-    @Property(name = "sling.servlet.paths", value = "sling/servlet/default/POST", propertyPrivate = true) })
+@SlingServlet(methods={"POST"}, resourceTypes={"sling/servlet/default"} )
+@Properties({ @Property(name = "service.description", value = "Sparse Post Servlet"),
+    @Property(name = "service.vendor", value = "The Sakai Foundation")})
 // Get all SlingPostProcessors
 @References({
     @Reference(name = "postProcessor", referenceInterface = SlingPostProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),

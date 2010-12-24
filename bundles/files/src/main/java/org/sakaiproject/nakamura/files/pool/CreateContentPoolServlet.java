@@ -59,6 +59,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
@@ -74,6 +75,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -146,6 +148,13 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       alternativeStream = poolId;
       poolId = selectors[0];
     }
+    javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+    Session session;
+    try {
+      session = JackrabbitSparseUtils.getSparseSession(jcrSession);
+    } catch (RepositoryException e) {
+      throw new ServletException(e.getMessage(), e);
+    }
 
     // Anonymous users cannot upload files.
     if (UserConstants.ANON_USERID.equals(userId)) {
@@ -181,7 +190,6 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
               results.put(p.getFileName(), createPoolId);
               statusCode = HttpServletResponse.SC_CREATED;
             } else {
-              Session session = request.getResourceResolver().adaptTo(Session.class);
               createFile(poolId, alternativeStream, session, p, au, false);
               // Add it to the map so we can output something to the UI.
               results.put(p.getFileName(), poolId);
