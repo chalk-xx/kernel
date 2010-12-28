@@ -213,7 +213,7 @@ public class VersionRequestPathInfo implements RequestPathInfo {
    * @param suffix
    * @return
    */
-  protected static String getVersionName(String selector, String extension) {
+  public static String getVersionName(String selector, String extension) {
     String suffix = "";
     if ( selector != null ) {
       suffix = selector;
