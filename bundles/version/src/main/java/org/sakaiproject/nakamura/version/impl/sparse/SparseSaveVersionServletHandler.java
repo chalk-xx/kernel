@@ -17,24 +17,19 @@
  */
 package org.sakaiproject.nakamura.version.impl.sparse;
 
-import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.OptingServlet;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
-import org.sakaiproject.nakamura.api.doc.BindingType;
-import org.sakaiproject.nakamura.api.doc.ServiceBinding;
-import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
-import org.sakaiproject.nakamura.api.doc.ServiceExtension;
-import org.sakaiproject.nakamura.api.doc.ServiceMethod;
-import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.resource.AbstractAllMethodsServletResourceHandler;
+import org.sakaiproject.nakamura.api.resource.ServletResourceHandler;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -50,42 +45,23 @@ import javax.servlet.http.HttpServletResponse;
  * writeable version.
  */
 
-@ServiceDocumentation(name="Save a version Servlet",
-    description="Saves a new version of a resource",
-    shortDescription="List versions of a resource",
-    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/servlet/default", "selector save"},
-        selectors=@ServiceSelector(name="save", description="Saves  the current version of a resource creating a new version."),
-        extensions=@ServiceExtension(name="json", description="A json tree containing the name of the saved version.")),
-    methods=@ServiceMethod(name="POST",
-        description={"Lists previous versions of a resource. The url is of the form " +
-            "http://host/resource.save.json ",
-            "Example<br>" +
-            "<pre>curl http://localhost:8080/sresource/resource.save.json</pre>"
-        },
-        response={
-          @ServiceResponse(code=200,description="Success a body is returned containing a json ove the name of the version saved"),
-          @ServiceResponse(code=404,description="Resource was not found."),
-          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
-    )) 
-
-@SlingServlet(resourceTypes = "sling/servlet/default", methods = "POST", selectors = "save", extensions = "json")
-public class SparseSaveVersionServlet extends SlingAllMethodsServlet implements OptingServlet {
+@Component(metatype=true, immediate=true)
+@Service(value=ServletResourceHandler.class)
+@Property(name="handling.servlet",value="SaveVersionServlet")
+public class SparseSaveVersionServletHandler extends AbstractAllMethodsServletResourceHandler {
 
 
   /**
    *
    */
   private static final long serialVersionUID = -7513481862698805983L;
-  private static final Logger LOGGER = LoggerFactory.getLogger(SparseSaveVersionServlet.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SparseSaveVersionServletHandler.class);
 
   /**
    * {@inheritDoc}
    * 
-   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.api.SlingHttpServletResponse)
    */
-  @Override
-  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
+  public void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     try {
       Resource resource = request.getResource();
@@ -98,6 +74,7 @@ public class SparseSaveVersionServlet extends SlingAllMethodsServlet implements 
       
       String versionId  = contentManager.saveVersion(content.getPath());
       Content savedVersion = contentManager.getVersion(content.getPath(), versionId);
+      LOGGER.info("Saved Version as {} got as {} ", versionId, savedVersion);
 
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
@@ -125,6 +102,7 @@ public class SparseSaveVersionServlet extends SlingAllMethodsServlet implements 
   }
 
   public boolean accepts(SlingHttpServletRequest request) {
+    LOGGER.info("Checing accepts ");
     return (request.getResource() instanceof SparseContentResource);
   }
 

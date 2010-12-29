@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.version.impl;
+package org.sakaiproject.nakamura.version.impl.jcr;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
@@ -174,7 +174,7 @@ public class VersionRequestPathInfo implements RequestPathInfo {
    * @param suffix
    * @return
    */
-  protected static String removeVersionName(String selector, String extension) {
+  public static String removeVersionName(String selector, String extension) {
     String suffix = "";
     if ( selector != null ) {
       suffix = selector;

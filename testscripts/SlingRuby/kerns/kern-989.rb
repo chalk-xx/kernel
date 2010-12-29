@@ -58,8 +58,7 @@ class TC_Kern989Test < Test::Unit::TestCase
     versionHistory = JSON.parse(res.body)
     versions = versionHistory['versions']
     assert_not_nil(versions)
-    assert_equal(3,versions.size) 
-    assert_not_nil(versions['jcr:rootVersion'])
+    assert_equal(2,versions.size) 
     assert_not_nil(versions['1.0'])
     assert_not_nil(versions['1.1'])
 
@@ -75,27 +74,20 @@ class TC_Kern989Test < Test::Unit::TestCase
     version1 = JSON.parse(res.body)
     assert_equal("value1",version1['testing'])
     
-    res = @s.execute_get(url+".version.,jcr:rootVersion,.json")
-    @log.info(res.body)
-    versionCurrent = JSON.parse(res.body)
-    assert_nil(versionCurrent['testing'])
-
     # check that the body of a file is ok
     res = @s.execute_get(url+".version.,1.1")
     @log.info(res.body)
-   assert_equal("22",res.body)
+    assert_equal("22",res.body)
 
     res = @s.execute_get(url+".version.,1.0")
     @log.info(res.body)
-   assert_equal("1",res.body)
+    assert_equal("1",res.body)
     
-    res = @s.execute_get(url+".version.,jcr:rootVersion")
-    @log.info(res.body)
 
  
     res = @s.execute_get(url)
     @log.info(res.body)
-   assert_equal("333", res.body)
+    assert_equal("333", res.body)
 
   end
 

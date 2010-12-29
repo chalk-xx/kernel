@@ -43,6 +43,7 @@
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
+            <Private-Package>org.sakaiproject.nakamura.version.*</Private-Package>
           </instructions>
         </configuration>
       </plugin>

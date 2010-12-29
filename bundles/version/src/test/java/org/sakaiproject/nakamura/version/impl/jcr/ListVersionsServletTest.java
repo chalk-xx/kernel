@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.version.impl;
+package org.sakaiproject.nakamura.version.impl.jcr;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
@@ -31,6 +31,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.nakamura.version.impl.jcr.ListVersionsServletHandler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -55,7 +56,7 @@ import javax.servlet.ServletException;
  */
 public class ListVersionsServletTest extends AbstractEasyMockTest {
 
-  private ListVersionsServlet listVersionsServlet;
+  private ListVersionsServletHandler listVersionsServlet;
 
   /**
    * @throws java.lang.Exception
@@ -64,7 +65,7 @@ public class ListVersionsServletTest extends AbstractEasyMockTest {
   @Before
   public void setUp() throws Exception {
     super.setUp();
-    listVersionsServlet = new ListVersionsServlet();
+    listVersionsServlet = new ListVersionsServletHandler();
   }
 
   /**

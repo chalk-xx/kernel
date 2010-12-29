@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.version.impl;
+package org.sakaiproject.nakamura.version.impl.jcr;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -24,6 +24,8 @@ import org.apache.sling.api.resource.Resource;
 import org.easymock.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.nakamura.version.impl.VersionServiceImpl;
+import org.sakaiproject.nakamura.version.impl.jcr.SaveVersionServletHandler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -60,7 +62,7 @@ public class SaveVersionServletTest extends AbstractEasyMockTest {
 
     replay();
 
-    SaveVersionServlet saveVersionServlet = new SaveVersionServlet();
+    SaveVersionServletHandler saveVersionServlet = new SaveVersionServletHandler();
 
     saveVersionServlet.doPost(request, response);
 
@@ -99,7 +101,7 @@ public class SaveVersionServletTest extends AbstractEasyMockTest {
 
     replay();
 
-    SaveVersionServlet saveVersionServlet = new SaveVersionServlet();
+    SaveVersionServletHandler saveVersionServlet = new SaveVersionServletHandler();
     VersionServiceImpl versionServiceImpl = new VersionServiceImpl();
     saveVersionServlet.versionService = versionServiceImpl;
 

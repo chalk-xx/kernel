@@ -24,6 +24,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.resource.lite.ResourceJsonWriter;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -31,6 +32,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -82,11 +85,20 @@ public class GetContentPoolServlet extends SlingSafeMethodsServlet implements Op
     ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
     writer.setTidy(isTidy);
     try {
+      Content content = resource.adaptTo(Content.class);
+      if ( content != null ) {
+        ExtendedJSONWriter.writeNodeTreeToWriter(writer, content, false,  recursion);
+      } else {
+        Node node = resource.adaptTo(Node.class);
+        ExtendedJSONWriter.writeNodeTreeToWriter(writer, node, recursion);
+      }
       
-      ResourceJsonWriter.writeResourceTreeToWriter(writer, resource, recursion);
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.info("Caught JSONException {}", e.getMessage());
+    } catch (RepositoryException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      LOGGER.info("Caught Repository {}", e.getMessage());
     }
   }
 

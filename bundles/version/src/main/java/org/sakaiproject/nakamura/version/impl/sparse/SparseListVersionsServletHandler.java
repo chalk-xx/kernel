@@ -17,22 +17,14 @@
  */
 package org.sakaiproject.nakamura.version.impl.sparse;
 
-import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.OptingServlet;
-import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
-import org.sakaiproject.nakamura.api.doc.BindingType;
-import org.sakaiproject.nakamura.api.doc.ServiceBinding;
-import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
-import org.sakaiproject.nakamura.api.doc.ServiceExtension;
-import org.sakaiproject.nakamura.api.doc.ServiceMethod;
-import org.sakaiproject.nakamura.api.doc.ServiceParameter;
-import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -40,6 +32,8 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.resource.AbstractSafeMethodsServletResourceHandler;
+import org.sakaiproject.nakamura.api.resource.SafeServletResourceHandler;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -56,18 +50,10 @@ import javax.servlet.http.HttpServletResponse;
  * Gets a version
  */
 
-@ServiceDocumentation(name = "List Versions Servlet", description = "Lists versions of a resource in json format", shortDescription = "List versions of a resource", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = { "sling/servlet/default" }, selectors = @ServiceSelector(name = "versions", description = "Retrieves a paged list of versions for the resource"), extensions = @ServiceExtension(name = "json", description = "A list over versions in json format")), methods = @ServiceMethod(name = "GET", description = {
-    "Lists previous versions of a resource. The url is of the form "
-        + "http://host/resource.versions.json ",
-    "Example<br>"
-        + "<pre>curl http://localhost:8080/sresource/resource.versions.json</pre>" }, parameters = {
-    @ServiceParameter(name = "items", description = "The number of items per page"),
-    @ServiceParameter(name = "page", description = "The page to of items to return") }, response = {
-    @ServiceResponse(code = 200, description = "Success a body is returned containing a json tree"),
-    @ServiceResponse(code = 404, description = "Resource was not found."),
-    @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }))
-@SlingServlet(resourceTypes = "sling/servlet/default", methods = "GET", selectors = "versions", extensions = "json")
-public class SparseListVersionsServlet extends SlingSafeMethodsServlet implements OptingServlet {
+@Component(metatype=true, immediate=true)
+@Service(value=SafeServletResourceHandler.class)
+@Property(name="handling.servlet",value="ListVersionsServlet")
+public class SparseListVersionsServletHandler extends AbstractSafeMethodsServletResourceHandler {
 
 
   /**
@@ -96,10 +82,9 @@ public class SparseListVersionsServlet extends SlingSafeMethodsServlet implement
    *
    */
   private static final long serialVersionUID = 764192946800357626L;
-  private static final Logger LOGGER = LoggerFactory.getLogger(SparseListVersionsServlet.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SparseListVersionsServletHandler.class);
 
-  @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
+  public void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     Resource resource = request.getResource();
     String path = null;
@@ -149,9 +134,11 @@ public class SparseListVersionsServlet extends SlingSafeMethodsServlet implement
       write.object();
       
       for (int j = start; j < end ; j++) {
-        String versionId = versionList.get(j);
-        write.key(versionId);
+        write.key("1."+(versionList.size()-j-1));
         write.object();
+        write.key("versionId");
+        String versionId = versionList.get(j);
+        write.value(versionId);
         Content vContent = contentManager.getVersion(path, versionId);
         writeEditorDetails(vContent, write, authorizableManager);
         ExtendedJSONWriter.writeNodeContentsToWriter(write, vContent);

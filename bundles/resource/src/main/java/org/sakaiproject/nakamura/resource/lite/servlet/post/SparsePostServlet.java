@@ -16,7 +16,6 @@
  */
 package org.sakaiproject.nakamura.resource.lite.servlet.post;
 
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -547,6 +546,7 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
   }
 
   public boolean accepts(SlingHttpServletRequest request) {
+    log.info("Checing accepts ");
     return (request.getResource() instanceof SparseContentResource);
   }
 }

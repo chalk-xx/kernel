@@ -17,63 +17,43 @@
  */
 package org.sakaiproject.nakamura.version.impl.sparse;
 
-import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.resource.ValueMap;
-import org.apache.sling.api.servlets.OptingServlet;
-import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
-import org.sakaiproject.nakamura.api.doc.BindingType;
-import org.sakaiproject.nakamura.api.doc.ServiceBinding;
-import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
-import org.sakaiproject.nakamura.api.doc.ServiceExtension;
-import org.sakaiproject.nakamura.api.doc.ServiceMethod;
-import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.resource.AbstractSafeMethodsServletResourceHandler;
+import org.sakaiproject.nakamura.api.resource.SafeServletResourceHandler;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
-import org.sakaiproject.nakamura.version.impl.VersionRequestPathInfo;
+import org.sakaiproject.nakamura.version.impl.jcr.VersionRequestPathInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * Outputs a version
- */
-@SlingServlet(resourceTypes = "sling/servlet/default", methods = "GET", selectors = "version")
-@ServiceDocumentation(name = "Get Version Servlet", description = "Gets a previous version of a resource", shortDescription = "Get a version of a resource", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = { "sling/servlet/default" }, selectors = @ServiceSelector(name = "version", description = "Retrieves a named version of a resource, the version specified in the URL"), extensions = @ServiceExtension(name = "*", description = "All selectors availalble in SLing (jcon, html, xml)")), methods = @ServiceMethod(name = "GET", description = {
-    "Gets a previous version of a resource. The url is of the form "
-        + "http://host/resource.version.,versionnumber,.json "
-        + " where versionnumber is the version number of version to be retrieved. Note that the , "
-        + "at the start and end of versionnumber"
-        + " delimit the version number. Once the version of the node requested has been extracted the request "
-        + " is processed as for other Sling requests ",
-    "Example<br>"
-        + "<pre>curl http://localhost:8080/sresource/resource.version.,1.1,.json</pre>" }, response = {
-    @ServiceResponse(code = 200, description = "Success a body is returned"),
-    @ServiceResponse(code = 400, description = "If the version name is not known."),
-    @ServiceResponse(code = 404, description = "Resource was not found."),
-    @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }
 
-))
-public class SparseGetVersionServlet extends SlingSafeMethodsServlet implements
-    OptingServlet {
+@Component(metatype=true, immediate=true)
+@Service(value=SafeServletResourceHandler.class)
+@Property(name="handling.servlet",value="GetVersionServlet")
+public class SparseGetVersionServletHandler extends AbstractSafeMethodsServletResourceHandler {
 
-  public static final Logger LOG = LoggerFactory.getLogger(SparseGetVersionServlet.class);
+  public static final Logger LOG = LoggerFactory.getLogger(SparseGetVersionServletHandler.class);
   /**
 *
 */
@@ -82,29 +62,38 @@ public class SparseGetVersionServlet extends SlingSafeMethodsServlet implements
   /**
    * {@inheritDoc}
    * 
-   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.api.SlingHttpServletResponse)
    */
-  @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
+  public void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     RequestPathInfo requestPathInfo = request.getRequestPathInfo();
 
     // the version might be encapsulated in , at each end.
-    final String versionName = VersionRequestPathInfo.getVersionName(
+    String requestVersionName = VersionRequestPathInfo.getVersionName(
         requestPathInfo.getSelectorString(), requestPathInfo.getExtension());
-    if (versionName == null) {
+    if (requestVersionName == null) {
       response
           .sendError(HttpServletResponse.SC_BAD_REQUEST,
               "No version specified, url should of the form nodepath.version.,versionnumber,.json");
       return;
-    }
+    }    
     Resource resource = request.getResource();
     Content content = resource.adaptTo(Content.class);
     final ContentManager contentManager = resource.adaptTo(ContentManager.class);
     Content versionContentTemp;
     try {
-      versionContentTemp = contentManager.getVersion(content.getPath(), versionName);
+      if ( requestVersionName.startsWith("1.")) {
+        int versionNumber = Integer.parseInt(requestVersionName.substring(2));
+        List<String> versionIds = contentManager.getVersionHistory(content.getPath());
+        int i = versionIds.size()-1-versionNumber;
+        if ( i < 0 || i >= versionIds.size()) {
+          response
+          .sendError(HttpServletResponse.SC_BAD_REQUEST,
+              "No version specified, url should of the form nodepath.version.,versionnumber,.json");
+          return;          
+        }
+        requestVersionName = versionIds.get(versionIds.size()-1-versionNumber);
+      }
+      versionContentTemp = contentManager.getVersion(content.getPath(), requestVersionName);
     } catch (StorageClientException e1) {
       LOG.warn(e1.getMessage(),e1);
       throw new ServletException(e1.getMessage(),e1);
@@ -112,6 +101,7 @@ public class SparseGetVersionServlet extends SlingSafeMethodsServlet implements
       LOG.warn(e1.getMessage(),e1);
       throw new ServletException(e1.getMessage(),e1);
     }
+    final String versionName = requestVersionName;
     final Content versionContent = versionContentTemp;
     final VersionRequestPathInfo versionRequestPathInfo = new VersionRequestPathInfo(
         requestPathInfo);
