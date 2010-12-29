@@ -39,6 +39,8 @@ class TC_Kern926Test < Test::Unit::TestCase
     file = JSON.parse(res.body)
     id = file['random.txt']
     url = @fm.url_for_pooled_file(id)
+    res = @fm.get_members(id)
+    @log.error("Before Member Changes #{res.body} ")
 
     # Make sure that the other users cannot access it yet.
     @s.switch_user(manager)
@@ -48,10 +50,15 @@ class TC_Kern926Test < Test::Unit::TestCase
     res = @s.execute_get(url)
     assert_equal(404, res.code.to_i, "Only the creator should be able to view the file at this point.")
 
+
     # Make somebody a viewer
     @s.switch_user(creator)
     res = @fm.manage_members(id, viewer.name, nil, nil, nil)
     assert_equal(200, res.code.to_i, "Expected to be able to manipulate the member lists as a creator.")
+    @log.error("Added #{viewer.name} as a viewer ")
+
+    res = @fm.get_members(id)
+    @log.error("Added Viewer #{res.body} ")
 
     # Check if the viewer can see the file
     @s.switch_user(viewer)
@@ -61,22 +68,17 @@ class TC_Kern926Test < Test::Unit::TestCase
 
     # Add a manager
     @s.switch_user(creator)
-    @fm.manage_members(id, nil, nil, manager.name, nil)
+    @fm.manage_members(id, nil, viewer.name, manager.name, nil)
     assert_equal(200, res.code.to_i, "Expected to be able to manipulate the member lists as a creator.")
+    @log.error("Added #{manager.name} as a manager removed viewer #{viewer.name} ")
 
-    # Check if our manager has read access.
-    @s.switch_user(manager)
-    res = @s.execute_get(url)
-    assert_equal(200, res.code.to_i, "The viewer should be able to view the file at this point.")
-
-    # Remove the viewer.
-    @fm.manage_members(id, nil, viewer.name, nil, nil)
-    assert_equal(200, res.code.to_i, "Expected to be able to manipulate the member lists as a creator.")
+    res = @fm.get_members(id)
+    @log.error("Added Manageri removed viewer #{res.body} ")
 
     # The viewer shouldn't have access anymore
     @s.switch_user(viewer)
     res = @s.execute_get(url)
-    assert_equal(404, res.code.to_i, "The viewer should NOT be able to view the file when the manager has removed him.")
+    assert_equal(404, res.code.to_i, "The viewer should NOT be able to view the file when the manager has removed him. #{res.code} [#{res.body}]")
 
     # Get a member list.
     @s.switch_user(manager)
@@ -88,6 +90,39 @@ class TC_Kern926Test < Test::Unit::TestCase
 
 
   def test_search_me
+    m = Time.now.to_i.to_s
+
+    # Create some users
+    owner = create_user("creator2-#{m}")
+    # Check if our manager has read access.
+    @s.switch_user(manager)
+    res = @s.execute_get(url)
+    assert_equal(200, res.code.to_i, "The viewer should be able to view the file at this point.")
+
+    # Remove the viewer.
+    @fm.manage_members(id, nil, viewer.name, nil, nil)
+    assert_equal(200, res.code.to_i, "Expected to be able to manipulate the member lists as a creator.")
+    @log.error("Removed #{viewer.name} as a viewer ")
+  
+    
+    res = @fm.get_members(id)
+    @log.error("Removed Viewer #{res.body} ")
+
+    # The viewer shouldn't have access anymore
+    @s.switch_user(viewer)
+    res = @s.execute_get(url)
+    assert_equal(404, res.code.to_i, "The viewer should NOT be able to view the file when the manager has removed him. #{res.code} [#{res.body}]")
+
+    # Get a member list.
+    @s.switch_user(manager)
+    res = @fm.get_members(id)
+    assert_equal(200, res.code.to_i, "Expected to be able to get the members list.")
+    members = JSON.parse(res.body)
+    assert_equal(0, members["viewers"].length, "There should be no more viewers for this file.")
+  end
+
+
+  def Xtest_search_me
     m = Time.now.to_i.to_s
 
     # Create some users

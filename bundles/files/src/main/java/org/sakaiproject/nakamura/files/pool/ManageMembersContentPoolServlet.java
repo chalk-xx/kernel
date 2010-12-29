@@ -65,6 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -291,8 +292,11 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
 
       node.setProperty(POOLED_CONTENT_USER_VIEWER,
           StorageClientUtils.toStore(viewersSet.toArray(new String[viewersSet.size()])));
-      node.setProperty(POOLED_CONTENT_USER_VIEWER,
+      node.setProperty(POOLED_CONTENT_USER_MANAGER,
           StorageClientUtils.toStore(managerSet.toArray(new String[managerSet.size()])));
+      LOGGER.debug("Set Managers to {}",Arrays.toString(managerSet.toArray(new String[managerSet.size()])));
+      LOGGER.debug("Set Viewsers to {}",Arrays.toString(viewersSet.toArray(new String[managerSet.size()])));
+      LOGGER.debug("ACL Modifications {}",Arrays.toString(aclModifications.toArray(new AclModification[aclModifications.size()])));
 
       contentManager.update(node);
       accessControlManager.setAcl(Security.ZONE_CONTENT, node.getPath(),
