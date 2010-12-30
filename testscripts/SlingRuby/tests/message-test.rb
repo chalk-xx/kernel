@@ -9,7 +9,6 @@ require 'sling/message'
 require 'test/unit.rb'
 include SlingInterface
 include SlingUsers
-include SlingSites
 include SlingMessage
 
 class TC_MyMessageTest < Test::Unit::TestCase

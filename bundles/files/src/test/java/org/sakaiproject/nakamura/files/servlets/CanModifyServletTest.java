@@ -126,7 +126,6 @@ public class CanModifyServletTest {
     verify(response).setStatus(HttpServletResponse.SC_OK);
   }
 
-
   @Test
   public void testNotFound() throws ServletException, IOException,
       UnsupportedRepositoryOperationException, RepositoryException {
