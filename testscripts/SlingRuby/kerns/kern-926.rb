@@ -89,40 +89,8 @@ class TC_Kern926Test < Test::Unit::TestCase
   end
 
 
+
   def test_search_me
-    m = Time.now.to_i.to_s
-
-    # Create some users
-    owner = create_user("creator2-#{m}")
-    # Check if our manager has read access.
-    @s.switch_user(manager)
-    res = @s.execute_get(url)
-    assert_equal(200, res.code.to_i, "The viewer should be able to view the file at this point.")
-
-    # Remove the viewer.
-    @fm.manage_members(id, nil, viewer.name, nil, nil)
-    assert_equal(200, res.code.to_i, "Expected to be able to manipulate the member lists as a creator.")
-    @log.error("Removed #{viewer.name} as a viewer ")
-  
-    
-    res = @fm.get_members(id)
-    @log.error("Removed Viewer #{res.body} ")
-
-    # The viewer shouldn't have access anymore
-    @s.switch_user(viewer)
-    res = @s.execute_get(url)
-    assert_equal(404, res.code.to_i, "The viewer should NOT be able to view the file when the manager has removed him. #{res.code} [#{res.body}]")
-
-    # Get a member list.
-    @s.switch_user(manager)
-    res = @fm.get_members(id)
-    assert_equal(200, res.code.to_i, "Expected to be able to get the members list.")
-    members = JSON.parse(res.body)
-    assert_equal(0, members["viewers"].length, "There should be no more viewers for this file.")
-  end
-
-
-  def Xtest_search_me
     m = Time.now.to_i.to_s
 
     # Create some users
