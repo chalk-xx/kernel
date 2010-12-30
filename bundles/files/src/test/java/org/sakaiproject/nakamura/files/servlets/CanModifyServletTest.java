@@ -127,15 +127,6 @@ public class CanModifyServletTest {
   }
 
   @Test
-  public void testDoPost() throws ServletException, IOException,
-      UnsupportedRepositoryOperationException, RepositoryException {
-    servlet.doPost(request, response);
-    verify(response).setContentType("application/json");
-    verify(writer, atLeastOnce()).write(anyString());
-    verify(response).setStatus(HttpServletResponse.SC_OK);
-  }
-
-  @Test
   public void testNotFound() throws ServletException, IOException,
       UnsupportedRepositoryOperationException, RepositoryException {
     when(resource.adaptTo(Node.class)).thenReturn(null);

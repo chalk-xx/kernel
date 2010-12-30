@@ -7,7 +7,6 @@ include SlingInterface
 def sling
   $s = Sling.new
   $um = SlingUsers::UserManager.new($s)
-  $sm = SlingSites::SiteManager.new($s)
 end
 
 module IRB

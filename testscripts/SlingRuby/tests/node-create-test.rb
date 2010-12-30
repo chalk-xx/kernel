@@ -7,7 +7,6 @@ require 'sling/sling'
 require 'sling/test'
 include SlingInterface
 include SlingUsers
-include SlingSites
 
 class TC_NodeCreateTest < Test::Unit::TestCase
   include SlingTest

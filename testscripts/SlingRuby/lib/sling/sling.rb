@@ -5,7 +5,6 @@ require 'rubygems'
 require 'json'
 require 'yaml'
 require 'sling/users'
-require 'sling/sites'
 require 'logger'
 
 class String
