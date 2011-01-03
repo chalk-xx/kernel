@@ -72,12 +72,12 @@
       <version>0.10-SNAPSHOT</version>
       <scope>provided</scope>
       <exclusions>
-      	<exclusion>
-	<!-- org.apache.sling.commons.osgi is excluded bc it is a version that doesn't
-		have getComparableForServiceRanking() (v.1.0.6 and greater). If this changes,
-		remove this exclusion (not needed) -->
-      		<groupId>org.apache.sling</groupId>
-    		<artifactId>org.apache.sling.commons.osgi</artifactId>
+      <exclusion>
+        <!-- org.apache.sling.commons.osgi is excluded bc it is a version that doesn't
+            have getComparableForServiceRanking() (v.1.0.6 and greater). If this changes,
+            remove this exclusion (not needed) -->
+          <groupId>org.apache.sling</groupId>
+          <artifactId>org.apache.sling.commons.osgi</artifactId>
       	</exclusion>
       </exclusions>
     </dependency>
@@ -105,12 +105,12 @@
       <version>0.10-SNAPSHOT</version>
       <scope>provided</scope>
       <exclusions>
-      	<exclusion>
-	<!-- org.apache.sling.auth.core excluded bc it brings in a version
-		of org.apache.sling.commons.osgi that doesn't have getComparableForServiceRanking()
-		(v.1.0.6 and greater). If this changes, remove this exclusion (not needed) -->
-      		<groupId>org.apache.sling</groupId>
-      		<artifactId>orgorg.apache.sling.auth.core</artifactId>
+        <exclusion>
+        <!-- org.apache.sling.auth.core excluded bc it brings in a version
+            of org.apache.sling.commons.osgi that doesn't have getComparableForServiceRanking()
+            (v.1.0.6 and greater). If this changes, remove this exclusion (not needed) -->
+          <groupId>org.apache.sling</groupId>
+          <artifactId>org.apache.sling.auth.core</artifactId>
       	</exclusion>
       </exclusions>
     </dependency>
