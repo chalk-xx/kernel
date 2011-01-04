@@ -544,6 +544,11 @@ org.sakaiproject.nakamura.jpaprovider
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.templates</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.proxy</artifactId>
       <version>0.10-SNAPSHOT</version>
     </bundle>
