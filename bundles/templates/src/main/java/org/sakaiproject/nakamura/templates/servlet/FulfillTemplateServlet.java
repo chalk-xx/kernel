@@ -18,9 +18,13 @@ package org.sakaiproject.nakamura.templates.servlet;
 
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.api.resource.Resource;
 import org.osgi.service.component.ComponentContext;
 import org.apache.commons.collections.ExtendedProperties;
@@ -33,7 +37,9 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.runtime.RuntimeServices;
 import org.apache.velocity.runtime.log.LogChute;
 import org.sakaiproject.nakamura.api.templates.TemplateNodeSource;
+import org.sakaiproject.nakamura.api.templates.TemplateService;
 import org.sakaiproject.nakamura.templates.velocity.JcrResourceLoader;
+import org.sakaiproject.nakamura.templates.velocity.VelocityLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,10 +51,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(resourceTypes = { "sakai/template" }, generateComponent = true, generateService = true, methods = { "GET" })
-public class FulfillTemplateServlet extends SlingSafeMethodsServlet implements TemplateNodeSource {
+public class FulfillTemplateServlet extends SlingSafeMethodsServlet {
+
+  @Reference
+  protected TemplateService templateService;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FulfillTemplateServlet.class);
-  private ThreadLocal<Node> boundNode = new ThreadLocal<Node>();
+
 
   private VelocityEngine velocityEngine;
 
@@ -57,95 +66,34 @@ public class FulfillTemplateServlet extends SlingSafeMethodsServlet implements T
       throws ServletException, IOException {
 
     try {
+      // get text of the template
       Resource requestResource = request.getResource();
       Node templateNode = requestResource.adaptTo(Node.class);
       String templateText = "";
       if (templateNode != null && templateNode.hasProperty("sakai:template")) {
         templateText = templateNode.getProperty("sakai:template").getString();
-        boundNode.set(templateNode);
       } else {
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Requested path does not contain a Sakai template");
         return;
       }
-      // Find all velocity replacement variable(s) in the templateText,
-      // copy any equivalent keys from the input Map, to a new Map that
-      // can be process by Velocity. In the new Map, the Map value field
-      // has been changed from RequestParameter[] to String.
-      Map<String, String> inputContext = new HashMap<String, String>();
-      int startPosition = templateText.indexOf("${");
-      while(startPosition > -1) {
-        int endPosition = templateText.indexOf("}", startPosition);
-        if (endPosition > -1) {
-          String key = templateText.substring(startPosition + 2, endPosition);
-          Object value = request.getRequestParameter(key);
-          if (value instanceof RequestParameter[]) {
-            // now change input value object from RequestParameter[] to String
-            // and add to inputContext Map.
-            RequestParameter[] requestParameters = (RequestParameter[]) value;
-            inputContext.put(key, requestParameters[0].getString());
-          } else {
-            // KERN-1346 regression; see KERN-1409
-            inputContext.put(key, value.toString());
-          }
-          // look for the next velocity replacement variable
-          startPosition = templateText.indexOf("${", endPosition);
-        } else {
-          break;
-        }
+      Collection<String> missingTerms = templateService.missingTerms(request.getRequestParameterMap(), templateText);
+      if (!missingTerms.isEmpty()) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Your request is missing parameters for the template: "
+          + StringUtils.join(missingTerms, ", "));
       }
 
       if (templateNode.hasProperty("sakai:content-type")) {
         response.setContentType(templateNode.getProperty("sakai:content-type").getString());
       }
 
-      VelocityContext context = new VelocityContext(inputContext);
-      // combine template with parameter map
-      Reader template = new StringReader(templateText);
-      StringWriter templateWriter = new StringWriter();
-      velocityEngine.evaluate(context, templateWriter, "templateprocessing", template);
-      // return the result
-      PrintWriter w = response.getWriter();
-      w.append(templateWriter.toString());
-      w.flush();
+      response.getWriter().append(templateService.evaluateTemplate(request.getParameterMap(), templateText));
+      response.getWriter().flush();
+
+
     } catch (RepositoryException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
     }
 
   }
 
-  protected void activate(ComponentContext ctx) throws Exception {
-    velocityEngine = new VelocityEngine();
-    velocityEngine.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, new LogChute() {
-      public void init(RuntimeServices runtimeServices) throws Exception {
-        //To change body of implemented methods use File | Settings | File Templates.
-      }
-
-      public void log(int i, String s) {
-        //To change body of implemented methods use File | Settings | File Templates.
-      }
-
-      public void log(int i, String s, Throwable throwable) {
-        //To change body of implemented methods use File | Settings | File Templates.
-      }
-
-      public boolean isLevelEnabled(int i) {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-      }
-    });
-
-    velocityEngine.setProperty(VelocityEngine.RESOURCE_LOADER, "jcr");
-    velocityEngine.setProperty("jcr.resource.loader.class", JcrResourceLoader.class.getName());
-    ExtendedProperties configuration = new ExtendedProperties();
-    configuration.addProperty("jcr.resource.loader.resourceSource", this);
-    velocityEngine.setExtendedProperties(configuration);
-    try {
-      velocityEngine.init();
-    } catch (Exception e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-    }
-  }
-
-  public Node getNode() {
-    return boundNode.get();
-  }
 }
