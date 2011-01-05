@@ -21,13 +21,9 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.velocity.exception.ResourceNotFoundException;
-import org.apache.velocity.runtime.resource.Resource;
-import org.apache.velocity.runtime.resource.loader.ResourceLoader;
+import org.apache.sling.api.resource.Resource;
 import org.osgi.service.component.ComponentContext;
 import org.apache.commons.collections.ExtendedProperties;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -36,75 +32,84 @@ import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.runtime.RuntimeServices;
 import org.apache.velocity.runtime.log.LogChute;
-import org.sakaiproject.nakamura.templates.FooTemplateLoader;
+import org.sakaiproject.nakamura.api.templates.TemplateNodeSource;
+import org.sakaiproject.nakamura.templates.velocity.JcrResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.velocity.app.VelocityEngine;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@SlingServlet(paths = { "/system/template" }, generateComponent = true, generateService = true, methods = { "GET" })
-public class FulfillTemplateServlet extends SlingSafeMethodsServlet {
+@SlingServlet(resourceTypes = { "sakai/template" }, generateComponent = true, generateService = true, methods = { "GET" })
+public class FulfillTemplateServlet extends SlingSafeMethodsServlet implements TemplateNodeSource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FulfillTemplateServlet.class);
+  private ThreadLocal<Node> boundNode = new ThreadLocal<Node>();
 
   private VelocityEngine velocityEngine;
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    // get template document
-    // Find all velocity replacement variable(s) in the endpointURL,
-        // copy any equivalent keys from the input Map, to a new Map that
-        // can be process by Velocity. In the new Map, the Map value field
-        // has been changed from RequestParameter[] to String.
 
-        Map<String, String> inputContext = new HashMap<String, String>();
-        String endpointURL = sampleTemplate();
-        int startPosition = endpointURL.indexOf("${");
-        while(startPosition > -1) {
-          int endPosition = endpointURL.indexOf("}", startPosition);
-          if (endPosition > -1) {
-            String key = endpointURL.substring(startPosition + 2, endPosition);
-            Object value = request.getRequestParameter(key);
-            if (value instanceof RequestParameter[]) {
-              // now change input value object from RequestParameter[] to String
-              // and add to inputContext Map.
-              RequestParameter[] requestParameters = (RequestParameter[]) value;
-              inputContext.put(key, requestParameters[0].getString());
-            } else {
-              // KERN-1346 regression; see KERN-1409
-              inputContext.put(key, value.toString());
-            }
-            // look for the next velocity replacement variable
-            startPosition = endpointURL.indexOf("${", endPosition);
+    try {
+      Resource requestResource = request.getResource();
+      Node templateNode = requestResource.adaptTo(Node.class);
+      String templateText = "";
+      if (templateNode != null && templateNode.hasProperty("sakai:template")) {
+        templateText = templateNode.getProperty("sakai:template").getString();
+        boundNode.set(templateNode);
+      } else {
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Requested path does not contain a Sakai template");
+        return;
+      }
+      // Find all velocity replacement variable(s) in the templateText,
+      // copy any equivalent keys from the input Map, to a new Map that
+      // can be process by Velocity. In the new Map, the Map value field
+      // has been changed from RequestParameter[] to String.
+      Map<String, String> inputContext = new HashMap<String, String>();
+      int startPosition = templateText.indexOf("${");
+      while(startPosition > -1) {
+        int endPosition = templateText.indexOf("}", startPosition);
+        if (endPosition > -1) {
+          String key = templateText.substring(startPosition + 2, endPosition);
+          Object value = request.getRequestParameter(key);
+          if (value instanceof RequestParameter[]) {
+            // now change input value object from RequestParameter[] to String
+            // and add to inputContext Map.
+            RequestParameter[] requestParameters = (RequestParameter[]) value;
+            inputContext.put(key, requestParameters[0].getString());
           } else {
-            break;
+            // KERN-1346 regression; see KERN-1409
+            inputContext.put(key, value.toString());
           }
+          // look for the next velocity replacement variable
+          startPosition = templateText.indexOf("${", endPosition);
+        } else {
+          break;
         }
-
-        VelocityContext context = new VelocityContext(inputContext);
-//    Session session = request.getResourceResolver().adaptTo(Session.class);
-      RequestParameter templatePathParam = request.getRequestParameter("templatePath");
-      if (templatePathParam == null) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "This request must have a 'templatePath' parameter.");
-        return;
       }
 
-      if ("".equals(templatePathParam)) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The 'templatePath' parameter must not be blank.");
-        return;
+      if (templateNode.hasProperty("sakai:content-type")) {
+        response.setContentType(templateNode.getProperty("sakai:content-type").getString());
       }
-    // combine template with parameter map
-    Reader template = new StringReader(sampleTemplate());
-    StringWriter templateWriter = new StringWriter();
-    velocityEngine.evaluate(context, templateWriter, "templateprocessing", template);
-    // return the result
-    PrintWriter w = response.getWriter();
-    w.append(templateWriter.toString());
-    w.flush();
+
+      VelocityContext context = new VelocityContext(inputContext);
+      // combine template with parameter map
+      Reader template = new StringReader(templateText);
+      StringWriter templateWriter = new StringWriter();
+      velocityEngine.evaluate(context, templateWriter, "templateprocessing", template);
+      // return the result
+      PrintWriter w = response.getWriter();
+      w.append(templateWriter.toString());
+      w.flush();
+    } catch (RepositoryException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+    }
 
   }
 
@@ -128,10 +133,10 @@ public class FulfillTemplateServlet extends SlingSafeMethodsServlet {
       }
     });
 
-    velocityEngine.setProperty(VelocityEngine.RESOURCE_LOADER, "foo");
-    velocityEngine.setProperty("foo.resource.loader.class", FooTemplateLoader.class.getName());
+    velocityEngine.setProperty(VelocityEngine.RESOURCE_LOADER, "jcr");
+    velocityEngine.setProperty("jcr.resource.loader.class", JcrResourceLoader.class.getName());
     ExtendedProperties configuration = new ExtendedProperties();
-    configuration.addProperty("foo.resource.loader.resourceSource", this);
+    configuration.addProperty("jcr.resource.loader.resourceSource", this);
     velocityEngine.setExtendedProperties(configuration);
     try {
       velocityEngine.init();
@@ -140,4 +145,7 @@ public class FulfillTemplateServlet extends SlingSafeMethodsServlet {
     }
   }
 
+  public Node getNode() {
+    return boundNode.get();
+  }
 }
