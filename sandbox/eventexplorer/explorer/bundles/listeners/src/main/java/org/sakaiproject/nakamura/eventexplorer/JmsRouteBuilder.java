@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.eventexplorer;
 
-import org.apache.cassandra.thrift.Cassandra.Client;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,7 +24,6 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
-import org.sakaiproject.nakamura.eventexplorer.api.cassandra.CassandraService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +34,7 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
 import javax.jms.Session;
 
 @Component(enabled = true, metatype = true)
@@ -47,7 +46,8 @@ public class JmsRouteBuilder {
   @Property(description = "The URL endpoint to listen to.", value = "tcp://localhost:61616")
   static final String CONNECTION_URL = "jms.url";
   @Property(description = "The name of the queue", value = {
-      "org/apache/sling/api/resource/Resource/ADDED, org/apache/sling/api/resource/Resource/REMOVED",
+      "org/apache/sling/api/resource/Resource/ADDED",
+      "org/apache/sling/api/resource/Resource/REMOVED",
       "org/apache/sling/api/resource/Resource/CHANGED",
       "org/apache/sling/api/resource/ResourceProvider/ADDED",
       "org/apache/sling/api/resource/ResourceProvider/REMOVED",
@@ -55,15 +55,16 @@ public class JmsRouteBuilder {
   static final String JMS_TOPIC_NAMES = "jms.topic.names";
 
   @Reference
-  protected transient CassandraService cassandraService;
+  private ConnectionFactoryService connectionFactoryService;
 
+  // inject this through SCR so that we can change it out for other listeners
   @Reference
-  protected transient ConnectionFactoryService connectionFactoryService;
+  private MessageListener messageListener;
 
   private String[] topics;
   private String connectionURL;
 
-  private transient Connection connection;
+  private Connection connection;
   static final Logger LOGGER = LoggerFactory.getLogger(JmsRouteBuilder.class);
 
   @Activate
@@ -82,16 +83,12 @@ public class JmsRouteBuilder {
     // Create a session that listens to some events.
     Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-    // Construct our JMS listener.
-    Client client = cassandraService.getClient();
-    SakaiMessageListener processor = new SakaiMessageListener(client);
-
     // Loop over all the topics that are configured in the admin console and listen for
     // them.
     for (String topic : topics) {
       Destination destination = session.createTopic(topic);
       MessageConsumer messageConsumer = session.createConsumer(destination);
-      messageConsumer.setMessageListener(processor);
+      messageConsumer.setMessageListener(messageListener);
     }
   }
 

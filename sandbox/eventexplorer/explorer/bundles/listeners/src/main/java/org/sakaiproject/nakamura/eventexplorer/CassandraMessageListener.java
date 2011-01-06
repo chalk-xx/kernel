@@ -22,7 +22,11 @@ import org.apache.cassandra.thrift.Column;
 import org.apache.cassandra.thrift.ColumnOrSuperColumn;
 import org.apache.cassandra.thrift.ConsistencyLevel;
 import org.apache.cassandra.thrift.SuperColumn;
-import org.apache.cassandra.thrift.Cassandra.Client;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
+import org.sakaiproject.nakamura.eventexplorer.api.cassandra.CassandraService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +42,10 @@ import javax.jms.MessageListener;
 /**
  * Our JMS listener who picks up JMS messages and stores them in Cassandra.
  */
-public class SakaiMessageListener implements MessageListener {
-  static final Logger LOGGER = LoggerFactory.getLogger(SakaiMessageListener.class);
+@Component
+@Service
+public class CassandraMessageListener implements MessageListener {
+  private static final Logger LOGGER = LoggerFactory.getLogger(CassandraMessageListener.class);
 
   private Cassandra.Client client;
 
@@ -47,12 +53,12 @@ public class SakaiMessageListener implements MessageListener {
   private final String COLUMN_FAMILY_USERS = "Users";
   private final String ENCODING = "utf-8";
 
-  /**
-   * @param client
-   *          A Cassandra client.
-   */
-  public SakaiMessageListener(Client client) {
-    this.client = client;
+  @Reference
+  private CassandraService cassandraService;
+
+  @Activate
+  protected void activate(Map<?, ?> props) {
+    this.client = cassandraService.getClient();
   }
 
   /**
@@ -84,7 +90,7 @@ public class SakaiMessageListener implements MessageListener {
       }
 
       long id = System.currentTimeMillis();
-      SuperColumn column = new SuperColumn(("" + id).getBytes(ENCODING), column_list);
+      SuperColumn column = new SuperColumn(Long.toString(id).getBytes(ENCODING), column_list);
       ColumnOrSuperColumn columnOrSuperColumn = new ColumnOrSuperColumn();
       columnOrSuperColumn.setSuper_column(column);
       columns.add(columnOrSuperColumn);
@@ -92,7 +98,7 @@ public class SakaiMessageListener implements MessageListener {
       client.batch_insert(KEYSPACE, user, job, ConsistencyLevel.ALL);
       LOGGER.info("Inserted message for {}.", user);
     } catch (Exception e) {
-      LOGGER.warn("Failed to insert the JMS message in the cassandra store.", e);
+      LOGGER.warn("Failed to insert the JMS message in the cassandra store: " + e.getMessage(), e);
     }
   }
 }
