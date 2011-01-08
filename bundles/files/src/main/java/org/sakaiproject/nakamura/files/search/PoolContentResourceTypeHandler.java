@@ -59,7 +59,8 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PoolContentResourceTypeHandler.class);
-  @Reference
+  
+  @Reference(target="(type=sparse)")
   protected ResourceIndexingService resourceIndexingService;
 
   private static Map<String, String> getFieldMap() {
@@ -77,17 +78,17 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
 
   @Activate
   public void activate(Map<String, Object> properties) {
-    resourceIndexingService.addHandler("sakai/content-pool", this, Session.class);
+    resourceIndexingService.addHandler("sakai/content-pool", this);
   }
 
   @Deactivate
   public void deactivate(Map<String, Object> properties) {
-    resourceIndexingService.removeHander("sakai/content-pool", this, Session.class);
+    resourceIndexingService.removeHander("sakai/content-pool", this);
   }
 
   public Collection<SolrInputDocument> getDocuments(RepositorySession repositorySession,
       Event event) {
-    LOGGER.debug("GetDocuments for {} ", event);
+    LOGGER.info("GetDocuments for {} ", event);
     String path = (String) event.getProperty("path");
     if (ignorePath(path)) {
       return Collections.emptyList();
@@ -134,6 +135,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
         LOGGER.warn(e.getMessage(), e);
       }
     }
+    LOGGER.info("Got documents {} ", documents);
     return documents;
   }
 
@@ -143,7 +145,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
   }
 
   public Collection<String> getDeleteQueries(RepositorySession repositorySession, Event event) {
-    LOGGER.debug("GetDelete for {} ", event);
+    LOGGER.info("GetDelete for {} ", event);
     String path = (String) event.getProperty("path");
     boolean ignore = ignorePath(path);
     if ( ignore ) {
