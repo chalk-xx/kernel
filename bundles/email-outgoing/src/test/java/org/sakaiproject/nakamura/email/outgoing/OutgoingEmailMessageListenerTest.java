@@ -356,6 +356,7 @@ public class OutgoingEmailMessageListenerTest {
         false).times(2);
     expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(toProp);
     expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(fromProp);
+    expect(messageNode.hasProperty(MessageConstants.PROP_TEMPLATE_PATH)).andReturn(false);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(true);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(false);
     expect(messageNode.hasNodes()).andReturn(false);

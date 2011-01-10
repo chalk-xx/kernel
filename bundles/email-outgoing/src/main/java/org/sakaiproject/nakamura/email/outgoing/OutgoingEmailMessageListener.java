@@ -31,6 +31,7 @@ import org.apache.sling.commons.scheduler.Job;
 import org.apache.sling.commons.scheduler.JobContext;
 import org.apache.sling.commons.scheduler.Scheduler;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.resource.JcrPropertyMap;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
@@ -39,6 +40,7 @@ import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
 import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.templates.TemplateService;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,6 +95,8 @@ public class OutgoingEmailMessageListener implements MessageListener {
   protected EventAdmin eventAdmin;
   @Reference
   protected ConnectionFactoryService connFactoryService;
+  @Reference
+  protected TemplateService templateService;
 
   protected static final String NODE_PATH_PROPERTY = "nodePath";
 
@@ -273,9 +277,19 @@ public class OutgoingEmailMessageListener implements MessageListener {
     }
 
     if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)) {
+      String messageBody = messageNode.getProperty(MessageConstants.PROP_SAKAI_BODY).getString();
+      // if this message has a template, use it
+      if (messageNode.hasProperty(MessageConstants.PROP_TEMPLATE_PATH)
+          && messageNode.hasProperty(MessageConstants.PROP_TEMPLATE_PARAMS)) {
+        Map parameters = new JcrPropertyMap(messageNode.getProperty(MessageConstants.PROP_TEMPLATE_PARAMS).getNode());
+        Node templateNode = session.getNode(messageNode.getProperty(MessageConstants.PROP_TEMPLATE_PATH).getString());
+        if (templateNode.hasProperty("sakai:template")) {
+          String template = templateNode.getProperty("sakai:template").getString();
+          messageBody = templateService.evaluateTemplate(parameters, template);
+        }
+      }
       try {
-        email.setMsg(messageNode.getProperty(MessageConstants.PROP_SAKAI_BODY)
-            .getString());
+        email.setMsg(messageBody);
       } catch (EmailException e) {
         throw new EmailDeliveryException("Invalid Message Body, message is being dropped :" + e.getMessage(), e);
       }
