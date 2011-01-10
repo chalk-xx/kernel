@@ -279,14 +279,22 @@ public class OutgoingEmailMessageListener implements MessageListener {
     if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)) {
       String messageBody = messageNode.getProperty(MessageConstants.PROP_SAKAI_BODY).getString();
       // if this message has a template, use it
+      LOGGER.debug("Checking for sakai:templatePath and sakai:templateParams properties on the outgoing message's node.");
       if (messageNode.hasProperty(MessageConstants.PROP_TEMPLATE_PATH)
           && messageNode.hasProperty(MessageConstants.PROP_TEMPLATE_PARAMS)) {
         Map parameters = new JcrPropertyMap(messageNode.getProperty(MessageConstants.PROP_TEMPLATE_PARAMS).getNode());
-        Node templateNode = session.getNode(messageNode.getProperty(MessageConstants.PROP_TEMPLATE_PATH).getString());
+        String templatePath = messageNode.getProperty(MessageConstants.PROP_TEMPLATE_PATH).getString();
+        LOGGER.debug("Got the path '{0}' to the template for this outgoing message.", templatePath);
+        Node templateNode = session.getNode(templatePath);
         if (templateNode.hasProperty("sakai:template")) {
           String template = templateNode.getProperty("sakai:template").getString();
+          LOGGER.debug("Pulled the template body from the template node: {0}", template);
           messageBody = templateService.evaluateTemplate(parameters, template);
+          LOGGER.debug("Performed parameter substitution in the template: {0}", messageBody);
         }
+      } else {
+        LOGGER.debug("Message node '{0}' does not have sakai:templatePath and sakai:templateParams properties",
+            messageNode.getPath());
       }
       try {
         email.setMsg(messageBody);
