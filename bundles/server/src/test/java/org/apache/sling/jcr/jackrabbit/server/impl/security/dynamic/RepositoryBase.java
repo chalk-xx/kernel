@@ -28,6 +28,7 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.lite.ConfigurationImpl;
+import org.sakaiproject.nakamura.lite.LoggingStorageListener;
 import org.sakaiproject.nakamura.lite.authorizable.AuthorizableActivator;
 import org.sakaiproject.nakamura.lite.jackrabbit.SparseRepositoryHolder;
 import org.sakaiproject.nakamura.lite.storage.StorageClient;
@@ -136,6 +137,7 @@ public class RepositoryBase {
     sparseRepository = new org.sakaiproject.nakamura.lite.RepositoryImpl();
     sparseRepository.setConfiguration(configuration);
     sparseRepository.setConnectionPool(connectionPool);
+    sparseRepository.setStorageListener(new LoggingStorageListener());
     sparseRepository.activate(new HashMap<String, Object>());
     SparseRepositoryHolder.setSparseRespository(sparseRepository);
   }

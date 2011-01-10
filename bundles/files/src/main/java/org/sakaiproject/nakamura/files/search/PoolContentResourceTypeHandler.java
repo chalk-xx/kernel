@@ -59,7 +59,11 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PoolContentResourceTypeHandler.class);
-  @Reference
+  private static final String[] CONTENT_TYPES = new String[] {
+    "sakai/pooled-content"
+  };
+  
+  @Reference(target="(type=sparse)")
   protected ResourceIndexingService resourceIndexingService;
 
   private static Map<String, String> getFieldMap() {
@@ -77,12 +81,14 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
 
   @Activate
   public void activate(Map<String, Object> properties) {
-    resourceIndexingService.addHandler("sakai/content-pool", this, Session.class);
+    for ( String type : CONTENT_TYPES ) {
+      resourceIndexingService.addHandler(type, this);
+    }
   }
 
   @Deactivate
   public void deactivate(Map<String, Object> properties) {
-    resourceIndexingService.removeHander("sakai/content-pool", this, Session.class);
+    resourceIndexingService.removeHander("sakai/content-pool", this);
   }
 
   public Collection<SolrInputDocument> getDocuments(RepositorySession repositorySession,
@@ -134,6 +140,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
         LOGGER.warn(e.getMessage(), e);
       }
     }
+    LOGGER.debug("Got documents {} ", documents);
     return documents;
   }
 
