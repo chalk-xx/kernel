@@ -102,7 +102,7 @@ public class CanModifyContentPoolServlet extends SlingSafeMethodsServlet {
         if (verbose) {
           writer.key("privileges");
           Map<String, Object> privileges = new HashMap<String, Object>();
-          Permission[] userPrivs = accessControlManager.getPemissions(Security.ZONE_CONTENT, path);
+          Permission[] userPrivs = accessControlManager.getPermissions(Security.ZONE_CONTENT, path);
           if (userPrivs != null && userPrivs.length > 0) {
             for (Permission permission : userPrivs) {
               privileges.put(permission.getName(), true);
