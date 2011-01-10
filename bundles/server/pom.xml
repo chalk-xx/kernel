@@ -63,7 +63,8 @@
                  org.apache.jackrabbit.core.ItemManager,
                  org.apache.jackrabbit.core.security.principal.AbstractPrincipalProvider,
                  org.apache.jackrabbit.core.security.authorization.acl.ACLProvider,
-                 org.apache.jackrabbit.core.security.principal.DefaultPrincipalProvider
+                 org.apache.jackrabbit.core.security.principal.DefaultPrincipalProvider,
+                 org.apache.jackrabbit.core.SessionImpl
               </excludes>
             </configuration>
           </execution>
