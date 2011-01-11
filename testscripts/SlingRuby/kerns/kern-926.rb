@@ -40,7 +40,7 @@ class TC_Kern926Test < Test::Unit::TestCase
     id = file['random.txt']
     url = @fm.url_for_pooled_file(id)
     res = @fm.get_members(id)
-    @log.error("Before Member Changes #{res.body} ")
+    @log.info("Before Member Changes #{res.body} ")
 
     # Make sure that the other users cannot access it yet.
     @s.switch_user(manager)
@@ -55,10 +55,10 @@ class TC_Kern926Test < Test::Unit::TestCase
     @s.switch_user(creator)
     res = @fm.manage_members(id, viewer.name, nil, nil, nil)
     assert_equal(200, res.code.to_i, "Expected to be able to manipulate the member lists as a creator.")
-    @log.error("Added #{viewer.name} as a viewer ")
+    @log.info("Added #{viewer.name} as a viewer ")
 
     res = @fm.get_members(id)
-    @log.error("Added Viewer #{res.body} ")
+    @log.info("Added Viewer #{res.body} ")
 
     # Check if the viewer can see the file
     @s.switch_user(viewer)
@@ -70,10 +70,10 @@ class TC_Kern926Test < Test::Unit::TestCase
     @s.switch_user(creator)
     @fm.manage_members(id, nil, viewer.name, manager.name, nil)
     assert_equal(200, res.code.to_i, "Expected to be able to manipulate the member lists as a creator.")
-    @log.error("Added #{manager.name} as a manager removed viewer #{viewer.name} ")
+    @log.info("Added #{manager.name} as a manager removed viewer #{viewer.name} ")
 
     res = @fm.get_members(id)
-    @log.error("Added Manageri removed viewer #{res.body} ")
+    @log.info("Added Manageri removed viewer #{res.body} ")
 
     # The viewer shouldn't have access anymore
     @s.switch_user(viewer)
