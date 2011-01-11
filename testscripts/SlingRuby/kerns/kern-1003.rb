@@ -86,8 +86,7 @@ class TC_Kern1003Test < Test::Unit::TestCase
     versionHistory = JSON.parse(res.body)
     versions = versionHistory['versions']
     assert_not_nil(versions)
-    assert_equal(3,versions.size)
-    assert_not_nil(versions['jcr:rootVersion'])
+    assert_equal(2,versions.size)
     assert_not_nil(versions['1.0'])
     assert_not_nil(versions['1.1'])
 
