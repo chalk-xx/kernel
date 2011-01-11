@@ -63,7 +63,7 @@ public class LiteMessageRouterManagerImpl implements LiteMessageRouterManager {
     routers = getSortedRouterList();
   }
 
-  protected void removeMessageRouter(MessageRouter router ) {
+  protected void removeMessageRouter(LiteMessageRouter router ) {
     messageRouters.remove(router);
     routers = getSortedRouterList();
   }
