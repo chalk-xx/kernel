@@ -50,6 +50,7 @@ public class OutgoingEmailMessageListenerTest {
   private static Wiser wiser;
   private static int smtpPort;
 
+  @SuppressWarnings("unchecked")
   @Before
   public void setup() throws Exception {
     connFactoryService = new ActiveMQConnectionFactoryService();

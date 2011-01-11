@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.api.docproxy;
 
 import java.io.InputStream;
-import java.util.Iterator;
 import java.util.Map;
 
 import javax.jcr.Node;

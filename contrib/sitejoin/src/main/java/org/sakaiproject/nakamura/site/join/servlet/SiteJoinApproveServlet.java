@@ -28,15 +28,9 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.osgi.service.event.EventAdmin;
-import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
-import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
 import org.sakaiproject.nakamura.api.site.join.JoinRequestConstants;
 import org.sakaiproject.nakamura.api.site.join.JoinRequestUtil;
-import org.sakaiproject.nakamura.site.SiteEventUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -52,8 +46,6 @@ import javax.servlet.http.HttpServletResponse;
 @SlingServlet(resourceTypes = "sakai/site", methods = "POST", selectors = "approve")
 public class SiteJoinApproveServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -522151562754810962L;
-  private static final Logger logger = LoggerFactory
-      .getLogger(SiteJoinApproveServlet.class);
 
 //  @Reference
 //  private EventAdmin eventAdmin;

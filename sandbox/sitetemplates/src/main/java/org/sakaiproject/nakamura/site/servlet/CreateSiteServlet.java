@@ -47,7 +47,6 @@ import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
@@ -63,7 +62,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;

@@ -88,7 +88,6 @@ public abstract class AbstractResource implements Resource {
      * calling the {@link ResourceUtil#getParent(String)} method and then to
      * retrieve that resource from the resource resolver.
      */
-    @SuppressWarnings("deprecation")
     public Resource getParent() {
         /*
          * Implemented calling the deprecated ResourceUtil.getParent method

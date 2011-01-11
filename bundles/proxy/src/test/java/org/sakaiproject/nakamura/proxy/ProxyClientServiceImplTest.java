@@ -20,7 +20,6 @@ package org.sakaiproject.nakamura.proxy;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.apache.jackrabbit.JcrConstants;
@@ -67,8 +66,6 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
       + "</soap:Body>" + "</soap:Envelope>";
 
   private static final String STOCK_NAME = "IBM";
-  private static final String CHECK_REQUEST = "<m:StockName>" + STOCK_NAME
-      + "</m:StockName>";
   private static final String RESPONSE_BODY = "<?xml version=\"1.0\"?>\n"
       + "<soap:Envelope xmlns:soap=\"http://www.w3.org/2001/12/soap-envelope\" "
       + "soap:encodingStyle=\"http://www.w3.org/2001/12/soap-encoding\"> "

@@ -4,7 +4,6 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.VersioningConfiguration;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -22,7 +21,6 @@ public class DeleteOperation extends AbstractSlingPostOperation {
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
       ContentManager contentManager, List<Modification> changes)
       throws StorageClientException, AccessDeniedException, IOException {
-    VersioningConfiguration versioningConfiguration = getVersioningConfiguration(request);
 
     Iterator<Resource> res = getApplyToResources(request);
     if (res == null) {
