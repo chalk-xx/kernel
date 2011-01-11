@@ -89,7 +89,8 @@ public class ContentPoolProvider implements ResourceProvider {
     } catch (StorageClientException e) {
       LOGGER.warn(e.getMessage(), e);
     } catch (AccessDeniedException e) {
-      LOGGER.warn(e.getMessage(), e);
+      LOGGER.warn(e.getMessage());
+      LOGGER.debug(e.getMessage(), e);
     }
     return null;
   }

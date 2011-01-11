@@ -198,6 +198,7 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
         processors = this.cachedPostProcessors;
       }
       try {
+        log.info("Performing operation {} ",operation);
         operation.run(request, htmlResponse, processors);
       } catch (ResourceNotFoundException rnfe) {
         htmlResponse.setStatus(HttpServletResponse.SC_NOT_FOUND, rnfe.getMessage());
