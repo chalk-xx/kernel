@@ -47,10 +47,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
-import javax.jcr.PathNotFoundException;
-import javax.jcr.RepositoryException;
-import javax.jcr.UnsupportedRepositoryOperationException;
-
 /**
  * Service for doing operations with messages.
  */
@@ -189,13 +185,9 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
       path = "/~" + rcpt + "/" + MessageConstants.FOLDER_MESSAGES;
 //      Authorizable au = PersonalUtils.getAuthorizable(session, rcpt);
 //      path = PersonalUtils.getHomeFolder(au) + "/" + MessageConstants.FOLDER_MESSAGES;
-    } catch (RepositoryException e) {
-      LOGGER.warn("Caught RepositoryException when trying to get the full path to {} store.", rcpt,e);
-      throw new MessagingException(500, e.getMessage());
     } catch (AccessDeniedException e) {
-      LOGGER.warn("AccessDeniedException on trying to get message store path."
-          + e.getMessage());
-      throw new MessagingException("Unable to get message store path.");
+      LOGGER.warn("AccessDeniedException when trying to get the full path to {} store.", rcpt,e);
+      throw new MessagingException(500, e.getMessage());
     }
 
     return path;
@@ -213,8 +205,7 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   }
 
   private String expandHomeDirectoryInPath(Session session, String path)
-  throws AccessDeniedException, UnsupportedRepositoryOperationException,
-  RepositoryException {
+  throws AccessDeniedException {
     // TODO Punt on this for the moment.
 //    Matcher homePathMatcher = homePathPattern.matcher(path);
 //    if (homePathMatcher.find()) {
