@@ -70,15 +70,9 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteMessagingServiceImpl.class);
 
-
-
   /**
-   *
    * {@inheritDoc}
-   *
-   * @throws MessagingException
-   *
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#create(org.apache.sling.api.resource.Resource)
+   * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#create(org.sakaiproject.nakamura.api.lite.Session, java.util.Map)
    */
   public Content create(Session session, Map<String, Object> mapProperties)
       throws MessagingException {
@@ -96,12 +90,8 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   }
 
   /**
-   *
    * {@inheritDoc}
-   *
-   * @throws MessagingException
-   *
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#create(org.apache.sling.api.resource.Resource)
+   * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#create(org.sakaiproject.nakamura.api.lite.Session, java.util.Map, java.lang.String)
    */
   public Content create(Session session, Map<String, Object> mapProperties, String messageId)
       throws MessagingException {
@@ -161,14 +151,8 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   }
 
   /**
-   *
    * {@inheritDoc}
-   * @throws StorageClientException
-   * @throws IOException
-   * @throws AccessDeniedException
-   * @throws RepositoryException
-   * @throws PathNotFoundException
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#copyMessage(java.lang.String, java.lang.String, java.lang.String)
+   * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#copyMessageNode(org.sakaiproject.nakamura.api.lite.content.Content, java.lang.String, org.sakaiproject.nakamura.api.lite.Session)
    */
   public void copyMessageNode(Content sourceMessage, String targetStore, Session session)
       throws StorageClientException, AccessDeniedException, IOException {
@@ -180,11 +164,8 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   }
 
   /**
-   *
    * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#getFullPathToMessage(java.lang.String,
-   *      java.lang.String)
+   * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#getFullPathToMessage(java.lang.String, java.lang.String, org.sakaiproject.nakamura.api.lite.Session)
    */
   public String getFullPathToMessage(String rcpt, String messageId, Session session) throws MessagingException {
     String storePath = getFullPathToStore(rcpt, session);
@@ -192,10 +173,8 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   }
 
   /**
-   *
    * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#getFullPathToStore(java.lang.String)
+   * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#getFullPathToStore(java.lang.String, org.sakaiproject.nakamura.api.lite.Session)
    */
   public String getFullPathToStore(String rcpt, Session session) throws MessagingException {
     String path = "";
@@ -222,10 +201,9 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
     return path;
   }
 
-
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#expandAliases(java.lang.String)
+   * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#expandAliases(java.lang.String)
    */
   public List<String> expandAliases(String localRecipient) {
     List<String> expanded = new ArrayList<String>();
