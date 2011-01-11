@@ -47,10 +47,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
-import javax.jcr.PathNotFoundException;
-import javax.jcr.RepositoryException;
-import javax.jcr.UnsupportedRepositoryOperationException;
-
 /**
  * Service for doing operations with messages.
  */
@@ -70,15 +66,9 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteMessagingServiceImpl.class);
 
-
-
   /**
-   *
    * {@inheritDoc}
-   *
-   * @throws MessagingException
-   *
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#create(org.apache.sling.api.resource.Resource)
+   * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#create(org.sakaiproject.nakamura.api.lite.Session, java.util.Map)
    */
   public Content create(Session session, Map<String, Object> mapProperties)
       throws MessagingException {
@@ -96,11 +86,8 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   }
 
   /**
-   *
    * {@inheritDoc}
-   *
-   * @throws MessagingException
-   *
+   * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#create(org.sakaiproject.nakamura.api.lite.Session, java.util.Map, java.lang.String)
    */
   public Content create(Session session, Map<String, Object> mapProperties, String messageId)
       throws MessagingException {
@@ -160,14 +147,8 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   }
 
   /**
-   *
    * {@inheritDoc}
-   * @throws StorageClientException
-   * @throws IOException
-   * @throws AccessDeniedException
-   * @throws RepositoryException
-   * @throws PathNotFoundException
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#copyMessage(java.lang.String, java.lang.String, java.lang.String)
+   * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#copyMessageNode(org.sakaiproject.nakamura.api.lite.content.Content, java.lang.String, org.sakaiproject.nakamura.api.lite.Session)
    */
   public void copyMessageNode(Content sourceMessage, String targetStore, Session session)
       throws StorageClientException, AccessDeniedException, IOException {
@@ -179,11 +160,8 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   }
 
   /**
-   *
    * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#getFullPathToMessage(java.lang.String,
-   *      java.lang.String)
+   * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#getFullPathToMessage(java.lang.String, java.lang.String, org.sakaiproject.nakamura.api.lite.Session)
    */
   public String getFullPathToMessage(String rcpt, String messageId, Session session) throws MessagingException {
     String storePath = getFullPathToStore(rcpt, session);
@@ -191,10 +169,8 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   }
 
   /**
-   *
    * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#getFullPathToStore(java.lang.String)
+   * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#getFullPathToStore(java.lang.String, org.sakaiproject.nakamura.api.lite.Session)
    */
   public String getFullPathToStore(String rcpt, Session session) throws MessagingException {
     String path = "";
@@ -209,22 +185,17 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
       path = "/~" + rcpt + "/" + MessageConstants.FOLDER_MESSAGES;
 //      Authorizable au = PersonalUtils.getAuthorizable(session, rcpt);
 //      path = PersonalUtils.getHomeFolder(au) + "/" + MessageConstants.FOLDER_MESSAGES;
-    } catch (RepositoryException e) {
-      LOGGER.warn("Caught RepositoryException when trying to get the full path to {} store.", rcpt,e);
-      throw new MessagingException(500, e.getMessage());
     } catch (AccessDeniedException e) {
-      LOGGER.warn("AccessDeniedException on trying to get message store path."
-          + e.getMessage());
-      throw new MessagingException("Unable to get message store path.");
+      LOGGER.warn("AccessDeniedException when trying to get the full path to {} store.", rcpt,e);
+      throw new MessagingException(500, e.getMessage());
     }
 
     return path;
   }
 
-
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#expandAliases(java.lang.String)
+   * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#expandAliases(java.lang.String)
    */
   public List<String> expandAliases(String localRecipient) {
     List<String> expanded = new ArrayList<String>();
@@ -234,8 +205,7 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   }
 
   private String expandHomeDirectoryInPath(Session session, String path)
-  throws AccessDeniedException, UnsupportedRepositoryOperationException,
-  RepositoryException {
+  throws AccessDeniedException {
     // TODO Punt on this for the moment.
 //    Matcher homePathMatcher = homePathPattern.matcher(path);
 //    if (homePathMatcher.find()) {
