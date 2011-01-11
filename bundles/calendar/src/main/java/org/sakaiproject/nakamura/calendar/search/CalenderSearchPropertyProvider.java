@@ -28,9 +28,9 @@ import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.sakaiproject.nakamura.api.calendar.CalendarConstants;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.util.DateUtils;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,7 +180,7 @@ public class CalenderSearchPropertyProvider implements SearchPropertyProvider {
       String user = request.getRemoteUser();
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Authorizable au = PersonalUtils.getAuthorizable(session, user);
-      String path = PersonalUtils.getHomeFolder(au) + "/"
+      String path = PersonalUtils.getHomePath(au) + "/"
           + CalendarConstants.SAKAI_CALENDAR_NODENAME;
 
       RequestParameter pathParam = request.getRequestParameter(PATH_PARAM);

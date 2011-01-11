@@ -21,8 +21,8 @@ package org.sakaiproject.nakamura.connections;
 import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.CONTACT_STORE_NAME;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 
 /**
  * Simple utils which help us when working with connections
@@ -83,7 +83,7 @@ public class ConnectionUtils {
    *         /_user/j/jo/joh/john/johndoe/contacts
    */
   public static String getConnectionPathBase(Authorizable au) {
-    return PersonalUtils.getHomeFolder(au) + "/" + CONTACT_STORE_NAME;
+    return PersonalUtils.getHomePath(au) + "/" + CONTACT_STORE_NAME;
   }
 
 }

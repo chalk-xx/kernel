@@ -20,12 +20,10 @@ package org.sakaiproject.nakamura.profile;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_DESCRIPTION_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_IDENTIFIER_PROPERTY;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_JCR_PATH_PREFIX;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_PROFILE_RT;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_TITLE_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_BASIC;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_IDENTIFIER_PROPERTY;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_JCR_PATH_PREFIX;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_PICTURE;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_PROFILE_RT;
 
@@ -36,7 +34,6 @@ import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.ReferenceStrategy;
 import org.apache.felix.scr.annotations.References;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.resource.ValueMap;
@@ -47,6 +44,7 @@ import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,48 +73,8 @@ public class ProfileServiceImpl implements ProfileService {
   private Map<String, ProfileProvider> providers = new ConcurrentHashMap<String, ProfileProvider>();
   private ProviderSettingsFactory providerSettingsFactory = new ProviderSettingsFactory();
   public static final Logger LOG = LoggerFactory.getLogger(ProfileServiceImpl.class);
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.api.profile.ProfileService#getHomePath(org.apache.jackrabbit.api.security.user.Authorizable)
-   */
-  public String getHomePath(Authorizable authorizable) {
-    String folder = PathUtils.getSubPath(authorizable);
-    if (authorizable != null && authorizable.isGroup()) {
-      folder = GROUP_JCR_PATH_PREFIX + folder;
-    } else {
-      folder = USER_JCR_PATH_PREFIX + folder;
-    }
-    return PathUtils.normalizePath(folder);
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.api.profile.ProfileService#getPrivatePath(org.apache.jackrabbit.api.security.user.Authorizable)
-   */
-  public String getPrivatePath(Authorizable authorizable) {
-    return getHomePath(authorizable) + "/private";
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.api.profile.ProfileService#getPublicPath(org.apache.jackrabbit.api.security.user.Authorizable)
-   */
-  public String getPublicPath(Authorizable authorizable) {
-    return getHomePath(authorizable) + "/public";
-  }
-
-  /**
-   *
-   * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.api.profile.ProfileService#getProfilePath(org.apache.jackrabbit.api.security.user.Authorizable)
-   */
-  public String getProfilePath(Authorizable authorizable) {
-    return getPublicPath(authorizable) + "/authprofile";
-  }
+  
+  
 
   /**
    * {@inheritDoc}
@@ -126,7 +84,7 @@ public class ProfileServiceImpl implements ProfileService {
    */
   public ValueMap getProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException {
-    String profilePath = getProfilePath(authorizable);
+    String profilePath = PersonalUtils.getProfilePath(authorizable);
     String relativePath = profilePath.substring(1);
     ValueMap profileMap;
     if (session.getRootNode().hasNode(relativePath)) {
@@ -246,7 +204,7 @@ public class ProfileServiceImpl implements ProfileService {
         }
         // Backward compatible reasons.
         compactProfile.put("userid", authorizable.getID());
-        compactProfile.put("hash", getUserHashedPath(authorizable));
+        compactProfile.put("hash", PersonalUtils.getUserHashedPath(authorizable));
       }
     }
     return compactProfile;
@@ -335,23 +293,6 @@ public class ProfileServiceImpl implements ProfileService {
       return path + name;
     }
     return path + "/" + name;
-  }
-
-  /**
-   * @param au
-   *          The authorizable to get the hashed path for.
-   * @return The hashed path (ex: a/ad/adm/admi/admin/)
-   * @throws RepositoryException
-   */
-  private static String getUserHashedPath(Authorizable au) throws RepositoryException {
-    String hash = null;
-    if (au.hasProperty("path")) {
-      hash = au.getProperty("path")[0].getString();
-    } else {
-      ItemBasedPrincipal principal = (ItemBasedPrincipal) au.getPrincipal();
-      hash = principal.getPath();
-    }
-    return hash;
   }
 
   protected void bindProfileProvider(ProfileProvider provider,

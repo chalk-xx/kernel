@@ -15,20 +15,13 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.personal;
+package org.sakaiproject.nakamura.util;
 
-import static org.sakaiproject.nakamura.api.personal.PersonalConstants.AUTH_PROFILE;
-import static org.sakaiproject.nakamura.api.personal.PersonalConstants.PRIVATE;
-import static org.sakaiproject.nakamura.api.personal.PersonalConstants.PUBLIC;
-import static org.sakaiproject.nakamura.api.personal.PersonalConstants._GROUP;
-import static org.sakaiproject.nakamura.api.personal.PersonalConstants._USER;
 
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.sakaiproject.nakamura.util.JcrUtils;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +36,38 @@ import javax.jcr.Value;
  *
  */
 public class PersonalUtils {
+
+  /**
+   * Property name for the e-mail property of a user's profile
+   */
+  public static final String PROP_EMAIL_ADDRESS = "email";
+  /**
+   * The base location of the user space.
+   */
+  public static final String PATH_USER = "/_user";
+  /**
+   * The base location of the group space.
+   */
+  public static final String PATH_GROUP = "/_group";
+  
+  /**
+   * The node name of the authentication profile in public space.
+   */
+  public static final String PATH_AUTH_PROFILE = "authprofile";
+  /**
+   * The name of the private folder
+   */
+  public static final String PATH_PRIVATE = "private";
+  /**
+   * The name of the public folder
+   */
+  public static final String PATH_PUBLIC = "public";
+
+  /**
+   * Property name for the user's preferred means of message delivery
+   */
+  public static final String PROP_PREFERRED_MESSAGE_TRANSPORT = "preferredMessageTransport";
+
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PersonalUtils.class);
 
@@ -81,8 +106,8 @@ public class PersonalUtils {
   public static String getPrimaryEmailAddress(Node profileNode)
       throws RepositoryException {
     String addr = null;
-    if (profileNode.hasProperty(PersonalConstants.EMAIL_ADDRESS)) {
-      Value[] addrs = JcrUtils.getValues(profileNode, PersonalConstants.EMAIL_ADDRESS);
+    if (profileNode.hasProperty(PROP_EMAIL_ADDRESS)) {
+      Value[] addrs = JcrUtils.getValues(profileNode, PROP_EMAIL_ADDRESS);
       if (addrs.length > 0) {
         addr = addrs[0].getString();
       }
@@ -92,8 +117,8 @@ public class PersonalUtils {
 
   public static String[] getEmailAddresses(Node profileNode) throws RepositoryException {
     String[] addrs = null;
-    if (profileNode.hasProperty(PersonalConstants.EMAIL_ADDRESS)) {
-      Value[] vaddrs = JcrUtils.getValues(profileNode, PersonalConstants.EMAIL_ADDRESS);
+    if (profileNode.hasProperty(PROP_EMAIL_ADDRESS)) {
+      Value[] vaddrs = JcrUtils.getValues(profileNode, PROP_EMAIL_ADDRESS);
       addrs = new String[vaddrs.length];
       for (int i = 0; i < addrs.length; i++) {
         addrs[i] = vaddrs[i].getString();
@@ -105,8 +130,8 @@ public class PersonalUtils {
   public static String getPreferredMessageTransport(Node profileNode)
       throws RepositoryException {
     String transport = null;
-    if (profileNode.hasProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)) {
-      transport = profileNode.getProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)
+    if (profileNode.hasProperty(PROP_PREFERRED_MESSAGE_TRANSPORT)) {
+      transport = profileNode.getProperty(PROP_PREFERRED_MESSAGE_TRANSPORT)
           .getString();
     }
     return transport;
@@ -117,13 +142,9 @@ public class PersonalUtils {
    *          The authorizable to get the authprofile path for.
    * @return The absolute path in JCR to the authprofile node that contains all the
    *         profile information.
-   * @deprecated Use the ProfileService.getProfilePath() method.
    */
-  @Deprecated
   public static String getProfilePath(Authorizable au) {
-    StringBuilder sb = new StringBuilder();
-    sb.append(getPublicPath(au)).append("/").append(AUTH_PROFILE);
-    return sb.toString();
+    return getPublicPath(au) + "/" + PATH_AUTH_PROFILE;
   }
 
   /**
@@ -132,7 +153,7 @@ public class PersonalUtils {
    * @return The absolute path in JCR to the private folder in the user his home folder.
    */
   public static String getPrivatePath(Authorizable au) {
-    return getHomeFolder(au) + "/" + PRIVATE;
+    return getHomePath(au) + "/" + PATH_PRIVATE;
   }
 
   /**
@@ -141,8 +162,10 @@ public class PersonalUtils {
    * @return The absolute path in JCR to the public folder in the user his home folder.
    */
   public static String getPublicPath(Authorizable au) {
-    return getHomeFolder(au) + "/" + PUBLIC;
+    return getHomePath(au) + "/" + PATH_PUBLIC;
   }
+
+
 
   /**
    * Get the home folder for an authorizable. If the authorizable is a user, this might
@@ -152,16 +175,17 @@ public class PersonalUtils {
    *          The authorizable to get the home folder for.
    * @return The absolute path in JCR to the home folder for an authorizable.
    */
-  public static String getHomeFolder(Authorizable au) {
+  public static String getHomePath(Authorizable au) {
     String folder = PathUtils.getSubPath(au);
     if (au != null && au.isGroup()) {
-      folder = _GROUP + folder;
+      folder = PATH_GROUP + folder;
     } else {
       // Assume this is a user.
-      folder = _USER + folder;
+      folder = PATH_USER + folder;
     }
     return PathUtils.normalizePath(folder);
   }
+
 
   /**
    * @param session
@@ -176,5 +200,7 @@ public class PersonalUtils {
     UserManager um = AccessControlUtil.getUserManager(session);
     return um.getAuthorizable(id);
   }
+
+
 
 }

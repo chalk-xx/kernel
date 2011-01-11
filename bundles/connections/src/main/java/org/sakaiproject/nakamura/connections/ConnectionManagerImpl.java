@@ -53,9 +53,9 @@ import org.sakaiproject.nakamura.api.connections.ConnectionOperation;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,8 +95,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
   @Reference
   protected transient SlingRepository slingRepository;
 
-  @Reference
-  protected ProfileService profileService;
 
   private static Map<TransitionKey, StatePair> stateMap = new HashMap<TransitionKey, StatePair>();
 
@@ -397,7 +395,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
         node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             ConnectionConstants.SAKAI_CONTACT_RT);
         // Place a reference to the authprofile of the user.
-        Node profileNode = (Node) session.getItem(profileService.getProfilePath(toUser));
+        Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(toUser));
         node.setProperty("jcr:reference", profileNode.getIdentifier(),
             PropertyType.REFERENCE);
       }

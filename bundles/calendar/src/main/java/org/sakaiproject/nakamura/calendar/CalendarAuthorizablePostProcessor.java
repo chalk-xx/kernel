@@ -31,10 +31,10 @@ import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.calendar.CalendarConstants;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
 import org.sakaiproject.nakamura.api.calendar.CalendarService;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 
 import java.util.Map;
 
@@ -77,7 +77,7 @@ public class CalendarAuthorizablePostProcessor implements AuthorizablePostProces
   protected void createCalendar(Authorizable authorizable, Session session) throws CalendarException, RepositoryException {
 
     // The path to the calendar of an authorizable.
-    String path = PersonalUtils.getHomeFolder(authorizable);
+    String path = PersonalUtils.getHomePath(authorizable);
     path += "/" + CalendarConstants.SAKAI_CALENDAR_NODENAME;
     path = PathUtils.normalizePath(path);
 

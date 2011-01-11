@@ -33,10 +33,9 @@ import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,8 +67,6 @@ public class MessagingServiceImpl implements MessagingService {
   @Reference
   protected transient LockManager lockManager;
 
-  @Reference
-  protected transient ProfileService profileService;
 
   private Pattern homePathPattern = Pattern.compile("(~(.*?))/");
 
@@ -250,7 +247,7 @@ public class MessagingServiceImpl implements MessagingService {
         return expandHomeDirectoryInPath(session,rcpt.substring(2));
       }
       Authorizable au = PersonalUtils.getAuthorizable(session, rcpt);
-      path = PersonalUtils.getHomeFolder(au) + "/" + MessageConstants.FOLDER_MESSAGES;
+      path = PersonalUtils.getHomePath(au) + "/" + MessageConstants.FOLDER_MESSAGES;
     } catch (RepositoryException e) {
       LOGGER.warn("Caught RepositoryException when trying to get the full path to {} store.", rcpt,e);
       throw new MessagingException(500, e.getMessage());
@@ -279,7 +276,7 @@ public class MessagingServiceImpl implements MessagingService {
       String username = homePathMatcher.group(2);
       UserManager um = AccessControlUtil.getUserManager(session);
       Authorizable au = um.getAuthorizable(username);
-      String homePath = profileService.getHomePath(au).substring(1) + "/";
+      String homePath = PersonalUtils.getHomePath(au).substring(1) + "/";
       path = homePathMatcher.replaceAll(homePath);
     }
     return path;
