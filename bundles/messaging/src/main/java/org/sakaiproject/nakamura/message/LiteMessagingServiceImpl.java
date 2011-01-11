@@ -101,7 +101,6 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
    *
    * @throws MessagingException
    *
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#create(org.apache.sling.api.resource.Resource)
    */
   public Content create(Session session, Map<String, Object> mapProperties, String messageId)
       throws MessagingException {
