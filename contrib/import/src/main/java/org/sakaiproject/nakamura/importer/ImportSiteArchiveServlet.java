@@ -70,7 +70,6 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-@SuppressWarnings("restriction")
 @SlingServlet(methods = { "POST" }, resourceTypes = { "sling/servlet/default" }, selectors = { "sitearchive" })
 @Properties(value = {
     @Property(name = "service.description", value = "Imports one or more SiteArchive ZIP files from Sakai 2"),

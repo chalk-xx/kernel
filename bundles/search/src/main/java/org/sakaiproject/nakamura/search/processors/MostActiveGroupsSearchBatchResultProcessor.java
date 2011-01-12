@@ -28,12 +28,12 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.sakaiproject.nakamura.util.RowUtils;
 
 import java.util.ArrayList;
@@ -60,8 +60,6 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
   @Reference
   private SearchServiceFactory searchServiceFactory;
   
-  @Reference
-  protected transient ProfileService profileService;
   
   private final int DEFAULT_DAYS = 30;
   private final int MAXIMUM_DAYS = 90;
@@ -98,7 +96,7 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
           if (!resources.contains(new ResourceActivity(resourceId))) {
             UserManager um = AccessControlUtil.getUserManager(session);
             Authorizable au = um.getAuthorizable(resourceId);
-            String resourcePath = profileService.getProfilePath(au);
+            String resourcePath = PersonalUtils.getProfilePath(au);
             Node resourceNode = null;
             try {
               resourceNode = session.getNode(resourcePath);

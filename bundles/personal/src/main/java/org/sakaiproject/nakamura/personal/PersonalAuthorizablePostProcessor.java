@@ -51,12 +51,12 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.jcr.JCRConstants;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.api.user.AuthorizableEventUtil;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +75,6 @@ import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.nodetype.PropertyDefinition;
 import javax.jcr.security.AccessControlManager;
 import javax.jcr.security.Privilege;
 import javax.jcr.version.VersionException;
@@ -110,9 +109,6 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   private String defaultProfileTemplate;
 
   private ArrayList<String> profileParams = new ArrayList<String>();
-
-  @Reference
-  private ProfileService profileService;
 
   @Reference
   private EventAdmin eventAdmin;
@@ -264,7 +260,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private void createHomeFolder(Session session, Authorizable authorizable,
       Modification change, Map<String, Object[]> parameters) throws RepositoryException {
-    String homeFolderPath = profileService.getHomePath(authorizable);
+    String homeFolderPath = PersonalUtils.getHomePath(authorizable);
 
     Node homeNode = JcrUtils.deepGetOrCreateNode(session, homeFolderPath);
     if (homeNode.isNew()) {
@@ -353,7 +349,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private Node createProfile(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String path = profileService.getProfilePath(authorizable);
+    String path = PersonalUtils.getProfilePath(authorizable);
     Node profileNode = null;
     if (!isPostProcessingDone(session, authorizable)) {
       String type = nodeTypeForAuthorizable(authorizable.isGroup());
@@ -386,7 +382,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private Node createPrivate(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String privatePath = profileService.getPrivatePath(authorizable);
+    String privatePath = PersonalUtils.getPrivatePath(authorizable);
     if (session.itemExists(privatePath)) {
       return session.getNode(privatePath);
     }
@@ -451,7 +447,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
    */
   private Node createPublic(Session session, Authorizable athorizable)
       throws RepositoryException {
-    String publicPath = profileService.getPublicPath(athorizable);
+    String publicPath = PersonalUtils.getPublicPath(athorizable);
     if (session.nodeExists(publicPath)) {
       // No more work needed at present.
       return session.getNode(publicPath);
@@ -580,7 +576,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
   private Node getProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
     Node profileNode;
-    String path = profileService.getProfilePath(authorizable);
+    String path = PersonalUtils.getProfilePath(authorizable);
     if (session.nodeExists(path)) {
       profileNode = session.getNode(path);
     } else {
@@ -598,7 +594,7 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       // so.
       // TODO Replace these implicit side-effects with something more controllable
       // by the client.
-      refreshOwnership(session, authorizable, profileService.getHomePath(authorizable));
+      refreshOwnership(session, authorizable, PersonalUtils.getHomePath(authorizable));
       if (!parameters.containsKey(":sakai:update-profile")
           || !"false".equals(parameters.get(":sakai:update-profile")[0])) {
         updateProfileProperties(session, getProfileNode(session, authorizable),

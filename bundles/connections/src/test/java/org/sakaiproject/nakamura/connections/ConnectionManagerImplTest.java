@@ -31,12 +31,10 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionException;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.locking.LockManager;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
 import java.util.HashMap;
@@ -55,16 +53,13 @@ public class ConnectionManagerImplTest {
 
   private ConnectionManagerImpl connectionManager;
   private LockManager lockManager;
-  private ProfileService profileService;
 
   @Before
   public void setUp() {
     lockManager = mock(LockManager.class);
-    profileService = mock(ProfileService.class);
 
     connectionManager = new ConnectionManagerImpl();
     connectionManager.lockManager = lockManager;
-    connectionManager.profileService = profileService;
   }
 
   @Test
@@ -248,7 +243,6 @@ public class ConnectionManagerImplTest {
     when(to.isGroup()).thenReturn(false);
     Node profile = mock(Node.class);
     when(profile.getIdentifier()).thenReturn("bob-iden-tifi-er");
-    when(profileService.getProfilePath(Matchers.isA(Authorizable.class))).thenReturn("/_user/bob/public/authprofile");
     when(session.getItem("/_user/bob/public/authprofile")).thenReturn(profile);
 
     String basePath = "/_user/alice/contacts";

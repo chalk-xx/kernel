@@ -31,8 +31,8 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +76,7 @@ public class PagesAuthorizablePostProcessor implements AuthorizablePostProcessor
   public void process(Authorizable authorizable, Session session, Modification change,
       Map<String, Object[]> parameters) throws Exception {
     if (ModificationType.CREATE.equals(change.getType())) {
-      final String pagesPath = PersonalUtils.getHomeFolder(authorizable) + "/" + PAGES_PATH;
+      final String pagesPath = PersonalUtils.getHomePath(authorizable) + "/" + PAGES_PATH;
       try {
         // Do not overwrite existing pages.
         if (!session.nodeExists(pagesPath)) {

@@ -33,10 +33,10 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +68,7 @@ public class MessageAuthorizablePostProcessor implements AuthorizablePostProcess
     if (ModificationType.CREATE.equals(change.getType())) {
       if (authorizable != null && authorizable.getID() != null) {
         PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-        String path = PersonalUtils.getHomeFolder(authorizable) + "/"
+        String path = PersonalUtils.getHomePath(authorizable) + "/"
             + MessageConstants.FOLDER_MESSAGES;
         LOGGER
             .debug("Creating message store node: {}", path);

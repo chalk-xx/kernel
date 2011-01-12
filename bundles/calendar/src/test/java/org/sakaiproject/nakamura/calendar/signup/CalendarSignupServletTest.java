@@ -20,7 +20,6 @@ package org.sakaiproject.nakamura.calendar.signup;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,7 +38,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
 import java.io.IOException;
@@ -60,7 +58,6 @@ public class CalendarSignupServletTest {
   private String userName;
   private MockValue pathValue;
   private SlingRepository slingRepository;
-  private ProfileService profileService;
 
   @Before
   public void setUp() throws Exception {
@@ -82,10 +79,6 @@ public class CalendarSignupServletTest {
     when(session.getUserManager()).thenReturn(um);
     signupNode.setSession(session);
 
-    profileService = mock(ProfileService.class);
-    when(profileService.getProfilePath(any(Authorizable.class))).thenReturn(
-        "/j/ja/jack/authprofile");
-    servlet.profileService = profileService;
   }
 
   @Test

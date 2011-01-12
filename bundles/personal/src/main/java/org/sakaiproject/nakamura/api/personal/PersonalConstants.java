@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.api.personal;
 
+import org.sakaiproject.nakamura.util.PersonalUtils;
+
 /**
  *
  */
@@ -25,19 +27,19 @@ public interface PersonalConstants {
   /**
    * The base location of the user space.
    */
-  public static final String _USER = "/_user";
+  public static final String _USER = PersonalUtils.PATH_USER;
   /**
    * The base location of the group space.
    */
-  public static final String _GROUP = "/_group";
+  public static final String _GROUP = PersonalUtils.PATH_GROUP;
   /**
    * The name of the private folder
    */
-  public static final String PRIVATE = "private";
+  public static final String PRIVATE = PersonalUtils.PATH_PRIVATE;
   /**
    * The name of the public folder
    */
-  public static final String PUBLIC = "public";
+  public static final String PUBLIC = PersonalUtils.PATH_PUBLIC;
 
   /**
    * The resource type of personal private stores.
@@ -65,17 +67,17 @@ public interface PersonalConstants {
   /**
    * The node name of the authentication profile in public space.
    */
-  public static final String AUTH_PROFILE = "authprofile";
+  public static final String AUTH_PROFILE = PersonalUtils.PATH_AUTH_PROFILE;
 
   /**
    * Property name for the e-mail property of a user's profile
    */
-  public static final String EMAIL_ADDRESS = "email";
+  public static final String EMAIL_ADDRESS = PersonalUtils.PROP_EMAIL_ADDRESS;
 
   /**
    * Property name for the user's preferred means of message delivery
    */
-  public static final String PREFERRED_MESSAGE_TRANSPORT = "preferredMessageTransport";
+  public static final String PREFERRED_MESSAGE_TRANSPORT = PersonalUtils.PROP_PREFERRED_MESSAGE_TRANSPORT;
 
   /**
    * Parameter which can deliver a JSON string to a content importer to configure a new profile.

@@ -17,16 +17,14 @@
  */
 package org.sakaiproject.nakamura.site.create;
 
+import static org.apache.jackrabbit.JcrConstants.JCR_PRIMARYTYPE;
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.sakaiproject.nakamura.api.site.SiteConstants.AUTHORIZABLES_SITE_PRINCIPAL_NAME;
 import static org.sakaiproject.nakamura.api.site.SiteConstants.GROUPS_PROPERTY_MANAGERS;
 import static org.sakaiproject.nakamura.api.site.SiteConstants.GROUPS_PROPERTY_VIEWERS;
 import static org.sakaiproject.nakamura.api.site.SiteConstants.RT_GROUPS;
 
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONObject;
-
-import static org.apache.jackrabbit.JcrConstants.JCR_PRIMARYTYPE;
-import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 
 import java.security.Principal;
 import java.util.ArrayList;

@@ -27,7 +27,6 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.easymock.EasyMock;
-import org.easymock.internal.matchers.Any;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

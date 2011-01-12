@@ -124,6 +124,7 @@ public class RSSProxyPostProcessorTest {
     verify(response).sendError(eq(HttpServletResponse.SC_INTERNAL_SERVER_ERROR), anyString());
   }
 
+  @SuppressWarnings("rawtypes")
   @Test
   public void rejectsRssWithoutWellFormedXml() throws Exception {
   //given

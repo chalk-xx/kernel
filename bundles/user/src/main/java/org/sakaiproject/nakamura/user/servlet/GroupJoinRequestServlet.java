@@ -35,7 +35,7 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -77,9 +77,6 @@ public class GroupJoinRequestServlet extends SlingAllMethodsServlet {
   @Reference
   private transient EventAdmin eventAdmin;
 
-  @SuppressWarnings(value = "NP_UNWRITTEN_FIELD", justification = "Injected by OSGi")
-  @Reference
-  private transient ProfileService profileService;
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -147,7 +144,7 @@ public class GroupJoinRequestServlet extends SlingAllMethodsServlet {
         joinRequestUpdate.setProperty("jcr:created", Calendar.getInstance());
       } else {
         Node joinrequest = joinrequests.addNode(userId);
-        Node profileNode = session.getNode(profileService.getProfilePath(user));
+        Node profileNode = session.getNode(PersonalUtils.getProfilePath(user));
         String profileId = profileNode.getProperty("jcr:uuid").getString();
         joinrequest.setProperty("jcr:created", Calendar.getInstance());
         joinrequest.setProperty("profile", profileId, PropertyType.REFERENCE);
