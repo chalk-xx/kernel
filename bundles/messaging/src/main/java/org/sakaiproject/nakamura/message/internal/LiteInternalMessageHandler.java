@@ -105,10 +105,10 @@ public class LiteInternalMessageHandler implements LiteMessageTransport, LiteMes
       for (MessageRoute route : routes) {
         if (MessageTransport.INTERNAL_TRANSPORT.equals(route.getTransport())) {
           LOG.info("Started handling a message.");
-          String rcpt = route.getRcpt();
+          String recipient = route.getRcpt();
           // the path were we want to save messages in.
           String messageId = StorageClientUtils.toString(originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID));
-          sendHelper(recipients, rcpt, originalMessage, session, messageId, authorizableManager);
+          sendHelper(recipients, recipient, originalMessage, session, messageId, authorizableManager);
         }
       }
     } catch (AccessDeniedException e) {
@@ -120,45 +120,45 @@ public class LiteInternalMessageHandler implements LiteMessageTransport, LiteMes
     }
   }
 
-  private void sendHelper(List<String> recipients, String rcpt, Content originalMessage, Session session,
-                          String messageId, AuthorizableManager um){
+  private void sendHelper(List<String> recipients, String recipient, Content originalMessage, Session session,
+                          String messageId, AuthorizableManager authManager){
     try {
-      Authorizable au = um.findAuthorizable(rcpt);
+      Authorizable au = authManager.findAuthorizable(recipient);
       if (au != null && au instanceof Group) {
         Group group = (Group) au;
         //user must be in the group directly to send a message:
         for (String memberName : group.getMembers()) {
           if (!recipients.contains(memberName)) {
             //call back to itself: this allows for groups to be in groups and future extensions
-            sendHelper(recipients, memberName, originalMessage, session, messageId, um);
+            sendHelper(recipients, memberName, originalMessage, session, messageId, authManager);
             recipients.add(memberName);
           }
         }
       } else {
         //only send a message to a user who hasn't already received one:
-        if (!recipients.contains(rcpt)) {
+        if (!recipients.contains(recipient)) {
 
-          String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
+          String toPath = messagingService.getFullPathToMessage(recipient, messageId, session);
 
           try {
             lockManager.waitForLock(toPath);
           } catch (LockTimeoutException e1) {
             throw new MessagingException("Unable to lock destination message store");
           }
-          // Copy the node into the user his folder.
+          // Copy the content into the user his folder.
           session.getContentManager().update(new Content(toPath.substring(0, toPath.lastIndexOf("/")),
               new HashMap<String, Object>()));
           session.getContentManager().copy(originalMessage.getPath(), toPath, true);
           session.getContentManager().update(new Content(toPath, new HashMap<String, Object>()));
-          Content n = session.getContentManager().get(toPath);
+          Content message = session.getContentManager().get(toPath);
 
           // Add some extra properties on the just created node.
-          n.setProperty(MessageConstants.PROP_SAKAI_READ, Boolean.FALSE);
-          n.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
-          n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
+          message.setProperty(MessageConstants.PROP_SAKAI_READ, Boolean.FALSE);
+          message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
+          message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
 
-          recipients.add(rcpt);
+          recipients.add(recipient);
         }
       }
     } catch (AccessDeniedException e) {
