@@ -361,6 +361,7 @@ public class OutgoingEmailMessageListenerTest {
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(false);
     expect(messageNode.hasNodes()).andReturn(false);
     expect(messageNode.getSession()).andReturn(null);
+    expect(messageNode.getPath()).andReturn("/test_email");
     expect(
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
             MessageConstants.BOX_SENT)).andReturn(null);
