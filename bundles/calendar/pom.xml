@@ -124,12 +124,6 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.profile</artifactId>
-      <version>0.10-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
       <version>0.10-SNAPSHOT</version>
       <scope>provided</scope>
@@ -139,12 +133,24 @@
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
       <version>0.10-SNAPSHOT</version>
       <scope>provided</scope>
+      <exclusions>
+      	<exclusion>
+      		<artifactId>org.sakaiproject.nakamura.profile</artifactId>
+      		<groupId>org.sakaiproject.nakamura</groupId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.search</artifactId>
       <version>0.10-SNAPSHOT</version>
       <scope>provided</scope>
+      <exclusions>
+      	<exclusion>
+      		<artifactId>org.sakaiproject.nakamura.profile</artifactId>
+      		<groupId>org.sakaiproject.nakamura</groupId>
+      	</exclusion>
+      </exclusions>
     </dependency>
 
     <!--  Tests -->

@@ -32,6 +32,7 @@ import org.mockito.stubbing.Answer;
 import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 
 import java.io.StringWriter;
 import java.io.Writer;
@@ -103,7 +104,7 @@ public class ProfileServiceImplTest {
     Mockito.when(groupWithoutProfile.getPrincipal()).thenReturn(principal);
     Mockito.when(groupWithoutProfile.hasProperty("path")).thenReturn(false);
     Mockito.when(groupWithoutProfile.getID()).thenReturn("some-internal-group");
-    String profilePath = profileService.getProfilePath(groupWithoutProfile);
+    String profilePath = PersonalUtils.getProfilePath(groupWithoutProfile);
 
     Mockito.doThrow(new PathNotFoundException()).when(deepSession).getNode(profilePath);
     Mockito.when(deepSession.getRootNode().hasNode(profilePath.substring(1))).thenReturn(false);

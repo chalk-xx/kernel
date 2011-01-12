@@ -12,7 +12,6 @@ import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
-import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;

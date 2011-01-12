@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.api.configuration;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -42,6 +43,7 @@ public class NakamuraConstantsTest {
   public void testNakamuraConstants() throws IOException, ConfigurationException {
     NakamuraConstants nc = new NakamuraConstants();
     Map<String, String> properties = nc.getProperties();
+    Assert.assertNotNull(properties);
     nc.addListener(listener);
     Dictionary<String, Object> config = new Hashtable<String, Object>();
     nc.updated(config);

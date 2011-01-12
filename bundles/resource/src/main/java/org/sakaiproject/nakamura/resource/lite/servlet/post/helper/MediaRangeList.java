@@ -120,7 +120,7 @@ public class MediaRangeList extends TreeSet<MediaRangeList.MediaRange> {
 
     /**
      * Given a list of media types, returns the one is preferred by this <code>MediaRangeList</code>.
-     * @param mediaRanges An array of possible {@link org.apache.sling.servlets.post.impl.helper.MediaRangeList.MediaRange}s
+     * @param mediaRanges An array of possible {@link MediaRange}s
      * @return One of the <code>mediaRanges</code> that this <code>MediaRangeList</code> prefers;
      * or <code>null</code> if this <code>MediaRangeList</code> does not contain any of the <code>mediaRanges</code>
      * @throws NullPointerException if <code>mediaRanges</code> is <code>null</code> or contains a <code>null</code> value

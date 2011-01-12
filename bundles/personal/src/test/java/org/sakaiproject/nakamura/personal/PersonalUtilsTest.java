@@ -25,8 +25,8 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.personal.PersonalConstants;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 
 import javax.jcr.Node;
 import javax.jcr.Property;

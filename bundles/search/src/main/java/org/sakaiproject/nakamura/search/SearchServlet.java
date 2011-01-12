@@ -68,8 +68,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.MissingParameterException;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
@@ -82,6 +80,7 @@ import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -246,8 +245,6 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   @Reference
   protected SearchServiceFactory searchServiceFactory;
 
-  @Reference
-  protected transient ProfileService profileService;
 
   private Pattern homePathPattern = Pattern.compile("^(.*)(~([\\w-]*?))/");
 
@@ -452,7 +449,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       String homePrefix = homePathMatcher.group(1);
       UserManager um = AccessControlUtil.getUserManager(node.getSession());
       Authorizable au = um.getAuthorizable(username);
-      String homePath = homePrefix + profileService.getHomePath(au).substring(1) + "/";
+      String homePath = homePrefix + PersonalUtils.getHomePath(au).substring(1) + "/";
       queryString = homePathMatcher.replaceAll(homePath);
     }
     return queryString;

@@ -38,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 import javax.jcr.Node;
-import javax.jcr.Property;
 import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.servlet.ServletException;
