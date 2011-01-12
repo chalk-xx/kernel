@@ -24,7 +24,6 @@ import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 
-import javax.jcr.RepositoryException;
 import java.util.ArrayList;
 
 
@@ -43,8 +42,8 @@ public class LiteMessageRoutesImpl extends ArrayList<MessageRoute> implements Me
    */
   public LiteMessageRoutesImpl(Content message) {
     String toProp = StorageClientUtils.toString(message.getProperty(MessageConstants.PROP_SAKAI_TO));
-    String[] rcpts = StringUtils.split(toProp, ",");
-    for (String r : rcpts) {
+    String[] recipients = StringUtils.split(toProp, ",");
+    for (String r : recipients) {
       add(new MessageRouteImpl(r));
     }
   }
