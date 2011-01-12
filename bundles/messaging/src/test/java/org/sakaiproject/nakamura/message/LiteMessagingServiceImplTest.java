@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.locking.LockManager;
@@ -100,7 +101,7 @@ public class LiteMessagingServiceImplTest {
     String messageId = "foo";
     Content result = messagingServiceImpl.create(session, mapProperties, messageId);
     assertEquals("foo", result.getProperty(MessageConstants.PROP_SAKAI_ID));
-    assertEquals(10L, result.getProperty("num"));
+    assertEquals(10L, StorageClientUtils.toLong(result.getProperty("num")));
     assertEquals("foobar", result.getProperty("s"));
   }
 

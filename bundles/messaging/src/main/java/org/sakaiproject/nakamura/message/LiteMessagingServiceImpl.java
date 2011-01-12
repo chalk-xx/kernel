@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -104,21 +103,21 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
 
   public Content create(Session session, Map<String, Object> mapProperties, String messageId, String messagePathBase)
     throws MessagingException {
-    Content msg = null;
-    Map<String, Object> contentProperties = new HashMap<String, Object>();
+    String messagePath = PathUtils.toSimpleShardPath(messagePathBase, messageId, "");
+    Content msg = new Content(messagePath, null);
     for (Entry<String, Object> e : mapProperties.entrySet()) {
       String val = e.getValue().toString();
       try {
         Long l = Long.valueOf(val);
-        contentProperties.put(e.getKey(), l);
+        msg.setProperty(e.getKey(), StorageClientUtils.toStore(l));
       } catch (NumberFormatException ex) {
-        contentProperties.put(e.getKey(), val);
+        msg.setProperty(e.getKey(), StorageClientUtils.toStore(val));
       }
     }
     // Add the id for this message.
-    contentProperties.put(MessageConstants.PROP_SAKAI_ID, messageId);
+    msg.setProperty(MessageConstants.PROP_SAKAI_ID, StorageClientUtils.toStore(messageId));
     Calendar cal = Calendar.getInstance();
-    contentProperties.put(MessageConstants.PROP_SAKAI_CREATED, cal);
+    msg.setProperty(MessageConstants.PROP_SAKAI_CREATED, StorageClientUtils.toStore(cal));
 
     try {
       lockManager.waitForLock(messagePathBase);
@@ -126,10 +125,8 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
       throw new MessagingException("Unable to lock user mailbox");
     }
     try {
-      String messagePath = PathUtils.toSimpleShardPath(messagePathBase, messageId, "");
       try {
         ContentManager contentManager = session.getContentManager();
-        msg = new Content(messagePath, contentProperties);
         contentManager.update(msg);
       } catch (StorageClientException e) {
         LOGGER.warn("StorageClientException on trying to save message."
