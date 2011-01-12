@@ -129,7 +129,7 @@ public class LiteSmtpRouter implements LiteMessageRouter {
     boolean prefersSmtp = false;
 
     if (user != null) {
-      // TODO Get this user's preferred message transport
+      // TODO BL120 Get this user's preferred message transport
 //      String transport = PersonalUtils.getPreferredMessageTransport(profileNode);
       String transport = MessageConstants.TYPE_INTERNAL;
       prefersSmtp = MessageConstants.TYPE_SMTP.equals(transport);
