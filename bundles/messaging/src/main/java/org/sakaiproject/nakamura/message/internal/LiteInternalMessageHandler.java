@@ -18,6 +18,7 @@
 
 package org.sakaiproject.nakamura.message.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -49,6 +50,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
@@ -143,7 +145,6 @@ public class LiteInternalMessageHandler implements LiteMessageTransport, LiteMes
           } catch (LockTimeoutException e1) {
             throw new MessagingException("Unable to lock destination message store");
           }
-
           // Copy the node into the user his folder.
           session.getContentManager().update(new Content(toPath.substring(0, toPath.lastIndexOf("/")),
               new HashMap<String, Object>()));

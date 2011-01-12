@@ -67,7 +67,7 @@ public class LiteChatMessageHandler implements LiteMessageTransport, LiteMessage
   protected transient Repository contentRepository;
 
   @Reference
-  protected transient MessagingService messagingService;
+  protected transient LiteMessagingService messagingService;
 
   @Reference
   protected transient LiteProfileService profileService;
@@ -96,8 +96,7 @@ public class LiteChatMessageHandler implements LiteMessageTransport, LiteMessage
           String rcpt = route.getRcpt();
           // the path were we want to save messages in.
           String messageId = (String)originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID);
-          // TODO String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
-          String toPath = "/abc";
+          String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
 
           // Copy the node into the user his folder.
           session.getContentManager().update(new Content(toPath.substring(0, toPath.lastIndexOf("/")), new HashMap<String,Object>()));
