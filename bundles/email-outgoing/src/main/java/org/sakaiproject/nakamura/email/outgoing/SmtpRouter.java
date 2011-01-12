@@ -26,8 +26,8 @@ import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRouter;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

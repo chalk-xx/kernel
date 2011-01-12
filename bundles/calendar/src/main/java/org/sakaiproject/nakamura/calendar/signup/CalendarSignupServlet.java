@@ -46,11 +46,10 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,8 +113,6 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
   @Reference
   protected transient EventAdmin eventAdmin;
 
-  @Reference
-  protected ProfileService profileService;
 
   /**
    * {@inheritDoc}
@@ -208,7 +205,7 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
       Authorizable au = PersonalUtils.getAuthorizable(session, session.getUserID());
 
       // Get the path that we should create.
-      String path = PersonalUtils.getHomeFolder(au);
+      String path = PersonalUtils.getHomePath(au);
       path += "/" + SAKAI_CALENDAR_NODENAME;
       String pathToEvent = eventNode.getName();
       Node node = eventNode.getParent();
@@ -276,7 +273,7 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
       Session session = signupNode.getSession();
       Authorizable au = getAuthorizable(session);
       String hash = PersonalUtils.getUserHashedPath(au);
-      String profilePath = profileService.getProfilePath(au);
+      String profilePath = PersonalUtils.getProfilePath(au);
       Node profileNode = (Node) session.getItem(profilePath);
       String path = signupNode.getPath() + "/" + PARTICIPANTS_NODE_NAME + "/" + hash;
       path = PathUtils.normalizePath(path);

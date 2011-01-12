@@ -16,8 +16,8 @@ import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.personal.PersonalConstants;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.message.listener.MessageRoutesImpl;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 
 import javax.jcr.Node;
 import javax.jcr.Property;

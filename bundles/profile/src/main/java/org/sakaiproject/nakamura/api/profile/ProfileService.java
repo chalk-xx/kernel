@@ -29,34 +29,6 @@ import javax.jcr.Session;
  */
 public interface ProfileService {
 
-  /**
-   * @param authorizable
-   *          The authorizable for which the home folder should be looked up.
-   * @return The JCR path that represents the home folder of an authorizable.
-   */
-  String getHomePath(Authorizable authorizable);
-
-  /**
-   * @param authorizable
-   *          The authorizable for which the public folder should be looked up.
-   * @return The JCR path that represents the public folder of an authorizable.
-   */
-  String getPublicPath(Authorizable authorizable);
-
-  /**
-   * @param authorizable
-   *          The authorizable for which the private folder should be looked up.
-   * @return The JCR path that represents the private folder of an authorizable.
-   */
-  String getPrivatePath(Authorizable authorizable);
-
-  /**
-   * @param authorizable
-   *          The authorizable for which the private folder should be looked up.
-   * @return The JCR path that represents the profile of an authorizable.
-   */
-
-  String getProfilePath(Authorizable authorizable);
 
   /**
    * Gets profile information from JCR and expands external resources efficiently.

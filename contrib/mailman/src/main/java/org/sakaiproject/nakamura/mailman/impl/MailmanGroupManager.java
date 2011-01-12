@@ -28,10 +28,10 @@ import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.mailman.MailmanManager;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

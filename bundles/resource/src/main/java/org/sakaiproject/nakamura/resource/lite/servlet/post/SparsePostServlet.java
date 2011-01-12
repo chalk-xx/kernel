@@ -228,7 +228,7 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
    *
    * @param req
    *          The request being serviced
-   * @return a {@link org.apache.sling.servlets.post.impl.helper.JSONResponse} if any of
+   * @return a {@link JSONResponse} if any of
    *         these conditions are true:
    *         <ul>
    *         <li>the request has an <code>Accept</code> header of

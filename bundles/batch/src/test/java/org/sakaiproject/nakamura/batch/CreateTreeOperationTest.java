@@ -48,6 +48,7 @@ import javax.jcr.ValueFactory;
 /**
  *
  */
+@SuppressWarnings("deprecation")
 public class CreateTreeOperationTest {
 
   private CreateTreeOperation operation;

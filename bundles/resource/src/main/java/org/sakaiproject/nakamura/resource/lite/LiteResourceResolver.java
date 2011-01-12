@@ -58,6 +58,7 @@ public class LiteResourceResolver implements ResourceResolver {
    *
    * @see org.apache.sling.api.adapter.Adaptable#adaptTo(java.lang.Class)
    */
+  @SuppressWarnings("unchecked")
   public <T> T adaptTo(Class<T> type) {
     T retval = null;
     if (type == Session.class) {

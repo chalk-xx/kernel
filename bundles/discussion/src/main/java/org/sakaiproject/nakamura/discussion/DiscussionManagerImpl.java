@@ -19,14 +19,13 @@ package org.sakaiproject.nakamura.discussion;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
 import org.sakaiproject.nakamura.api.message.MessagingException;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,9 +53,6 @@ public class DiscussionManagerImpl implements DiscussionManager {
 
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
-
-  @Reference
-  protected transient ProfileService profileService;
 
   private Pattern homePathPattern = Pattern.compile("(~(.*?))/");
 
@@ -147,7 +143,7 @@ public class DiscussionManagerImpl implements DiscussionManager {
       String username = homePathMatcher.group(2);
       UserManager um = AccessControlUtil.getUserManager(session);
       Authorizable au = um.getAuthorizable(username);
-      String homePath = profileService.getHomePath(au).substring(1) + "/";
+      String homePath = PersonalUtils.getHomePath(au).substring(1) + "/";
       path = homePathMatcher.replaceAll(homePath);
     }
     return path;

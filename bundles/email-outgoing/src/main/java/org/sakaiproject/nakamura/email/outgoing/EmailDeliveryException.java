@@ -1,6 +1,5 @@
 package org.sakaiproject.nakamura.email.outgoing;
 
-import org.apache.commons.mail.EmailException;
 
 public class EmailDeliveryException extends Exception {
 
