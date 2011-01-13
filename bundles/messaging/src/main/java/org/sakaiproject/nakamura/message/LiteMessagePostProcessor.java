@@ -38,6 +38,12 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostProcessor;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,12 +55,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import javax.jcr.Item;
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 
 @Component(immediate = true, label = "MessagePostProcessor", description = "Post Processor for Message operations", metatype = false)
 @Service
@@ -79,7 +79,7 @@ public class LiteMessagePostProcessor implements SlingPostProcessor {
   public void process(SlingHttpServletRequest request,
       List<Modification> changes) throws Exception {
 
-    Map<Node, String> messageMap = new HashMap<Node, String>();
+    Map<Content, String> messageMap = new HashMap<Content, String>();
     Session session = request.getResourceResolver().adaptTo(Session.class);
     ContentManager contentManager = session.getContentManager();
     for (Modification m : changes) {
@@ -87,53 +87,43 @@ public class LiteMessagePostProcessor implements SlingPostProcessor {
         switch (m.getType()) {
         case CREATE:
         case MODIFY:
-
-
-          if (s.itemExists(m.getSource())) {
-            Item item = s.getItem(getMessageFromModifcation(m));
-            if (item != null && item.isNode()) {
-              Node n = (Node) item;
-              // Make sure that this node
-              // - represents a message (sling:resourceType=sakai/message)
-              // - has a messagebox set to 'outbox'.
-              if ((n.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && n.getProperty(
-                  SLING_RESOURCE_TYPE_PROPERTY).getString().equals(SAKAI_MESSAGE_RT))
-                  && n.hasProperty(PROP_SAKAI_MESSAGEBOX)
-                  && n.getProperty(PROP_SAKAI_MESSAGEBOX).getString().equals(BOX_OUTBOX)) {
-                String sendstate = STATE_NONE;
-                if (n.hasProperty(PROP_SAKAI_SENDSTATE)) {
-                  sendstate = n.getProperty(PROP_SAKAI_SENDSTATE).getString();
-                  messageMap.put(n, sendstate);
+          String path = m.getSource();
+          path = path.substring(0, path.lastIndexOf("/"));
+          if (contentManager.exists(path)) {
+            Content content = contentManager.get(path);
+            if (content.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && content.hasProperty(PROP_SAKAI_MESSAGEBOX)) {
+              if (SAKAI_MESSAGE_RT.equals(StorageClientUtils.toString(content.getProperty(SLING_RESOURCE_TYPE_PROPERTY))) &&
+                  BOX_OUTBOX.equals(StorageClientUtils.toString(content.getProperty(PROP_SAKAI_MESSAGEBOX)))) {
+                String sendstate;
+                if (content.hasProperty(PROP_SAKAI_SENDSTATE)) {
+                  sendstate = StorageClientUtils.toString(content.getProperty(PROP_SAKAI_SENDSTATE));
                 } else {
-                  messageMap.put(n, sendstate);
+                  sendstate = STATE_NONE;
                 }
+                messageMap.put(content, sendstate);
               }
             }
           }
           break;
         }
-      } catch (RepositoryException ex) {
+      } catch (StorageClientException ex) {
+        LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
+      } catch (AccessDeniedException ex) {
         LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
       }
     }
 
-
-
     List<String> handledNodes = new ArrayList<String>();
     // Check if we have any nodes that have a pending state and launch an OSGi
     // event
-    // we must save changes before launching the event.
-    if ( s.hasPendingChanges() ) {
-      s.save();
-    }
-    for (Entry<Node, String> mm : messageMap.entrySet()) {
-      Node n = mm.getKey();
-      String path = n.getPath();
+    for (Entry<Content, String> mm : messageMap.entrySet()) {
+      Content content = mm.getKey();
+      String path = content.getPath();
       String state = mm.getValue();
       if (!handledNodes.contains(path)) {
         if (STATE_NONE.equals(state) || STATE_PENDING.equals(state)) {
 
-          n.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
+          content.setProperty(PROP_SAKAI_SENDSTATE, StorageClientUtils.toStore(STATE_NOTIFIED));
 
           Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
           // WARNING
@@ -142,7 +132,7 @@ public class LiteMessagePostProcessor implements SlingPostProcessor {
           // This might be heavy on performance.
           messageDict.put(EVENT_LOCATION, path);
           messageDict.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
-          LOGGER.debug("Launched event for node: {} ", path);
+          LOGGER.debug("Launched event for message: {} ", path);
           Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT, messageDict);
           // KERN-790: Initiate a synchronous event.
           try {
@@ -154,21 +144,5 @@ public class LiteMessagePostProcessor implements SlingPostProcessor {
         }
       }
     }
-    // KERN-1222, KERN-1225
-    // refresh the session in case any of the event responders make changes in a different
-    // session.  this is known to happen in InternalMessageHandler.
-    s.refresh(true);
-  }
-
-  /**
-   * Gets the node for a modification.
-   *
-   * @param m
-   * @return
-   */
-  private String getMessageFromModifcation(Modification m) {
-    String path = m.getSource();
-    path = path.substring(0, path.lastIndexOf("/"));
-    return path;
   }
 }
