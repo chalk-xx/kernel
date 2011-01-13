@@ -18,6 +18,8 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permission;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Enumeration;
 import java.util.List;
@@ -67,9 +69,10 @@ import javax.servlet.ServletException;
  * </p>
  *
  */
-@SlingServlet(resourceTypes={"sling/servlet/default"}, methods={"POST"}, selectors={"modifyAce"})
+@SlingServlet(resourceTypes={"sparse/Content"}, methods={"POST"}, selectors={"modifyAce"})
 public class ModifyAceServlet extends AbstractAccessPostServlet {
 	private static final long serialVersionUID = -9182485466670280437L;
+  private static final Logger LOGGER = LoggerFactory.getLogger(ModifyAceServlet.class);
 
 	@Override
 	protected void handleOperation(SlingHttpServletRequest request,
@@ -82,7 +85,6 @@ public class ModifyAceServlet extends AbstractAccessPostServlet {
 		if (session == null) {
 			throw new ServletException("Sparse Session not found");
 		}
-
 		String principalId = request.getParameter("principalId");
 		if (principalId == null) {
 			throw new ServletException("principalId was not submitted.");
@@ -105,11 +107,14 @@ public class ModifyAceServlet extends AbstractAccessPostServlet {
           Permission permssion = getPermission(privilegeName);
           String parameterValue = request.getParameter(paramName);
           if (parameterValue != null && parameterValue.length() > 0) {
-            if ("granted".equals(parameterValue)) {
+            if ("granted".equals(parameterValue) && permssion != null ) {
+              LOGGER.info("{}:{}:{}:{}", new Object[]{resourcePath,principalId,"granted",permssion.getName()});
               AclModification.addAcl(true, permssion, principalId, aclModifications);
-            } else if ("denied".equals(parameterValue)) {
+            } else if ("denied".equals(parameterValue)  && permssion != null ) {
+              LOGGER.info("{}:{}:{}:{}", new Object[]{resourcePath,principalId,"denied",permssion.getName()});
               AclModification.addAcl(false, permssion, principalId, aclModifications);
             } else if ("none".equals(parameterValue)){
+              LOGGER.info("{}:{}:{}:{}", new Object[]{resourcePath,principalId,"cleared","all"});
               AclModification.removeAcl(true, Permissions.ALL, principalId, aclModifications);
               AclModification.removeAcl(false, Permissions.ALL, principalId, aclModifications);
             }
@@ -117,6 +122,7 @@ public class ModifyAceServlet extends AbstractAccessPostServlet {
         }
       }
     }
+    
 
     AccessControlManager accessControlManager = session.getAccessControlManager();
     accessControlManager.setAcl(Security.ZONE_CONTENT, resourcePath, aclModifications.toArray(new AclModification[aclModifications.size()]));
@@ -124,7 +130,6 @@ public class ModifyAceServlet extends AbstractAccessPostServlet {
 	}
 
   private Permission getPermission(String privilegeName) {
-    // TODO Auto-generated method stub
-    return null;
+    return Permissions.parse(privilegeName);
   }
 }

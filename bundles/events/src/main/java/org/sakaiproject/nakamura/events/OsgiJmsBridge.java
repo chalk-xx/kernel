@@ -72,12 +72,12 @@ public class OsgiJmsBridge implements EventHandler {
   private static final String IGNORE_EVENT_TOPICS = "bridge.ignore.event.topics";
 
   private Set<String> ignoreEventTopics = new HashSet<String>();
-  
+
 
   @Reference
   private ConnectionFactoryService connFactoryService;
-  
-  
+
+
   @Reference
   protected ClusterTrackingService clusterTrackingService;
 
@@ -97,7 +97,7 @@ public class OsgiJmsBridge implements EventHandler {
 
   /**
    * Testing constructor to pass in a mocked connection factory.
-   * 
+   *
    * @param connFactory
    *          Connection factory to use when activating.
    * @param brokerUrl
@@ -111,7 +111,7 @@ public class OsgiJmsBridge implements EventHandler {
 
   /**
    * Called by the OSGi container to activate this component.
-   * 
+   *
    * @param ctx
    */
   @SuppressWarnings("rawtypes")
@@ -122,10 +122,10 @@ public class OsgiJmsBridge implements EventHandler {
     acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
     serverId = clusterTrackingService.getCurrentServerId();
-    
+
     String[] ignoreEventTopicsValues = (String[]) props.get(IGNORE_EVENT_TOPICS);
     ignoreEventTopics.clear();
-    
+
     if ( ignoreEventTopicsValues != null ) {
       for ( String iet : ignoreEventTopicsValues ) {
         ignoreEventTopics.add(iet);
@@ -138,7 +138,7 @@ public class OsgiJmsBridge implements EventHandler {
 
   /**
    * Called by the OSGi container to deactivate this component.
-   * 
+   *
    * @param ctx
    */
   protected void deactivate(ComponentContext ctx) {
@@ -146,12 +146,12 @@ public class OsgiJmsBridge implements EventHandler {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.osgi.service.event.EventHandler#handleEvent(org.osgi.service.event.Event)
    */
   public void handleEvent(Event event) {
     LOGGER.trace("Receiving event");
-    if ( IGNORE_EVENT_TOPICS.contains(event.getTopic()) ) {
+    if ( ignoreEventTopics.contains(event.getTopic()) ) {
       // Ignore Log messages in jms.
       return;
     }
@@ -237,9 +237,9 @@ public class OsgiJmsBridge implements EventHandler {
           msg.setObjectProperty(name, obj);
         }
       }
-      
+
       msg.setStringProperty("clusterServerId", serverId);
-      
+
       // add the current user
 
       LOGGER.debug("Sending Message {} to {}  ",msg, destination);
