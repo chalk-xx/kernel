@@ -87,7 +87,7 @@ import javax.servlet.http.HttpServletResponse;
  * </code>
  *
  */
-@SlingServlet(resourceTypes={"sling/servlet/default"}, methods={"GET"}, selectors={"eacl"}, extensions={"json"})
+@SlingServlet(resourceTypes={"sparse/Content"}, methods={"GET"}, selectors={"eacl"}, extensions={"json"})
 public class GetEffectiveAclServlet extends AbstractGetAclServlet {
 
   /**

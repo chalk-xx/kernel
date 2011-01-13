@@ -24,13 +24,13 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.api.wrappers.SlingRequestPaths;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.apache.sling.servlets.post.SlingPostOperation;
-import org.apache.sling.servlets.post.SlingPostProcessor;
 import org.apache.sling.servlets.post.VersioningConfiguration;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
+import org.sakaiproject.nakamura.api.resource.lite.SparsePostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +43,14 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import javax.jcr.RepositoryException;
+
 
 /**
  * Holds various states and encapsulates methods that are needed to handle a
  * post request.
  */
-public abstract class AbstractSlingPostOperation implements SlingPostOperation {
+public abstract class AbstractSlingPostOperation implements SparsePostOperation {
 
     /**
      * default log
@@ -70,7 +72,7 @@ public abstract class AbstractSlingPostOperation implements SlingPostOperation {
      */
     public void run(SlingHttpServletRequest request,
                     HtmlResponse response,
-                    SlingPostProcessor[] processors) {
+                    SparsePostProcessor[] processors) {
         Resource resource = request.getResource();
         ContentManager contentManager = resource.adaptTo(ContentManager.class);
         

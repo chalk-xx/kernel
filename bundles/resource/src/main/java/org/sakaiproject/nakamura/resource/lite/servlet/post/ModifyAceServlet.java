@@ -67,7 +67,7 @@ import javax.servlet.ServletException;
  * </p>
  *
  */
-@SlingServlet(resourceTypes={"sling/servlet/default"}, methods={"POST"}, selectors={"modifyAce"})
+@SlingServlet(resourceTypes={"sparse/Content"}, methods={"POST"}, selectors={"modifyAce"})
 public class ModifyAceServlet extends AbstractAccessPostServlet {
 	private static final long serialVersionUID = -9182485466670280437L;
 

@@ -45,6 +45,12 @@ import java.util.Map;
  * Wrapper for {@link Content} objects to become a {@link Resource}
  */
 public class SparseContentResource extends AbstractResource {
+  /**
+   * Servlets that are designed to deal with any Sparse Content may bind to this resource Type. All Sparse Content has this Resource Type as a Super type.
+   * Do not bind to sling/servlet/default or try and using an opting servlet as this will not work.
+   */
+  public static final String SPARSE_CONTENT_RT = "sparse/Content";
+
   private static final Logger logger = LoggerFactory.getLogger(SparseContentResource.class);
 
   private Content content;
@@ -132,7 +138,7 @@ public class SparseContentResource extends AbstractResource {
    * @see org.apache.sling.api.resource.Resource#getResourceSuperType()
    */
   public String getResourceSuperType() {
-    return "sparseContent";
+    return SPARSE_CONTENT_RT; 
   }
 
   /**

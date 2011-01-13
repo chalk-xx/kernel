@@ -59,7 +59,7 @@ import javax.servlet.ServletException;
  * 
  */
 
-@SlingServlet(resourceTypes={"sling/servlet/default"}, methods={"POST"}, selectors={"deleteAce"})
+@SlingServlet(resourceTypes={"sparse/Content"}, methods={"POST"}, selectors={"deleteAce"})
 public class DeleteAcesServlet extends AbstractAccessPostServlet {
   private static final long serialVersionUID = 3784866802938282971L;
 

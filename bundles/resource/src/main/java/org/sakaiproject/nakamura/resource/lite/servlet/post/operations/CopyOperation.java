@@ -2,13 +2,13 @@ package org.sakaiproject.nakamura.resource.lite.servlet.post.operations;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.servlets.post.SlingPostOperation;
-import org.apache.sling.servlets.post.SlingPostProcessor;
+import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
+import org.sakaiproject.nakamura.api.resource.lite.SparsePostProcessor;
 
-public class CopyOperation implements SlingPostOperation {
+public class CopyOperation implements SparsePostOperation {
 
   public void run(SlingHttpServletRequest request, HtmlResponse response,
-      SlingPostProcessor[] processors) {
+      SparsePostProcessor[] processors) {
     // TODO Auto-generated method stub
 
   }

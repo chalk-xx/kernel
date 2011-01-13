@@ -21,14 +21,12 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingRequestPaths;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.JSONResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Base class for all the POST servlets for the AccessManager operations
  */
-public abstract class AbstractAccessPostServlet extends SlingAllMethodsServlet implements
-    OptingServlet {
+public abstract class AbstractAccessPostServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -5918670409789895333L;
 
   /**
@@ -130,10 +127,7 @@ public abstract class AbstractAccessPostServlet extends SlingAllMethodsServlet i
     htmlResponse.send(httpResponse, isSetStatus(request));
   }
 
-  public boolean accepts(SlingHttpServletRequest request) {
-    log.info("Checing accepts ");
-    return (request.getResource() instanceof SparseContentResource);
-  }
+
 
   /**
    * Creates an instance of a HtmlResponse.
