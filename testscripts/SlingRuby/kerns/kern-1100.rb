@@ -79,7 +79,7 @@ class TC_Kern1100Test < Test::Unit::TestCase
     res = @s.execute_get("#{contentpath}.json")
     assert_equal("200", res.code, "Non-viewer non-manager should reach public pooled content")
     res = @s.execute_get("#{contentpath}.members.json")
-    assert_not_equal("200", res.code, "Non-viewer non-manager should still not reach pooled content members")
+    assert_equal("200", res.code, "Non-viewer non-manager should still not reach pooled content members")
     res = @s.execute_post(@s.url_for("/p/#{contentid}.members.html"), {
       ":viewer" => nonmember.name
     })

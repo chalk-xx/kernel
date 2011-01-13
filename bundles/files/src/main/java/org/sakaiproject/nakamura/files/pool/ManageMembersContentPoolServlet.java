@@ -125,6 +125,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
           .get(POOLED_CONTENT_USER_MANAGER));
       String[] viewers = StorageClientUtils.toStringArray(properties
           .get(POOLED_CONTENT_USER_VIEWER));
+      
 
       boolean detailed = false;
       boolean tidy = false;
@@ -306,7 +307,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
     } catch (AccessDeniedException e) {
       LOGGER.error("Could not set some permissions on [{}] Cause:{}",
           request.getPathInfo(), e.getMessage());
-      LOGGER.info(e.getMessage(), e);
+      LOGGER.debug(e.getMessage(), e);
       response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not set permissions.");
     } catch (StorageClientException e) {
       LOGGER.error("Could not set some permissions on [{}] Cause:{}",

@@ -4,15 +4,12 @@ package org.sakaiproject.nakamura.resource.lite.servlet.post;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permission;
-import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,7 +20,7 @@ import java.util.Set;
 
 import javax.servlet.ServletResponse;
 
-public abstract class AbstractGetAclServlet extends SlingAllMethodsServlet implements OptingServlet {
+public abstract class AbstractGetAclServlet extends SlingAllMethodsServlet {
 
 
 
@@ -33,9 +30,6 @@ public abstract class AbstractGetAclServlet extends SlingAllMethodsServlet imple
    */
   private static final long serialVersionUID = 7209815168152490665L;
 
-  public boolean accepts(SlingHttpServletRequest request) {
-    return (request.getResource() instanceof SparseContentResource);
-  }
 
   protected void outputAcl(Map<String, Object> acl, ServletResponse response) throws JSONException, IOException {
     Map<String, Map<String, Set<String>>> aclMap = Maps.newLinkedHashMap();

@@ -28,18 +28,16 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.NodeNameGenerator;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.apache.sling.servlets.post.SlingPostOperation;
-import org.apache.sling.servlets.post.SlingPostProcessor;
 import org.apache.sling.servlets.post.VersioningConfiguration;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
+import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
+import org.sakaiproject.nakamura.api.resource.lite.SparsePostProcessor;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.DateParser;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.DefaultNodeNameGenerator;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.JSONResponse;
@@ -68,15 +66,15 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * POST servlet that implements the sling client library "protocol" for sparse content.
  */
-@SlingServlet(methods={"POST"}, resourceTypes={"sling/servlet/default"} )
+@SlingServlet(methods={"POST"}, resourceTypes={"sparse/Content"} )
 @Properties({ @Property(name = "service.description", value = "Sparse Post Servlet"),
     @Property(name = "service.vendor", value = "The Sakai Foundation")})
 // Get all SlingPostProcessors
 @References({
-    @Reference(name = "postProcessor", referenceInterface = SlingPostProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
-    @Reference(name = "postOperation", referenceInterface = SlingPostOperation.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
+    @Reference(name = "postProcessor", referenceInterface = SparsePostProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
+    @Reference(name = "postOperation", referenceInterface = SparsePostOperation.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
     @Reference(name = "nodeNameGenerator", referenceInterface = NodeNameGenerator.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC) })
-public class SparsePostServlet extends SlingAllMethodsServlet implements OptingServlet {
+public class SparsePostServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 1837674988291697074L;
 
@@ -126,13 +124,13 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
 
   private final List<ServiceReference> delayedPostOperations = new ArrayList<ServiceReference>();
 
-  private final Map<String, SlingPostOperation> postOperations = new HashMap<String, SlingPostOperation>();
+  private final Map<String, SparsePostOperation> postOperations = new HashMap<String, SparsePostOperation>();
 
   private final List<ServiceReference> delayedPostProcessors = new ArrayList<ServiceReference>();
 
   private final List<ServiceReference> postProcessors = new ArrayList<ServiceReference>();
 
-  private SlingPostProcessor[] cachedPostProcessors = new SlingPostProcessor[0];
+  private SparsePostProcessor[] cachedPostProcessors = new SparsePostProcessor[0];
 
   private final List<ServiceReference> delayedNodeNameGenerators = new ArrayList<ServiceReference>();
 
@@ -185,7 +183,7 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
     HtmlResponse htmlResponse = createHtmlResponse(request);
     htmlResponse.setReferer(request.getHeader("referer"));
 
-    SlingPostOperation operation = getSlingPostOperation(request);
+    SparsePostOperation operation = getSlingPostOperation(request);
     if (operation == null) {
 
       htmlResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -193,7 +191,7 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
 
     } else {
 
-      final SlingPostProcessor[] processors;
+      final SparsePostProcessor[] processors;
       synchronized (this.delayedPostProcessors) {
         processors = this.cachedPostProcessors;
       }
@@ -249,7 +247,7 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
     }
   }
 
-  private SlingPostOperation getSlingPostOperation(SlingHttpServletRequest request) {
+  private SparsePostOperation getSlingPostOperation(SlingHttpServletRequest request) {
     String operation = request.getParameter(SlingPostConstants.RP_OPERATION);
     if (operation == null || operation.length() == 0) {
       // standard create/modify operation;
@@ -392,8 +390,8 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
 
   protected void registerPostOperation(ServiceReference ref) {
     String operationName = (String) ref
-        .getProperty(SlingPostOperation.PROP_OPERATION_NAME);
-    SlingPostOperation operation = (SlingPostOperation) this.componentContext
+        .getProperty(SparsePostOperation.PROP_OPERATION_NAME);
+    SparsePostOperation operation = (SparsePostOperation) this.componentContext
         .locateService("postOperation", ref);
     if (operation != null) {
       synchronized (this.postOperations) {
@@ -405,7 +403,7 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
   protected void unbindPostOperation(ServiceReference ref) {
     synchronized (this.delayedPostOperations) {
       String operationName = (String) ref
-          .getProperty(SlingPostOperation.PROP_OPERATION_NAME);
+          .getProperty(SparsePostOperation.PROP_OPERATION_NAME);
       synchronized (this.postOperations) {
         this.postOperations.remove(operationName);
       }
@@ -442,10 +440,10 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
     } else {
       this.postProcessors.add(index, ref);
     }
-    this.cachedPostProcessors = new SlingPostProcessor[this.postProcessors.size()];
+    this.cachedPostProcessors = new SparsePostProcessor[this.postProcessors.size()];
     index = 0;
     for (final ServiceReference current : this.postProcessors) {
-      final SlingPostProcessor processor = (SlingPostProcessor) this.componentContext
+      final SparsePostProcessor processor = (SparsePostProcessor) this.componentContext
           .locateService("postProcessor", current);
       if (processor != null) {
         this.cachedPostProcessors[index] = processor;
@@ -453,8 +451,8 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
       }
     }
     if (index < this.cachedPostProcessors.length) {
-      SlingPostProcessor[] oldArray = this.cachedPostProcessors;
-      this.cachedPostProcessors = new SlingPostProcessor[index];
+      SparsePostProcessor[] oldArray = this.cachedPostProcessors;
+      this.cachedPostProcessors = new SparsePostProcessor[index];
       for (int i = 0; i < index; i++) {
         this.cachedPostProcessors[i] = oldArray[i];
       }
@@ -546,8 +544,4 @@ public class SparsePostServlet extends SlingAllMethodsServlet implements OptingS
     return cfg;
   }
 
-  public boolean accepts(SlingHttpServletRequest request) {
-    log.info("Checing accepts ");
-    return (request.getResource() instanceof SparseContentResource);
-  }
 }
