@@ -49,8 +49,8 @@ import java.util.Map;
  * This PostProcessor listens to post operations on User objects and creates a message
  * store.
  */
-@Component(immediate = true, label = "MessageAuthorizablePostProcessor", description = "Creates the message stores for users and groups.", metatype = false)
-@Service
+//@Component(immediate = true, label = "LiteMessageAuthorizablePostProcessor", description = "Creates the message stores for users and groups.", metatype = false)
+//@Service
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Creates the message stores for users and groups."),
