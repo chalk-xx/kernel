@@ -36,9 +36,11 @@ import org.apache.sling.commons.testing.jcr.MockNode;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessagingException;
-import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager;
 import org.sakaiproject.nakamura.profile.ProfileServiceImpl;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -57,13 +59,14 @@ import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.Workspace;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.mockito.Mockito.*;
 
 /**
  *
@@ -72,11 +75,13 @@ public class MeServletTest extends AbstractEasyMockTest {
 
   private ByteArrayOutputStream baos;
   private PrintWriter w;
-  private JackrabbitSession session;
+  private JackrabbitSession jrSession;
+  private Session sparseSession;
   private SlingHttpServletRequest request;
   private SlingHttpServletResponse response;
-  private MessagingService messagingService;
+  private LiteMessagingService messagingService;
   private MeServlet servlet;
+  private SparseMapUserManager sparseUserManager;
 
   @Override
   @Before
@@ -88,11 +93,15 @@ public class MeServletTest extends AbstractEasyMockTest {
 
     request = createMock(SlingHttpServletRequest.class);
     response = createMock(SlingHttpServletResponse.class);
-    session = createMock(JackrabbitSession.class);
+    jrSession = mock(JackrabbitSession.class);
+    sparseSession = mock(Session.class);
+    sparseUserManager = mock(SparseMapUserManager.class);
+    when(jrSession.getUserManager()).thenReturn(sparseUserManager);
+    when(sparseUserManager.getSession()).thenReturn(sparseSession);
     ResourceResolver resolver = createMock(ResourceResolver.class);
-    messagingService = createMock(MessagingService.class);
+    messagingService = createMock(LiteMessagingService.class);
 
-    expect(resolver.adaptTo(Session.class)).andReturn(session);
+    expect(resolver.adaptTo(javax.jcr.Session.class)).andReturn(jrSession);
     expect(request.getResourceResolver()).andReturn(resolver).anyTimes();
     expect(response.getWriter()).andReturn(w);
 
@@ -170,11 +179,11 @@ public class MeServletTest extends AbstractEasyMockTest {
 
     Node rootNode = createMock(Node.class);
     expect(rootNode.hasNode(profilePath.substring(1))).andReturn(true).anyTimes();
-    expect(session.getRootNode()).andReturn(rootNode).anyTimes();
-    expect(session.getItem(profilePath)).andReturn(profileNode).anyTimes();
-    expect(session.getNode(profilePath)).andReturn(profileNode).anyTimes();
-    expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
-    expect(session.getUserManager()).andReturn(um).anyTimes();
+    when(jrSession.getRootNode()).thenReturn(rootNode);
+    when(jrSession.getItem(profilePath)).thenReturn(profileNode);
+    when(jrSession.getNode(profilePath)).thenReturn(profileNode);
+    when(jrSession.getUserID()).thenReturn(UserConstants.ANON_USERID);
+    when(jrSession.getUserManager()).thenReturn(um);
 
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
@@ -199,15 +208,15 @@ public class MeServletTest extends AbstractEasyMockTest {
 
     Authorizable au = createAuthorizable(UserConstants.ANON_USERID, false, true);
     String profilePath = PersonalUtils.getProfilePath(au);
-    expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
-    expect(session.getItem(profilePath)).andThrow(new RepositoryException()).anyTimes();
+    when(jrSession.getUserID()).thenReturn(UserConstants.ANON_USERID);
+    when(jrSession.getItem(profilePath)).thenThrow(new RepositoryException());
     Node rootNode = createMock(Node.class);
     expect(rootNode.hasNode(profilePath.substring(1))).andReturn(true).anyTimes();
-    expect(session.getRootNode()).andReturn(rootNode).anyTimes();
-    expect(session.getNode(profilePath)).andThrow(new RepositoryException()).anyTimes();
+    when(jrSession.getRootNode()).thenReturn(rootNode);
+    when(jrSession.getNode(profilePath)).thenThrow(new RepositoryException());
 
     UserManager um = createUserManager(null, true, au);
-    expect(session.getUserManager()).andReturn(um).anyTimes();
+    when(jrSession.getUserManager()).thenReturn(um);
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
@@ -226,7 +235,7 @@ public class MeServletTest extends AbstractEasyMockTest {
     servlet.messagingService = messagingService;
 
     Authorizable au = createAuthorizable("jack", false, true);
-    expect(messagingService.getFullPathToStore("jack", session)).andReturn(
+    expect(messagingService.getFullPathToStore("jack", sparseSession)).andReturn(
         "/path/to/store");
 
     // Mock the query.
@@ -235,7 +244,7 @@ public class MeServletTest extends AbstractEasyMockTest {
     Query q = createMock(Query.class);
     QueryResult qr = createMock(QueryResult.class);
     NodeIterator iterator = createMock(NodeIterator.class);
-    expect(session.getWorkspace()).andReturn(workSpace);
+    when(jrSession.getWorkspace()).thenReturn(workSpace);
     expect(workSpace.getQueryManager()).andReturn(qm);
     expect(
         qm
@@ -247,7 +256,7 @@ public class MeServletTest extends AbstractEasyMockTest {
     expect(iterator.next()).andReturn(null).times(2);
 
     replay();
-    servlet.writeMessageCounts(new ExtendedJSONWriter(w), session, au);
+    servlet.writeMessageCounts(new ExtendedJSONWriter(w), jrSession, au);
 
     w.flush();
     JSONObject o = new JSONObject(baos.toString());
@@ -266,7 +275,7 @@ public class MeServletTest extends AbstractEasyMockTest {
     Query q = createMock(Query.class);
     QueryResult qr = createMock(QueryResult.class);
     NodeIterator iterator = createMock(NodeIterator.class);
-    expect(session.getWorkspace()).andReturn(workSpace);
+    when(jrSession.getWorkspace()).thenReturn(workSpace);
     expect(workSpace.getQueryManager()).andReturn(qm);
     expect(
         qm.createQuery(EasyMock.matches(".*\\/_user\\/j\\/ja\\/jack\\/contacts.*"),
@@ -286,7 +295,7 @@ public class MeServletTest extends AbstractEasyMockTest {
         acceptedNode).andReturn(invitedNode);
 
     replay();
-    servlet.writeContactCounts(new ExtendedJSONWriter(w), session, au);
+    servlet.writeContactCounts(new ExtendedJSONWriter(w), jrSession, au);
 
     w.flush();
     JSONObject o = new JSONObject(baos.toString());

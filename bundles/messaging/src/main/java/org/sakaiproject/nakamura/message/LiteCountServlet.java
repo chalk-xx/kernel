@@ -65,39 +65,39 @@ import javax.servlet.http.HttpServletResponse;
  * count.json?filters=sakai:read,sakai:messagebox&values=true,inbox&groupby=sakai:category
  * 
  */
-//@SlingServlet(methods = {"GET"}, resourceTypes = {"sakai/messagestore"}, selectors = {"count"}, generateComponent = true, generateService = true)
-//@Properties(value = {
-//    @Property(name = "service.vendor", value = "The Sakai Foundation"),
-//    @Property(name = "service.description", value = "Endpoint to count messages in a messagestore.") })
-//@ServiceDocumentation(
-//    name = "CountServlet",
-//    shortDescription = "Count all the internal messages a user has.",
-//    description = "Counts all the internal messaegs a user has.", 
-//    bindings = @ServiceBinding(type = BindingType.TYPE, 
-//        bindings = "sakai/messagestore", 
-//        selectors = @ServiceSelector(name = "count")), 
-//    methods = @ServiceMethod(name = "POST",
-//        description = "Count all the internal messages a user has. <br />" +
-//        "Example:<br />" +
-//        "curl http://admin:admin@localhost:8080/_user/message.count.json",
-//        response = {
-//          @ServiceResponse(code = 200, description = "The servlet will send a JSON response which holds 2 keys." + 
-//            "<ul><li>id: The id for the newly created message.</li><li>message: This is an object which will hold all the key/values for the newly created message.</li></ul>"),
-//          @ServiceResponse(code = 400, description = "The request did not contain all the (correct) parameters."),
-//          @ServiceResponse(code = 401, description = "The user is not logged. Anonymous users are not allowed to send messages."),
-//          @ServiceResponse(code = 500, description = "The server was unable to create the message.")},
-//        parameters = {
-//          @ServiceParameter(name = "filters", description = "Comma seperated list of properties that should be matched"),
-//          @ServiceParameter(name = "values", description = "Comma seperated list of values for each property."),
-//          @ServiceParameter(name = "groupedby", description = "Comma seperated list of property names on what to group by.") }))
+@SlingServlet(methods = {"GET"}, resourceTypes = {"sakai/messagestore"}, selectors = {"count"}, generateComponent = true, generateService = true)
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Endpoint to count messages in a messagestore.") })
+@ServiceDocumentation(
+    name = "CountServlet",
+    shortDescription = "Count all the internal messages a user has.",
+    description = "Counts all the internal messaegs a user has.", 
+    bindings = @ServiceBinding(type = BindingType.TYPE, 
+        bindings = "sakai/messagestore", 
+        selectors = @ServiceSelector(name = "count")), 
+    methods = @ServiceMethod(name = "POST",
+        description = "Count all the internal messages a user has. <br />" +
+        "Example:<br />" +
+        "curl http://admin:admin@localhost:8080/_user/message.count.json",
+        response = {
+          @ServiceResponse(code = 200, description = "The servlet will send a JSON response which holds 2 keys." + 
+            "<ul><li>id: The id for the newly created message.</li><li>message: This is an object which will hold all the key/values for the newly created message.</li></ul>"),
+          @ServiceResponse(code = 400, description = "The request did not contain all the (correct) parameters."),
+          @ServiceResponse(code = 401, description = "The user is not logged. Anonymous users are not allowed to send messages."),
+          @ServiceResponse(code = 500, description = "The server was unable to create the message.")},
+        parameters = {
+          @ServiceParameter(name = "filters", description = "Comma seperated list of properties that should be matched"),
+          @ServiceParameter(name = "values", description = "Comma seperated list of values for each property."),
+          @ServiceParameter(name = "groupedby", description = "Comma seperated list of property names on what to group by.") }))
 
-public class CountServlet extends SlingSafeMethodsServlet {
+public class LiteCountServlet extends SlingSafeMethodsServlet {
 
   /**
    * 
    */
   private static final long serialVersionUID = -5714446506015596037L;
-  private static final Logger LOGGER = LoggerFactory.getLogger(CountServlet.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LiteCountServlet.class);
 
   @Reference
   protected transient MessagingService messagingService;

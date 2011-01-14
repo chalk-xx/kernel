@@ -24,44 +24,39 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.chat.ChatManagerService;
-import org.sakaiproject.nakamura.api.message.MessageConstants;
-import org.sakaiproject.nakamura.api.message.MessageProfileWriter;
-import org.sakaiproject.nakamura.api.message.MessageRoute;
-import org.sakaiproject.nakamura.api.message.MessageRoutes;
-import org.sakaiproject.nakamura.api.message.MessageTransport;
-import org.sakaiproject.nakamura.api.message.MessagingService;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.message.*;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Calendar;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
+import java.util.HashMap;
 
 /**
  * Handler for chat messages.
  */
-//@Component(label = "ChatMessageHandler", description = "Handler for internally delivered chat messages.", immediate = true)
-//@Services(value = { @Service(value = MessageTransport.class),
-//    @Service(value = MessageProfileWriter.class) })
-//@Properties(value = {
-//    @Property(name = "service.vendor", value = "The Sakai Foundation"),
-//    @Property(name = "service.description", value = "Handler for internally delivered chat messages") })
-public class ChatMessageHandler implements MessageTransport, MessageProfileWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(ChatMessageHandler.class);
+@Component(label = "LiteChatMessageHandler", description = "Handler for internally delivered chat messages.", immediate = true)
+@Services(value = { @Service(value = LiteMessageTransport.class),
+    @Service(value = LiteMessageProfileWriter.class) })
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Handler for internally delivered chat messages") })
+public class LiteChatMessageHandler implements LiteMessageTransport, LiteMessageProfileWriter {
+  private static final Logger LOG = LoggerFactory.getLogger(LiteChatMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_CHAT;
   private static final Object CHAT_TRANSPORT = "chat";
 
@@ -69,18 +64,18 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
   protected transient ChatManagerService chatManagerService;
 
   @Reference
-  protected transient SlingRepository slingRepository;
+  protected transient Repository contentRepository;
 
   @Reference
-  protected transient MessagingService messagingService;
+  protected transient LiteMessagingService messagingService;
 
   @Reference
-  protected transient ProfileService profileService;
+  protected transient LiteProfileService profileService;
 
   /**
    * Default constructor
    */
-  public ChatMessageHandler() {
+  public LiteChatMessageHandler() {
   }
 
   /**
@@ -89,28 +84,24 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
    * @see org.sakaiproject.nakamura.api.message.MessageTransport#send(org.sakaiproject.nakamura.api.message.MessageRoutes,
    *      org.osgi.service.event.Event, javax.jcr.Node)
    */
-  public void send(MessageRoutes routes, Event event, Node originalMessage) {
-    Session session = null;
+  public void send(MessageRoutes routes, Event event, Content originalMessage) {
+    Session session;
     try {
 
-      session = slingRepository.loginAdministrative(null); // usage checked and Ok
-      // KERN-577
+      session = contentRepository.loginAdministrative();
 
       for (MessageRoute route : routes) {
         if (CHAT_TRANSPORT.equals(route.getTransport())) {
           LOG.info("Started handling a message.");
           String rcpt = route.getRcpt();
           // the path were we want to save messages in.
-          String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID)
-              .getString();
+          String messageId = (String)originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID);
           String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
 
           // Copy the node into the user his folder.
-          JcrUtils.deepGetOrCreateNode(session, toPath.substring(0, toPath
-              .lastIndexOf("/")));
-          session.save();
-          session.getWorkspace().copy(originalMessage.getPath(), toPath);
-          Node n = JcrUtils.deepGetOrCreateNode(session, toPath);
+          session.getContentManager().update(new Content(toPath.substring(0, toPath.lastIndexOf("/")), new HashMap<String,Object>()));
+          session.getContentManager().copy(originalMessage.getPath(), toPath, true);
+          Content n = session.getContentManager().get(toPath);
 
           // Add some extra properties on the just created node.
           n.setProperty(MessageConstants.PROP_SAKAI_READ, false);
@@ -121,15 +112,12 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
               MessageConstants.STATE_NOTIFIED);
           n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
               MessageConstants.SAKAI_MESSAGE_RT);
-          session.save();
 
           long time = System.currentTimeMillis();
-          Calendar cal = originalMessage.getProperty(MessageConstants.PROP_SAKAI_CREATED)
-              .getDate();
+          Calendar cal = (Calendar)originalMessage.getProperty(MessageConstants.PROP_SAKAI_CREATED);
           time = cal.getTimeInMillis();
 
-          String from = originalMessage.getProperty(MessageConstants.PROP_SAKAI_FROM)
-              .getString();
+          String from = (String)originalMessage.getProperty(MessageConstants.PROP_SAKAI_FROM);
 
           // Set the rcpt in the cache.
           chatManagerService.put(rcpt, time);
@@ -139,25 +127,26 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
         }
       }
 
-    } catch (RepositoryException e) {
-      LOG.error(e.getMessage(), e);
-    } finally {
-      if ( session != null ) {
-        session.logout();
-      }
+    } catch (AccessDeniedException e) {
+      LOG.error(e.getLocalizedMessage());
+    } catch (ClientPoolException e) {
+      LOG.error(e.getLocalizedMessage());
+    } catch (StorageClientException e) {
+      LOG.error(e.getLocalizedMessage());
+    } catch (IOException e) {
+      LOG.error(e.getLocalizedMessage());
     }
   }
 
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.nakamura.api.message.MessageProfileWriter#writeProfileInformation(javax.jcr.Session,
-   *      java.lang.String, org.apache.sling.commons.json.io.JSONWriter)
+   * @see org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter#writeProfileInformation(Session,
+   *      String, org.apache.sling.commons.json.io.JSONWriter)
    */
   public void writeProfileInformation(Session session, String recipient, JSONWriter write) {
     try {
-      UserManager um = AccessControlUtil.getUserManager(session);
-      Authorizable au = um.getAuthorizable(recipient);
+      Authorizable au = session.getAuthorizableManager().findAuthorizable(recipient);
       ValueMap map = profileService.getCompactProfileMap(au, session);
       ((ExtendedJSONWriter) write).valueMap(map);
     } catch (Exception e) {
@@ -168,7 +157,7 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
   /**
    * Determines what type of messages this handler will process. {@inheritDoc}
    *
-   * @see org.sakaiproject.nakamura.api.message.MessageHandler#getType()
+   * @see org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter#getType()
    */
   public String getType() {
     return TYPE;

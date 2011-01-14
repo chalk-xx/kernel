@@ -19,51 +19,57 @@ package org.sakaiproject.nakamura.chat;
 
 import static org.junit.Assert.assertEquals;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.message.MessagingService;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.jcr.Session;
+import javax.jcr.AccessDeniedException;
+import javax.jcr.RepositoryException;
+import javax.jcr.UnsupportedRepositoryOperationException;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager;
+
+import static org.mockito.Mockito.*;
 
 /**
  *
  */
 public class ChatMessageSearchResultProviderTest {
 
-  private MessagingService messagingService;
+  private LiteMessagingService messagingService;
   private ChatMessageSearchPropertyProvider propProvider;
+  
+  private JackrabbitSession jcrSession;
   private Session session;
   private String user = "johndoe";
   private ResourceResolver resourceResolver;
+  private SparseMapUserManager sparseUserManager;
 
   @Before
-  public void setUp() {
-    messagingService = createMock(MessagingService.class);
+  public void setUp() throws AccessDeniedException, UnsupportedRepositoryOperationException, RepositoryException, ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException {
+    messagingService = mock(LiteMessagingService.class);
 
     propProvider = new ChatMessageSearchPropertyProvider();
     propProvider.messagingService = messagingService;
-    session = createMock(Session.class);
-    resourceResolver = createMock(ResourceResolver.class);
-    expect(resourceResolver.adaptTo(Session.class)).andReturn(session)
-        .anyTimes();
-    replay(resourceResolver, session);
-    expect(messagingService.getFullPathToStore(user, session)).andReturn(
-        "/full/path/to/store");
-
-    replay(messagingService);
-
+    jcrSession = mock(JackrabbitSession.class);
+    session = mock(Session.class);
+    sparseUserManager = mock(SparseMapUserManager.class);
+    resourceResolver = mock(ResourceResolver.class);
+    when(sparseUserManager.getSession()).thenReturn(session);
+    when(resourceResolver.adaptTo(javax.jcr.Session.class)).thenReturn(jcrSession);
+    when(jcrSession.getUserManager()).thenReturn(sparseUserManager);
+    when(messagingService.getFullPathToStore(user, session)).thenReturn("/full/path/to/store");
   }
 
   @After
@@ -74,13 +80,12 @@ public class ChatMessageSearchResultProviderTest {
 
   @Test
   public void testProperties() {
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    expect(request.getRemoteUser()).andReturn(user);
-    expect(request.getResourceResolver()).andReturn(resourceResolver);
-    RequestParameter param = createMock(RequestParameter.class);
-    expect(param.getString()).andReturn("jack,peter,mary").anyTimes();
-    expect(request.getRequestParameter("_from")).andReturn(param);
-    replay(param, request);
+    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
+    when(request.getRemoteUser()).thenReturn(user);
+    when(request.getResourceResolver()).thenReturn(resourceResolver);
+    RequestParameter param = mock(RequestParameter.class);
+    when(param.getString()).thenReturn("jack,peter,mary");
+    when(request.getRequestParameter("_from")).thenReturn(param);
     Map<String, String> props = new HashMap<String, String>();
     propProvider.loadUserProperties(request, props);
 
