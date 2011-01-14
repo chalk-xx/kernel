@@ -65,12 +65,12 @@ import javax.jcr.ValueFormatException;
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
  * started immediately to make sure it registers with JCR as soon as possible.
  */
-@Component(immediate = true, label = "InternalMessageHandler", description = "Handler for internally delivered messages.")
-@Services(value = { @Service(value = MessageTransport.class),
-    @Service(value = MessageProfileWriter.class) })
-@Properties(value = {
-    @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Handler for internally delivered messages.") })
+//@Component(immediate = true, label = "InternalMessageHandler", description = "Handler for internally delivered messages.")
+//@Services(value = { @Service(value = MessageTransport.class),
+//    @Service(value = MessageProfileWriter.class) })
+//@Properties(value = {
+//    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+//    @Property(name = "service.description", value = "Handler for internally delivered messages.") })
 public class InternalMessageHandler implements MessageTransport, MessageProfileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_INTERNAL;
