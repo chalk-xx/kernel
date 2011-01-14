@@ -32,7 +32,11 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
-import org.sakaiproject.nakamura.api.message.MessagingService;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
+import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
 import org.sakaiproject.nakamura.api.site.join.JoinRequestConstants;
 import org.sakaiproject.nakamura.api.site.join.JoinRequestUtil;
@@ -62,7 +66,7 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
   private SlingRepository repository;
 
   @Reference
-  private MessagingService messagingService;
+  private LiteMessagingService messagingService;
   
   @Reference
   protected transient EventAdmin eventAdmin;
@@ -80,14 +84,14 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
       createPendingRequest(userId, group, sitePath, session);
 
       // #2 send message to site owner
-      Node n = sendMessage(userId, owner, session, sitePath);
-      n.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
+      Content message = sendMessage(userId, owner, session, sitePath);
+      message.setProperty(PROP_SAKAI_SENDSTATE, StorageClientUtils.toStore(STATE_NOTIFIED));
       Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
       // WARNING
       // We can't pass in the node, because the session might expire before the event gets handled
       // This does mean that the listener will have to get the node each time, and probably create a new session for each message
       // This might be heavy on performance.
-      messageDict.put(EVENT_LOCATION, n.getPath());
+      messageDict.put(EVENT_LOCATION, message.getPath());
       messageDict.put("user", userId);
       Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT, messageDict);
       // KERN-790: Initiate a synchronous event.
@@ -108,7 +112,7 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
     session.save();
   }
 
-  private Node sendMessage(String sender, String recipient, Session session, String sitePath) {
+  private Content sendMessage(String sender, String recipient, Session session, String sitePath) throws MessagingException, RepositoryException {
     String subject = "Site join request: " + sitePath;
     String body = "Please approve my request to be a member of this site: " + sitePath;
 
@@ -127,6 +131,6 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
     props.put("sakai:subcategory", "joinrequest");
     props.put("sakai:sitepath", sitePath);
 
-    return messagingService.create(session, props);
+    return messagingService.create(JackrabbitSparseUtils.getSparseSession(session), props);
   }
 }

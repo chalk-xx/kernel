@@ -67,8 +67,8 @@ import javax.jcr.Session;
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
  * started immediately to make sure it registers with JCR as soon as possible.
  */
-@Component(immediate = true, label = "%discussion.messageTransport.label", description = "%discussion.messageTransport.desc")
-@Service
+//@Component(immediate = true, label = "%discussion.messageTransport.label", description = "%discussion.messageTransport.desc")
+//@Service
 public class DiscussionMessageTransport implements MessageTransport {
   private static final Logger LOG = LoggerFactory
       .getLogger(DiscussionMessageTransport.class);
