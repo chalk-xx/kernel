@@ -18,13 +18,19 @@
 
 package org.sakaiproject.nakamura.discussion;
 
+import com.google.common.collect.ImmutableMap;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
-import org.sakaiproject.nakamura.api.lite.*;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
@@ -33,14 +39,21 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
-import org.sakaiproject.nakamura.api.message.*;
+import org.sakaiproject.nakamura.api.message.LiteMessageTransport;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
+import org.sakaiproject.nakamura.api.message.MessageRoute;
+import org.sakaiproject.nakamura.api.message.MessageRoutes;
+import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 
 import static org.sakaiproject.nakamura.api.discussion.DiscussionConstants.TOPIC_DISCUSSION_MESSAGE;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.*;
@@ -104,26 +117,28 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
             throw new MessagingException("Unable to lock discussion widget message store");
           }
           // Copy the node to the destination
-          Content newMessageNode = new Content(toPath, new HashMap<String, Object>());
+
+          ImmutableMap.Builder<String, Object> propertyBuilder = ImmutableMap.builder();
 
           Map<String, Object> messageProps = originalMessage.getProperties();
           for (String propertyKey : messageProps.keySet()) {
             if (!propertyKey.contains("jcr:"))
-              newMessageNode.setProperty(propertyKey,
+              propertyBuilder.put(propertyKey,
                   StorageClientUtils.toStore(messageProps.get(propertyKey)));
           }
 
-          // Add some extra properties on the just created node.
-          newMessageNode.setProperty(PROP_SAKAI_TYPE,
+          // Add some extra properties in preparation for creating the content
+          propertyBuilder.put(PROP_SAKAI_TYPE,
               StorageClientUtils.toStore(route.getTransport()));
-          newMessageNode.setProperty(PROP_SAKAI_TO,
+          propertyBuilder.put(PROP_SAKAI_TO,
               StorageClientUtils.toStore(route.getRcpt()));
-          newMessageNode.setProperty(PROP_SAKAI_MESSAGEBOX,
+          propertyBuilder.put(PROP_SAKAI_MESSAGEBOX,
               StorageClientUtils.toStore(BOX_INBOX));
-          newMessageNode.setProperty(PROP_SAKAI_SENDSTATE,
+          propertyBuilder.put(PROP_SAKAI_SENDSTATE,
               StorageClientUtils.toStore(STATE_NOTIFIED));
-          session.getContentManager().update(newMessageNode);
-
+          
+          Content newMessageNode = new Content(toPath, propertyBuilder.build());
+          
           if (!testing) {
             // This will probably be saved in a site store. Not all the users will have
             // access to their message. So we add an ACL that allows the user to edit and
@@ -165,6 +180,13 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
     } catch (StorageClientException e) {
       LOG.error(e.getMessage());
     } finally {
+      if (session != null) {
+        try {
+          session.logout();
+        } catch (ClientPoolException e) {
+          throw new RuntimeException("Failed to logout session.", e);
+        }
+      }
       lockManager.clearLocks();
     }
   }
