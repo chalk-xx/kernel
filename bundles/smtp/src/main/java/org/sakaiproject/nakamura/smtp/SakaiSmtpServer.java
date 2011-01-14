@@ -7,6 +7,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -105,6 +106,14 @@ public class SakaiSmtpServer implements SimpleMessageListener {
       return paths.size() > 0;
     } catch (Exception e) {
       LOGGER.error("Develier message with this handler ", e);
+    } finally {
+      if (session != null) {
+        try {
+          session.logout();
+        } catch (ClientPoolException e) {
+          throw new RuntimeException("Failed to logout session.", e);
+        }
+      }
     }
     return false;
   }

@@ -131,6 +131,14 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
       LOG.error(e.getMessage(), e);
     } catch (StorageClientException e) {
       LOG.error(e.getMessage(), e);
+    } finally {
+      if (session != null) {
+        try {
+          session.logout();
+        } catch (ClientPoolException e) {
+          throw new RuntimeException("Failed to logout session.", e);
+        }
+      }
     }
   }
 
