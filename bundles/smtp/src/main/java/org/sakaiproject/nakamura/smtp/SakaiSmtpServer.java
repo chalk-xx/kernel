@@ -5,11 +5,16 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
-import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.subethamail.smtp.TooMuchDataException;
@@ -28,11 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.jcr.Binary;
-import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.ValueFactory;
 import javax.mail.BodyPart;
 import javax.mail.Header;
 import javax.mail.MessagingException;
@@ -48,10 +49,10 @@ public class SakaiSmtpServer implements SimpleMessageListener {
   private SMTPServer server;
 
   @Reference
-  protected MessagingService messagingService;
+  protected LiteMessagingService messagingService;
 
   @Reference
-  protected SlingRepository slingRepository;
+  protected Repository contentRepository;
 
   @Property
   private static String LOCAL_DOMAINS = "smtp.localdomains";
@@ -98,15 +99,11 @@ public class SakaiSmtpServer implements SimpleMessageListener {
   public boolean accept(String from, String recipient) {
     Session session = null;
     try {
-      session = slingRepository.loginAdministrative(null);
+      session = contentRepository.loginAdministrative();
       List<String> paths = getLocalPath(session, recipient);
       return paths.size() > 0;
     } catch (Exception e) {
       LOGGER.error("Develier message with this handler ", e);
-    } finally {
-      if (session != null) {
-        session.logout();
-      }
     }
     return false;
   }
@@ -140,7 +137,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     LOGGER.info("Got message FROM: " + from + " TO: " + recipient);
     Session session = null;
     try {
-      session = slingRepository.loginAdministrative(null);
+      session = contentRepository.loginAdministrative();
 
       List<String> paths = getLocalPath(session, recipient);
       if (paths.size() > 0) {
@@ -151,20 +148,17 @@ public class SakaiSmtpServer implements SimpleMessageListener {
         mapProperties.put(MessageConstants.PROP_SAKAI_FROM, from);
         mapProperties.put(MessageConstants.PROP_SAKAI_MESSAGEBOX,
             MessageConstants.BOX_INBOX);
-        Node createdMessage = writeMessage(session, mapProperties, data, paths.get(0));
+        Content createdMessage = writeMessage(session, mapProperties, data, paths.get(0));
         if (createdMessage != null) {
           String messagePath = createdMessage.getPath();
-          String messageId = createdMessage.getProperty("message-id").getString();
+          String messageId = StorageClientUtils.toString(createdMessage.getProperty("message-id"));
           LOGGER.info("Created message {} at: {} ", messageId, messagePath);
 
           // we might want alias expansion
           for (int i = 1; i < paths.size(); i++) {
             String targetPath = paths.get(i);
-            messagingService.copyMessageNode(createdMessage, targetPath);
+            messagingService.copyMessageNode(createdMessage, targetPath, session);
           }
-        }
-        if (session.hasPendingChanges()) {
-          session.save();
         }
 
       }
@@ -174,16 +168,16 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     } catch (MessagingException e) {
       LOGGER.error("Unable to write message", e);
       throw new IOException("Message can not be written to repository");
-    } finally {
-      if (session != null) {
-        session.logout();
-      }
-    }
+    } catch (StorageClientException e) {
+      LOGGER.error("Unable to write message", e);
+    } catch (AccessDeniedException e) {
+      LOGGER.error("Unable to write message", e);
+    } 
   }
 
   @SuppressWarnings("unchecked")
-  private Node writeMessage(Session session, Map<String, Object> mapProperties,
-      InputStream data, String storePath) throws MessagingException, RepositoryException, IOException {
+  private Content writeMessage(Session session, Map<String, Object> mapProperties,
+      InputStream data, String storePath) throws MessagingException, AccessDeniedException, StorageClientException, RepositoryException, IOException {
     InternetHeaders internetHeaders = new InternetHeaders(data);
     // process the headers into a map.
     for ( Enumeration<Header> e = internetHeaders.getAllHeaders(); e.hasMoreElements(); ) {
@@ -203,23 +197,20 @@ public class SakaiSmtpServer implements SimpleMessageListener {
         && contentType[0].contains("boundary") && contentType[0].contains("multipart/")) {
         MimeMultipart multipart = new MimeMultipart(new SMTPDataSource(contentType[0],
             data));
-        Node message = messagingService.create(session, mapProperties,
+        Content message = messagingService.create(session, mapProperties,
             (String) mapProperties.get("sakai:message-id"), storePath);
         writeMultipartToNode(session, message, multipart);
         return message;
     } else {
-      Node node = messagingService.create(session, mapProperties);
+      Content node = messagingService.create(session, mapProperties);
       // set up to stream the body.
-      ValueFactory valueFactory = session.getValueFactory();
-      Binary bin = valueFactory.createBinary(data);
-      node.setProperty(MessageConstants.PROP_SAKAI_BODY, bin);
-      session.save();
+      node.setProperty(MessageConstants.PROP_SAKAI_BODY, StorageClientUtils.toStore(data));
       return node;
     }
   }
 
-  private void writeMultipartToNode(Session session, Node message, MimeMultipart multipart)
-      throws RepositoryException, MessagingException, IOException {
+  private void writeMultipartToNode(Session session, Content message, MimeMultipart multipart) throws MessagingException, AccessDeniedException, StorageClientException, RepositoryException, IOException
+      {
     int count = multipart.getCount();
     for (int i = 0; i < count; i++) {
       createChildNodeForPart(session, i, multipart.getBodyPart(i), message);
@@ -232,10 +223,12 @@ public class SakaiSmtpServer implements SimpleMessageListener {
   }
 
   private void createChildNodeForPart(Session session, int index, BodyPart part,
-      Node message) throws RepositoryException, MessagingException, IOException {
+      Content message) throws MessagingException, AccessDeniedException, StorageClientException, RepositoryException, IOException {
     String childName = String.format("part%1$03d", index);
+    String childPath = message.getPath() + "/" + childName;
     if (part.getContentType().toLowerCase().startsWith("multipart/")) {
-      Node childNode = message.addNode(childName);
+      session.getContentManager().update(new Content(childPath, new HashMap<String, Object>()));
+      Content childNode = session.getContentManager().get(childPath);
       writePartPropertiesToNode(part, childNode);
       MimeMultipart multi = new MimeMultipart(new SMTPDataSource(part.getContentType(),
           part.getInputStream()));
@@ -248,31 +241,32 @@ public class SakaiSmtpServer implements SimpleMessageListener {
       return;
     }
 
-    Node childNode = message.addNode(childName);
+    session.getContentManager().update(new Content(childPath, new HashMap<String, Object>()));
+    Content childNode = session.getContentManager().get(childPath);
     writePartPropertiesToNode(part, childNode);
-    ValueFactory valueFactory = session.getValueFactory();
-    Binary bin = valueFactory.createBinary(part.getInputStream());
-    childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, bin);
-    session.save();
+    childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, StorageClientUtils.toStore(part.getInputStream()));
   }
 
   private void writePartAsFile(Session session, BodyPart part, String nodeName,
-      Node parentNode) throws RepositoryException, MessagingException, IOException {
-    Node fileNode = parentNode.addNode(nodeName, "nt:file");
-    Node resourceNode = fileNode.addNode("jcr:content", "nt:resource");
-    resourceNode.setProperty("jcr:mimeType", part.getContentType());
-    resourceNode.setProperty("jcr:data",
-        session.getValueFactory().createBinary(part.getInputStream()));
-    resourceNode.setProperty("jcr:lastModified", Calendar.getInstance());
+      Content parentNode) throws AccessDeniedException, StorageClientException, MessagingException, IOException {
+    String filePath = parentNode.getPath() + "/nt:file";
+    String fileContentPath = filePath + "/jcr:content";
+    session.getContentManager().update(new Content(filePath, new HashMap<String, Object>()));
+    session.getContentManager().update(new Content(fileContentPath, new HashMap<String, Object>()));
+    Content resourceNode = session.getContentManager().get(fileContentPath);
+    resourceNode.setProperty("jcr:primaryType", StorageClientUtils.toStore("nt:resource"));
+    resourceNode.setProperty("jcr:mimeType", StorageClientUtils.toStore(part.getContentType()));
+    resourceNode.setProperty("jcr:data", StorageClientUtils.toStore(part.getInputStream()));
+    resourceNode.setProperty("jcr:lastModified", StorageClientUtils.toStore(Calendar.getInstance()));
   }
 
   @SuppressWarnings("unchecked")
-  private void writePartPropertiesToNode(BodyPart part, Node childNode)
+  private void writePartPropertiesToNode(BodyPart part, Content childNode)
       throws MessagingException, RepositoryException {
     Enumeration<Header> headers = part.getAllHeaders();
     while (headers.hasMoreElements()) {
       Header header = headers.nextElement();
-      childNode.setProperty(header.getName(), header.getValue());
+      childNode.setProperty(header.getName(), StorageClientUtils.toStore(header.getValue()));
     }
   }
 

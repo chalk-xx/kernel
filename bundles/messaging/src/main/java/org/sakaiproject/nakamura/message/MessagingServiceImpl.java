@@ -59,9 +59,9 @@ import javax.jcr.ValueFormatException;
 /**
  * Service for doing operations with messages.
  */
-@Component(immediate = true, label = "Sakai Messaging Service", description = "Service for doing operations with messages.", name = "org.sakaiproject.nakamura.api.message.MessagingService")
-@Service
-@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation") })
+//@Component(immediate = true, label = "Sakai Messaging Service", description = "Service for doing operations with messages.", name = "org.sakaiproject.nakamura.api.message.MessagingService")
+//@Service
+//@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class MessagingServiceImpl implements MessagingService {
 
   @Reference
