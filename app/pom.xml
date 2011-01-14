@@ -106,12 +106,21 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                    <archive>
-                     <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
                      <manifest>
                         <addDefaultImplementationEntries>
                               true
                         </addDefaultImplementationEntries>
                      </manifest>
+                     <manifestEntries>
+                         <Specification-Title>Nakamura Server</Specification-Title>
+                         <Specification-Version>${pom.version}</Specification-Version>
+                         <Specification-Vendor>The Sakai Foundation</Specification-Vendor>
+                         <Implementation-Title>Nakamura Server</Implementation-Title>
+                         <Implementation-Version>${pom.version}</Implementation-Version>
+                         <Implementation-Vendor-Id>${pom.groupId}</Implementation-Vendor-Id>
+                         <Implementation-Vendor>The Sakai Foundation</Implementation-Vendor>
+                         <Main-Class>org.apache.sling.launchpad.app.Main</Main-Class>
+                     </manifestEntries>
                    </archive>
                 </configuration>
             </plugin>
