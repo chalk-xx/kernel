@@ -13,6 +13,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.slf4j.Logger;
@@ -224,11 +225,12 @@ public class SakaiSmtpServer implements SimpleMessageListener {
 
   private void createChildNodeForPart(Session session, int index, BodyPart part,
       Content message) throws MessagingException, AccessDeniedException, StorageClientException, RepositoryException, IOException {
+    ContentManager contentManager = session.getContentManager();
     String childName = String.format("part%1$03d", index);
     String childPath = message.getPath() + "/" + childName;
     if (part.getContentType().toLowerCase().startsWith("multipart/")) {
-      session.getContentManager().update(new Content(childPath, new HashMap<String, Object>()));
-      Content childNode = session.getContentManager().get(childPath);
+      contentManager.update(new Content(childPath, new HashMap<String, Object>()));
+      Content childNode = contentManager.get(childPath);
       writePartPropertiesToNode(part, childNode);
       MimeMultipart multi = new MimeMultipart(new SMTPDataSource(part.getContentType(),
           part.getInputStream()));
@@ -241,8 +243,8 @@ public class SakaiSmtpServer implements SimpleMessageListener {
       return;
     }
 
-    session.getContentManager().update(new Content(childPath, new HashMap<String, Object>()));
-    Content childNode = session.getContentManager().get(childPath);
+    contentManager.update(new Content(childPath, new HashMap<String, Object>()));
+    Content childNode = contentManager.get(childPath);
     writePartPropertiesToNode(part, childNode);
     childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, StorageClientUtils.toStore(part.getInputStream()));
   }

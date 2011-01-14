@@ -30,6 +30,7 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
@@ -37,6 +38,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.slf4j.Logger;
@@ -67,6 +69,8 @@ import java.util.Map;
   public void process(Authorizable authorizable, Session session, Modification change,
       Map<String, Object[]> parameters) throws Exception {
     LOGGER.debug("Starting MessageAuthorizablePostProcessor process");
+    ContentManager contentManager = session.getContentManager();
+    AccessControlManager accessControlManager = session.getAccessControlManager();
     if (ModificationType.CREATE.equals(change.getType())) {
       if (authorizable != null) {
         String authorizableId =  authorizable.getId();
@@ -86,8 +90,8 @@ import java.util.Map;
           AclModification.addAcl(false, Permissions.CAN_ANYTHING, User.ANON_USER, acls);
           AclModification.addAcl(false, Permissions.CAN_ANYTHING, Group.EVERYONE, acls);
 
-          session.getContentManager().update(messageStore);
-          session.getAccessControlManager().setAcl(Security.ZONE_CONTENT, path,
+          contentManager.update(messageStore);
+          accessControlManager.setAcl(Security.ZONE_CONTENT, path,
               acls.toArray(new AclModification[acls.size()]));
         }
       }
