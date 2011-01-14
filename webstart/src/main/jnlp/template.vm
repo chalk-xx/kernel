@@ -23,7 +23,7 @@
     <jar href="lib/org.sakaiproject.nakamura.app-0.10-SNAPSHOT.jar" main="true"/>
 
   </resources>
-  <application-desc main-class="org.sakaiproject.nakamura.app.JNPLMain" />
+  <application-desc main-class="org.sakaiproject.nakamura.app.LaunchNakamura" />
 </jnlp>
 
 
