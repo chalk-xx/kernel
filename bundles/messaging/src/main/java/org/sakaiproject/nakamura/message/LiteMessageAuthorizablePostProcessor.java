@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.message;
 
 import com.google.common.collect.ImmutableMap;
 
+import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessor;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -49,14 +50,13 @@ import java.util.Map;
  * This PostProcessor listens to post operations on User objects and creates a message
  * store.
  */
-//@Component(immediate = true, label = "LiteMessageAuthorizablePostProcessor", description = "Creates the message stores for users and groups.", metatype = false)
-//@Service
+@Component(immediate = true, label = "LiteMessageAuthorizablePostProcessor", description = "Creates the message stores for users and groups.", metatype = false)
+@Service
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Creates the message stores for users and groups."),
     @Property(name = "service.ranking", intValue=10)})
-public class LiteMessageAuthorizablePostProcessor {
-// public class LiteMessageAuthorizablePostProcessor implements AuthorizablePostProcessor {
+ public class LiteMessageAuthorizablePostProcessor implements LiteAuthorizablePostProcessor {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteMessageAuthorizablePostProcessor.class);
