@@ -34,13 +34,11 @@ import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.util.StringUtils;
 
 import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import javax.jcr.RepositoryException;
 import javax.jcr.query.Query;
 
 @Component(immediate = true, label = "MessageSearchPropertyProvider", description = "Provides properties to process the chat message searches.")
@@ -64,10 +62,11 @@ public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider
    */
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
+    // TODO BL120 figure out what search properties (if any) will be needed for the sparse version of this search
+    // in other words, no more JCR query stuff here.
     try {
       String user = request.getRemoteUser();
-      javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
-      Session session = JackrabbitSparseUtils.getSparseSession(jcrSession);
+      Session session = request.getResourceResolver().adaptTo(Session.class);
       propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
           .encodePath(messagingService.getFullPathToStore(user, session)));
 
@@ -89,8 +88,6 @@ public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider
         propertiesMap.put("_from", sql.toString());
       }
     } catch (MessagingException e) {
-      LOG.error(e.getLocalizedMessage());
-    } catch (RepositoryException e) {
       LOG.error(e.getLocalizedMessage());
     }
   }

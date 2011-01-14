@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.chat;
 
 import static org.junit.Assert.assertEquals;
 
-import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -38,7 +37,6 @@ import javax.jcr.UnsupportedRepositoryOperationException;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager;
 
 import static org.mockito.Mockito.*;
 
@@ -50,11 +48,9 @@ public class ChatMessageSearchResultProviderTest {
   private LiteMessagingService messagingService;
   private ChatMessageSearchPropertyProvider propProvider;
   
-  private JackrabbitSession jcrSession;
   private Session session;
   private String user = "johndoe";
   private ResourceResolver resourceResolver;
-  private SparseMapUserManager sparseUserManager;
 
   @Before
   public void setUp() throws AccessDeniedException, UnsupportedRepositoryOperationException, RepositoryException, ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException {
@@ -62,13 +58,9 @@ public class ChatMessageSearchResultProviderTest {
 
     propProvider = new ChatMessageSearchPropertyProvider();
     propProvider.messagingService = messagingService;
-    jcrSession = mock(JackrabbitSession.class);
     session = mock(Session.class);
-    sparseUserManager = mock(SparseMapUserManager.class);
     resourceResolver = mock(ResourceResolver.class);
-    when(sparseUserManager.getSession()).thenReturn(session);
-    when(resourceResolver.adaptTo(javax.jcr.Session.class)).thenReturn(jcrSession);
-    when(jcrSession.getUserManager()).thenReturn(sparseUserManager);
+    when(resourceResolver.adaptTo(Session.class)).thenReturn(session);
     when(messagingService.getFullPathToStore(user, session)).thenReturn("/full/path/to/store");
   }
 
