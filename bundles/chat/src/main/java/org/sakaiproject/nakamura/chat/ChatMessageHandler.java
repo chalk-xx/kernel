@@ -54,12 +54,12 @@ import javax.jcr.Session;
 /**
  * Handler for chat messages.
  */
-@Component(label = "ChatMessageHandler", description = "Handler for internally delivered chat messages.", immediate = true)
-@Services(value = { @Service(value = MessageTransport.class),
-    @Service(value = MessageProfileWriter.class) })
-@Properties(value = {
-    @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Handler for internally delivered chat messages") })
+//@Component(label = "ChatMessageHandler", description = "Handler for internally delivered chat messages.", immediate = true)
+//@Services(value = { @Service(value = MessageTransport.class),
+//    @Service(value = MessageProfileWriter.class) })
+//@Properties(value = {
+//    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+//    @Property(name = "service.description", value = "Handler for internally delivered chat messages") })
 public class ChatMessageHandler implements MessageTransport, MessageProfileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(ChatMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_CHAT;

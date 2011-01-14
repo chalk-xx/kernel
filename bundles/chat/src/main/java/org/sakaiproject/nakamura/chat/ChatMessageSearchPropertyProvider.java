@@ -27,14 +27,20 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
-import org.sakaiproject.nakamura.api.message.MessagingService;
+import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.util.StringUtils;
 
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Map;
 
-import javax.jcr.Session;
+import javax.jcr.RepositoryException;
 import javax.jcr.query.Query;
 
 @Component(immediate = true, label = "MessageSearchPropertyProvider", description = "Provides properties to process the chat message searches.")
@@ -44,9 +50,11 @@ import javax.jcr.query.Query;
     @Property(name = "sakai.search.provider", value = "ChatMessage"),
     @Property(name = "service.description", value = "Provides properties to process the chat message searches.") })
 public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider {
+  
+  private static final Logger LOG = LoggerFactory.getLogger(ChatMessageSearchPropertyProvider.class);
 
   @Reference
-  protected transient MessagingService messagingService;
+  protected transient LiteMessagingService messagingService;
 
   /**
    * {@inheritDoc}
@@ -56,27 +64,34 @@ public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider
    */
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
-    String user = request.getRemoteUser();
-    Session session = request.getResourceResolver().adaptTo(Session.class);
-    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
-        .encodePath(messagingService.getFullPathToStore(user, session)));
+    try {
+      String user = request.getRemoteUser();
+      javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+      Session session = JackrabbitSparseUtils.getSparseSession(jcrSession);
+      propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
+          .encodePath(messagingService.getFullPathToStore(user, session)));
 
-    RequestParameter usersParam = request.getRequestParameter("_from");
-    if (usersParam != null && !usersParam.getString().equals("")) {
-      StringBuilder sql = new StringBuilder(" and ((");
-      String[] users = StringUtils.split(usersParam.getString(), ',');
+      RequestParameter usersParam = request.getRequestParameter("_from");
+      if (usersParam != null && !usersParam.getString().equals("")) {
+        StringBuilder sql = new StringBuilder(" and ((");
+        String[] users = StringUtils.split(usersParam.getString(), ',');
 
-      for (String u : users) {
-        sql.append("@sakai:from=\"").append(escapeString(u, Query.XPATH)).append("\" or ");
+        for (String u : users) {
+          sql.append("@sakai:from=\"").append(escapeString(u, Query.XPATH)).append("\" or ");
+        }
+        sql.append("@sakai:from=\"").append(escapeString(user, Query.XPATH)).append("\") or (");
+
+        for (String u : users) {
+          sql.append("@sakai:to=\"").append(escapeString(u, Query.XPATH)).append("\" or ");
+        }
+        sql.append("@sakai:to=\"").append(escapeString(user, Query.XPATH)).append("\"))");
+
+        propertiesMap.put("_from", sql.toString());
       }
-      sql.append("@sakai:from=\"").append(escapeString(user, Query.XPATH)).append("\") or (");
-
-      for (String u : users) {
-        sql.append("@sakai:to=\"").append(escapeString(u, Query.XPATH)).append("\" or ");
-      }
-      sql.append("@sakai:to=\"").append(escapeString(user, Query.XPATH)).append("\"))");
-
-      propertiesMap.put("_from", sql.toString());
+    } catch (MessagingException e) {
+      LOG.error(e.getLocalizedMessage());
+    } catch (RepositoryException e) {
+      LOG.error(e.getLocalizedMessage());
     }
   }
 }
