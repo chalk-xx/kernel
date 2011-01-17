@@ -33,18 +33,25 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.sakaiproject.nakamura.api.message.*;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter;
+import org.sakaiproject.nakamura.api.message.LiteMessageTransport;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
+import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.message.MessageRoute;
+import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.HashMap;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Handler for chat messages.
@@ -55,7 +62,8 @@ import java.util.HashMap;
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Handler for internally delivered chat messages") })
-public class LiteChatMessageHandler implements LiteMessageTransport, LiteMessageProfileWriter {
+public class LiteChatMessageHandler implements LiteMessageTransport,
+    LiteMessageProfileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(LiteChatMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_CHAT;
   private static final Object CHAT_TRANSPORT = "chat";
@@ -80,15 +88,16 @@ public class LiteChatMessageHandler implements LiteMessageTransport, LiteMessage
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.sakaiproject.nakamura.api.message.MessageTransport#send(org.sakaiproject.nakamura.api.message.MessageRoutes,
    *      org.osgi.service.event.Event, javax.jcr.Node)
    */
   public void send(MessageRoutes routes, Event event, Content originalMessage) {
-    Session session;
+    Session session = null;
     try {
 
       session = contentRepository.loginAdministrative();
+      ContentManager contentManager = session.getContentManager();
 
       for (MessageRoute route : routes) {
         if (CHAT_TRANSPORT.equals(route.getTransport())) {
@@ -98,26 +107,25 @@ public class LiteChatMessageHandler implements LiteMessageTransport, LiteMessage
           String messageId = (String)originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID);
           String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
 
+          ImmutableMap.Builder<String, Object> propertyBuilder = ImmutableMap.builder();
           // Copy the node into the user his folder.
-          session.getContentManager().update(new Content(toPath.substring(0, toPath.lastIndexOf("/")), new HashMap<String,Object>()));
-          session.getContentManager().copy(originalMessage.getPath(), toPath, true);
-          Content n = session.getContentManager().get(toPath);
+          contentManager.update(new Content(toPath.substring(0, toPath.lastIndexOf("/")), propertyBuilder.build()));
+          contentManager.copy(originalMessage.getPath(), toPath, true);
+          Content message = contentManager.get(toPath);
 
           // Add some extra properties on the just created node.
-          n.setProperty(MessageConstants.PROP_SAKAI_READ, false);
-          n.setProperty(MessageConstants.PROP_SAKAI_TO, rcpt);
-          n.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
+          message.setProperty(MessageConstants.PROP_SAKAI_READ, false);
+          message.setProperty(MessageConstants.PROP_SAKAI_TO, rcpt);
+          message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
               MessageConstants.BOX_INBOX);
-          n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
+          message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
-          n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+          message.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
               MessageConstants.SAKAI_MESSAGE_RT);
 
-          long time = System.currentTimeMillis();
-          Calendar cal = (Calendar)originalMessage.getProperty(MessageConstants.PROP_SAKAI_CREATED);
-          time = cal.getTimeInMillis();
+          long time = StorageClientUtils.toLong(originalMessage.getProperty(MessageConstants.PROP_SAKAI_CREATED));
 
-          String from = (String)originalMessage.getProperty(MessageConstants.PROP_SAKAI_FROM);
+          String from = StorageClientUtils.toString(originalMessage.getProperty(MessageConstants.PROP_SAKAI_FROM));
 
           // Set the rcpt in the cache.
           chatManagerService.put(rcpt, time);
@@ -135,12 +143,20 @@ public class LiteChatMessageHandler implements LiteMessageTransport, LiteMessage
       LOG.error(e.getLocalizedMessage());
     } catch (IOException e) {
       LOG.error(e.getLocalizedMessage());
+    } finally {
+      try {
+        if (session != null) {
+          session.logout();
+        }
+      } catch (ClientPoolException e) {
+        throw new RuntimeException("Failed to logout session.", e);
+      }
     }
   }
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter#writeProfileInformation(Session,
    *      String, org.apache.sling.commons.json.io.JSONWriter)
    */
@@ -156,7 +172,7 @@ public class LiteChatMessageHandler implements LiteMessageTransport, LiteMessage
 
   /**
    * Determines what type of messages this handler will process. {@inheritDoc}
-   *
+   * 
    * @see org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter#getType()
    */
   public String getType() {

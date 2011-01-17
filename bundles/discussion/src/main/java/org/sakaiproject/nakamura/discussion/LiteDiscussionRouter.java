@@ -71,6 +71,7 @@ public class LiteDiscussionRouter implements LiteMessageRouter {
 
   public void route(Content n, MessageRoutes routing) {
     // Check if this message is a discussion/comment transport.
+    Session session = null;
     try {
       if (n.hasProperty(MessageConstants.PROP_SAKAI_TO)
           && n.hasProperty(DiscussionConstants.PROP_MARKER)) {
@@ -87,7 +88,7 @@ public class LiteDiscussionRouter implements LiteMessageRouter {
           // This is a discussion message, find the settings file for it.
 
           String marker = StorageClientUtils.toString(n.getProperty(DiscussionConstants.PROP_MARKER));
-          Session session = contentRepository.loginAdministrative();
+          session = contentRepository.loginAdministrative();
           Content settings = discussionManager.findSettings(marker, session, type);
           if (settings != null
               && settings.hasProperty(DiscussionConstants.PROP_NOTIFICATION)) {
@@ -110,6 +111,14 @@ public class LiteDiscussionRouter implements LiteMessageRouter {
       LOG.error(e.getMessage());
     } catch (StorageClientException e) {
       LOG.error(e.getMessage());
+    } finally {
+      if (session != null) {
+        try {
+          session.logout();
+        } catch (ClientPoolException e) {
+          throw new RuntimeException("Failed to logout session.", e);
+        }
+      }
     }
   }
 

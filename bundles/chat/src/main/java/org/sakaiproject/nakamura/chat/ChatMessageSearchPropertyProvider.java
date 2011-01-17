@@ -17,31 +17,20 @@
  */
 package org.sakaiproject.nakamura.chat;
 
-import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.request.RequestParameter;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
-import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
-import org.sakaiproject.nakamura.util.StringUtils;
 
-import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.query.Query;
 
 @Component(immediate = true, label = "MessageSearchPropertyProvider", description = "Provides properties to process the chat message searches.")
 @Service
@@ -64,33 +53,32 @@ public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider
    */
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
+    // TODO BL120 figure out what search properties (if any) will be needed for the sparse version of this search
+    // in other words, no more JCR query stuff here.
     try {
-      String user = request.getRemoteUser();
-      javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
-      Session session = JackrabbitSparseUtils.getSparseSession(jcrSession);
-      propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
-          .encodePath(messagingService.getFullPathToStore(user, session)));
-
-      RequestParameter usersParam = request.getRequestParameter("_from");
-      if (usersParam != null && !usersParam.getString().equals("")) {
-        StringBuilder sql = new StringBuilder(" and ((");
-        String[] users = StringUtils.split(usersParam.getString(), ',');
-
-        for (String u : users) {
-          sql.append("@sakai:from=\"").append(escapeString(u, Query.XPATH)).append("\" or ");
-        }
-        sql.append("@sakai:from=\"").append(escapeString(user, Query.XPATH)).append("\") or (");
-
-        for (String u : users) {
-          sql.append("@sakai:to=\"").append(escapeString(u, Query.XPATH)).append("\" or ");
-        }
-        sql.append("@sakai:to=\"").append(escapeString(user, Query.XPATH)).append("\"))");
-
-        propertiesMap.put("_from", sql.toString());
-      }
+//      String user = request.getRemoteUser();
+//      Session session = request.getResourceResolver().adaptTo(Session.class);
+//      propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
+//          .encodePath(messagingService.getFullPathToStore(user, session)));
+//
+//      RequestParameter usersParam = request.getRequestParameter("_from");
+//      if (usersParam != null && !usersParam.getString().equals("")) {
+//        StringBuilder sql = new StringBuilder(" and ((");
+//        String[] users = StringUtils.split(usersParam.getString(), ',');
+//
+//        for (String u : users) {
+//          sql.append("@sakai:from=\"").append(escapeString(u, Query.XPATH)).append("\" or ");
+//        }
+//        sql.append("@sakai:from=\"").append(escapeString(user, Query.XPATH)).append("\") or (");
+//
+//        for (String u : users) {
+//          sql.append("@sakai:to=\"").append(escapeString(u, Query.XPATH)).append("\" or ");
+//        }
+//        sql.append("@sakai:to=\"").append(escapeString(user, Query.XPATH)).append("\"))");
+//
+//        propertiesMap.put("_from", sql.toString());
+//      }
     } catch (MessagingException e) {
-      LOG.error(e.getLocalizedMessage());
-    } catch (RepositoryException e) {
       LOG.error(e.getLocalizedMessage());
     }
   }

@@ -29,16 +29,28 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.service.event.Event;
-import org.sakaiproject.nakamura.api.lite.*;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
-import org.sakaiproject.nakamura.api.message.*;
+import org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter;
+import org.sakaiproject.nakamura.api.message.LiteMessageTransport;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
+import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.message.MessageRoute;
+import org.sakaiproject.nakamura.api.message.MessageRoutes;
+import org.sakaiproject.nakamura.api.message.MessageTransport;
+import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.LiteProfileService;
@@ -48,9 +60,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
@@ -62,7 +72,8 @@ import java.util.Map;
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Handler for internally delivered messages.") })
-public class LiteInternalMessageHandler implements LiteMessageTransport, LiteMessageProfileWriter {
+public class LiteInternalMessageHandler implements LiteMessageTransport,
+    LiteMessageProfileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_INTERNAL;
 
@@ -89,7 +100,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport, LiteMes
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.sakaiproject.nakamura.api.message.LiteMessageTransport#send(org.sakaiproject.nakamura.api.message.MessageRoutes,
    *      org.osgi.service.event.Event, Content)
    */
@@ -99,7 +110,8 @@ public class LiteInternalMessageHandler implements LiteMessageTransport, LiteMes
 
       session = slingRepository.loginAdministrative();
 
-      //recipients keeps track of who have already received the message, to avoid duplicate messages
+      // recipients keeps track of who have already received the message, to avoid
+      // duplicate messages
       List<String> recipients = new ArrayList<String>();
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       for (MessageRoute route : routes) {
@@ -107,8 +119,10 @@ public class LiteInternalMessageHandler implements LiteMessageTransport, LiteMes
           LOG.info("Started handling a message.");
           String recipient = route.getRcpt();
           // the path were we want to save messages in.
-          String messageId = StorageClientUtils.toString(originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID));
-          sendHelper(recipients, recipient, originalMessage, session, messageId, authorizableManager);
+          String messageId = StorageClientUtils.toString(originalMessage
+              .getProperty(MessageConstants.PROP_SAKAI_ID));
+          sendHelper(recipients, recipient, originalMessage, session, messageId,
+              authorizableManager);
         }
       }
     } catch (AccessDeniedException e) {
@@ -117,44 +131,60 @@ public class LiteInternalMessageHandler implements LiteMessageTransport, LiteMes
       LOG.error(e.getMessage(), e);
     } catch (StorageClientException e) {
       LOG.error(e.getMessage(), e);
+    } finally {
+      if (session != null) {
+        try {
+          session.logout();
+        } catch (ClientPoolException e) {
+          throw new RuntimeException("Failed to logout session.", e);
+        }
+      }
     }
   }
 
-  private void sendHelper(List<String> recipients, String recipient, Content originalMessage, Session session,
-                          String messageId, AuthorizableManager authManager){
+  private void sendHelper(List<String> recipients, String recipient,
+      Content originalMessage, Session session, String messageId,
+      AuthorizableManager authManager) {
     try {
+      ContentManager contentManager = session.getContentManager();
       Authorizable au = authManager.findAuthorizable(recipient);
       if (au != null && au instanceof Group) {
         Group group = (Group) au;
-        //user must be in the group directly to send a message:
+        // user must be in the group directly to send a message:
         for (String memberName : group.getMembers()) {
           if (!recipients.contains(memberName)) {
-            //call back to itself: this allows for groups to be in groups and future extensions
-            sendHelper(recipients, memberName, originalMessage, session, messageId, authManager);
+            // call back to itself: this allows for groups to be in groups and future
+            // extensions
+            sendHelper(recipients, memberName, originalMessage, session, messageId,
+                authManager);
             recipients.add(memberName);
           }
         }
       } else {
-        //only send a message to a user who hasn't already received one:
+        // only send a message to a user who hasn't already received one:
         if (!recipients.contains(recipient)) {
 
-          String toPath = messagingService.getFullPathToMessage(recipient, messageId, session);
+          String toPath = messagingService.getFullPathToMessage(recipient, messageId,
+              session);
 
           try {
             lockManager.waitForLock(toPath);
           } catch (LockTimeoutException e1) {
             throw new MessagingException("Unable to lock destination message store");
           }
+          ImmutableMap.Builder<String, Object> propertyBuilder = ImmutableMap.builder();
           // Copy the content into the user his folder.
-          session.getContentManager().update(new Content(toPath.substring(0, toPath.lastIndexOf("/")),
-              new HashMap<String, Object>()));
-          session.getContentManager().copy(originalMessage.getPath(), toPath, true);
-          session.getContentManager().update(new Content(toPath, new HashMap<String, Object>()));
-          Content message = session.getContentManager().get(toPath);
+          session.getContentManager().update(
+              new Content(toPath.substring(0, toPath.lastIndexOf("/")), propertyBuilder
+                  .build()));
+          contentManager.copy(originalMessage.getPath(), toPath, true);
+          contentManager.update(new Content(toPath, propertyBuilder.build()));
+          Content message = contentManager.get(toPath);
 
           // Add some extra properties on the just created node.
           message.setProperty(MessageConstants.PROP_SAKAI_READ, Boolean.FALSE);
-          message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
+          message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
+              MessageConstants.BOX_INBOX);
           message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
 
@@ -174,7 +204,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport, LiteMes
 
   /**
    * Determines what type of messages this handler will process. {@inheritDoc}
-   *
+   * 
    * @see org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter#getType()
    */
   public String getType() {
@@ -183,7 +213,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport, LiteMes
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.sakaiproject.nakamura.api.message.MessageProfileWriter#writeProfileInformation(javax.jcr.Session,
    *      java.lang.String, org.apache.sling.commons.json.io.JSONWriter)
    */
@@ -195,7 +225,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport, LiteMes
       if (au != null) {
         write.object();
         ValueMap map = profileService.getCompactProfileMap(au, session);
-        ((ExtendedJSONWriter)write).valueMapInternals(map);
+        ((ExtendedJSONWriter) write).valueMapInternals(map);
         if (au instanceof User) {
           // Pass in the presence.
           PresenceUtils.makePresenceJSON(write, au.getId(), presenceService, true);

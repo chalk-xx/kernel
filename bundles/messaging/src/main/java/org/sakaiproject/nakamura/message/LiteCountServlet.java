@@ -27,6 +27,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -34,8 +35,8 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
-import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,7 +101,7 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(LiteCountServlet.class);
 
   @Reference
-  protected transient MessagingService messagingService;
+  protected transient LiteMessagingService messagingService;
   
   @Override
   protected void doGet(SlingHttpServletRequest request,
@@ -113,7 +114,7 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
     try {
       // Do the query
       // We do the query on the user his messageStore's path.
-      String messageStorePath = ISO9075.encodePath(messagingService.getFullPathToStore(request.getRemoteUser(), node.getSession()));
+      String messageStorePath = ISO9075.encodePath(messagingService.getFullPathToStore(request.getRemoteUser(), JackrabbitSparseUtils.getSparseSession(node.getSession())));
       // String messageStorePath = node.getPath();
       StringBuilder queryString = new StringBuilder("/jcr:root"
           + messageStorePath + "//*[@sling:resourceType=\"sakai/message\" and @"
