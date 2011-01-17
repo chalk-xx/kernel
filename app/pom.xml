@@ -119,7 +119,7 @@
                          <Implementation-Version>${pom.version}</Implementation-Version>
                          <Implementation-Vendor-Id>${pom.groupId}</Implementation-Vendor-Id>
                          <Implementation-Vendor>The Sakai Foundation</Implementation-Vendor>
-                         <Main-Class>org.apache.sling.launchpad.app.Main</Main-Class>
+                         <Main-Class>org.sakaiproject.nakamura.app.NakamuraMain</Main-Class>
                      </manifestEntries>
                    </archive>
                 </configuration>
