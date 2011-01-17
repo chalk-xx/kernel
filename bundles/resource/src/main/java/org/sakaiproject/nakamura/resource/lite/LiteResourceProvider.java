@@ -58,10 +58,9 @@ public class LiteResourceProvider implements ResourceProvider {
    */
   public Resource getResource(ResourceResolver resourceResolver, String path) {
     Resource retRes = null;
-    Session session = null;
     try {
       javax.jcr.Session jcrSession = resourceResolver.adaptTo(javax.jcr.Session.class);
-      session = JackrabbitSparseUtils.getSparseSession(jcrSession);
+      Session session = JackrabbitSparseUtils.getSparseSession(jcrSession);
       ContentManager cm = session.getContentManager();
       Content content = cm.get(path);
       if (content != null) {
@@ -77,12 +76,6 @@ public class LiteResourceProvider implements ResourceProvider {
       logger.error(e.getMessage(), e);
     } catch (AccessDeniedException e) {
       logger.error(e.getMessage(), e);
-    } finally {
-//      try {
-//        session.logout();
-//      } catch (ClientPoolException e) {
-//        logger.debug(e.getMessage(), e);
-//      }
     }
     return retRes;
   }

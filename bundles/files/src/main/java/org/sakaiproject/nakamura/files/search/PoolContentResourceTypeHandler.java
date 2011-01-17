@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.sakaiproject.nakamura.files.search;
 
 import com.google.common.collect.ImmutableList;
@@ -40,6 +57,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+/**
+ * Indexes content with the property sling:resourceType = "sakai/pooled-content".
+ */
 @Component
 public class PoolContentResourceTypeHandler implements IndexingHandler {
 
@@ -62,7 +82,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
   private static final String[] CONTENT_TYPES = new String[] {
     "sakai/pooled-content"
   };
-  
+
   @Reference(target="(type=sparse)")
   protected ResourceIndexingService resourceIndexingService;
 
@@ -79,18 +99,28 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     return builder.build();
   }
 
+  // ---------- SCR integration-------------------------------------------------
   @Activate
   public void activate(Map<String, Object> properties) {
-    for ( String type : CONTENT_TYPES ) {
+    for (String type : CONTENT_TYPES) {
       resourceIndexingService.addHandler(type, this);
     }
   }
 
   @Deactivate
   public void deactivate(Map<String, Object> properties) {
-    resourceIndexingService.removeHander("sakai/content-pool", this);
+    for (String type : CONTENT_TYPES) {
+      resourceIndexingService.removeHandler(type, this);
+    }
   }
 
+  // ---------- IndexingHandler interface --------------------------------------
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.solr.IndexingHandler#getDocuments(org.sakaiproject.nakamura.api.solr.RepositorySession,
+   *      org.osgi.service.event.Event)
+   */
   public Collection<SolrInputDocument> getDocuments(RepositorySession repositorySession,
       Event event) {
     LOGGER.debug("GetDocuments for {} ", event);
@@ -106,7 +136,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
         Content content = contentManager.get(path);
         if (content != null) {
           SolrInputDocument doc = new SolrInputDocument();
-          
+
           Map<String, Object> properties = content.getProperties();
 
           for (Entry<String, Object> p : properties.entrySet()) {
@@ -122,11 +152,11 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
           if (contentStream != null) {
             doc.addField("content", contentStream);
           }
-          
+
           for (String principal : getReadingPrincipals(session, path)) {
             doc.addField("readers", principal);
           }
-          
+
           doc.addField("id", path);
           documents.add(doc);
         }
@@ -144,11 +174,27 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     return documents;
   }
 
+  /**
+   * Gets the principals that can read content at a given path.
+   *
+   * @param session
+   * @param path
+   *          The path to check.
+   * @return {@link String[]} of principal names that can read {@link path}. An empty
+   *         array is returned if no principals can read the path.
+   * @throws StorageClientException
+   */
   private String[] getReadingPrincipals(Session session, String path) throws StorageClientException {
     AccessControlManager accessControlManager = session.getAccessControlManager();
     return accessControlManager.findPrincipals(Security.ZONE_CONTENT ,path, Permissions.CAN_READ.getPermission(), true);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.solr.IndexingHandler#getDeleteQueries(org.sakaiproject.nakamura.api.solr.RepositorySession,
+   *      org.osgi.service.event.Event)
+   */
   public Collection<String> getDeleteQueries(RepositorySession repositorySession, Event event) {
     LOGGER.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty("path");
@@ -159,17 +205,35 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
       return ImmutableList.of("id:" + path);
     }
   }
-  
+
   public void setResourceIndexingService(ResourceIndexingService resourceIndexingService) {
     if (resourceIndexingService != null) {
       this.resourceIndexingService = resourceIndexingService;
     }
   }
 
+  /**
+   * Determine whether a path should be ignored for indexing.
+   *
+   * @param path
+   *          The path to check.
+   * @return true if the path should be ignored. false, otherwise.
+   */
   protected boolean ignorePath(String path) {
     return false;
   }
 
+  /**
+   * Converts an entry to the proper storage format. If the entry is listed as a property
+   * that should be stored as an array, the value is split on comma into an array.
+   * Otherwise the value is stored as-is in the first element of an array.
+   *
+   * @param p
+   *          The entry to format.
+   * @return {@link Iterable} of values for storage. If the property should be an array,
+   *         it is split on comma. Otherwise it is stored as-is as the first element of an
+   *         array.
+   */
   private Iterable<?> convertToIndex(Entry<String, Object> p) {
     String name = p.getKey();
     if (ARRAY_PROPERTIES.contains(name)) {
@@ -178,10 +242,19 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     return Iterables.of(new String[] { StorageClientUtils.toString(p.getValue()) });
   }
 
+  /**
+   * Get the index name for a given {@link Map.Entry}. Checks that the entry is on the
+   * whitelist and is not listed as an ignored namespace or ignored property.
+   *
+   * @param e
+   *          The entry to get an index name for.
+   * @return The name of the index to use for the given entry. null if the entry should
+   *         not be indexed.
+   */
   protected String index(Entry<String, Object> e) {
     String name = e.getKey();
-    String[] parts = StringUtils.split(name, ':');
     if (!WHITELIST_PROPERTIES.contains(name)) {
+      String[] parts = StringUtils.split(name, ':');
       if (IGNORE_NAMESPACES.contains(parts[0])) {
         return null;
       }
