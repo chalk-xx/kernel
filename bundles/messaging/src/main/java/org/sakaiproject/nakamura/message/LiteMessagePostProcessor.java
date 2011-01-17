@@ -34,6 +34,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostProcessor;
 import org.osgi.service.event.Event;
@@ -44,6 +45,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,67 +81,70 @@ public class LiteMessagePostProcessor implements SlingPostProcessor {
   public void process(SlingHttpServletRequest request,
       List<Modification> changes) throws Exception {
 
-    Map<Content, String> messageMap = new HashMap<Content, String>();
-    Session session = request.getResourceResolver().adaptTo(Session.class);
-    ContentManager contentManager = session.getContentManager();
-    for (Modification m : changes) {
-      try {
-        switch (m.getType()) {
-        case CREATE:
-        case MODIFY:
-          String path = m.getSource();
-          path = path.substring(0, path.lastIndexOf("/"));
-          if (contentManager.exists(path)) {
-            Content content = contentManager.get(path);
-            if (content.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && content.hasProperty(PROP_SAKAI_MESSAGEBOX)) {
-              if (SAKAI_MESSAGE_RT.equals(StorageClientUtils.toString(content.getProperty(SLING_RESOURCE_TYPE_PROPERTY))) &&
-                  BOX_OUTBOX.equals(StorageClientUtils.toString(content.getProperty(PROP_SAKAI_MESSAGEBOX)))) {
-                String sendstate;
-                if (content.hasProperty(PROP_SAKAI_SENDSTATE)) {
-                  sendstate = StorageClientUtils.toString(content.getProperty(PROP_SAKAI_SENDSTATE));
-                } else {
-                  sendstate = STATE_NONE;
+    Resource resource = request.getResource();
+    if ( SparseContentResource.SPARSE_CONTENT_RT.equals(resource.getResourceSuperType()) ) {
+      Session session = resource.adaptTo(Session.class);
+      ContentManager contentManager = session.getContentManager();
+      Map<Content, String> messageMap = new HashMap<Content, String>();
+      for (Modification m : changes) {
+        try {
+          switch (m.getType()) {
+          case CREATE:
+          case MODIFY:
+            String path = m.getSource();
+            path = path.substring(0, path.lastIndexOf("/"));
+            if (contentManager.exists(path)) {
+              Content content = contentManager.get(path);
+              if (content.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && content.hasProperty(PROP_SAKAI_MESSAGEBOX)) {
+                if (SAKAI_MESSAGE_RT.equals(StorageClientUtils.toString(content.getProperty(SLING_RESOURCE_TYPE_PROPERTY))) &&
+                    BOX_OUTBOX.equals(StorageClientUtils.toString(content.getProperty(PROP_SAKAI_MESSAGEBOX)))) {
+                  String sendstate;
+                  if (content.hasProperty(PROP_SAKAI_SENDSTATE)) {
+                    sendstate = StorageClientUtils.toString(content.getProperty(PROP_SAKAI_SENDSTATE));
+                  } else {
+                    sendstate = STATE_NONE;
+                  }
+                  messageMap.put(content, sendstate);
                 }
-                messageMap.put(content, sendstate);
               }
             }
+            break;
           }
-          break;
+        } catch (StorageClientException ex) {
+          LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
+        } catch (AccessDeniedException ex) {
+          LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
         }
-      } catch (StorageClientException ex) {
-        LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
-      } catch (AccessDeniedException ex) {
-        LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
       }
-    }
-
-    List<String> handledNodes = new ArrayList<String>();
-    // Check if we have any nodes that have a pending state and launch an OSGi
-    // event
-    for (Entry<Content, String> mm : messageMap.entrySet()) {
-      Content content = mm.getKey();
-      String path = content.getPath();
-      String state = mm.getValue();
-      if (!handledNodes.contains(path)) {
-        if (STATE_NONE.equals(state) || STATE_PENDING.equals(state)) {
-
-          content.setProperty(PROP_SAKAI_SENDSTATE, StorageClientUtils.toStore(STATE_NOTIFIED));
-
-          Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
-          // WARNING
-          // We can't pass in the node, because the session might expire before the event gets handled
-          // This does mean that the listener will have to get the node each time, and probably create a new session for each message
-          // This might be heavy on performance.
-          messageDict.put(EVENT_LOCATION, path);
-          messageDict.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
-          LOGGER.debug("Launched event for message: {} ", path);
-          Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT, messageDict);
-          // KERN-790: Initiate a synchronous event.
-          try {
-            eventAdmin.postEvent(pendingMessageEvent);
-            handledNodes.add(path);
-          } catch ( Exception e ) {
-            LOGGER.warn("Failed to post message dispatch event, cause {} ",e.getMessage(),e);
+  
+      List<String> handledNodes = new ArrayList<String>();
+      // Check if we have any nodes that have a pending state and launch an OSGi
+      // event
+      for (Entry<Content, String> mm : messageMap.entrySet()) {
+        Content content = mm.getKey();
+        String path = content.getPath();
+        String state = mm.getValue();
+        if (!handledNodes.contains(path)) {
+          if (STATE_NONE.equals(state) || STATE_PENDING.equals(state)) {
+  
+            content.setProperty(PROP_SAKAI_SENDSTATE, StorageClientUtils.toStore(STATE_NOTIFIED));
+  
+            Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
+            // WARNING
+            // We can't pass in the node, because the session might expire before the event gets handled
+            // This does mean that the listener will have to get the node each time, and probably create a new session for each message
+            // This might be heavy on performance.
+            messageDict.put(EVENT_LOCATION, path);
+            messageDict.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
+            LOGGER.debug("Launched event for message: {} ", path);
+            Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT, messageDict);
+            // KERN-790: Initiate a synchronous event.
+            try {
+              eventAdmin.postEvent(pendingMessageEvent);
+              handledNodes.add(path);
+            } catch ( Exception e ) {
+              LOGGER.warn("Failed to post message dispatch event, cause {} ",e.getMessage(),e);
+            }
           }
         }
       }

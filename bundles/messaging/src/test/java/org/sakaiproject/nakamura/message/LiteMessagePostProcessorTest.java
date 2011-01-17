@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
@@ -37,6 +38,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +69,8 @@ public class LiteMessagePostProcessorTest {
 
     ResourceResolver resourceResolver = mock(ResourceResolver.class);
     when(resourceResolver.adaptTo(Session.class)).thenReturn(session);
+    Resource contentResource = new SparseContentResource(new Content("dummy",null), session, resourceResolver);
+    when(request.getResource()).thenReturn(contentResource);
     when(request.getResourceResolver()).thenReturn(resourceResolver);
     when(session.getContentManager()).thenReturn(contentManager);
   }
