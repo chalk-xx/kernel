@@ -108,7 +108,7 @@ public class LiteMessagingServiceImplTest {
   @Test
   public void testCreateFail() throws Exception {
     when(session.getUserId()).thenReturn("joe");
-    Mockito.doThrow(new StorageClientException("Big mess!")).when(contentManager).update(Mockito.any(Content.class));
+    Mockito.doThrow(new StorageClientException("Big mess! (Unit Test Generated Exception, its Ok)")).when(contentManager).update(Mockito.any(Content.class));
     Map<String, Object> mapProperties = new HashMap<String, Object>();
     String messageId = "foo";
     try {

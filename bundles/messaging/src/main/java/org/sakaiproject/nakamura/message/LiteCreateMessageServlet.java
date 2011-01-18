@@ -44,6 +44,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -132,7 +133,7 @@ public class LiteCreateMessageServlet extends SlingAllMethodsServlet {
     // This is the message store resource.
     Resource baseResource = request.getResource();
 
-    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
 
     // Current user.
     String user = request.getRemoteUser();
