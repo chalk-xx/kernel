@@ -35,7 +35,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
+import org.mockito.Mockito;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
@@ -78,7 +80,10 @@ public class LiteCreateMessageServletTest {
     SlingHttpServletResponse response = mock(SlingHttpServletResponse.class);
     Session session = mock(Session.class);
     ResourceResolver resolver = mock(ResourceResolver.class);
-    when(resolver.adaptTo(Session.class)).thenReturn(session);
+    javax.jcr.Session jcrSession = mock(javax.jcr.Session.class, Mockito.withSettings().extraInterfaces(SessionAdaptable.class));
+    when(((SessionAdaptable)jcrSession).getSession()).thenReturn(session);
+    when(resolver.adaptTo(javax.jcr.Session.class)).thenReturn(jcrSession);
+    
     when(request.getResourceResolver()).thenReturn(resolver);
     when(request.getRemoteUser()).thenReturn("anonymous");
 
@@ -94,7 +99,12 @@ public class LiteCreateMessageServletTest {
     SlingHttpServletResponse response = mock(SlingHttpServletResponse.class);
     Session session = mock(Session.class);
     ResourceResolver resolver = mock(ResourceResolver.class);
-    when(resolver.adaptTo(Session.class)).thenReturn(session);
+    
+    javax.jcr.Session jcrSession = mock(javax.jcr.Session.class, Mockito.withSettings().extraInterfaces(SessionAdaptable.class));
+    when(((SessionAdaptable)jcrSession).getSession()).thenReturn(session);
+    when(resolver.adaptTo(javax.jcr.Session.class)).thenReturn(jcrSession);
+
+    when(resolver.adaptTo(javax.jcr.Session.class)).thenReturn(jcrSession);
     when(request.getResourceResolver()).thenReturn(resolver);
 
     when(request.getRemoteUser()).thenReturn("foo");
@@ -150,7 +160,11 @@ public class LiteCreateMessageServletTest {
     when(session.getContentManager()).thenReturn(contentManager);
     ResourceResolver resolver = mock(ResourceResolver.class);
     Resource resource = new MockResource(resolver, "/_user/message", "sakai/messagestore");
-    when(resolver.adaptTo(Session.class)).thenReturn(session);
+    
+    javax.jcr.Session jcrSession = mock(javax.jcr.Session.class, Mockito.withSettings().extraInterfaces(SessionAdaptable.class));
+    when(((SessionAdaptable)jcrSession).getSession()).thenReturn(session);
+    when(resolver.adaptTo(javax.jcr.Session.class)).thenReturn(jcrSession);
+    
     when(request.getResource()).thenReturn(resource);
     when(request.getResourceResolver()).thenReturn(resolver);
     Content msgNode = new Content("/_user/message/bla/bla/admin/bla/bla/msg", null);
