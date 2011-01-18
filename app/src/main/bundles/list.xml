@@ -100,7 +100,7 @@ KERN-1187
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.contentloader</artifactId>
-            <version>2.1.1-20101012</version>
+            <version>2.1.2</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>

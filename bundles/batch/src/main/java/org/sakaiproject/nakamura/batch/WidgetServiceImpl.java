@@ -306,7 +306,7 @@ public class WidgetServiceImpl implements WidgetService {
     // - </path/to/widget>/bundles/default.json
     // - </path/to/widget>/bundles/en_US.json
 
-    String path = resource.getPath() + "/bundles/" + bundle + ".json";
+    String path = resource.getPath() + "/bundles/" + bundle + ".properties";
     Resource bundleResource = resource.getResourceResolver().getResource(path);
 
     writer.key(bundle);
@@ -315,7 +315,23 @@ public class WidgetServiceImpl implements WidgetService {
       writer.object();
       writer.endObject();
     } else {
-      getJsonResource(bundleResource, writer);
+      getTextResource(bundleResource, writer);
+    }
+  }
+
+  private void getTextResource(Resource resource, ExtendedJSONWriter writer) throws JSONException {
+    String content = "";
+    try {
+      InputStream stream = resource.adaptTo(InputStream.class);
+
+      content = IOUtils.readFully(stream, "UTF-8");
+      writer.value(content);
+    } catch (JSONException e) {
+      writer.value(content);
+    } catch (IOException e) {
+      // If everything failed horribly we output an empty object.
+      writer.object();
+      writer.endObject();
     }
   }
 
