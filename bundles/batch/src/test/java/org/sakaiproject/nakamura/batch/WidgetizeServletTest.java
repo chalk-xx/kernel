@@ -32,6 +32,8 @@ import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -76,12 +78,16 @@ public class WidgetizeServletTest extends AbstractWidgetServletTest {
 
     // Check if the correct languages get loaded.
     assertNotNull(json.get("bundles"));
-    assertNotNull(json.getJSONObject("bundles").get("default"));
+    assertNotNull(json.getJSONObject("bundles").getString("default"));
     assertNotNull(json.getJSONObject("bundles").get("nl_NL"));
-    String def = json.getJSONObject("bundles").getJSONObject("default").getString(
+    Properties defaultProperties = new Properties();
+    defaultProperties.load(new StringReader(json.getJSONObject("bundles").getString("default")));
+    String def = defaultProperties.getProperty(
         "YOUR_STATUS_HAS_BEEN_SUCCESSFULLY_UPDATED");
     assertEquals("Your status has been succesfully updated", def);
-    String dutch = json.getJSONObject("bundles").getJSONObject("nl_NL").getString(
+    Properties dutchProperties = new Properties();
+    dutchProperties.load(new StringReader(json.getJSONObject("bundles").getString("nl_NL")));
+    String dutch = dutchProperties.getProperty(
         "YOUR_STATUS_HAS_BEEN_SUCCESSFULLY_UPDATED");
     assertEquals("Uw status is geupdated", dutch);
 
