@@ -1,7 +1,6 @@
 {
-  "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_path}//*[@sling:resourceType=\"sakai/page\"{_filter?}] order by @{sortOn|jcr:score} {sortOrder|descending}",
-  "sling:resourceType": "sakai/search",
+  "sling:resourceType": "sakai/solr-search",
+  "sakai:query-template": '#set($sortOn="#if(!$sortOn)score#end")#set($sortOrder="#if(!$sortOrder)desc#end")#set(${_filter}="#if(${_filter})+${_filter}#end")+path:${_path} +resourceType:sakai/page ${_filter};$sortOn $sortOrder',
   "sakai:propertyprovider": "Page",
   "sakai:title": "Pages.",
   "sakai:shortDescription": "Get page nodes out of the repository.",

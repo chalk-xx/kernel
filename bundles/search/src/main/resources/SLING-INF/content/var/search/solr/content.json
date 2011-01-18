@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "{q}",
+  "sakai:query-template": "$q",
   "sling:resourceType": "sakai/solr-search",
   "sakai:resultprocessor": "Resource",
   "sakai:title": "Content - Any content from Solr",
