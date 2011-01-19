@@ -44,6 +44,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -92,7 +93,12 @@ public class LiteMessagePostProcessor implements SparsePostProcessor {
           case CREATE:
           case MODIFY:
             String path = m.getSource();
-            path = path.substring(0, path.lastIndexOf("@"));
+            if ( path.lastIndexOf("@") > 0 ) {
+              path = path.substring(0, path.lastIndexOf("@"));
+            }
+            if ( path.endsWith("/"+MessageConstants.PROP_SAKAI_MESSAGEBOX) ) {
+              path = path.substring(0, path.length()-MessageConstants.PROP_SAKAI_MESSAGEBOX.length()-1);
+            }
             if (contentManager.exists(path)) {
               Content content = contentManager.get(path);
               if (content.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && content.hasProperty(PROP_SAKAI_MESSAGEBOX)) {

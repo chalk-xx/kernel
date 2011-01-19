@@ -27,9 +27,14 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.locking.LockManager;
@@ -53,6 +58,16 @@ public class LiteMessagingServiceImplTest {
   private ContentManager contentManager;
   @Mock
   private LockManager lockManager;
+  @Mock
+  private Repository repository;
+  @Mock
+  private Session adminSession;
+  @Mock
+  private ContentManager adminContentManager;
+  @Mock
+  private AuthorizableManager adminAuthorizableManager;
+  @Mock
+  private AccessControlManager adminAccessControlManager;
 
   private String userName = "joe";
   private String groupName = "g-physics-101-viewers";
@@ -66,6 +81,13 @@ public class LiteMessagingServiceImplTest {
     when(session.getContentManager()).thenReturn(contentManager);
     messagingServiceImpl = new LiteMessagingServiceImpl();
     messagingServiceImpl.lockManager = lockManager;
+    
+    when(session.getRepository()).thenReturn(repository);
+    when(repository.loginAdministrative()).thenReturn(adminSession);
+    when(adminSession.getContentManager()).thenReturn(adminContentManager);
+    when(adminSession.getAuthorizableManager()).thenReturn(adminAuthorizableManager);
+    when(adminSession.getAccessControlManager()).thenReturn(adminAccessControlManager);
+
   }
 
   @After
@@ -76,11 +98,11 @@ public class LiteMessagingServiceImplTest {
   public void testFullPathToStoreSite() {
     // Groups
     String path = messagingServiceImpl.getFullPathToStore(groupName, session);
-    assertEquals("/~g-physics-101-viewers/message", path);
+    assertEquals("a:g-physics-101-viewers/message/", path);
 
     // Users
     path = messagingServiceImpl.getFullPathToStore(userName, session);
-    assertEquals("/~joe/message", path);
+    assertEquals("a:joe/message/", path);
   }
 
   @Test
@@ -88,12 +110,12 @@ public class LiteMessagingServiceImplTest {
     String messageId = "cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c";
     String path = messagingServiceImpl.getFullPathToMessage(userName, messageId, session);
     assertEquals(
-        "/~joe/message/cd/5c/20/8b/cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c",
+        "a:joe/message/inbox/cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c",
         path);
   }
 
   @Test
-  public void testCreate() throws LockTimeoutException, RepositoryException {
+  public void testCreate() throws LockTimeoutException, RepositoryException, ClientPoolException, StorageClientException, AccessDeniedException {
     when(session.getUserId()).thenReturn("joe");
     Map<String, Object> mapProperties = new HashMap<String, Object>();
     mapProperties.put("num", 10L);
