@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.sakaiproject.nakamura.resource.lite.servlet.post.operations;
+package org.sakaiproject.nakamura.api.resource.lite;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
@@ -34,7 +34,7 @@ import java.util.Map;
 import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 
-abstract class AbstractCreateOperation extends AbstractSlingPostOperation {
+public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOperation {
   /**
    * The default node name generator
    */
@@ -45,7 +45,7 @@ abstract class AbstractCreateOperation extends AbstractSlingPostOperation {
    */
   private NodeNameGenerator[] extraNodeNameGenerators;
 
-  public AbstractCreateOperation(NodeNameGenerator defaultNodeNameGenerator) {
+  public AbstractSparseCreateOperation(NodeNameGenerator defaultNodeNameGenerator) {
     this.defaultNodeNameGenerator = defaultNodeNameGenerator;
   }
 

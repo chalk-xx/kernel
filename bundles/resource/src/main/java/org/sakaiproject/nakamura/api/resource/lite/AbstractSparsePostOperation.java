@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sakaiproject.nakamura.resource.lite.servlet.post.operations;
+package org.sakaiproject.nakamura.api.resource.lite;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
@@ -50,7 +50,7 @@ import javax.jcr.RepositoryException;
  * Holds various states and encapsulates methods that are needed to handle a
  * post request.
  */
-public abstract class AbstractSlingPostOperation implements SparsePostOperation {
+public abstract class AbstractSparsePostOperation implements SparsePostOperation {
 
     /**
      * default log

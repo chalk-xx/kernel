@@ -90,13 +90,14 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+    LOGGER.info("GETTING RELATED CONTENT ================================================ ");
     // Query should look like:
     // //element(*,
     // sakai:pooled-content)[(@sakai:tag-uuid='6c589c99-4a08-4a51-8f09-2960b36bec6f'
     // or @sakai:tag-uuid='506edc80-ad50-4bb3-abe8-aa5c72e65888') and
     // (@sakai:permissions='public'
     // or @sakai:permissions='everyone')] order by @jcr:score descending
-    StringBuilder sb = new StringBuilder("+resourceType='sakai:pooled-content' ");
+    StringBuilder sb = new StringBuilder("+resourceType:sakai/pooled-content ");
     Set<String> selectors = ImmutableSet.of(request.getRequestPathInfo().getSelectors());
 
     // Collect tags to search against.
@@ -116,8 +117,8 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
                 .get(SAKAI_TAG_UUIDS))));
 
         if (tagUuids.size() > 0) {
-          sb.append("+(tag-uuid='").append(StringUtils.join(tagUuids, "' tag-uuid='"))
-              .append("')");
+          sb.append("+(tag-uuid:").append(StringUtils.join(tagUuids, " tag-uuid:"))
+              .append(")");
         }
         String queryString = sb.toString();
         LOGGER.info("Submitting Query {} ",queryString);
@@ -143,6 +144,8 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
             }
           }
         }
+      } else {
+        LOGGER.info("No UUID Tags in {} ",content.getProperties());
       }
       writer.endArray();
     } catch (JSONException e) {

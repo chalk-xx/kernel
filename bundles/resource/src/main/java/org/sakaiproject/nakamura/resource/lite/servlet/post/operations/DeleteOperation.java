@@ -8,6 +8,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.resource.lite.AbstractSparsePostOperation;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -15,7 +16,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-public class DeleteOperation extends AbstractSlingPostOperation {
+public class DeleteOperation extends AbstractSparsePostOperation {
 
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
