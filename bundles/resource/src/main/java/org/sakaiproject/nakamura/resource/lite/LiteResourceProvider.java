@@ -46,9 +46,8 @@ import javax.servlet.http.HttpServletRequest;
 @Service
 @Property(name = ResourceProvider.ROOTS, value = "/")
 public class LiteResourceProvider implements ResourceProvider {
-  private static final Logger logger = LoggerFactory
-      .getLogger(LiteResourceProvider.class);
-
+  private static final Logger logger = LoggerFactory.getLogger(LiteResourceProvider.class);
+  
   // ---------- ResourceProvider interface ----------
   /**
    * {@inheritDoc}
@@ -57,12 +56,26 @@ public class LiteResourceProvider implements ResourceProvider {
    *      java.lang.String)
    */
   public Resource getResource(ResourceResolver resourceResolver, String path) {
+    // TODO BL120 this is a quick and dirty way to distinguish sparse paths from JCR
+    // This can be removed once everything "intelligently" resolves to the right storage.
+    if (path.startsWith("/s/")) {
+      path = path.substring(3);
+      
+      // TODO BL120 Sparse resource resolution does not yet take into account
+      // selectors and extensions. This is a quick fix until that works.
+      if (path.endsWith(".json") || path.endsWith(".html")) {
+        path = path.substring(0, path.length() - 5);
+      }
+      
+    } else return null;
+    
     Resource retRes = null;
     try {
       javax.jcr.Session jcrSession = resourceResolver.adaptTo(javax.jcr.Session.class);
       Session session = JackrabbitSparseUtils.getSparseSession(jcrSession);
       ContentManager cm = session.getContentManager();
       Content content = cm.get(path);
+      
       if (content != null) {
         String userId = jcrSession.getUserID();
         ResourceResolver rr = new LiteResourceResolver(session, userId);
