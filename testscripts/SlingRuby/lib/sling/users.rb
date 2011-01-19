@@ -29,8 +29,10 @@ module SlingUsers
       return home_path_for(sling) + "/private"
     end
 
-    def message_path_for(sling,messageid)
-      return home_path_for(sling) + "/message/"+messageid[0,2]+"/"+messageid[2,2]+"/"+messageid[4,2]+"/"+messageid[6,2]+"/"+messageid
+    def message_path_for(sling,messageid,box)
+      # old way with a sharded path
+      # return home_path_for(sling) + "/message/"+messageid[0,2]+"/"+messageid[2,2]+"/"+messageid[4,2]+"/"+messageid[6,2]+"/"+messageid
+      return "/s/a:#{@name}/message/#{box}/"+messageid
     end
 
   end
