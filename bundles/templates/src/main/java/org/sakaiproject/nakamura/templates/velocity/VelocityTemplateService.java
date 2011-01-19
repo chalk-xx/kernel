@@ -5,47 +5,54 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.templates.TemplateNodeSource;
 import org.sakaiproject.nakamura.api.templates.TemplateService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.jcr.Node;
-import javax.jcr.Repository;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.jcr.Node;
+import javax.jcr.Repository;
 
 @Service
 @Component(immediate = true)
 public class VelocityTemplateService implements TemplateService, TemplateNodeSource {
 
-  private VelocityEngine velocityEngine;
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(VelocityTemplateService.class);
 
-  private ThreadLocal<Node> boundNode = new ThreadLocal<Node>();
+  private VelocityEngine velocityEngine;
 
   @Reference
   protected Repository repository;
 
-  public String evaluateTemplate(Map parameters, String template) {
+  public String evaluateTemplate(Map<String, ? extends Object> parameters, String template) {
     Map<String, String> sanitizedParameters = sanitize(parameters);
     VelocityContext context = new VelocityContext(sanitizedParameters);
     // combine template with parameter map
     Reader templateReader = new StringReader(template);
     StringWriter templateWriter = new StringWriter();
     try {
-      velocityEngine.evaluate(context, templateWriter, "templateprocessing", templateReader);
+      velocityEngine.evaluate(context, templateWriter, "templateprocessing",
+          templateReader);
     } catch (IOException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      LOGGER.error(e.getMessage(), e);
     }
     return templateWriter.toString();
   }
 
-  private Map<String,String> sanitize(Map parameters) {
+  private Map<String,String> sanitize(Map<String, ? extends Object> parameters) {
     Map<String,String> rv = new HashMap<String,String>();
     for (Object key : parameters.keySet()) {
       Object value = parameters.get(key);
@@ -61,33 +68,35 @@ public class VelocityTemplateService implements TemplateService, TemplateNodeSou
     return rv;
   }
 
-  public Collection<String> missingTerms(Map parameters, String template) {
-          Collection<String> missingTerms = new ArrayList<String>();
-          int startPosition = template.indexOf("${");
-          while(startPosition > -1) {
-            int endPosition = template.indexOf("}", startPosition);
-            if (endPosition > -1) {
-              String key = template.substring(startPosition + 2, endPosition);
-              Object value = parameters.get(key);
-              if (value == null) {
-                missingTerms.add(key);
-              }
-              // look for the next velocity replacement variable
-              startPosition = template.indexOf("${", endPosition);
-            } else {
-              break;
-            }
-          }
-         return missingTerms;
+  public Collection<String> missingTerms(Map<String, ? extends Object> parameters,
+      String template) {
+    Collection<String> missingTerms = new ArrayList<String>();
+    int startPosition = template.indexOf("${");
+    while (startPosition > -1) {
+      int endPosition = template.indexOf("}", startPosition);
+      if (endPosition > -1) {
+        String key = template.substring(startPosition + 2, endPosition);
+        Object value = parameters.get(key);
+        if (value == null) {
+          missingTerms.add(key);
+        }
+        // look for the next velocity replacement variable
+        startPosition = template.indexOf("${", endPosition);
+      } else {
+        break;
+      }
+    }
+    return missingTerms;
   }
 
-  @SuppressWarnings("unchecked")
   protected void activate(ComponentContext ctx) throws Exception {
     velocityEngine = new VelocityEngine();
-    velocityEngine.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, new VelocityLogger(this.getClass()));
+    velocityEngine.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, new VelocityLogger(
+        this.getClass()));
 
     velocityEngine.setProperty(VelocityEngine.RESOURCE_LOADER, "jcr");
-    velocityEngine.setProperty("jcr.resource.loader.class", JcrResourceLoader.class.getName());
+    velocityEngine.setProperty("jcr.resource.loader.class",
+        JcrResourceLoader.class.getName());
     ExtendedProperties configuration = new ExtendedProperties();
     configuration.addProperty("jcr.resource.loader.resourceSource", this);
     velocityEngine.setExtendedProperties(configuration);
