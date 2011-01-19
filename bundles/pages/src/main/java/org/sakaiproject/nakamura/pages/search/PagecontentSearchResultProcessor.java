@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.search.processors;
+package org.sakaiproject.nakamura.pages.search;
 
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 
@@ -32,8 +32,9 @@ import javax.jcr.query.Row;
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "Pagecontent"),
-    @Property(name = "sakai.seach.resourcetype", value = "sakai/pagecontent")
+    @Property(name = "sakai.search.resourcetype", value = "sakai/pagecontent")
 })
+// TODO is this used any more? I couldn't find any references to it -cfh
 @Service(value = SearchResultProcessor.class)
 public class PagecontentSearchResultProcessor implements SearchResultProcessor {
 

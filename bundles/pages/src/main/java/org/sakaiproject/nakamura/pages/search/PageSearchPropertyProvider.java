@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.search.processors;
+package org.sakaiproject.nakamura.pages.search;
 
 import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
 
