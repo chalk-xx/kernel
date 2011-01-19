@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.search.processors;
+package org.sakaiproject.nakamura.pages.search;
 
 import junit.framework.Assert;
 
@@ -28,10 +28,15 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.easymock.EasyMock;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
+import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.search.AggregateCount;
 import org.sakaiproject.nakamura.search.SearchServiceFactoryImpl;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.StringWriter;
 
@@ -40,6 +45,7 @@ import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
+import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 
 
@@ -81,7 +87,23 @@ public class PagecontentSearchResultProcessorTest extends AbstractEasyMockTest {
     JSONWriter write = new JSONWriter(stringWriter);
 
     SearchServiceFactoryImpl fact = new SearchServiceFactoryImpl();
-    NodeSearchResultProcessor proc = new NodeSearchResultProcessor(fact);
+    SearchResultProcessor proc = new SearchResultProcessor() {
+      public void writeNode(SlingHttpServletRequest request, JSONWriter write,
+          Aggregator aggregator, Row row) throws JSONException, RepositoryException {
+        Node node = row.getNode();
+        if (aggregator != null) {
+          aggregator.add(node);
+        }
+
+        int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
+        ExtendedJSONWriter.writeNodeTreeToWriter(write, node, maxTraversalDepth);
+      }
+
+      public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
+          throws SearchException {
+        return null;
+      }
+    };
     PagecontentSearchResultProcessor pagecontentSearchResultProcessor = new PagecontentSearchResultProcessor(fact, proc);
     pagecontentSearchResultProcessor.writeNode(request, write, aggregator, row);
 
