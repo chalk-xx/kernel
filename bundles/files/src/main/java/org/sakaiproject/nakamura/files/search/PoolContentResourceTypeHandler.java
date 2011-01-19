@@ -153,11 +153,8 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
             doc.addField("content", contentStream);
           }
 
-          for (String principal : getReadingPrincipals(session, path)) {
-            doc.addField("readers", principal);
-          }
 
-          doc.addField("id", path);
+          doc.addField(_DOC_SOURCE_OBJECT, content);
           documents.add(doc);
         }
       } catch (ClientPoolException e) {
