@@ -24,6 +24,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 
 import java.io.Writer;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -44,9 +45,14 @@ public class ExtendedJSONWriter extends JSONWriter {
   }
 
   public void valueMap(Map<String, Object> valueMap) throws JSONException {
-    object();
-    valueMapInternals(valueMap);
-    endObject();
+    ExtendedJSONWriter.writeValueMap(this, valueMap);
+  }
+  
+
+  public static void writeValueMap(JSONWriter writer, Map<String, ?> valueMap) throws JSONException {
+    writer.object();
+    writeValueMapInternals(writer, valueMap);
+    writer.endObject();
   }
 
   /**
@@ -59,24 +65,42 @@ public class ExtendedJSONWriter extends JSONWriter {
    * @throws JSONException
    *           on failure
    */
-  @SuppressWarnings("unchecked")
   public void valueMapInternals(Map<String, Object> valueMap) throws JSONException {
-    for (Entry<String, Object> entry : valueMap.entrySet()) {
-      key(entry.getKey());
-      Object entryValue = entry.getValue();
-      if (entryValue instanceof Object[]) {
-        array();
-        Object[] objects = (Object[]) entryValue;
-        for (Object object : objects) {
-          value(object);
+    ExtendedJSONWriter.writeValueMapInternals(this,valueMap);
+  }
+  public static void writeValueMapInternals(JSONWriter writer, Map<String, ?> valueMap) throws JSONException {
+    for (String key : valueMap.keySet()) {
+      writer.key(key);
+      Object entryValue = valueMap.get(key);
+      writeValueInternal(writer, entryValue);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static void writeValueInternal(JSONWriter writer, Object entryValue) throws JSONException {
+    if (entryValue instanceof Object[]) {
+      writer.array();
+      Object[] objects = (Object[]) entryValue;
+      for (Object object : objects) {
+        writeValueInternal(writer, object);
+      }
+      writer.endArray();
+    } else if (entryValue instanceof Collection<?>) {
+      Collection<Object> c = (Collection<Object>) entryValue;
+      if ( c.size() == 1) {
+        writeValueInternal(writer, c.iterator().next());
+      } else{
+        writer.array();
+        for (Object object : c) {
+          writeValueInternal(writer, object);
         }
-        endArray();
-      } else if (entryValue instanceof ValueMap || entryValue instanceof Map<?, ?>) {
-        valueMap((Map<String, Object>) entryValue);
+        writer.endArray();
       }
-      else {
-        value(entry.getValue());
-      }
+    } else if (entryValue instanceof ValueMap || entryValue instanceof Map<?, ?>) {
+      ExtendedJSONWriter.writeValueMap(writer, (Map<String, ?>) entryValue);
+    }
+    else {
+      writer.value(entryValue);
     }
   }
 
@@ -349,5 +373,6 @@ public class ExtendedJSONWriter extends JSONWriter {
       write.endObject();
     }
   }
+
 
 }
