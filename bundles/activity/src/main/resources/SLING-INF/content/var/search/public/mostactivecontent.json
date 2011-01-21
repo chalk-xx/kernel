@@ -1,5 +1,7 @@
 {
-  "sakai:query-template": '#set($sortOn="#if(!$sortOn)timestamp#end")#set($sortOrder="#if(!$sortOrder)desc#end") +path:/activity/content +resourceType:sakai/resource-update ;$sortOn $sortOrder',  
+  "sakai:query-template": "+path:/activity/content +resourceType:sakai/resource-update ;$sortOn $sortOrder",  
+  "sortOn": "timestamp",
+  "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
   "sakai:batchresultprocessor": "MostActiveContent",
   "sakai:title": "Pooled Content - Most Active",
