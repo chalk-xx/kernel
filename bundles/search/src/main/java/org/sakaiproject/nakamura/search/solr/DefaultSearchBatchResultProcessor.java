@@ -38,7 +38,6 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
-import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.util.Iterator;
 
@@ -77,6 +76,7 @@ public class DefaultSearchBatchResultProcessor implements
 
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> iterator) throws JSONException {
+    ResourceResolver resolver = request.getResourceResolver();
     
     
     long nitems = SolrSearchUtil.longRequestParameter(request,
@@ -84,9 +84,13 @@ public class DefaultSearchBatchResultProcessor implements
     
     
 
+    int maxDepth = SolrSearchUtil.getTraversalDepth(request);
     for (long i = 0; i < nitems && iterator.hasNext(); i++) {
-      Result result = iterator.next();
-      ExtendedJSONWriter.writeValueMap(write,result.getProperties());
+      Result row = iterator.next();
+      Resource resource = resolver.getResource(row.getPath());
+      if ( resource != null ) {
+        ResourceJsonWriter.writeResourceTreeToWriter(write, resource, maxDepth);                    
+      }
     }
   }
 

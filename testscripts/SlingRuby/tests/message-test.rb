@@ -30,16 +30,18 @@ class TC_MyMessageTest < Test::Unit::TestCase
     @s.switch_user(a)
     @log.info("Sending a message to Nico")
     res = @mm.create("nico"+m, "internal")
+	@log.debug(res.body)
     assert_equal("200", res.code, "Expected to create a message ")
 	message = JSON.parse(res.body)
 	@log.debug(message)
 	assert_not_nil( message['id'],"Expected to be given a location ")
 	messageid = message['id']
-	messagelocation = "http://localhost:8080"+a.message_path_for(@s,messageid,"outbox")+".json"	
-	@log.info("==========getting location: " + messagelocation)
+	messagelocation = "http://localhost:8080"+a.message_path_for(@s,messageid)+".json"	
+	@log.info("==========getting location" + messagelocation)
 	res = @s.execute_get(messagelocation)
 	assert_equal("200",res.code,"Expected to get Inbox Ok")
 	@log.info("Message from Aaron's outbox ")
+	@log.debug(res.body)
 	message = JSON.parse(res.body)
 	
 	
@@ -53,11 +55,11 @@ class TC_MyMessageTest < Test::Unit::TestCase
 
 
 	@log.info("Sending Message ")
-	res = @mm.send(messageid, "aaron#{m}")
+	res = @mm.send(messageid)
 	assert_equal("200", res.code, "Dispatched ok")
 
 
-	@log.info("==========getting location: " + messagelocation)
+	@log.info("==========getting location" + messagelocation)
 	res = @s.execute_get(messagelocation)
 	assert_equal("200",res.code,"Expected to get Inbox Ok")
 	@log.info("Message from Aaron's outbox after sending ")
@@ -72,14 +74,13 @@ class TC_MyMessageTest < Test::Unit::TestCase
 	assert_equal("true",message['sakai:read'],"Message Sould be marked read")
 	assert_equal("sakai/message",message['sling:resourceType'],"Resource Type not correct");
 	res = @mm.list_outbox()
-	sleep(2)
 	assert_equal("200", res.code, "Expected to be able to list the outbox")
-	
-  @s.switch_user(n)	
-	messagelocation = "http://localhost:8080"+n.message_path_for(@s,messageid,"inbox")+".json"	
+
+    @s.switch_user(n)	
+	messagelocation = "http://localhost:8080"+n.message_path_for(@s,messageid)+".json"	
 
         
-	@log.info("==========getting location: " + messagelocation)
+	@log.info("==========getting location" + messagelocation)
 	res = @s.execute_get(messagelocation)
 	assert_equal("200",res.code,"Expected to get Inbox Ok")
 	@log.info("Message from Nicos inbox after sending ")
@@ -91,7 +92,7 @@ class TC_MyMessageTest < Test::Unit::TestCase
 	assert_equal("notified",message['sakai:sendstate'],"Message State Incorrect")
 	assert_equal("aaron"+m,message['sakai:from'],"Message From Incorrect")
 	assert_equal("nico"+m,message['sakai:to'],"Message To Incorrect")
-	assert_equal("false",message['sakai:read'],"Message Sould be marked read")
+	assert_equal(false,message['sakai:read'],"Message Sould be marked read")
 	assert_equal("sakai/message",message['sling:resourceType'],"Resource Type not correct")
 
 	res = @mm.list_inbox()
@@ -117,7 +118,7 @@ class TC_MyMessageTest < Test::Unit::TestCase
 	assert_equal(0,box["total"],"Should have given 0 entry in the outbox for nico");
 
     @s.switch_user(a)	
-	messagelocation = "http://localhost:8080"+a.message_path_for(@s,messageid,"outbox")+".json"	
+	messagelocation = "http://localhost:8080"+a.message_path_for(@s,messageid)+".json"	
 	res = @mm.list_inbox()
 	assert_equal("200", res.code, "Expected to be able to list the outbox")
 	@log.info("List Of the Inbox for user aaron 0 entries")

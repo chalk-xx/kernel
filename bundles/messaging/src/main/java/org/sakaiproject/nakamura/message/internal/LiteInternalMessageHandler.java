@@ -54,7 +54,6 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.LiteProfileService;
-import org.sakaiproject.nakamura.message.MessageUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,23 +172,21 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
           } catch (LockTimeoutException e1) {
             throw new MessagingException("Unable to lock destination message store");
           }
-          MessageUtils.establishHomeFolder(recipient, toPath, session.getRepository());
-          
           ImmutableMap.Builder<String, Object> propertyBuilder = ImmutableMap.builder();
           // Copy the content into the user his folder.
-          contentManager.update(
+          session.getContentManager().update(
               new Content(toPath.substring(0, toPath.lastIndexOf("/")), propertyBuilder
                   .build()));
           contentManager.copy(originalMessage.getPath(), toPath, true);
+          contentManager.update(new Content(toPath, propertyBuilder.build()));
           Content message = contentManager.get(toPath);
 
           // Add some extra properties on the just created node.
-          message.setProperty(MessageConstants.PROP_SAKAI_READ, StorageClientUtils.toStore(Boolean.FALSE));
+          message.setProperty(MessageConstants.PROP_SAKAI_READ, Boolean.FALSE);
           message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
-              StorageClientUtils.toStore(MessageConstants.BOX_INBOX));
+              MessageConstants.BOX_INBOX);
           message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
-              StorageClientUtils.toStore(MessageConstants.STATE_NOTIFIED));
-          contentManager.update(message);
+              MessageConstants.STATE_NOTIFIED);
 
           recipients.add(recipient);
         }

@@ -391,7 +391,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       // this keeps any _* variables from being replaced by request parameters.
       String value = propertiesMap.get(key);
       if (StringUtils.isBlank(value)) {
-        propertiesMap.put(entry.getKey(), vals[0].getString());
+        propertiesMap.put(entry.getKey(), entry.getValue()[0].getString());
       }
     }
 

@@ -17,24 +17,15 @@
  */
 package org.sakaiproject.nakamura.message;
 
-import com.google.common.collect.ImmutableMap;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
-import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
-import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.locking.LockManager;
@@ -112,7 +103,7 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
 
   public Content create(Session session, Map<String, Object> mapProperties, String messageId, String messagePathBase)
     throws MessagingException {
-    String messagePath = messagePathBase + MessageConstants.BOX_OUTBOX + "/" + messageId;
+    String messagePath = PathUtils.toSimpleShardPath(messagePathBase, messageId, "");
     Content msg = new Content(messagePath, null);
     for (Entry<String, Object> e : mapProperties.entrySet()) {
       String val = e.getValue().toString();
@@ -127,7 +118,6 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
     msg.setProperty(MessageConstants.PROP_SAKAI_ID, StorageClientUtils.toStore(messageId));
     Calendar cal = Calendar.getInstance();
     msg.setProperty(MessageConstants.PROP_SAKAI_CREATED, StorageClientUtils.toStore(cal));
-    msg.setProperty("sling:resourceSuperType", StorageClientUtils.toStore("sparse/Content"));
 
     try {
       lockManager.waitForLock(messagePathBase);
@@ -136,9 +126,6 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
     }
     try {
       try {
-        // TODO BL120 temporary home folder hack until the home folder services are done
-        MessageUtils.establishHomeFolder(session.getUserId(), messagePath, session.getRepository());
-        
         ContentManager contentManager = session.getContentManager();
         contentManager.update(msg);
       } catch (StorageClientException e) {
@@ -155,10 +142,6 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
       lockManager.clearLocks();
     }
   }
-
-  
-
-  
 
   /**
    * {@inheritDoc}
@@ -179,8 +162,7 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
    */
   public String getFullPathToMessage(String rcpt, String messageId, Session session) throws MessagingException {
     String storePath = getFullPathToStore(rcpt, session);
-//    return PathUtils.toSimpleShardPath(storePath, messageId, "");
-    return storePath + MessageConstants.BOX_INBOX +"/" + messageId;
+    return PathUtils.toSimpleShardPath(storePath, messageId, "");
   }
 
   /**
@@ -197,7 +179,7 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
       }
       // TODO TEMPORARY HACK TO ENABLE SPARSE MIGRATION! Use a proper service once the Home Folder
       // logic is properly set up.
-      path = MessageConstants.SAKAI_MESSAGE_PATH_PREFIX + rcpt + "/" + MessageConstants.FOLDER_MESSAGES + "/";
+      path = "/~" + rcpt + "/" + MessageConstants.FOLDER_MESSAGES;
 //      Authorizable au = PersonalUtils.getAuthorizable(session, rcpt);
 //      path = PersonalUtils.getHomeFolder(au) + "/" + MessageConstants.FOLDER_MESSAGES;
     } catch (AccessDeniedException e) {

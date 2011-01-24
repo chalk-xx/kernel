@@ -26,8 +26,6 @@ public interface MessageConstants {
    *
    */
   public static final String SAKAI_MESSAGESTORE_RT = "sakai/messagestore";
-  
-  public static final String SAKAI_MESSAGE_PATH_PREFIX = "a:";
 
   /**
   *

@@ -15,30 +15,25 @@ module SlingMessage
       return @sling.execute_post(@sling.url_for("#{@home}/message.create.html"), props.update("sakai:type" => type, "sakai:to" => name, "sakai:sendstate" => "pending", "sakai:messagebox" => box))
     end
  
-    def send(messageId, sender)
-      # this is the old sharded version of the message path
-      # path = "" + messageId[0, 2] + "/" + messageId[2, 2] + "/" + messageId[4,2]+ "/" + messageId[6,2] + "/" + messageId
-      # postUrl = @sling.url_for("#{@home}/message/#{path}.html")
-      path = messageId
-      postUrl = @sling.url_for("/s/a:#{sender}/message/outbox/#{path}.html")
-      puts "Executing message send to #{postUrl}"
-      return @sling.execute_post(postUrl, "sakai:messagebox" => "outbox" )
+    def send(messageId)
+      path = "" + messageId[0, 2] + "/" + messageId[2, 2] + "/" + messageId[4,2]+ "/" + messageId[6,2] + "/" + messageId
+      return @sling.execute_post(@sling.url_for("#{@home}/message/#{path}.html"), "sakai:messagebox" => "outbox" )
     end
 
     def list_all_noopts()
-      return @sling.execute_get(@sling.url_for("system/messages.json?box=all"))
+      return @sling.execute_get(@sling.url_for("var/message/all.json"))
     end
 
     def list_all(sortOn = "jcr:created", sortOrder = "descending" )
-      return @sling.execute_get(@sling.url_for("system/messages.json?box=all&sortOn="+sortOn+"&sortOrder="+sortOrder))
+      return @sling.execute_get(@sling.url_for("var/message/all.json?sortOn="+sortOn+"&sortOrder="+sortOrder))
     end
 
     def list_inbox(sortOn = "jcr:created", sortOrder = "descending" )
-      return @sling.execute_get(@sling.url_for("system/messages.json?box=inbox&sortOn="+sortOn+"&sortOrder="+sortOrder))
+      return @sling.execute_get(@sling.url_for("var/message/box.json?box=inbox&sortOn="+sortOn+"&sortOrder="+sortOrder))
     end
 
     def list_outbox(sortOn = "jcr:created", sortOrder = "descending" )
-      return @sling.execute_get(@sling.url_for("system/messages.json?box=outbox&sortOn="+sortOn+"&sortOrder="+sortOrder))
+      return @sling.execute_get(@sling.url_for("var/message/box.json?box=outbox&sortOn="+sortOn+"&sortOrder="+sortOrder))
     end
 	
     

@@ -99,8 +99,6 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
     // or @sakai:permissions='everyone')] order by @jcr:score descending
     StringBuilder sb = new StringBuilder("+resourceType:sakai/pooled-content ");
     Set<String> selectors = ImmutableSet.of(request.getRequestPathInfo().getSelectors());
-    
-    boolean publicSearch = selectors.contains(POOLED_CONTENT_PUBLIC_RELATED_SELECTOR);
 
     // Collect tags to search against.
     Resource resource = request.getResource();
@@ -119,13 +117,13 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
                 .get(SAKAI_TAG_UUIDS))));
 
         if (tagUuids.size() > 0) {
-          sb.append("+(taguuid:").append(StringUtils.join(tagUuids, " taguuid:"))
+          sb.append("+(tag-uuid:").append(StringUtils.join(tagUuids, " tag-uuid:"))
               .append(")");
         }
         String queryString = sb.toString();
         LOGGER.info("Submitting Query {} ",queryString);
         SolrSearchResultSet resultSet = solrSearchServiceFactory.getSearchResultSet(
-            request, queryString, publicSearch);
+            request, queryString);
         Iterator<Result> iterator = resultSet.getResultSetIterator();
         int count = 0;
         while ((count < MAX_RESULTS) && iterator.hasNext()) {
@@ -134,9 +132,7 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
           if (!nodePath.equals(path)) {
             try {
               Content contentResult = contentManager.get(path);
-              writer.object();
               ExtendedJSONWriter.writeNodeContentsToWriter(writer, contentResult);
-              writer.endObject();
               count++;
             } catch (StorageClientException e) {
               LOGGER.error(
