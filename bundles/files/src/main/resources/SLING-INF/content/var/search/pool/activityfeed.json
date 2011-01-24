@@ -1,7 +1,6 @@
 {
-  "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_pNodePath}//*[@sling:resourceType='sakai/activity'] order by @jcr:created descending",
-  "sling:resourceType": "sakai/search",
+  "sakai:query-template": "+path:${_pNodePath} +resourceType:sakai/activity;created desc",
+  "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "PooledContentNode",
   "sakai:title": "Pooled Content - Activity Feed",
   "sakai:shortDescription": "Returns recent activity nodes under a Pooled Content node.",
