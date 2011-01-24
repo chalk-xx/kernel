@@ -117,7 +117,7 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
                 .get(SAKAI_TAG_UUIDS))));
 
         if (tagUuids.size() > 0) {
-          sb.append("+(tag-uuid:").append(StringUtils.join(tagUuids, " tag-uuid:"))
+          sb.append("+(taguuid:").append(StringUtils.join(tagUuids, " taguuid:"))
               .append(")");
         }
         String queryString = sb.toString();
