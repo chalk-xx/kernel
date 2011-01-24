@@ -54,17 +54,16 @@ import javax.jcr.RepositoryException;
 
 @Component(immediate = true, metatype = true)
 @Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = SolrSearchConstants.REG_PROCESSOR_NAMES, value = "Resource"),
-    @Property(name = SolrSearchResultProcessor.DEFAULT_PROCESSOR_PROP, boolValue = true) })
+    @Property(name = SolrSearchConstants.REG_PROCESSOR_NAMES, value = "FullResource") })
 @Service
-public class DefaultSearchResultProcessor implements SolrSearchResultProcessor {
+public class DefaultResourceSearchResultProcessor implements SolrSearchResultProcessor {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(DefaultSearchBatchResultProcessor.class);
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
 
-  DefaultSearchResultProcessor(SolrSearchServiceFactory searchServiceFactory) {
+  DefaultResourceSearchResultProcessor(SolrSearchServiceFactory searchServiceFactory) {
     if (searchServiceFactory == null) {
       throw new IllegalArgumentException(
           "Search Service Factory must be set when not using as a component");
@@ -72,7 +71,7 @@ public class DefaultSearchResultProcessor implements SolrSearchResultProcessor {
     this.searchServiceFactory = searchServiceFactory;
   }
 
-  public DefaultSearchResultProcessor() {
+  public DefaultResourceSearchResultProcessor() {
   }
 
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
@@ -82,6 +81,46 @@ public class DefaultSearchResultProcessor implements SolrSearchResultProcessor {
 
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
       throws JSONException {
+    int maxTraversalDepth = SolrSearchUtil.getTraversalDepth(request);
+    ResourceResolver resolver = request.getResourceResolver();
+    write.object();
+    write.key("searchdoc");
     ExtendedJSONWriter.writeValueMap(write,result.getProperties());
+    String path = result.getPath();
+    Resource resource = resolver.getResource(path);
+    if (resource != null) {
+      Content content = resource.adaptTo(Content.class);
+      Node node = resource.adaptTo(Node.class);
+      if (content != null) {
+        write.key("content");
+        write.object();
+        ExtendedJSONWriter.writeNodeContentsToWriter(write, content);
+        write.endObject();
+      } else if (node != null) {
+        try {
+          write.key("node");
+          write.object();
+          ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
+          write.endObject();
+        } catch (RepositoryException e) {
+          LOGGER.warn(e.getMessage(), e);
+        }
+      }
+    } else {
+      try {
+        Session session = StorageClientUtils.adaptToSession(resolver.adaptTo(javax.jcr.Session.class));
+        ContentManager contentManager= session.getContentManager();
+        Content content = contentManager.get(path);
+        if (content != null) {
+          write.key("content");
+          write.object();
+          ExtendedJSONWriter.writeNodeContentsToWriter(write, content);
+          write.endObject();
+        }
+      } catch ( Exception e ) {
+        LOGGER.warn(e.getMessage(), e);        
+      }
+    }
+    write.endObject();
   }
 }
