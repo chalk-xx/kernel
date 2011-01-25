@@ -101,6 +101,9 @@ public class HomeResourceProvider implements ResourceProvider {
         if (a != null) {
           // TODO This needs to be replaced with a utility method call!
           String userPath = "a:" + a.getId();
+          if (elements.length == 2) {
+            userPath = userPath + "/" + elements[1];
+          }
           ContentManager contentManager = session.getContentManager();
           Content content = contentManager.get(userPath);
           LOGGER.debug("Resolving [{}] to [{}] ", userPath, content);
