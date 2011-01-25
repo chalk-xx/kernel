@@ -48,23 +48,6 @@ public class FileSearchPropertyProviderTest {
   }
 
   @Test
-  public void testSortOrder() {
-    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
-
-    RequestParameter sortOnParam = mock(RequestParameter.class);
-    RequestParameter sortOrderParam = mock(RequestParameter.class);
-
-    when(sortOnParam.getString()).thenReturn("jcr:mimeType");
-    when(sortOrderParam.getString()).thenReturn("descending");
-
-    when(request.getRequestParameter("sortOn")).thenReturn(sortOnParam);
-    when(request.getRequestParameter("sortOrder")).thenReturn(sortOrderParam);
-
-    String result = provider.doSortOrder(request);
-    assertEquals(" order by @jcr:mimeType descending", result);
-  }
-
-  @Test
   public void testTags() {
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
 

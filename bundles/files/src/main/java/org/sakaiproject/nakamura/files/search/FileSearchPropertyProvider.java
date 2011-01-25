@@ -75,10 +75,6 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     // Set the contacts.
     propertiesMap.put("_mycontacts", getMyContacts(user));
 
-    // request specific.
-    // Sorting order
-    propertiesMap.put("_order", doSortOrder(request));
-
     // Filter by links.
     String usedinClause = doUsedIn(request);
     String tags = doUsedIn(request);
@@ -134,28 +130,6 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
         search = "*";
     }
     return search;
-  }
-
-  /**
-   * Returns default sort order.
-   *
-   * @param request
-   * @return
-   */
-  protected String doSortOrder(SlingHttpServletRequest request) {
-    RequestParameter sortOnParam = request.getRequestParameter("sortOn");
-    RequestParameter sortOrderParam = request.getRequestParameter("sortOrder");
-    String sortOn = "sakai:filename";
-    String sortOrder = "ascending";
-    if (sortOrderParam != null
-        && (sortOrderParam.getString().equals("ascending") || sortOrderParam.getString()
-            .equals("descending"))) {
-      sortOrder = sortOrderParam.getString();
-    }
-    if (sortOnParam != null) {
-      sortOn = sortOnParam.getString();
-    }
-    return " order by @" + sortOn + " " + sortOrder;
   }
 
   /**
