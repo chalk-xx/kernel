@@ -65,15 +65,15 @@ public class LiteGroupJoinRequestServlet extends SlingAllMethodsServlet {
 
   private static final String PARAM_USERID = "userid";
 
-  @SuppressWarnings(value = "NP_UNWRITTEN_FIELD", justification = "Injected by OSGi")
   @Reference
+  @SuppressWarnings(value = "NP_UNWRITTEN_FIELD", justification = "Injected by OSGi")
   protected transient Repository repository;
 
   /**
    * The OSGi Event Admin Service.
    */
-  @SuppressWarnings(value = "NP_UNWRITTEN_FIELD", justification = "Injected by OSGi")
   @Reference
+  @SuppressWarnings(value = "NP_UNWRITTEN_FIELD, UWF_UNWRITTEN_FIELD", justification = "Injected by OSGi")
   private transient EventAdmin eventAdmin;
 
 

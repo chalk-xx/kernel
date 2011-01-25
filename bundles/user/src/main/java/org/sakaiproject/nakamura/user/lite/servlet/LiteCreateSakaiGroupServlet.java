@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -156,13 +155,6 @@ public class LiteCreateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteCreateSakaiGroupServlet.class);
-
-  /**
-   * The JCR Repository we access to resolve resources
-   *
-   */
-  @Reference
-  protected transient Repository repository;
 
   /**
    * Used to launch OSGi events.

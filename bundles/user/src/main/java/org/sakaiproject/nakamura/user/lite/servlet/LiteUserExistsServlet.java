@@ -131,7 +131,7 @@ public class LiteUserExistsServlet extends SlingSafeMethodsServlet {
         return;
       }
 
-      if ("".equals(idParam)) {
+      if ("".equals(idParam.getString())) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The 'userid' parameter must not be blank.");
         return;
       }
