@@ -1,9 +1,8 @@
 package org.sakaiproject.nakamura.user.lite.servlet;
 
-import static org.mockito.Mockito.when;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -13,9 +12,7 @@ import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,10 +27,8 @@ import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;

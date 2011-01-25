@@ -160,7 +160,7 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
    * 
    */
   @Reference
-  private transient Repository repository;
+  protected transient Repository repository;
 
   /**
    * Used to launch OSGi events.
@@ -289,7 +289,7 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
     // check that the submitted parameter values have valid values.
     String principalName = request.getParameter(SlingPostConstants.RP_NODE_NAME);
     if (principalName == null) {
-      throw new StorageClientException("User name was not submitted");
+      throw new IllegalArgumentException("User name was not submitted");
     }
 
     LiteNameSanitizer san = new LiteNameSanitizer(principalName, true);
@@ -297,11 +297,11 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
 
     String pwd = request.getParameter("pwd");
     if (pwd == null) {
-      throw new StorageClientException("Password was not submitted");
+      throw new IllegalArgumentException("Password was not submitted");
     }
     String pwdConfirm = request.getParameter("pwdConfirm");
     if (!pwd.equals(pwdConfirm)) {
-      throw new StorageClientException(
+      throw new IllegalArgumentException(
           "Password value does not match the confirmation password");
     }
 
