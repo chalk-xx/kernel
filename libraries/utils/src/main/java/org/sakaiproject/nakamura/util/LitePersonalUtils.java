@@ -19,10 +19,7 @@ package org.sakaiproject.nakamura.util;
 
 
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
-import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -57,8 +54,6 @@ public class LitePersonalUtils {
    */
   public static final String PROP_PREFERRED_MESSAGE_TRANSPORT = "preferredMessageTransport";
 
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(LitePersonalUtils.class);
 
 
   public static String getPrimaryEmailAddress(Content profileNode){

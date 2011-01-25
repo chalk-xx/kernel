@@ -180,7 +180,7 @@ public class ExtendedJSONWriter extends JSONWriter {
       String s = String.valueOf(value);
       if (s != null && s.length() > 4) {
         if (s.charAt(0) == '/' && s.charAt(1) == '_') {
-          if (s.startsWith("/_user/") || s.startsWith("/_group/")) {
+          if (s.startsWith("/_user/") || s.startsWith("/_group/") || s.startsWith("a:")) {
             return true;
           }
         }

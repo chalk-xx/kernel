@@ -33,8 +33,10 @@ import javax.jcr.Session;
 import javax.jcr.Value;
 
 /**
- *
+ * @deprecated This class is deprecated pending a move to Sparse storage. LitePersonalUtils is the replacement.
  */
+
+@Deprecated
 public class PersonalUtils {
 
   /**

@@ -394,6 +394,8 @@ public class PathUtils {
           return "/~"+s.substring(16);
         } else if ( s.length() > 17 && s.startsWith("/_group/")) {
           return "/~"+s.substring(17);
+        } else if ( s.startsWith("a:")) {
+          return "/~"+s.substring(2); // sparse
         }
       }
     }
