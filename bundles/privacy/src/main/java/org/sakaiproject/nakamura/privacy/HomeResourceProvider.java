@@ -27,9 +27,13 @@ import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,43 +95,25 @@ public class HomeResourceProvider implements ResourceProvider {
         LOGGER.debug("Got Elements Path [{}] ", Arrays.toString(elements));
       }
       if (elements.length >= 1) {
-        Session session = resourceResolver.adaptTo(Session.class);
+        Session session = StorageClientUtils.adaptToSession(resourceResolver.adaptTo(javax.jcr.Session.class));
         AuthorizableManager um = session.getAuthorizableManager();
         Authorizable a = um.findAuthorizable(elements[0]);
-        String userPath = null;
         if (a != null) {
-          userPath = "a:" + a.getId();
-
-        }
-        if (userPath != null) {
-          Resource r = resourceResolver.resolve(userPath);
-          LOGGER.debug("Resolving [{}] to [{}] ", userPath, r);
-          if (r != null) {
-            // are the last elements the same ?
-            if (getLastElement(r.getPath()).equals(getLastElement(subPath))) {
-              r.getResourceMetadata().put(HomeResourceProvider.HOME_RESOURCE_PROVIDER,
-                  this);
-              return r;
-            } else {
-              if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Rejected [{}] != [{}] ", getLastElement(r.getPath()),
-                    getLastElement(subPath));
-              }
-            }
+          // TODO This needs to be replaced with a utility method call!
+          String userPath = "a:" + a.getId();
+          ContentManager contentManager = session.getContentManager();
+          Content content = contentManager.get(userPath);
+          LOGGER.debug("Resolving [{}] to [{}] ", userPath, content);
+          if (content != null) {
+            SparseContentResource cpr = new SparseContentResource(content, session,
+                resourceResolver);
+            cpr.getResourceMetadata().put(HOME_RESOURCE_PROVIDER, this);
+            return cpr;
           }
         }
       }
     }
     return null;
-  }
-
-  private String getLastElement(String path) {
-    for (int i = path.length() - 1; i >= 0; i--) {
-      if (path.charAt(i) == '/') {
-        return path.substring(i);
-      }
-    }
-    return "/" + path;
   }
 
   public Iterator<Resource> listChildren(Resource parent) {
