@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.resource.lite.servlet.post.helper;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.resource.DateParser;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
