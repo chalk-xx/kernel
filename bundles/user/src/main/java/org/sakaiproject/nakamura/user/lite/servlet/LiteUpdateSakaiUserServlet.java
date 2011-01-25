@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
@@ -78,6 +80,11 @@ import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProv
  *
  */
 @SlingServlet(resourceTypes={"sparse/user"}, methods={"POST"}, selectors={"update"})
+@Properties(value = {
+    @Property(name = "password.digest.algorithm", value = "sha1"),
+    @Property(name = "servlet.post.dateFormats", value = {
+        "EEE MMM dd yyyy HH:mm:ss 'GMT'Z", "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+        "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy" })})
 public class LiteUpdateSakaiUserServlet extends LiteAbstractUserPostServlet {
 
     /**

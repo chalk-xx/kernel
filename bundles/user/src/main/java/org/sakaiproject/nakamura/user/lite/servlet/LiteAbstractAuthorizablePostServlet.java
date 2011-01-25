@@ -16,6 +16,7 @@
  */
 package org.sakaiproject.nakamura.user.lite.servlet;
 
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -64,6 +65,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Base class for all the POST servlets for the UserManager operations
  */
+@Component(immediate=true, metatype=true,componentAbstract=true)
 public abstract class LiteAbstractAuthorizablePostServlet extends
         SlingAllMethodsServlet {
     private static final long serialVersionUID = -5918670409789895333L;

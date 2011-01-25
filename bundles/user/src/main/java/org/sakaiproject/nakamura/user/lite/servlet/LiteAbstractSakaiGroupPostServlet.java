@@ -18,6 +18,7 @@ package org.sakaiproject.nakamura.user.lite.servlet;
 
 import com.google.common.collect.ImmutableSet;
 
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -48,6 +49,7 @@ import java.util.Set;
 /**
  * Base class for servlets manipulating groups
  */
+@Component(immediate=true, metatype=true,componentAbstract=true)
 public abstract class LiteAbstractSakaiGroupPostServlet extends
     LiteAbstractAuthorizablePostServlet {
   private static final long serialVersionUID = 1159063041816944076L;
@@ -58,6 +60,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
    */
   @Reference
   protected transient Repository repository;
+  
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteAbstractSakaiGroupPostServlet.class);
 

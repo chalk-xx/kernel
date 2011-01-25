@@ -18,6 +18,8 @@
 package org.sakaiproject.nakamura.user.lite.servlet;
 
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
@@ -82,6 +84,12 @@ import java.util.List;
  *
  */
 @SlingServlet(resourceTypes={"sparse/user"}, methods={"POST"},selectors={"changePassword"})
+@Properties(value = {
+    @Property(name = "password.digest.algorithm", value = "sha1"),
+    @Property(name = "servlet.post.dateFormats", value = {
+        "EEE MMM dd yyyy HH:mm:ss 'GMT'Z", "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+        "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy" })})
+
 @ServiceDocumentation(name="Change Password Servlet",
     description="Changes user password. Maps on to nodes of resourceType sling/user " +
         "like /rep:system/rep:userManager/rep:users/ae/fd/3e/username mapped to a resource " +

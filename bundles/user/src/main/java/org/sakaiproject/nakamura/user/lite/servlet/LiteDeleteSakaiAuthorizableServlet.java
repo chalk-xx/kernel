@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.user.lite.servlet;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -98,6 +100,12 @@ import javax.servlet.http.HttpServletResponse;
  *
  */
 @SlingServlet(resourceTypes={"sparse/authorizable","sparse/user","sparse/group","sparse/userManager"}, methods={"POST"}, selectors={"delete"})
+@Properties(value = {
+    @Property(name = "password.digest.algorithm", value = "sha1"),
+    @Property(name = "servlet.post.dateFormats", value = {
+        "EEE MMM dd yyyy HH:mm:ss 'GMT'Z", "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+        "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy" })})
+
 @ServiceDocumentation(name="Delete Authorizable (Group and User) Servlet",
     description="Deletes a group. Maps on to nodes of resourceType sling/groups like " +
     		"/rep:system/rep:userManager/rep:groups mapped to a resource url " +
