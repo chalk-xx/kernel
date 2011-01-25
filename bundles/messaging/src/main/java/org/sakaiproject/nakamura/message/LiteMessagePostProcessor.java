@@ -36,7 +36,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.SlingPostProcessor;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -45,7 +44,9 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
+import org.sakaiproject.nakamura.api.resource.lite.SparsePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,12 +59,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-@Component(immediate = true, label = "MessagePostProcessor", description = "Post Processor for Message operations", metatype = false)
+@Component(immediate = true, label = "LiteMessagePostProcessor", description = "Post Processor for Message operations", metatype = false)
 @Service
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Processess changes on sakai/message nodes. If the messagebox and sendstate are set to respectively outbox and pending, a message will be copied to the recipients.") })
-public class LiteMessagePostProcessor implements SlingPostProcessor {
+public class LiteMessagePostProcessor implements SparsePostProcessor {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteMessagePostProcessor.class);
@@ -92,7 +93,12 @@ public class LiteMessagePostProcessor implements SlingPostProcessor {
           case CREATE:
           case MODIFY:
             String path = m.getSource();
-            path = path.substring(0, path.lastIndexOf("/"));
+            if ( path.lastIndexOf("@") > 0 ) {
+              path = path.substring(0, path.lastIndexOf("@"));
+            }
+            if ( path.endsWith("/"+MessageConstants.PROP_SAKAI_MESSAGEBOX) ) {
+              path = path.substring(0, path.length()-MessageConstants.PROP_SAKAI_MESSAGEBOX.length()-1);
+            }
             if (contentManager.exists(path)) {
               Content content = contentManager.get(path);
               if (content.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && content.hasProperty(PROP_SAKAI_MESSAGEBOX)) {
@@ -128,6 +134,7 @@ public class LiteMessagePostProcessor implements SlingPostProcessor {
           if (STATE_NONE.equals(state) || STATE_PENDING.equals(state)) {
   
             content.setProperty(PROP_SAKAI_SENDSTATE, StorageClientUtils.toStore(STATE_NOTIFIED));
+            contentManager.update(content);
   
             Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
             // WARNING

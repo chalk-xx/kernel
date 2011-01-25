@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.message;
+package org.sakaiproject.nakamura.user.postprocessors;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -23,7 +23,6 @@ import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessor;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
@@ -39,8 +38,6 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.message.LiteMessagingService;
-import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,9 +59,8 @@ import java.util.Map;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteMessageAuthorizablePostProcessor.class);
-
-  @Reference
-  protected transient LiteMessagingService messagingService;
+  
+  static final String SAKAI_MESSAGESTORE_RT = "sakai/messagestore";
 
   public void process(Authorizable authorizable, Session session, Modification change,
       Map<String, Object[]> parameters) throws Exception {
@@ -75,11 +71,11 @@ import java.util.Map;
       if (authorizable != null) {
         String authorizableId =  authorizable.getId();
         if (authorizableId != null) {
-          String path = messagingService.getFullPathToStore(authorizableId, session);
+          String path = "a:" + authorizableId + "/message";
           LOGGER.debug("Creating message store node: {}", path);
           Map<String, Object> messageStoreProperties = ImmutableMap.of(
               JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-              StorageClientUtils.toStore(MessageConstants.SAKAI_MESSAGESTORE_RT));
+              StorageClientUtils.toStore(SAKAI_MESSAGESTORE_RT), "sling/resourceSuperType", "sparse/Content");
           Content messageStore = new Content(path, messageStoreProperties);
 
           List<AclModification> acls = new ArrayList<AclModification>();

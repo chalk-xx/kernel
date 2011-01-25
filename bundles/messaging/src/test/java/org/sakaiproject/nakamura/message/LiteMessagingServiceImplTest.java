@@ -76,11 +76,11 @@ public class LiteMessagingServiceImplTest {
   public void testFullPathToStoreSite() {
     // Groups
     String path = messagingServiceImpl.getFullPathToStore(groupName, session);
-    assertEquals("/~g-physics-101-viewers/message", path);
+    assertEquals("a:g-physics-101-viewers/message/", path);
 
     // Users
     path = messagingServiceImpl.getFullPathToStore(userName, session);
-    assertEquals("/~joe/message", path);
+    assertEquals("a:joe/message/", path);
   }
 
   @Test
@@ -88,7 +88,7 @@ public class LiteMessagingServiceImplTest {
     String messageId = "cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c";
     String path = messagingServiceImpl.getFullPathToMessage(userName, messageId, session);
     assertEquals(
-        "/~joe/message/cd/5c/20/8b/cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c",
+        "a:joe/message/inbox/cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c",
         path);
   }
 

@@ -86,8 +86,8 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
   @Reference
   protected transient PresenceService presenceService;
 
-  @Reference
-  protected transient LiteProfileService profileService;
+//  @Reference
+//  protected transient LiteProfileService profileService;
 
   @Reference
   protected transient LockManager lockManager;
@@ -172,21 +172,22 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
           } catch (LockTimeoutException e1) {
             throw new MessagingException("Unable to lock destination message store");
           }
+          
           ImmutableMap.Builder<String, Object> propertyBuilder = ImmutableMap.builder();
           // Copy the content into the user his folder.
-          session.getContentManager().update(
+          contentManager.update(
               new Content(toPath.substring(0, toPath.lastIndexOf("/")), propertyBuilder
                   .build()));
           contentManager.copy(originalMessage.getPath(), toPath, true);
-          contentManager.update(new Content(toPath, propertyBuilder.build()));
           Content message = contentManager.get(toPath);
 
           // Add some extra properties on the just created node.
-          message.setProperty(MessageConstants.PROP_SAKAI_READ, Boolean.FALSE);
+          message.setProperty(MessageConstants.PROP_SAKAI_READ, StorageClientUtils.toStore(Boolean.FALSE));
           message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
-              MessageConstants.BOX_INBOX);
+              StorageClientUtils.toStore(MessageConstants.BOX_INBOX));
           message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
-              MessageConstants.STATE_NOTIFIED);
+              StorageClientUtils.toStore(MessageConstants.STATE_NOTIFIED));
+          contentManager.update(message);
 
           recipients.add(recipient);
         }
@@ -224,8 +225,9 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
       Authorizable au = authorizableManager.findAuthorizable(recipient);
       if (au != null) {
         write.object();
-        ValueMap map = profileService.getCompactProfileMap(au, session);
-        ((ExtendedJSONWriter) write).valueMapInternals(map);
+        //TODO BL120 we don't have an implementation of profileService for sparse yet
+//        ValueMap map = profileService.getCompactProfileMap(au, session);
+//        ((ExtendedJSONWriter) write).valueMapInternals(map);
         if (au instanceof User) {
           // Pass in the presence.
           PresenceUtils.makePresenceJSON(write, au.getId(), presenceService, true);

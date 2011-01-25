@@ -30,6 +30,7 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
@@ -37,6 +38,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessor;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.sakaiproject.nakamura.user.postprocessors.HomePostProcessor;
+import org.sakaiproject.nakamura.user.postprocessors.LiteMessageAuthorizablePostProcessor;
 import org.sakaiproject.nakamura.util.osgi.AbstractOrderedService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,15 +57,15 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
 
   @Reference
   protected Repository repository;
+  
+  @Reference
+  protected EventAdmin eventAdmin;
 
   private LiteAuthorizablePostProcessor[] orderedServices = new LiteAuthorizablePostProcessor[0];
   
   private List<LiteAuthorizablePostProcessor> internalProcessors;
 
   public LiteAuthorizablePostProcessServiceImpl() {
-    // these post processors will be run in the order they're added
-    internalProcessors = new ArrayList<LiteAuthorizablePostProcessor>();
-    internalProcessors.add(new HomePostProcessor());
   }
 
   public void process(Authorizable authorizable, Session session, ModificationType change) throws Exception {
@@ -134,6 +136,11 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
 
   @Activate
   protected void activate(ComponentContext componentContext) {
+    // these post processors will be run in the order they're added
+    internalProcessors = new ArrayList<LiteAuthorizablePostProcessor>();
+    HomePostProcessor hpp = new HomePostProcessor(eventAdmin);
+    internalProcessors.add(hpp);
+    internalProcessors.add(new LiteMessageAuthorizablePostProcessor());
   }
 
   @Deactivate

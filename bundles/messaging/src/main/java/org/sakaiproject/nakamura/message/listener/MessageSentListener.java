@@ -44,7 +44,7 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-@Component(inherit = true, label = "%sakai-event.name", immediate = true)
+@Component(enabled = false, inherit = true, label = "%sakai-event.name", immediate = true)
 @Service
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),

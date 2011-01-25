@@ -101,6 +101,15 @@ public class HomePostProcessor implements LiteAuthorizablePostProcessor {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(HomePostProcessor.class);
+  
+  //default constructor needed to be an OSGi Component
+  public HomePostProcessor() {
+    
+  }
+
+  public HomePostProcessor(EventAdmin eventAdmin) {
+    this.eventAdmin = eventAdmin;
+  }
 
   /**
    * {@inheritDoc}
