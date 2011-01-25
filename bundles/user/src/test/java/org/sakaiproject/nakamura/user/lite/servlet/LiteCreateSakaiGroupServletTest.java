@@ -46,9 +46,11 @@ public class LiteCreateSakaiGroupServletTest  {
   @Mock
   private ResourceResolver resourceResolver;
 
+  @SuppressWarnings("unused")
   @Mock
   private SlingHttpServletResponse httpResponse;
 
+  @SuppressWarnings("unused")
   @Mock
   private Resource resource;
 

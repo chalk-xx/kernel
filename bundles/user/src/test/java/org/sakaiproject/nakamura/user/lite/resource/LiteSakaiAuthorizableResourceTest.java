@@ -64,7 +64,6 @@ public class LiteSakaiAuthorizableResourceTest {
 
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void test() throws AccessDeniedException, StorageClientException {
     User ieb = (User) session.getAuthorizableManager().findAuthorizable("ieb");
