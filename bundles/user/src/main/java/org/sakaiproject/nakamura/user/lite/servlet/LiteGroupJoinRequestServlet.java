@@ -135,6 +135,7 @@ public class LiteGroupJoinRequestServlet extends SlingAllMethodsServlet {
         targetGroup.addMember(userId);
         Dictionary<String, Object> eventProps = new Hashtable<String, Object>();
         eventAdmin.postEvent(new Event(GroupEvent.joinedSite.getTopic(), eventProps));
+        break;
       case withauth:
         // check to see if this user is already there
         if (contentManager.exists(group.getPath() + "/joinrequests/"+userId)) {
