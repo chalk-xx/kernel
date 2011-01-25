@@ -27,7 +27,7 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.JSONResponse;
+import org.sakaiproject.nakamura.api.resource.JSONResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

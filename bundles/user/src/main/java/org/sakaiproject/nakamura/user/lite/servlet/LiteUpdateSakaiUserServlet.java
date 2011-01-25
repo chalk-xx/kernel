@@ -28,13 +28,13 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.resource.RequestProperty;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 
 /**
@@ -76,12 +76,6 @@ import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProv
  * </code>
  * 
  *
- *
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sling/user"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="update"
  */
 @SlingServlet(resourceTypes={"sparse/user"}, methods={"POST"}, selectors={"update"})
 public class LiteUpdateSakaiUserServlet extends LiteAbstractUserPostServlet {

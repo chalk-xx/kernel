@@ -29,7 +29,6 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.auth.trusted.RequestTrustValidator;
@@ -50,6 +49,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.resource.RequestProperty;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.sakaiproject.nakamura.user.lite.resource.LiteNameSanitizer;
@@ -158,7 +158,6 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
   /**
    * The JCR Repository we access to resolve resources
    * 
-   * @scr.reference
    */
   @Reference
   private transient Repository repository;

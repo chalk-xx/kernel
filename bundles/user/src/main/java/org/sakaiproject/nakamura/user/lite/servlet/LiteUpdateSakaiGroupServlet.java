@@ -34,7 +34,6 @@ import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
-import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -51,6 +50,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.resource.RequestProperty;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
@@ -107,14 +107,14 @@ import javax.servlet.http.HttpServletResponse;
  *
  */
 @SlingServlet(resourceTypes={"sparse/group"}, methods={"POST"}, selectors={"update"})
-@Properties( @Property(name="servlet.post.dateFormats",
+@Properties( value={@Property(name="servlet.post.dateFormats",
              value={"EEE MMM dd yyyy HH:mm:ss 'GMT'Z",
                     "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
                     "yyyy-MM-dd'T'HH:mm:ss",
                     "yyyy-MM-dd",
                     "dd.MM.yyyy HH:mm:ss",
                    "dd.MM.yyyy"}
- ))
+ )})
 @ServiceDocumentation(name = "Update Group Servlet", description = "Updates a group's properties. Maps on to nodes of resourceType sling/group "
     + "like /rep:system/rep:userManager/rep:groups/ae/3f/ed/groupname mapped to a resource "
     + "url /system/userManager/group/g-groupname. This servlet responds at "
@@ -164,7 +164,6 @@ public class LiteUpdateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
   /**
    * Used to launch OSGi events.
    *
-   * @scr.reference
    */
   @Reference
   protected transient EventAdmin eventAdmin;

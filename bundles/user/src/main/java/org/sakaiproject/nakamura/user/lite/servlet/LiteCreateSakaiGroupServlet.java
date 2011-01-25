@@ -34,7 +34,6 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.apache.sling.servlets.post.impl.helper.RequestProperty;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
@@ -57,6 +56,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.resource.RequestProperty;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.sakaiproject.nakamura.user.lite.resource.LiteNameSanitizer;
@@ -113,14 +113,14 @@ import javax.servlet.http.HttpServletResponse;
  *
  */
 @SlingServlet(resourceTypes={"sparse/groups"}, methods={"POST"}, selectors={"create"})
-@Properties(
+@Properties(value={
     @Property(name="servlet.post.dateFormats",
               value={"EEE MMM dd yyyy HH:mm:ss 'GMT'Z",
                 "yyyy-MM-dd'T'HH:mm:ss.SSSZ", 
                 "yyyy-MM-dd'T'HH:mm:ss",
                 "yyyy-MM-dd", 
                 "dd.MM.yyyy HH:mm:ss",
-                "dd.MM.yyyy"}))
+                "dd.MM.yyyy"})})
 @ServiceDocumentation(name="Create Group Servlet",
     description="Creates a new group. Maps on to nodes of resourceType sling/groups like " +
     		"/rep:system/rep:userManager/rep:groups mapped to a resource url " +

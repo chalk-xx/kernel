@@ -26,7 +26,7 @@ import org.apache.sling.servlets.post.NodeNameGenerator;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.RequestProperty;
+import org.sakaiproject.nakamura.api.resource.RequestProperty;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
