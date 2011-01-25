@@ -36,10 +36,12 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessor;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
+import org.sakaiproject.nakamura.user.postprocessors.HomePostProcessor;
 import org.sakaiproject.nakamura.util.osgi.AbstractOrderedService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -55,8 +57,13 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
   protected Repository repository;
 
   private LiteAuthorizablePostProcessor[] orderedServices = new LiteAuthorizablePostProcessor[0];
+  
+  private List<LiteAuthorizablePostProcessor> internalProcessors;
 
   public LiteAuthorizablePostProcessServiceImpl() {
+    // these post processors will be run in the order they're added
+    internalProcessors = new ArrayList<LiteAuthorizablePostProcessor>();
+    internalProcessors.add(new HomePostProcessor());
   }
 
   public void process(Authorizable authorizable, Session session, ModificationType change) throws Exception {
@@ -136,6 +143,9 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
   private void doInternalProcessing(Authorizable authorizable, Session session,
       Modification change, Map<String, Object[]> parameters) throws Exception {
     // do any default processing here: TODO, the template processing.
+    for (LiteAuthorizablePostProcessor processor : internalProcessors) {
+      processor.process(authorizable, session, change, parameters);
+    }
   }
 
 }
