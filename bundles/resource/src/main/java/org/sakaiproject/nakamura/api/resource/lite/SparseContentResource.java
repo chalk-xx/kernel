@@ -130,7 +130,11 @@ public class SparseContentResource extends AbstractResource {
    * @see org.apache.sling.api.resource.Resource#getResourceType()
    */
   public String getResourceType() {
-    return StorageClientUtils.toString(content.getProperties().get("sling:resourceType"));
+    String type = StorageClientUtils.toString(content.getProperties().get("sling:resourceType"));
+    if (type == null) {
+      type = SPARSE_CONTENT_RT;
+    }
+    return type;
   }
 
   /**
@@ -138,7 +142,7 @@ public class SparseContentResource extends AbstractResource {
    * @see org.apache.sling.api.resource.Resource#getResourceSuperType()
    */
   public String getResourceSuperType() {
-    return SPARSE_CONTENT_RT; 
+    return SPARSE_CONTENT_RT;
   }
 
   /**
