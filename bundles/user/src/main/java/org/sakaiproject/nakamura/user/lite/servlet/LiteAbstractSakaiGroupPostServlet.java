@@ -118,9 +118,10 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
         for (String member : membersToAdd) {
           Authorizable memberAuthorizable = authorizableManager.findAuthorizable(member);
           if (memberAuthorizable != null) {
-            if(!UserConstants.ANON_USERID.equals(resolver.getUserID())
+            if(!UserConstants.ANON_USERID.equals(session.getUserId())
                 && Joinable.yes.equals(groupJoin)
-                && memberAuthorizable.getId().equals(resolver.getUserID())){
+                && memberAuthorizable.getId().equals(session.getUserId())){
+              LOGGER.info("Is Joinable {} {} ",groupJoin,session.getUserId());
               //we can grab admin session since group allows all users to join
               Session adminSession = getSession();
               try{
@@ -135,10 +136,11 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
                 ungetSession(adminSession);
               }
             }else{
+              LOGGER.info("Is Restricted {} {} ",groupJoin,session.getUserId());
               //group is restricted, so use the current user's authorization
               //to add the member to the group:
               group.addMember(memberAuthorizable.getId());
-              toSave.add(group);
+              authorizableManager.updateAuthorizable(group);
               changed = true;
             }
             if (peerGroup != null) {
@@ -262,7 +264,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
 
     // Write the property.
     if (changed) {
-      group.setProperty(propAuthorizables, StorageClientUtils.toStore(principals));
+      group.setProperty(propAuthorizables, StorageClientUtils.toStore(principals.toArray(new String[principals.size()])));
       toSave.add(group);
     }
   }
@@ -305,10 +307,15 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
       if (authorizable instanceof Group && authorizable.hasProperty(UserConstants.PROP_JOINABLE_GROUP)) {
         try {
           String joinable = StorageClientUtils.toString(authorizable.getProperty(UserConstants.PROP_JOINABLE_GROUP));
-          if (joinable != null)
+          LOGGER.info("Joinable Property on {} {} ", authorizable, joinable);
+          if (joinable != null) {
             return Joinable.valueOf(joinable);
+          }
         } catch (IllegalArgumentException e) {
+          LOGGER.info(e.getMessage(),e);
         }
+      } else {
+        LOGGER.info("No Joinable Property on {} ", authorizable);
       }
     return Joinable.no;
   }
