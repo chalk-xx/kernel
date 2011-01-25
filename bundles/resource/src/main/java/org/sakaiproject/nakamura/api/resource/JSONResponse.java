@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.sakaiproject.nakamura.resource.lite.servlet.post.helper;
+package org.sakaiproject.nakamura.api.resource;
 
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.commons.json.JSONArray;

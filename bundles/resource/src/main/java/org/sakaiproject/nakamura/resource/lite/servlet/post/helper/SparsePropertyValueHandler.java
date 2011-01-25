@@ -21,6 +21,7 @@ import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.resource.DateParser;
+import org.sakaiproject.nakamura.api.resource.RequestProperty;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
