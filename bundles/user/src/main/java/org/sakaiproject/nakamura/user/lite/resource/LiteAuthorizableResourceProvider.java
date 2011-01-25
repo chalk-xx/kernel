@@ -90,7 +90,7 @@ public class LiteAuthorizableResourceProvider implements ResourceProvider {
     if (path.equals(SYSTEM_USER_MANAGER_PATH)) {
       return new SyntheticResource(resourceResolver, path, "sparse/userManager");
     } else if (path.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
-      return new SyntheticResource(resourceResolver, path, "sprase/users");
+      return new SyntheticResource(resourceResolver, path, "sparse/users");
     } else if (path.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
       return new SyntheticResource(resourceResolver, path, "sparse/groups");
     }
