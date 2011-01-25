@@ -889,6 +889,12 @@
         <scope>provided</scope>
       </dependency>
 
+      <dependency>
+        <groupId>org.apache.solr</groupId>
+        <artifactId>solr-solrj</artifactId>
+        <version>4.0.1040465</version>
+      </dependency>
+							      
     </dependencies>
   </dependencyManagement>
 </project>
