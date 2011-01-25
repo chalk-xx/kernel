@@ -209,7 +209,7 @@ public class LiteCreateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
     User currentUser = null;
 
     try {
-      Session currentSession = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(Session.class));
+      Session currentSession = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
       AuthorizableManager authorizableManager = currentSession.getAuthorizableManager();
       currentUser = (User) authorizableManager.findAuthorizable(currentSession.getUserId());
       if (currentUser.isAdmin()) {

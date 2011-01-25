@@ -3,7 +3,7 @@
 require 'digest/sha1'
 require 'logger'
 
-$USERMANAGER_URI="system/userManager/"
+$USERMANAGER_URI="system/lite/userManager/"
 $GROUP_URI="#{$USERMANAGER_URI}group.create.html"
 $USER_URI="#{$USERMANAGER_URI}user.create.html"
 $DEFAULT_PASSWORD="testuser"

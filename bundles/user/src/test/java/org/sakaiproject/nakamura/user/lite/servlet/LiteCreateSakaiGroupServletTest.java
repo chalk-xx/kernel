@@ -30,10 +30,12 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Vector;
 
 
@@ -116,19 +118,33 @@ public class LiteCreateSakaiGroupServletTest  {
   public void testPrincipalExists() throws AuthorizableExistsException, ClientPoolException, StorageClientException, AccessDeniedException  {
     javax.jcr.Session jcrSession = Mockito.mock(javax.jcr.Session.class, Mockito.withSettings().extraInterfaces(SessionAdaptable.class));
     Session session = repository.loginAdministrative("admin");
+    session.getAuthorizableManager().createGroup("g-course101-missing", "g-course101-missing", null);
     Mockito.when(((SessionAdaptable)jcrSession).getSession()).thenReturn(session);
     ResourceResolver rr = Mockito.mock(ResourceResolver.class);
     Mockito.when(rr.adaptTo(javax.jcr.Session.class)).thenReturn(jcrSession);
     request = Mockito.mock(SlingHttpServletRequest.class);
     when(request.getRemoteUser()).thenReturn("admin");
     when(request.getResourceResolver()).thenReturn(rr);
+    when(request.getParameterNames()).thenReturn(new Enumeration<String>() {
+
+      public boolean hasMoreElements() {
+        return false;
+      }
+
+      public String nextElement() {
+        throw new NoSuchElementException();
+      }});
+    RequestParameterMap requestParameterMap = Mockito.mock(RequestParameterMap.class);
+    when(requestParameterMap.entrySet()).thenReturn(
+        new HashSet<Entry<String, RequestParameter[]>>());
+    when(request.getRequestParameterMap()).thenReturn(requestParameterMap);
     LiteCreateSakaiGroupServlet csgs = new LiteCreateSakaiGroupServlet();
 
     csgs.repository = repository;
     when(request.getParameter(SlingPostConstants.RP_NODE_NAME)).thenReturn("g-course101-missing");
     HtmlResponse response = new HtmlResponse();
-    csgs.handleOperation(request, response, null);
-    assertEquals(403, response.getStatusCode());
+    csgs.handleOperation(request, response, new ArrayList<Modification>());
+    assertEquals(400, response.getStatusCode());
   }
 
   @Test
