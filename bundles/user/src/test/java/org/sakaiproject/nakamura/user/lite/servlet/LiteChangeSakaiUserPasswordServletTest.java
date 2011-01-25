@@ -19,13 +19,10 @@ package org.sakaiproject.nakamura.user.lite.servlet;
 
 import static org.mockito.Mockito.when;
 
-import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.servlets.post.Modification;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -43,7 +40,6 @@ import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.List;
 
 import javax.servlet.ServletException;
 
