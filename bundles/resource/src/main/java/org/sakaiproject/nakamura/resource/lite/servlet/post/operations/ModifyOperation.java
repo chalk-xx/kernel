@@ -33,9 +33,9 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.resource.DateParser;
+import org.sakaiproject.nakamura.api.resource.RequestProperty;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparseCreateOperation;
-import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.DateParser;
-import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.RequestProperty;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparseFileUploadHandler;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparsePropertyValueHandler;
 

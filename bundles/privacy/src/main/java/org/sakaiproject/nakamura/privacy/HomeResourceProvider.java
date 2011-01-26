@@ -22,22 +22,24 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.Principal;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.http.HttpServletRequest;
 
 @Component(name = "org.sakaiproject.nakamura.privacy.HomeResourceProvider", immediate = true, metatype = true, description = "%homeprovider.description", label = "%homeprovider.name")
@@ -69,14 +71,16 @@ public class HomeResourceProvider implements ResourceProvider {
     }
     try {
       return resolveMappedResource(resourceResolver, path);
-    } catch (RepositoryException e) {
+    } catch (AccessDeniedException e) {
+      LOGGER.warn(e.getMessage(), e);
+    } catch (StorageClientException e) {
       LOGGER.warn(e.getMessage(), e);
     }
     return null;
   }
 
   private Resource resolveMappedResource(ResourceResolver resourceResolver, String path)
-      throws RepositoryException {
+      throws AccessDeniedException, StorageClientException {
     String subPath = null;
     if (path.startsWith("/~")) {
       subPath = path.substring("/~".length());
@@ -91,60 +95,28 @@ public class HomeResourceProvider implements ResourceProvider {
         LOGGER.debug("Got Elements Path [{}] ", Arrays.toString(elements));
       }
       if (elements.length >= 1) {
-        Session session = resourceResolver.adaptTo(Session.class);
-        UserManager um = AccessControlUtil.getUserManager(session);
-        Authorizable a = um.getAuthorizable(elements[0]);
-        String userPath = null;
+        Session session = StorageClientUtils.adaptToSession(resourceResolver.adaptTo(javax.jcr.Session.class));
+        AuthorizableManager um = session.getAuthorizableManager();
+        Authorizable a = um.findAuthorizable(elements[0]);
         if (a != null) {
-          Principal p = a.getPrincipal();
-          if (p instanceof ItemBasedPrincipal) {
-            ItemBasedPrincipal ibp = (ItemBasedPrincipal) p;
-            String principalPathStart = "/rep:security/rep:authorizables/rep:users";
-            String targetStart = "/_user";
-            if (a.isGroup()) {
-              principalPathStart = "/rep:security/rep:authorizables/rep:groups";
-              targetStart = "/_group";
-            }
-            userPath = targetStart + ibp.getPath().substring(principalPathStart.length());
-
-          } else if (p.getName().equals("admin")) {
-            userPath = "/_user/a/ad/admin";
-          } else if (p.getName().equals("anonymous")) {
-            userPath = "/_user/a/an/anonymous";
-          }
-        }
-        if (userPath != null) {
+          // TODO This needs to be replaced with a utility method call!
+          String userPath = "a:" + a.getId();
           if (elements.length == 2) {
             userPath = userPath + "/" + elements[1];
           }
-          Resource r = resourceResolver.resolve(userPath);
-          LOGGER.debug("Resolving [{}] to [{}] ", userPath, r);
-          if (r != null) {
-            // are the last elements the same ?
-            if (getLastElement(r.getPath()).equals(getLastElement(subPath))) {
-              r.getResourceMetadata().put(HomeResourceProvider.HOME_RESOURCE_PROVIDER,
-                  this);
-              return r;
-            } else {
-              if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Rejected [{}] != [{}] ", getLastElement(r.getPath()),
-                    getLastElement(subPath));
-              }
-            }
+          ContentManager contentManager = session.getContentManager();
+          Content content = contentManager.get(userPath);
+          LOGGER.debug("Resolving [{}] to [{}] ", userPath, content);
+          if (content != null) {
+            SparseContentResource cpr = new SparseContentResource(content, session,
+                resourceResolver);
+            cpr.getResourceMetadata().put(HOME_RESOURCE_PROVIDER, this);
+            return cpr;
           }
         }
       }
     }
     return null;
-  }
-
-  private String getLastElement(String path) {
-    for (int i = path.length() - 1; i >= 0; i--) {
-      if (path.charAt(i) == '/') {
-        return path.substring(i);
-      }
-    }
-    return "/" + path;
   }
 
   public Iterator<Resource> listChildren(Resource parent) {

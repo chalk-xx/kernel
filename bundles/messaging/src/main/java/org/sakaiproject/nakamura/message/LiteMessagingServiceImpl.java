@@ -136,9 +136,6 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
     }
     try {
       try {
-        // TODO BL120 temporary home folder hack until the home folder services are done
-        MessageUtils.establishHomeFolder(session.getUserId(), messagePath, session.getRepository());
-        
         ContentManager contentManager = session.getContentManager();
         contentManager.update(msg);
       } catch (StorageClientException e) {

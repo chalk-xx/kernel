@@ -54,7 +54,6 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.LiteProfileService;
-import org.sakaiproject.nakamura.message.MessageUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,8 +86,8 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
   @Reference
   protected transient PresenceService presenceService;
 
-  @Reference
-  protected transient LiteProfileService profileService;
+//  @Reference
+//  protected transient LiteProfileService profileService;
 
   @Reference
   protected transient LockManager lockManager;
@@ -173,7 +172,6 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
           } catch (LockTimeoutException e1) {
             throw new MessagingException("Unable to lock destination message store");
           }
-          MessageUtils.establishHomeFolder(recipient, toPath, session.getRepository());
           
           ImmutableMap.Builder<String, Object> propertyBuilder = ImmutableMap.builder();
           // Copy the content into the user his folder.
@@ -227,8 +225,9 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
       Authorizable au = authorizableManager.findAuthorizable(recipient);
       if (au != null) {
         write.object();
-        ValueMap map = profileService.getCompactProfileMap(au, session);
-        ((ExtendedJSONWriter) write).valueMapInternals(map);
+        //TODO BL120 we don't have an implementation of profileService for sparse yet
+//        ValueMap map = profileService.getCompactProfileMap(au, session);
+//        ((ExtendedJSONWriter) write).valueMapInternals(map);
         if (au instanceof User) {
           // Pass in the presence.
           PresenceUtils.makePresenceJSON(write, au.getId(), presenceService, true);

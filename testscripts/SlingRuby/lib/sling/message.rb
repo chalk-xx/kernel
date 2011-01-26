@@ -20,7 +20,7 @@ module SlingMessage
       # path = "" + messageId[0, 2] + "/" + messageId[2, 2] + "/" + messageId[4,2]+ "/" + messageId[6,2] + "/" + messageId
       # postUrl = @sling.url_for("#{@home}/message/#{path}.html")
       path = messageId
-      postUrl = @sling.url_for("/s/a:#{sender}/message/outbox/#{path}.html")
+      postUrl = @sling.url_for("~#{sender}/message/outbox/#{path}.html")
       puts "Executing message send to #{postUrl}"
       return @sling.execute_post(postUrl, "sakai:messagebox" => "outbox" )
     end

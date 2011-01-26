@@ -27,8 +27,7 @@ class TC_Kern335Test < Test::Unit::TestCase
     user2 = create_user("chatuser2-#{m}")
   
     @s.switch_user(user1)
-    res = @mm.create("chat:chatuser2-#{m}", "chat", "outbox")
-    assert_equal("200", res.code, "Expected to create a message ")
+    @mm.create("chat:chatuser2-#{m}", "chat", "outbox")
     @s.switch_user(user2)
     
     home1 = user1.home_path_for(@s)

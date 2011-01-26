@@ -134,6 +134,7 @@ public class GroupJoinRequestServlet extends SlingAllMethodsServlet {
       targetGroup.addMember(user);
       Dictionary<String, Object> eventProps = new Hashtable<String, Object>();
       eventAdmin.postEvent(new Event(GroupEvent.joinedSite.getTopic(), eventProps));
+      break;
     case withauth:
       // a node is added to represent this user's request to join
       Node joinrequests = session.getNode(group.getPath() + "/joinrequests");

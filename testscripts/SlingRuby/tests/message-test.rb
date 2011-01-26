@@ -194,4 +194,3 @@ class TC_MyMessageTest < Test::Unit::TestCase
 
 end
 
-

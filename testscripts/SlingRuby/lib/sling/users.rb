@@ -3,7 +3,7 @@
 require 'digest/sha1'
 require 'logger'
 
-$USERMANAGER_URI="system/userManager/"
+$USERMANAGER_URI="system/lite/userManager/"
 $GROUP_URI="#{$USERMANAGER_URI}group.create.html"
 $USER_URI="#{$USERMANAGER_URI}user.create.html"
 $DEFAULT_PASSWORD="testuser"
@@ -29,10 +29,9 @@ module SlingUsers
       return home_path_for(sling) + "/private"
     end
 
-    def message_path_for(sling,messageid,box)
-      # old way with a sharded path
-      # return home_path_for(sling) + "/message/"+messageid[0,2]+"/"+messageid[2,2]+"/"+messageid[4,2]+"/"+messageid[6,2]+"/"+messageid
-      return "/s/a:#{@name}/message/#{box}/"+messageid
+    def message_path_for(sling,messageid,mailbox)
+      #return home_path_for(sling) + "/message/"+messageid[0,2]+"/"+messageid[2,2]+"/"+messageid[4,2]+"/"+messageid[6,2]+"/"+messageid
+      return home_path_for(sling) + "/message/#{mailbox}/#{messageid}"
     end
 
   end

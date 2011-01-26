@@ -39,7 +39,7 @@ public class AuthorizablePostProcessorTest extends AbstractEasyMockTest {
     expect(session.getNode("/_user/a/ad/admin/public/authprofile")).andReturn(profileNode).atLeastOnce();
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     replay();
-    PersonalAuthorizablePostProcessor postProcessor = new PersonalAuthorizablePostProcessor();
+    HomePostProcessor postProcessor = new HomePostProcessor();
     postProcessor.process(authorizable, session, Modification.onModified("path-to-request-id"), null);
     verify();
   }

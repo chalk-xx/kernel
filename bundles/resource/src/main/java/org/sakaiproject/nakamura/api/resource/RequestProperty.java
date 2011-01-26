@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.sakaiproject.nakamura.resource.lite.servlet.post.helper;
+package org.sakaiproject.nakamura.api.resource;
 
 import java.util.ArrayList;
 import java.util.List;

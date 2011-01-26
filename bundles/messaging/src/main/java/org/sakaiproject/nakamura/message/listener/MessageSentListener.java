@@ -44,13 +44,13 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-//@Component(inherit = true, label = "%sakai-event.name", immediate = true)
-//@Service
-//@Properties(value = {
-//    @Property(name = "service.vendor", value = "The Sakai Foundation"),
-//    @Property(name = "service.description", value = "Event Handler Listening to Pending Messages Events."),
-//    @Property(name = "event.topics", value = "org/sakaiproject/nakamura/message/pending")})
-//@Reference(name = "MessageTransport", referenceInterface = MessageTransport.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "addTransport", unbind = "removeTransport")
+@Component(enabled = false, inherit = true, label = "%sakai-event.name", immediate = true)
+@Service
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Event Handler Listening to Pending Messages Events."),
+    @Property(name = "event.topics", value = "org/sakaiproject/nakamura/message/pending")})
+@Reference(name = "MessageTransport", referenceInterface = MessageTransport.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "addTransport", unbind = "removeTransport")
 public class MessageSentListener implements EventHandler {
   private static final Logger LOG = LoggerFactory.getLogger(MessageSentListener.class);
 

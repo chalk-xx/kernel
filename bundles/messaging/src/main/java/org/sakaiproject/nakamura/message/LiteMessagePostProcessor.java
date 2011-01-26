@@ -59,7 +59,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-@Component(immediate = true, label = "MessagePostProcessor", description = "Post Processor for Message operations", metatype = false)
+@Component(immediate = true, label = "LiteMessagePostProcessor", description = "Post Processor for Message operations", metatype = false)
 @Service
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),

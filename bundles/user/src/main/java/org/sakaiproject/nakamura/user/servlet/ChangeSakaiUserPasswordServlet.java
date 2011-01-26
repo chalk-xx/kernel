@@ -181,7 +181,6 @@ public class ChangeSakaiUserPasswordServlet extends ChangeUserPasswordServlet	 {
   
   @Override
   protected void activate(ComponentContext context) {
-	  System.err.println("Properties are "+context.getProperties());
 	  super.activate(context);
   }
   
