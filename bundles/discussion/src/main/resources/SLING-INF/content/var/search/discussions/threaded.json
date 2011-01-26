@@ -1,5 +1,4 @@
 {
-  //"sakai:query-template" : "/{path}//element(*)MetaData[@sling:resourceType='sakai/message' and @sakai:type='discussion' and @sakai:marker='{marker}'] order by @{sortOn|sakai:created} {sortOrder|descending}",
   "sakai:query-template" : "+path:${path} +resourceType:sakai/message +type:discussion +marker:${marker};${sortOn} ${sortOrder}",
   "sortOn": "created",
   "sortOrder": "desc",
