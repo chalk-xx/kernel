@@ -2,7 +2,7 @@ This is the event explorer subsystem originally developed by Ashish Mittal as pa
 the GSoC 2010 work.
 
 
-It contains an AMQ client listener and a UI.
+It contains an ActiveMQ client listener and a UI.
 
 Setup
 -----
@@ -18,9 +18,6 @@ this file.
 mvn install:install-file -Dfile=lib/apache-cassandra-0.6.5.jar \
   -DgroupId=org.apache.cassandra.thrift -DartifactId=apache-cassandra -Dversion=0.6.5 \
   -DgeneratePom=true -Dpackaging=jar
-
-mvn install:install-file -Dfile=lib/libthrift-r917130.jar -DgroupId=org.apache.thrift \
-  -DartifactId=libthrift -Dversion=r917130 -DgeneratePom=true -Dpackaging=jar
 
 
 Building

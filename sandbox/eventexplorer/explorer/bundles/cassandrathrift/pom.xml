@@ -59,7 +59,7 @@
   <dependencies>
     <!--  Obviously we need thrift. -->
     <dependency>
-      <groupId>org.apache.thrift</groupId>
+      <groupId>org.apache.cassandra.deps</groupId>
       <artifactId>libthrift</artifactId>
     </dependency>
     <dependency>

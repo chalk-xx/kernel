@@ -40,7 +40,7 @@
       <artifactId>apache-cassandra</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.thrift</groupId>
+      <groupId>org.apache.cassandra.deps</groupId>
       <artifactId>libthrift</artifactId>
     </dependency>
 
