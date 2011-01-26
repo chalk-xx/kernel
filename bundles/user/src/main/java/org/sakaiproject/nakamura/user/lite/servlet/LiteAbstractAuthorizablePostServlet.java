@@ -26,7 +26,6 @@ import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.apache.sling.api.wrappers.SlingRequestPaths;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -118,12 +117,12 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
         htmlResponse.setPath(path);
 
         // location
-        htmlResponse.setLocation(externalizePath(request, path));
+        htmlResponse.setLocation(path);
 
         // parent location
         path = ResourceUtil.getParent(path);
         if (path != null) {
-            htmlResponse.setParentLocation(externalizePath(request, path));
+            htmlResponse.setParentLocation(path);
         }
 
         final List<Modification> changes = new ArrayList<Modification>();
@@ -648,30 +647,6 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
         return request.getResource().getPath();
     }
 
-    /**
-     * Returns an external form of the given path prepending the context path
-     * and appending a display extension.
-     * 
-     * @param path the path to externalize
-     * @return the url
-     */
-    protected final String externalizePath(SlingHttpServletRequest request,
-            String path) {
-        StringBuffer ret = new StringBuffer();
-        ret.append(SlingRequestPaths.getContextPath(request));
-        ret.append(request.getResourceResolver().map(path));
-
-        // append optional extension
-        String ext = request.getParameter(SlingPostConstants.RP_DISPLAY_EXTENSION);
-        if (ext != null && ext.length() > 0) {
-            if (ext.charAt(0) != '.') {
-                ret.append('.');
-            }
-            ret.append(ext);
-        }
-
-        return ret.toString();
-    }
 
     /**
      * Returns <code>true</code> if the <code>name</code> starts with either of
