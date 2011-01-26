@@ -57,6 +57,8 @@ public class SakaiAuthorizableResource extends AuthorizableResource {
       return (AdapterType) new SakaiAuthorizableValueMap(authorizable); // unchecked
                                                                    // cast
     } else if (type == org.sakaiproject.nakamura.api.lite.authorizable.Authorizable.class) {
+      //TODO: Why are we needing this adaption.
+      // we probably should not need it as this resource only every gets used by the Sling User Managers that know nothing about Sparse
       Map<String, Object> authProperties = new HashMap<String, Object>();
       String authId = "";
       boolean isGroup = false;

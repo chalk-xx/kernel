@@ -28,6 +28,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
+import org.sakaiproject.nakamura.user.postprocessors.DefaultPostProcessor;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -181,7 +182,7 @@ public class LiteCreateSakaiGroupServletTest  {
     authorizablePostProcessService.repository = repository;
     ComponentContext componentContext = Mockito.mock(ComponentContext.class);
     when(componentContext.getProperties()).thenReturn(new Hashtable<String, Object>());
-    authorizablePostProcessService.activate(componentContext);
+    authorizablePostProcessService.defaultPostProcessor = new DefaultPostProcessor();
 
     List<Modification> changes = new ArrayList<Modification>();
     HtmlResponse response = new HtmlResponse();

@@ -8,7 +8,7 @@ do
     x=1
     while [[ $x -lt $1 ]]
     do
-      ((curl -F:name=u${x}testuser${n} -Fpwd=testuser -FpwdConfirm=testuser http://admin:admin@localhost:8080/system/userManager/user.create.html >/dev/null 2>/dev/null \
+      ((curl -F:name=u${x}testuser${n} -Fpwd=testuser -FpwdConfirm=testuser http://admin:admin@localhost:8080/system/lite/userManager/user.create.html >/dev/null 2>/dev/null \
       && echo Created ${x}testuser${n}) \
       || echo ERROR creating ${x}testuser${n})
       let x=x+1

@@ -17,9 +17,7 @@
  */
 package org.sakaiproject.nakamura.user.lite.servlet;
 
-import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -29,7 +27,6 @@ import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -37,22 +34,21 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessor;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
-import org.sakaiproject.nakamura.user.postprocessors.HomePostProcessor;
-import org.sakaiproject.nakamura.user.postprocessors.LiteMessageAuthorizablePostProcessor;
 import org.sakaiproject.nakamura.util.osgi.AbstractOrderedService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 
+
 @Component(immediate=true, metatype=true)
 @Service(value=LiteAuthorizablePostProcessService.class)
 public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedService<LiteAuthorizablePostProcessor> implements LiteAuthorizablePostProcessService {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(LiteAuthorizablePostProcessServiceImpl.class);
 
   @Reference
@@ -60,11 +56,13 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
   
   @Reference
   protected EventAdmin eventAdmin;
+  
+  @Reference(target="(default=true)")
+  protected LiteAuthorizablePostProcessor defaultPostProcessor;
 
   private LiteAuthorizablePostProcessor[] orderedServices = new LiteAuthorizablePostProcessor[0];
-  
-  private List<LiteAuthorizablePostProcessor> internalProcessors;
 
+  
   public LiteAuthorizablePostProcessServiceImpl() {
   }
 
@@ -81,13 +79,13 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
     Modification modification = new Modification(change, pathPrefix + authorizable.getId(), null);
 
     if (change != ModificationType.DELETE) {
-      doInternalProcessing(authorizable, session, modification, parameters);
+      defaultPostProcessor.process(authorizable, session, modification, parameters);
     }
     for ( LiteAuthorizablePostProcessor processor : orderedServices ) {
       processor.process(authorizable, session, modification, parameters);
     }
     if (change == ModificationType.DELETE) {
-      doInternalProcessing(authorizable, session, modification, parameters);
+      defaultPostProcessor.process(authorizable, session, modification, parameters);
     }
   }
 
@@ -134,25 +132,6 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
     orderedServices = serviceList.toArray(new LiteAuthorizablePostProcessor[serviceList.size()]);
   }
 
-  @Activate
-  protected void activate(ComponentContext componentContext) {
-    // these post processors will be run in the order they're added
-    internalProcessors = new ArrayList<LiteAuthorizablePostProcessor>();
-    HomePostProcessor hpp = new HomePostProcessor(eventAdmin);
-    internalProcessors.add(hpp);
-    internalProcessors.add(new LiteMessageAuthorizablePostProcessor());
-  }
 
-  @Deactivate
-  protected void deactivate(ComponentContext componentContext) {
-  }
-
-  private void doInternalProcessing(Authorizable authorizable, Session session,
-      Modification change, Map<String, Object[]> parameters) throws Exception {
-    // do any default processing here: TODO, the template processing.
-    for (LiteAuthorizablePostProcessor processor : internalProcessors) {
-      processor.process(authorizable, session, change, parameters);
-    }
-  }
 
 }

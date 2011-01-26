@@ -32,6 +32,7 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResource;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
+import org.sakaiproject.nakamura.user.postprocessors.DefaultPostProcessor;
 import org.sakaiproject.nakamura.user.servlet.UpdateSakaiGroupServlet;
 
 import java.util.ArrayList;
@@ -84,8 +85,8 @@ public class LiteUpdateSakaiGroupServletTest  {
     authorizablePostProcessService.repository = repository;
     ComponentContext componentContext = Mockito.mock(ComponentContext.class);
     when(componentContext.getProperties()).thenReturn(new Hashtable<String, Object>());
-    authorizablePostProcessService.activate(componentContext);
-
+    authorizablePostProcessService.defaultPostProcessor = new DefaultPostProcessor();
+ 
     servlet.eventAdmin = Mockito.mock(EventAdmin.class);
     servlet.postProcessorService = authorizablePostProcessService;
 

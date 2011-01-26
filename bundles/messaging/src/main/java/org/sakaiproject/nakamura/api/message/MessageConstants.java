@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.api.message;
 
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
+
 /**
  *
  */
@@ -27,7 +29,7 @@ public interface MessageConstants {
    */
   public static final String SAKAI_MESSAGESTORE_RT = "sakai/messagestore";
   
-  public static final String SAKAI_MESSAGE_PATH_PREFIX = "a:";
+  public static final String SAKAI_MESSAGE_PATH_PREFIX = LitePersonalUtils.PATH_AUTHORIZABLE;
 
   /**
   *
