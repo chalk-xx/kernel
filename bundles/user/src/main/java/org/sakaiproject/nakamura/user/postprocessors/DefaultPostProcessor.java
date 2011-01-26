@@ -305,7 +305,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       managerSettings = ImmutableSet.of();
     }
     Set<String> viewerSettings = null;
-    if (authorizable.hasProperty(UserConstants.PROP_GROUP_MANAGERS)) {
+    if (authorizable.hasProperty(UserConstants.PROP_GROUP_VIEWERS)) {
       viewerSettings = ImmutableSet.of(StorageClientUtils.toStringArray(authorizable
           .getProperty(UserConstants.PROP_GROUP_VIEWERS)));
     } else {
