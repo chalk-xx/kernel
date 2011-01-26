@@ -21,12 +21,8 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResource;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 
-import java.util.HashMap;
 import java.util.Map;
-
-import javax.jcr.RepositoryException;
 
 /**
  *
@@ -56,25 +52,6 @@ public class SakaiAuthorizableResource extends AuthorizableResource {
     if (type == Map.class || type == ValueMap.class) {
       return (AdapterType) new SakaiAuthorizableValueMap(authorizable); // unchecked
                                                                    // cast
-    } else if (type == org.sakaiproject.nakamura.api.lite.authorizable.Authorizable.class) {
-      //TODO: Why are we needing this adaption.
-      // we probably should not need it as this resource only every gets used by the Sling User Managers that know nothing about Sparse
-      Map<String, Object> authProperties = new HashMap<String, Object>();
-      String authId = "";
-      boolean isGroup = false;
-      try {
-        authId = this.authorizable.getID();
-        isGroup = this.authorizable.isGroup();
-        authProperties.put(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable.ID_FIELD, StorageClientUtils.toStore(authId));
-      } catch (RepositoryException e) {
-        throw new RuntimeException("Could not get id from authorizable.");
-      }
-      
-      if (isGroup) {
-      return (AdapterType) new org.sakaiproject.nakamura.api.lite.authorizable.Group(authProperties);
-      } else {
-        return (AdapterType) new org.sakaiproject.nakamura.api.lite.authorizable.Authorizable(authProperties);
-      }
     }
     return super.adaptTo(type);
   }
