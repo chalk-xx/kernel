@@ -279,16 +279,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
                 new AclModification(AclModification.denyKey(User.ANON_USER),
                     Permissions.ALL.getPermission(), Operation.OP_REPLACE),
                 new AclModification(AclModification.denyKey(Group.EVERYONE),
-                    Permissions.ALL.getPermission(), Operation.OP_REPLACE), });
-        // make sure the owner has permission on the path
-        if (!User.ANON_USER.equals(authId)) {
-          accessControlManager.setAcl(
-              Security.ZONE_CONTENT,
-              path,
-              new AclModification[] {
-                  new AclModification(AclModification.grantKey(authId),
-                      Permissions.ALL.getPermission(), Operation.OP_REPLACE) });
-        }
+                    Permissions.ALL.getPermission(), Operation.OP_REPLACE),
+                new AclModification(AclModification.grantKey(authId),
+                    Permissions.ALL.getPermission(), Operation.OP_REPLACE)});
       }
       return true;
     }
