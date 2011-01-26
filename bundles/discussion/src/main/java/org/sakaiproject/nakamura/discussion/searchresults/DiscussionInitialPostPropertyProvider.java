@@ -18,19 +18,15 @@
 
 package org.sakaiproject.nakamura.discussion.searchresults;
 
-import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 
 import java.util.Map;
-
-import javax.jcr.query.Query;
 
 /**
  * Provides properties to process the search
@@ -48,17 +44,17 @@ public class DiscussionInitialPostPropertyProvider implements SearchPropertyProv
   public void loadUserProperties(SlingHttpServletRequest request, Map<String, String> propertiesMap) {
     // Make sure we don't go trough the entire repository..
     String path = request.getResource().getPath();
-    
+
     RequestParameter pathParam = request.getRequestParameter("path");
     if (pathParam != null) {
       path = pathParam.getString();
     }
-    
+
     if (path.endsWith("/")) {
       path = path.substring(0, path.length() - 1);
     }
-    
-    propertiesMap.put("_path", escapeString(ISO9075.encodePath(path), Query.XPATH));
+
+    propertiesMap.put("_path", ClientUtils.escapeQueryChars(path));
   }
 
 }
