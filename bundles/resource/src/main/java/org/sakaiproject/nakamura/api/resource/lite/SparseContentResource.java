@@ -52,6 +52,13 @@ public class SparseContentResource extends AbstractResource {
    */
   public static final String SPARSE_CONTENT_RT = "sparse/Content";
 
+  /**
+   * If the Sparse Content contains no "sling:resourceType" property, then the
+   * Resource will return this as the fallback resource type. (More or less
+   * takes the place of "nt:unstructured" in the JCR world.)
+   */
+  public static final String SPARSE_CONTENT_UNKNOWN_RT = "sparse/unknown";
+
   private static final Logger logger = LoggerFactory.getLogger(SparseContentResource.class);
 
   private Content content;
@@ -133,7 +140,7 @@ public class SparseContentResource extends AbstractResource {
   public String getResourceType() {
     String type = StorageClientUtils.toString(content.getProperties().get("sling:resourceType"));
     if (type == null) {
-      type = SPARSE_CONTENT_RT;
+      type = SPARSE_CONTENT_UNKNOWN_RT;
     }
     return type;
   }
