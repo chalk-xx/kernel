@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -161,4 +162,11 @@ public class SparseContentResource extends AbstractResource {
     return resourceResolver;
   }
 
+  /**
+   * @see org.sakaiproject.nakamura.api.resource.lite.AbstractResource#listChildren()
+   */
+  @Override
+  public Iterator<Resource> listChildren() {
+    return new SparseContentResourceIterator(content.listChildren().iterator(), session, resourceResolver);
+  }
 }
