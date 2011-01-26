@@ -223,5 +223,9 @@
 		<artifactId>ical4j</artifactId>
 		<version>0.9.20</version>
 	</dependency>
+    <dependency>
+      <groupId>com.google.collections</groupId>
+      <artifactId>google-collections</artifactId>
+    </dependency>
   </dependencies>
 </project>
