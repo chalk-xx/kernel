@@ -271,15 +271,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     if (!contentManager.exists(path)) {
       contentManager.update(new Content(path, ImmutableMap.of(SLING_RESOURCE_TYPE,
           StorageClientUtils.toStore(resourceType))));
-   // make sure the owner has permission on their home
-      if (!User.ANON_USER.equals(authId)) {
-        accessControlManager.setAcl(
-            Security.ZONE_CONTENT,
-            path,
-            new AclModification[] {
-                new AclModification(AclModification.grantKey(authId),
-                    Permissions.ALL.getPermission(), Operation.OP_REPLACE) });
-      }
       if (isPrivate) {
         accessControlManager.setAcl(
             Security.ZONE_CONTENT,
@@ -289,6 +280,15 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
                     Permissions.ALL.getPermission(), Operation.OP_REPLACE),
                 new AclModification(AclModification.denyKey(Group.EVERYONE),
                     Permissions.ALL.getPermission(), Operation.OP_REPLACE), });
+        // make sure the owner has permission on the path
+        if (!User.ANON_USER.equals(authId)) {
+          accessControlManager.setAcl(
+              Security.ZONE_CONTENT,
+              path,
+              new AclModification[] {
+                  new AclModification(AclModification.grantKey(authId),
+                      Permissions.ALL.getPermission(), Operation.OP_REPLACE) });
+        }
       }
       return true;
     }
