@@ -99,7 +99,8 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
       String[] membersToDelete = request.getParameterValues(paramName + SlingPostConstants.SUFFIX_DELETE);
       if (membersToDelete != null) {
         for (String member : membersToDelete) {
-          group.removeMember(member);
+          String memberId = getAuthIdFromParameter(member);
+          group.removeMember(memberId);
           changed = true;
         }
       }
