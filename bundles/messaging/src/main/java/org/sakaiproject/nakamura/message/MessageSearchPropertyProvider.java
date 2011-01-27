@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.message;
 
-import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
@@ -25,9 +24,9 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
@@ -35,7 +34,6 @@ import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import java.util.Map;
 
 import javax.jcr.Session;
-import javax.jcr.query.Query;
 
 /**
  * Provides properties to process the search
@@ -61,30 +59,38 @@ public class MessageSearchPropertyProvider implements SearchPropertyProvider {
       Map<String, String> propertiesMap) {
     String user = request.getRemoteUser();
     Session session = request.getResourceResolver().adaptTo(Session.class);
-    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
-        .encodePath(messagingService.getFullPathToStore(user, session)));
+    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ClientUtils
+        .escapeQueryChars(messagingService.getFullPathToStore(user, session)));
 
     RequestParameter address = request.getRequestParameter("address");
     if (address != null && !address.getString().equals("")) {
       // resolve the address by finding the authorizables.
       String addressString = address.getString();
       String storePath = messagingService.getFullPathToStore(addressString, session);
-      propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
-              .encodePath(storePath));
+      propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ClientUtils
+              .escapeQueryChars(storePath));
     }
 
     RequestParameter usersParam = request.getRequestParameter("_from");
     if (usersParam != null && !usersParam.getString().equals("")) {
-      String sql = " and (";
       String[] users = StringUtils.split(usersParam.getString(), ',');
+    	
+      StringBuilder solrQuery = new StringBuilder();
+      String solrOrSyntax = " OR ";
 
+      //build solr query 
+      solrQuery.append("from:(");
       for (String u : users) {
-        sql += "@sakai:from=\"" + escapeString(u, Query.XPATH) + "\" or ";
+    	  solrQuery.append(ClientUtils.escapeQueryChars('"' + u + '"'));
+    	  solrQuery.append(solrOrSyntax);
       }
-      sql = sql.substring(0, sql.length() - 4);
-      sql += ")";
-
-      propertiesMap.put("_from", sql);
+      // remove trailing "solr OR syntax"
+      if (users.length > 0) {
+    	  solrQuery.delete(solrQuery.length() - solrOrSyntax.length(), solrQuery.length());
+      }
+      solrQuery.append(")");
+      
+      propertiesMap.put("_from", solrQuery.toString());
     }
   }
 }
