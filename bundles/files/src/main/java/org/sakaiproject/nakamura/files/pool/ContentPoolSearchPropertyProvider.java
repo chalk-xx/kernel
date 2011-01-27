@@ -17,21 +17,18 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_MEMBERS_NODE;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_VIEWER;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.util.ISO9075;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,56 +74,41 @@ public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider
    * @param propertiesMap
    */
   protected void addMyGroups(Session session, Map<String, String> propertiesMap) {
-    String userID = session.getUserID();
+    String sessionUserId = session.getUserID();
+
     try {
-      Authorizable au = PersonalUtils.getAuthorizable(session, userID);
-      String path = PersonalUtils.getUserHashedPath(au).substring(1);
-      String membersRelativePath = POOLED_CONTENT_MEMBERS_NODE.substring(1);
-      String safePath = membersRelativePath + "/" + ISO9075.encodePath(path);
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Authorizable auth = um.getAuthorizable(sessionUserId);
 
-      // Get all the groups I'm a member of and add the property in the map.
-      Iterator<Group> groups = au.memberOf();
-      StringBuilder sbManagingGroups = new StringBuilder("(");
-      sbManagingGroups.append(safePath).append("/@");
-      sbManagingGroups.append(POOLED_CONTENT_USER_MANAGER);
-      sbManagingGroups.append("='").append(au.getID()).append("'");
+      // create the manager and viewer query parameters
+      String userId = ClientUtils.escapeQueryChars(sessionUserId);
+      StringBuilder managers = new StringBuilder("manager:(").append(userId);
+      StringBuilder viewers = new StringBuilder("viewer:(").append(userId);
 
-      StringBuilder sbViewingGroups = new StringBuilder("(");
-      sbViewingGroups.append(safePath).append("/@");
-      sbViewingGroups.append(POOLED_CONTENT_USER_VIEWER);
-      sbViewingGroups.append("='").append(au.getID()).append("'");
-
+      // add groups to the parameters
+      Iterator<Group> groups = auth.memberOf();
       while (groups.hasNext()) {
-        Group g = groups.next();
-        path = PersonalUtils.getUserHashedPath(g).substring(1);
-        safePath = membersRelativePath + "/" + ISO9075.encodePath(path);
-
-        // Add the group to the managers contraint
-        sbManagingGroups.append(" or ").append(safePath).append("/@").append(
-            POOLED_CONTENT_USER_MANAGER);
-        sbManagingGroups.append("='").append(g.getID()).append("'");
-
-        // Add the group to the viewers contraint
-        sbViewingGroups.append(" or ").append(safePath).append("/@").append(
-            POOLED_CONTENT_USER_VIEWER);
-        sbViewingGroups.append("='").append(g.getID()).append("'");
-
+        Group group = groups.next();
+        String groupId = ClientUtils.escapeQueryChars(group.getID());
+        managers.append(" OR ").append(groupId);
+        viewers.append(" OR ").append(groupId);
       }
 
-      // Close contraint.
-      sbManagingGroups.append(") ");
-      sbViewingGroups.append(") ");
+      // cap off the parameters
+      managers.append(")");
+      viewers.append(")");
 
+      // convert to string for reuse
+      String managersParam = managers.toString();
+      String viewersParam = viewers.toString();
 
-      // Add the 2 properties to the map.
-      propertiesMap.put("_meManagerGroupsNoAnd", sbManagingGroups.toString());
-      propertiesMap.put("_meViewerGroupsNoAnd", sbViewingGroups.toString());
-      sbManagingGroups.insert(0, " and ");
-      sbViewingGroups.insert(0, " and ");
-      propertiesMap.put("_meManagerGroups", sbManagingGroups.toString());
-      propertiesMap.put("_meViewerGroups", sbViewingGroups.toString());
+      // add properties for query templates
+      propertiesMap.put("_meManagerGroupsNoAnd", managersParam);
+      propertiesMap.put("_meViewerGroupsNoAnd", viewersParam);
+      propertiesMap.put("_meManagerGroups", " AND " + managersParam);
+      propertiesMap.put("_meViewerGroups", " AND " + viewersParam);
     } catch (RepositoryException e) {
-      LOGGER.error("Could not get the groups for user [{}].",userID , e);
+      LOGGER.error("Could not get the groups for user [{}].",sessionUserId , e);
     }
   }
 }
