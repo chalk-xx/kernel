@@ -1,7 +1,8 @@
 {
-  "sakai:query-language": "xpath",
-  "sakai:query-template": "/{path}//*[{_typesWhere}{_tags}{_ids}] order by @{sortOn|jcr:score} {sortOrder|descending}",
-  "sling:resourceType": "sakai/search",
+  "sakai:query-template": "+path:${path} ${_typesWhere}${_tags}${_ids};${sortOn} ${sortOrder}",
+  "sortOn": "score",
+  "sortOrder": "desc",
+  "sling:resourceType": "sakai/solr-search",
   "sakai:batchresultprocessor": "Files",
   "sakai:propertyprovider": "Files",
   "sakai:aggregate-search-results": [ "sakai:tags" ],

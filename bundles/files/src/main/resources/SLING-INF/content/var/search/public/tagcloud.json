@@ -1,7 +1,6 @@
 {
-  "sakai:query-language": "xpath",
-  "sakai:query-template": "//*[@sakai:tag-uuid]",
-  "sling:resourceType": "sakai/search",
+  "sakai:query-template": "+taguuid:[* TO *]",
+  "sling:resourceType": "sakai/solr-search",
   "sakai:batchresultprocessor": "TagCloud",
   "sakai:title": "Tag Cloud",
   "sakai:shortDescription": "Returns the most-used tags with the counts of their usage.",

@@ -83,6 +83,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.jcr.Node;
+import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
@@ -334,8 +335,9 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    */
   protected String processQueryTemplate(SlingHttpServletRequest request,
       Node queryTemplateNode, String queryTemplate, String propertyProviderName)
-      throws MissingParameterException {
-    Map<String, String> propertiesMap = loadProperties(request, propertyProviderName);
+      throws RepositoryException, MissingParameterException {
+    Map<String, String> propertiesMap = loadProperties(request, propertyProviderName,
+        queryTemplateNode);
 
     // check for any missing terms
     templateService.missingTerms(propertiesMap, queryTemplate);
@@ -352,7 +354,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    * @throws RepositoryException
    */
   private Map<String, String> loadProperties(SlingHttpServletRequest request,
-      String propertyProviderName) {
+      String propertyProviderName, Node node) throws RepositoryException {
     Map<String, String> propertiesMap = new HashMap<String, String>();
 
     // load authorizable (user) information
@@ -392,6 +394,15 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       String value = propertiesMap.get(key);
       if (StringUtils.isBlank(value)) {
         propertiesMap.put(entry.getKey(), vals[0].getString());
+      }
+    }
+
+    // load in properties from the query template node so defaults can be set
+    PropertyIterator props = node.getProperties();
+    while (props.hasNext()) {
+      javax.jcr.Property prop = props.nextProperty();
+      if (!propertiesMap.containsKey(prop.getName()) && !prop.isMultiple()) {
+        propertiesMap.put(prop.getName(), prop.getString());
       }
     }
 
