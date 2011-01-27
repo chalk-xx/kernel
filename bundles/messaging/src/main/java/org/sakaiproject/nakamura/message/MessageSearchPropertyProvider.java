@@ -51,7 +51,7 @@ public class MessageSearchPropertyProvider implements SearchPropertyProvider {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchPropertyProvider#loadUserProperties(org.apache.sling.api.SlingHttpServletRequest,
    *      java.util.Map)
    */
@@ -74,22 +74,20 @@ public class MessageSearchPropertyProvider implements SearchPropertyProvider {
     RequestParameter usersParam = request.getRequestParameter("_from");
     if (usersParam != null && !usersParam.getString().equals("")) {
       String[] users = StringUtils.split(usersParam.getString(), ',');
-    	
-      StringBuilder solrQuery = new StringBuilder();
-      String solrOrSyntax = " OR ";
 
-      //build solr query 
+      StringBuilder solrQuery = new StringBuilder();
+
+      //build solr query
       solrQuery.append("from:(");
-      for (String u : users) {
-    	  solrQuery.append(ClientUtils.escapeQueryChars('"' + u + '"'));
-    	  solrQuery.append(solrOrSyntax);
-      }
-      // remove trailing "solr OR syntax"
-      if (users.length > 0) {
-    	  solrQuery.delete(solrQuery.length() - solrOrSyntax.length(), solrQuery.length());
+      for (int i = 0; i < users.length; i++) {
+        solrQuery.append('"').append(ClientUtils.escapeQueryChars(users[i])).append('"');
+
+        if (i < users.length - 1) {
+          solrQuery.append(" OR ");
+        }
       }
       solrQuery.append(")");
-      
+
       propertiesMap.put("_from", solrQuery.toString());
     }
   }
