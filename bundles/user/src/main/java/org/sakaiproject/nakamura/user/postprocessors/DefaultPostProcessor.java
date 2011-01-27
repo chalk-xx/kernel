@@ -171,7 +171,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     // capable of performing these operations.
     ContentManager contentManager = session.getContentManager();
     AccessControlManager accessControlManager = session.getAccessControlManager();
-    String homePath = LitePersonalUtils.getHomePath(authorizable.getId());
+    String authId = authorizable.getId();
+    String homePath = LitePersonalUtils.getHomePath(authId);
     boolean isGroup = authorizable instanceof Group;
 
     // Home Authorizable PostProcessor
@@ -194,7 +195,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
       List<AclModification> aclModifications = new ArrayList<AclModification>();
       // KERN-886 : Depending on the profile preference we set some ACL's on the profile.
-      if (User.ANON_USER.equals(authorizable.getId())) {
+      if (User.ANON_USER.equals(authId)) {
         AclModification.addAcl(Boolean.TRUE, Permissions.CAN_READ, User.ANON_USER,
             aclModifications);
         AclModification.addAcl(Boolean.TRUE, Permissions.CAN_READ, Group.EVERYONE,
@@ -209,7 +210,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
             aclModifications);
         AclModification.addAcl(Boolean.TRUE, Permissions.CAN_READ, Group.EVERYONE,
             aclModifications);
-      } else if (VISIBILITY_PUBLIC.equals(visibilityPreference)) {
+      } else if (VISIBILITY_PRIVATE.equals(visibilityPreference)) {
         AclModification.addAcl(Boolean.FALSE, Permissions.CAN_READ, User.ANON_USER,
             aclModifications);
         AclModification.addAcl(Boolean.FALSE, Permissions.CAN_READ, Group.EVERYONE,
@@ -234,9 +235,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       accessControlManager.setAcl(Security.ZONE_CONTENT, homePath,
           aclModifications.toArray(new AclModification[aclModifications.size()]));
     }
-    createPath(LitePersonalUtils.getPublicPath(authorizable.getId()), SAKAI_PUBLIC_RT,
+    createPath(authId, LitePersonalUtils.getPublicPath(authId), SAKAI_PUBLIC_RT,
         false, contentManager, accessControlManager);
-    createPath(LitePersonalUtils.getPrivatePath(authorizable.getId()), SAKAI_PRIVATE_RT,
+    createPath(authId, LitePersonalUtils.getPrivatePath(authId), SAKAI_PRIVATE_RT,
         true, contentManager, accessControlManager);
 
     // User Authorizable PostProcessor
@@ -249,13 +250,13 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     // object itself)
 
     // Message PostProcessor
-    createPath(homePath + MESSAGE_FOLDER, SAKAI_MESSAGESTORE_RT, true, contentManager,
+    createPath(authId, homePath + MESSAGE_FOLDER, SAKAI_MESSAGESTORE_RT, true, contentManager,
         accessControlManager);
     // Calendar
-    createPath(homePath + CALENDAR_FOLDER, SAKAI_CALENDAR_RT, false, contentManager,
+    createPath(authId, homePath + CALENDAR_FOLDER, SAKAI_CALENDAR_RT, false, contentManager,
         accessControlManager);
     // Connections
-    createPath(homePath + CONTACTS_FOLDER, SAKAI_CONTACTSTORE_RT, true, contentManager,
+    createPath(authId, homePath + CONTACTS_FOLDER, SAKAI_CONTACTSTORE_RT, true, contentManager,
         accessControlManager);
     // Pages
     // TODO:
@@ -264,7 +265,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
   }
 
-  private boolean createPath(String path, String resourceType, boolean isPrivate,
+  private boolean createPath(String authId, String path, String resourceType, boolean isPrivate,
       ContentManager contentManager, AccessControlManager accessControlManager)
       throws AccessDeniedException, StorageClientException {
     if (!contentManager.exists(path)) {
@@ -278,7 +279,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
                 new AclModification(AclModification.denyKey(User.ANON_USER),
                     Permissions.ALL.getPermission(), Operation.OP_REPLACE),
                 new AclModification(AclModification.denyKey(Group.EVERYONE),
-                    Permissions.ALL.getPermission(), Operation.OP_REPLACE), });
+                    Permissions.ALL.getPermission(), Operation.OP_REPLACE),
+                new AclModification(AclModification.grantKey(authId),
+                    Permissions.ALL.getPermission(), Operation.OP_REPLACE)});
       }
       return true;
     }
@@ -296,6 +299,13 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     acl.remove(AclModification.grantKey(Group.EVERYONE));
     acl.remove(AclModification.denyKey(authorizable.getId()));
     acl.remove(AclModification.grantKey(authorizable.getId()));
+    
+
+    // make sure the owner has permission on their home
+    if (!User.ANON_USER.equals(authorizable.getId())) {
+      AclModification.addAcl(Boolean.TRUE, Permissions.ALL, authorizable.getId(),
+          aclModifications);
+    }
 
     Set<String> managerSettings = null;
     if (authorizable.hasProperty(UserConstants.PROP_GROUP_MANAGERS)) {
@@ -305,7 +315,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       managerSettings = ImmutableSet.of();
     }
     Set<String> viewerSettings = null;
-    if (authorizable.hasProperty(UserConstants.PROP_GROUP_MANAGERS)) {
+    if (authorizable.hasProperty(UserConstants.PROP_GROUP_VIEWERS)) {
       viewerSettings = ImmutableSet.of(StorageClientUtils.toStringArray(authorizable
           .getProperty(UserConstants.PROP_GROUP_VIEWERS)));
     } else {

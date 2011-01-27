@@ -258,9 +258,8 @@ public class LiteCreateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
                     request, response, groupPath);
 
                 response.setPath(groupPath);
-                response.setLocation(externalizePath(request, groupPath));
-                response.setParentLocation(externalizePath(request,
-                    LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PATH));
+                response.setLocation(groupPath);
+                response.setParentLocation(LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PATH);
                 changes.add(Modification.onCreated(groupPath));
 
                 Set<Object> toSave = Sets.newLinkedHashSet();
