@@ -116,7 +116,8 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
         Group peerGroup = getPeerGroupOf(group, authorizableManager);
         List<Authorizable> membersToRemoveFromPeer = new ArrayList<Authorizable>();
         for (String member : membersToAdd) {
-          Authorizable memberAuthorizable = authorizableManager.findAuthorizable(member);
+          String memberId = getAuthIdFromParameter(member);
+          Authorizable memberAuthorizable = authorizableManager.findAuthorizable(memberId);
           if (memberAuthorizable != null) {
             if(!UserConstants.ANON_USERID.equals(session.getUserId())
                 && Joinable.yes.equals(groupJoin)
@@ -165,6 +166,12 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
         changes.add(Modification.onModified(groupPath + "/members"));
       }
     }
+  }
+
+  private String getAuthIdFromParameter(String member) {
+    //we might be sent a parameter that looks like a full path
+    //we only want the id at the end
+    return member.substring(member.lastIndexOf("/") + 1);
   }
 
   private Group getPeerGroupOf(Group group, AuthorizableManager authorizableManager) throws AccessDeniedException, StorageClientException  {
