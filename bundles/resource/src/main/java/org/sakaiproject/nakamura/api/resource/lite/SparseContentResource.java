@@ -59,6 +59,12 @@ public class SparseContentResource extends AbstractResource {
    */
   public static final String SPARSE_CONTENT_UNKNOWN_RT = "sparse/unknown";
 
+  /**
+   * Placeholder to indicate that this Resource does not yet existing in Sparse
+   * storage. (More or less takes the place of Resource.RESOURCE_TYPE_NON_EXISTING.)
+   */
+  public static final String SPARSE_CONTENT_NONEXISTANT_RT = "sparse/nonexistant";
+
   private static final Logger logger = LoggerFactory.getLogger(SparseContentResource.class);
 
   private Content content;
