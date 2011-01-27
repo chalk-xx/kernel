@@ -17,16 +17,15 @@
  */
 package org.sakaiproject.nakamura.calendar.search;
 
-import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.calendar.CalendarConstants;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.util.DateUtils;
@@ -42,7 +41,6 @@ import java.util.Map;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.query.Query;
 
 @Service
 @Component(immediate = true, label = "CalenderSearchPropertyProvider", description = "Provides some calendar search properties.")
@@ -90,8 +88,7 @@ public class CalenderSearchPropertyProvider implements SearchPropertyProvider {
       RequestParameter eventParam = request.getRequestParameter("event-path");
       if (eventParam != null) {
         String eventPath = eventParam.getString("UTF-8");
-        eventPath = ISO9075.encodePath(eventPath);
-        propertiesMap.put("_event-path", escapeString(eventPath, Query.XPATH));
+        propertiesMap.put("_event-path", ClientUtils.escapeQueryChars(eventPath));
       }
     } catch (UnsupportedEncodingException e) {
       LOGGER
@@ -142,8 +139,8 @@ public class CalenderSearchPropertyProvider implements SearchPropertyProvider {
       String end = DateUtils.iso8601jcr(cEnd);
 
       // Add to map.
-      propertiesMap.put("_date-start", escapeString(beginning, Query.XPATH));
-      propertiesMap.put("_date-end", escapeString(end, Query.XPATH));
+      propertiesMap.put("_date-start", ClientUtils.escapeQueryChars(beginning));
+      propertiesMap.put("_date-end", ClientUtils.escapeQueryChars(end));
     } catch (UnsupportedEncodingException e) {
       LOGGER
           .error(
@@ -188,7 +185,7 @@ public class CalenderSearchPropertyProvider implements SearchPropertyProvider {
         path = pathParam.getString("UTF-8");
       }
 
-      propertiesMap.put("_calendar-path", escapeString(path, Query.XPATH));
+      propertiesMap.put("_calendar-path", ClientUtils.escapeQueryChars(path));
 
     } catch (RepositoryException e) {
       LOGGER
