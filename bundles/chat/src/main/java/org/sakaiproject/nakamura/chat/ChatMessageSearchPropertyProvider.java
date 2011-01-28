@@ -28,7 +28,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 
 import java.util.Map;
 
-@Component(immediate = true, label = "MessageSearchPropertyProvider", description = "Provides properties to process the chat message searches.")
+@Component(label = "MessageSearchPropertyProvider", description = "Provides properties to process the chat message searches.")
 @Service
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),

@@ -24,19 +24,18 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.activity.ActivityUtils;
-import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
 import java.util.Map;
 
-@Component(immediate = true, enabled = true, label = "ActivitySearchPropertyProvider")
-@Properties(value = {
+@Component(label = "ActivitySearchPropertyProvider")
+@Properties({
     @Property(name = "sakai.search.provider", value = "Activity"),
     @Property(name = "sakai.search.resourceType", value = "sakai/page"),
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Provides properties to the activity search templates.") })
-@Service(value = SearchPropertyProvider.class)
+    @Property(name = "service.description", value = "Provides properties to the activity search templates.")})
+@Service
 public class ActivitySearchPropertyProvider implements SolrSearchPropertyProvider {
 
   /**

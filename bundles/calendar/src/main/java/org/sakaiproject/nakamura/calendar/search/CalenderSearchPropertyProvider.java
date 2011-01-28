@@ -38,9 +38,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Map;
 
+@Component(label = "CalenderSearchPropertyProvider", description = "Provides some calendar search properties.")
 @Service
-@Component(immediate = true, label = "CalenderSearchPropertyProvider", description = "Provides some calendar search properties.")
-@Properties(value = {
+@Properties({
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Provides properties to process the calendar searches."),
     @Property(name = "sakai.search.provider", value = "Calendar") })
