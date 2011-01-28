@@ -173,6 +173,14 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
 
     for (Entry<String, RequestParameter[]> e : mapRequest.entrySet()) {
       RequestParameter[] parameter = e.getValue();
+      if (e.getKey().equals("sakai:templateParams")) {
+        try {
+          validateTemplateParams(parameter[0].getString());
+        } catch (MessagingException me) {
+          response.sendError(me.getCode(), me.getLocalizedMessage());
+          return;
+        }
+      }
       if (parameter.length == 1) {
         mapProperties.put(e.getKey(), parameter[0].getString());
       }
@@ -313,6 +321,20 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       throw new ServletException(e.getMessage(), e);
     } catch (RepositoryException e) {
       throw new ServletException(e.getMessage(), e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  private void validateTemplateParams(String templateParams) throws MessagingException {
+    try {
+      String[] values = templateParams.split("\\|");
+      for (String pair : values) {
+        String[] keyValuePair = pair.split("=");
+        String key = keyValuePair[0];
+        String value = keyValuePair[1];
+      }
+    } catch (Throwable t) {
+      throw new MessagingException(HttpServletResponse.SC_BAD_REQUEST, "Failed to parse the value of the sakai:templateParams parameter: '" + templateParams + "'");
     }
   }
 
