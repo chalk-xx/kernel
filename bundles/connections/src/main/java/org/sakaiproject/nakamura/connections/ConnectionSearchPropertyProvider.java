@@ -23,17 +23,12 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 
 import java.util.Map;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 @Component(immediate = true, label = "ConnectionSearchPropertyProvider", description= "Provides properties to handle connection searches.")
 @Properties(value = {
@@ -41,7 +36,7 @@ import javax.jcr.Session;
     @Property(name = "sakai.search.provider", value="Connection")
 })
 @Service(value = SearchPropertyProvider.class)
-public class ConnectionSearchPropertyProvider implements SearchPropertyProvider {
+public class ConnectionSearchPropertyProvider implements SolrSearchPropertyProvider {
 
   /**
    * {@inheritDoc}
@@ -51,19 +46,12 @@ public class ConnectionSearchPropertyProvider implements SearchPropertyProvider 
    */
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
-    try {
-      String user = request.getRemoteUser();
-      Session session = request.getResourceResolver().adaptTo(Session.class);
-      UserManager um = AccessControlUtil.getUserManager(session);
-      Authorizable auMe = um.getAuthorizable(user);
-      String connectionPath = ClientUtils.escapeQueryChars(ConnectionUtils
-          .getConnectionPathBase(auMe));
-      if ( connectionPath.startsWith("/"))  {
-        connectionPath = connectionPath.substring(1);
-      }
-      propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, connectionPath);
-    } catch (RepositoryException e) {
-      throw new RuntimeException(e);
+    String user = request.getRemoteUser();
+    String connectionPath = ClientUtils.escapeQueryChars(ConnectionUtils
+        .getConnectionPathBase(user));
+    if ( connectionPath.startsWith("/"))  {
+      connectionPath = connectionPath.substring(1);
     }
+    propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, connectionPath);
   }
 }

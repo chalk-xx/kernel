@@ -24,11 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
-import org.sakaiproject.nakamura.api.message.MessagingException;
-import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 
 import java.util.Map;
 
@@ -38,16 +34,16 @@ import java.util.Map;
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "sakai.search.provider", value = "ChatMessage"),
     @Property(name = "service.description", value = "Provides properties to process the chat message searches.") })
-public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider {
-  
-  private static final Logger LOG = LoggerFactory.getLogger(ChatMessageSearchPropertyProvider.class);
+public class ChatMessageSearchPropertyProvider implements SolrSearchPropertyProvider {
+
+//  private static final Logger LOG = LoggerFactory.getLogger(ChatMessageSearchPropertyProvider.class);
 
   @Reference
   protected transient LiteMessagingService messagingService;
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchPropertyProvider#loadUserProperties(org.apache.sling.api.SlingHttpServletRequest,
    *      java.util.Map)
    */
@@ -55,7 +51,7 @@ public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider
       Map<String, String> propertiesMap) {
     // TODO BL120 figure out what search properties (if any) will be needed for the sparse version of this search
     // in other words, no more JCR query stuff here.
-    try {
+//    try {
 //      String user = request.getRemoteUser();
 //      Session session = request.getResourceResolver().adaptTo(Session.class);
 //      propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
@@ -78,8 +74,8 @@ public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider
 //
 //        propertiesMap.put("_from", sql.toString());
 //      }
-    } catch (MessagingException e) {
-      LOG.error(e.getLocalizedMessage());
-    }
+//    } catch (MessagingException e) {
+//      LOG.error(e.getLocalizedMessage());
+//    }
   }
 }
