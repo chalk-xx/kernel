@@ -68,10 +68,11 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     propertiesMap.put("_me", ClientUtils.escapeQueryChars(user));
 
     // Set the public space.
-    propertiesMap.put("_mySpace", ClientUtils.escapeQueryChars(PersonalUtils.getPublicPath(auUser)));
+    propertiesMap.put("_mySpace",
+        ClientUtils.escapeQueryChars(PersonalUtils.getPublicPath(auUser)));
 
     // Set the contacts.
-    propertiesMap.put("_mycontacts", ClientUtils.escapeQueryChars(getMyContacts(user)));
+    propertiesMap.put("_mycontacts", getMyContacts(user));
 
     // Filter by links.
     String usedinClause = doUsedIn(request);
@@ -130,7 +131,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     if (tags != null) {
       sb.append("tag:(");
       for (int i = 0; i < tags.length; i++) {
-        sb.append("\"").append(tags[i]).append("\"");
+        sb.append("\"").append(ClientUtils.escapeQueryChars(tags[i])).append("\"");
 
         if (i < tags.length - 1) {
           sb.append(" AND ");
@@ -160,7 +161,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
       Iterator<String> users = connectedUsers.iterator();
       while (users.hasNext()) {
         String u = users.next();
-        sb.append("\"").append(u).append("\"");
+        sb.append("\"").append(ClientUtils.escapeQueryChars(u)).append("\"");
 
         if (users.hasNext()) {
           sb.append(" OR ");
