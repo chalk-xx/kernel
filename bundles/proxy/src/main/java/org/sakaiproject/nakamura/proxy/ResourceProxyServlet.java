@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.proxy;
 
+import com.google.common.collect.ImmutableSet;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -117,6 +119,8 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet implements Opti
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ResourceProxyServlet.class);
+
+  private final Set<String> optOutOps = ImmutableSet.of("delete", "import");
 
   @Reference
   transient ProxyClientService proxyClientService;
@@ -342,8 +346,10 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet implements Opti
    * @see org.apache.sling.api.servlets.OptingServlet#accepts(org.apache.sling.api.SlingHttpServletRequest)
    */
   public boolean accepts(SlingHttpServletRequest request) {
-    if ("delete".equals(request.getParameter(":operation"))) {
-      log("Opting out of service due to existence of parameter [:operation=delete]");
+    String op = request.getParameter(":operation");
+    if (op != null && optOutOps.contains(op)) {
+      LOGGER.info("Opting out of service due to existence of parameter [:operation=" + op
+          + "]");
       return false;
     } else {
       return true;
