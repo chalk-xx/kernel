@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -50,6 +51,19 @@ public class SparseContentResource extends AbstractResource {
    * Do not bind to sling/servlet/default or try and using an opting servlet as this will not work.
    */
   public static final String SPARSE_CONTENT_RT = "sparse/Content";
+
+  /**
+   * If the Sparse Content contains no "sling:resourceType" property, then the
+   * Resource will return this as the fallback resource type. (More or less
+   * takes the place of "nt:unstructured" in the JCR world.)
+   */
+  public static final String SPARSE_CONTENT_UNKNOWN_RT = "sparse/unknown";
+
+  /**
+   * Placeholder to indicate that this Resource does not yet existing in Sparse
+   * storage. (More or less takes the place of Resource.RESOURCE_TYPE_NON_EXISTING.)
+   */
+  public static final String SPARSE_CONTENT_NONEXISTANT_RT = "sparse/nonexistant";
 
   private static final Logger logger = LoggerFactory.getLogger(SparseContentResource.class);
 
@@ -130,7 +144,11 @@ public class SparseContentResource extends AbstractResource {
    * @see org.apache.sling.api.resource.Resource#getResourceType()
    */
   public String getResourceType() {
-    return StorageClientUtils.toString(content.getProperties().get("sling:resourceType"));
+    String type = StorageClientUtils.toString(content.getProperties().get("sling:resourceType"));
+    if (type == null) {
+      type = SPARSE_CONTENT_UNKNOWN_RT;
+    }
+    return type;
   }
 
   /**
@@ -138,7 +156,7 @@ public class SparseContentResource extends AbstractResource {
    * @see org.apache.sling.api.resource.Resource#getResourceSuperType()
    */
   public String getResourceSuperType() {
-    return SPARSE_CONTENT_RT; 
+    return SPARSE_CONTENT_RT;
   }
 
   /**
@@ -157,4 +175,11 @@ public class SparseContentResource extends AbstractResource {
     return resourceResolver;
   }
 
+  /**
+   * @see org.sakaiproject.nakamura.api.resource.lite.AbstractResource#listChildren()
+   */
+  @Override
+  public Iterator<Resource> listChildren() {
+    return new SparseContentResourceIterator(content.listChildren().iterator(), session, resourceResolver);
+  }
 }
