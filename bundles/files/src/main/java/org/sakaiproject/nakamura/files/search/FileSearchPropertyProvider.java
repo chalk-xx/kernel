@@ -69,7 +69,6 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
     // Set the public space.
     propertiesMap.put("_mySpace", ClientUtils.escapeQueryChars(PersonalUtils.getPublicPath(auUser)));
-        //.put("_mySpace", ISO9075.encodePath(PersonalUtils.getPublicPath(auUser)));
 
     // Set the contacts.
     propertiesMap.put("_mycontacts", ClientUtils.escapeQueryChars(getMyContacts(user)));
