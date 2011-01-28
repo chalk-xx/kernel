@@ -21,11 +21,11 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 
 import java.util.Map;
@@ -53,10 +53,8 @@ public class PooledContentNodeSearchPropertyProvider implements SearchPropertyPr
       ResourceResolver resourceResolver = request.getResourceResolver();
       Resource pooledResource = resourceResolver.getResource(resourcePath);
       if (pooledResource != null) {
-        // You will get very mysterious search exceptions if you do not encode
-        // path segments that begin with a digit.
-        String xpathSafePath = ISO9075.encodePath(pooledResource.getPath());
-        propertiesMap.put(POOLED_CONTENT_NODE_PATH_PROPERTY, xpathSafePath);
+        String safePath = ClientUtils.escapeQueryChars(pooledResource.getPath());
+        propertiesMap.put(POOLED_CONTENT_NODE_PATH_PROPERTY, safePath);
       }
     }
   }

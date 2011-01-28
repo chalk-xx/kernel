@@ -25,20 +25,19 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.request.RequestParameter;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.util.PersonalUtils;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.query.Query;
 
 /**
  * Provides properties to process the search
@@ -66,27 +65,27 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     }
 
     // Set the userid.
-    propertiesMap.put("_me", user);
+    propertiesMap.put("_me", ClientUtils.escapeQueryChars(user));
 
     // Set the public space.
-    propertiesMap
-        .put("_mySpace", ISO9075.encodePath(PersonalUtils.getPublicPath(auUser)));
+    propertiesMap.put("_mySpace",
+        ClientUtils.escapeQueryChars(PersonalUtils.getPublicPath(auUser)));
 
     // Set the contacts.
     propertiesMap.put("_mycontacts", getMyContacts(user));
 
     // Filter by links.
     String usedinClause = doUsedIn(request);
-    String tags = doUsedIn(request);
+    String tags = doTags(request);
     String tagsAndUsedIn = "";
     if (tags.length() > 0) {
-      propertiesMap.put("_usedin", " and (" + tags + ")");
+      propertiesMap.put("_usedin", " AND (" + tags + ")");
       tagsAndUsedIn = tags;
     }
 
     if (usedinClause.length() > 0) {
-      propertiesMap.put("_usedin", " and (" + usedinClause + ")");
-      tagsAndUsedIn = "(" + tagsAndUsedIn + ") and (" + usedinClause + ")";
+      propertiesMap.put("_usedin", " AND (" + usedinClause + ")");
+      tagsAndUsedIn = "(" + tagsAndUsedIn + ") AND (" + usedinClause + ")";
 
     }
     propertiesMap.put("_tags_and_usedin", tagsAndUsedIn);
@@ -102,34 +101,21 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    */
   protected String doUsedIn(SlingHttpServletRequest request) {
     String usedin[] = request.getParameterValues("usedin");
+    StringBuilder sb = new StringBuilder();
+
     if (usedin != null && usedin.length > 0) {
-      StringBuilder sb = new StringBuilder();
+      sb.append("linkpaths:(");
+      for (int i = 0; i < usedin.length; i++) {
+        sb.append("\"").append(usedin[i]).append("\"");
 
-      for (String u : usedin) {
-        sb.append("jcr:contains(@sakai:linkpaths,\"").append(u).append("\") or ");
+        if (i < usedin.length - 1) {
+          sb.append(" OR ");
+        }
       }
-
-      String usedinClause = sb.toString();
-      int i = usedinClause.lastIndexOf(" or ");
-      if (i > -1) {
-        usedinClause = usedinClause.substring(0, i);
-      }
-      if (usedinClause.length() > 0) {
-        return usedinClause;
-      }
+      sb.append(")");
     }
-    return "";
-  }
 
-  protected String getSearchValue(SlingHttpServletRequest request) {
-    RequestParameter searchParam = request.getRequestParameter("q");
-    String search = "*";
-    if (searchParam != null) {
-      search = escapeString(searchParam.getString(), Query.XPATH);
-      if (search.equals(""))
-        search = "*";
-    }
-    return search;
+    return sb.toString();
   }
 
   /**
@@ -140,44 +126,20 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    */
   protected String doTags(SlingHttpServletRequest request) {
     String[] tags = request.getParameterValues("sakai:tags");
+    StringBuilder sb = new StringBuilder();
+
     if (tags != null) {
-      StringBuilder sb = new StringBuilder();
+      sb.append("tag:(");
+      for (int i = 0; i < tags.length; i++) {
+        sb.append("\"").append(ClientUtils.escapeQueryChars(tags[i])).append("\"");
 
-      for (String t : tags) {
-        sb.append("@sakai:tags=\"");
-        sb.append(t);
-        sb.append("\" and ");
+        if (i < tags.length - 1) {
+          sb.append(" AND ");
+        }
       }
-      String tagClause = sb.toString();
-      int i = tagClause.lastIndexOf(" and ");
-      if (i > -1) {
-        tagClause = tagClause.substring(0, i);
-      }
-      if (tagClause.length() > 0) {
-        tagClause = " and (" + tagClause + ")";
-        return tagClause;
-      }
+      sb.append(")");
     }
-    return "";
-  }
-
-  /**
-   * Escape a parameter string so it doesn't contain anything that might break the query.
-   *
-   * @param value
-   * @param queryLanguage
-   * @return
-   */
-  protected String escapeString(String value, String queryLanguage) {
-    String escaped = null;
-    if (value != null) {
-      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
-        // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
-        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
-            .replaceAll("'", "''");
-      }
-    }
-    return escaped;
+    return sb.toString();
   }
 
   /**
@@ -185,7 +147,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    *
    * @param user
    *          The user to get the contacts for.
-   * @return and (@sakai:user=\"simon\" or @sakai:user=\"ieb\")
+   * @return "AND (createdBy:(\"simon\" OR \"ieb\")"
    */
   @SuppressWarnings(justification = "connectionManager is OSGi managed", value = {
       "NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD" })
@@ -193,20 +155,22 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     List<String> connectedUsers = connectionManager.getConnectedUsers(user,
         ConnectionState.ACCEPTED);
     StringBuilder sb = new StringBuilder();
-    for (String u : connectedUsers) {
-      sb.append("@jcr:createdBy=\"").append(u).append("\" or ");
-    }
-    String usersClause = sb.toString();
-    int i = usersClause.lastIndexOf(" or ");
-    if (i > -1) {
-      usersClause = usersClause.substring(0, i);
-    }
-    if (usersClause.length() > 0) {
-      usersClause = " and (" + usersClause + ")";
-      return usersClause;
+
+    if (connectedUsers.size() > 0) {
+      sb.append("AND createdBy:(");
+      Iterator<String> users = connectedUsers.iterator();
+      while (users.hasNext()) {
+        String u = users.next();
+        sb.append("\"").append(ClientUtils.escapeQueryChars(u)).append("\"");
+
+        if (users.hasNext()) {
+          sb.append(" OR ");
+        }
+      }
+      sb.append(")");
     }
 
-    return "";
+    return sb.toString();
   }
 
 }

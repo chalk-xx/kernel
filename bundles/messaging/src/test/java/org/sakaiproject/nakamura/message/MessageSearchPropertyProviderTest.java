@@ -75,7 +75,7 @@ public class MessageSearchPropertyProviderTest extends AbstractEasyMockTest {
     assertEquals("/_user/a/ad/admin/message", pMap
         .get(MessageConstants.SEARCH_PROP_MESSAGESTORE));
 
-    assertEquals(" and (@sakai:from=\"usera\" or @sakai:from=\"userb\")", pMap
+    assertEquals("from:(\\\"usera\\\" OR \\\"userb\\\")", pMap
         .get("_from"));
   }
 
