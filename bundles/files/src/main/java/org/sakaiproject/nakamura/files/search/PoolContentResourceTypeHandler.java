@@ -63,19 +63,14 @@ import java.util.Set;
 @Component
 public class PoolContentResourceTypeHandler implements IndexingHandler {
 
-  private static final Set<String> WHITELIST_PROPERTIES = ImmutableSet.of(
-      FilesConstants.POOLED_CONTENT_USER_MANAGER,
-      FilesConstants.POOLED_CONTENT_USER_VIEWER, FilesConstants.POOLED_CONTENT_FILENAME,
-      FilesConstants.POOLED_NEEDS_UPDATE, FilesConstants.SAKAI_FILE,
-      FilesConstants.SAKAI_TAG_NAME, FilesConstants.SAKAI_TAG_UUIDS,
-      FilesConstants.SAKAI_TAGS);
   private static final Set<String> IGNORE_NAMESPACES = ImmutableSet.of("jcr", "rep");
   private static final Set<String> IGNORE_PROPERTIES = ImmutableSet.of();
   private static final Map<String, String> INDEX_FIELD_MAP = getFieldMap();
   private static final Set<String> ARRAY_PROPERTIES = ImmutableSet.of(
       FilesConstants.POOLED_CONTENT_USER_MANAGER,
       FilesConstants.POOLED_CONTENT_USER_VIEWER, FilesConstants.SAKAI_TAGS,
-      FilesConstants.SAKAI_TAG_UUIDS);
+      FilesConstants.SAKAI_TAG_UUIDS, FilesConstants.LAST_MODIFIED,
+      FilesConstants.LAST_MODIFIED_BY, FilesConstants.CREATED, FilesConstants.CREATED_BY);
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PoolContentResourceTypeHandler.class);
@@ -91,7 +86,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     builder.put(FilesConstants.POOLED_CONTENT_USER_MANAGER, "manager");
     builder.put(FilesConstants.POOLED_CONTENT_USER_VIEWER, "viewer");
     builder.put(FilesConstants.POOLED_CONTENT_FILENAME, "filename");
-    builder.put(FilesConstants.POOLED_NEEDS_UPDATE, "needsupdate");
+    builder.put(FilesConstants.POOLED_NEEDS_PROCESSING, "needsprocessing");
     builder.put(FilesConstants.SAKAI_FILE, "file");
     builder.put(FilesConstants.SAKAI_TAG_NAME, "tagname");
     builder.put(FilesConstants.SAKAI_TAG_UUIDS, "taguuid");
@@ -250,7 +245,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
    */
   protected String index(Entry<String, Object> e) {
     String name = e.getKey();
-    if (!WHITELIST_PROPERTIES.contains(name)) {
+    if (!INDEX_FIELD_MAP.containsKey(name)) {
       String[] parts = StringUtils.split(name, ':');
       if (IGNORE_NAMESPACES.contains(parts[0])) {
         return null;
