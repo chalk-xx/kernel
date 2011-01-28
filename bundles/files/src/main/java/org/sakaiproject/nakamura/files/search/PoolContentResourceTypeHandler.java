@@ -69,8 +69,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
   private static final Set<String> ARRAY_PROPERTIES = ImmutableSet.of(
       FilesConstants.POOLED_CONTENT_USER_MANAGER,
       FilesConstants.POOLED_CONTENT_USER_VIEWER, FilesConstants.SAKAI_TAGS,
-      FilesConstants.SAKAI_TAG_UUIDS, FilesConstants.LAST_MODIFIED,
-      FilesConstants.LAST_MODIFIED_BY, FilesConstants.CREATED, FilesConstants.CREATED_BY);
+      FilesConstants.SAKAI_TAG_UUIDS);
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PoolContentResourceTypeHandler.class);
@@ -91,6 +90,10 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     builder.put(FilesConstants.SAKAI_TAG_NAME, "tagname");
     builder.put(FilesConstants.SAKAI_TAG_UUIDS, "taguuid");
     builder.put(FilesConstants.SAKAI_TAGS, "tag");
+    builder.put(FilesConstants.LAST_MODIFIED, FilesConstants.LAST_MODIFIED);
+    builder.put(FilesConstants.LAST_MODIFIED_BY, FilesConstants.LAST_MODIFIED_BY);
+    builder.put(FilesConstants.CREATED, FilesConstants.CREATED);
+    builder.put(FilesConstants.CREATED_BY, FilesConstants.CREATED_BY);
     return builder.build();
   }
 
