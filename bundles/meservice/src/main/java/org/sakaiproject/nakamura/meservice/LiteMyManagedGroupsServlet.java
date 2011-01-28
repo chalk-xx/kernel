@@ -1,4 +1,5 @@
 /*
+
  * Licensed to the Sakai Foundation (SF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -19,34 +20,37 @@ package org.sakaiproject.nakamura.meservice;
 
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
 import java.util.Iterator;
 import java.util.TreeMap;
 
-import javax.jcr.RepositoryException;
-
 @ServiceDocumentation(
-  name = "My Groups Servlet",
-  description = "Gets the groups where the current user is a member",
+  name = "My Managed Groups Servlet",
+  description = "Gets the groups where the current user is a manager",
   bindings = {
-    @ServiceBinding(type = BindingType.TYPE, bindings = { "system/me/groups" })
+    @ServiceBinding(
+      type = BindingType.TYPE, bindings = { "system/me/managedgroups" }
+    )
   },
   methods = {
     @ServiceMethod(
       name = "GET",
-      description = {"Get the groups for this user with paging",
-      		"curl \"http://ian:ianboston@localhost:8080/system/me/managedgroups.tidy.json?page=0&items=10&q=*&facet=manage\"" +
+      description = {"Get the groups for this user, with paging.",
+          "curl \"http://ian:ianboston@localhost:8080/system/me/managedgroups.tidy.json?page=0&items=10&q=*&facet=manage\"" +
           "<pre>" +
           "{" +
           "  \"items\": 10," +
@@ -105,38 +109,34 @@ import javax.jcr.RepositoryException;
         @ServiceResponse(code = 500, description = "Exception occurred during processing.")
       },
       parameters= {
-      @ServiceParameter(name = "items", description = { "The number of items per page in the result set." }),
-      @ServiceParameter(name = "page", description = { "The page number to start listing the results on." }),
-      @ServiceParameter(name = "q", description = { "The Query to filter on." }) 
-      }
+          @ServiceParameter(name = "items", description = { "The number of items per page in the result set." }),
+          @ServiceParameter(name = "page", description = { "The page number to start listing the results on." }),
+          @ServiceParameter(name = "q", description = { "The Query to filter on." }) 
+          }
     )
   }
 )
-@SlingServlet(paths = { "/system/jackrabbitme/groups" }, generateComponent = true, generateService = true, methods = { "GET" })
-@Reference(name="profileService", referenceInterface=ProfileService.class)
-public class MyGroupsServlet extends AbstractMyGroupsServlet {
-  private static final long serialVersionUID = 8809581334593701801L;
-
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.meservice.AbstractMyGroupsServlet#getGroups(org.apache.jackrabbit.api.security.user.Authorizable, org.apache.jackrabbit.api.security.user.UserManager)
-   */
+@SlingServlet(paths = { "/system/me/managedgroups" }, generateComponent = true, generateService = true, methods = { "GET" })
+@Reference(name="profileService", referenceInterface=LiteProfileService.class)
+public class LiteMyManagedGroupsServlet extends LiteAbstractMyGroupsServlet {
+  private static final long serialVersionUID = 5286762541480563822L;
   @Override
-  protected TreeMap<String, Group> getGroups(Authorizable member, UserManager userManager)
-      throws RepositoryException {
-    TreeMap<String, Group> groups = new TreeMap<String, Group>();
-    Iterator<Group> allGroupsIter = member.memberOf();
+  protected TreeMap<String, Group> getGroups(Authorizable member, AuthorizableManager userManager)
+      throws StorageClientException, AccessDeniedException {
+    TreeMap<String, Group> managedGroups = new TreeMap<String, Group>();
+    Iterator<Group> allGroupsIter = member.memberOf(userManager);
     while (allGroupsIter.hasNext()) {
       Group group = allGroupsIter.next();
-      // Until KERN-950 is fixed, we don't have a foolproof way to know whether
-      // a Jackrabbit Group should be considered a Sakai Group entity.
-      // We skip Managers-holders but otherwise just return a Profile if
-      // we find one.
-      if (!group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
-        groups.put(group.getID(), group);
+      if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
+        String[] values = StorageClientUtils.toStringArray(group.getProperty(UserConstants.PROP_MANAGED_GROUP));
+        if ((values != null) && (values.length == 1)) {
+          String managedGroupId = values[0];
+          Group managedGroup = (Group) userManager.findAuthorizable(managedGroupId);
+          managedGroups.put(managedGroupId, managedGroup);
+        }
       }
     }
-    return groups;
+    return managedGroups;
   }
 
 }

@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.profile;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -28,13 +29,12 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
 *
@@ -54,74 +54,15 @@ public class LiteProfileServiceImpl implements LiteProfileService {
    */
   public ValueMap getCompactProfileMap(Authorizable authorizable, Session session) {
     final Map<String, Object> profileProps = new HashMap<String, Object>();
-    profileProps.putAll(authorizable.getPropertiesForUpdate());
+    profileProps.putAll(authorizable.getSafeProperties());
     
     if (authorizable instanceof Group) {
       profileProps.put("groupid", authorizable.getId());
+      profileProps.put("sakai:group-id", authorizable.getId());
     } else if (authorizable instanceof User) {
       profileProps.put("userid", authorizable.getId());
     }
-    return new ValueMap(){
-
-      public <T> T get(String name, Class<T> type) {
-        // TODO Auto-generated method stub
-        return null;
-      }
-
-      public <T> T get(String name, T defaultValue) {
-        // TODO Auto-generated method stub
-        return null;
-      }
-
-      public void clear() {
-        // TODO Auto-generated method stub
-        
-      }
-
-      public boolean containsKey(Object arg0) {
-        // TODO Auto-generated method stub
-        return false;
-      }
-
-      public boolean containsValue(Object arg0) {
-        return profileProps.containsValue(arg0);
-      }
-
-      public Set<java.util.Map.Entry<String, Object>> entrySet() {
-        return profileProps.entrySet();
-      }
-
-      public Object get(Object arg0) {
-        return profileProps.get((String)arg0);
-      }
-
-      public boolean isEmpty() {
-        return profileProps.isEmpty();
-      }
-
-      public Set<String> keySet() {
-        return profileProps.keySet();
-      }
-
-      public Object put(String arg0, Object arg1) {
-        return profileProps.put(arg0, arg0);
-      }
-
-      public void putAll(Map<? extends String, ? extends Object> arg0) {
-        profileProps.putAll(arg0);
-      }
-
-      public Object remove(Object arg0) {
-        return profileProps.remove(arg0);
-      }
-
-      public int size() {
-        return profileProps.size();
-      }
-
-      public Collection<Object> values() {
-        return profileProps.values();
-      }};
+    return new ValueMapDecorator(profileProps);
   }
 
   /**
@@ -129,8 +70,13 @@ public class LiteProfileServiceImpl implements LiteProfileService {
    * @see org.sakaiproject.nakamura.api.profile.LiteProfileService#getCompactProfileMap(org.sakaiproject.nakamura.api.lite.content.Content)
    */
   public ValueMap getCompactProfileMap(Content profile) {
-    // TODO Auto-generated method stub
-    return null;
+    Map<String, Object> profileProps;
+    if (profile == null) {
+      profileProps = new HashMap<String, Object>();
+    } else {
+      profileProps = profile.getProperties();
+    }
+    return new ValueMapDecorator(profileProps);
   }
 
   /**
@@ -138,7 +84,7 @@ public class LiteProfileServiceImpl implements LiteProfileService {
    * @see org.sakaiproject.nakamura.api.profile.LiteProfileService#getHomePath(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable)
    */
   public String getHomePath(Authorizable authorizable) {
-    return "~/" + authorizable.getId();
+    return LitePersonalUtils.getHomePath(authorizable.getId());
   }
 
   /**
@@ -146,7 +92,7 @@ public class LiteProfileServiceImpl implements LiteProfileService {
    * @see org.sakaiproject.nakamura.api.profile.LiteProfileService#getPrivatePath(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable)
    */
   public String getPrivatePath(Authorizable authorizable) {
-    return getHomePath(authorizable) + "/private";
+    return LitePersonalUtils.getPrivatePath(authorizable.getId());
   }
 
   /**
@@ -154,14 +100,16 @@ public class LiteProfileServiceImpl implements LiteProfileService {
    * @see org.sakaiproject.nakamura.api.profile.LiteProfileService#getProfileMap(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable, org.sakaiproject.nakamura.api.lite.Session)
    */
   public ValueMap getProfileMap(Authorizable authorizable, Session session) {
-    try {
-      return getProfileMap(session.getContentManager().get(getProfilePath(authorizable)));
-    } catch (StorageClientException e) {
-      LOG.error("failed to get profile map for authorizable " + authorizable.getId());
-    } catch (AccessDeniedException e) {
-      LOG.error("failed to get profile map for authorizable " + authorizable.getId());
-    }
-    return null;
+    // TODO BL120 get the full profile once that becomes available
+    return getCompactProfileMap(authorizable, session);
+//    try {
+//      return getProfileMap(session.getContentManager().get(getProfilePath(authorizable)));
+//    } catch (StorageClientException e) {
+//      LOG.error("failed to get profile map for authorizable " + authorizable.getId());
+//    } catch (AccessDeniedException e) {
+//      LOG.error("failed to get profile map for authorizable " + authorizable.getId());
+//    }
+//    return null;
   }
 
   /**
@@ -169,68 +117,13 @@ public class LiteProfileServiceImpl implements LiteProfileService {
    * @see org.sakaiproject.nakamura.api.profile.LiteProfileService#getProfileMap(org.sakaiproject.nakamura.api.lite.content.Content)
    */
   public ValueMap getProfileMap(Content profile) {
-    final Map<String, Object> profileProps = profile.getProperties();
-    return new ValueMap(){
-
-      public <T> T get(String name, Class<T> type) {
-        // TODO Auto-generated method stub
-        return null;
-      }
-
-      public <T> T get(String name, T defaultValue) {
-        // TODO Auto-generated method stub
-        return null;
-      }
-
-      public void clear() {
-        // TODO Auto-generated method stub
-        
-      }
-
-      public boolean containsKey(Object arg0) {
-        // TODO Auto-generated method stub
-        return false;
-      }
-
-      public boolean containsValue(Object arg0) {
-        return profileProps.containsValue(arg0);
-      }
-
-      public Set<java.util.Map.Entry<String, Object>> entrySet() {
-        return profileProps.entrySet();
-      }
-
-      public Object get(Object arg0) {
-        return profileProps.get((String)arg0);
-      }
-
-      public boolean isEmpty() {
-        return profileProps.isEmpty();
-      }
-
-      public Set<String> keySet() {
-        return profileProps.keySet();
-      }
-
-      public Object put(String arg0, Object arg1) {
-        return profileProps.put(arg0, arg0);
-      }
-
-      public void putAll(Map<? extends String, ? extends Object> arg0) {
-        profileProps.putAll(arg0);
-      }
-
-      public Object remove(Object arg0) {
-        return profileProps.remove(arg0);
-      }
-
-      public int size() {
-        return profileProps.size();
-      }
-
-      public Collection<Object> values() {
-        return profileProps.values();
-      }};
+    final Map<String, Object> profileProps;
+    if (profile == null) {
+      profileProps = new HashMap<String, Object>();
+    } else {
+      profileProps = profile.getProperties();
+    }
+    return new ValueMapDecorator(profileProps);
   }
 
   /**
@@ -238,7 +131,7 @@ public class LiteProfileServiceImpl implements LiteProfileService {
    * @see org.sakaiproject.nakamura.api.profile.LiteProfileService#getProfilePath(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable)
    */
   public String getProfilePath(Authorizable authorizable) {
-    return getPublicPath(authorizable) + "/profile";
+    return LitePersonalUtils.getProfilePath(authorizable.getId());
   }
 
   /**
@@ -246,7 +139,7 @@ public class LiteProfileServiceImpl implements LiteProfileService {
    * @see org.sakaiproject.nakamura.api.profile.LiteProfileService#getPublicPath(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable)
    */
   public String getPublicPath(Authorizable authorizable) {
-    return getHomePath(authorizable) + "/public";
+    return LitePersonalUtils.getPublicPath(authorizable.getId());
   }
 
 }

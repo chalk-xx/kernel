@@ -24,11 +24,6 @@ import static org.sakaiproject.nakamura.api.connections.ConnectionState.PENDING;
 
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
-import org.apache.jackrabbit.api.security.principal.PrincipalManager;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -36,7 +31,6 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -44,20 +38,25 @@ import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessagingException;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.PathUtils;
-import org.sakaiproject.nakamura.util.PersonalUtils;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -67,14 +66,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
-import javax.jcr.query.QueryResult;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -94,11 +85,11 @@ import javax.servlet.http.HttpServletResponse;
         + "\"jcr:primaryType\":\"nt:unstructured\"}\n" + "}<pre>"),
     @ServiceResponse(code = 401, description = "Unauthorized: credentials provided were not acceptable to return information for."),
     @ServiceResponse(code = 500, description = "Unable to return information about current user.") }))
-@SlingServlet(paths = { "/system/jackrabbitme" }, generateComponent = true, generateService = true, methods = { "GET" })
-public class MeServlet extends SlingSafeMethodsServlet {
+@SlingServlet(paths = { "/system/me" }, generateComponent = true, generateService = true, methods = { "GET" })
+public class LiteMeServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = -3786472219389695181L;
-  private static final Logger LOG = LoggerFactory.getLogger(MeServlet.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LiteMeServlet.class);
   private static final String LOCALE_FIELD = "locale";
   private static final String TIMEZONE_FIELD = "timezone";
 
@@ -109,7 +100,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
   protected transient ConnectionManager connectionManager;
 
   @Reference
-  protected transient ProfileService profileService;
+  protected transient LiteProfileService profileService;
 
   /**
    * {@inheritDoc}
@@ -123,9 +114,10 @@ public class MeServlet extends SlingSafeMethodsServlet {
     try {
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
-      Session session = request.getResourceResolver().adaptTo(Session.class);
-      UserManager um = AccessControlUtil.getUserManager(session);
-      Authorizable au = um.getAuthorizable(session.getUserID());
+      Session session =
+        StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+      AuthorizableManager um = session.getAuthorizableManager();
+      Authorizable au = um.findAuthorizable(session.getUserId());
       PrintWriter w = response.getWriter();
       ExtendedJSONWriter writer = new ExtendedJSONWriter(w);
       writer.object();
@@ -155,10 +147,14 @@ public class MeServlet extends SlingSafeMethodsServlet {
       LOG.error("Failed to create proper JSON response in /system/me", e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Failed to create proper JSON response.");
-    } catch (RepositoryException e) {
+    } catch (StorageClientException e) {
       LOG.error("Failed to get a user his profile node in /system/me", e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-          "Failed to get the profile node.");
+          "Sparse storage client error.");
+    } catch (AccessDeniedException e) {
+      LOG.error("Failed to get a user his profile node in /system/me", e);
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+          "Access denied error.");
     }
 
   }
@@ -168,18 +164,22 @@ public class MeServlet extends SlingSafeMethodsServlet {
    * @param session
    * @param au
    * @throws JSONException
-   * @throws RepositoryException
+   * @throws StorageClientException 
    */
   protected void writeGroups(ExtendedJSONWriter writer, Session session, Authorizable au)
-      throws JSONException, RepositoryException {
+      throws JSONException, StorageClientException {
     writer.array();
-    if (!UserConstants.ANON_USERID.equals(au.getID())) {
+    if (!UserConstants.ANON_USERID.equals(au.getId())) {
       // It might be better to just use au.declaredMemberOf() .
       // au.memberOf will fetch ALL the groups this user is a member of, including
       // indirect ones.
-      Iterator<Group> groups = au.memberOf();
+      Iterator<Group> groups = au.memberOf(session.getAuthorizableManager());
       while (groups.hasNext()) {
         Group group = groups.next();
+        if (group.getId().equals(StorageClientUtils.toString(group.getProperty("rep:group-managers")))) {
+          // we don't want manager groups in this feed
+          continue;
+        }
         ValueMap groupProfile = profileService.getCompactProfileMap(group, session);
         if (groupProfile != null) {
           writer.valueMap(groupProfile);
@@ -200,11 +200,11 @@ public class MeServlet extends SlingSafeMethodsServlet {
    * @throws RepositoryException
    */
   protected void writeContactCounts(ExtendedJSONWriter writer, Session session,
-      Authorizable au) throws JSONException, RepositoryException {
+      Authorizable au) throws JSONException {
     writer.object();
 
     // We don't do queries for anonymous users. (Possible ddos hole).
-    String userID = au.getID();
+    String userID = au.getId();
     if (UserConstants.ANON_USERID.equals(userID)) {
       writer.endObject();
       return;
@@ -218,36 +218,38 @@ public class MeServlet extends SlingSafeMethodsServlet {
     try {
       // This could just use ConnectionUtils.getConnectionPathBase, but that util class is
       // in the private package unfortunately.
-      String store = PersonalUtils.getHomePath(au) + "/"
+      String store = LitePersonalUtils.getHomePath(userID) + "/"
           + ConnectionConstants.CONTACT_STORE_NAME;
       store = ISO9075.encodePath(store);
-      StringBuilder statement = new StringBuilder("/jcr:root");
-      statement.append(store);
-      statement.append("//*[@sling:resourceType='sakai/contact' and (");
-      statement.append("@").append(SAKAI_CONNECTION_STATE).append("='").append(ACCEPTED)
-          .append("' or ");
-      statement.append("@").append(SAKAI_CONNECTION_STATE).append("='").append(INVITED)
-          .append("' or ");
-      statement.append("@").append(SAKAI_CONNECTION_STATE).append("='").append(PENDING)
-          .append("')]");
+      
+      // TODO BL120 this search for contacts has to be ported to the "sparse way."
+//      StringBuilder statement = new StringBuilder("/jcr:root");
+//      statement.append(store);
+//      statement.append("//*[@sling:resourceType='sakai/contact' and (");
+//      statement.append("@").append(SAKAI_CONNECTION_STATE).append("='").append(ACCEPTED)
+//          .append("' or ");
+//      statement.append("@").append(SAKAI_CONNECTION_STATE).append("='").append(INVITED)
+//          .append("' or ");
+//      statement.append("@").append(SAKAI_CONNECTION_STATE).append("='").append(PENDING)
+//          .append("')]");
 
       // Execute the query, loop over the results and count the items.
-      QueryManager qm = session.getWorkspace().getQueryManager();
-      Query q = qm.createQuery(statement.toString(), "xpath");
-      QueryResult result = q.execute();
-      NodeIterator iterator = result.getNodes();
-      while (iterator.hasNext()) {
-        Node contact = iterator.nextNode();
-        if (contact.hasProperty(SAKAI_CONNECTION_STATE)) {
-          String state = contact.getProperty(SAKAI_CONNECTION_STATE).getString()
-              .toLowerCase();
-          int count = 0;
-          if (contacts.containsKey(state)) {
-            count = contacts.get(state);
-          }
-          contacts.put(state, count + 1);
-        }
-      }
+//      QueryManager qm = session.getWorkspace().getQueryManager();
+//      Query q = qm.createQuery(statement.toString(), "xpath");
+//      QueryResult result = q.execute();
+//      NodeIterator iterator = result.getNodes();
+//      while (iterator.hasNext()) {
+//        Node contact = iterator.nextNode();
+//        if (contact.hasProperty(SAKAI_CONNECTION_STATE)) {
+//          String state = contact.getProperty(SAKAI_CONNECTION_STATE).getString()
+//              .toLowerCase();
+//          int count = 0;
+//          if (contacts.containsKey(state)) {
+//            count = contacts.get(state);
+//          }
+//          contacts.put(state, count + 1);
+//        }
+//      }
     } finally {
       for (Entry<String, Integer> entry : contacts.entrySet()) {
         writer.key(entry.getKey());
@@ -272,12 +274,12 @@ public class MeServlet extends SlingSafeMethodsServlet {
    * @throws MessagingException
    */
   protected void writeMessageCounts(ExtendedJSONWriter writer, Session session,
-      Authorizable au) throws JSONException, MessagingException, RepositoryException {
+      Authorizable au) throws JSONException, MessagingException {
     writer.object();
     writer.key("unread");
 
     // We don't do queries for anonymous users. (Possible ddos hole).
-    String userID = au.getID();
+    String userID = au.getId();
     if (UserConstants.ANON_USERID.equals(userID)) {
       writer.value(0);
       writer.endObject();
@@ -287,22 +289,24 @@ public class MeServlet extends SlingSafeMethodsServlet {
     // Get the path to the store for this user.
     long count = 0;
     try {
-      String store = messagingService.getFullPathToStore(au.getID(), JackrabbitSparseUtils.getSparseSession(session));
+      String store = messagingService.getFullPathToStore(au.getId(), session);
       store = ISO9075.encodePath(store);
-      StringBuilder statement = new StringBuilder("/jcr:root");
-      statement.append(store);
-      statement
-          .append("//*[@sling:resourceType='sakai/message' and @sakai:type='internal' and @sakai:messagebox='inbox' and @sakai:read = false()]");
-
-      // Execute the query, loop over the results and count the items.
-      QueryManager qm = session.getWorkspace().getQueryManager();
-      Query q = qm.createQuery(statement.toString(), "xpath");
-      QueryResult result = q.execute();
-      NodeIterator iterator = result.getNodes();
-      while (iterator.hasNext()) {
-        count++;
-        iterator.next();
-      }
+      
+      //TODO BL120 do this messaging search the "sparse way"
+//      StringBuilder statement = new StringBuilder("/jcr:root");
+//      statement.append(store);
+//      statement
+//          .append("//*[@sling:resourceType='sakai/message' and @sakai:type='internal' and @sakai:messagebox='inbox' and @sakai:read = false()]");
+//
+//      // Execute the query, loop over the results and count the items.
+//      QueryManager qm = session.getWorkspace().getQueryManager();
+//      Query q = qm.createQuery(statement.toString(), "xpath");
+//      QueryResult result = q.execute();
+//      NodeIterator iterator = result.getNodes();
+//      while (iterator.hasNext()) {
+//        count++;
+//        iterator.next();
+//      }
     } finally {
       writer.value(count);
     }
@@ -316,12 +320,13 @@ public class MeServlet extends SlingSafeMethodsServlet {
    * @param authorizable
    * @throws RepositoryException
    * @throws JSONException
+   * @throws StorageClientException 
    */
   protected void writeUserJSON(ExtendedJSONWriter write, Session session,
       Authorizable authorizable, SlingHttpServletRequest request)
-      throws RepositoryException, JSONException {
+      throws JSONException, StorageClientException {
 
-    String user = session.getUserID();
+    String user = session.getUserId();
     boolean isAnonymous = (UserConstants.ANON_USERID.equals(user));
     if (isAnonymous || authorizable == null) {
 
@@ -334,8 +339,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
       write.value(false);
       write.endObject();
     } else {
-      PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-      Set<String> subjects = getSubjects(authorizable, principalManager);
+      Set<String> subjects = getSubjects(authorizable, session.getAuthorizableManager());
       Map<String, Object> properties = getProperties(authorizable);
 
       write.object();
@@ -418,16 +422,15 @@ public class MeServlet extends SlingSafeMethodsServlet {
    * @throws RepositoryException
    */
   protected void writeGeneralInfo(ExtendedJSONWriter write, Authorizable user,
-      Set<String> subjects, Map<String, Object> properties) throws JSONException,
-      RepositoryException {
+      Set<String> subjects, Map<String, Object> properties) throws JSONException {
 
-    write.key("userid").value(user.getID());
+    write.key("userid").value(user.getId());
     write.key("userStoragePrefix");
     // For backwards compatibility we substring the first slash out and append one at the
     // back.
-    write.value(PathUtils.getSubPath(user).substring(1) + "/");
+    write.value("~" + user.getId() + "/");
     write.key("userProfilePath");
-    write.value(PersonalUtils.getProfilePath(user));
+    write.value(LitePersonalUtils.getProfilePath(user.getId()));
     write.key("superUser");
     write.value(subjects.contains("administrators"));
     write.key("properties");
@@ -446,46 +449,44 @@ public class MeServlet extends SlingSafeMethodsServlet {
    *
    * @param authorizable
    *          The {@link Authorizable authorizable} that represents the user.
-   * @param principalManager
-   *          The {@link PrincipalManager principalManager} that can be used to retrieve
+   * @param authorizableManager
+   *          The {@link AuthorizableManager authorizableManager} that can be used to retrieve
    *          the group membership.
    * @return All the names of the {@link Group groups} a user is a member of.
    * @throws RepositoryException
    */
   protected Set<String> getSubjects(Authorizable authorizable,
-      PrincipalManager principalManager) throws RepositoryException {
+      AuthorizableManager authorizableManager) {
     Set<String> subjects = new HashSet<String>();
     if (authorizable != null) {
-      Principal principal = authorizable.getPrincipal();
+      String principal = authorizable.getId();
       if (principal != null) {
-        PrincipalIterator it = principalManager.getGroupMembership(principal);
+        Iterator<Group> it = authorizable.memberOf(authorizableManager);
         while (it.hasNext()) {
-          subjects.add(it.nextPrincipal().getName());
+          subjects.add(it.next().getId());
         }
       }
     }
     return subjects;
   }
 
-  private Map<String, Object> getProperties(Authorizable authorizable)
-      throws RepositoryException {
+  private Map<String, Object> getProperties(Authorizable authorizable) {
     Map<String, Object> result = new HashMap<String, Object>();
     if (authorizable != null) {
-      for (Iterator<String> it = authorizable.getPropertyNames(); it.hasNext();) {
-        String propName = it.next();
+      for (String propName : authorizable.getSafeProperties().keySet()) {
         if (propName.startsWith("rep:"))
           continue;
-        Value[] values = authorizable.getProperty(propName);
+        String[] values = StorageClientUtils.toStringArray(authorizable.getProperty(propName));
         switch (values.length) {
         case 0:
           continue;
         case 1:
-          result.put(propName, values[0].getString());
+          result.put(propName, values[0]);
           break;
         default: {
           StringBuilder valueString = new StringBuilder("");
           for (int i = 0; i < values.length; i++) {
-            valueString.append("," + values[i].getString());
+            valueString.append("," + values[i]);
           }
           result.put(propName, valueString.toString().substring(1));
         }
