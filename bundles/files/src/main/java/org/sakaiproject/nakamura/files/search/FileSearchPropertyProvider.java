@@ -25,8 +25,8 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
@@ -65,14 +65,14 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     }
 
     // Set the userid.
-    propertiesMap.put("_me", user);
+    propertiesMap.put("_me", ClientUtils.escapeQueryChars(user));
 
     // Set the public space.
-    propertiesMap
-        .put("_mySpace", ISO9075.encodePath(PersonalUtils.getPublicPath(auUser)));
+    propertiesMap.put("_mySpace", ClientUtils.escapeQueryChars(PersonalUtils.getPublicPath(auUser)));
+        //.put("_mySpace", ISO9075.encodePath(PersonalUtils.getPublicPath(auUser)));
 
     // Set the contacts.
-    propertiesMap.put("_mycontacts", getMyContacts(user));
+    propertiesMap.put("_mycontacts", ClientUtils.escapeQueryChars(getMyContacts(user)));
 
     // Filter by links.
     String usedinClause = doUsedIn(request);

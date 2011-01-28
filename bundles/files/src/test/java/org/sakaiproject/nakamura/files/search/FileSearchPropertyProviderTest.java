@@ -53,7 +53,8 @@ public class FileSearchPropertyProviderTest {
     String[] tags = new String[] { "foo", "bar" };
     when(request.getParameterValues("sakai:tags")).thenReturn(tags);
     String result = provider.doTags(request);
-    assertEquals(" and (@sakai:tags=\"foo\" and @sakai:tags=\"bar\")", result);
+    //assertEquals(" and (@sakai:tags=\"foo\" and @sakai:tags=\"bar\")", result);
+    assertEquals("tag:(\"foo\" AND \"bar\")", result);
   }
 
   @Test
@@ -63,7 +64,8 @@ public class FileSearchPropertyProviderTest {
         .thenReturn(connections);
 
     String query = provider.getMyContacts("alice");
-    assertEquals(" and (@jcr:createdBy=\"bob\" or @jcr:createdBy=\"jack\")", query);
+    //assertEquals(" and (@jcr:createdBy=\"bob\" or @jcr:createdBy=\"jack\")", query);
+    assertEquals("AND createdBy:(\"bob\" OR \"jack\")", query);
   }
 
   @Test
