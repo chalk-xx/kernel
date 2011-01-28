@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 
 import org.apache.sling.api.SlingException;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.HtmlResponse;
@@ -36,6 +35,7 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.DateParser;
 import org.sakaiproject.nakamura.api.resource.RequestProperty;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparseCreateOperation;
+import org.sakaiproject.nakamura.api.resource.lite.SparseNonExistingResource;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparseFileUploadHandler;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparsePropertyValueHandler;
 
@@ -133,7 +133,11 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
     StringBuffer rootPathBuf = new StringBuffer();
     String suffix;
     Resource currentResource = request.getResource();
-    if (ResourceUtil.isSyntheticResource(currentResource)) {
+    if (currentResource instanceof SparseNonExistingResource) {
+      // no resource, treat the target Content path as suffix
+      SparseNonExistingResource nonExistingResource = (SparseNonExistingResource) currentResource;
+      suffix = nonExistingResource.getTargetContentPath();
+    } else if (ResourceUtil.isSyntheticResource(currentResource)) {
 
       // no resource, treat the missing resource path as suffix
       suffix = currentResource.getPath();
@@ -143,22 +147,29 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
       // resource for part of the path, use request suffix
       suffix = request.getRequestPathInfo().getSuffix();
 
-      // and preset the path buffer with the resource path
-      rootPathBuf.append(currentResource.getPath());
+      // cut off any selectors/extension from the suffix
+      if (suffix != null) {
+        int dotPos = suffix.indexOf('.');
+        if (dotPos > 0) {
+          suffix = suffix.substring(0, dotPos);
+        }
+      }
+
+      // and preset the path buffer with the content path
+      Content content = currentResource.adaptTo(Content.class);
+      if (content != null) {
+        rootPathBuf.append(content.getPath());
+      } else {
+        rootPathBuf.append(currentResource.getPath());
+      }
 
     }
 
-    // check for extensions or create suffix in the suffix
+    // check for star or create suffix
     boolean doGenerateName = false;
     if (suffix != null) {
 
-      // cut off any selectors/extension from the suffix
-      int dotPos = suffix.indexOf('.');
-      if ((dotPos > 0) && (!(currentResource instanceof NonExistingResource))) {
-        suffix = suffix.substring(0, dotPos);
-      }
-
-      // and check whether it is a create request (trailing /)
+      // check whether it is a create request (trailing /)
       if (suffix.endsWith(SlingPostConstants.DEFAULT_CREATE_SUFFIX)) {
         suffix = suffix.substring(0, suffix.length()
             - SlingPostConstants.DEFAULT_CREATE_SUFFIX.length());

@@ -25,14 +25,15 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
+import org.sakaiproject.nakamura.api.resource.lite.SparseNonExistingResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,36 +71,10 @@ public class SparseCreateServlet extends SlingAllMethodsServlet implements Optin
       return;
     }
     final String targetPath = (String) request.getAttribute(CONTENT_TARGET_PATH_ATTRIBUTE);
-    ResourceWrapper resourceWrapper = new ResourceWrapper(request.getResource()) {
-      @Override
-      public String getPath() {
-        return targetPath;
-      }
-      @Override
-      public String getResourceType() {
-        return SparseContentResource.SPARSE_CONTENT_NONEXISTANT_RT;
-      }
-      @Override
-      public String getResourceSuperType() {
-        return SparseContentResource.SPARSE_CONTENT_RT;
-      }
-      @SuppressWarnings("unchecked")
-      @Override
-      public <AdapterType> AdapterType adaptTo(Class<AdapterType> type) {
-        AdapterType retval = null;
-        if (type == ContentManager.class) {
-          retval = (AdapterType) contentManager;
-        } else if (type == Session.class) {
-          retval = (AdapterType) session;
-        } else {
-          retval = super.adaptTo(type);
-        }
-        return retval;
-      }
-    };
+    SparseNonExistingResource resourceWrapper = new SparseNonExistingResource(request.getResource(),
+        targetPath, session, contentManager);
     RequestDispatcherOptions options = new RequestDispatcherOptions();
     request.getRequestDispatcher(resourceWrapper, options).forward(request, response);
-
   }
 
   public boolean accepts(SlingHttpServletRequest request) {
@@ -128,7 +103,8 @@ public class SparseCreateServlet extends SlingAllMethodsServlet implements Optin
           // from the path we started out with, we do not use the original raw path
           // obtained from the request. For example, the original URL may specify the
           // parent path "/~somebody/private" but then be resolved to "a:somebody/private".
-          String contentTargetPath = nearestResource.getPath() + childPath;
+          Content nearestContent = nearestResource.adaptTo(Content.class);
+          String contentTargetPath = nearestContent.getPath() + childPath;
           LOGGER.info("Going to create Resource {} with Content {} starting from Resource {} with child path {}",
               new Object[] {resource.getPath(), contentTargetPath, nearestResource.getPath(), childPath});
           request.setAttribute(CONTENT_TARGET_PATH_ATTRIBUTE, contentTargetPath);

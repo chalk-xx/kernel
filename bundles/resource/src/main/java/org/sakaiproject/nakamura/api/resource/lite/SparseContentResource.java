@@ -59,26 +59,27 @@ public class SparseContentResource extends AbstractResource {
    */
   public static final String SPARSE_CONTENT_UNKNOWN_RT = "sparse/unknown";
 
-  /**
-   * Placeholder to indicate that this Resource does not yet existing in Sparse
-   * storage. (More or less takes the place of Resource.RESOURCE_TYPE_NON_EXISTING.)
-   */
-  public static final String SPARSE_CONTENT_NONEXISTANT_RT = "sparse/nonexistant";
-
   private static final Logger logger = LoggerFactory.getLogger(SparseContentResource.class);
 
   private Content content;
   private Session session;
   private ResourceResolver resourceResolver;
   private ResourceMetadata metadata;
+  private String resourcePath;
 
   private ContentManager contentManager;
 
   public SparseContentResource(Content content, Session session, ResourceResolver resourceResolver) throws StorageClientException {
+    this(content, session, resourceResolver, null);
+  }
+
+  public SparseContentResource(Content content, Session session, ResourceResolver resourceResolver, String resourcePath)
+      throws StorageClientException {
     this.content = content;
     this.session = session;
     this.contentManager = session.getContentManager();
     this.resourceResolver = resourceResolver;
+    this.resourcePath = resourcePath;
 
     Map<String, Object> props = content.getProperties();
     metadata = new ResourceMetadata();
@@ -131,12 +132,20 @@ public class SparseContentResource extends AbstractResource {
     }
     return retval;
   }
+
   /**
-   * {@inheritDoc}
+   * Returns the path at which the Resource was resolved, or the Content path
+   * if the Resource path was not explicitly set. This allows divergences
+   * between internal storage paths and externalized paths.
+   *
    * @see org.apache.sling.api.resource.Resource#getPath()
    */
   public String getPath() {
-    return content.getPath();
+    if (resourcePath != null) {
+      return resourcePath;
+    } else {
+      return content.getPath();
+    }
   }
 
   /**

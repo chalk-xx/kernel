@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,8 +100,7 @@ public class HomeResourceProvider implements ResourceProvider {
         AuthorizableManager um = session.getAuthorizableManager();
         Authorizable a = um.findAuthorizable(elements[0]);
         if (a != null) {
-          // TODO This needs to be replaced with a utility method call!
-          String userPath = "a:" + a.getId();
+          String userPath = LitePersonalUtils.getHomePath(a.getId());
           if (elements.length == 2) {
             userPath = userPath + "/" + elements[1];
           }
@@ -109,7 +109,7 @@ public class HomeResourceProvider implements ResourceProvider {
           LOGGER.debug("Resolving [{}] to [{}] ", userPath, content);
           if (content != null) {
             SparseContentResource cpr = new SparseContentResource(content, session,
-                resourceResolver);
+                resourceResolver, path);
             cpr.getResourceMetadata().put(HOME_RESOURCE_PROVIDER, this);
             return cpr;
           }

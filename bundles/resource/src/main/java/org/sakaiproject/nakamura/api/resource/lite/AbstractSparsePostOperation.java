@@ -75,7 +75,7 @@ public abstract class AbstractSparsePostOperation implements SparsePostOperation
                     SparsePostProcessor[] processors) {
         Resource resource = request.getResource();
         ContentManager contentManager = resource.adaptTo(ContentManager.class);
-        
+
         VersioningConfiguration versionableConfiguration = getVersioningConfiguration(request);
 
         try {
@@ -175,10 +175,9 @@ public abstract class AbstractSparsePostOperation implements SparsePostOperation
 
 
     /**
-     * Returns the path of the resource of the request as the item path.
-     * <p>
-     * This method may be overwritten by extension if the operation has
-     * different requirements on path processing.
+     * Returns the storage-system path corresponding to the resource of
+     * the request. For Sparse storage, this may differ from the Resource
+     * path.
      */
     protected String getItemPath(SlingHttpServletRequest request) {
         return request.getResource().getPath();
@@ -223,6 +222,8 @@ public abstract class AbstractSparsePostOperation implements SparsePostOperation
             String path) {
         StringBuffer ret = new StringBuffer();
         ret.append(SlingRequestPaths.getContextPath(request));
+        // TODO This is currently an expensive no-op, as JcrResourceResolver tries
+        // in vain to resolve the Content path as a Resource path.
         ret.append(request.getResourceResolver().map(path));
 
         // append optional extension
