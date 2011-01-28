@@ -99,8 +99,8 @@ public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider
       viewers.append(")");
 
       // convert to string for reuse
-      String managersParam = ClientUtils.escapeQueryChars(managers.toString());
-      String viewersParam = ClientUtils.escapeQueryChars(viewers.toString());
+      String managersParam = managers.toString();
+      String viewersParam = viewers.toString();
 
       // add properties for query templates
       propertiesMap.put("_meManagerGroupsNoAnd", managersParam);
