@@ -29,8 +29,6 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
-import org.sakaiproject.nakamura.api.resource.lite.SparsePostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,22 +78,23 @@ public abstract class AbstractSparsePostOperation implements SparsePostOperation
 
         try {
             // calculate the paths
-            String path = getItemPath(request);
-            path = removeAndValidateWorkspace(path);
-            response.setPath(path);
+            String contentPath = getItemPath(request);
+            String resourcePath = getFinalResourcePath(request, contentPath);
+            resourcePath = removeAndValidateWorkspace(resourcePath);
+            response.setPath(resourcePath);
 
             // location
-            response.setLocation(externalizePath(request, path));
+            response.setLocation(externalizePath(request, resourcePath));
 
             // parent location
-            path = ResourceUtil.getParent(path);
-            if (path != null) {
-                response.setParentLocation(externalizePath(request, path));
+            String parentResourcePath = ResourceUtil.getParent(resourcePath);
+            if (parentResourcePath != null) {
+                response.setParentLocation(externalizePath(request, parentResourcePath));
             }
 
             final List<Modification> changes = new ArrayList<Modification>();
 
-            doRun(request, response, contentManager, changes);
+            doRun(request, response, contentManager, changes, contentPath);
 
             // invoke processors
             for(int i=0; i<processors.length; i++) {
@@ -180,12 +179,22 @@ public abstract class AbstractSparsePostOperation implements SparsePostOperation
      * path.
      */
     protected String getItemPath(SlingHttpServletRequest request) {
-        return request.getResource().getPath();
+        Resource resource = request.getResource();
+        Content content = resource.adaptTo(Content.class);
+        if (content != null) {
+            return content.getPath();
+        } else {
+            return resource.getPath();
+        }
+    }
+
+    protected String getFinalResourcePath(SlingHttpServletRequest request, String finalContentPath) {
+      return request.getResource().getPath();
     }
 
     protected abstract void doRun(SlingHttpServletRequest request,
             HtmlResponse response,
-            ContentManager contentManager, List<Modification> changes) throws StorageClientException, AccessDeniedException, IOException;
+            ContentManager contentManager, List<Modification> changes, String contentPath) throws StorageClientException, AccessDeniedException, IOException;
 
     /**
      * Returns an iterator on <code>Resource</code> instances addressed in the

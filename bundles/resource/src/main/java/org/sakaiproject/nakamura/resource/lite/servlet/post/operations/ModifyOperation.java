@@ -33,9 +33,9 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.DateParser;
-import org.sakaiproject.nakamura.api.resource.RequestProperty;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparseCreateOperation;
 import org.sakaiproject.nakamura.api.resource.lite.SparseNonExistingResource;
+import org.sakaiproject.nakamura.api.resource.lite.SparseRequestProperty;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparseFileUploadHandler;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparsePropertyValueHandler;
 
@@ -68,27 +68,27 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
 
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
-      ContentManager contentManager, List<Modification> changes) throws StorageClientException, AccessDeniedException, IOException  {
+      ContentManager contentManager, List<Modification> changes, String contentPath) throws StorageClientException, AccessDeniedException, IOException  {
 
-    Map<String, RequestProperty> reqProperties = collectContent(request, response);
+    Map<String, SparseRequestProperty> reqProperties = collectContent(request, response, contentPath);
 
 
 
-    for (RequestProperty property : reqProperties.values()) {
+    for (SparseRequestProperty property : reqProperties.values()) {
       if (property.hasRepositoryMoveSource()) {
         String from = property.getRepositorySource();
-        String to = property.getPath();
+        String to = property.getContentPath();
         contentManager.move(from, to);
-        changes.add(Modification.onMoved(from, to));
+        changes.add(Modification.onMoved(from, property.getPath()));
         property.setDelete(false);
       } else if (property.hasRepositoryCopySource()) {
         String from = property.getRepositorySource();
-        String to = property.getPath();
+        String to = property.getContentPath();
         contentManager.copy(from, to, true);
-        changes.add(Modification.onCopied(from, to));
+        changes.add(Modification.onCopied(from, property.getPath()));
         property.setDelete(false);
       } else if ( property.isDelete()) {
-        contentManager.delete(property.getPath());
+        contentManager.delete(property.getContentPath());
         changes.add(Modification.onDeleted(property.getPath()));
       }
     }
@@ -97,16 +97,16 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
     SparsePropertyValueHandler propHandler = new SparsePropertyValueHandler(dateParser, changes);
 
     Map<String, Content> contentMap = Maps.newHashMap();
-    for (RequestProperty prop : reqProperties.values()) {
+    for (SparseRequestProperty prop : reqProperties.values()) {
       if (prop.hasValues()) {
-        String path = prop.getParentPath();
-        Content content = contentMap.get(path);
+        String propContentPath = prop.getContentPath();
+        Content content = contentMap.get(propContentPath);
         if ( content == null  ) {
-          content = contentManager.get(path);
+          content = contentManager.get(propContentPath);
           if ( content == null ) {
-            content = new Content(path, null);
+            content = new Content(propContentPath, null);
           }
-          contentMap.put(path, content);
+          contentMap.put(propContentPath, content);
         }
         // skip jcr special properties
         if (prop.getName().equals("jcr:primaryType")
@@ -200,5 +200,21 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
     return path;
   }
 
+  protected String getFinalResourcePath(SlingHttpServletRequest request, String finalContentPath) {
+    Resource resource = request.getResource();
+    String resourcePath = resource.getPath();
+    String originalContentPath;
+    Content content = resource.adaptTo(Content.class);
+    if (content != null) {
+      originalContentPath = content.getPath();
+    } else {
+      originalContentPath =  resource.getPath();
+    }
+    if (finalContentPath.startsWith(originalContentPath)) {
+      String suffix = finalContentPath.substring(originalContentPath.length());
+      resourcePath = resourcePath + suffix;
+    }
+    return resourcePath;
+  }
 
 }

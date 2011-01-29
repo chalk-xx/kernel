@@ -21,7 +21,7 @@ import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.resource.DateParser;
-import org.sakaiproject.nakamura.api.resource.RequestProperty;
+import org.sakaiproject.nakamura.api.resource.lite.SparseRequestProperty;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -155,7 +155,7 @@ public class SparsePropertyValueHandler {
    * @throws RepositoryException
    *           if a repository error occurs.
    */
-  public void setProperty(Content content, RequestProperty prop) {
+  public void setProperty(Content content, SparseRequestProperty prop) {
     // no explicit typehint
 
     String type = prop.getTypeHint();
@@ -170,21 +170,21 @@ public class SparsePropertyValueHandler {
     } else if (values.length == 0) {
       // do not create new prop here, but clear existing
       content.setProperty(prop.getName(), StorageClientUtils.toStore(""));
-      changes.add(Modification.onModified(content.getPath() + "@" + prop.getName()));
+      changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
     } else if (values.length == 1) {
       if (values[0].length() == 0) {
         content.setProperty(prop.getName(), StorageClientUtils.toStore(""));
-        changes.add(Modification.onModified(content.getPath() + "@" + prop.getName()));
+        changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
 
       } else {
         content.setProperty(prop.getName(),
             StorageClientUtils.toStore(fromRequest(type, values)));
-        changes.add(Modification.onModified(content.getPath() + "@" + prop.getName()));
+        changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
       }
     } else {
       content.setProperty(prop.getName(),
           StorageClientUtils.toStore(fromRequest(type, values)));
-      changes.add(Modification.onModified(content.getPath() + "@" + prop.getName()));
+      changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
     }
   }
 
