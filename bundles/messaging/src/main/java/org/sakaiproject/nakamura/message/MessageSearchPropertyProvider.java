@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.message;
 
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -29,11 +28,9 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingService;
-import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 
 import java.util.Map;
-
-import javax.jcr.Session;
 
 /**
  * Provides properties to process the search
@@ -44,10 +41,10 @@ import javax.jcr.Session;
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Provides some message search properties."),
     @Property(name = "sakai.search.provider", value = "Message") })
-public class MessageSearchPropertyProvider implements SearchPropertyProvider {
+public class MessageSearchPropertyProvider implements SolrSearchPropertyProvider {
 
   @Reference
-  protected transient MessagingService messagingService;
+  MessagingService messagingService;
 
   /**
    * {@inheritDoc}
@@ -58,17 +55,16 @@ public class MessageSearchPropertyProvider implements SearchPropertyProvider {
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
     String user = request.getRemoteUser();
-    Session session = request.getResourceResolver().adaptTo(Session.class);
     propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ClientUtils
-        .escapeQueryChars(messagingService.getFullPathToStore(user, session)));
+        .escapeQueryChars(messagingService.getFullPathToStore(user)));
 
     RequestParameter address = request.getRequestParameter("address");
     if (address != null && !address.getString().equals("")) {
       // resolve the address by finding the authorizables.
       String addressString = address.getString();
-      String storePath = messagingService.getFullPathToStore(addressString, session);
-      propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ClientUtils
-              .escapeQueryChars(storePath));
+      String storePath = messagingService.getFullPathToStore(addressString);
+      propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE,
+          ClientUtils.escapeQueryChars(storePath));
     }
 
     RequestParameter usersParam = request.getRequestParameter("_from");
