@@ -55,8 +55,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
-import org.sakaiproject.nakamura.lite.jackrabbit.SparseRepositoryHolder;
-import org.sakaiproject.nakamura.profile.ProfileServiceImpl;
+import org.sakaiproject.nakamura.profile.LiteProfileServiceImpl;
 import org.sakaiproject.nakamura.testutils.mockito.MockitoTestUtils;
 
 import java.io.PrintWriter;
@@ -146,7 +145,7 @@ public class ManageMembersContentPoolServletTest {
     // TODO With this, we are testing the internals of the ProfileServiceImpl
     // class as well as the internals of the MeServlet class. Mocking it would
     // reduce the cost of test maintenance.
-    servlet.profileService = new ProfileServiceImpl();
+    servlet.profileService = new LiteProfileServiceImpl();
     when(resource.getResourceResolver()).thenReturn(resourceResolver);
     when(resourceResolver.adaptTo(Session.class)).thenReturn(session);
 

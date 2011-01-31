@@ -124,6 +124,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
   private static final String MESSAGE_FOLDER = "/message";
 
+  private static final String PROFILE_FOLDER = "/authprofile";
+
   private static final String SAKAI_CONTACTSTORE_RT = "sakai/contactstore";
 
   private static final String SAKAI_CALENDAR_RT = "sakai/calendar";
@@ -140,6 +142,10 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
   private static final String SAKAI_GROUP_HOME_RT = "sakai/group-home";
 
+  private static final String SAKAI_GROUP_PROFILE_RT = "sakai/group-profile";
+  
+  private static final String SAKAI_USER_PROFILE_RT = "sakai/user-profile";
+
   private static final String SLING_RESOURCE_TYPE = "sling:resourceType";
   static final String VISIBILITY_PRIVATE = "private";
   static final String VISIBILITY_LOGGED_IN = "logged_in";
@@ -151,6 +157,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       @PropertyOption(name = VISIBILITY_PUBLIC, value = "The home is completely public.") })
   static final String VISIBILITY_PREFERENCE = "visibility.preference";
   static final String VISIBILITY_PREFERENCE_DEFAULT = VISIBILITY_PUBLIC;
+
   private String visibilityPreference;
 
   @Activate
@@ -261,7 +268,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     // Pages
     // TODO:
     // Profile
-    // TODO:
+    String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT : SAKAI_USER_PROFILE_RT;
+    createPath(authId, homePath + PROFILE_FOLDER, profileType, false, contentManager, accessControlManager);
 
   }
 
