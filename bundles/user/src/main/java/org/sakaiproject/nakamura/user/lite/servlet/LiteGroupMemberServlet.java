@@ -41,6 +41,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -241,7 +242,7 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
       JSONException, AccessDeniedException, StorageClientException {
     TreeMap<String, Authorizable> map = new TreeMap<String, Authorizable>(comparator);
 
-    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(Session.class));
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
 
     // Only the direct members are required.
@@ -249,6 +250,11 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
     String[] members = group.getMembers();
     for ( String membername : members) {
       Authorizable member = authorizableManager.findAuthorizable(membername);
+      if (member.hasProperty("sakai:managed-group") && group.getId().equals(member.getProperty("sakai:managed-group"))) {
+        // for purposes of returning a list of members, we disregard the group's managers' group,
+        // which is technically a member, but we don't want to see it here.
+        continue;
+      }
       String name = getName(member);
       map.put(name, member);
     }
@@ -279,7 +285,7 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
     // KERN-949 will probably change this.
     // note above was made before this was changed to retrieving members of the managers
     // group and may not apply.
-    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(Session.class));
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
     String[] managersGroup = StorageClientUtils.toStringArray(group.getProperty(UserConstants.PROP_MANAGERS_GROUP));
     if (managersGroup != null && managersGroup.length == 1) {
