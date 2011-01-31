@@ -22,7 +22,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.request.RequestParameter;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
@@ -48,47 +47,13 @@ public class FileSearchPropertyProviderTest {
   }
 
   @Test
-  public void testSortOrder() {
-    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
-
-    RequestParameter sortOnParam = mock(RequestParameter.class);
-    RequestParameter sortOrderParam = mock(RequestParameter.class);
-
-    when(sortOnParam.getString()).thenReturn("jcr:mimeType");
-    when(sortOrderParam.getString()).thenReturn("descending");
-
-    when(request.getRequestParameter("sortOn")).thenReturn(sortOnParam);
-    when(request.getRequestParameter("sortOrder")).thenReturn(sortOrderParam);
-
-    String result = provider.doSortOrder(request);
-    assertEquals(" order by @jcr:mimeType descending", result);
-  }
-
-  @Test
   public void testTags() {
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
 
     String[] tags = new String[] { "foo", "bar" };
     when(request.getParameterValues("sakai:tags")).thenReturn(tags);
     String result = provider.doTags(request);
-    assertEquals(" and (@sakai:tags=\"foo\" and @sakai:tags=\"bar\")", result);
-  }
-
-  @Test
-  public void testEmptyValue() {
-    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
-    String result = provider.getSearchValue(request);
-    assertEquals("*", result);
-  }
-
-  @Test
-  public void testNonEmptyValue() {
-    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
-    RequestParameter searchParam = mock(RequestParameter.class);
-    when(searchParam.getString()).thenReturn("term");
-    when(request.getRequestParameter("q")).thenReturn(searchParam);
-    String result = provider.getSearchValue(request);
-    assertEquals("term", result);
+    assertEquals("tag:(\"foo\" AND \"bar\")", result);
   }
 
   @Test
@@ -98,7 +63,7 @@ public class FileSearchPropertyProviderTest {
         .thenReturn(connections);
 
     String query = provider.getMyContacts("alice");
-    assertEquals(" and (@jcr:createdBy=\"bob\" or @jcr:createdBy=\"jack\")", query);
+    assertEquals("AND createdBy:(\"bob\" OR \"jack\")", query);
   }
 
   @Test

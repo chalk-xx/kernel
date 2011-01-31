@@ -92,7 +92,7 @@ public class CalendarSearchPropertyProviderTest {
   }
 
   public Calendar parseDate(String s) throws ParseException {
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy\\-MM\\-dd");
     Calendar c = Calendar.getInstance();
     c.setTimeInMillis(sdf.parse(s).getTime());
     return c;

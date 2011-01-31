@@ -130,6 +130,17 @@ public interface FilesConstants {
    */
   public static final String PUBLIC_ACCESS_SCHEME = "public";
 
-  public static final String POOLED_NEEDS_UPDATE = "sakai:needsprocessing";
+  public static final String POOLED_NEEDS_PROCESSING = "sakai:needsprocessing";
 
+  /** Property of when the content was last modified */
+  String LAST_MODIFIED = "lastModified";
+
+  /** Property of who modified the content last */
+  String LAST_MODIFIED_BY = "lastModifiedBy";
+
+  /** Property of when the content was created */
+  String CREATED = "created";
+
+  /** Property of who created the content */
+  String CREATED_BY = "createdBy";
 }

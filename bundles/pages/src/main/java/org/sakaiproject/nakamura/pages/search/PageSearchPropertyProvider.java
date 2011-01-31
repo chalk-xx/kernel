@@ -1,25 +1,21 @@
 package org.sakaiproject.nakamura.pages.search;
 
-import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import javax.jcr.query.Query;
-
 /**
  * Provides properties to process the search
- * 
+ *
  */
 @Component(immediate = true, label = "PageSearchPropertyProvider", description = "Formatter for page search results.")
 @Properties(value = {
@@ -64,8 +60,8 @@ public class PageSearchPropertyProvider implements SearchPropertyProvider {
       path = path.substring(0, path.length() - 1);
     }
 
-    propertiesMap.put("_filter", escapeString(filter, Query.XPATH));
-    propertiesMap.put("_path", ISO9075.encodePath(path));
+    propertiesMap.put("_filter", ClientUtils.escapeQueryChars(filter));
+    propertiesMap.put("_path", ClientUtils.escapeQueryChars(path));
   }
 
 }

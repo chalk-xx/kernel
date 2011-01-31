@@ -22,7 +22,7 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_FILENAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_RT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_NEEDS_UPDATE;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_NEEDS_PROCESSING;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Properties;
@@ -251,7 +251,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       contentProperties.put(POOLED_CONTENT_FILENAME, StorageClientUtils.toStore(value.getFileName()));
       contentProperties.put(SLING_RESOURCE_TYPE_PROPERTY, StorageClientUtils.toStore(POOLED_CONTENT_RT));
       contentProperties.put(POOLED_CONTENT_CREATED_FOR, StorageClientUtils.toStore(au.getId()));
-      contentProperties.put(POOLED_NEEDS_UPDATE, StorageClientUtils.toStore("true"));
+      contentProperties.put(POOLED_NEEDS_PROCESSING, StorageClientUtils.toStore("true"));
       contentProperties.put(Content.MIMETYPE, StorageClientUtils.toStore(contentType));
       contentProperties.put(POOLED_CONTENT_USER_MANAGER, StorageClientUtils.toStore(new String[]{au.getId()}) );
       
