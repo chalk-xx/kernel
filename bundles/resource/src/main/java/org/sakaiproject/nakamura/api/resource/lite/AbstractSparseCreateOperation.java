@@ -56,19 +56,19 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
 
   /**
    * Collects the properties that form the content to be written back to the repository.
-   * 
+   *
    * @throws RepositoryException
    *           if a repository error occurs
    * @throws ServletException
    *           if an internal error occurs
    */
-  protected Map<String, RequestProperty> collectContent(SlingHttpServletRequest request,
-      HtmlResponse response) {
+  protected Map<String, SparseRequestProperty> collectContent(SlingHttpServletRequest request,
+      HtmlResponse response, String contentPath) {
 
     boolean requireItemPrefix = requireItemPathPrefix(request);
 
     // walk the request parameters and collect the properties
-    LinkedHashMap<String, RequestProperty> reqProperties = new LinkedHashMap<String, RequestProperty>();
+    LinkedHashMap<String, SparseRequestProperty> reqProperties = new LinkedHashMap<String, SparseRequestProperty>();
     for (Map.Entry<String, RequestParameter[]> e : request.getRequestParameterMap()
         .entrySet()) {
       final String paramName = e.getKey();
@@ -94,8 +94,8 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
       // <input type="hidden" name="./age@TypeHint" value="long" />
       // causes the setProperty using the 'long' property type
       if (propPath.endsWith(SlingPostConstants.TYPE_HINT_SUFFIX)) {
-        RequestProperty prop = getOrCreateRequestProperty(reqProperties, propPath,
-            SlingPostConstants.TYPE_HINT_SUFFIX);
+        SparseRequestProperty prop = getOrCreateRequestProperty(reqProperties, propPath,
+            SlingPostConstants.TYPE_HINT_SUFFIX, contentPath);
 
         final RequestParameter[] rp = e.getValue();
         if (rp.length > 0) {
@@ -108,7 +108,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
       // @DefaultValue
       if (propPath.endsWith(SlingPostConstants.DEFAULT_VALUE_SUFFIX)) {
         RequestProperty prop = getOrCreateRequestProperty(reqProperties, propPath,
-            SlingPostConstants.DEFAULT_VALUE_SUFFIX);
+            SlingPostConstants.DEFAULT_VALUE_SUFFIX, contentPath);
 
         prop.setDefaultValues(e.getValue());
 
@@ -123,7 +123,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
       // fulltext form field.
       if (propPath.endsWith(SlingPostConstants.VALUE_FROM_SUFFIX)) {
         RequestProperty prop = getOrCreateRequestProperty(reqProperties, propPath,
-            SlingPostConstants.VALUE_FROM_SUFFIX);
+            SlingPostConstants.VALUE_FROM_SUFFIX, contentPath);
 
         // @ValueFrom params must have exactly one value, else ignored
         if (e.getValue().length == 1) {
@@ -143,7 +143,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
       // causes the JCR Text property to be deleted before update
       if (propPath.endsWith(SlingPostConstants.SUFFIX_DELETE)) {
         RequestProperty prop = getOrCreateRequestProperty(reqProperties, propPath,
-            SlingPostConstants.SUFFIX_DELETE);
+            SlingPostConstants.SUFFIX_DELETE, contentPath);
 
         prop.setDelete(true);
 
@@ -157,7 +157,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
       // property to Text.
       if (propPath.endsWith(SlingPostConstants.SUFFIX_MOVE_FROM)) {
         RequestProperty prop = getOrCreateRequestProperty(reqProperties, propPath,
-            SlingPostConstants.SUFFIX_MOVE_FROM);
+            SlingPostConstants.SUFFIX_MOVE_FROM, contentPath);
 
         // @MoveFrom params must have exactly one value, else ignored
         if (e.getValue().length == 1) {
@@ -175,7 +175,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
       // property to Text.
       if (propPath.endsWith(SlingPostConstants.SUFFIX_COPY_FROM)) {
         RequestProperty prop = getOrCreateRequestProperty(reqProperties, propPath,
-            SlingPostConstants.SUFFIX_COPY_FROM);
+            SlingPostConstants.SUFFIX_COPY_FROM, contentPath);
 
         // @MoveFrom params must have exactly one value, else ignored
         if (e.getValue().length == 1) {
@@ -196,7 +196,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
       // property to Text.
       if (propPath.endsWith(SlingPostConstants.SUFFIX_IGNORE_BLANKS)) {
         RequestProperty prop = getOrCreateRequestProperty(reqProperties, propPath,
-            SlingPostConstants.SUFFIX_IGNORE_BLANKS);
+            SlingPostConstants.SUFFIX_IGNORE_BLANKS, contentPath);
 
         if (e.getValue().length == 1) {
           prop.setIgnoreBlanks(true);
@@ -207,7 +207,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
 
       if (propPath.endsWith(SlingPostConstants.SUFFIX_USE_DEFAULT_WHEN_MISSING)) {
         RequestProperty prop = getOrCreateRequestProperty(reqProperties, propPath,
-            SlingPostConstants.SUFFIX_USE_DEFAULT_WHEN_MISSING);
+            SlingPostConstants.SUFFIX_USE_DEFAULT_WHEN_MISSING, contentPath);
 
         if (e.getValue().length == 1) {
           prop.setUseDefaultWhenMissing(true);
@@ -217,7 +217,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
       }
 
       // plain property, create from values
-      RequestProperty prop = getOrCreateRequestProperty(reqProperties, propPath, null);
+      RequestProperty prop = getOrCreateRequestProperty(reqProperties, propPath, null, contentPath);
       prop.setValues(e.getValue());
     }
 
@@ -240,7 +240,7 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
   /**
    * Returns the request property for the given property path. If such a request property
    * does not exist yet it is created and stored in the <code>props</code>.
-   * 
+   *
    * @param props
    *          The map of already seen request properties.
    * @param paramName
@@ -249,17 +249,18 @@ public abstract class AbstractSparseCreateOperation extends AbstractSparsePostOp
    * @param suffix
    *          The (optional) suffix to remove from the <code>paramName</code> before
    *          looking it up.
+   * @param contentPath TODO
    * @return The {@link RequestProperty} for the <code>paramName</code>.
    */
-  private RequestProperty getOrCreateRequestProperty(Map<String, RequestProperty> props,
-      String paramName, String suffix) {
+  private SparseRequestProperty getOrCreateRequestProperty(Map<String, SparseRequestProperty> props,
+      String paramName, String suffix, String contentPath) {
     if (suffix != null && paramName.endsWith(suffix)) {
       paramName = paramName.substring(0, paramName.length() - suffix.length());
     }
 
-    RequestProperty prop = props.get(paramName);
+    SparseRequestProperty prop = props.get(paramName);
     if (prop == null) {
-      prop = new RequestProperty(paramName);
+      prop = new SparseRequestProperty(paramName, contentPath);
       props.put(paramName, prop);
     }
 

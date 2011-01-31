@@ -20,20 +20,19 @@ public class DeleteOperation extends AbstractSparsePostOperation {
 
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
-      ContentManager contentManager, List<Modification> changes)
+      ContentManager contentManager, List<Modification> changes, String contentPath)
       throws StorageClientException, AccessDeniedException, IOException {
 
     Iterator<Resource> res = getApplyToResources(request);
     if (res == null) {
 
       Resource resource = request.getResource();
-      Content contentItem = resource.adaptTo(Content.class);
-      if (contentItem == null) {
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Missing source " + resource
+      if (contentPath == null) {
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Missing source " + contentPath
             + " for delete");
         return;
       }
-      contentManager.delete(contentItem.getPath());
+      contentManager.delete(contentPath);
       changes.add(Modification.onDeleted(resource.getPath()));
 
     } else {

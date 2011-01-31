@@ -140,7 +140,9 @@ public class LiteResourceResolver implements ResourceResolver {
     try {
       ContentManager cm = session.getContentManager();
       Content content = cm.get(path);
-      resource = new SparseContentResource(content, session, this);
+      if (content != null) {
+        resource = new SparseContentResource(content, session, this);
+      }
     } catch (ClientPoolException e) {
       logger.error(e.getMessage(), e);
     } catch (StorageClientException e) {

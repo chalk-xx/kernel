@@ -93,7 +93,7 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
    */
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
-      ContentManager contentManager, List<Modification> changes) {
+      ContentManager contentManager, List<Modification> changes, String contentPath) {
 
     // Check if the user has the required minimum privilege.
     String user = request.getRemoteUser();
