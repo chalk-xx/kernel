@@ -21,11 +21,11 @@ class TC_Kern1064Test < Test::Unit::TestCase
     })
     assert_equal("200", res.code, "Should have created group as admin")
     @s.switch_user(SlingUsers::User.anonymous)
-    res = @s.execute_get(@s.url_for("/system/userManager/group/#{group.name}.json"))
+    res = @s.execute_get(@s.url_for("/system/lite/userManager/group/#{group.name}.json"))
     assert_equal("200", res.code, "By default, the new Group is public")
 
     @s.switch_user(SlingUsers::User.anonymous)
-    res = @s.execute_get(@s.url_for("/system/userManager/group/#{group.name}.json"))
+    res = @s.execute_get(@s.url_for("/system/lite/userManager/group/#{group.name}.json"))
     assert_equal("200", res.code, "The Group should still be visible to anonymous users")
 
     @s.switch_user(User.admin_user())
@@ -33,10 +33,10 @@ class TC_Kern1064Test < Test::Unit::TestCase
       ":viewer" => "everyone"
     })
     @s.switch_user(nonmember)
-    res = @s.execute_get(@s.url_for("/system/userManager/group/#{group.name}.json"))
+    res = @s.execute_get(@s.url_for("/system/lite/userManager/group/#{group.name}.json"))
     assert_equal("200", res.code, "The Group should be visible to logged-in users")
     @s.switch_user(SlingUsers::User.anonymous)
-    res = @s.execute_get(@s.url_for("/system/userManager/group/#{group.name}.json"))
+    res = @s.execute_get(@s.url_for("/system/lite/userManager/group/#{group.name}.json"))
     assert_not_equal("200", res.code, "The Group should no longer be visible to anonymous users")
   end
 
