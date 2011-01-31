@@ -40,6 +40,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
@@ -200,7 +201,14 @@ public class LiteDeleteSakaiAuthorizableServlet extends LiteAbstractAuthorizable
           LOGGER.error("Failed to launch an OSGi event for creating a user.", e);
         }
       }
-
+    } catch ( AccessDeniedException e) {
+      if ( LOGGER.isDebugEnabled() ) {
+        LOGGER.debug(e.getMessage(),e);
+      } else {
+        LOGGER.warn(e.getMessage());
+      }
+      response.setStatus(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+      return;
     } catch (Exception e) {
       // undo any changes
       LOGGER.warn(e.getMessage(),e);
