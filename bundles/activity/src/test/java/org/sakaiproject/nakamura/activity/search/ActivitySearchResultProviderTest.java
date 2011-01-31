@@ -24,9 +24,9 @@ import static org.junit.Assert.fail;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -61,7 +61,7 @@ public class ActivitySearchResultProviderTest extends AbstractEasyMockTest {
     Map<String, String> propertiesMap = new HashMap<String, String>();
     provider.loadUserProperties(request, propertiesMap);
     String actual = propertiesMap.get("_myFeed");
-    String expected = ISO9075.encodePath("/_user/a/ad/admin/private/"
+    String expected = ClientUtils.escapeQueryChars("/_user/a/ad/admin/private/"
         + ActivityConstants.ACTIVITY_FEED_NAME);
     assertEquals(expected, actual);
   }

@@ -18,10 +18,8 @@
 package org.sakaiproject.nakamura.discussion;
 
 import static org.easymock.EasyMock.expect;
-
-import static org.junit.Assert.assertNull;
-
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
@@ -40,7 +38,7 @@ public class InitialPostPropertyProviderTest extends AbstractEasyMockTest {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest#setUp()
    */
   @Override
@@ -58,7 +56,7 @@ public class InitialPostPropertyProviderTest extends AbstractEasyMockTest {
 
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     expect(request.getResource()).andReturn(resource);
-    addStringRequestParameter(request, "path", "/aa/00/aa");
+    addStringRequestParameter(request, "path", "a:userIdHere");
 
     replay();
     provider.loadUserProperties(request, propertiesMap);
@@ -66,7 +64,7 @@ public class InitialPostPropertyProviderTest extends AbstractEasyMockTest {
     // Remove normal path string from map.
     assertNull(propertiesMap.get("path"));
     // Proper escaping.
-    assertEquals("/aa/_x0030_0/aa", propertiesMap.get("_path"));
+    assertEquals("a\\:userIdHere", propertiesMap.get("_path"));
   }
 
 }

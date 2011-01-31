@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.search.processors;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -29,6 +28,7 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -109,8 +109,27 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
         request.setAttribute("memberIds", memberIds);
       } else {
         // update the query to filter before writing nodes
-        String users = StringUtils.join(memberIds, "' or rep:userId='");
-        propertiesMap.put("_groupQuery", "and (rep:userId='" + users + "')");
+
+        // start building solr query
+        StringBuilder solrQuery = new StringBuilder("userId:(");
+
+        // add member id's
+        Iterator<String> members = memberIds.iterator();
+        while(members.hasNext()) {
+          String memberId = members.next();
+          solrQuery.append("'");
+          solrQuery.append(ClientUtils.escapeQueryChars(memberId));
+          solrQuery.append("'");
+
+          if (members.hasNext()) {
+            solrQuery.append(" OR ");
+          }
+        }
+
+        // finish building solr query
+        solrQuery.append(")");
+
+        propertiesMap.put("_groupQuery", solrQuery.toString());
       }
     } catch (RepositoryException e) {
       logger.error(e.getMessage(), e);

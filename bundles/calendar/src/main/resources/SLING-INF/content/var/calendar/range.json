@@ -1,6 +1,6 @@
 {
   //"sakai:query-template" : "/jcr:root{_calendar-path}//*[(@sakai:vcal-DTSTART >= xs:dateTime('{_date-start}') and @sakai:vcal-DTSTART <= xs:dateTime('{_date-end}')) and jcr:like(@sling:resourceType, 'sakai/calendar%')] order by @{sortOn|sakai:vcal-DTSTART} {sortOrder|ascending}",
-  "sakai:query-template" : "+path:${_calendar-path} +vcal-DTSTART:[${_date-start} TO ${_date-end}] +resourceType:sakai/calendar%;${sortOn} ${sortOrder}",
+  "sakai:query-template" : "+path:${_calendar-path} +vcal-DTSTART:[${_date-start} TO ${_date-end}] +resourceType:sakai/calendar;${sortOn} ${sortOrder}",
   "sortOn": "vcal-DTSTART",
   "sortOrder": "asc",
   "sling:resourceType": "sakai/solr-search",

@@ -18,10 +18,8 @@
 package org.sakaiproject.nakamura.message;
 
 import static org.junit.Assert.assertEquals;
-
-import static org.mockito.Mockito.when;
-
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -58,7 +56,7 @@ public class MessageSearchPropertyProviderTest extends AbstractEasyMockTest {
     Authorizable au = createAuthorizable("admin", false, true);
     UserManager um = createUserManager(null, true, au);
     when(session.getUserManager()).thenReturn(um);
-    
+
     // Special requests
     RequestParameter fromParam = mock(RequestParameter.class);
     when(fromParam.getString()).thenReturn("usera,userb");
@@ -75,8 +73,7 @@ public class MessageSearchPropertyProviderTest extends AbstractEasyMockTest {
     assertEquals("/_user/a/ad/admin/message", pMap
         .get(MessageConstants.SEARCH_PROP_MESSAGESTORE));
 
-    assertEquals(" and (@sakai:from=\"usera\" or @sakai:from=\"userb\")", pMap
-        .get("_from"));
+    assertEquals("from:(\"usera\" OR \"userb\")", pMap.get("_from"));
   }
 
 }

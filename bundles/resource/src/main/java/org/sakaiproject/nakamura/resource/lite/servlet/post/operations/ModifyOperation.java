@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 
 import org.apache.sling.api.SlingException;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.HtmlResponse;
@@ -34,8 +33,9 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.DateParser;
-import org.sakaiproject.nakamura.api.resource.RequestProperty;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparseCreateOperation;
+import org.sakaiproject.nakamura.api.resource.lite.SparseNonExistingResource;
+import org.sakaiproject.nakamura.api.resource.lite.SparseRequestProperty;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparseFileUploadHandler;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparsePropertyValueHandler;
 
@@ -68,27 +68,27 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
 
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
-      ContentManager contentManager, List<Modification> changes) throws StorageClientException, AccessDeniedException, IOException  {
+      ContentManager contentManager, List<Modification> changes, String contentPath) throws StorageClientException, AccessDeniedException, IOException  {
 
-    Map<String, RequestProperty> reqProperties = collectContent(request, response);
+    Map<String, SparseRequestProperty> reqProperties = collectContent(request, response, contentPath);
 
 
 
-    for (RequestProperty property : reqProperties.values()) {
+    for (SparseRequestProperty property : reqProperties.values()) {
       if (property.hasRepositoryMoveSource()) {
         String from = property.getRepositorySource();
-        String to = property.getPath();
+        String to = property.getContentPath();
         contentManager.move(from, to);
-        changes.add(Modification.onMoved(from, to));
+        changes.add(Modification.onMoved(from, property.getPath()));
         property.setDelete(false);
       } else if (property.hasRepositoryCopySource()) {
         String from = property.getRepositorySource();
-        String to = property.getPath();
+        String to = property.getContentPath();
         contentManager.copy(from, to, true);
-        changes.add(Modification.onCopied(from, to));
+        changes.add(Modification.onCopied(from, property.getPath()));
         property.setDelete(false);
       } else if ( property.isDelete()) {
-        contentManager.delete(property.getPath());
+        contentManager.delete(property.getContentPath());
         changes.add(Modification.onDeleted(property.getPath()));
       }
     }
@@ -97,16 +97,16 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
     SparsePropertyValueHandler propHandler = new SparsePropertyValueHandler(dateParser, changes);
 
     Map<String, Content> contentMap = Maps.newHashMap();
-    for (RequestProperty prop : reqProperties.values()) {
+    for (SparseRequestProperty prop : reqProperties.values()) {
       if (prop.hasValues()) {
-        String path = prop.getParentPath();
-        Content content = contentMap.get(path);
+        String propContentPath = prop.getContentPath();
+        Content content = contentMap.get(propContentPath);
         if ( content == null  ) {
-          content = contentManager.get(path);
+          content = contentManager.get(propContentPath);
           if ( content == null ) {
-            content = new Content(path, null);
+            content = new Content(propContentPath, null);
           }
-          contentMap.put(path, content);
+          contentMap.put(propContentPath, content);
         }
         // skip jcr special properties
         if (prop.getName().equals("jcr:primaryType")
@@ -133,7 +133,11 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
     StringBuffer rootPathBuf = new StringBuffer();
     String suffix;
     Resource currentResource = request.getResource();
-    if (ResourceUtil.isSyntheticResource(currentResource)) {
+    if (currentResource instanceof SparseNonExistingResource) {
+      // no resource, treat the target Content path as suffix
+      SparseNonExistingResource nonExistingResource = (SparseNonExistingResource) currentResource;
+      suffix = nonExistingResource.getTargetContentPath();
+    } else if (ResourceUtil.isSyntheticResource(currentResource)) {
 
       // no resource, treat the missing resource path as suffix
       suffix = currentResource.getPath();
@@ -143,22 +147,29 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
       // resource for part of the path, use request suffix
       suffix = request.getRequestPathInfo().getSuffix();
 
-      // and preset the path buffer with the resource path
-      rootPathBuf.append(currentResource.getPath());
+      // cut off any selectors/extension from the suffix
+      if (suffix != null) {
+        int dotPos = suffix.indexOf('.');
+        if (dotPos > 0) {
+          suffix = suffix.substring(0, dotPos);
+        }
+      }
+
+      // and preset the path buffer with the content path
+      Content content = currentResource.adaptTo(Content.class);
+      if (content != null) {
+        rootPathBuf.append(content.getPath());
+      } else {
+        rootPathBuf.append(currentResource.getPath());
+      }
 
     }
 
-    // check for extensions or create suffix in the suffix
+    // check for star or create suffix
     boolean doGenerateName = false;
     if (suffix != null) {
 
-      // cut off any selectors/extension from the suffix
-      int dotPos = suffix.indexOf('.');
-      if ((dotPos > 0) && (!(currentResource instanceof NonExistingResource))) {
-        suffix = suffix.substring(0, dotPos);
-      }
-
-      // and check whether it is a create request (trailing /)
+      // check whether it is a create request (trailing /)
       if (suffix.endsWith(SlingPostConstants.DEFAULT_CREATE_SUFFIX)) {
         suffix = suffix.substring(0, suffix.length()
             - SlingPostConstants.DEFAULT_CREATE_SUFFIX.length());
@@ -189,5 +200,21 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
     return path;
   }
 
+  protected String getFinalResourcePath(SlingHttpServletRequest request, String finalContentPath) {
+    Resource resource = request.getResource();
+    String resourcePath = resource.getPath();
+    String originalContentPath;
+    Content content = resource.adaptTo(Content.class);
+    if (content != null) {
+      originalContentPath = content.getPath();
+    } else {
+      originalContentPath =  resource.getPath();
+    }
+    if (finalContentPath.startsWith(originalContentPath)) {
+      String suffix = finalContentPath.substring(originalContentPath.length());
+      resourcePath = resourcePath + suffix;
+    }
+    return resourcePath;
+  }
 
 }

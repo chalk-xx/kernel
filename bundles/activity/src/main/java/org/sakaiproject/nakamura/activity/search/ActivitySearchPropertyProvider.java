@@ -23,9 +23,9 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.activity.ActivityUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -68,7 +68,7 @@ public class ActivitySearchPropertyProvider implements SearchPropertyProvider {
     }
     String path = ActivityUtils.getUserFeed(au);
     // Encode the path
-    path = ISO9075.encodePath(path);
+    path = ClientUtils.escapeQueryChars(path);
     propertiesMap.put("_myFeed", path);
 
   }
