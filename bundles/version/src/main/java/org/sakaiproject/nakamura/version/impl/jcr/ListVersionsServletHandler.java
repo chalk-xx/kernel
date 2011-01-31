@@ -208,8 +208,10 @@ public class ListVersionsServletHandler extends AbstractSafeMethodsServletResour
       UserManager m = AccessControlUtil.getUserManager(node.getSession());
       Authorizable authorizable = m.getAuthorizable(user);
       ValueMap map = profileService.getProfileMap(authorizable, node.getSession());
-      write.key(VersionService.SAVED_BY);
-      write.valueMap(map);
+      if ( map != null ) {
+        write.key(VersionService.SAVED_BY);
+        write.valueMap(map);
+      }
     }
   }
 
