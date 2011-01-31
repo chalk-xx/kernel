@@ -313,7 +313,7 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
           digestPassword(pwd), null)) {
         log.info("User {} created", principalName);
         User user = (User) authorizableManager.findAuthorizable(principalName);
-
+        
         String userPath = LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
             + user.getId();
         Map<String, RequestProperty> reqProperties = collectContent(request, response,

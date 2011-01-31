@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -51,20 +52,34 @@ public class SparseContentResource extends AbstractResource {
    */
   public static final String SPARSE_CONTENT_RT = "sparse/Content";
 
+  /**
+   * If the Sparse Content contains no "sling:resourceType" property, then the
+   * Resource will return this as the fallback resource type. (More or less
+   * takes the place of "nt:unstructured" in the JCR world.)
+   */
+  public static final String SPARSE_CONTENT_UNKNOWN_RT = "sparse/unknown";
+
   private static final Logger logger = LoggerFactory.getLogger(SparseContentResource.class);
 
   private Content content;
   private Session session;
   private ResourceResolver resourceResolver;
   private ResourceMetadata metadata;
+  private String resourcePath;
 
   private ContentManager contentManager;
 
   public SparseContentResource(Content content, Session session, ResourceResolver resourceResolver) throws StorageClientException {
+    this(content, session, resourceResolver, null);
+  }
+
+  public SparseContentResource(Content content, Session session, ResourceResolver resourceResolver, String resourcePath)
+      throws StorageClientException {
     this.content = content;
     this.session = session;
     this.contentManager = session.getContentManager();
     this.resourceResolver = resourceResolver;
+    this.resourcePath = resourcePath;
 
     Map<String, Object> props = content.getProperties();
     metadata = new ResourceMetadata();
@@ -117,12 +132,20 @@ public class SparseContentResource extends AbstractResource {
     }
     return retval;
   }
+
   /**
-   * {@inheritDoc}
+   * Returns the path at which the Resource was resolved, or the Content path
+   * if the Resource path was not explicitly set. This allows divergences
+   * between internal storage paths and externalized paths.
+   *
    * @see org.apache.sling.api.resource.Resource#getPath()
    */
   public String getPath() {
-    return content.getPath();
+    if (resourcePath != null) {
+      return resourcePath;
+    } else {
+      return content.getPath();
+    }
   }
 
   /**
@@ -130,7 +153,11 @@ public class SparseContentResource extends AbstractResource {
    * @see org.apache.sling.api.resource.Resource#getResourceType()
    */
   public String getResourceType() {
-    return StorageClientUtils.toString(content.getProperties().get("sling:resourceType"));
+    String type = StorageClientUtils.toString(content.getProperties().get("sling:resourceType"));
+    if (type == null) {
+      type = SPARSE_CONTENT_UNKNOWN_RT;
+    }
+    return type;
   }
 
   /**
@@ -138,7 +165,7 @@ public class SparseContentResource extends AbstractResource {
    * @see org.apache.sling.api.resource.Resource#getResourceSuperType()
    */
   public String getResourceSuperType() {
-    return SPARSE_CONTENT_RT; 
+    return SPARSE_CONTENT_RT;
   }
 
   /**
@@ -157,4 +184,11 @@ public class SparseContentResource extends AbstractResource {
     return resourceResolver;
   }
 
+  /**
+   * @see org.sakaiproject.nakamura.api.resource.lite.AbstractResource#listChildren()
+   */
+  @Override
+  public Iterator<Resource> listChildren() {
+    return new SparseContentResourceIterator(content.listChildren().iterator(), session, resourceResolver);
+  }
 }

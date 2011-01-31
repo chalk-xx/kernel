@@ -401,18 +401,8 @@ KERN-1187
       <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
       <version>5.3.0-0.10-SNAPSHOT</version>
     </bundle>
-    <bundle>
-      <groupId>org.eclipse.persistence</groupId>
-      <artifactId>javax.persistence</artifactId>
-      <version>1.1.0</version>
-    </bundle>
    </startLevel>
    <startLevel level="10" >
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.eclipse.persistence.core</artifactId>
-      <version>1.1.0</version>
-    </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.securityloader</artifactId>
@@ -439,21 +429,6 @@ KERN-1187
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.10-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.eclipse.persistence.jpa</artifactId>
-      <version>1.1.0-0.10-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.eclipse.persistence</groupId>
-      <artifactId>org.eclipse.persistence.asm</artifactId>
-      <version>1.1.0</version>
-    </bundle>
-    <bundle>
-      <groupId>org.eclipse.persistence</groupId>
-      <artifactId>org.eclipse.persistence.antlr</artifactId>
-      <version>1.1.0</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -492,9 +467,6 @@ KERN-1187
       <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
       <version>0.10-SNAPSHOT</version>
     </bundle>
-<!--
-org.sakaiproject.nakamura.jpaprovider
--->
     <bundle>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.commons.scheduler</artifactId>
@@ -515,11 +487,6 @@ org.sakaiproject.nakamura.jpaprovider
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.jcr</artifactId>
-      <version>0.10-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.persistence</artifactId>
       <version>0.10-SNAPSHOT</version>
     </bundle>
     <bundle>

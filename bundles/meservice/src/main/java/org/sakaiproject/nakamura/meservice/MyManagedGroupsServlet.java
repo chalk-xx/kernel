@@ -116,7 +116,7 @@ import javax.jcr.Value;
     )
   }
 )
-@SlingServlet(paths = { "/system/me/managedgroups" }, generateComponent = true, generateService = true, methods = { "GET" })
+@SlingServlet(paths = { "/system/jackrabbitme/managedgroups" }, generateComponent = true, generateService = true, methods = { "GET" })
 @Reference(name="profileService", referenceInterface=ProfileService.class)
 public class MyManagedGroupsServlet extends AbstractMyGroupsServlet {
   private static final long serialVersionUID = 5286762541480563822L;

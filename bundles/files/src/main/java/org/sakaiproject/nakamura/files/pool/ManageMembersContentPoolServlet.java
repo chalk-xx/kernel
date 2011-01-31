@@ -30,15 +30,12 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -54,11 +51,13 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -98,7 +97,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
 
 
   @Reference
-  protected transient ProfileService profileService;
+  protected transient LiteProfileService profileService;
 
   /**
    * Retrieves the list of members.
@@ -114,10 +113,9 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
     try {
       // Get hold of the actual file.
       Resource resource = request.getResource();
-      javax.jcr.Session session = resource.getResourceResolver().adaptTo(
-          javax.jcr.Session.class);
+      Session session = resource.adaptTo(Session.class);
       
-      UserManager userManager = AccessControlUtil.getUserManager(session);
+      AuthorizableManager am = session.getAuthorizableManager();
       Content node = resource.adaptTo(Content.class);
 
       Map<String, Object> properties = node.getProperties();
@@ -144,30 +142,33 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       writer.key("managers");
       writer.array();
       for (String manager : StorageClientUtils.nonNullStringArray(managers)) {
-        writeProfileMap(session, userManager, writer, manager, detailed);
+        writeProfileMap(session, am, writer, manager, detailed);
       }
       writer.endArray();
       writer.key("viewers");
       writer.array();
       for (String viewer : StorageClientUtils.nonNullStringArray(viewers)) {
-        writeProfileMap(session, userManager, writer, viewer, detailed);
+        writeProfileMap(session, am, writer, viewer, detailed);
       }
       writer.endArray();
       writer.endObject();
-    } catch (RepositoryException e) {
-      response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not send profile.");
-      LOGGER.warn(e.getMessage());
     } catch (JSONException e) {
+      response.sendError(SC_INTERNAL_SERVER_ERROR, "Failed to generate proper JSON.");
+      LOGGER.error(e.getMessage(), e);
+    } catch (StorageClientException e) {
+      response.sendError(SC_INTERNAL_SERVER_ERROR, "Failed to generate proper JSON.");
+      LOGGER.error(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
       response.sendError(SC_INTERNAL_SERVER_ERROR, "Failed to generate proper JSON.");
       LOGGER.error(e.getMessage(), e);
     }
 
   }
 
-  private void writeProfileMap(javax.jcr.Session session, UserManager um,
+  private void writeProfileMap(Session session, AuthorizableManager um,
       ExtendedJSONWriter writer, String user, boolean detailed)
-      throws RepositoryException, JSONException {
-    Authorizable au = um.getAuthorizable(user);
+      throws JSONException, AccessDeniedException, StorageClientException {
+    Authorizable au = um.findAuthorizable(user);
     if (au != null) {
       ValueMap profileMap = null;
       if (detailed) {
@@ -308,12 +309,12 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       LOGGER.error("Could not set some permissions on [{}] Cause:{}",
           request.getPathInfo(), e.getMessage());
       LOGGER.debug(e.getMessage(), e);
-      response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not set permissions.");
+      response.sendError(SC_UNAUTHORIZED, "Could not set permissions.");
     } catch (StorageClientException e) {
       LOGGER.error("Could not set some permissions on [{}] Cause:{}",
           request.getPathInfo(), e.getMessage());
       LOGGER.debug("Cause: ", e);
-      response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not set permissions.");
+      response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not save content node.");
     }
   }
 

@@ -237,7 +237,7 @@ public class LiteCreateMessageServlet extends SlingAllMethodsServlet {
        */
       @Override
       public String getResourceType() {
-        return "sling/servlet/default";
+        return "sparse/Content";
       }
 
       /**

@@ -7,7 +7,7 @@ import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 
-@Component(immediate=true, metatype=true)
+@Component(enabled=false, immediate=true, metatype=true)
 @Service(value=LiteProfileService.class)
 public class DummyLiteProfileServiceImpl implements LiteProfileService {
 

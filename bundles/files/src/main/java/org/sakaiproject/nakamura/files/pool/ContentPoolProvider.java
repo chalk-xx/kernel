@@ -54,9 +54,9 @@ public class ContentPoolProvider implements ResourceProvider {
   // second and then 60M, then 7e10 items at the last level.
 
   /**
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.resource.ResourceProvider#getResource(org.apache.sling.api.resource.ResourceResolver,
    *      javax.servlet.http.HttpServletRequest, java.lang.String)
    */
@@ -67,9 +67,9 @@ public class ContentPoolProvider implements ResourceProvider {
   }
 
   /**
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.resource.ResourceProvider#getResource(org.apache.sling.api.resource.ResourceResolver,
    *      java.lang.String)
    */
@@ -128,7 +128,7 @@ public class ContentPoolProvider implements ResourceProvider {
       if (content != null) {
         LOGGER.info("Content {} ", content);
         SparseContentResource cpr = new SparseContentResource(content, session,
-            resourceResolver);
+            resourceResolver, path);
         cpr.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
         cpr.getResourceMetadata().setResolutionPathInfo(selectors);
         return cpr;
