@@ -141,11 +141,6 @@ module SlingUsers
     end
   end
 
-  class Owner < Principal
-	def initialize()
-		super("owner")
-	end
-  end
 
   class User < Principal
     attr_accessor :password
