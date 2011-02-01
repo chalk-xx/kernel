@@ -151,7 +151,7 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     expect(request.getRemoteUser()).andReturn(CURRENT_USER);
     expect(session.getUserID()).andReturn(CURRENT_USER);
     expect(request.getParameter("userid")).andReturn(contact);
-    bindConnectionManager();
+    bindConnectionManager(request);
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
@@ -179,7 +179,7 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
     expect(session.getUserID()).andReturn(CURRENT_USER);
     expect(request.getParameter("userid")).andReturn(contact);
-    bindConnectionManager();
+    bindConnectionManager(request);
     response.sendError(HttpServletResponse.SC_FORBIDDEN,
         "Userid must be a contact.");
 
@@ -188,13 +188,13 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
 
   }
 
-  public void bindConnectionManager() {
+  public void bindConnectionManager(SlingHttpServletRequest request) {
     connectionManager = createMock(ConnectionManager.class);
     List<String> friends = new ArrayList<String>();
     for (int i = 0; i < 50; i++) {
       friends.add("user-" + i);
     }
-    expect(connectionManager.getConnectedUsers(null, CURRENT_USER, ConnectionState.ACCEPTED)).andReturn(
+    expect(connectionManager.getConnectedUsers(request, CURRENT_USER, ConnectionState.ACCEPTED)).andReturn(
         friends);
     servlet.connectionManager = connectionManager;
   }

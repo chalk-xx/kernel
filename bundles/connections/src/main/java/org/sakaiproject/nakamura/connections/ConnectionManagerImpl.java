@@ -40,6 +40,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionException;
@@ -58,7 +59,6 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -325,6 +325,13 @@ public class ConnectionManagerImpl implements ConnectionManager {
     authorizableManager.updateAuthorizable(g);
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.api.connections.ConnectionManager#getConnectedUsers(org.apache.sling.api.SlingHttpServletRequest, java.lang.String, org.sakaiproject.nakamura.api.connections.ConnectionState)
+   */
+  public List<String> getConnectedUsers(SlingHttpServletRequest request, String user, ConnectionState state) {
+    return getConnectedUsers(StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class)), user, state);
+  }
   /**
    * {@inheritDoc}
    *

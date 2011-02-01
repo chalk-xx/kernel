@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
+import org.sakaiproject.nakamura.api.lite.Session;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ public class ContactsActivityRouterTest extends AbstractActivityRouterTest {
   public void testAdding() throws RepositoryException {
     ConnectionManager connectionManager = createNiceMock(ConnectionManager.class);
     List<String> connections = new ArrayList<String>();
-    EasyMock.expect(connectionManager.getConnectedUsers(user, ConnectionState.ACCEPTED)).andReturn(connections);
+    EasyMock.expect(connectionManager.getConnectedUsers((Session) EasyMock.anyObject(), EasyMock.eq(user), EasyMock.eq(ConnectionState.ACCEPTED))).andReturn(connections);
     
     
     // NB, we cant test the activity router since it requires an AccessControlManager to be configured, call to static.

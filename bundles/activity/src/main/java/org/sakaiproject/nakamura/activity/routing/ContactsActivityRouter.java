@@ -30,6 +30,7 @@ import org.sakaiproject.nakamura.api.activity.ActivityRouter;
 import org.sakaiproject.nakamura.api.activity.ActivityUtils;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +80,7 @@ public class ContactsActivityRouter implements ActivityRouter {
       String activityFeedPath = null;
       String actor = activity.getProperty(ActivityConstants.PARAM_ACTOR_ID)
           .getString();
-      List<String> connections = connectionManager.getConnectedUsers(actor,
+      List<String> connections = connectionManager.getConnectedUsers(StorageClientUtils.adaptToSession(adminSession), actor,
           ConnectionState.ACCEPTED);
       if (connections != null && connections.size() > 0) {
 
