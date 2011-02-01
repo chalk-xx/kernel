@@ -17,14 +17,14 @@ class TC_FormAuthTest < Test::Unit::TestCase
     m = Time.now.to_i.to_s
     u = create_user("testuser"+m)
     details = @um.get_user_props(u.name)
-    assert_equal("testuser"+m, details["rep:principalName"], "Expected username to match")
+    assert_equal("testuser"+m, details["name"], "Expected username to match #{details} ")
 	@s.switch_user(u)
 	res = @s.execute_get(@s.url_for("/system/me"))
 	assert_equal("200",res.code)
 	props = JSON.parse(res.body)
 	@log.debug(res.body)
 	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
-	assert_equal(u.name, props["user"]["userid"],"Authentication failed, didnt get expected user")
+	assert_equal(u.name, props["user"]["userid"],"Authentication failed, didnt get expected user, response was #{res.body} ")
 	homeFolderTestFile = "/~#{u.name}/testarea"+m
 	
 	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
@@ -33,7 +33,7 @@ class TC_FormAuthTest < Test::Unit::TestCase
 	assert_equal("200",res.code)
 	props = JSON.parse(res.body)
 	# check the node really was last modified by the correct user.
-	assert_equal(u.name, props["jcr:lastModifiedBy"])
+	assert_equal(u.name, props["lastModifiedBy"], "Cant find lastModifiedBy in #{res.body}")
 	@log.debug(res.body)
   end
 
