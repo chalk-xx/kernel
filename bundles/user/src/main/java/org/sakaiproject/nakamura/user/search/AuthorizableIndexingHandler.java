@@ -28,19 +28,14 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
-import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StoreListener;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
-import org.sakaiproject.nakamura.api.solr.TopicIndexer;
+import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,10 +53,7 @@ import java.util.Set;
 @Component
 public class AuthorizableIndexingHandler implements IndexingHandler {
   // TODO should this be "authorizables" or "user","groups"?
-  private static final String[] DEFAULT_TOPICS = {
-      StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.ADDED_TOPIC,
-      StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.DELETE_TOPIC,
-      StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.UPDATED_TOPIC };
+  private static final String DEFAULT_RESOURCE_TYPE = "sakai/user";
 
   // list of properties to be indexed
   private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of("name",
@@ -73,22 +65,18 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  @Reference
-  private TopicIndexer topicIndexer;
+  @Reference(target="(type=sparse)")
+  private ResourceIndexingService resourceIndexingService;
 
   // ---------- SCR integration ------------------------------------------------
   @Activate
   protected void activate(Map<?, ?> props) {
-    for (String topic : DEFAULT_TOPICS) {
-      topicIndexer.addHandler(topic, this);
-    }
+    resourceIndexingService.addHandler(DEFAULT_RESOURCE_TYPE, this);
   }
 
   @Deactivate
   protected void deactivate(Map<?, ?> props) {
-    for (String topic : DEFAULT_TOPICS) {
-      topicIndexer.removeHandler(topic, this);
-    }
+    resourceIndexingService.removeHandler(DEFAULT_RESOURCE_TYPE, this);
   }
 
   // ---------- IndexingHandler interface --------------------------------------
@@ -102,7 +90,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       Event event) {
     logger.debug("GetDocuments for {} ", event);
     // get the name of the authorizable (user,group)
-    String name = (String) event.getProperty("path");
+    String name = (String) event.getProperty(FIELD_PATH);
 
     // stop processing if the user isn't to be indexed
     if (BLACKLISTED_AUTHZ.contains(name)) {
@@ -126,22 +114,8 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
             }
           }
 
-          String path = (String) properties.get("path");
-
-          // TODO should the path or username be used here?
-          for (String principal : getReadingPrincipals(session, name)) {
-            doc.addField("readers", principal);
-          }
-
-          String id = path;
-          if (Authorizable.isAGroup(properties)) {
-            id = name;
-          }
-          doc.addField("id", id);
           documents.add(doc);
         }
-      } catch (ClientPoolException e) {
-        logger.warn(e.getMessage(), e);
       } catch (StorageClientException e) {
         logger.warn(e.getMessage(), e);
       } catch (AccessDeniedException e) {
@@ -163,23 +137,5 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     logger.debug("GetDelete for {} ", event);
     String groupName = (String) event.getProperty(UserConstants.EVENT_PROP_USERID);
     return ImmutableList.of("id:" + groupName);
-  }
-
-  // ---------- internal methods -----------------------------------------------
-  /**
-   * Gets the principals that can read content at a given path.
-   *
-   * @param session
-   * @param path
-   *          The path to check.
-   * @return {@link String[]} of principal names that can read {@link path}. An empty
-   *         array is returned if no principals can read the path.
-   * @throws StorageClientException
-   */
-  private String[] getReadingPrincipals(Session session, String path)
-      throws StorageClientException {
-    AccessControlManager accessControlManager = session.getAccessControlManager();
-    return accessControlManager.findPrincipals(Security.ZONE_AUTHORIZABLES, path,
-        Permissions.CAN_READ.getPermission(), true);
   }
 }
