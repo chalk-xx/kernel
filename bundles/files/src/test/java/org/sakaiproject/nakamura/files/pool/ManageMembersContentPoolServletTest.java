@@ -158,7 +158,8 @@ public class ManageMembersContentPoolServletTest {
         sparseSession.getContentManager());
     // Mock the request and the filenode.
     when(request.getResource()).thenReturn(resource);
-    
+
+    when(resource.getPath()).thenReturn("/path/to/pooled/content/file");
     
     // TODO: Port profile Nodes to Sparse at some point
     when(resource.adaptTo(Node.class)).thenReturn(fileNode);
