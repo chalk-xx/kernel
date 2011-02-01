@@ -71,6 +71,7 @@ import java.util.Set;
 
 import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 @ServiceDocumentation(name = "Manage Members Content Pool Servlet", description = "List and manage the managers and viewers for a file in the content pool.", bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/pooled-content" }, selectors = {
     @ServiceSelector(name = "members", description = "Binds to the selector members."),
@@ -116,7 +117,14 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       Session session = resource.adaptTo(Session.class);
       
       AuthorizableManager am = session.getAuthorizableManager();
+      AccessControlManager acm = session.getAccessControlManager();
       Content node = resource.adaptTo(Content.class);
+      Authorizable thisUser = am.findAuthorizable(session.getUserId());
+      
+      if (!acm.can(thisUser, Security.ZONE_CONTENT, resource.getPath(), Permissions.CAN_READ)) {
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        return;
+      }
 
       Map<String, Object> properties = node.getProperties();
       String[] managers = StorageClientUtils.toStringArray(properties
