@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.resource.lite.servlet.post.operations;
 
 import com.google.common.collect.Maps;
 
+import org.apache.sling.api.SlingConstants;
 import org.apache.sling.api.SlingException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
@@ -104,6 +105,7 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
         if ( content == null  ) {
           content = contentManager.get(propContentPath);
           if ( content == null ) {
+            response.setCreateRequest(true);
             content = new Content(propContentPath, null);
           }
           contentMap.put(propContentPath, content);
