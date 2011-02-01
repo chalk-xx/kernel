@@ -34,10 +34,7 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
@@ -85,7 +82,7 @@ public class ActivityIndexingHandler implements IndexingHandler {
    */
   public Collection<SolrInputDocument> getDocuments(RepositorySession repositorySession,
       Event event) {
-    String path = (String) event.getProperty("path");
+    String path = (String) event.getProperty(FIELD_PATH);
 
     List<SolrInputDocument> documents = Lists.newArrayList();
     if (!StringUtils.isBlank(path)) {
@@ -102,10 +99,6 @@ public class ActivityIndexingHandler implements IndexingHandler {
           for (String prop : WHITELISTED_PROPS) {
             String value = StorageClientUtils.toString(content.getProperty(prop));
             doc.addField(prop, value);
-          }
-
-          for (String principal : getReadingPrincipals(session, path)) {
-            doc.addField("readers", principal);
           }
         }
       } catch (ClientPoolException e) {
@@ -131,23 +124,5 @@ public class ActivityIndexingHandler implements IndexingHandler {
     logger.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty("path");
     return ImmutableList.of("id:" + path);
-  }
-
-  // ---------- internal methods -----------------------------------------------
-  /**
-   * Gets the principals that can read content at a given path.
-   *
-   * @param session
-   * @param path
-   *          The path to check.
-   * @return {@link String[]} of principal names that can read {@link path}. An empty
-   *         array is returned if no principals can read the path.
-   * @throws StorageClientException
-   */
-  private String[] getReadingPrincipals(Session session, String path)
-      throws StorageClientException {
-    AccessControlManager accessControlManager = session.getAccessControlManager();
-    return accessControlManager.findPrincipals(Security.ZONE_CONTENT, path,
-        Permissions.CAN_READ.getPermission(), true);
   }
 }
