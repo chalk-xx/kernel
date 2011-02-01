@@ -30,12 +30,16 @@ import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StoreListener;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
-import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
+import org.sakaiproject.nakamura.api.solr.TopicIndexer;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,8 +56,10 @@ import java.util.Set;
  */
 @Component
 public class AuthorizableIndexingHandler implements IndexingHandler {
-  // TODO should this be "authorizables" or "user","groups"?
-  private static final String DEFAULT_RESOURCE_TYPE = "sakai/user";
+  private static final String[] DEFAULT_TOPICS = {
+      StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.ADDED_TOPIC,
+      StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.DELETE_TOPIC,
+      StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.UPDATED_TOPIC };
 
   // list of properties to be indexed
   private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of("name",
@@ -65,18 +71,22 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  @Reference(target="(type=sparse)")
-  private ResourceIndexingService resourceIndexingService;
+  @Reference
+  private TopicIndexer topicIndexer;
 
   // ---------- SCR integration ------------------------------------------------
   @Activate
   protected void activate(Map<?, ?> props) {
-    resourceIndexingService.addHandler(DEFAULT_RESOURCE_TYPE, this);
+    for (String topic : DEFAULT_TOPICS) {
+      topicIndexer.addHandler(topic, this);
+    }
   }
 
   @Deactivate
   protected void deactivate(Map<?, ?> props) {
-    resourceIndexingService.removeHandler(DEFAULT_RESOURCE_TYPE, this);
+    for (String topic : DEFAULT_TOPICS) {
+      topicIndexer.removeHandler(topic, this);
+    }
   }
 
   // ---------- IndexingHandler interface --------------------------------------
@@ -113,6 +123,19 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
               doc.addField(p.getKey(), p.getValue());
             }
           }
+
+          // add readers
+          AccessControlManager accessControlManager = session.getAccessControlManager();
+          String[] principals = accessControlManager.findPrincipals(
+              Security.ZONE_AUTHORIZABLES, name, Permissions.CAN_READ.getPermission(),
+              true);
+          for (String principal : principals) {
+            doc.addField(FIELD_READERS, principal);
+          }
+
+          // set the resource type and ID
+          doc.setField(FIELD_RESOURCE_TYPE, "authorizable");
+          doc.setField(FIELD_ID, name);
 
           documents.add(doc);
         }
