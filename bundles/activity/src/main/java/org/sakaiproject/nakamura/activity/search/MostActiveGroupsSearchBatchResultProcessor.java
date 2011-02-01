@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.search.processors;
+package org.sakaiproject.nakamura.activity.search;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -50,7 +50,7 @@ import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
 
-@Component(immediate = true, label = "MostActiveContentSearchBatchResultProcessor", description = "Formatter for most active content")
+@Component(immediate = true, label = "MostActiveGroupSearchBatchResultProcessor", description = "Formatter for most active groups")
 @Service(value = SearchBatchResultProcessor.class)
 @Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "sakai.search.batchprocessor", value = "MostActiveGroups") })
@@ -59,14 +59,14 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
 
   @Reference
   private SearchServiceFactory searchServiceFactory;
-  
-  
+
+
   private final int DEFAULT_DAYS = 30;
   private final int MAXIMUM_DAYS = 90;
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor#writeNodes(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.commons.json.io.JSONWriter,
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.RowIterator)
@@ -77,9 +77,9 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
     List<ResourceActivity> resources = new ArrayList<ResourceActivity>();
     Session session = request.getResourceResolver().adaptTo(Session.class);
 
-    
+
     int daysAgo = deriveDateWindow(request);
-    
+
     // count all the activity
     while (iterator.hasNext()) {
       Row row = iterator.nextRow();
@@ -110,7 +110,7 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
           }
           // increment the count for this particular resource.
           resources.get(resources.indexOf(new ResourceActivity(resourceId))).activityScore++;
-          
+
         }
       }
     }
@@ -134,7 +134,7 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
     write.endObject();
 
   }
-  
+
   private int deriveDateWindow(SlingHttpServletRequest request) {
     int daysAgo = DEFAULT_DAYS;
     String requestedDaysParam = request.getParameter("days");
@@ -153,7 +153,7 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
@@ -170,7 +170,7 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
       throw new SearchException(500, "Unable to execute query.");
     }
   }
-  
+
   public class ResourceActivity implements Comparable<ResourceActivity>{
     public String id;
     public ResourceActivity(String id) {
