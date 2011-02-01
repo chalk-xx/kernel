@@ -23,31 +23,29 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.discussion.Post;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.search.Aggregator;
-import org.sakaiproject.nakamura.api.search.SearchException;
-import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
-import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.RowUtils;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.query.Query;
-import javax.jcr.query.Row;
 
 /**
  * Formats comment nodes.
  */
-@Component(immediate = true, label = "%discussion.commentSearch.label", description = "%discussion.commentSearch.desc")
+@Component(label = "%discussion.commentSearch.label", description = "%discussion.commentSearch.desc")
 @Service
-public class CommentSearchResultProcessor implements SearchResultProcessor {
+public class CommentSearchResultProcessor implements SolrSearchResultProcessor {
 
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
@@ -56,32 +54,33 @@ public class CommentSearchResultProcessor implements SearchResultProcessor {
   static final String SEARCH_PROCESSOR = "sakai.search.processor";
 
   @Reference
-  protected transient PresenceService presenceService;
+  private PresenceService presenceService;
 
   @Reference
-  protected transient ProfileService profileService;
-  
+  private ProfileService profileService;
+
   @Reference
-  protected transient SearchServiceFactory searchServiceFactory;
-  
+  private SolrSearchServiceFactory searchServiceFactory;
 
   /**
-   *
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#writeNode(org.apache.sling.api.SlingHttpServletRequest,
+   * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor#writeResult(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.commons.json.io.JSONWriter,
-   *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.Row)
+   *      org.sakaiproject.nakamura.api.search.solr.Result)
    */
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
-      Aggregator aggregator, Row row) throws JSONException, RepositoryException {
-    Session session = request.getResourceResolver().adaptTo(Session.class);
-    Node node = RowUtils.getNode(row, session);
-    if (aggregator != null) {
-      aggregator.add(node);
+  public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
+      throws JSONException {
+    ResourceResolver resolver = request.getResourceResolver();
+    Content content = resolver.getResource(result.getPath()).adaptTo(Content.class);
+    Post p = new Post(content, resolver.adaptTo(Session.class));
+    try {
+      p.outputPostAsJSON((ExtendedJSONWriter) write, presenceService, profileService);
+    } catch (StorageClientException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      throw new RuntimeException(e.getMessage(), e);
     }
-    Post p = new Post(node);
-    p.outputPostAsJSON((ExtendedJSONWriter) write, presenceService, profileService);
   }
 
   /**
@@ -90,8 +89,8 @@ public class CommentSearchResultProcessor implements SearchResultProcessor {
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
-      throws SearchException {
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, String query)
+      throws SolrSearchException {
     return searchServiceFactory.getSearchResultSet(request, query);
   }
 }
