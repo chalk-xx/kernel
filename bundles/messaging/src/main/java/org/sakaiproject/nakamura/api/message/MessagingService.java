@@ -104,6 +104,7 @@ public interface MessagingService {
    * @throws MessagingException
    */
   public String getFullPathToStore(String rcpt, Session session) throws MessagingException;
+  public String getFullPathToStore(String rcpt) throws MessagingException;
 
   /**
    * Copies a message with id <em>messageId</em> from <em>source</em> to <em>target</em>

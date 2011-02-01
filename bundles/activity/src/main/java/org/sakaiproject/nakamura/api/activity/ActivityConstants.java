@@ -21,9 +21,9 @@ package org.sakaiproject.nakamura.api.activity;
  * Constants that are used throughout the activity bundle.
  */
 public interface ActivityConstants {
-  
+
   // Request parameters, node property names
-  
+
   /**
    * The property/parameter name for the application id.
    */
@@ -40,10 +40,10 @@ public interface ActivityConstants {
    * The property name for the source of the activity.
    */
   public static final String PARAM_SOURCE = "sakai:activity-source";
-  
-  
+
+
   // Node names
-  
+
   /**
    * The name for the big store where the original activities will be stored.
    */
@@ -57,18 +57,18 @@ public interface ActivityConstants {
    * JCR folder name for templates.
    */
   public static final String TEMPLATE_ROOTFOLDER = "/var/activity/templates";
-  
+
   // Sling:resourceTypes
-  
+
   /**
-   * The sling:resourceType for an activity store. 
+   * The sling:resourceType for an activity store.
    * The node with this resourceType will
    * hold the original activity items.
    */
   public static final String ACTIVITY_STORE_RESOURCE_TYPE = "sakai/activityStore";
   /**
    * The sling:resourceType for an activity feed.
-   * The node with this resourceType will be the store 
+   * The node with this resourceType will be the store
    * where the activities are copied to.
    */
   public static final String ACTIVITY_FEED_RESOURCE_TYPE = "sakai/activityFeed";
@@ -76,9 +76,12 @@ public interface ActivityConstants {
    * The sling:resourceType for an activity item.
    */
   public static final String ACTIVITY_ITEM_RESOURCE_TYPE = "sakai/activity";
-  
+
+  /** resource type for resources that are updated */
+  String RESOURCE_UPDATE = "sakai/resource-update";
+
   // Events
-  
+
   /**
    * OSGi event that gets triggered when an activity occurs.
    */

@@ -19,11 +19,7 @@ package org.sakaiproject.nakamura.message;
 
 import static org.sakaiproject.nakamura.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
@@ -34,6 +30,7 @@ import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
@@ -255,6 +252,21 @@ public class MessagingServiceImpl implements MessagingService {
 
     return path;
   }
+  public String getFullPathToStore(String rcpt) throws MessagingException {
+    String path = "";
+    try {
+      if (rcpt.startsWith("w-")) {
+        // This is a widget
+        return expandHomeDirectoryInPath(rcpt.substring(2));
+      }
+      path = LitePersonalUtils.getHomePath(rcpt) + "/" + MessageConstants.FOLDER_MESSAGES;
+    } catch (RepositoryException e) {
+      LOGGER.warn("Caught RepositoryException when trying to get the full path to {} store.", rcpt,e);
+      throw new MessagingException(500, e.getMessage());
+    }
+
+    return path;
+  }
 
 
   /**
@@ -277,6 +289,17 @@ public class MessagingServiceImpl implements MessagingService {
       UserManager um = AccessControlUtil.getUserManager(session);
       Authorizable au = um.getAuthorizable(username);
       String homePath = PersonalUtils.getHomePath(au).substring(1) + "/";
+      path = homePathMatcher.replaceAll(homePath);
+    }
+    return path;
+  }
+  private String expandHomeDirectoryInPath(String path)
+  throws AccessDeniedException, UnsupportedRepositoryOperationException,
+  RepositoryException {
+    Matcher homePathMatcher = homePathPattern.matcher(path);
+    if (homePathMatcher.find()) {
+      String username = homePathMatcher.group(2);
+      String homePath = LitePersonalUtils.getHomePath(username).substring(1) + "/";
       path = homePathMatcher.replaceAll(homePath);
     }
     return path;

@@ -27,10 +27,12 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -70,8 +72,9 @@ public class MessageSearchPropertyProviderTest extends AbstractEasyMockTest {
     provider.loadUserProperties(request, pMap);
     provider.messagingService = null;
 
-    assertEquals("/_user/a/ad/admin/message", pMap
-        .get(MessageConstants.SEARCH_PROP_MESSAGESTORE));
+    assertEquals(
+        ClientUtils.escapeQueryChars(LitePersonalUtils.PATH_AUTHORIZABLE
+            + "admin/message"), pMap.get(MessageConstants.SEARCH_PROP_MESSAGESTORE));
 
     assertEquals("from:(\"usera\" OR \"userb\")", pMap.get("_from"));
   }

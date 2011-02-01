@@ -77,12 +77,17 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
-      <version>5.3.0-0.10-SNAPSHOT</version>
+      <artifactId>org.sakaiproject.nakamura.solr</artifactId>
+      <version>0.10-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.solr</groupId>
-      <artifactId>solr-solrj</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.files</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.collections</groupId>
+      <artifactId>google-collections</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.jcr</groupId>
@@ -156,5 +161,7 @@
       <artifactId>activemq-core</artifactId>
       <version>5.3.0</version>
     </dependency>
+
+
   </dependencies>
 </project>

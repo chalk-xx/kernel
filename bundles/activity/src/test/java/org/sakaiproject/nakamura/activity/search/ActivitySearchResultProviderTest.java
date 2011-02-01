@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,8 +62,8 @@ public class ActivitySearchResultProviderTest extends AbstractEasyMockTest {
     Map<String, String> propertiesMap = new HashMap<String, String>();
     provider.loadUserProperties(request, propertiesMap);
     String actual = propertiesMap.get("_myFeed");
-    String expected = ClientUtils.escapeQueryChars("/_user/a/ad/admin/private/"
-        + ActivityConstants.ACTIVITY_FEED_NAME);
+    String expected = ClientUtils.escapeQueryChars(LitePersonalUtils.PATH_AUTHORIZABLE
+        + "admin/private/" + ActivityConstants.ACTIVITY_FEED_NAME);
     assertEquals(expected, actual);
   }
 
