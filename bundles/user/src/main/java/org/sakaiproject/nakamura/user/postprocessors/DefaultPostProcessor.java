@@ -5,7 +5,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ImmutableMap.Builder;
 
-import org.apache.commons.lang.StringUtils;
+import net.sf.json.JSONObject;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
@@ -39,8 +40,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.jcr.RepositoryException;
 
 /**
  * 
@@ -129,6 +128,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   private static final String MESSAGE_FOLDER = "/message";
 
   private static final String PROFILE_FOLDER = "/authprofile";
+  
+  private static final String PROFILE_BASIC = "/basic/elements";
 
   private static final String SAKAI_CONTACTSTORE_RT = "sakai/contactstore";
 
@@ -154,6 +155,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   static final String VISIBILITY_PRIVATE = "private";
   static final String VISIBILITY_LOGGED_IN = "logged_in";
   static final String VISIBILITY_PUBLIC = "public";
+  
+  static final String PROFILE_JSON_IMPORT_PARAMETER = ":sakai:profile-import";
 
   @Property(description = "The default access settings for the home of a new user or group.", value = VISIBILITY_PUBLIC, options = {
       @PropertyOption(name = VISIBILITY_PRIVATE, value = "The home is private."),
@@ -292,7 +295,10 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     // TODO:
     // Profile
     String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT : SAKAI_USER_PROFILE_RT;
-    createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER, profileType, 
+    createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER, profileType, false, contentManager, 
+        accessControlManager, null);
+    
+    createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC, "nt:unstructured", 
         false, contentManager, accessControlManager, processProfileParameters(defaultProfileTemplate,
             authorizable, parameters));
 
@@ -300,7 +306,20 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
   private Map<String, Object> processProfileParameters(String profileTemplate,
       Authorizable authorizable, Map<String, Object[]> parameters) {
-      Map<String, Object> retval = new HashMap<String, Object>();
+    Map<String, Object> retval = new HashMap<String, Object>();
+    if (parameters.containsKey(PROFILE_JSON_IMPORT_PARAMETER)) {
+      String profileJson = (String) parameters.get(PROFILE_JSON_IMPORT_PARAMETER)[0];
+      JSONObject jsonObject = JSONObject.fromObject(profileJson);
+      JSONObject basic = jsonObject.getJSONObject("basic");
+      if (basic != null) {
+        JSONObject elements = basic.getJSONObject("elements");
+        if (elements != null) {
+          for (Object propName : elements.keySet()) {
+            retval.put((String)propName, elements.get(propName));
+          }
+        }
+      }
+    }
       for (String param : profileParams) {
         String val = "unknown";
         if (parameters.containsKey(param)) {
