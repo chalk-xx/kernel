@@ -9,4 +9,6 @@ public interface Result {
 
   Map<String, Collection<Object>> getProperties();
 
+  Object getFirstValue(String name);
+
 }
