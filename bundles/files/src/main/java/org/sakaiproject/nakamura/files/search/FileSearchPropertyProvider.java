@@ -24,30 +24,27 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
-import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
-import org.sakaiproject.nakamura.util.PersonalUtils;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-
 /**
  * Provides properties to process the search
  *
  */
-@Component(immediate = true, label = "FileSearchPropertyProvider", description = "Property provider for file searches")
-@Service(value = SearchPropertyProvider.class)
-@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "sakai.search.provider", value = "Files") })
-public class FileSearchPropertyProvider implements SearchPropertyProvider {
+@Component(label = "FileSearchPropertyProvider", description = "Property provider for file searches")
+@Service
+@Properties({
+  @Property(name = "service.vendor", value = "The Sakai Foundation"),
+  @Property(name = "sakai.search.provider", value = "Files") })
+public class FileSearchPropertyProvider implements SolrSearchPropertyProvider {
 
   @Reference
   protected ConnectionManager connectionManager;
@@ -55,21 +52,14 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
 
-    Session session = request.getResourceResolver().adaptTo(Session.class);
     String user = request.getRemoteUser();
-    Authorizable auUser;
-    try {
-      auUser = PersonalUtils.getAuthorizable(session, user);
-    } catch (RepositoryException e) {
-      throw new RuntimeException(e);
-    }
 
     // Set the userid.
     propertiesMap.put("_me", ClientUtils.escapeQueryChars(user));
 
     // Set the public space.
     propertiesMap.put("_mySpace",
-        ClientUtils.escapeQueryChars(PersonalUtils.getPublicPath(auUser)));
+        ClientUtils.escapeQueryChars(LitePersonalUtils.getPublicPath(user)));
 
     // Set the contacts.
     propertiesMap.put("_mycontacts", getMyContacts(user));

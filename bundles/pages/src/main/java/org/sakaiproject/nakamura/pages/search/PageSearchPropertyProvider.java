@@ -7,7 +7,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,13 +17,12 @@ import java.util.Map;
  * Provides properties to process the search
  *
  */
-@Component(immediate = true, label = "PageSearchPropertyProvider", description = "Formatter for page search results.")
-@Properties(value = {
+@Component(label = "PageSearchPropertyProvider", description = "Formatter for page search results.")
+@Service
+@Properties({
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "sakai.search.provider", value = "Page")
-    })
-@Service(value = SearchPropertyProvider.class)
-public class PageSearchPropertyProvider implements SearchPropertyProvider {
+    @Property(name = "sakai.search.provider", value = "Page")})
+public class PageSearchPropertyProvider implements SolrSearchPropertyProvider {
 
   public static final String PROP_PAGE_TYPE = "sakai:type";
 
@@ -46,7 +45,7 @@ public class PageSearchPropertyProvider implements SearchPropertyProvider {
       for (int i = 0; i < properties.length; i++) {
         String op = operators[i].getString();
         if (op.equals(">") || op.equals("=") || op.equals("<")) {
-          filter += " and @" + properties[i].getString() + operators[i].getString() + '"'
+          filter += " AND " + properties[i].getString() + operators[i].getString() + '"'
               + values[i].getString() + '"';
         }
       }

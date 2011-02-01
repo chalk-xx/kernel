@@ -21,30 +21,28 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
 import java.util.Map;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-
+@Component
 @Service
-@Component(immediate = true)
-@Properties(value = {
+@Properties({
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Provides some extra properties for the PooledContent searches."),
     @Property(name = "sakai.search.provider", value = "PooledContent") })
-public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider {
+public class ContentPoolSearchPropertyProvider implements SolrSearchPropertyProvider {
 
   public static final Logger LOGGER = LoggerFactory
       .getLogger(ContentPoolSearchPropertyProvider.class);
@@ -58,8 +56,9 @@ public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
     String userID = request.getRemoteUser();
-    Session session = request.getResourceResolver().adaptTo(Session.class);
 
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
+        .adaptTo(javax.jcr.Session.class));
     if (!UserConstants.ANON_USERID.equals(userID)) {
       addMyGroups(session, propertiesMap);
     }
@@ -74,11 +73,11 @@ public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider
    * @param propertiesMap
    */
   protected void addMyGroups(Session session, Map<String, String> propertiesMap) {
-    String sessionUserId = session.getUserID();
+    String sessionUserId = session.getUserId();
 
     try {
-      UserManager um = AccessControlUtil.getUserManager(session);
-      Authorizable auth = um.getAuthorizable(sessionUserId);
+      AuthorizableManager authMgr = session.getAuthorizableManager();
+      Authorizable auth = authMgr.findAuthorizable(sessionUserId);
 
       // create the manager and viewer query parameters
       String userId = ClientUtils.escapeQueryChars(sessionUserId);
@@ -86,10 +85,9 @@ public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider
       StringBuilder viewers = new StringBuilder("viewer:(").append(userId);
 
       // add groups to the parameters
-      Iterator<Group> groups = auth.memberOf();
-      while (groups.hasNext()) {
-        Group group = groups.next();
-        String groupId = ClientUtils.escapeQueryChars(group.getID());
+      String[] groups = auth.getPrincipals();
+      for (String group : groups) {
+        String groupId = ClientUtils.escapeQueryChars(group);
         managers.append(" OR ").append(groupId);
         viewers.append(" OR ").append(groupId);
       }
@@ -99,15 +97,17 @@ public class ContentPoolSearchPropertyProvider implements SearchPropertyProvider
       viewers.append(")");
 
       // convert to string for reuse
-      String managersParam = ClientUtils.escapeQueryChars(managers.toString());
-      String viewersParam = ClientUtils.escapeQueryChars(viewers.toString());
+      String managersParam = managers.toString();
+      String viewersParam = viewers.toString();
 
       // add properties for query templates
       propertiesMap.put("_meManagerGroupsNoAnd", managersParam);
       propertiesMap.put("_meViewerGroupsNoAnd", viewersParam);
       propertiesMap.put("_meManagerGroups", " AND " + managersParam);
       propertiesMap.put("_meViewerGroups", " AND " + viewersParam);
-    } catch (RepositoryException e) {
+    } catch (StorageClientException e) {
+      LOGGER.error("Could not get the groups for user [{}].",sessionUserId , e);
+    } catch (AccessDeniedException e) {
       LOGGER.error("Could not get the groups for user [{}].",sessionUserId , e);
     }
   }

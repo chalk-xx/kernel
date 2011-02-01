@@ -22,14 +22,13 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.calendar.CalendarConstants;
-import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import org.sakaiproject.nakamura.util.DateUtils;
-import org.sakaiproject.nakamura.util.PersonalUtils;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,16 +38,13 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Map;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-
+@Component(label = "CalenderSearchPropertyProvider", description = "Provides some calendar search properties.")
 @Service
-@Component(immediate = true, label = "CalenderSearchPropertyProvider", description = "Provides some calendar search properties.")
-@Properties(value = {
+@Properties({
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Provides properties to process the calendar searches."),
     @Property(name = "sakai.search.provider", value = "Calendar") })
-public class CalenderSearchPropertyProvider implements SearchPropertyProvider {
+public class CalenderSearchPropertyProvider implements SolrSearchPropertyProvider {
 
   public static final Logger LOGGER = LoggerFactory
       .getLogger(CalenderSearchPropertyProvider.class);
@@ -61,7 +57,7 @@ public class CalenderSearchPropertyProvider implements SearchPropertyProvider {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.search.SearchPropertyProvider#loadUserProperties(org.apache.sling.api.SlingHttpServletRequest,
    *      java.util.Map)
    */
@@ -100,17 +96,17 @@ public class CalenderSearchPropertyProvider implements SearchPropertyProvider {
 
   /**
    * Adds the date range values to the search template.
-   * 
+   *
    * <pre>
    * {@code
    *  - _date-start
    *  - _date-end
    *  }
    * </pre>
-   * 
+   *
    * If there is no 'start' and 'end' request parameter, then the current day is used. A
    * day starts at 00:00 and ends the next day at 00:00
-   * 
+   *
    * @param request
    *          The request that has been done on the search node.
    * @param propertiesMap
@@ -175,9 +171,7 @@ public class CalenderSearchPropertyProvider implements SearchPropertyProvider {
       Map<String, String> propertiesMap) {
     try {
       String user = request.getRemoteUser();
-      Session session = request.getResourceResolver().adaptTo(Session.class);
-      Authorizable au = PersonalUtils.getAuthorizable(session, user);
-      String path = PersonalUtils.getHomePath(au) + "/"
+      String path = LitePersonalUtils.getHomePath(user) + "/"
           + CalendarConstants.SAKAI_CALENDAR_NODENAME;
 
       RequestParameter pathParam = request.getRequestParameter(PATH_PARAM);
@@ -187,11 +181,6 @@ public class CalenderSearchPropertyProvider implements SearchPropertyProvider {
 
       propertiesMap.put("_calendar-path", ClientUtils.escapeQueryChars(path));
 
-    } catch (RepositoryException e) {
-      LOGGER
-          .error(
-              "Caught a RepositoryException when trying to provide properties for the calendar search templates.",
-              e);
     } catch (UnsupportedEncodingException e) {
       LOGGER
           .error(

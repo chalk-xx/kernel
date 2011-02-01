@@ -22,15 +22,18 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
-import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,25 +43,20 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-
 /**
  *
  */
 @Component
 @Service
-@Properties(value = {
-    @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = SearchConstants.REG_PROVIDER_NAMES, value = "GroupMembers")
-})
-public class GroupMembersSearchPropertyProvider implements SearchPropertyProvider {
+@Properties({
+  @Property(name = "service.vendor", value = "The Sakai Foundation"),
+  @Property(name = SearchConstants.REG_PROVIDER_NAMES, value = "GroupMembers") })
+public class GroupMembersSearchPropertyProvider implements SolrSearchPropertyProvider {
   private static final Logger logger = LoggerFactory
       .getLogger(GroupMembersSearchPropertyProvider.class);
 
   @Reference
-  protected SlingRepository slingRepository;
+  protected Repository repository;
 
   /**
    * {@inheritDoc}
@@ -70,7 +68,7 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
       Map<String, String> propertiesMap) {
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
-      UserManager um = AccessControlUtil.getUserManager(session);
+      AuthorizableManager am = session.getAuthorizableManager();
 
       if (request.getParameter("q") == null) {
         throw new IllegalArgumentException(
@@ -84,7 +82,7 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
       }
 
       // get the authorizable associated to the requested group name
-      Group group = (Group) um.getAuthorizable(groupName);
+      Group group = (Group) am.findAuthorizable(groupName);
       if (group == null) {
         throw new IllegalArgumentException("Unable to find group [" + groupName + "]");
       }
@@ -131,7 +129,9 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
 
         propertiesMap.put("_groupQuery", solrQuery.toString());
       }
-    } catch (RepositoryException e) {
+    } catch (StorageClientException e) {
+      logger.error(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
       logger.error(e.getMessage(), e);
     }
   }
@@ -141,16 +141,11 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
    *
    * @param memberIds List to collect member IDs.
    * @param group Group to plunder through for member IDs.
-   * @throws RepositoryException
    */
-  private void addDeclaredMembers(Collection<String> memberIds, Group group)
-      throws RepositoryException {
-    Iterator<Authorizable> members = group.getDeclaredMembers();
-    while (members.hasNext()) {
-      String memberId = members.next().getID();
-      if (!memberIds.contains(memberId)) {
-        memberIds.add(memberId);
-      }
+  private void addDeclaredMembers(Collection<String> memberIds, Group group) {
+    String[] members = group.getPrincipals();
+    for (String member : members) {
+      memberIds.add(member);
     }
   }
 
@@ -160,27 +155,27 @@ public class GroupMembersSearchPropertyProvider implements SearchPropertyProvide
    * @param memberIds List to collect member IDs.
    * @param group Group to plunder through for manager member IDs.
    * @param um UserManager for digging up the manager group.
-   * @throws RepositoryException
+   * @throws {@link ClientPoolException}
+   * @throws {@link StorageClientException}
+   * @throws {@link AccessDeniedException}
    */
   private void addDeclaredManagerMembers(Collection<String> memberIds, Group group)
-      throws RepositoryException {
+      throws ClientPoolException, StorageClientException, AccessDeniedException {
 
     Session adminSession = null;
 
     try {
-      adminSession = slingRepository.loginAdministrative(null);
-      UserManager um = AccessControlUtil.getUserManager(adminSession);
+      adminSession = repository.loginAdministrative();
+      AuthorizableManager am = adminSession.getAuthorizableManager();
 
       if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-        Value[] values = group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
-        if (values != null && values.length == 1) {
-          String managerGroupId = values[0].getString();
-          Group managerGroup = (Group) um.getAuthorizable(managerGroupId);
-          if (managerGroup != null) {
-            addDeclaredMembers(memberIds, managerGroup);
-          } else {
-            logger.warn("Unable to find manager's group [" + managerGroupId + "]");
-          }
+        String managerGroupId = StorageClientUtils.toString(group
+            .getProperty(UserConstants.PROP_MANAGERS_GROUP));
+        Group managerGroup = (Group) am.findAuthorizable(managerGroupId);
+        if (managerGroup != null) {
+          addDeclaredMembers(memberIds, managerGroup);
+        } else {
+          logger.warn("Unable to find manager's group [" + managerGroupId + "]");
         }
       }
     } finally {

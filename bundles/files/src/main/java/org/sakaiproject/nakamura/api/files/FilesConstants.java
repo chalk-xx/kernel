@@ -143,4 +143,7 @@ public interface FilesConstants {
 
   /** Property of who created the content */
   String CREATED_BY = "createdBy";
+
+  /** Property of where this content is used*/
+  String LINK_PATHS = "linkpaths";
 }

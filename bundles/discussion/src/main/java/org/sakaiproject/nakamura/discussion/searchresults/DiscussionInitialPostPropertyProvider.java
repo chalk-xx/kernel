@@ -24,16 +24,16 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 
 import java.util.Map;
 
 /**
  * Provides properties to process the search
  */
-@Component(immediate = true, label = "%discussion.initialPostProperty.label", description = "discussion.initialPostProperty.desc")
+@Component(label = "%discussion.initialPostProperty.label", description = "discussion.initialPostProperty.desc")
 @Service
-public class DiscussionInitialPostPropertyProvider implements SearchPropertyProvider {
+public class DiscussionInitialPostPropertyProvider implements SolrSearchPropertyProvider {
 
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";

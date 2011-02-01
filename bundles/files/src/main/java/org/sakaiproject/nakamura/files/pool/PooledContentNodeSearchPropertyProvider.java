@@ -26,20 +26,20 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 
 import java.util.Map;
 
 /**
  * Translate a Pooled Content resource path into an internal node path for use by a search query.
  */
+@Component
 @Service
-@Component(immediate = true)
-@Properties(value = {
+@Properties({
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Translates an external Pooled Content path to a Node path for searching."),
     @Property(name = "sakai.search.provider", value = "PooledContentNode") })
-public class PooledContentNodeSearchPropertyProvider implements SearchPropertyProvider {
+public class PooledContentNodeSearchPropertyProvider implements SolrSearchPropertyProvider {
   public static final String POOLED_CONTENT_PROPERTY = "p";
   public static final String POOLED_CONTENT_NODE_PATH_PROPERTY = "_pNodePath";
 

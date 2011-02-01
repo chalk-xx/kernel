@@ -73,7 +73,11 @@ public class HomeResourceProvider implements ResourceProvider {
     try {
       return resolveMappedResource(resourceResolver, path);
     } catch (AccessDeniedException e) {
-      LOGGER.warn(e.getMessage(), e);
+      if ( LOGGER.isDebugEnabled()) {
+        LOGGER.debug(e.getMessage(),e);
+      } else {
+        LOGGER.warn(e.getMessage());
+      }
     } catch (StorageClientException e) {
       LOGGER.warn(e.getMessage(), e);
     }
