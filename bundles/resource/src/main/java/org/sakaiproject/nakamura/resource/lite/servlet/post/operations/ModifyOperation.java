@@ -214,9 +214,20 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
     }
     if (finalContentPath.startsWith(originalContentPath)) {
       String suffix = finalContentPath.substring(originalContentPath.length());
-      resourcePath = resourcePath + suffix;
+      // TODO BL120 this is a temporary fix: I am getting back incorrect paths
+      // i.e. the correct path appended to itself
+      if (!resourcePath.endsWith(suffix)) {
+        resourcePath = resourcePath + suffix;
+      }
     }
-    return resourcePath;
+    
+    // TODO BL120 this should not be happening, but if a twiddle path gets through here,
+    // Of course, sparse cannot make heads or tails of it
+    if (resourcePath.startsWith("/~")) {
+      return originalContentPath;
+    } else {
+      return resourcePath;
+    }
   }
 
 }
