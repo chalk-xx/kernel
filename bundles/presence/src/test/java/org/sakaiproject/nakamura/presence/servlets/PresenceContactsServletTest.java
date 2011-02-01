@@ -29,6 +29,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONObject;
+import org.hamcrest.core.AnyOf;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -140,7 +141,7 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
     UserManager um = createUserManager(null, true, authorizables.toArray(auths));
     expect(session.getUserManager()).andReturn(um).anyTimes();
     expect(
-        connectionManager.getConnectedUsers(CURRENT_USER,
+        connectionManager.getConnectedUsers(null, CURRENT_USER,
             ConnectionState.ACCEPTED)).andReturn(contacts);
 
     servlet.presenceService = presenceService;

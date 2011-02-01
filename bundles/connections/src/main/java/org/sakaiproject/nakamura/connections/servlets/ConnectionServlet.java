@@ -55,12 +55,12 @@ import javax.servlet.http.HttpServletResponse;
  */
 @ServiceDocumentation(name="Personal Connection Servlet",
   description="Manage personal connections and contacts. " +
-    "Maps to node of resourceType sakai/contactstore at the URL /_user/contacts. " +
+    "Maps to node of resourceType sakai/contactstore at the URL /~ieb/contacts. " +
     "Each new contact results in two new nodes of resourceType sakai/contact, one for the inviting user and one for the invited user. "+
     "These contacts can be retrieved by GET requests which specify a connection-status: "+
-    "/_user/contacts/find?state=ACCEPTED, etc.",
+    "/~ieb/contacts/find?state=ACCEPTED, etc.",
   shortDescription="Manage personal connections/contacts",
-  bindings=@ServiceBinding(type=BindingType.PATH,bindings="/_user/contacts/OTHER_USER",
+  bindings=@ServiceBinding(type=BindingType.PATH,bindings="/~ieb/contacts/OTHER_USER",
       selectors={
       @ServiceSelector(name="invite",description="Invite other user to connect"),
       @ServiceSelector(name="accept",description="Accept invitation from other user"),
@@ -77,8 +77,8 @@ import javax.servlet.http.HttpServletResponse;
     description={"Manage a personal contact (a connection with another user), specifying an operation as a selector. ",
       "Examples:<br>" +
       "<pre>curl -u from_user:fromPwd -F toRelationships=Supervisor -F fromRelationships=Supervised " +
-      "http://localhost:8080/_user/contacts/to_user.invite.html</pre>" +
-      "<pre>curl -X POST -u to_user:toPwd http://localhost:8080/_user/contacts/from_user.accept.html</pre>"
+      "http://localhost:8080/~ieb/contacts/to_user.invite.html</pre>" +
+      "<pre>curl -X POST -u to_user:toPwd http://localhost:8080/~ieb/contacts/from_user.accept.html</pre>"
       },
     parameters={
       @ServiceParameter(name="toRelationships", description="The type of connection from the inviting user's point of view (only for invite)"),
@@ -95,7 +95,7 @@ import javax.servlet.http.HttpServletResponse;
     }
   )
 )
-@SlingServlet(resourceTypes="sakai/contactstore",methods={"POST"}, 
+@SlingServlet(resourceTypes="sparse/contactstore",methods={"POST"}, 
     selectors={"invite", "accept", "reject", "ignore", "block", "remove", "cancel"})
 @Properties(value = {
     @Property(name = "service.description", value = "Provides support for connection stores."),

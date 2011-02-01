@@ -20,31 +20,32 @@ package org.sakaiproject.nakamura.connections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.sling.commons.testing.jcr.MockNode;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionException;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
-import org.sakaiproject.nakamura.api.locking.LockManager;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
+import org.sakaiproject.nakamura.lite.RepositoryImpl;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.jcr.Node;
-import javax.jcr.PropertyType;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
 
 /**
  *
@@ -52,37 +53,42 @@ import javax.jcr.Value;
 public class ConnectionManagerImplTest {
 
   private ConnectionManagerImpl connectionManager;
-  private LockManager lockManager;
+  private RepositoryImpl repository;
 
   @Before
-  public void setUp() {
-    lockManager = mock(LockManager.class);
-
+  public void setUp() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+    BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
+    repository = baseMemoryRepository.getRepository();
     connectionManager = new ConnectionManagerImpl();
-    connectionManager.lockManager = lockManager;
+    connectionManager.repository = repository;
   }
 
   @Test
-  public void testAddArbitraryProperties() throws RepositoryException {
-    MockNode node = new MockNode("/path/to/connection/node");
+  public void testAddArbitraryProperties() throws ClientPoolException, StorageClientException, AccessDeniedException {
+    Session session = repository.loginAdministrative();
+    session.getContentManager().update(new Content("/path/to/connection/node", null));  
+    Content node = session.getContentManager().get("/path/to/connection/node");
+    
     Map<String, String[]> properties = new HashMap<String, String[]>();
     properties.put("alfa", new String[] { "a" });
     properties.put("beta", new String[] { "a", "b" });
     properties.put("charlie", new String[] { "c" });
 
     connectionManager.addArbitraryProperties(node, properties);
-    assertEquals(node.getProperty("alfa").getValues().length, 1);
-    assertEquals(node.getProperty("beta").getValues().length, 2);
-    assertEquals(node.getProperty("charlie").getValues().length, 1);
+    
+    assertEquals(StorageClientUtils.toStringArray(node.getProperty("alfa")).length, 1);
+    assertEquals(StorageClientUtils.toStringArray(node.getProperty("beta")).length, 2);
+    assertEquals(StorageClientUtils.toStringArray(node.getProperty("charlie")).length, 1);
   }
 
   @Test
-  public void testHandleInvitation() throws RepositoryException {
-    // Alice is student and supervised
-    // Bob is the supervisor and the lecturer
-
-    MockNode fromNode = new MockNode("/_user/a/al/alice/contacts/b/bo/bob");
-    MockNode toNode = new MockNode("/_user/b/bo/bob/contacts/a/al/alice");
+  public void testHandleInvitation() throws ClientPoolException, StorageClientException, AccessDeniedException  {
+    Session session = repository.loginAdministrative();
+    ContentManager contentManager = session.getContentManager();
+    contentManager.update(new Content("a:alice/contacts/bob", null));  
+    Content fromNode = contentManager.get("a:alice/contacts/bob");
+    contentManager.update(new Content("a:bob/contacts/alice", null));  
+    Content toNode = contentManager.get("a:bob/contacts/alice");
 
     Map<String, String[]> props = new HashMap<String, String[]>();
 
@@ -95,23 +101,21 @@ public class ConnectionManagerImplTest {
 
     connectionManager.handleInvitation(props, null, fromNode, toNode);
 
-    Value[] fromValues = fromNode.getProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES)
-        .getValues();
+    String[] fromValues = StorageClientUtils.toStringArray(fromNode.getProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES));
 
-    Value[] toValues = toNode.getProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES)
-        .getValues();
+    String[] toValues = StorageClientUtils.toStringArray(toNode.getProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES));
 
     assertEquals(3, fromValues.length);
     int j = 0;
     // order may not be what we expect it to be
     for ( int i = 0; i < 3; i++ ) {
-      if ( "foo".equals(fromValues[i].getString())) {
+      if ( "foo".equals(fromValues[i])) {
         j = j|1;
       }
-      if ( "Lecturer".equals(fromValues[i].getString())) {
+      if ( "Lecturer".equals(fromValues[i])) {
         j = j|2;
       }
-      if ( "Supervisor".equals(fromValues[i].getString())) {
+      if ( "Supervisor".equals(fromValues[i])) {
         j = j|4;
       }
     }
@@ -123,13 +127,13 @@ public class ConnectionManagerImplTest {
 
     j = 0;
     for ( int i = 0; i < 3; i++ ) {
-      if ( "foo".equals(toValues[i].getString())) {
+      if ( "foo".equals(toValues[i])) {
         j = j|1;
       }
-      if ( "Student".equals(toValues[i].getString())) {
+      if ( "Student".equals(toValues[i])) {
         j = j|2;
       }
-      if ( "Supervised".equals(toValues[i].getString())) {
+      if ( "Supervised".equals(toValues[i])) {
         j = j|4;
       }
     }
@@ -138,11 +142,11 @@ public class ConnectionManagerImplTest {
     Assert.assertTrue((j&4)==4);
 
 
-    Value[] fromRandomValues = fromNode.getProperty("random").getValues();
-    Value[] toRandomValues = toNode.getProperty("random").getValues();
+    String[] fromRandomValues = StorageClientUtils.toStringArray(fromNode.getProperty("random"));
+    String[] toRandomValues =  StorageClientUtils.toStringArray(toNode.getProperty("random"));
 
-    assertEquals("israndom", fromRandomValues[0].getString());
-    assertEquals("israndom", toRandomValues[0].getString());
+    assertEquals("israndom", fromRandomValues[0]);
+    assertEquals("israndom", toRandomValues[0]);
   }
 
   @Test
@@ -157,12 +161,12 @@ public class ConnectionManagerImplTest {
   }
 
   @Test
-  public void testCheckValidUserIdNonExisting() throws RepositoryException {
-    JackrabbitSession session = mock(JackrabbitSession.class);
-    UserManager um = mock(UserManager.class);
-    when(session.getUserManager()).thenReturn(um);
-    when(session.getUserID()).thenReturn("bob");
-    when(um.getAuthorizable("alice")).thenReturn(null);
+  public void testCheckValidUserIdNonExisting() throws AccessDeniedException, StorageClientException  {
+    Session session = repository.loginAdministrative();
+    session.getAuthorizableManager().createUser("bob", "bob", "test", null);
+    session.logout();
+    session = repository.loginAdministrative("bob");
+    
     try {
       connectionManager.checkValidUserId(session, "alice");
       fail("This should've thrown a ConnectionException.");
@@ -172,20 +176,18 @@ public class ConnectionManagerImplTest {
   }
 
   @Test
-  public void testCheckValidUserId() throws ConnectionException, RepositoryException {
-    JackrabbitSession session = mock(JackrabbitSession.class);
-    UserManager um = mock(UserManager.class);
-    Authorizable au = mock(Authorizable.class);
-    when(au.getID()).thenReturn("alice");
-    when(session.getUserManager()).thenReturn(um);
-    when(session.getUserID()).thenReturn("bob");
-    when(um.getAuthorizable("alice")).thenReturn(au);
+  public void testCheckValidUserId() throws ConnectionException, ClientPoolException, StorageClientException, AccessDeniedException {
+    Session session = repository.loginAdministrative();
+    session.getAuthorizableManager().createUser("bob", "bob", "test", null);
+    session.getAuthorizableManager().createUser("alice", "alice", "test", null);
+    session.logout();
+    session = repository.loginAdministrative("bob");
     Authorizable actual = connectionManager.checkValidUserId(session, "alice");
-    assertEquals(au, actual);
+    assertEquals("alice", actual.getId());
   }
 
   @Test
-  public void testGetConnectionState() throws ConnectionException, RepositoryException {
+  public void testGetConnectionState() throws ConnectionException, ClientPoolException, StorageClientException, AccessDeniedException {
     // Passing in null
     try {
       connectionManager.getConnectionState(null);
@@ -194,74 +196,64 @@ public class ConnectionManagerImplTest {
       // Swallow it and continue with the test.
     }
 
-    // PAssing in node without property should result in state == None
-    MockNode node = new MockNode("/path/to/connection");
+    Session session = repository.loginAdministrative();
+    session.getContentManager().update(new Content("/path/to/connection/node", null));  
+    Content node = session.getContentManager().get("/path/to/connection/node");
+
     ConnectionState state = connectionManager.getConnectionState(node);
     assertEquals(ConnectionState.NONE, state);
 
     // Passing in node with state property.
-    node.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE, "ACCEPTED");
+    node.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE, StorageClientUtils.toStore("ACCEPTED"));
     state = connectionManager.getConnectionState(node);
     assertEquals(ConnectionState.ACCEPTED, state);
 
     // Passing in node with wrong state property.
-    node.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE, "fubar");
+    node.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE, StorageClientUtils.toStore("fubar"));
     state = connectionManager.getConnectionState(node);
     assertEquals(ConnectionState.NONE, state);
   }
 
   @Test
-  public void testDeepGetCreateNodeExisting() throws RepositoryException {
-    JackrabbitSession session = mock(JackrabbitSession.class);
-    Authorizable from = mock(Authorizable.class);
-    Authorizable to = mock(Authorizable.class);
-
-    when(from.getID()).thenReturn("alice");
-    when(from.isGroup()).thenReturn(false);
-
-    when(to.getID()).thenReturn("bob");
-    when(to.isGroup()).thenReturn(false);
-
-    String contactPath = "/_user/alice/contacts/bob";
-    Node expectedNode = new MockNode(contactPath);
-    when(session.itemExists(contactPath)).thenReturn(true);
-    when(session.getItem(contactPath)).thenReturn(expectedNode);
-    Node result = connectionManager.getOrCreateConnectionNode(session, from, to);
-    assertEquals(contactPath, result.getPath());
+  public void testDeepGetCreateNodeExisting() throws ClientPoolException, StorageClientException, AccessDeniedException {
+    Session session = repository.loginAdministrative();
+    session.getAuthorizableManager().createUser("bob", "bob", "test", null);
+    session.getAuthorizableManager().createUser("alice", "alice", "test", null);
+    session.getAccessControlManager().setAcl(Security.ZONE_CONTENT, "a:alice",new AclModification[]{
+        new AclModification(AclModification.grantKey("alice"), Permissions.CAN_MANAGE.getPermission(), Operation.OP_REPLACE)
+    });
+    session.getAccessControlManager().setAcl(Security.ZONE_CONTENT, "a:bob",new AclModification[]{
+        new AclModification(AclModification.grantKey("bob"), Permissions.CAN_MANAGE.getPermission(), Operation.OP_REPLACE)
+    });
+    session.logout();
+    session = repository.loginAdministrative("bob");
+    Authorizable from = session.getAuthorizableManager().findAuthorizable("bob");
+    Authorizable to = session.getAuthorizableManager().findAuthorizable("alice");
+    
+    Content result = connectionManager.getOrCreateConnectionNode(session, from, to);
+    assertEquals("a:bob/contacts/alice", result.getPath());
   }
 
   @Test
-  public void testDeepGetCreateNodeExistingBase() throws RepositoryException {
-    JackrabbitSession session = mock(JackrabbitSession.class);
-    Authorizable from = mock(Authorizable.class);
-    Authorizable to = mock(Authorizable.class);
+  public void testDeepGetCreateNodeExistingBase() throws AccessDeniedException, StorageClientException  {
+    Session session = repository.loginAdministrative();
+    session.getAuthorizableManager().createUser("bob", "bob", "test", null);
+    session.getAuthorizableManager().createUser("alice", "alice", "test", null);
+    session.getAccessControlManager().setAcl(Security.ZONE_CONTENT, "a:alice",new AclModification[]{
+        new AclModification(AclModification.grantKey("alice"), Permissions.CAN_MANAGE.getPermission(), Operation.OP_REPLACE)
+    });
+    session.getAccessControlManager().setAcl(Security.ZONE_CONTENT, "a:bob",new AclModification[]{
+        new AclModification(AclModification.grantKey("bob"), Permissions.CAN_MANAGE.getPermission(), Operation.OP_REPLACE)
+    });
+    session.logout();
+    session = repository.loginAdministrative("bob");
+    Authorizable from = session.getAuthorizableManager().findAuthorizable("bob");
+    Authorizable to = session.getAuthorizableManager().findAuthorizable("alice");
 
-    when(from.getID()).thenReturn("alice");
-    when(from.isGroup()).thenReturn(false);
 
-    when(to.getID()).thenReturn("bob");
-    when(to.isGroup()).thenReturn(false);
-    Node profile = mock(Node.class);
-    when(profile.getIdentifier()).thenReturn("bob-iden-tifi-er");
-    when(session.getItem("/_user/bob/public/authprofile")).thenReturn(profile);
-
-    String basePath = "/_user/alice/contacts";
-    String contactPath = basePath + "/bob";
-
-    Node baseNode = mock(Node.class);
-    when(baseNode.getPath()).thenReturn(basePath);
-    Node contactNode = mock(Node.class);
-    when(contactNode.getPath()).thenReturn(contactPath);
-    when(contactNode.isNew()).thenReturn(true);
-    when(baseNode.addNode("bob")).thenReturn(contactNode);
-
-    when(session.itemExists(contactPath)).thenReturn(false);
-    when(session.itemExists(basePath)).thenReturn(true);
-    when(session.getItem(basePath)).thenReturn(baseNode);
-
-    Node result = connectionManager.getOrCreateConnectionNode(session, from, to);
-    assertEquals(contactPath, result.getPath());
-    verify(contactNode).setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, ConnectionConstants.SAKAI_CONTACT_RT);
-    verify(contactNode).setProperty("jcr:reference", "bob-iden-tifi-er", PropertyType.REFERENCE);
+    Content result = connectionManager.getOrCreateConnectionNode(session, from, to);
+    assertEquals("a:bob/contacts/alice", result.getPath());
+    assertEquals(ConnectionConstants.SAKAI_CONTACT_RT, StorageClientUtils.toString(result.getProperty("sling:resourceType")));
+    assertEquals("a:alice/public/authprofile", StorageClientUtils.toString(result.getProperty("reference")));
   }
 }

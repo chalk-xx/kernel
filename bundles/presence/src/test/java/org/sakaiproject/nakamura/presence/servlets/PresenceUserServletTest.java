@@ -194,7 +194,7 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     for (int i = 0; i < 50; i++) {
       friends.add("user-" + i);
     }
-    expect(connectionManager.getConnectedUsers(CURRENT_USER, ConnectionState.ACCEPTED)).andReturn(
+    expect(connectionManager.getConnectedUsers(null, CURRENT_USER, ConnectionState.ACCEPTED)).andReturn(
         friends);
     servlet.connectionManager = connectionManager;
   }

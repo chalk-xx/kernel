@@ -2,12 +2,6 @@
 
  "principals" : [
     { 
-    	"name":"owner", 
-    	"isgroup":"true",
-    	"members":[],
-    	"dynamic":"true"
-    },
-    { 
     	"name":"everyone", 
     	"isgroup":"true",
     	"members":[],

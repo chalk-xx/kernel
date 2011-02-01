@@ -28,6 +28,8 @@ class TC_MyTest < Test::Unit::TestCase
   end
 
   def test_ownership_privs
+    @log.info("Test Ignored, we no longer have the concept of owner")
+    if ( false ) 
 
     # Set up user and group
     @log.info("Creating test user ")
@@ -91,6 +93,8 @@ class TC_MyTest < Test::Unit::TestCase
     @log.info("As non owner checking  #{user2.name} ")
     res = @s.set_node_acl_entries(child_node, user2, { "jcr:addChildNodes" => "granted" })
     assert_equal(500, res.code.to_i, "Expected not to be able to modify ACL")
+
+    end
   end
 
 end

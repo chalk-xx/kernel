@@ -81,9 +81,9 @@ public class ConnectionFinderSearchResultProcessorTest {
     resultNode.setProperty("lastName", "The Builder");
     when(row.getNode()).thenReturn(resultNode);
 
-    MockNode contactNode = new MockNode("/_user/alice/contacts/bob");
+    MockNode contactNode = new MockNode("a:alice/contacts/bob");
     contactNode.setProperty("sling:resourceType", "sakai/contact");
-    when(session.getItem("/_user/alice/contacts/bob")).thenReturn(contactNode);
+    when(session.getItem("a:alice/contacts/bob")).thenReturn(contactNode);
 
     RequestPathInfo pathInfo = mock(RequestPathInfo.class);
     when(request.getRequestPathInfo()).thenReturn(pathInfo);

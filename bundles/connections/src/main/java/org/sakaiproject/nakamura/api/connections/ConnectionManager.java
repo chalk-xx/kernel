@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.api.connections;
 
 import org.apache.sling.api.resource.Resource;
+import org.sakaiproject.nakamura.api.lite.Session;
 
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,6 @@ public interface ConnectionManager {
    * @return a list of user ids for all users connected to the given user (with the given state)
    * @throws IllegalStateException if there is a failure in the system
    */
-  List<String> getConnectedUsers(String user, ConnectionState state);
+  List<String> getConnectedUsers(Session session, String user, ConnectionState state);
 
 }

@@ -20,11 +20,11 @@ package org.sakaiproject.nakamura.connections;
 import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_STATE;
 
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 
 import java.text.MessageFormat;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
 
 /**
  * 
@@ -69,14 +69,14 @@ public class StatePairFinal implements StatePair {
   public String toString() {
     return MessageFormat.format("Local [{0}] remote [{1}]", thisState.toString(), otherState.toString());
   }
+  
   /**
    * {@inheritDoc}
-   * @throws RepositoryException 
-   * @see org.sakaiproject.nakamura.connections.StatePair#transition(javax.jcr.Node, javax.jcr.Node)
+   * @see org.sakaiproject.nakamura.connections.StatePair#transition(org.sakaiproject.nakamura.api.lite.content.Content, org.sakaiproject.nakamura.api.lite.content.Content)
    */
-  public void transition(Node thisNode, Node otherNode) throws RepositoryException {
-    thisNode.setProperty(SAKAI_CONNECTION_STATE, thisState.toString());
-    otherNode.setProperty(SAKAI_CONNECTION_STATE, otherState.toString());
+  public void transition(Content thisNode, Content otherNode) {
+    thisNode.setProperty(SAKAI_CONNECTION_STATE, StorageClientUtils.toStore(thisState.toString()));
+    otherNode.setProperty(SAKAI_CONNECTION_STATE, StorageClientUtils.toStore(otherState.toString()));
   }
 
 }

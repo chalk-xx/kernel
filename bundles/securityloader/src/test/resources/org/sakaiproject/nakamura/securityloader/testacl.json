@@ -2,12 +2,6 @@
 
  "principals" : [
     { 
-    	"name":"owner", 
-    	"isgroup":"true",
-    	"members":[],
-    	"dynamic":"true"
-    },
-    { 
     	"name":"everyone", 
     	"isgroup":"true",
     	"members":[],
@@ -15,22 +9,6 @@
     }
  ],
  "acl" : [
- 	{
- 		"path":"/_user/private",
- 		"principal":"owner",
- 		"privilege@jcr:read":"granted",
- 		"privilege@jcr:write":"granted",
- 		"privilege@jcr:nodeTypeManagement":"granted"
- 		
- 	},
- 	{
- 		"path":"/_user/public",
- 		"principal":"owner",
- 		"privilege@jcr:read":"granted",
- 		"privilege@jcr:write":"granted",
- 		"privilege@jcr:nodeTypeManagement":"granted"
- 		
- 	},
  	{
  		"path":"/_user/public",
  		"principal":"everyone",

@@ -19,29 +19,39 @@ package org.sakaiproject.nakamura.connections;
 
 import static org.junit.Assert.assertEquals;
 
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
+import org.sakaiproject.nakamura.lite.RepositoryImpl;
 
 /**
  * 
  */
-public class ConnectionUtilsTest extends AbstractEasyMockTest {
+public class ConnectionUtilsTest  {
 
   private Authorizable user1;
   private Authorizable user2;
+  private RepositoryImpl repository;
   
   @Before
   public void setUp() throws Exception {
-    user1 = createAuthorizable("user1", false, true);
-    user2 = createAuthorizable("user2", false, true);
-  }
+    BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
+    repository = baseMemoryRepository.getRepository();
+    Session session = repository.loginAdministrative();
+    AuthorizableManager authorizableManager = session.getAuthorizableManager();
+    authorizableManager.createUser("user1", "user1", "test", null);
+    authorizableManager.createUser("user2", "user2", "test", null);
+    user1 = authorizableManager.findAuthorizable("user1");
+    user2 = authorizableManager.findAuthorizable("user2");
+  }    
 
   /**
    *
    */
-  private static final String BASE = "/_user/u/us/user1/contacts/u/us/user2";
+  private static final String BASE = "a:user1/contacts/user2";
 
   @Test
   public void testBasePath() {

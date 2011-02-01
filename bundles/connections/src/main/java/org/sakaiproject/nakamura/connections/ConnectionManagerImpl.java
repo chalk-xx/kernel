@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.connections;
 
-import static javax.jcr.security.Privilege.JCR_ALL;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.accept;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.block;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.cancel;
@@ -33,33 +32,37 @@ import static org.sakaiproject.nakamura.api.connections.ConnectionState.NONE;
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.PENDING;
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.REJECTED;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionException;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionOperation;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.locking.LockManager;
-import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
-import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.JcrUtils;
-import org.sakaiproject.nakamura.util.PersonalUtils;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -68,15 +71,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.jcr.InvalidItemStateException;
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.PropertyType;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
-import javax.jcr.query.QueryResult;
+
 
 /**
  * Service for doing operations with connections.
@@ -89,11 +84,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ConnectionManagerImpl.class);
 
-  @Reference
-  protected transient LockManager lockManager;
 
   @Reference
-  protected transient SlingRepository slingRepository;
+  protected transient Repository repository;
 
 
   private static Map<TransitionKey, StatePair> stateMap = new HashMap<TransitionKey, StatePair>();
@@ -152,16 +145,16 @@ public class ConnectionManagerImpl implements ConnectionManager {
   protected Authorizable checkValidUserId(Session session, String userId)
       throws ConnectionException {
     Authorizable authorizable;
-    if (UserConstants.ANON_USERID.equals(session.getUserID()) || UserConstants.ANON_USERID.equals(userId)) {
+    if (User.ANON_USER.equals(session.getUserId()) || User.ANON_USER.equals(userId)) {
       throw new ConnectionException(403, "Cant make a connection with anonymous.");
     }
     try {
-      UserManager userManager = AccessControlUtil.getUserManager(session);
-      authorizable = userManager.getAuthorizable(userId);
-      if (authorizable != null && authorizable.getID().equals(userId)) {
+      AuthorizableManager authorizableManager = session.getAuthorizableManager();
+      authorizable = authorizableManager.findAuthorizable(userId);
+      if (authorizable != null && authorizable.getId().equals(userId)) {
         return authorizable;
       }
-    } catch (RepositoryException e) {
+    } catch (StorageClientException e) {
       // general repo failure
       throw new ConnectionException(500, e.getMessage(), e);
     } catch (Exception e) {
@@ -181,8 +174,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
    * @throws ConnectionException
    * @throws RepositoryException
    */
-  protected ConnectionState getConnectionState(Node userContactNode)
-      throws ConnectionException, RepositoryException {
+  protected ConnectionState getConnectionState(Content userContactNode)
+      throws ConnectionException {
     if (userContactNode == null) {
       throw new IllegalArgumentException(
           "Node cannot be null to check for connection state");
@@ -190,8 +183,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
     try {
       if (userContactNode.hasProperty(ConnectionConstants.SAKAI_CONNECTION_STATE)) {
 
-        return ConnectionState.valueOf(userContactNode.getProperty(
-            ConnectionConstants.SAKAI_CONNECTION_STATE).getString());
+        return ConnectionState.valueOf(StorageClientUtils.toString(userContactNode.getProperty(
+            ConnectionConstants.SAKAI_CONNECTION_STATE)));
       }
     } catch (Exception e) {
     }
@@ -226,11 +219,11 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
     Session adminSession = null;
     try {
-      adminSession = slingRepository.loginAdministrative(null);
+      adminSession = repository.loginAdministrative(null);
 
       // get the contact userstore nodes
-      Node thisNode = getOrCreateConnectionNode(adminSession, thisAu, otherAu);
-      Node otherNode = getOrCreateConnectionNode(adminSession, otherAu, thisAu);
+      Content thisNode = getOrCreateConnectionNode(adminSession, thisAu, otherAu);
+      Content otherNode = getOrCreateConnectionNode(adminSession, otherAu, thisAu);
 
       // check the current states
       ConnectionState thisState = getConnectionState(thisNode);
@@ -262,26 +255,27 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
       sp.transition(thisNode, otherNode);
 
-      // save changes if any were actually made
-      if (adminSession.hasPendingChanges()) {
-        adminSession.save();
-      }
 
       if (operation == ConnectionOperation.invite) {
         throw new ConnectionException(200, "Invitation made between "
             + thisNode.getPath() + " and " + otherNode.getPath());
       }
-
-    } catch (InvalidItemStateException e) {
-      throw new ConnectionException(
-          409,
-          "There was a data conflict that cannot be resolved without user input (Simultaneaus requests.)");
-    } catch (RepositoryException e) {
+      
+      ContentManager contentManager = adminSession.getContentManager();
+      contentManager.update(thisNode);
+      contentManager.update(otherNode);
+    } catch (StorageClientException e) {
       throw new ConnectionException(500, e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      throw new ConnectionException(403, e.getMessage(), e);
     } finally {
       if (adminSession != null) {
         // destroy the admin session
-        adminSession.logout();
+        try {
+          adminSession.logout();
+        } catch (ClientPoolException e) {
+          LOGGER.error(e.getMessage(),e);
+        }
       }
     }
     return true;
@@ -297,14 +291,17 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *          contact group.
    * @param adminSession
    *          A session that can be used to modify a group.
+   * @throws StorageClientException 
+   * @throws AccessDeniedException 
    * @throws RepositoryException
    */
   protected void removeUserFromGroup(Authorizable thisAu, Authorizable otherAu,
-      Session session) throws RepositoryException {
-    UserManager um = AccessControlUtil.getUserManager(session);
-    Group g = (Group) um.getAuthorizable("g-contacts-" + thisAu.getID());
-    if (g != null && g.isMember(otherAu)) {
-      g.removeMember(otherAu);
+      Session session) throws StorageClientException, AccessDeniedException {
+    if ( otherAu != null && thisAu != null) {
+      AuthorizableManager authorizableManager = session.getAuthorizableManager();
+      Group g = (Group) authorizableManager.findAuthorizable("g-contacts-" + thisAu.getId());
+      g.removeMember(otherAu.getId());
+      authorizableManager.updateAuthorizable(g);
     }
   }
 
@@ -317,13 +314,15 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *          The user that needs to be added to the group.
    * @param session
    *          The session that can be used to locate and manipulate the group
+   * @throws StorageClientException 
+   * @throws AccessDeniedException 
    * @throws RepositoryException
    */
-  protected void addUserToGroup(Authorizable thisAu, Authorizable otherAu, Session session)
-      throws RepositoryException {
-    UserManager um = AccessControlUtil.getUserManager(session);
-    Group g = (Group) um.getAuthorizable("g-contacts-" + thisAu.getID());
-    g.addMember(otherAu);
+  protected void addUserToGroup(Authorizable thisAu, Authorizable otherAu, Session session) throws StorageClientException, AccessDeniedException {
+    AuthorizableManager authorizableManager = session.getAuthorizableManager();
+    Group g = (Group) authorizableManager.findAuthorizable("g-contacts-" + thisAu.getId());
+    g.addMember(otherAu.getId());
+    authorizableManager.updateAuthorizable(g);
   }
 
   /**
@@ -332,81 +331,41 @@ public class ConnectionManagerImpl implements ConnectionManager {
    * @see org.sakaiproject.nakamura.api.connections.ConnectionManager#getConnectedUsers(java.lang.String,
    *      org.sakaiproject.nakamura.api.connections.ConnectionState)
    */
-  public List<String> getConnectedUsers(String user, ConnectionState state) {
-    ArrayList<String> l = new ArrayList<String>();
-    // search string should look something like this
-    // "//_user/contacts/a0/b0/c0/d0/aaron/*[@sling:resourceType=\"sakai/contact\" and @sakai:state=\"ACCEPTED\"]"
+  public List<String> getConnectedUsers(Session session, String user, ConnectionState state) {
+    List<String> connections = Lists.newArrayList();
     try {
-      Session adminSession = slingRepository.loginAdministrative(null);
-      try {
-        UserManager um = AccessControlUtil.getUserManager(adminSession);
-        Authorizable au = um.getAuthorizable(user);
-        // this will generate the bigstore path
-        String connectionPath = ConnectionUtils.getConnectionPathBase(au);
-        // create the search query string
-        String search = "/jcr:root" + ISO9075.encodePath(connectionPath)
-            + "//element(*)[@" + JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY
-            + "=\"" + ConnectionConstants.SAKAI_CONTACT_RT + "\"";
-        if (state != null) {
-          search += " and @" + ConnectionConstants.SAKAI_CONNECTION_STATE + "=\""
-              + state.name() + "\"]";
-        } else {
-          search += "]";
+      ContentManager contentManager = session.getContentManager();
+      String path = ConnectionUtils.getConnectionPathBase(user);
+      Content content = contentManager.get(path);
+      for ( Content connection : content.listChildren() ) {
+        String resourceType = StorageClientUtils.toString(connection.getProperty("sling:resourceType"));
+        ConnectionState connectionState = ConnectionState.valueOf(StorageClientUtils.toString(connection.getProperty(ConnectionConstants.SAKAI_CONNECTION_STATE)));
+        if ( ConnectionConstants.SAKAI_CONTACT_RT.equals(resourceType) && state.equals(connectionState)) {
+          connections.add(StorageClientUtils.getObjectName(connection.getPath()));
         }
-        QueryManager qm = adminSession.getWorkspace().getQueryManager();
-        Query query = qm.createQuery(search, Query.XPATH);
-        QueryResult result = query.execute();
-        NodeIterator nodeIterator = result.getNodes();
-        while (nodeIterator.hasNext()) {
-          Node node = nodeIterator.nextNode();
-          l.add(node.getName());
-        }
-      } finally {
-        adminSession.logout();
       }
-    } catch (RepositoryException e) {
+    } catch (StorageClientException e) {
+      throw new IllegalStateException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
       throw new IllegalStateException(e.getMessage(), e);
     }
-    return l;
+    return connections;
   }
 
-  protected Node getOrCreateConnectionNode(Session session, Authorizable fromUser,
-      Authorizable toUser) throws RepositoryException {
+  protected Content getOrCreateConnectionNode(Session session, Authorizable fromUser,
+      Authorizable toUser) throws StorageClientException, AccessDeniedException {
     String nodePath = ConnectionUtils.getConnectionPath(fromUser, toUser);
-    if (session.itemExists(nodePath)) {
-      return (Node) session.getItem(nodePath);
+    ContentManager contentManager = session.getContentManager();
+    if (!contentManager.exists(nodePath)) {
+      contentManager.update(new Content(nodePath, ImmutableMap.of("sling:resourceType",
+            StorageClientUtils.toStore(ConnectionConstants.SAKAI_CONTACT_RT),
+            "reference", StorageClientUtils.toStore(LitePersonalUtils.getProfilePath(toUser.getId())))));
     }
-    String basePath = ConnectionUtils.getConnectionPathBase(fromUser);
-    try {
-      lockManager.waitForLock(basePath);
-    } catch (LockTimeoutException e) {
-      LOGGER.error("Unable to obtain lock on base node");
-      throw new RepositoryException("Unable to get connection node - lock timed out");
-    }
-    try {
-      if (!session.itemExists(basePath)) {
-        JcrUtils.deepGetOrCreateNode(session, basePath);
-        AccessControlUtil.replaceAccessControlEntry(session, basePath, fromUser
-            .getPrincipal(), new String[] { JCR_ALL }, null, null, null);
-        LOGGER.info("Added ACL to [{}]", basePath);
-      }
-      Node node = JcrUtils.deepGetOrCreateNode(session, nodePath);
-      if (node.isNew()) {
-        node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-            ConnectionConstants.SAKAI_CONTACT_RT);
-        // Place a reference to the authprofile of the user.
-        Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(toUser));
-        node.setProperty("jcr:reference", profileNode.getIdentifier(),
-            PropertyType.REFERENCE);
-      }
-      return node;
-    } finally {
-      lockManager.clearLocks();
-    }
+    return contentManager.get(nodePath);
   }
 
   protected void handleInvitation(Map<String, String[]> requestProperties,
-      Session session, Node fromNode, Node toNode) throws RepositoryException {
+      Session session, Content fromNode, Content toNode)  {
     Set<String> toRelationships = new HashSet<String>();
     Set<String> fromRelationships = new HashSet<String>();
     Map<String, String[]> sharedProperties = new HashMap<String, String[]>();
@@ -425,11 +384,11 @@ public class ConnectionManagerImpl implements ConnectionManager {
       }
     }
     addArbitraryProperties(fromNode, sharedProperties);
-    fromNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES, fromRelationships
-        .toArray(new String[fromRelationships.size()]));
+    fromNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES, StorageClientUtils.toStore(fromRelationships
+        .toArray(new String[fromRelationships.size()])));
     addArbitraryProperties(toNode, sharedProperties);
-    toNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES, toRelationships
-        .toArray(new String[toRelationships.size()]));
+    toNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES, StorageClientUtils.toStore(toRelationships
+        .toArray(new String[toRelationships.size()])));
   }
 
   /**
@@ -438,14 +397,13 @@ public class ConnectionManagerImpl implements ConnectionManager {
    * @param node
    * @param properties
    */
-  protected void addArbitraryProperties(Node node, Map<String, String[]> properties)
-      throws RepositoryException {
+  protected void addArbitraryProperties(Content node, Map<String, String[]> properties) {
     for (Entry<String, String[]> param : properties.entrySet()) {
       String[] values = param.getValue();
       if (values.length == 1) {
-        node.setProperty(param.getKey(), values[0]);
+        node.setProperty(param.getKey(), StorageClientUtils.toStore(values[0]));
       } else {
-        node.setProperty(param.getKey(), values);
+        node.setProperty(param.getKey(), StorageClientUtils.toStore(values));
       }
     }
   }
