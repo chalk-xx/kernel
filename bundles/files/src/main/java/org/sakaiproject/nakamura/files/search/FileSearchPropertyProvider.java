@@ -62,7 +62,7 @@ public class FileSearchPropertyProvider implements SolrSearchPropertyProvider {
         ClientUtils.escapeQueryChars(LitePersonalUtils.getPublicPath(user)));
 
     // Set the contacts.
-    propertiesMap.put("_mycontacts", getMyContacts(user));
+    propertiesMap.put("_mycontacts", getMyContacts(request, user));
 
     // Filter by links.
     String usedinClause = doUsedIn(request);
@@ -134,6 +134,7 @@ public class FileSearchPropertyProvider implements SolrSearchPropertyProvider {
 
   /**
    * Get a string of all the connected users.
+   * @param request 
    *
    * @param user
    *          The user to get the contacts for.
@@ -141,8 +142,8 @@ public class FileSearchPropertyProvider implements SolrSearchPropertyProvider {
    */
   @SuppressWarnings(justification = "connectionManager is OSGi managed", value = {
       "NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD" })
-  protected String getMyContacts(String user) {
-    List<String> connectedUsers = connectionManager.getConnectedUsers(user,
+  protected String getMyContacts(SlingHttpServletRequest request, String user) {
+    List<String> connectedUsers = connectionManager.getConnectedUsers(request, user,
         ConnectionState.ACCEPTED);
     StringBuilder sb = new StringBuilder();
 

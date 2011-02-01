@@ -59,20 +59,22 @@ public class FileSearchPropertyProviderTest {
   @Test
   public void testContacts() {
     List<String> connections = Arrays.asList(new String[] { "bob", "jack" });
-    when(connectionManager.getConnectedUsers("alice", ConnectionState.ACCEPTED))
+    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
+    when(connectionManager.getConnectedUsers(request, "alice", ConnectionState.ACCEPTED))
         .thenReturn(connections);
 
-    String query = provider.getMyContacts("alice");
+    String query = provider.getMyContacts(request, "alice");
     assertEquals("AND createdBy:(\"bob\" OR \"jack\")", query);
   }
 
   @Test
   public void testNoContacts() {
     List<String> connections = Arrays.asList(new String[] {});
-    when(connectionManager.getConnectedUsers("alice", ConnectionState.ACCEPTED))
+    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
+    when(connectionManager.getConnectedUsers(request, "alice", ConnectionState.ACCEPTED))
         .thenReturn(connections);
 
-    String query = provider.getMyContacts("alice");
+    String query = provider.getMyContacts(request, "alice");
     assertEquals("", query);
   }
 }
