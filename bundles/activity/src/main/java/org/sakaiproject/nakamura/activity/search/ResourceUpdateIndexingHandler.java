@@ -97,6 +97,8 @@ public class ResourceUpdateIndexingHandler implements IndexingHandler {
             String value = StorageClientUtils.toString(content.getProperty(prop));
             doc.addField(prop, value);
           }
+          doc.addField(_DOC_SOURCE_OBJECT, content);
+          documents.add(doc);
         }
       } catch (StorageClientException e) {
         logger.warn(e.getMessage(), e);
