@@ -52,7 +52,7 @@ class TC_Kern483Test < Test::Unit::TestCase
 
     collabs.add_member(@s, creatorid, "user")
     collabs.add_member(@s, collabid, "user")
-    res = @s.execute_get(@s.url_for("/system/userManager/group/#{collabsid}.json"))
+    res = @s.execute_get(@s.url_for("/system/lite/userManager/group/#{collabsid}.json"))
     @log.info("from non-admin, group=#{res.body}")
 
     # At this point the creator will no longer have read access, and because

@@ -28,11 +28,11 @@ class TC_Kern993Test < Test::Unit::TestCase
     testuser = User.new(userid)
     public = testuser.public_path_for(@s)
     path = "#{public}/authprofile"
-    res = @s.execute_get(@s.url_for("#{public}/authprofile.json"))
+    res = @s.execute_get(@s.url_for("#{public}/authprofile.2.json"))
     assert_equal("200", res.code, "Should have created authprofile in postprocessing")
     json = JSON.parse(res.body)
-    assert_equal(json["firstName"], firstname, "Profile property not set")
-    assert_equal(json["lastName"], lastname, "Profile property not set")
+    assert_equal(json["basic"]["elements"]["firstName"], firstname, "Profile property not set")
+    assert_equal(json["basic"]["elements"]["lastName"], lastname, "Profile property not set")
   end
 
 end

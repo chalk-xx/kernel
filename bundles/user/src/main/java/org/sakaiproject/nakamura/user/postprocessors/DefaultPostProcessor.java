@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ImmutableMap.Builder;
 
+import net.sf.json.JSONObject;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
@@ -34,6 +36,7 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -125,6 +128,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   private static final String MESSAGE_FOLDER = "/message";
 
   private static final String PROFILE_FOLDER = "/authprofile";
+  
+  private static final String PROFILE_BASIC = "/basic/elements";
 
   private static final String SAKAI_CONTACTSTORE_RT = "sakai/contactstore";
 
@@ -150,11 +155,18 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   static final String VISIBILITY_PRIVATE = "private";
   static final String VISIBILITY_LOGGED_IN = "logged_in";
   static final String VISIBILITY_PUBLIC = "public";
+  
+  static final String PROFILE_JSON_IMPORT_PARAMETER = ":sakai:profile-import";
 
   @Property(description = "The default access settings for the home of a new user or group.", value = VISIBILITY_PUBLIC, options = {
       @PropertyOption(name = VISIBILITY_PRIVATE, value = "The home is private."),
       @PropertyOption(name = VISIBILITY_LOGGED_IN, value = "The home is blocked to anonymous users; all logged-in users can see it."),
       @PropertyOption(name = VISIBILITY_PUBLIC, value = "The home is completely public.") })
+      
+  static final String PROFILE_IMPORT_TEMPLATE = "sakai.user.profile.template.default";
+  static final String PROFILE_IMPORT_TEMPLATE_DEFAULT = "{'basic':{'elements':{'firstName':{'value':'@@firstName@@'},'lastName':{'value':'@@lastName@@'},'email':{'value':'@@email@@'}},'access':'everybody'}}";
+  private String defaultProfileTemplate;
+  private ArrayList<String> profileParams = new ArrayList<String>();
   static final String VISIBILITY_PREFERENCE = "visibility.preference";
   static final String VISIBILITY_PREFERENCE_DEFAULT = VISIBILITY_PUBLIC;
 
@@ -165,6 +177,20 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   protected void modified(Map<?, ?> props) {
     visibilityPreference = OsgiUtil.toString(props.get(VISIBILITY_PREFERENCE),
         VISIBILITY_PREFERENCE_DEFAULT);
+    
+    defaultProfileTemplate = PROFILE_IMPORT_TEMPLATE_DEFAULT;
+
+    int startPos = defaultProfileTemplate.indexOf("@@");
+    while (startPos > -1) {
+      int endPos = defaultProfileTemplate.indexOf("@@", startPos + 2);
+      if (endPos > -1) {
+        String param = defaultProfileTemplate.substring(startPos + 2, endPos);
+        profileParams.add(param);
+
+        endPos = defaultProfileTemplate.indexOf("@@", endPos + 2);
+      }
+      startPos = endPos;
+    }
   }
 
   public void process(Authorizable authorizable, Session session, Modification change,
@@ -243,9 +269,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           aclModifications.toArray(new AclModification[aclModifications.size()]));
     }
     createPath(authId, LitePersonalUtils.getPublicPath(authId), SAKAI_PUBLIC_RT,
-        false, contentManager, accessControlManager);
+        false, contentManager, accessControlManager, null);
     createPath(authId, LitePersonalUtils.getPrivatePath(authId), SAKAI_PRIVATE_RT,
-        true, contentManager, accessControlManager);
+        true, contentManager, accessControlManager, null);
 
     // User Authorizable PostProcessor
     // ==============================
@@ -258,27 +284,64 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
     // Message PostProcessor
     createPath(authId, homePath + MESSAGE_FOLDER, SAKAI_MESSAGESTORE_RT, true, contentManager,
-        accessControlManager);
+        accessControlManager, null);
     // Calendar
     createPath(authId, homePath + CALENDAR_FOLDER, SAKAI_CALENDAR_RT, false, contentManager,
-        accessControlManager);
+        accessControlManager, null);
     // Connections
     createPath(authId, homePath + CONTACTS_FOLDER, SAKAI_CONTACTSTORE_RT, true, contentManager,
-        accessControlManager);
+        accessControlManager, null);
     // Pages
     // TODO:
     // Profile
     String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT : SAKAI_USER_PROFILE_RT;
-    createPath(authId, homePath + PROFILE_FOLDER, profileType, false, contentManager, accessControlManager);
+    createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER, profileType, false, contentManager, 
+        accessControlManager, null);
+    
+    createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC, "nt:unstructured", 
+        false, contentManager, accessControlManager, processProfileParameters(defaultProfileTemplate,
+            authorizable, parameters));
 
   }
 
+  private Map<String, Object> processProfileParameters(String profileTemplate,
+      Authorizable authorizable, Map<String, Object[]> parameters) {
+    Map<String, Object> retval = new HashMap<String, Object>();
+    if (parameters.containsKey(PROFILE_JSON_IMPORT_PARAMETER)) {
+      String profileJson = (String) parameters.get(PROFILE_JSON_IMPORT_PARAMETER)[0];
+      JSONObject jsonObject = JSONObject.fromObject(profileJson);
+      JSONObject basic = jsonObject.getJSONObject("basic");
+      if (basic != null) {
+        JSONObject elements = basic.getJSONObject("elements");
+        if (elements != null) {
+          for (Object propName : elements.keySet()) {
+            retval.put((String)propName, elements.get(propName));
+          }
+        }
+      }
+    }
+      for (String param : profileParams) {
+        String val = "unknown";
+        if (parameters.containsKey(param)) {
+          val = (String) parameters.get(param)[0];
+        } else if (authorizable.hasProperty(param)) {
+          val = StorageClientUtils.toString(authorizable.getProperty(param));
+        }
+        retval.put(param, StorageClientUtils.toStore(val));
+      }
+      return retval;
+  }
+
   private boolean createPath(String authId, String path, String resourceType, boolean isPrivate,
-      ContentManager contentManager, AccessControlManager accessControlManager)
+      ContentManager contentManager, AccessControlManager accessControlManager, Map<String, Object>additionalProperties)
       throws AccessDeniedException, StorageClientException {
+    Builder<String, Object> propertyBuilder = ImmutableMap.builder();
+    propertyBuilder.put(SLING_RESOURCE_TYPE, resourceType);
+    if (additionalProperties != null) {
+      propertyBuilder.putAll(additionalProperties);
+    }
     if (!contentManager.exists(path)) {
-      contentManager.update(new Content(path, ImmutableMap.of(SLING_RESOURCE_TYPE,
-          StorageClientUtils.toStore(resourceType))));
+      contentManager.update(new Content(path, propertyBuilder.build()));
       if (isPrivate) {
         accessControlManager.setAcl(
             Security.ZONE_CONTENT,
@@ -310,7 +373,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     
 
     // make sure the owner has permission on their home
-    if (!User.ANON_USER.equals(authorizable.getId())) {
+    if (authorizable instanceof User && !User.ANON_USER.equals(authorizable.getId())) {
       AclModification.addAcl(Boolean.TRUE, Permissions.ALL, authorizable.getId(),
           aclModifications);
     }
@@ -387,5 +450,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     }
 
   }
+  
+  }
+  
+  
 
-}

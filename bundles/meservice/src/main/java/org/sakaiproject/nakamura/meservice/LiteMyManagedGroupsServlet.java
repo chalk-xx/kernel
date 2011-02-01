@@ -127,7 +127,7 @@ public class LiteMyManagedGroupsServlet extends LiteAbstractMyGroupsServlet {
     Iterator<Group> allGroupsIter = member.memberOf(userManager);
     while (allGroupsIter.hasNext()) {
       Group group = allGroupsIter.next();
-      if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
+      if (!group.getId().equals(Group.EVERYONE) && group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
         String[] values = StorageClientUtils.toStringArray(group.getProperty(UserConstants.PROP_MANAGED_GROUP));
         if ((values != null) && (values.length == 1)) {
           String managedGroupId = values[0];

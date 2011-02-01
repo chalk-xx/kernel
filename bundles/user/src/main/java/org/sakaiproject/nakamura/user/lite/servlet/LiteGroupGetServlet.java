@@ -13,9 +13,18 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -68,6 +77,16 @@ public class LiteGroupGetServlet extends SlingSafeMethodsServlet {
 
 
     try {
+      
+      Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+      AccessControlManager acm = session.getAccessControlManager();
+      AuthorizableManager authorizableManager = session.getAuthorizableManager();
+      Authorizable thisUser = authorizableManager.findAuthorizable(session.getUserId());
+
+      if (! acm.can(thisUser, Security.ZONE_CONTENT, LitePersonalUtils.getHomePath(authorizable.getId()), Permissions.CAN_READ)) {
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        return;
+      }
 
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
@@ -101,6 +120,10 @@ public class LiteGroupGetServlet extends SlingSafeMethodsServlet {
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to render group details");
       return;
+    } catch (StorageClientException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error using the access control manager");
+    } catch (AccessDeniedException e) {
+      response.sendError(HttpServletResponse.SC_FORBIDDEN, "Insufficient permission to use the access control manager");
     }
   }
 
