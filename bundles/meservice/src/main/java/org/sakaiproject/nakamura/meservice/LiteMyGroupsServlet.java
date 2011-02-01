@@ -133,7 +133,7 @@ public class LiteMyGroupsServlet extends LiteAbstractMyGroupsServlet {
       // a Jackrabbit Group should be considered a Sakai Group entity.
       // We skip Managers-holders but otherwise just return a Profile if
       // we find one.
-      if (!group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
+      if (!group.hasProperty(UserConstants.PROP_MANAGED_GROUP) && !group.getId().equals(Group.EVERYONE)) {
         groups.put(group.getId(), group);
       }
     }

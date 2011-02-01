@@ -176,8 +176,8 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       Iterator<Group> groups = au.memberOf(session.getAuthorizableManager());
       while (groups.hasNext()) {
         Group group = groups.next();
-        if (group.getId().equals(StorageClientUtils.toString(group.getProperty("rep:group-managers")))) {
-          // we don't want manager groups in this feed
+        if (group.getId().equals(Group.EVERYONE) || group.getId().equals(StorageClientUtils.toString(group.getProperty("rep:group-managers")))) {
+          // we don't want manager groups or the "everyone" group in this feed
           continue;
         }
         ValueMap groupProfile = profileService.getCompactProfileMap(group, session);
@@ -463,7 +463,10 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       if (principal != null) {
         Iterator<Group> it = authorizable.memberOf(authorizableManager);
         while (it.hasNext()) {
-          subjects.add(it.next().getId());
+          Group aGroup = it.next();
+          if (!aGroup.getId().equals(Group.EVERYONE)) {
+            subjects.add(aGroup.getId());
+          }
         }
       }
     }
