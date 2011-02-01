@@ -83,8 +83,9 @@ public class LiteGroupGetServlet extends SlingSafeMethodsServlet {
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       Authorizable thisUser = authorizableManager.findAuthorizable(session.getUserId());
 
-      if (! acm.can(thisUser, Security.ZONE_CONTENT, LitePersonalUtils.getProfilePath(authorizable.getId()), Permissions.CAN_READ)) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Insufficient permission to read this resource.");
+      if (! acm.can(thisUser, Security.ZONE_CONTENT, LitePersonalUtils.getHomePath(authorizable.getId()), Permissions.CAN_READ)) {
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        return;
       }
 
       response.setContentType("application/json");

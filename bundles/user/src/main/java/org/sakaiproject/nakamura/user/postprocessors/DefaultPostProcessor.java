@@ -310,7 +310,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     
 
     // make sure the owner has permission on their home
-    if (!User.ANON_USER.equals(authorizable.getId())) {
+    if (authorizable instanceof User && !User.ANON_USER.equals(authorizable.getId())) {
       AclModification.addAcl(Boolean.TRUE, Permissions.ALL, authorizable.getId(),
           aclModifications);
     }
