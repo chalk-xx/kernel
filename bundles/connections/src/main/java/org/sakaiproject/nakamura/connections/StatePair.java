@@ -17,8 +17,8 @@
  */
 package org.sakaiproject.nakamura.connections;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+
 
 /**
  * 
@@ -30,6 +30,6 @@ public interface StatePair {
    * @param otherNode
    * @throws RepositoryException 
    */
-  void transition(Node thisNode, Node otherNode) throws RepositoryException;
+  void transition(Content thisNode, Content otherNode);
 
 }

@@ -46,6 +46,7 @@ import javax.jcr.query.Row;
  * Formats connection search results. We get profile nodes from the query and make a
  * uniformed result.
  */
+// TODO: port me
 @Component(immediate = true, description = "Formatter for connection search results", label = "ConnectionFinderSearchResultProcessor")
 @Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "sakai.search.processor", value = "ConnectionFinder") })
@@ -64,7 +65,8 @@ public class ConnectionFinderSearchResultProcessor implements SearchResultProces
     UserManager um = AccessControlUtil.getUserManager(session);
     Authorizable auMe = um.getAuthorizable(user);
     Authorizable auTarget = um.getAuthorizable(targetUser);
-    String contactNodePath = ConnectionUtils.getConnectionPath(auMe, auTarget);
+    String contactNodePath = ConnectionUtils.getConnectionPath(auMe.getID(), auTarget.getID());
+    System.err.println("getting "+contactNodePath);
     Node node = (Node) session.getItem(contactNodePath);
     if (aggregator != null) {
       aggregator.add(node);

@@ -20,21 +20,14 @@ package org.sakaiproject.nakamura.connections;
 
 import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.CONTACT_STORE_NAME;
 
-import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
-import org.sakaiproject.nakamura.util.PathUtils;
-import org.sakaiproject.nakamura.util.PersonalUtils;
 
 /**
  * Simple utils which help us when working with connections
  * 
  */
 public class ConnectionUtils {
-  /**
-   * The root of the personal connections path. Needed because several ConnectionManager
-   * clients supply only a user ID from which to retrieve information.
-   */
-  public static final String CONNECTION_PATH_ROOT = "/_user/contacts";
 
 
 
@@ -52,16 +45,20 @@ public class ConnectionUtils {
    *          element. / is not used to separate.
    * @return the path to the connection node or subtree node.
    */
-  public static String getConnectionPath(Authorizable user, Authorizable targetUser,
-      String remainderPath) {
-    if (remainderPath == null) {
-      remainderPath = "";
+  
+  public static String getConnectionPath(Authorizable user, Authorizable targetUser, String remainderPath ) {
+      return getConnectionPath(user.getId(), targetUser.getId(), remainderPath);
     }
-
+  private static String getConnectionPath(String user, String targetUser, 
+      String remainderPath) {
     StringBuilder sb = new StringBuilder();
     sb.append(getConnectionPathBase(user));
-    sb.append(PathUtils.getSubPath(targetUser)).append(remainderPath);
-    return PathUtils.normalizePath(sb.toString());
+    if (remainderPath == null || remainderPath.trim().length() == 0) {
+      sb.append("/").append(targetUser);
+    } else {
+      sb.append("/").append(targetUser).append(remainderPath);
+    }
+    return sb.toString();
   }
 
   /**
@@ -76,6 +73,10 @@ public class ConnectionUtils {
   public static String getConnectionPath(Authorizable user, Authorizable targetUser) {
     return getConnectionPath(user, targetUser, null);
   }
+  public static String getConnectionPath(String user, String targetUser) {
+    return getConnectionPath(user, targetUser, null);
+  }
+
 
   /**
    * @param au
@@ -84,9 +85,11 @@ public class ConnectionUtils {
    *         /_user/j/jo/joh/john/johndoe/contacts
    */
   public static String getConnectionPathBase(Authorizable au) {
-    return PersonalUtils.getHomePath(au) + "/" + CONTACT_STORE_NAME;
+    return LitePersonalUtils.getHomePath(au.getId()) + "/" + CONTACT_STORE_NAME;
   }
+  
   public static String getConnectionPathBase(String au) {
     return LitePersonalUtils.getHomePath(au) + "/" + CONTACT_STORE_NAME;
   }
+
 }
