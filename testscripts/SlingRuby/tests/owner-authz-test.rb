@@ -14,9 +14,12 @@ include SlingAuthz
 
 class TC_OwnerAuthZTest < Test::Unit::TestCase
   include AuthZBase
+ 
 
   def test_authzOwner
-    @delete = false
+    @log.info("This Test is ignored since we no longer have the concept of owner")
+    if ( false )
+        @delete = false
 	m = Time.now.to_i.to_s
 	@authz = SlingAuthz::Authz.new(@s)
 	path = "test/authztest/node"+m
@@ -25,14 +28,14 @@ class TC_OwnerAuthZTest < Test::Unit::TestCase
 	u1 = create_user(user1)
 	u2 = create_user(user2)
 	
-    owner = @um.create_group("owner")
-    if (owner == nil)
-      # assume already exists
-      owner = Group.new("owner")
-    end
-    #@s.debug = true
-    @s.update_properties(owner, { "dynamic" => "true" })
-    assert_not_nil(owner, "Expected owner group to be created")
+        owner = @um.create_group("owner")
+        if (owner == nil)
+          # assume already exists
+          owner = Group.new("owner")
+        end
+        #@s.debug = true
+        @s.update_properties(owner, { "dynamic" => "true" })
+        assert_not_nil(owner, "Expected owner group to be created")
 
 	admin = SlingUsers::User.admin_user()
 	
@@ -51,10 +54,11 @@ class TC_OwnerAuthZTest < Test::Unit::TestCase
 	updateAcl(path, owner.name ,true,true) # grant owner write
 	
 	checkAcl(path,"everyone",true,false)
-	checkAcl(path,owner.name, true, true)
+	checkAcl(path, owner.name, true, true)
 	
 	checkHttpAccess(childPath,u1," as owner of the child path "+childPath,true,true)
 	checkHttpAccess(childPath,u2," as owner of the child path "+childPath,true,false)
+      end
   end
 
 
