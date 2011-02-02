@@ -52,7 +52,7 @@ class TC_Kern1020Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Me servlet should return successfully")
     me = JSON.parse(res.body)
     groups = me["groups"]
-    assert_equal(3, groups.size, "Should have three groups in summary #{managedgroup.name}, #{membergroup.name} and #{managedgroup.name}  #{res.body}")
+    assert_equal(2, groups.size, "Should have three groups in summary #{managedgroup.name}, #{membergroup.name} and #{managedgroup.name}  #{res.body}")
     assert_not_nil(groups.find{|e| e["groupid"] == managedgroup.name}, "Manager should be a member of the group #{res.body} #{managedgroup.name}")
     assert_not_nil(groups.find{|e| e["groupid"] == membergroup.name}, "Expected group not returned #{res.body} #{membergroup.name}")
     res = @s.execute_get(@s.url_for("/system/me/managedgroups.json"))
