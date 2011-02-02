@@ -17,9 +17,12 @@ public class ResultImpl implements Result {
   public String getPath() {
     return (String) solrDocument.getFirstValue("path");
   }
-  
+
   public Map<String, Collection<Object>> getProperties() {
     return solrDocument.getFieldValuesMap();
   }
 
+  public Object getFirstValue(String name) {
+    return solrDocument.getFirstValue(name);
+  }
 }

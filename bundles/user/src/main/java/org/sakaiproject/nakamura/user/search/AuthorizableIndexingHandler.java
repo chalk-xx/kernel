@@ -28,7 +28,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
-import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StoreListener;
@@ -57,7 +56,6 @@ import java.util.Set;
  */
 @Component
 public class AuthorizableIndexingHandler implements IndexingHandler {
-  // TODO should this be "authorizables" or "user","groups"?
   private static final String[] DEFAULT_TOPICS = {
       StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.ADDED_TOPIC,
       StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.DELETE_TOPIC,
@@ -102,7 +100,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       Event event) {
     logger.debug("GetDocuments for {} ", event);
     // get the name of the authorizable (user,group)
-    String name = (String) event.getProperty("path");
+    String name = (String) event.getProperty(FIELD_PATH);
 
     // stop processing if the user isn't to be indexed
     if (BLACKLISTED_AUTHZ.contains(name)) {
@@ -126,22 +124,21 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
             }
           }
 
-          String path = (String) properties.get("path");
-
-          // TODO should the path or username be used here?
-          for (String principal : getReadingPrincipals(session, name)) {
-            doc.addField("readers", principal);
+          // add readers
+          AccessControlManager accessControlManager = session.getAccessControlManager();
+          String[] principals = accessControlManager.findPrincipals(
+              Security.ZONE_AUTHORIZABLES, name, Permissions.CAN_READ.getPermission(),
+              true);
+          for (String principal : principals) {
+            doc.addField(FIELD_READERS, principal);
           }
 
-          String id = path;
-          if (Authorizable.isAGroup(properties)) {
-            id = name;
-          }
-          doc.addField("id", id);
+          // set the resource type and ID
+          doc.setField(FIELD_RESOURCE_TYPE, "authorizable");
+          doc.setField(FIELD_ID, name);
+
           documents.add(doc);
         }
-      } catch (ClientPoolException e) {
-        logger.warn(e.getMessage(), e);
       } catch (StorageClientException e) {
         logger.warn(e.getMessage(), e);
       } catch (AccessDeniedException e) {
@@ -163,23 +160,5 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     logger.debug("GetDelete for {} ", event);
     String groupName = (String) event.getProperty(UserConstants.EVENT_PROP_USERID);
     return ImmutableList.of("id:" + groupName);
-  }
-
-  // ---------- internal methods -----------------------------------------------
-  /**
-   * Gets the principals that can read content at a given path.
-   *
-   * @param session
-   * @param path
-   *          The path to check.
-   * @return {@link String[]} of principal names that can read {@link path}. An empty
-   *         array is returned if no principals can read the path.
-   * @throws StorageClientException
-   */
-  private String[] getReadingPrincipals(Session session, String path)
-      throws StorageClientException {
-    AccessControlManager accessControlManager = session.getAccessControlManager();
-    return accessControlManager.findPrincipals(Security.ZONE_AUTHORIZABLES, path,
-        Permissions.CAN_READ.getPermission(), true);
   }
 }

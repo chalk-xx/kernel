@@ -47,7 +47,7 @@ public class ExtendedJSONWriter extends JSONWriter {
   public void valueMap(Map<String, Object> valueMap) throws JSONException {
     ExtendedJSONWriter.writeValueMap(this, valueMap);
   }
-  
+
 
   public static void writeValueMap(JSONWriter writer, Map<String, ?> valueMap) throws JSONException {
     writer.object();
@@ -69,9 +69,11 @@ public class ExtendedJSONWriter extends JSONWriter {
     ExtendedJSONWriter.writeValueMapInternals(this,valueMap);
   }
   public static void writeValueMapInternals(JSONWriter writer, Map<String, ?> valueMap) throws JSONException {
-    for (Entry<String,?> e : valueMap.entrySet()) {
-      writer.key(e.getKey());
-      writeValueInternal(writer, e.getValue());
+    if (valueMap != null) {
+      for (Entry<String,?> e : valueMap.entrySet()) {
+        writer.key(e.getKey());
+        writeValueInternal(writer, e.getValue());
+      }
     }
   }
 

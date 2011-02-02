@@ -22,39 +22,39 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.search.Aggregator;
-import org.sakaiproject.nakamura.api.search.SearchException;
-import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
-import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.query.Query;
-import javax.jcr.query.Row;
 
-@Component(immediate = true, label = "GroupJoinRequestSearchResultProcessor", description = "Formatter for group join request search results.")
-@Properties(value = {
+@Component(label = "GroupJoinRequestSearchResultProcessor", description = "Formatter for group join request search results.")
+@Properties({
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "sakai.search.processor", value = "GroupJoinRequest") })
-@Service(value = SearchResultProcessor.class)
-public class GroupJoinRequestSearchResultProcessor implements SearchResultProcessor {
+@Service
+public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultProcessor {
 
   @Reference
-  protected transient ProfileService profileService;
+  private ProfileService profileService;
 
 
   @Reference
-  protected transient SearchServiceFactory searchServiceFactory;
+  private SolrSearchServiceFactory searchServiceFactory;
 
   /**
    * {@inheritDoc}
@@ -62,9 +62,10 @@ public class GroupJoinRequestSearchResultProcessor implements SearchResultProces
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
-      throws SearchException {
-    return searchServiceFactory.getSearchResultSet(request, query);
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      String queryString) throws SolrSearchException {
+    // return the result set
+    return searchServiceFactory.getSearchResultSet(request, queryString);
   }
 
   /**
@@ -74,22 +75,27 @@ public class GroupJoinRequestSearchResultProcessor implements SearchResultProces
    *      org.apache.sling.commons.json.io.JSONWriter,
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.Row)
    */
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
-      Aggregator aggregator, Row row) throws JSONException, RepositoryException {
+  public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
+      throws JSONException {
+    ResourceResolver resolver = request.getResourceResolver();
+    String path = result.getPath();
+    String userId = (String) result.getFirstValue(User.NAME_FIELD);
+    if (userId != null) {
+      try {
+        Session session = resolver.adaptTo(Session.class);
+        AuthorizableManager authMgr = session.getAuthorizableManager();
+        Authorizable auth = authMgr.findAuthorizable(path);
 
-    write.object();
-    Node node = row.getNode();
-    write.key("jcr:created");
-    write.value(node.getProperty("jcr:created").getString());
-    String userID = node.getName();
-    UserManager um = AccessControlUtil.getUserManager(node.getSession());
-    Authorizable au = um.getAuthorizable(userID);
-    if (au != null) {
-      ValueMap map = profileService.getCompactProfileMap(au, node.getSession());
-      ((ExtendedJSONWriter)write).valueMapInternals(map);
+        write.object();
+        ValueMap map = profileService.getCompactProfileMap(auth);
+        ((ExtendedJSONWriter)write).valueMapInternals(map);
+        write.endObject();
+      } catch (StorageClientException e) {
+        throw new RuntimeException(e.getMessage(), e);
+      } catch (AccessDeniedException e) {
+        throw new RuntimeException(e.getMessage(), e);
+      }
     }
-    write.endObject();
-
   }
 
 }
