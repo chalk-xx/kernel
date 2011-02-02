@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.eventexplorer.oracle;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,11 @@ public class JdbcMessageListener implements MessageListener {
   @Activate
   protected void activate(Map<?, ?> props) {
     // TODO get connection to database
+  }
+
+  @Deactivate
+  protected void deactivate(Map<?, ?> props) {
+    // TODO drop connection to database
   }
 
   /**
