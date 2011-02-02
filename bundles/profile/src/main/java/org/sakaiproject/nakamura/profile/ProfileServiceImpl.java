@@ -40,6 +40,7 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrPropertyMap;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
@@ -73,8 +74,8 @@ public class ProfileServiceImpl implements ProfileService {
   private Map<String, ProfileProvider> providers = new ConcurrentHashMap<String, ProfileProvider>();
   private ProviderSettingsFactory providerSettingsFactory = new ProviderSettingsFactory();
   public static final Logger LOG = LoggerFactory.getLogger(ProfileServiceImpl.class);
-  
-  
+
+
 
   /**
    * {@inheritDoc}
@@ -207,6 +208,18 @@ public class ProfileServiceImpl implements ProfileService {
         compactProfile.put("hash", PersonalUtils.getUserHashedPath(authorizable));
       }
     }
+    return compactProfile;
+  }
+  public ValueMap getCompactProfileMap(
+      org.sakaiproject.nakamura.api.lite.authorizable.Authorizable authorizable) {
+    // The map were we will stick the compact information in.
+    ValueMap compactProfile = new ValueMapDecorator(new HashMap<String, Object>());
+
+    Map<String, Object> props = authorizable.getSafeProperties();
+    for (Entry<String, Object> prop : props.entrySet()) {
+      compactProfile.put(prop.getKey(), StorageClientUtils.toString(prop.getKey()));
+    }
+
     return compactProfile;
   }
 

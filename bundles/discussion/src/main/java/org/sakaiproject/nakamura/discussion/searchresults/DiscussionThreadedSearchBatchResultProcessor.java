@@ -22,42 +22,41 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.Post;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.search.Aggregator;
-import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
-import org.sakaiproject.nakamura.api.search.SearchException;
-import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.RowUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryResult;
-import javax.jcr.query.RowIterator;
 
 /**
  * Formats message node search results
  */
-@Component(immediate = true, label = "%discussion.threadedSearchBatch.label", description = "%discussion.threadedSearchBatch.desc")
+@Component(label = "%discussion.threadedSearchBatch.label", description = "%discussion.threadedSearchBatch.desc")
 @Service
 public class DiscussionThreadedSearchBatchResultProcessor implements
-    SearchBatchResultProcessor {
+    SolrSearchBatchResultProcessor {
 
   public static final Logger LOG = LoggerFactory
       .getLogger(DiscussionThreadedSearchBatchResultProcessor.class);
@@ -69,42 +68,42 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
   static final String SEARCH_BATCHPROCESSOR = "sakai.search.batchprocessor";
 
   @Reference
-  protected transient PresenceService presenceService;
+  PresenceService presenceService;
 
   @Reference
-  protected transient ProfileService profileService;
-  
+  ProfileService profileService;
+
   @Reference
-  protected transient SearchServiceFactory searchServiceFactory;
+  SolrSearchServiceFactory searchServiceFactory;
 
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor#writeResults(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.commons.json.io.JSONWriter, java.util.Iterator)
+   */
+  public void writeResults(SlingHttpServletRequest request, JSONWriter writer,
+      Iterator<Result> iterator) throws JSONException {
 
-  public void writeNodes(SlingHttpServletRequest request, JSONWriter writer,
-      Aggregator aggregator, RowIterator iterator) throws JSONException,
-      RepositoryException {
-
-    Session session = request.getResourceResolver().adaptTo(Session.class);
+    ResourceResolver resolver = request.getResourceResolver();
     List<String> basePosts = new ArrayList<String>();
     Map<String,List<Post>> postChildren = new HashMap<String, List<Post>>();
     Map<String,Post> allPosts = new HashMap<String, Post>();
-    for (; iterator.hasNext();) {
-      Node node = RowUtils.getNode(iterator.nextRow(), session);
-      if (aggregator != null) {
-        aggregator.add(node);
-      }
-      
-      Post p = new Post(node);
-      allPosts.put(node.getProperty(MessageConstants.PROP_SAKAI_ID).getString(), p);
+    while (iterator.hasNext()) {
+      Result result = iterator.next();
+      Content content = resolver.getResource(result.getPath()).adaptTo(Content.class);
 
-      if (node.hasProperty(DiscussionConstants.PROP_REPLY_ON)) {
+      Post p = new Post(content, resolver.adaptTo(Session.class));
+      allPosts.put(StorageClientUtils.toString(content
+          .getProperty(MessageConstants.PROP_SAKAI_ID)), p);
+
+      if (content.hasProperty(DiscussionConstants.PROP_REPLY_ON)) {
         // This post is a reply on another post.
-        String replyon = node.getProperty(DiscussionConstants.PROP_REPLY_ON).getString();
+        String replyon = StorageClientUtils.toString(content
+            .getProperty(DiscussionConstants.PROP_REPLY_ON));
         if (!postChildren.containsKey(replyon)) {
           postChildren.put(replyon, new ArrayList<Post>());
         }
-        
+
         postChildren.get(replyon).add(p);
-        
-        
 
       } else {
         // This post is not a reply to another post, thus it is a basepost.
@@ -121,32 +120,28 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
         childrenList.addAll(childrenActual);
       }
     }
-    
-    // The posts are sorted, now return them as json.
-    for (String basePostId : basePosts) {
-      allPosts.get(basePostId).outputPostAsJSON((ExtendedJSONWriter) writer, presenceService, profileService);
+
+    try {
+      // The posts are sorted, now return them as json.
+      for (String basePostId : basePosts) {
+        allPosts.get(basePostId).outputPostAsJSON((ExtendedJSONWriter) writer, presenceService, profileService);
+      }
+    } catch (StorageClientException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      throw new RuntimeException(e.getMessage(), e);
     }
   }
 
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
-   *      javax.jcr.query.Query)
+   * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
+   *      java.lang.String)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
-      throws SearchException {
-    try {
-      // Perform the query
-      QueryResult qr = query.execute();
-      RowIterator iterator = qr.getRows();
-
-
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, String query)
+      throws SolrSearchException {
       // Return the result set.
-      return searchServiceFactory.getSearchResultSet(iterator);
-    } catch (RepositoryException e) {
-      throw new SearchException(500, "Unable to execute query.");
-    }
+      return searchServiceFactory.getSearchResultSet(request, query);
   }
-
 }

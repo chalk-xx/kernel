@@ -76,6 +76,7 @@ class TC_KERN1105_Test < Test::Unit::TestCase
           assert_equal(lastJson, json, "Last json should equal current json");
         end
         lastJson = json;
+		
         assert_not_nil(json["server"]);
         assert_not_nil(json["user"]);
         assert_not_nil(json["user"]["lastUpdate"]);
@@ -83,9 +84,7 @@ class TC_KERN1105_Test < Test::Unit::TestCase
         assert_not_nil(json["user"]["id"]);
         assert_not_nil(json["user"]["principal"]);
         assert_not_nil(json["user"]["properties"]);
-        assert_not_nil(json["user"]["properties"]["firstName"]);
-        assert_not_nil(json["user"]["properties"]["lastName"]);
-        assert_not_nil(json["user"]["properties"]["email"]);
+        assert_not_nil(json["user"]["properties"]["name"]);
         assert_not_nil(json["user"]["declaredMembership"]);
         assert_not_nil(json["user"]["membership"]);
 				count += 1;

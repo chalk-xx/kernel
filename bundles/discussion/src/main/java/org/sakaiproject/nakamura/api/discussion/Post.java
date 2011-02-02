@@ -17,16 +17,18 @@
  */
 package org.sakaiproject.nakamura.api.discussion;
 
-import static javax.jcr.security.Privilege.JCR_MODIFY_PROPERTIES;
-import static javax.jcr.security.Privilege.JCR_REMOVE_CHILD_NODES;
-import static javax.jcr.security.Privilege.JCR_REMOVE_NODE;
-import static javax.jcr.security.Privilege.JCR_WRITE;
-
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
@@ -39,35 +41,30 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.UnsupportedRepositoryOperationException;
-import javax.jcr.security.AccessControlManager;
-import javax.jcr.security.Privilege;
-
 public class Post {
 
   public static final Logger LOG = LoggerFactory.getLogger(Post.class);
 
-  private Node node;
+  private Content content;
   private List<Post> children;
   private String postId;
+  private Session session;
 
-  public Post(Node node) {
-    setNode(node);
+  public Post(Content content, Session session) {
+    setContent(content);
+    this.session = session;
     children = new ArrayList<Post>();
   }
 
-  public Node getNode() {
-    return node;
+  public Content getContent() {
+    return content;
   }
 
-  public void setNode(Node node) {
-    this.node = node;
+  public void setContent(Content content) {
+    this.content = content;
     try {
-      if (node.hasProperty(MessageConstants.PROP_SAKAI_ID)) {
-        setPostId(node.getProperty(MessageConstants.PROP_SAKAI_ID).getString());
+      if (content.hasProperty(MessageConstants.PROP_SAKAI_ID)) {
+        setPostId(StorageClientUtils.toString(content.getProperty(MessageConstants.PROP_SAKAI_ID)));
       }
     } catch (Exception e) {
       setPostId("");
@@ -96,24 +93,19 @@ public class Post {
    * @return
    */
   public boolean checkEdit() {
+    boolean retval = false;
     try {
-      AccessControlManager acm = AccessControlUtil.getAccessControlManager(node
-          .getSession());
-      Privilege write = acm.privilegeFromName(JCR_WRITE);
-      Privilege modProps = acm.privilegeFromName(JCR_MODIFY_PROPERTIES);
-      Privilege[] privileges = { write, modProps };
-      if (acm.hasPrivileges(node.getPath(), privileges)) {
-        return true;
-      }
-
-      return false;
-    } catch (UnsupportedRepositoryOperationException e) {
-      LOG.warn("Unable to check if user has right to edit post.");
-    } catch (RepositoryException e) {
+      AccessControlManager accessControlManager = session.getAccessControlManager();
+      accessControlManager.check(Security.ZONE_CONTENT, content.getPath(),
+          Permissions.CAN_WRITE);
+      retval = true;
+    } catch (AccessDeniedException e) {
+      retval = false;
+    } catch (StorageClientException e) {
       LOG.warn("Unable to check if user has right to edit post.");
     }
 
-    return false;
+    return retval;
   }
 
   /**
@@ -122,39 +114,32 @@ public class Post {
    * @return
    */
   public boolean checkDelete() {
+    boolean retval = false;
     try {
-      AccessControlManager acm = AccessControlUtil.getAccessControlManager(node
-          .getSession());
-      Privilege write = acm.privilegeFromName(JCR_WRITE);
-      Privilege modProps = acm.privilegeFromName(JCR_MODIFY_PROPERTIES);
-      Privilege deleteNode = acm.privilegeFromName(JCR_REMOVE_NODE);
-      Privilege deleteChildNode = acm.privilegeFromName(JCR_REMOVE_CHILD_NODES);
-      Privilege[] privileges = { write, modProps, deleteNode, deleteChildNode };
-      if (acm.hasPrivileges(node.getPath(), privileges)) {
-        return true;
-      }
-
-      return false;
-    } catch (UnsupportedRepositoryOperationException e) {
-      LOG.warn("Unable to check if user has right to edit post.");
-    } catch (RepositoryException e) {
+      AccessControlManager accessControlManager = session.getAccessControlManager();
+      accessControlManager.check(Security.ZONE_CONTENT, content.getPath(),
+          Permissions.CAN_DELETE);
+      retval = true;
+    } catch (AccessDeniedException e) {
+      retval = false;
+    } catch (StorageClientException e) {
       LOG.warn("Unable to check if user has right to edit post.");
     }
-
-    return false;
+    return retval;
   }
 
   public void outputPostAsJSON(ExtendedJSONWriter writer,
       PresenceService presenceService, ProfileService profileService)
-      throws JSONException, RepositoryException {
+      throws JSONException, StorageClientException, AccessDeniedException {
     boolean canEdit = checkEdit();
     boolean canDelete = checkDelete();
 
     // If this post has been marked as deleted, we dont show it.
     // we do however show the children of it.
     boolean isDeleted = false;
-    if (node.hasProperty(DiscussionConstants.PROP_DELETED)) {
-      isDeleted = node.getProperty(DiscussionConstants.PROP_DELETED).getBoolean();
+    if (content.hasProperty(DiscussionConstants.PROP_DELETED)) {
+      isDeleted = StorageClientUtils.toBoolean(content
+          .getProperty(DiscussionConstants.PROP_DELETED));
     }
 
     if (isDeleted && !canDelete) {
@@ -166,7 +151,7 @@ public class Post {
 
       writer.key("post");
       writer.object();
-      ExtendedJSONWriter.writeNodeContentsToWriter(writer, node);
+      ExtendedJSONWriter.writeNodeContentsToWriter(writer, content);
       writer.key(MessageConstants.PROP_SAKAI_ID);
       writer.value(getPostId());
 
@@ -175,20 +160,20 @@ public class Post {
       writer.key("canDelete");
       writer.value(canDelete);
 
-      Session session = node.getSession();
-      UserManager um = AccessControlUtil.getUserManager(session);
+      AuthorizableManager authMgr = session.getAuthorizableManager();
       // Show profile of editters.
-      if (node.hasProperty(DiscussionConstants.PROP_EDITEDBY)) {
+      if (content.hasProperty(DiscussionConstants.PROP_EDITEDBY)) {
 
-        String edittedBy[] = StringUtils.split(getNode().getProperty(
-            DiscussionConstants.PROP_EDITEDBY).getString(), ',');
+        String editedByProp = StorageClientUtils.toString(getContent().getProperty(
+            DiscussionConstants.PROP_EDITEDBY));
+        String[] edittedBy = StringUtils.split(editedByProp, ',');
 
         writer.key(DiscussionConstants.PROP_EDITEDBYPROFILES);
         writer.array();
         for (int i = 0; i < edittedBy.length; i++) {
           writer.object();
-          Authorizable au = um.getAuthorizable(edittedBy[i]);
-          ValueMap profile = profileService.getCompactProfileMap(au, session);
+          Authorizable au = authMgr.findAuthorizable(edittedBy[i]);
+          ValueMap profile = profileService.getCompactProfileMap(au);
           writer.valueMapInternals(profile);
           PresenceUtils.makePresenceJSON(writer, edittedBy[i], presenceService, true);
           writer.endObject();
@@ -198,13 +183,14 @@ public class Post {
 
       // Show some profile info.
       writer.key("profile");
-      String fromVal = node.getProperty(MessageConstants.PROP_SAKAI_FROM).getString();
+      String fromVal = StorageClientUtils.toString(content
+          .getProperty(MessageConstants.PROP_SAKAI_FROM));
       String[] senders = StringUtils.split(fromVal, ',');
       writer.array();
       for (String sender : senders) {
         writer.object();
-        Authorizable au = um.getAuthorizable(sender);
-        ValueMap profile = profileService.getCompactProfileMap(au, session);
+        Authorizable au = authMgr.findAuthorizable(sender);
+        ValueMap profile = profileService.getCompactProfileMap(au);
         writer.valueMapInternals(profile);
         PresenceUtils.makePresenceJSON(writer, sender, presenceService, true);
         writer.endObject();
@@ -224,20 +210,20 @@ public class Post {
 
   public void outputChildrenAsJSON(ExtendedJSONWriter writer,
       PresenceService presenceService, ProfileService profileService)
-      throws JSONException, RepositoryException {
+      throws JSONException, StorageClientException, AccessDeniedException {
     LOG.info("this post {} has {} children", getPostId(), getChildren().size());
     for (Post p : children) {
       p.outputPostAsJSON(writer, presenceService, profileService);
     }
   }
 
-  public boolean addPost(Node n, String postid, String replyon) {
+  public boolean addPost(Content c, String postid, String replyon) {
     for (Post p : children) {
       if (p.postId.equals(replyon)) {
         // replied on this post.
-        p.children.add(new Post(n));
+        p.children.add(new Post(c, this.session));
         return true;
-      } else if (p.children.size() > 0 && p.addPost(n, postid, replyon)) {
+      } else if (p.children.size() > 0 && p.addPost(c, postid, replyon)) {
         return true;
       }
     }
