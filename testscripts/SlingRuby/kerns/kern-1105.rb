@@ -77,8 +77,6 @@ class TC_KERN1105_Test < Test::Unit::TestCase
         end
         lastJson = json;
 		
-		@log.info("JSON  #{res.body}")
-		
         assert_not_nil(json["server"]);
         assert_not_nil(json["user"]);
         assert_not_nil(json["user"]["lastUpdate"]);
