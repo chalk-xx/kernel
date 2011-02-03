@@ -45,6 +45,7 @@ import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.MediaRangeLis
 import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.CheckinOperation;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.CheckoutOperation;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.CopyOperation;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.CreateTreeOperation;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.DeleteOperation;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.ImportOperation;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.operations.ModifyOperation;
@@ -164,6 +165,7 @@ public class SparsePostServlet extends SlingAllMethodsServlet {
     importOperation = new ImportOperation(defaultNodeNameGenerator, null);
     importOperation.setExtraNodeNameGenerators(cachedNodeNameGenerators);
     postOperations.put(SlingPostConstants.OPERATION_IMPORT, importOperation);
+    postOperations.put("createTree", new CreateTreeOperation());
   }
 
   @Override
