@@ -71,11 +71,11 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
   public LiteAuthorizablePostProcessServiceImpl() {
   }
 
-  public void process(Authorizable authorizable, Session session, ModificationType change) throws Exception {
-    process(authorizable, session, change, new HashMap<String, Object[]>());
+  public void process(SlingHttpServletRequest request, Authorizable authorizable, Session session, ModificationType change) throws Exception {
+    process(request, authorizable, session, change, new HashMap<String, Object[]>());
   }
 
-  public void process(Authorizable authorizable, Session session,
+  public void process(SlingHttpServletRequest request, Authorizable authorizable, Session session,
       ModificationType change, Map<String, Object[]> parameters) throws Exception {
     // Set up the Modification argument.
 
@@ -89,13 +89,13 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
     Modification modification = new Modification(change, pathPrefix + authorizable.getId(), null);
 
     if (change != ModificationType.DELETE) {
-      defaultPostProcessor.process(authorizable, session, modification, parameters);
+      defaultPostProcessor.process(request, authorizable, session, modification, parameters);
     }
     for ( LiteAuthorizablePostProcessor processor : orderedServices ) {
-      processor.process(authorizable, session, modification, parameters);
+      processor.process(request, authorizable, session, modification, parameters);
     }
     if (change == ModificationType.DELETE) {
-      defaultPostProcessor.process(authorizable, session, modification, parameters);
+      defaultPostProcessor.process(request, authorizable, session, modification, parameters);
     }
   }
 
@@ -115,7 +115,7 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
         }
       }
     }
-    process(authorizable, session, change, parameters);
+    process(request, authorizable, session, change, parameters);
   }
 
   protected Comparator<LiteAuthorizablePostProcessor> getComparator(final Map<LiteAuthorizablePostProcessor, Map<String, Object>> propertiesMap) {
