@@ -16,12 +16,7 @@
  */
 package org.sakaiproject.nakamura.user.lite.servlet;
 
-import com.google.common.collect.Sets;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Maps;
 
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -38,6 +33,9 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.resource.RequestProperty;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -124,7 +122,7 @@ public class LiteUpdateSakaiUserServlet extends LiteAbstractUserPostServlet {
 
         Map<String, RequestProperty> reqProperties = collectContent(request,
             htmlResponse, userPath);
-        Set<Object> toSave = Sets.newLinkedHashSet();
+        Map<String, Object> toSave = Maps.newLinkedHashMap();
         // cleanup any old content (@Delete parameters)
         processDeletes(authorizable, reqProperties, changes, toSave);
 

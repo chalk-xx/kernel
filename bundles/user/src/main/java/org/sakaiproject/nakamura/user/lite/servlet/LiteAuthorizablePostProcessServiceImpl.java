@@ -30,10 +30,11 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessor;
-import org.sakaiproject.nakamura.user.LiteSakaiGroupProcessor;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.sakaiproject.nakamura.util.osgi.AbstractOrderedService;
 import org.slf4j.Logger;
@@ -51,8 +52,9 @@ import java.util.Map;
 public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedService<LiteAuthorizablePostProcessor> implements LiteAuthorizablePostProcessService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LiteAuthorizablePostProcessServiceImpl.class);
+
+
   
-  private LiteAuthorizablePostProcessor sakaiGroupProcessor = new LiteSakaiGroupProcessor();
 
   @Reference
   protected Repository repository;
@@ -76,6 +78,11 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
   public void process(Authorizable authorizable, Session session,
       ModificationType change, Map<String, Object[]> parameters) throws Exception {
     // Set up the Modification argument.
+
+    if ( StorageClientUtils.toBoolean(authorizable.getProperty(UserConstants.PROP_BARE_AUTHORIZABLE))) {
+      return; // bare authorizables have no extra objects
+    }
+
     final String pathPrefix = (authorizable instanceof Group) ?
         LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX :
           LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX;
@@ -83,14 +90,12 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
 
     if (change != ModificationType.DELETE) {
       defaultPostProcessor.process(authorizable, session, modification, parameters);
-      doInternalProcessing(authorizable, session, modification, parameters);
     }
     for ( LiteAuthorizablePostProcessor processor : orderedServices ) {
       processor.process(authorizable, session, modification, parameters);
     }
     if (change == ModificationType.DELETE) {
       defaultPostProcessor.process(authorizable, session, modification, parameters);
-      doInternalProcessing(authorizable, session, modification, parameters);
     }
   }
 
@@ -137,15 +142,6 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
     orderedServices = serviceList.toArray(new LiteAuthorizablePostProcessor[serviceList.size()]);
   }
   
-  private void doInternalProcessing(Authorizable authorizable, Session session,
-      Modification change, Map<String, Object[]> parameters) throws Exception {
-    if (authorizable instanceof Group) {
-      sakaiGroupProcessor.process(authorizable, session, change, parameters);
-    } else {
-      //TODO BL120 write this
-      //sakaiUserProcessor.process(authorizable, session, change, parameters);
-    }
-  }
 
 
 

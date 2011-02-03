@@ -2,7 +2,6 @@ package org.sakaiproject.nakamura.user.lite.servlet;
 
 import static org.mockito.Mockito.when;
 
-
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -10,9 +9,7 @@ import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.ModificationType;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -27,13 +24,10 @@ import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResource;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
 import org.sakaiproject.nakamura.user.postprocessors.DefaultPostProcessor;
-import org.sakaiproject.nakamura.user.servlet.UpdateSakaiGroupServlet;
 
 import java.util.ArrayList;
 import java.util.HashMap;

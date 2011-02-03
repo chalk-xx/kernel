@@ -52,7 +52,6 @@ public class LiteUserExistsServletTest {
   @Mock
   private ResourceResolver resourceResolver;
 
-  @SuppressWarnings("unused")
   @Mock
   private SlingHttpServletResponse httpResponse;
 

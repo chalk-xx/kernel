@@ -21,7 +21,7 @@ import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWER
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Properties;
@@ -262,7 +262,7 @@ public class LiteCreateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
                 response.setParentLocation(LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PATH);
                 changes.add(Modification.onCreated(groupPath));
 
-                Set<Object> toSave = Sets.newLinkedHashSet();
+                Map<String, Object> toSave = Maps.newLinkedHashMap();
 
                 // It is not allowed to touch the rep:group-managers property directly.
                 String key = SYSTEM_USER_MANAGER_GROUP_PREFIX + principalName + "/";
@@ -272,14 +272,20 @@ public class LiteCreateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
                 // write content from form
                 writeContent(session, group, reqProperties, changes, toSave);
 
+                dumpToSave(toSave,"after write content");
                 // update the group memberships, although this uses session from the request, it
                 // only
                 // does so for finding authorizables, so its ok that we are using an admin session
                 // here.
-                updateGroupMembership(request, group, changes, toSave);
+                updateGroupMembership(request, session, group, changes, toSave);
+
+                dumpToSave(toSave, " after update group membership");
+
                 // TODO We should probably let the client decide whether the
                 // current user belongs in the managers list or not.
                 updateOwnership(request, group, new String[] {currentUser.getId()}, changes, toSave);
+
+                dumpToSave(toSave, "before save");
 
                 saveAll(session, toSave);
                 try {
@@ -309,6 +315,8 @@ public class LiteCreateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
             ungetSession(session);
         }
   }
+
+
 
 
 
