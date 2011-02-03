@@ -317,7 +317,9 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
     // Write the property.
     if (changed) {
       group.setProperty(propertyName, StorageClientUtils.toStore(propertyValueSet.toArray(new String[propertyValueSet.size()])));
-      LOGGER.info("Adding to save Queue {} {}",group.getId(),group.getSafeProperties());
+      if ( LOGGER.isDebugEnabled() ) {
+        LOGGER.debug("Adding to save Queue {} {}",group.getId(),group.getSafeProperties());
+      } 
       toSave.put(group.getId(), group);
     }
   }

@@ -209,13 +209,15 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
   public void process(Authorizable authorizable, Session session, Modification change,
       Map<String, Object[]> parameters) throws Exception {
+    LOGGER.debug("Default Prost processor on {} with {} ", authorizable.getId(), change);
 
     ContentManager contentManager = session.getContentManager();
     AccessControlManager accessControlManager = session.getAccessControlManager();
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
     boolean isGroup = authorizable instanceof Group;
 
-    if (ModificationType.DELETE.equals(change)) {
+    if (ModificationType.DELETE.equals(change.getType())) {
+      LOGGER.debug("Performing delete operation on {} ", authorizable.getId());
       if ( isGroup ) {
         deleteManagersGroup(authorizable, authorizableManager);
       }
@@ -248,24 +250,24 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       List<AclModification> aclModifications = new ArrayList<AclModification>();
       // KERN-886 : Depending on the profile preference we set some ACL's on the profile.
       if (User.ANON_USER.equals(authId)) {
-        AclModification.addAcl(Boolean.TRUE, Permissions.CAN_READ, User.ANON_USER,
+        AclModification.addAcl(true, Permissions.CAN_READ, User.ANON_USER,
             aclModifications);
-        AclModification.addAcl(Boolean.TRUE, Permissions.CAN_READ, Group.EVERYONE,
+        AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
             aclModifications);
       } else if (VISIBILITY_PUBLIC.equals(visibilityPreference)) {
-        AclModification.addAcl(Boolean.TRUE, Permissions.CAN_READ, User.ANON_USER,
+        AclModification.addAcl(true, Permissions.CAN_READ, User.ANON_USER,
             aclModifications);
-        AclModification.addAcl(Boolean.TRUE, Permissions.CAN_READ, Group.EVERYONE,
+        AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
             aclModifications);
       } else if (VISIBILITY_LOGGED_IN.equals(visibilityPreference)) {
-        AclModification.addAcl(Boolean.FALSE, Permissions.CAN_READ, User.ANON_USER,
+        AclModification.addAcl(false, Permissions.CAN_READ, User.ANON_USER,
             aclModifications);
-        AclModification.addAcl(Boolean.TRUE, Permissions.CAN_READ, Group.EVERYONE,
+        AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
             aclModifications);
       } else if (VISIBILITY_PRIVATE.equals(visibilityPreference)) {
-        AclModification.addAcl(Boolean.FALSE, Permissions.CAN_READ, User.ANON_USER,
+        AclModification.addAcl(false, Permissions.CAN_READ, User.ANON_USER,
             aclModifications);
-        AclModification.addAcl(Boolean.FALSE, Permissions.CAN_READ, Group.EVERYONE,
+        AclModification.addAcl(false, Permissions.CAN_READ, Group.EVERYONE,
             aclModifications);
       }
 
@@ -329,12 +331,15 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   @Deprecated
   private void deleteManagersGroup(Authorizable authorizable, AuthorizableManager authorizableManager) {
     if (authorizable.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-      String managersGroup = StorageClientUtils.toString(UserConstants.PROP_MANAGERS_GROUP);
+      String managersGroup = StorageClientUtils.toString(authorizable.getProperty(UserConstants.PROP_MANAGERS_GROUP));
+      LOGGER.debug(" {} deleting managers group  {}",authorizable.getId(), managersGroup);
       try {
         authorizableManager.delete(managersGroup);
       } catch ( Exception e ) {
         LOGGER.info("Failed to delete managers group {}  {}",managersGroup);
       }
+    } else {
+      LOGGER.debug(" {} has no manager group {} ", authorizable, authorizable.getSafeProperties());
     }
   }
 
@@ -427,7 +432,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       if (basic != null) {
         JSONObject elements = basic.getJSONObject("elements");
         if (elements != null) {
-          for (Object propName : elements.keySet()) {
+          for (Object propName : elements.entrySet()) {
             retval.put((String)propName, elements.get(propName));
           }
         }
@@ -487,7 +492,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
     // make sure the owner has permission on their home
     if (authorizable instanceof User && !User.ANON_USER.equals(authorizable.getId())) {
-      AclModification.addAcl(Boolean.TRUE, Permissions.ALL, authorizable.getId(),
+      AclModification.addAcl(true, Permissions.ALL, authorizable.getId(),
           aclModifications);
     }
 

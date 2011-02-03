@@ -119,7 +119,6 @@ public class LiteAbstractSakaiGroupPostServletTest {
     servlet.updateOwnership(request, group, new String[] { "joe" }, null, toSave);
 
     Set<String> values = ImmutableSet.of(StorageClientUtils.toStringArray(group.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
-    System.err.println(group.getSafeProperties());
     assertTrue(values.contains("jeff"));
     assertTrue(values.contains("jack"));
     assertTrue(values.contains("john"));
