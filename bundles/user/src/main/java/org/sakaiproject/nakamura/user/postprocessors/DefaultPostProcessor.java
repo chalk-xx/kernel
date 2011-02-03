@@ -1,8 +1,14 @@
 package org.sakaiproject.nakamura.user.postprocessors;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGERS;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGED_GROUP;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGERS_GROUP;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_BARE_AUTHORIZABLE;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.collect.ImmutableMap.Builder;
 
 import net.sf.json.JSONObject;
@@ -17,6 +23,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
+import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -27,6 +34,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -34,6 +42,8 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -157,6 +167,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   static final String VISIBILITY_PUBLIC = "public";
   
   static final String PROFILE_JSON_IMPORT_PARAMETER = ":sakai:profile-import";
+  public static final String PARAM_ADD_TO_MANAGERS_GROUP = ":sakai:manager";
+  public static final String PARAM_REMOVE_FROM_MANAGERS_GROUP = PARAM_ADD_TO_MANAGERS_GROUP + SlingPostConstants.SUFFIX_DELETE;
 
   @Property(description = "The default access settings for the home of a new user or group.", value = VISIBILITY_PUBLIC, options = {
       @PropertyOption(name = VISIBILITY_PRIVATE, value = "The home is private."),
@@ -169,6 +181,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   private ArrayList<String> profileParams = new ArrayList<String>();
   static final String VISIBILITY_PREFERENCE = "visibility.preference";
   static final String VISIBILITY_PREFERENCE_DEFAULT = VISIBILITY_PUBLIC;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPostProcessor.class);
 
   private String visibilityPreference;
 
@@ -196,17 +210,22 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   public void process(Authorizable authorizable, Session session, Modification change,
       Map<String, Object[]> parameters) throws Exception {
 
+    ContentManager contentManager = session.getContentManager();
+    AccessControlManager accessControlManager = session.getAccessControlManager();
+    AuthorizableManager authorizableManager = session.getAuthorizableManager();
+    boolean isGroup = authorizable instanceof Group;
+
     if (ModificationType.DELETE.equals(change)) {
-      return; // do nothing
+      if ( isGroup ) {
+        deleteManagersGroup(authorizable, authorizableManager);
+      }
+      return; // do not
     }
 
     // If the sessionw as capable of performing the create or modify operation, it must be
     // capable of performing these operations.
-    ContentManager contentManager = session.getContentManager();
-    AccessControlManager accessControlManager = session.getAccessControlManager();
     String authId = authorizable.getId();
     String homePath = LitePersonalUtils.getHomePath(authId);
-    boolean isGroup = authorizable instanceof Group;
 
     // Home Authorizable PostProcessor
     // ==============================
@@ -281,6 +300,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     // ==============================
     // no action required (IMO we should drop the generated group and use ACL on the
     // object itself)
+    if ( isGroup ) {
+      updateManagersGroup(authorizable, authorizableManager, accessControlManager, parameters);
+    }
 
     // Message PostProcessor
     createPath(authId, homePath + MESSAGE_FOLDER, SAKAI_MESSAGESTORE_RT, true, contentManager,
@@ -302,6 +324,97 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         false, contentManager, accessControlManager, processProfileParameters(defaultProfileTemplate,
             authorizable, parameters));
 
+  }
+
+  @Deprecated
+  private void deleteManagersGroup(Authorizable authorizable, AuthorizableManager authorizableManager) {
+    if (authorizable.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
+      String managersGroup = StorageClientUtils.toString(UserConstants.PROP_MANAGERS_GROUP);
+      try {
+        authorizableManager.delete(managersGroup);
+      } catch ( Exception e ) {
+        LOGGER.info("Failed to delete managers group {}  {}",managersGroup);
+      }
+    }
+  }
+
+  /**
+   * Create or update the managers group. Note, this is deprecated since this is not how we will do this longer term.
+   * @param authorizable
+   * @param authorizableManager
+   * @param accessControlManager
+   * @param parameters
+   * @throws AccessDeniedException
+   * @throws StorageClientException
+   */
+  @Deprecated
+  private void updateManagersGroup(Authorizable authorizable, AuthorizableManager authorizableManager, AccessControlManager accessControlManager, Map<String, Object[]> parameters) throws AccessDeniedException, StorageClientException {
+    if ( !authorizable.hasProperty(PROP_MANAGERS_GROUP) ) {
+      // if authorizable.getId() is unique, then it only has 1 manages group, which is also unique by definition.
+       String managersGroupId = authorizable.getId() + "-managers";
+       authorizable.setProperty(PROP_MANAGERS_GROUP, StorageClientUtils.toStore(managersGroupId));
+       Set<String> managers = Sets.newHashSet(StorageClientUtils.toStringArray(authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
+       managers.add(managersGroupId);
+       authorizable.setProperty(UserConstants.PROP_GROUP_MANAGERS, StorageClientUtils.toStore(managers.toArray(new String[managers.size()])));
+
+
+       authorizableManager.updateAuthorizable(authorizable);
+
+       authorizableManager.createGroup(managersGroupId, managersGroupId, ImmutableMap.of(
+           PROP_MANAGED_GROUP, StorageClientUtils.toStore(authorizable.getId()), // the ID of the group this group manages
+           PROP_MANAGERS_GROUP,StorageClientUtils.toStore(managersGroupId), // the ID of the special managers group
+           PROP_GROUP_MANAGERS,StorageClientUtils.toStore(managersGroupId), // the managers of this group (ie itself)
+           PROP_BARE_AUTHORIZABLE, StorageClientUtils.toStore(true)
+           ));
+
+       Group managersGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
+       Object[] addValues = parameters.get(PARAM_ADD_TO_MANAGERS_GROUP);
+       if ((addValues != null) && (addValues instanceof String[])) {
+         for (String memberId : (String [])addValues) {
+           Authorizable toAdd = authorizableManager.findAuthorizable(memberId);
+           if (toAdd != null) {
+             managersGroup.addMember(toAdd.getId());
+           } else {
+             LOGGER.warn("Could not add {} to managers group {}", memberId, managersGroupId);
+           }
+         }
+       }
+       authorizableManager.updateAuthorizable(managersGroup);
+
+
+       // grant the mangers group management over this group
+       accessControlManager.setAcl(
+           Security.ZONE_AUTHORIZABLES, authorizable.getId(), new AclModification[] {
+             new AclModification(AclModification.grantKey(managersGroupId), Permissions.CAN_MANAGE.getPermission(), Operation.OP_REPLACE)
+           });
+       // and over itself
+       accessControlManager.setAcl(
+           Security.ZONE_AUTHORIZABLES, managersGroupId, new AclModification[] {
+             new AclModification(AclModification.grantKey(managersGroupId), Permissions.CAN_MANAGE.getPermission(), Operation.OP_REPLACE)
+           });
+    } else {
+      String managersGroupId = StorageClientUtils.toString(authorizable.getProperty(PROP_MANAGERS_GROUP));
+      Group managersGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
+      Object[] removeValues = parameters.get(PARAM_REMOVE_FROM_MANAGERS_GROUP);
+      if ((removeValues != null) && (removeValues instanceof String[])) {
+        for (String memberId : (String [])removeValues) {
+           managersGroup.removeMember(memberId);
+        }
+      }
+      Object[] addValues = parameters.get(PARAM_ADD_TO_MANAGERS_GROUP);
+      if ((addValues != null) && (addValues instanceof String[])) {
+        for (String memberId : (String [])addValues) {
+          Authorizable toAdd = authorizableManager.findAuthorizable(memberId);
+          if (toAdd != null) {
+            managersGroup.addMember(toAdd.getId());
+          } else {
+            LOGGER.warn("Could not add {} to managers group {}", memberId, managersGroup.getId());
+          }
+        }
+      }
+      // update knows if anything has changed and wont update if nothing changed.
+      authorizableManager.updateAuthorizable(managersGroup);
+    }
   }
 
   private Map<String, Object> processProfileParameters(String profileTemplate,
@@ -450,8 +563,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     }
 
   }
-  
-  }
+}
   
   
 

@@ -55,6 +55,8 @@ public class LiteMessagePostProcessorTest {
   private Session session;
   @Mock
   private ContentManager contentManager;
+  @Mock
+  private ResourceResolver resourceResolver;
 
   public LiteMessagePostProcessorTest() {
     MockitoAnnotations.initMocks(this);
@@ -67,7 +69,6 @@ public class LiteMessagePostProcessorTest {
     processor = new LiteMessagePostProcessor();
     processor.eventAdmin = eventAdmin;
 
-    ResourceResolver resourceResolver = mock(ResourceResolver.class);
     when(resourceResolver.adaptTo(Session.class)).thenReturn(session);
     Resource contentResource = new SparseContentResource(new Content("dummy",null), session, resourceResolver);
     when(request.getResource()).thenReturn(contentResource);
@@ -106,6 +107,9 @@ public class LiteMessagePostProcessorTest {
     content.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_OUTBOX);
     content.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
         MessageConstants.STATE_PENDING);
+    Resource resource = mock(Resource.class);
+    when(resource.adaptTo(Content.class)).thenReturn(content);
+    when(resourceResolver.getResource(path)).thenReturn(resource);
 
     when(contentManager.exists(path)).thenReturn(true);
     when(contentManager.get(path)).thenReturn(content);

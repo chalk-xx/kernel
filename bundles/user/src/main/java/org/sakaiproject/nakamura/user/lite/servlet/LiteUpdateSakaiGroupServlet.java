@@ -22,7 +22,7 @@ import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWER
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGED_GROUP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGERS_GROUP;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -58,10 +58,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -207,7 +207,20 @@ public class LiteUpdateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
     // cleanup any old content (@Delete parameters)
     // This is the only way to make a private group (one with a "rep:group-viewers"
     // property) no longer private.
-    Set<Object> toSave = Sets.newLinkedHashSet();
+    Map<String, Object> toSave = new HashMap<String, Object>() {
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 726298727259672826L;
+
+      @Override
+      public Object put(String key, Object object) {
+        if ( containsKey(key) && object != get(key)) {
+          LOGGER.warn("Overwriting existing object to save, may loose data key:{} old:{} new:{} ",new Object[]{key,get(key),object});
+        }
+        return super.put(key, object);
+      }
+    };
     
     processDeletes(authorizable, reqProperties, changes, toSave);
 
@@ -226,10 +239,14 @@ public class LiteUpdateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
 
     // update the group memberships
     
+    dumpToSave(toSave, "after write content");
+
     if (authorizable instanceof Group) {
-      updateGroupMembership(request, authorizable, changes, toSave);
+      updateGroupMembership(request, session, authorizable, changes, toSave);
+      dumpToSave(toSave, "after updateGroup membership");
       updateOwnership(request, (Group)authorizable, new String[0], changes, toSave);
     }
+    dumpToSave(toSave, "before save");
       
     saveAll(session, toSave);
 

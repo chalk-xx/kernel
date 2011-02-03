@@ -16,7 +16,7 @@
  */
 package org.sakaiproject.nakamura.user.lite.servlet;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
@@ -61,7 +61,6 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -324,7 +323,7 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
             .setParentLocation(LiteAuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PATH);
         changes.add(Modification.onCreated(userPath));
         
-        Set<Object> toSave = Sets.newLinkedHashSet();
+        Map<String, Object> toSave = Maps.newLinkedHashMap();
         
         // write content from form
         writeContent(selfRegSession, user, reqProperties, changes, toSave);

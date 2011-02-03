@@ -63,13 +63,28 @@ public interface UserConstants {
 
   public static final String ADMIN_USERID = "admin";
 
+  /**
+   * An array of managers of a group
+   */
   public static final String PROP_GROUP_MANAGERS = "rep:group-managers";
 
+  /**
+   * An array of viewers of a group
+   */
   public static final String PROP_GROUP_VIEWERS = "rep:group-viewers";
 
+  /**
+   * The ID of the special group that manages a group.
+   */
   public static final String PROP_MANAGERS_GROUP = "sakai:managers-group";
   public static final String PROP_MANAGED_GROUP = "sakai:managed-group";
   public static final String PROP_JOINABLE_GROUP = "sakai:group-joinable";
+  
+  /**
+   * Bare Authorizables have no /~ content and don't do any post processing.
+   */
+  public static final String PROP_BARE_AUTHORIZABLE = "sakai:bare";
+
 
   /**
    * The joinable property

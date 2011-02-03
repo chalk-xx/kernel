@@ -35,6 +35,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
@@ -83,6 +84,7 @@ public class LiteMessagePostProcessor implements SparsePostProcessor {
       List<Modification> changes) throws Exception {
 
     Resource resource = request.getResource();
+    ResourceResolver resourceResolver = request.getResourceResolver();
     if ( SparseContentResource.SPARSE_CONTENT_RT.equals(resource.getResourceSuperType()) ) {
       Session session = resource.adaptTo(Session.class);
       ContentManager contentManager = session.getContentManager();
@@ -99,8 +101,17 @@ public class LiteMessagePostProcessor implements SparsePostProcessor {
             if ( path.endsWith("/"+MessageConstants.PROP_SAKAI_MESSAGEBOX) ) {
               path = path.substring(0, path.length()-MessageConstants.PROP_SAKAI_MESSAGEBOX.length()-1);
             }
-            if (contentManager.exists(path)) {
-              Content content = contentManager.get(path);
+
+            // The Modification Source is the Resource path, and so we
+            // need to translate that into a Content path.
+            // TODO This is not a cheap operation. We might be better off
+            // if we start including the Content path in our Modification objects.
+            Resource modifiedResource = resourceResolver.getResource(path);
+            Content content = modifiedResource.adaptTo(Content.class);
+            String contentPath = content.getPath();
+
+            if (contentManager.exists(contentPath)) {
+              content = contentManager.get(contentPath);
               if (content.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && content.hasProperty(PROP_SAKAI_MESSAGEBOX)) {
                 if (SAKAI_MESSAGE_RT.equals(StorageClientUtils.toString(content.getProperty(SLING_RESOURCE_TYPE_PROPERTY))) &&
                     BOX_OUTBOX.equals(StorageClientUtils.toString(content.getProperty(PROP_SAKAI_MESSAGEBOX)))) {
@@ -122,7 +133,7 @@ public class LiteMessagePostProcessor implements SparsePostProcessor {
           LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
         }
       }
-  
+
       List<String> handledNodes = new ArrayList<String>();
       // Check if we have any nodes that have a pending state and launch an OSGi
       // event
@@ -132,10 +143,10 @@ public class LiteMessagePostProcessor implements SparsePostProcessor {
         String state = mm.getValue();
         if (!handledNodes.contains(path)) {
           if (STATE_NONE.equals(state) || STATE_PENDING.equals(state)) {
-  
+
             content.setProperty(PROP_SAKAI_SENDSTATE, StorageClientUtils.toStore(STATE_NOTIFIED));
             contentManager.update(content);
-  
+
             Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
             // WARNING
             // We can't pass in the node, because the session might expire before the event gets handled

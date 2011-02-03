@@ -37,6 +37,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.DateParser;
@@ -48,13 +49,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
@@ -78,6 +79,8 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
      */
     @Property(value={"EEE MMM dd yyyy HH:mm:ss 'GMT'Z","yyyy-MM-dd'T'HH:mm:ss.SSSZ","yyyy-MM-dd'T'HH:mm:ss","yyyy-MM-dd","dd.MM.yyyy HH:mm:ss","dd.MM.yyyy"})
     private static final String PROP_DATE_FORMAT = "servlet.post.dateFormats";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(LiteAbstractAuthorizablePostServlet.class);
 
     private DateParser dateParser;
 
@@ -472,13 +475,13 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
      */
     protected void processDeletes(Authorizable resource,
             Map<String, RequestProperty> reqProperties,
-            List<Modification> changes, Set<Object> toSave)  {
+            List<Modification> changes, Map<String, Object> toSave)  {
 
         for (RequestProperty property : reqProperties.values()) {
             if (property.isDelete()) {
                 if (resource.hasProperty(property.getName())) {
                     resource.removeProperty(property.getName());
-                    toSave.add(resource);
+                    toSave.put(resource.getId(), resource);
                     changes.add(Modification.onDeleted(property.getPath()));
                 }
             }
@@ -494,7 +497,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
      */
     protected void writeContent(Session session, Authorizable authorizable,
             Map<String, RequestProperty> reqProperties,
-            List<Modification> changes, Set<Object> toSave) {
+            List<Modification> changes, Map<String, Object> toSave) {
 
         for (RequestProperty prop : reqProperties.values()) {
             if (prop.hasValues()) {
@@ -536,7 +539,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
      * @throws RepositoryException if a repository error occurs.
      */
     private void setPropertyAsIs(Session session, Authorizable parent,
-            RequestProperty prop, List<Modification> changes, Set<Object> toSave) {
+            RequestProperty prop, List<Modification> changes, Map<String, Object> toSave) {
 
         String parentPath = "a:"+parent.getId();
         // no explicit typehint
@@ -554,7 +557,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
             // remove property
             boolean removedProp = removePropertyIfExists(parent, prop.getName());
             if (removedProp) {
-                toSave.add(parent);
+                toSave.put(parent.getId(),parent);
                 changes.add(Modification.onDeleted(parentPath + "/"
                     + prop.getName()));
             }
@@ -562,7 +565,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
             // do not create new prop here, but clear existing
             if (parent.hasProperty(prop.getName())) {
               parent.setProperty(prop.getName(), "");
-              toSave.add(parent);
+              toSave.put(parent.getId(),parent);
               changes.add(Modification.onModified(parentPath + "/"
                     + prop.getName()));
             }
@@ -572,7 +575,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
             // anything.
             if (values[0].length() == 0) {
                 if (removedProp) {
-                  toSave.add(parent);
+                  toSave.put(parent.getId(),parent);
                     changes.add(Modification.onDeleted(parentPath + "/"
                         + prop.getName()));
                 }
@@ -584,14 +587,14 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
                     if (c != null) {
                       
                           parent.setProperty(prop.getName(), StorageClientUtils.toStore(c));
-                          toSave.add(parent);
+                          toSave.put(parent.getId(),parent);
                          changes.add(Modification.onModified(parentPath
                                 + "/" + prop.getName()));
                         return;
                     }
                     // fall back to default behaviour
                 }
-                toSave.add(parent);
+                toSave.put(parent.getId(),parent);
                 parent.setProperty(prop.getName(), StorageClientUtils.toStore(values[0]));
             }
         } else {
@@ -601,7 +604,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
                 Calendar[] c = dateParser.parse(values);
                 if (c != null) {
                     parent.setProperty(prop.getName(), StorageClientUtils.toStore(c));
-                    toSave.add(parent);
+                    toSave.put(parent.getId(),parent);
                     changes.add(Modification.onModified(parentPath + "/"
                         + prop.getName()));
                     return;
@@ -610,7 +613,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
             }
 
             parent.setProperty(prop.getName(), StorageClientUtils.toStore(values));
-            toSave.add(parent);
+            toSave.put(parent.getId(),parent);
             changes.add(Modification.onModified(parentPath + "/"
                 + prop.getName()));
         }
@@ -686,14 +689,48 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
         return requirePrefix;
     }
     
-    protected void saveAll(Session session, Set<Object> toSave) throws AccessDeniedException, StorageClientException {
+    protected void dumpToSave(Map<String, Object> toSave, String message) throws AccessDeniedException, StorageClientException {
+      if ( LOGGER.isDebugEnabled() ) {
+        LOGGER.debug("At [{}], Save List Contains {} objects ",message, toSave.size());
+        for ( Object o : toSave.values()) {
+          if (o instanceof Group ) {
+            Group g = (Group)o;
+            LOGGER.debug(" Would Save {} {} {} {} {}",new Object[]{o, g.getPropertiesForUpdate(), Arrays.toString(g.getMembers()),  Arrays.toString(g.getMembersAdded()),  Arrays.toString(g.getMembersRemoved())});
+          } else if (o instanceof User ) {
+            LOGGER.debug(" Would Save {} {} ",o,((User)o).getPropertiesForUpdate());
+          } else if ( o instanceof Content ) {
+            LOGGER.debug(" Would Save {} {} ",o,((Content)o).getProperties());
+          } else {
+            LOGGER.debug(" Skipping {} ",o);
+          }
+        }
+      }
+    }
+
+    protected void saveAll(Session session, Map<String, Object> toSave) throws AccessDeniedException, StorageClientException {
       ContentManager contentManager = session.getContentManager();
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
-      for ( Object o : toSave) {
-        if (o instanceof Authorizable ) {
-          authorizableManager.updateAuthorizable((Authorizable) o);
+      for ( Object o : toSave.values()) {
+        if (o instanceof Group ) {
+          Group g = (Group)o;
+          if ( LOGGER.isDebugEnabled()) {
+            LOGGER.debug(" Saving {} {} {} {} {}",new Object[]{o,g.getPropertiesForUpdate(), Arrays.toString(g.getMembers()),  Arrays.toString(g.getMembersAdded()),  Arrays.toString(g.getMembersRemoved())});
+          }
+          authorizableManager.updateAuthorizable((Group) o);
+        } else if (o instanceof User ) {
+          if ( LOGGER.isDebugEnabled()) {
+            LOGGER.debug(" Saving {} {} ",o,((User)o).getPropertiesForUpdate());
+          }
+          authorizableManager.updateAuthorizable((User) o);
         } else if ( o instanceof Content ) {
+          if ( LOGGER.isDebugEnabled()) {
+            LOGGER.debug(" Saving {} {} ",o,((Content)o).getProperties());
+          }
           contentManager.update((Content) o);
+        } else {
+          if ( LOGGER.isDebugEnabled()) {
+            LOGGER.debug(" Skipping {} ",o);
+          }
         }
       }
     }

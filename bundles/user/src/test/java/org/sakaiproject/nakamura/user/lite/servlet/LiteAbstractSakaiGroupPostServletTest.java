@@ -21,9 +21,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 import junit.framework.Assert;
 
@@ -114,7 +114,7 @@ public class LiteAbstractSakaiGroupPostServletTest {
     props.put(Group.ID_FIELD,"g-foo");
     Group group = new Group(props);
 
-    Set<Object> toSave = Sets.newLinkedHashSet();
+    Map<String, Object> toSave = Maps.newLinkedHashMap();
 
     servlet.updateOwnership(request, group, new String[] { "joe" }, null, toSave);
 
@@ -138,7 +138,7 @@ public class LiteAbstractSakaiGroupPostServletTest {
     props.put(Group.ID_FIELD,"g-foo");
     Group group = new Group(props);
 
-    Set<Object> toSave = Sets.newLinkedHashSet();
+    Map<String, Object> toSave = Maps.newLinkedHashMap();
     servlet.updateOwnership(request, group, new String[0], null,toSave);
 
     Set<String> values = ImmutableSet.of(StorageClientUtils.toStringArray(group.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
@@ -148,26 +148,28 @@ public class LiteAbstractSakaiGroupPostServletTest {
   
   @Test
   public void testNonJoinableGroup() throws Exception {
-    Map<String, Object> props = Maps.newHashMap();
-    props.put(UserConstants.PROP_JOINABLE_GROUP,"no");
-    props.put(Group.ID_FIELD,"g-foo");
-    Group group = new Group(props);
-
+    Session adminSession = repository.loginAdministrative();
+    adminSession.getAuthorizableManager().createGroup("g-fooNoJoin", "FooNoJoin", ImmutableMap.of(UserConstants.PROP_JOINABLE_GROUP,StorageClientUtils.toStore("no")));
+    adminSession.logout();
+    
+    Group group = (Group) session.getAuthorizableManager().findAuthorizable("g-fooNoJoin");
+    
     
     
     when(request.getParameterValues(":member")).thenReturn(
         new String[] { "ieb" });
     
     
-    Set<Object> toSave = Sets.newLinkedHashSet();
+    Map<String, Object> toSave = Maps.newLinkedHashMap();
     ArrayList<Modification> changes = new ArrayList<Modification>();
     try {
-    servlet.updateGroupMembership(request, group, changes, toSave);
-    Assert.fail();
+       servlet.updateGroupMembership(request, session, group, changes, toSave);
+    
+       servlet.saveAll(session, toSave);
+       Assert.fail("Should have thrown an exception");
     } catch ( AccessDeniedException e) {
       
     }
-    assertTrue(changes.size() == 0);
   }
   
   @Test
@@ -189,8 +191,8 @@ public class LiteAbstractSakaiGroupPostServletTest {
     
     ArrayList<Modification> changes = new ArrayList<Modification>();
     
-    Set<Object> toSave = Sets.newLinkedHashSet();
-    servlet.updateGroupMembership(request, group, changes, toSave);
+    Map<String, Object> toSave = Maps.newLinkedHashMap();
+    servlet.updateGroupMembership(request, session, group, changes, toSave);
     
     assertTrue(changes.size() > 0);
   }

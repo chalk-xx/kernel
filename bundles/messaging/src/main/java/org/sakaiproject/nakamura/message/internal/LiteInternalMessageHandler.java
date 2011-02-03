@@ -182,7 +182,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
           Content message = contentManager.get(toPath);
 
           // Add some extra properties on the just created node.
-          message.setProperty(MessageConstants.PROP_SAKAI_READ, StorageClientUtils.toStore(Boolean.FALSE));
+          message.setProperty(MessageConstants.PROP_SAKAI_READ, StorageClientUtils.toStore(Boolean.FALSE.toString()));
           message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
               StorageClientUtils.toStore(MessageConstants.BOX_INBOX));
           message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
