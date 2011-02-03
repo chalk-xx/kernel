@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.connections;
+package org.sakaiproject.nakamura.connections.search;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -34,13 +34,13 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.LiteProfileService;
-import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.connections.ConnectionUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,11 +52,10 @@ import java.util.Map;
  * Formats connection search results. We get profile nodes from the query and make a
  * uniformed result.
  */
-// TODO: port me
-@Component(immediate = true, description = "Formatter for connection search results", label = "ConnectionFinderSearchResultProcessor")
-@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
+@Component(description = "Formatter for connection search results", label = "ConnectionFinderSearchResultProcessor")
+@Properties({ @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "sakai.search.processor", value = "ConnectionFinder") })
-@Service(value = SearchResultProcessor.class)
+@Service
 public class ConnectionFinderSearchResultProcessor implements SolrSearchResultProcessor {
 
   private static final Logger logger = LoggerFactory
