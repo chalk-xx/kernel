@@ -442,6 +442,18 @@ public class FileUtils {
     }
     return addTag(contentManager, contentNode, getTags(tagNode));
   }
+  
+  public static boolean addTag(ContentManager contentManager, Content contentNode,
+      Content tagNode)
+      throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
+      StorageClientException, RepositoryException {
+    if (contentNode == null) {
+      throw new RuntimeException(
+          "Cant tag non existant nodes, sorry, both must exist prior to tagging. File:"
+              + contentNode);
+    }
+    return addTag(contentManager, contentNode, getTags(tagNode));
+  }
 
   private static boolean addTag(Session adminSession, Node fileNode, String[] tags)
       throws RepositoryException {
@@ -467,6 +479,15 @@ public class FileUtils {
     String tagName = tagNode.getName();
     if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
       tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
+    }
+    return new String[] { tagUuid, tagName };
+  }
+  
+  private static String[] getTags(Content tagNode) {
+    String tagUuid = StorageClientUtils.toString(tagNode.getProperty(Content.UUID_FIELD));
+    String tagName = "";
+    if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
+      tagName = StorageClientUtils.toString(tagNode.getProperty(SAKAI_TAG_NAME));
     }
     return new String[] { tagUuid, tagName };
   }
