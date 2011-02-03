@@ -33,7 +33,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
@@ -50,7 +50,7 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultProcessor {
 
   @Reference
-  private ProfileService profileService;
+  private LiteProfileService profileService;
 
 
   @Reference
