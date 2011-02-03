@@ -57,7 +57,8 @@ public class ActivityIndexingHandler implements IndexingHandler {
   // list of properties to be indexed
   private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of("created");
 
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+  private static final Logger logger = LoggerFactory
+      .getLogger(ActivityIndexingHandler.class);
 
   @Reference(target = "(type=sparse)")
   private ResourceIndexingService resourceIndexingService;
@@ -73,6 +74,7 @@ public class ActivityIndexingHandler implements IndexingHandler {
     resourceIndexingService.removeHandler(ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE,
         this);
   }
+
   /**
    * {@inheritDoc}
    *
