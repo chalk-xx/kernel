@@ -52,5 +52,14 @@
       <artifactId>jms</artifactId>
       <version>1.1</version>
     </dependency>
+
+    <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-all</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+    </dependency>
   </dependencies>
 </project>
