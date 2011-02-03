@@ -20,7 +20,6 @@ package org.sakaiproject.nakamura.resource.lite.servlet.post.operations;
 
 import com.google.common.collect.Maps;
 
-import org.apache.sling.api.SlingConstants;
 import org.apache.sling.api.SlingException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
@@ -74,30 +73,50 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
     Map<String, SparseRequestProperty> reqProperties = collectContent(request, response, contentPath);
 
 
-
+    boolean contentPathHandled = (contentPath == null);
     for (SparseRequestProperty property : reqProperties.values()) {
       if (property.hasRepositoryMoveSource()) {
         String from = property.getRepositorySource();
         String to = property.getContentPath();
+        if (to.equals(contentPath)) {
+          contentPathHandled = true;
+        }
         contentManager.move(from, to);
         changes.add(Modification.onMoved(from, property.getPath()));
         property.setDelete(false);
       } else if (property.hasRepositoryCopySource()) {
         String from = property.getRepositorySource();
         String to = property.getContentPath();
+        if (to.equals(contentPath)) {
+          contentPathHandled = true;
+        }
         contentManager.copy(from, to, true);
         changes.add(Modification.onCopied(from, property.getPath()));
         property.setDelete(false);
       } else if ( property.isDelete()) {
-        contentManager.delete(property.getContentPath());
+        String from = property.getContentPath();
+        if (from.equals(contentPath)) {
+          contentPathHandled = true;
+        }
+        contentManager.delete(from);
         changes.add(Modification.onDeleted(property.getPath()));
       }
     }
 
-
     SparsePropertyValueHandler propHandler = new SparsePropertyValueHandler(dateParser, changes);
 
     Map<String, Content> contentMap = Maps.newHashMap();
+
+    if (!contentPathHandled) {
+      Content content = contentManager.get(contentPath);
+      if (content == null) {
+        content = new Content(contentPath, null);
+        response.setCreateRequest(true);
+        changes.add(Modification.onCreated(response.getPath()));
+        contentMap.put(contentPath, content);
+      }
+    }
+
     for (SparseRequestProperty prop : reqProperties.values()) {
       if (prop.hasValues()) {
         String propContentPath = prop.getContentPath();
@@ -107,6 +126,7 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
           if ( content == null ) {
             response.setCreateRequest(true);
             content = new Content(propContentPath, null);
+            changes.add(Modification.onCreated(propContentPath));
           }
           contentMap.put(propContentPath, content);
         }

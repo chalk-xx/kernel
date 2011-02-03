@@ -22,6 +22,8 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.resource.DateParser;
 import org.sakaiproject.nakamura.api.resource.lite.SparseRequestProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -34,7 +36,7 @@ import javax.jcr.RepositoryException;
  * example, "lastModified" with an empty value is stored as the current Date.
  */
 public class SparsePropertyValueHandler {
-
+  private static final Logger LOGGER = LoggerFactory.getLogger(SparsePropertyValueHandler.class);
 
   /**
    * String constant for type name as used in serialization.
@@ -159,6 +161,19 @@ public class SparsePropertyValueHandler {
     // no explicit typehint
 
     String type = prop.getTypeHint();
+    if (type != null) {
+      // SlingPostServlet's "@TypeHint" functionality can no longer be safely
+      // supported. Because property type is not persisted in Sparse, there is
+      // no way for a generic GET request to know how to reverse the data type
+      // translation from storage. Instead, specialized resource handlers
+      // must be used to convert Content as needed. For discussion, see:
+      // http://groups.google.com/group/sakai-kernel/browse_thread/thread/e0cb8c571a95feb1
+      //
+      // For now, log attempts to use @TypeHint to help find client code that needs
+      // to be updated. At some point, we will want to reduce the logging level.
+      LOGGER.info("Ignored request to store sparse content property {} with type {}", prop.getPath(), type);
+    }
+
     String[] values = prop.getStringValues();
 
     if (values == null) {
@@ -178,16 +193,19 @@ public class SparsePropertyValueHandler {
 
       } else {
         content.setProperty(prop.getName(),
-            StorageClientUtils.toStore(fromRequest(type, values)));
+            StorageClientUtils.toStore(values));
         changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
       }
     } else {
       content.setProperty(prop.getName(),
-          StorageClientUtils.toStore(fromRequest(type, values)));
+          StorageClientUtils.toStore(values));
       changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
     }
   }
 
+  /**
+   * TODO Not currently used but kept here while we work on Sparse port.
+   */
   private Object fromRequest(String type, String[] values) {
     if ( type == null ) {
       return values;
