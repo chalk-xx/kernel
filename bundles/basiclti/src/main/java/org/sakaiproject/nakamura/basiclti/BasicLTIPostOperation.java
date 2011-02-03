@@ -91,7 +91,7 @@ import javax.jcr.version.VersionException;
   }
 )
 @Component(immediate = true)
-@Service(value = SlingPostOperation.class)
+// @Service(value = SlingPostOperation.class)
 @Properties(value = {
     @Property(name = "sling.post.operation", value = "basiclti"),
     @Property(name = "service.description", value = "Creates a sakai/basiclti settings node."),

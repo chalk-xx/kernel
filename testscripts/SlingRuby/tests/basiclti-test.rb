@@ -328,8 +328,9 @@ class TC_BasicLTI < Test::Unit::TestCase
       "sakai:group-title" => @groupname,
       "_charset_" => "UTF-8"
     })
-    groupJcrRelativePath = group.details(@s)["properties"]["path"]
-    @groupJcrPath = "/_group#{groupJcrRelativePath}"
+    groupJcrRelativePath = group.details(@s)["profile"]
+    groupJcrRelativePath = groupJcrRelativePath[0, groupJcrRelativePath.index('/')];
+    @groupJcrPath = "#{groupJcrRelativePath}"
     @saveUrl = "#{group.home_path_for(@s)}/pages/_pages/group-dashboard/_widgets/id#{now}/basiclti";
     @bltiJcrPath = "#{@groupJcrPath}/pages/_pages/group-dashboard/_widgets/id#{now}/basiclti"
   end

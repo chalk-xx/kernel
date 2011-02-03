@@ -124,8 +124,8 @@ public class SparseContentResource extends AbstractResource {
         logger.error(e.getMessage(), e);
       }
     } else if (type == ValueMap.class) {
-      // FIXME: this wont work, properties are raw storage properties that need processing.
-      ValueMapDecorator vm = new ValueMapDecorator(content.getProperties());
+      // TODO BL120 logic in SparseValueMapDecorator may need another look
+      SparseValueMapDecorator vm = new SparseValueMapDecorator(content.getProperties());
       retval = (Type) vm;
     } else {
       retval = super.adaptTo(type);
