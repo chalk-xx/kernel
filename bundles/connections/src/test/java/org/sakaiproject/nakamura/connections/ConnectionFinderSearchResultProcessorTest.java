@@ -21,74 +21,93 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
+import com.google.common.collect.ImmutableSet;
+
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestPathInfo;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.query.Row;
+import java.util.Collection;
+import java.util.HashMap;
 
 /**
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ConnectionFinderSearchResultProcessorTest {
 
+  @Mock
+  LiteProfileService profileService;
+
+  @Mock
+  SolrSearchServiceFactory searchServiceFactory;
+
   @Test
-  public void test() throws RepositoryException, JSONException,
-      UnsupportedEncodingException {
+  public void test() throws Exception {
     ConnectionFinderSearchResultProcessor processor = new ConnectionFinderSearchResultProcessor();
-    SearchServiceFactory searchServiceFactory = mock(SearchServiceFactory.class);
     processor.searchServiceFactory = searchServiceFactory;
+    processor.profileService = profileService;
 
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     ResourceResolver resolver = mock(ResourceResolver.class);
-    JackrabbitSession session = mock(JackrabbitSession.class);
+    AuthorizableManager am = mock(AuthorizableManager.class);
+    Session session = mock(Session.class);
     when(request.getResourceResolver()).thenReturn(resolver);
     when(resolver.adaptTo(Session.class)).thenReturn(session);
+    when(session.getAuthorizableManager()).thenReturn(am);
 
-    UserManager um = mock(UserManager.class);
-    when(session.getUserManager()).thenReturn(um);
     when(request.getRemoteUser()).thenReturn("alice");
     Authorizable auAlice = mock(Authorizable.class);
-    when(auAlice.getID()).thenReturn("alice");
-    when(auAlice.isGroup()).thenReturn(false);
+    when(auAlice.getId()).thenReturn("alice");
+
     Authorizable auBob = mock(Authorizable.class);
-    when(auBob.getID()).thenReturn("bob");
-    when(auBob.isGroup()).thenReturn(false);
-    when(um.getAuthorizable("alice")).thenReturn(auAlice);
-    when(um.getAuthorizable("bob")).thenReturn(auBob);
+    when(auBob.getId()).thenReturn("bob");
+    HashMap<String, Object> auProps = new HashMap<String, Object>();
+    auProps.put("lastName", "The Builder");
+    when(auBob.getSafeProperties()).thenReturn(auProps);
+    when(profileService.getCompactProfileMap(auBob)).thenReturn(new ValueMapDecorator(auProps));
+
+    when(am.findAuthorizable("alice")).thenReturn(auAlice);
+    when(am.findAuthorizable("bob")).thenReturn(auBob);
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter w = new PrintWriter(baos);
     JSONWriter write = new JSONWriter(w);
-    Row row = mock(Row.class);
-    MockNode resultNode = new MockNode("/_user/bob/public/authprofile");
-    resultNode.setProperty("rep:userId", "bob");
-    resultNode.setProperty("lastName", "The Builder");
-    when(row.getNode()).thenReturn(resultNode);
 
-    MockNode contactNode = new MockNode("a:alice/contacts/bob");
+    Result result = mock(Result.class);
+    when(result.getPath()).thenReturn("a:alice/contacts/bob");
+    HashMap<String, Collection<Object>> props = new HashMap<String, Collection<Object>>();
+    props.put(User.NAME_FIELD, ImmutableSet.of((Object) "bob"));
+    when(result.getProperties()).thenReturn(props);
+
+    Content contactNode = new Content("a:alice/contacts/bob", null);
     contactNode.setProperty("sling:resourceType", "sakai/contact");
-    when(session.getItem("a:alice/contacts/bob")).thenReturn(contactNode);
+    Resource contactRes = mock(Resource.class);
+    when(resolver.getResource("a:alice/contacts/bob")).thenReturn(contactRes);
+    when(contactRes.adaptTo(Content.class)).thenReturn(contactNode);
 
     RequestPathInfo pathInfo = mock(RequestPathInfo.class);
     when(request.getRequestPathInfo()).thenReturn(pathInfo);
 
-    processor.writeNode(request, write, null, row);
+    processor.writeResult(request, write, result);
 
     w.flush();
     String s = baos.toString("UTF-8");

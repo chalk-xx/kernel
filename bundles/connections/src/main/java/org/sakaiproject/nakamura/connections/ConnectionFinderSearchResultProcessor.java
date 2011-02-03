@@ -22,25 +22,31 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.sakaiproject.nakamura.api.search.Aggregator;
-import org.sakaiproject.nakamura.api.search.SearchException;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
-import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.query.Query;
-import javax.jcr.query.Row;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Formats connection search results. We get profile nodes from the query and make a
@@ -51,37 +57,53 @@ import javax.jcr.query.Row;
 @Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "sakai.search.processor", value = "ConnectionFinder") })
 @Service(value = SearchResultProcessor.class)
-public class ConnectionFinderSearchResultProcessor implements SearchResultProcessor {
+public class ConnectionFinderSearchResultProcessor implements SolrSearchResultProcessor {
+
+  private static final Logger logger = LoggerFactory
+      .getLogger(ConnectionFinderSearchResultProcessor.class);
 
   @Reference
-  protected SearchServiceFactory searchServiceFactory;
+  LiteProfileService profileService;
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
-      throws JSONException, RepositoryException {
-    Session session = request.getResourceResolver().adaptTo(Session.class);
-    Node profileNode = row.getNode();
-    String user = request.getRemoteUser();
-    String targetUser = profileNode.getProperty("rep:userId").getString();
-    UserManager um = AccessControlUtil.getUserManager(session);
-    Authorizable auMe = um.getAuthorizable(user);
-    Authorizable auTarget = um.getAuthorizable(targetUser);
-    String contactNodePath = ConnectionUtils.getConnectionPath(auMe.getID(), auTarget.getID());
-    System.err.println("getting "+contactNodePath);
-    Node node = (Node) session.getItem(contactNodePath);
-    if (aggregator != null) {
-      aggregator.add(node);
+  @Reference
+  SolrSearchServiceFactory searchServiceFactory;
+
+  public void writeResult(SlingHttpServletRequest request, JSONWriter writer, Result result)
+      throws JSONException {
+    Map<String, Collection<Object>> props = result.getProperties();
+    Collection<Object> names = props.get(User.NAME_FIELD);
+    if (names == null || names.size() == 0) {
+      throw new IllegalArgumentException("Missing " + User.NAME_FIELD);
     }
 
-    int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
+    String user = request.getRemoteUser();
+    String contactUser = (String) names.iterator().next();
 
-    write.object();
-    write.key("target");
-    write.value(targetUser);
-    write.key("profile");
-    ExtendedJSONWriter.writeNodeTreeToWriter(write, profileNode, maxTraversalDepth);
-    write.key("details");
-    ExtendedJSONWriter.writeNodeTreeToWriter(write, node, maxTraversalDepth);
-    write.endObject();
+    ResourceResolver resolver = request.getResourceResolver();
+    Session session = resolver.adaptTo(Session.class);
+    try {
+      AuthorizableManager authMgr = session.getAuthorizableManager();
+      Authorizable auth = authMgr.findAuthorizable(contactUser);
+
+      String contactContentPath = ConnectionUtils.getConnectionPath(user, contactUser);
+      logger.debug("getting " + contactContentPath);
+      Content contactContent = resolver.getResource(contactContentPath).adaptTo(Content.class);
+
+      int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
+
+      writer.object();
+      writer.key("target");
+      writer.value(contactUser);
+      writer.key("profile");
+      ExtendedJSONWriter.writeValueMap(writer, profileService.getCompactProfileMap(auth));
+      writer.key("details");
+      ExtendedJSONWriter.writeContentTreeToWriter(writer, contactContent, maxTraversalDepth);
+      writer.endObject();
+    } catch (StorageClientException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    }
   }
   /**
    * {@inheritDoc}
@@ -89,8 +111,8 @@ public class ConnectionFinderSearchResultProcessor implements SearchResultProces
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      Query query) throws SearchException {
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      String query) throws SolrSearchException {
     return searchServiceFactory.getSearchResultSet(request, query);
   }
 }
