@@ -43,7 +43,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
-@Component(immediate = true, label = "UserSearchResultProcessor", description = "Formatter for user search results.")
+@Component(label = "UserSearchResultProcessor", description = "Formatter for user search results.")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "sakai.search.processor", value = "User") })
