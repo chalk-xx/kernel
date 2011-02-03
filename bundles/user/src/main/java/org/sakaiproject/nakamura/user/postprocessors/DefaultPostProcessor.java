@@ -334,19 +334,21 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       accessControlManager.setAcl(Security.ZONE_CONTENT, homePath,
           aclModifications.toArray(new AclModification[aclModifications.size()]));
     }
+    
+    // Group Authorizable PostProcessor
+    // ==============================
+    // no action required (IMO we should drop the generated group and use ACL on the
+    // object itself)
+    if (isGroup) {
+      updateManagersGroup(authorizable, authorizableManager, accessControlManager,
+          parameters);
+    }
+    
     if (ModificationType.CREATE.equals(change.getType())) {
       createPath(authId, LitePersonalUtils.getPublicPath(authId), SAKAI_PUBLIC_RT, false,
           contentManager, accessControlManager, null);
       createPath(authId, LitePersonalUtils.getPrivatePath(authId), SAKAI_PRIVATE_RT,
           true, contentManager, accessControlManager, null);
-      // Group Authorizable PostProcessor
-      // ==============================
-      // no action required (IMO we should drop the generated group and use ACL on the
-      // object itself)
-      if (isGroup) {
-        updateManagersGroup(authorizable, authorizableManager, accessControlManager,
-            parameters);
-      }
       // Message PostProcessor
       createPath(authId, homePath + MESSAGE_FOLDER, SAKAI_MESSAGESTORE_RT, true,
           contentManager, accessControlManager, null);
