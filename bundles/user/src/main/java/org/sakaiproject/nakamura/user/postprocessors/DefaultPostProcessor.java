@@ -615,7 +615,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         JSONObject elements = basic.getJSONObject("elements");
         if (elements != null) {
           for (Object propName : elements.entrySet()) {
-            retval.put((String)propName, elements.get(propName));
+            retval.put((String) ((Map.Entry)propName).getKey(), elements.get(((Map.Entry)propName).getKey()));
           }
         }
       }
