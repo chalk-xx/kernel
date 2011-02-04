@@ -45,6 +45,14 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
       String query, boolean asAnon) throws SolrSearchException {
     try {
 
+      // separate the query from the options
+      String options = "";
+      int semiPos = query.lastIndexOf(';');
+      if (semiPos >= 0) {
+        options = query.substring(semiPos);
+        query = query.substring(0, semiPos);
+      }
+
       // apply readers restrictions.
       if (asAnon) {
         query = "+(" + query + ")  AND +readers:"
@@ -60,9 +68,11 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
             readers.add(gi.next().getID());
           }
           readers.add(session.getUserID());
-          query = " +(" + query + ") AND +(" + StringUtils.join(readers," or readers:") + " )";
+          query = " +(" + query + ") AND +readers:(" + StringUtils.join(readers," OR ") + " )";
         }
       }
+      // cat the query and options back together
+      query += options;
 
       SolrQuery solrQuery = new SolrQuery(query);
       long[] ranges = SolrSearchUtil.getOffsetAndSize(request);
