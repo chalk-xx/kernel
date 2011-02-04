@@ -39,9 +39,30 @@ import javax.jcr.ValueFormatException;
 import javax.jcr.nodetype.PropertyDefinition;
 
 public class ExtendedJSONWriter extends JSONWriter {
+  private static final String TRUE = "true";
+  private static final String FALSE = "false";
 
   public ExtendedJSONWriter(Writer w) {
     super(w);
+  }
+
+  /**
+   * Handle boolean values as booleans.
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.commons.json.io.JSONWriter#value(java.lang.Object)
+   */
+  @Override
+  public JSONWriter value(Object o) throws JSONException {
+    // TODO BL120 handle strings that look like booleans as booleans
+    if (o instanceof String) {
+      final String s = (String) o;
+      if (TRUE.equals(s) || FALSE.equals(s)) {
+        return super.value(Boolean.parseBoolean(s));
+      }
+    }
+    return super.value(o);
   }
 
   public void valueMap(Map<String, Object> valueMap) throws JSONException {

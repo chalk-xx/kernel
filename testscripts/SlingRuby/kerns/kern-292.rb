@@ -24,7 +24,7 @@ class TC_Kern292Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Expected second add to be Ok")
     members = g1.members(@s)
    # this test would be 1 with the JR user manager, but the sparse user manager does not maintain RI, perposfully
-    assert_equal(2, members.size, "Expected group to have no extra members #{members} ")
+    assert_equal(1, members.size, "Expected group to have no extra members #{members} ")
   end
 
 # The sparse map is not transactional, so this test is invalid. Princiapls added to groups dont have to exist, they are just references that 

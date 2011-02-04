@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.api.user;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
 
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -33,6 +34,7 @@ public interface LiteAuthorizablePostProcessor {
   /**
    * Method which will be called after a Sakai user or group has been created or modified,
    * and before the Sakai user or group is deleted.
+   * @param request 
    *
    * @param authorizable
    * @param session
@@ -41,7 +43,7 @@ public interface LiteAuthorizablePostProcessor {
    *        the processing service sees fit
    * @throws Exception
    */
-  void process(Authorizable authorizable, Session session, Modification change, Map<String, Object[]> parameters)
+  void process(SlingHttpServletRequest request, Authorizable authorizable, Session session, Modification change, Map<String, Object[]> parameters)
       throws Exception;
 
 }

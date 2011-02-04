@@ -177,11 +177,14 @@ public class LiteDeleteSakaiAuthorizableServlet extends LiteAbstractAuthorizable
         }
     }
 
+    LOGGER.debug("Will delete {} ",authorizables);
+    
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     Map<String, Boolean> authorizableEvents = new HashMap<String, Boolean>();
     try {
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       for ( Authorizable authorizable : authorizables) {
+        LOGGER.debug("Deleting {} ",authorizable.getId());
         authorizableEvents.put(authorizable.getId(), (authorizable instanceof Group));
         postProcessorService.process(authorizable, session, ModificationType.DELETE, request);
         authorizableManager.delete(authorizable.getId());

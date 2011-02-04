@@ -25,7 +25,6 @@ class TC_Kern939Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Should have created pages in postprocessing")
     json = JSON.parse(res.body)
     assert_not_nil(json["index.html"], "Expected default page not found")
-    assert_equal(json["index.html"]["jcr:primaryType"], "nt:file", "Default home page is not a file")
   end
 
   # This test depends on knowledge about the default group pages.
@@ -38,7 +37,6 @@ class TC_Kern939Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Should have created pages in postprocessing")
     json = JSON.parse(res.body)
     assert_not_nil(json["index.html"], "Expected default page not found")
-    assert_equal(json["index.html"]["jcr:primaryType"], "nt:file", "Default home page is not a file")
   end
 
   def test_override_default_template

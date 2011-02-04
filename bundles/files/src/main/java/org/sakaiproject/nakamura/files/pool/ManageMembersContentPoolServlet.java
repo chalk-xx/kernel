@@ -218,8 +218,13 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       Resource resource = request.getResource();
       Session session = resource.adaptTo(Session.class);
       AccessControlManager accessControlManager = session.getAccessControlManager();
-
+      AuthorizableManager authorizableManager = session.getAuthorizableManager();
+      Authorizable thisUser = authorizableManager.findAuthorizable(session.getUserId());
       Content node = resource.adaptTo(Content.class);
+      if (! accessControlManager.can(thisUser, Security.ZONE_CONTENT, node.getPath(), Permissions.CAN_WRITE)) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        return;
+      }
       ContentManager contentManager = resource.adaptTo(ContentManager.class);
 
       Map<String, Object> properties = node.getProperties();
@@ -298,6 +303,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
         AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
             aclModifications);
       }
+      
 
       node.setProperty(POOLED_CONTENT_USER_VIEWER,
           StorageClientUtils.toStore(viewersSet.toArray(new String[viewersSet.size()])));
@@ -313,7 +319,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
 
       response.setStatus(SC_OK);
     } catch (AccessDeniedException e) {
-      LOGGER.error("Could not set some permissions on [{}] Cause:{}",
+      LOGGER.error("Insufficient permissions to modify [{}] Cause:{}",
           request.getPathInfo(), e.getMessage());
       LOGGER.debug(e.getMessage(), e);
       response.sendError(SC_UNAUTHORIZED, "Could not set permissions.");

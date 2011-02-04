@@ -26,6 +26,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
@@ -126,16 +127,21 @@ public class LiteMyGroupsServlet extends LiteAbstractMyGroupsServlet {
   protected TreeMap<String, Group> getGroups(Authorizable member, AuthorizableManager userManager)
       throws StorageClientException, AccessDeniedException {
     TreeMap<String, Group> groups = new TreeMap<String, Group>();
-    Iterator<Group> allGroupsIter = member.memberOf(userManager);
-    while (allGroupsIter.hasNext()) {
-      Group group = allGroupsIter.next();
-      // Until KERN-950 is fixed, we don't have a foolproof way to know whether
-      // a Jackrabbit Group should be considered a Sakai Group entity.
-      // We skip Managers-holders but otherwise just return a Profile if
-      // we find one.
-      if (!group.hasProperty(UserConstants.PROP_MANAGED_GROUP) && !group.getId().equals(Group.EVERYONE)) {
-        groups.put(group.getId(), group);
+    String[] principals = member.getPrincipals();
+    for(String principal : principals) {
+      Authorizable group = userManager.findAuthorizable(principal);
+      if (group == null || !(group instanceof Group) || group.getId().equals(Group.EVERYONE)) {
+        // we don't want the "everyone" group in this feed
+        continue;
       }
+      if (group.hasProperty("sakai:managed-group")) {
+        // fetch the group that the manager group manages
+        group = userManager.findAuthorizable(StorageClientUtils.toString(group.getProperty("sakai:managed-group")));
+        if (group == null || !(group instanceof Group)) {
+          continue;
+        }
+      }
+      groups.put(group.getId(), (Group) group);
     }
     return groups;
   }

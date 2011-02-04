@@ -107,6 +107,9 @@ public class LiteMessagePostProcessor implements SparsePostProcessor {
             // TODO This is not a cheap operation. We might be better off
             // if we start including the Content path in our Modification objects.
             Resource modifiedResource = resourceResolver.getResource(path);
+            if (modifiedResource == null) {
+              return;
+            }
             Content content = modifiedResource.adaptTo(Content.class);
             String contentPath = content.getPath();
 
