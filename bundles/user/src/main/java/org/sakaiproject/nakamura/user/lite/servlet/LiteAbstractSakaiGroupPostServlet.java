@@ -102,6 +102,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
       // first remove any members posted as ":member@Delete"
       String[] membersToDelete = request.getParameterValues(paramName + SlingPostConstants.SUFFIX_DELETE);
       if (membersToDelete != null) {
+        toSave.put(group.getId(), group);
         LOGGER.info("Members to delete {} ",membersToDelete);
         for (String member : membersToDelete) {
           String memberId = getAuthIdFromParameter(member);

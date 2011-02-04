@@ -165,20 +165,29 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
    * @param au
    * @throws JSONException
    * @throws StorageClientException 
+   * @throws AccessDeniedException 
    */
   protected void writeGroups(ExtendedJSONWriter writer, Session session, Authorizable au)
-      throws JSONException, StorageClientException {
+      throws JSONException, StorageClientException, AccessDeniedException {
+    AuthorizableManager authorizableManager = session.getAuthorizableManager();
     writer.array();
     if (!UserConstants.ANON_USERID.equals(au.getId())) {
       // It might be better to just use au.declaredMemberOf() .
       // au.memberOf will fetch ALL the groups this user is a member of, including
       // indirect ones.
-      Iterator<Group> groups = au.memberOf(session.getAuthorizableManager());
-      while (groups.hasNext()) {
-        Group group = groups.next();
-        if (group.getId().equals(Group.EVERYONE) || group.getId().equals(StorageClientUtils.toString(group.getProperty("rep:group-managers")))) {
-          // we don't want manager groups or the "everyone" group in this feed
+      String[] principals = au.getPrincipals();
+      for(String principal : principals) {
+        Authorizable group = authorizableManager.findAuthorizable(principal);
+        if (group == null || !(group instanceof Group) || group.getId().equals(Group.EVERYONE)) {
+          // we don't want the "everyone" group in this feed
           continue;
+        }
+        if (group.hasProperty("sakai:managed-group")) {
+          // fetch the group that the manager group manages
+          group = authorizableManager.findAuthorizable(StorageClientUtils.toString(group.getProperty("sakai:managed-group")));
+          if (group == null || !(group instanceof Group)) {
+            continue;
+          }
         }
         ValueMap groupProfile = profileService.getCompactProfileMap(group, session);
         if (groupProfile != null) {

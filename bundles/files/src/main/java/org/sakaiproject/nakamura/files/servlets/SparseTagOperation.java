@@ -41,6 +41,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -87,13 +88,15 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
 
   /**
    * {@inheritDoc}
+   * @throws AccessDeniedException 
+   * @throws StorageClientException 
    *
    * @see org.apache.sling.servlets.post.AbstractSlingPostOperation#doRun(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
-      ContentManager contentManager, List<Modification> changes, String contentPath) {
+      ContentManager contentManager, List<Modification> changes, String contentPath) throws StorageClientException, AccessDeniedException {
 
     // Check if the user has the required minimum privilege.
     String user = request.getRemoteUser();
@@ -103,7 +106,6 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
       return;
     }
 
-    ResourceResolver resourceResolver = request.getResourceResolver();
     Resource resource = request.getResource();
     Content content = resource.adaptTo(Content.class);
 
@@ -121,33 +123,32 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
           "Missing parameter: key");
       return;
     }
-
-      Node tagNode = null;
-      try {
-        tagNode = FileUtils.resolveNode(key.getString(), resourceResolver);
+    
+    String tagContentPath = key.getString();
+    if (tagContentPath.startsWith("/~")) {
+      tagContentPath = tagContentPath.replaceFirst("/~", "a:");
+    }
+    Content tagNode = null;
+        tagNode = contentManager.get(tagContentPath);
         if (tagNode == null) {
           LOGGER.info("Missing Tag Node {} ",key.getString());
           response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Provided key not found. Key was "+key.getString());
           return;
         }
-        if (!FileUtils.isTag(tagNode)) {
+        if (!"sakai/tag".equals(StorageClientUtils.toString(tagNode.getProperty("sling:resourceType")))) {
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
               "Provided key doesn't point to a tag.");
           return;
         }
-      } catch (RepositoryException e1) {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Could not locate the tag.");
-        return;
-      }
   
       
       try {
         if ( FileUtils.addTag(contentManager, content, tagNode ) ) {
           // Send an OSGi event.
           try {
-            String tagName = tagNode.getName();
+            String tagName = "";
             if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
-              tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
+              tagName = StorageClientUtils.toString(tagNode.getProperty(SAKAI_TAG_NAME));
             }
             Dictionary<String, String> properties = new Hashtable<String, String>();
             properties.put(UserConstants.EVENT_PROP_USERID, user);

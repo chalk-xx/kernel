@@ -23,6 +23,10 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResource;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
@@ -70,6 +74,10 @@ public class LiteUpdateSakaiGroupServletTest  {
     Mockito.when(resourceResolver.adaptTo(javax.jcr.Session.class)).thenReturn(jcrSession);
     when(request.getRemoteUser()).thenReturn("ieb");
     when(request.getResourceResolver()).thenReturn(resourceResolver);
+    Session adminSession = repository.loginAdministrative();
+    adminSession.getAccessControlManager().setAcl(Security.ZONE_AUTHORIZABLES, "g-course101", new AclModification[] { new AclModification(
+        AclModification.grantKey("ieb"), Permissions.ALL.getPermission(),
+        Operation.OP_REPLACE)});
 
     
     
