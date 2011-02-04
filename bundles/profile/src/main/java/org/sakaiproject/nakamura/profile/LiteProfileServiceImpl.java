@@ -58,7 +58,7 @@ public class LiteProfileServiceImpl implements LiteProfileService {
 
     Map<String, Object> props = authorizable.getSafeProperties();
     for (Entry<String, Object> prop : props.entrySet()) {
-      compactProfile.put(prop.getKey(), StorageClientUtils.toString(prop.getKey()));
+      compactProfile.put(prop.getKey(), StorageClientUtils.toString(prop.getValue()));
     }
 
     if (authorizable instanceof Group) {
