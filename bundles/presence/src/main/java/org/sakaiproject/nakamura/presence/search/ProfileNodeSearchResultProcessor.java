@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.user.search;
+package org.sakaiproject.nakamura.presence.search;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -44,7 +44,9 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 /**
  * Search result processor to write out profile information when search returns home nodes
- * (sakai/user-home).
+ * (sakai/user-home). This result processor should live in the user bundle but at the time
+ * of this writing, moving to that bundle creates a cyclical dependency of:<br/>
+ * search -&gt; personal -&gt; user -&gt; search
  */
 @Component
 @Service
