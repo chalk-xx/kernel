@@ -22,8 +22,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
@@ -35,34 +34,41 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
 *
 */
-@Component(immediate = true, specVersion = "1.1")
-@Service(value = LiteProfileService.class)
+@Component
+@Service
 public class LiteProfileServiceImpl implements LiteProfileService {
-  
+
 
   // TODO BL120 this implementation needs to be finished
-  
+
   public static final Logger LOG = LoggerFactory.getLogger(LiteProfileServiceImpl.class);
 
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.profile.LiteProfileService#getCompactProfileMap(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable, org.sakaiproject.nakamura.api.lite.Session)
    */
-  public ValueMap getCompactProfileMap(Authorizable authorizable, Session session) {
-    final Map<String, Object> profileProps = new HashMap<String, Object>();
-    profileProps.putAll(authorizable.getSafeProperties());
-    
-    if (authorizable instanceof Group) {
-      profileProps.put("groupid", authorizable.getId());
-      profileProps.put("sakai:group-id", authorizable.getId());
-    } else if (authorizable instanceof User) {
-      profileProps.put("userid", authorizable.getId());
+  public ValueMap getCompactProfileMap(Authorizable authorizable) {
+    // The map were we will stick the compact information in.
+    ValueMap compactProfile = new ValueMapDecorator(new HashMap<String, Object>());
+
+    Map<String, Object> props = authorizable.getSafeProperties();
+    for (Entry<String, Object> prop : props.entrySet()) {
+      compactProfile.put(prop.getKey(), StorageClientUtils.toString(prop.getKey()));
     }
-    return new ValueMapDecorator(profileProps);
+
+    if (authorizable instanceof Group) {
+      compactProfile.put("groupid", authorizable.getId());
+      compactProfile.put("sakai:group-id", authorizable.getId());
+    } else if (authorizable instanceof User) {
+      compactProfile.put("userid", authorizable.getId());
+    }
+
+    return compactProfile;
   }
 
   /**
@@ -101,7 +107,7 @@ public class LiteProfileServiceImpl implements LiteProfileService {
    */
   public ValueMap getProfileMap(Authorizable authorizable, Session session) {
     // TODO BL120 get the full profile once that becomes available
-    return getCompactProfileMap(authorizable, session);
+    return getCompactProfileMap(authorizable);
 //    try {
 //      return getProfileMap(session.getContentManager().get(getProfilePath(authorizable)));
 //    } catch (StorageClientException e) {

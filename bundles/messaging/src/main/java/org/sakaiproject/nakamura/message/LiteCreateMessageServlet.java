@@ -308,7 +308,7 @@ public class LiteCreateMessageServlet extends SlingAllMethodsServlet {
       write.key("id");
       write.value(messageId);
       write.key("message");
-      ExtendedJSONWriter.writeNodeTreeToWriter(write, messageNode, false, 0);
+      ExtendedJSONWriter.writeContentTreeToWriter(write, messageNode, false, 0);
       write.endObject();
     } catch (JSONException e) {
       throw new ServletException(e.getMessage(), e);

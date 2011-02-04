@@ -25,7 +25,6 @@ import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.sakaiproject.nakamura.api.resource.lite.ResourceJsonWriter;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +42,7 @@ import javax.servlet.http.HttpServletResponse;
  * ends up unnecessarily reading the complete stream for a binary property's value
  * just to report its length. Nakamura's ExtendedJSONWriter instead fetches the
  * property length directly, a much more efficient operation.
- * 
+ *
  * The above statement is no longer true. Slings JsonResourceWriter has been patched.
  */
 @SlingServlet(methods = { "GET" }, extensions = { "json" }, resourceTypes = { "sakai/pooled-content" })
@@ -87,12 +86,12 @@ public class GetContentPoolServlet extends SlingSafeMethodsServlet implements Op
     try {
       Content content = resource.adaptTo(Content.class);
       if ( content != null ) {
-        ExtendedJSONWriter.writeNodeTreeToWriter(writer, content, false,  recursion);
+        ExtendedJSONWriter.writeContentTreeToWriter(writer, content, false,  recursion);
       } else {
         Node node = resource.adaptTo(Node.class);
         ExtendedJSONWriter.writeNodeTreeToWriter(writer, node, recursion);
       }
-      
+
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.info("Caught JSONException {}", e.getMessage());

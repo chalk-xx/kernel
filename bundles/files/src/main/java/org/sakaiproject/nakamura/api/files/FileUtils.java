@@ -236,10 +236,10 @@ public class FileUtils {
     write.object();
 
     // dump all the properties.
-    ExtendedJSONWriter.writeNodeTreeToWriter(write, content, true, maxDepth);
+    ExtendedJSONWriter.writeContentTreeToWriter(write, content, true, maxDepth);
     // The permissions for this session.
     writePermissions(content, session, write);
-    
+
     write.key(JcrConstants.JCR_LASTMODIFIED);
     Calendar cal = new GregorianCalendar();
     cal.setTimeInMillis(StorageClientUtils.toLong(content.getProperty(Content.LASTMODIFIED)));
@@ -343,7 +343,7 @@ public class FileUtils {
     writer.object();
     writer.key("set_property");
     // TODO does CAN_WRITE == set_property -CFH : yes, ieb
-    // TODO: make this a bit more efficient, checking permissions one by one is going to rely on 
+    // TODO: make this a bit more efficient, checking permissions one by one is going to rely on
     //       caching to make it efficient. It would be better to get the permissions bitmap and then
     //       check it to see what has been set. That might require a niew methods in the AccessControl
     //       manager API.

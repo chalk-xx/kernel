@@ -32,7 +32,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
@@ -129,7 +129,7 @@ public class Post {
   }
 
   public void outputPostAsJSON(ExtendedJSONWriter writer,
-      PresenceService presenceService, ProfileService profileService)
+      PresenceService presenceService, LiteProfileService profileService)
       throws JSONException, StorageClientException, AccessDeniedException {
     boolean canEdit = checkEdit();
     boolean canDelete = checkDelete();
@@ -209,7 +209,7 @@ public class Post {
   }
 
   public void outputChildrenAsJSON(ExtendedJSONWriter writer,
-      PresenceService presenceService, ProfileService profileService)
+      PresenceService presenceService, LiteProfileService profileService)
       throws JSONException, StorageClientException, AccessDeniedException {
     LOG.info("this post {} has {} children", getPostId(), getChildren().size());
     for (Post p : children) {

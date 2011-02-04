@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.meservice;
 
-import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_STATE;
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.ACCEPTED;
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.INVITED;
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.PENDING;
@@ -50,7 +49,6 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +64,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 
+import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -189,7 +188,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
             continue;
           }
         }
-        ValueMap groupProfile = profileService.getCompactProfileMap(group, session);
+        ValueMap groupProfile = profileService.getCompactProfileMap(group);
         if (groupProfile != null) {
           writer.valueMap(groupProfile);
         }
@@ -230,7 +229,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       String store = LitePersonalUtils.getHomePath(userID) + "/"
           + ConnectionConstants.CONTACT_STORE_NAME;
       store = ISO9075.encodePath(store);
-      
+
       // TODO BL120 this search for contacts has to be ported to the "sparse way."
 //      StringBuilder statement = new StringBuilder("/jcr:root");
 //      statement.append(store);
@@ -300,7 +299,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
     try {
       String store = messagingService.getFullPathToStore(au.getId(), session);
       store = ISO9075.encodePath(store);
-      
+
       //TODO BL120 do this messaging search the "sparse way"
 //      StringBuilder statement = new StringBuilder("/jcr:root");
 //      statement.append(store);
@@ -329,7 +328,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
    * @param authorizable
    * @throws RepositoryException
    * @throws JSONException
-   * @throws StorageClientException 
+   * @throws StorageClientException
    */
   protected void writeUserJSON(ExtendedJSONWriter write, Session session,
       Authorizable authorizable, SlingHttpServletRequest request)

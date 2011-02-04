@@ -32,7 +32,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
@@ -57,7 +57,7 @@ public class CommentSearchResultProcessor implements SolrSearchResultProcessor {
   private PresenceService presenceService;
 
   @Reference
-  private ProfileService profileService;
+  private LiteProfileService profileService;
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;

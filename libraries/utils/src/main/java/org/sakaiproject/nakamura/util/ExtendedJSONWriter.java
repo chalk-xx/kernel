@@ -297,6 +297,10 @@ public class ExtendedJSONWriter extends JSONWriter {
       throws RepositoryException, JSONException {
     writeNodeTreeToWriter(write, node, false, maxDepth, 0);
   }
+  public static void writeContentTreeToWriter(JSONWriter write, Content content, int maxDepth)
+      throws JSONException {
+    writeNodeTreeToWriter(write, content, false, maxDepth, 0);
+  }
 
   /**
    * Represent an entire JCR tree in JSON format.
@@ -326,7 +330,7 @@ public class ExtendedJSONWriter extends JSONWriter {
     writeNodeTreeToWriter(write, node, objectInProgress, maxDepth, 0);
   }
 
-  public static void writeNodeTreeToWriter(JSONWriter write, Content content,
+  public static void writeContentTreeToWriter(JSONWriter write, Content content,
       boolean objectInProgress, int maxDepth) throws JSONException {
     writeNodeTreeToWriter(write, content, objectInProgress, maxDepth, 0);
   }

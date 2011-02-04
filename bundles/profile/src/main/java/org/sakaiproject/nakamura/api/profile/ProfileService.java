@@ -66,8 +66,6 @@ public interface ProfileService {
    */
   ValueMap getCompactProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException;
-  ValueMap getCompactProfileMap(
-      org.sakaiproject.nakamura.api.lite.authorizable.Authorizable authorizable);
 
   /**
    * Gets the compact profile information from JCR and expands external resources
