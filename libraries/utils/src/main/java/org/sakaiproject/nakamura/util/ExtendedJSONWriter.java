@@ -166,13 +166,22 @@ public class ExtendedJSONWriter extends JSONWriter {
     Map<String, Object> props = content.getProperties();
     for (Entry<String, Object> prop : props.entrySet()) {
       String propName = prop.getKey();
-      String propValue = StorageClientUtils.toString(prop.getValue());
+      String[] values = StorageClientUtils.toStringArray(prop.getValue());
+      String value = (values.length > 1) ? null : values[0];
 
       write.key(propName);
-      if (isUserPath(propName, propValue)) {
-        write.value(PathUtils.translateAuthorizablePath(propValue));
+      if (isUserPath(propName, value)) {
+        write.value(PathUtils.translateAuthorizablePath(value));
       } else {
-        write.value(propValue);
+        if (value != null) {
+          write.value(value);
+        } else {
+          write.array();
+          for (String v : values) {
+            write.value(v);
+          }
+          write.endArray();
+        }
       }
     }
   }

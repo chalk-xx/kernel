@@ -27,26 +27,26 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.message.MessageProfileWriter;
-import org.sakaiproject.nakamura.api.message.MessagingService;
-import org.sakaiproject.nakamura.api.search.Aggregator;
-import org.sakaiproject.nakamura.api.search.SearchException;
-import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
-import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
+import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.RowUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 
-import javax.jcr.Node;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.query.Query;
-import javax.jcr.query.Row;
 
 /**
  * Formats message node search results
@@ -58,77 +58,86 @@ import javax.jcr.query.Row;
     @Property(name = "service.description", value = "Processor for message search results."),
     @Property(name = "sakai.search.processor", value = "Message"),
     @Property(name = "sakai.seach.resourcetype", value = "sakai/message") })
-public class MessageSearchResultProcessor implements SearchResultProcessor {
+public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
 
   @Reference
-  protected transient MessagingService messagingService;
+  LiteMessagingService messagingService;
+
   @Reference
-  protected transient SearchServiceFactory searchServiceFactory;
+  SolrSearchServiceFactory searchServiceFactory;
 
-  protected MessageProfileWriterTracker tracker;
+  @Reference(referenceInterface = LiteMessageProfileWriter.class)
+  Map<String, LiteMessageProfileWriter> writers = new ConcurrentHashMap<String, LiteMessageProfileWriter>();
 
-  protected void activate(ComponentContext context) {
-    BundleContext bundleContext = context.getBundleContext();
-    tracker = new MessageProfileWriterTracker(bundleContext);
-    tracker.open();
+  public void bindWriters(LiteMessageProfileWriter writer) {
+    writers.put(writer.getType(), writer);
   }
 
-  protected void deactivate(ComponentContext context) {
-    if (tracker != null) {
-      tracker.close();
-      tracker = null;
-    }
+  public void unbindWriters(LiteMessageProfileWriter writer) {
+    writers.remove(writer.getType());
   }
+//  protected MessageProfileWriterTracker tracker;
+
+//  protected void activate(ComponentContext context) {
+//    BundleContext bundleContext = context.getBundleContext();
+//    tracker = new MessageProfileWriterTracker(bundleContext);
+//    tracker.open();
+//  }
+//
+//  protected void deactivate(ComponentContext context) {
+//    if (tracker != null) {
+//      tracker.close();
+//      tracker = null;
+//    }
+//  }
 
   /**
    * Parses the message to a usable JSON format for the UI.
-   * 
+   *
    * @param write
    * @param resultNode
    * @throws JSONException
    * @throws RepositoryException
    */
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
-      Aggregator aggregator, Row row) throws JSONException, RepositoryException {
-    Session session = request.getResourceResolver().adaptTo(Session.class);
-    Node resultNode = RowUtils.getNode(row, session);
-    if (aggregator != null) {
-      aggregator.add(resultNode);
-    }
-    writeNode(request, write, resultNode);
+  public void writeResult(SlingHttpServletRequest request, JSONWriter write,
+      Result result) throws JSONException {
+    ResourceResolver resolver = request.getResourceResolver();
+    Content content = resolver.getResource(result.getPath()).adaptTo(Content.class);
+    writeContent(request, write, content);
   }
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node resultNode)
-      throws JSONException, RepositoryException {
+  public void writeContent(SlingHttpServletRequest request, JSONWriter write,
+      Content content) throws JSONException {
 
     write.object();
 
     // Write out all the properties on the message.
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, resultNode);
+    ExtendedJSONWriter.writeNodeContentsToWriter(write, content);
 
     // Add some extra properties.
     write.key("id");
-    write.value(resultNode.getName());
+    String path = content.getPath();
+    write.value(path.substring(path.lastIndexOf('/') + 1));
 
-    Session session = resultNode.getSession();
+    Session session = request.getResourceResolver().adaptTo(Session.class);
 
     // Write out all the recipients their information on this message.
     // We always return this as an array, even if it is only 1 recipient.
-    MessageProfileWriter defaultProfileWriter = tracker.getMessageProfileWriterByType("internal");
-    if (resultNode.hasProperty(PROP_SAKAI_TO)) {
-      String toVal = resultNode.getProperty(PROP_SAKAI_TO).getString();
+    LiteMessageProfileWriter defaultProfileWriter = writers.get("internal");
+    if (content.hasProperty(PROP_SAKAI_TO)) {
+      String toVal = StorageClientUtils.toString(content.getProperty(PROP_SAKAI_TO));
       String[] rcpts = StringUtils.split(toVal, ',');
       write.key("userTo");
       write.array();
       for (String rcpt : rcpts) {
         String[] values = StringUtils.split(rcpt, ':');
-        MessageProfileWriter writer = null;
+        LiteMessageProfileWriter writer = null;
         // usually it should be type:user. But in case the handler changed this..
         String user = values[0];
         if (values.length == 2) {
           user = values[1];
           String type = values[0];
-          writer = tracker.getMessageProfileWriterByType(type);
+          writer = writers.get(type);
         }
         if (writer == null) {
           writer = defaultProfileWriter;
@@ -141,8 +150,8 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
     // Although in most cases the sakai:from field will only contain 1 value.
     // We add in the option to support multiple cases.
     // For now we expect it to always be the user who sends the message.
-    if (resultNode.hasProperty(PROP_SAKAI_FROM)) {
-      String fromVal = resultNode.getProperty(PROP_SAKAI_FROM).getString();
+    if (content.hasProperty(PROP_SAKAI_FROM)) {
+      String fromVal = StorageClientUtils.toString(content.getProperty(PROP_SAKAI_FROM));
       String[] senders = StringUtils.split(fromVal, ',');
       write.key("userFrom");
       write.array();
@@ -153,16 +162,16 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
     }
 
     // Write the previous message.
-    if (resultNode.hasProperty(PROP_SAKAI_PREVIOUS_MESSAGE)) {
+    if (content.hasProperty(PROP_SAKAI_PREVIOUS_MESSAGE)) {
       write.key("previousMessage");
-      parsePreviousMessages(request, write, resultNode);
+      parsePreviousMessages(request, write, content);
     }
     write.endObject();
   }
 
   /**
    * Parse a message we have replied on.
-   * 
+   *
    * @param request
    * @param node
    * @param write
@@ -171,23 +180,25 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
    * @throws RepositoryException
    */
   private void parsePreviousMessages(SlingHttpServletRequest request, JSONWriter write,
-      Node node) throws JSONException, RepositoryException {
-
-    Session s = node.getSession();
-    String id = node.getProperty(PROP_SAKAI_PREVIOUS_MESSAGE).getString();
-    String path = messagingService.getFullPathToMessage(s.getUserID(), id, s);
-    Node previousMessage = (Node) s.getItem(path);
-    writeNode(request, write, previousMessage);
+      Content content) throws JSONException {
+    ResourceResolver resolver = request.getResourceResolver();
+    Session s = resolver.adaptTo(Session.class);
+    String userId = request.getRemoteUser();
+    String id = StorageClientUtils.toString(content
+        .getProperty(PROP_SAKAI_PREVIOUS_MESSAGE));
+    String path = messagingService.getFullPathToMessage(userId, id, s);
+    Content previousMessage = resolver.getResource(path).adaptTo(Content.class);
+    writeContent(request, write, previousMessage);
   }
 
   /**
    * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
-   *      javax.jcr.query.Query)
+   *
+   * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
+   *      java.lang.String)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
-      throws SearchException {
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      String query) throws SolrSearchException {
     return searchServiceFactory.getSearchResultSet(request, query);
   }
 
