@@ -334,46 +334,48 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       accessControlManager.setAcl(Security.ZONE_CONTENT, homePath,
           aclModifications.toArray(new AclModification[aclModifications.size()]));
     }
-    if (ModificationType.CREATE.equals(change.getType())) {
-      createPath(authId, LitePersonalUtils.getPublicPath(authId), SAKAI_PUBLIC_RT, false,
-          contentManager, accessControlManager, null);
-      createPath(authId, LitePersonalUtils.getPrivatePath(authId), SAKAI_PRIVATE_RT,
-          true, contentManager, accessControlManager, null);
-      // Group Authorizable PostProcessor
-      // ==============================
-      // no action required (IMO we should drop the generated group and use ACL on the
-      // object itself)
-      if (isGroup) {
-        updateManagersGroup(authorizable, authorizableManager, accessControlManager,
-            parameters);
-      }
-      // Message PostProcessor
-      createPath(authId, homePath + MESSAGE_FOLDER, SAKAI_MESSAGESTORE_RT, true,
-          contentManager, accessControlManager, null);
-      // Calendar
-      createPath(authId, homePath + CALENDAR_FOLDER, SAKAI_CALENDAR_RT, false,
-          contentManager, accessControlManager, null);
-      // Connections
-      createPath(authId, homePath + CONTACTS_FOLDER, SAKAI_CONTACTSTORE_RT, true,
-          contentManager, accessControlManager, null);
-      // Pages
-      boolean createdPages = createPath(authId, homePath + PAGES_FOLDER, SAKAI_PAGES_RT,
-          false, contentManager, accessControlManager, null);
-      createPath(authId, homePath + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false,
-          contentManager, accessControlManager, null);
-      if (createdPages) {
-        intitializeContent(request, authorizable, session, homePath + PAGES_FOLDER,
-            parameters);
-      }
-      // Profile
-      String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT
-                                                          : SAKAI_USER_PROFILE_RT;
-      createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
-          profileType, false, contentManager, accessControlManager, null);
-      createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC,
-          "nt:unstructured", false, contentManager, accessControlManager,
-          processProfileParameters(defaultProfileTemplate, authorizable, parameters));
+    createPath(authId, LitePersonalUtils.getPublicPath(authId), SAKAI_PUBLIC_RT,
+        false, contentManager, accessControlManager, null);
+    createPath(authId, LitePersonalUtils.getPrivatePath(authId), SAKAI_PRIVATE_RT,
+        true, contentManager, accessControlManager, null);
+
+    // User Authorizable PostProcessor
+    // ==============================
+    // no action required
+
+    // Group Authorizable PostProcessor
+    // ==============================
+    // no action required (IMO we should drop the generated group and use ACL on the
+    // object itself)
+    if ( isGroup ) {
+      updateManagersGroup(authorizable, authorizableManager, accessControlManager, parameters);
     }
+
+    // Message PostProcessor
+    createPath(authId, homePath + MESSAGE_FOLDER, SAKAI_MESSAGESTORE_RT, true, contentManager,
+        accessControlManager, null);
+    // Calendar
+    createPath(authId, homePath + CALENDAR_FOLDER, SAKAI_CALENDAR_RT, false, contentManager,
+        accessControlManager, null);
+    // Connections
+    createPath(authId, homePath + CONTACTS_FOLDER, SAKAI_CONTACTSTORE_RT, true, contentManager,
+        accessControlManager, null);
+    // Pages
+    boolean createdPages = createPath(authId, homePath + PAGES_FOLDER, SAKAI_PAGES_RT, false, contentManager,
+        accessControlManager, null);
+    createPath(authId, homePath + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false, contentManager,
+        accessControlManager, null);
+    if ( createdPages ) {
+      intitializeContent(request, authorizable, session,  homePath + PAGES_FOLDER, parameters);
+    }
+    // Profile
+    String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT : SAKAI_USER_PROFILE_RT;
+    createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER, profileType, false, contentManager, 
+        accessControlManager, null);
+    
+    createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC, "nt:unstructured", 
+        false, contentManager, accessControlManager, processProfileParameters(defaultProfileTemplate,
+            authorizable, parameters));
 
   }
 
