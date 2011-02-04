@@ -62,8 +62,6 @@ public interface LiteProfileService {
    *
    * @param authorizable
    *          The profile of this authorizable will be written out.
-   * @param session
-   *          A Nakamura Session that can be used to access the necessary nodes.
    *
    * @return A Map that represents the profile, or null if no profile was found.
    */
@@ -85,12 +83,10 @@ public interface LiteProfileService {
    *
    * @param authorizable
    *          The profile of this authorizable will be written out.
-   * @param session
-   *          A Nakamura Session that can be used to access the necessary nodes.
    *
    * @return A Map that represents the profile, or null if no profile was found.
    */
-  ValueMap getCompactProfileMap(Authorizable authorizable, Session session);
+  ValueMap getCompactProfileMap(Authorizable authorizable);
 
   /**
    * Gets the compact profile information from content repository and expands external resources

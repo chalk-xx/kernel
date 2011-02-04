@@ -18,6 +18,8 @@
 
 package org.sakaiproject.nakamura.chat;
 
+import com.google.common.collect.ImmutableMap;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -50,8 +52,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * Handler for chat messages.
@@ -88,7 +88,7 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.MessageTransport#send(org.sakaiproject.nakamura.api.message.MessageRoutes,
    *      org.osgi.service.event.Event, javax.jcr.Node)
    */
@@ -156,14 +156,14 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter#writeProfileInformation(Session,
    *      String, org.apache.sling.commons.json.io.JSONWriter)
    */
   public void writeProfileInformation(Session session, String recipient, JSONWriter write) {
     try {
       Authorizable au = session.getAuthorizableManager().findAuthorizable(recipient);
-      ValueMap map = profileService.getCompactProfileMap(au, session);
+      ValueMap map = profileService.getCompactProfileMap(au);
       ((ExtendedJSONWriter) write).valueMap(map);
     } catch (Exception e) {
       LOG.error("Failed to write profile information for " + recipient, e);
@@ -172,7 +172,7 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
 
   /**
    * Determines what type of messages this handler will process. {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter#getType()
    */
   public String getType() {

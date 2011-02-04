@@ -69,7 +69,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -102,9 +101,9 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
 
   /**
    * Retrieves the list of members.
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -115,12 +114,12 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       // Get hold of the actual file.
       Resource resource = request.getResource();
       Session session = resource.adaptTo(Session.class);
-      
+
       AuthorizableManager am = session.getAuthorizableManager();
       AccessControlManager acm = session.getAccessControlManager();
       Content node = resource.adaptTo(Content.class);
       Authorizable thisUser = am.findAuthorizable(session.getUserId());
-      
+
       if (!acm.can(thisUser, Security.ZONE_CONTENT, resource.getPath(), Permissions.CAN_READ)) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
         return;
@@ -131,7 +130,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
           .get(POOLED_CONTENT_USER_MANAGER));
       String[] viewers = StorageClientUtils.toStringArray(properties
           .get(POOLED_CONTENT_USER_VIEWER));
-      
+
 
       boolean detailed = false;
       boolean tidy = false;
@@ -182,7 +181,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       if (detailed) {
         profileMap = profileService.getProfileMap(au, session);
       } else {
-        profileMap = profileService.getCompactProfileMap(au, session);
+        profileMap = profileService.getCompactProfileMap(au);
       }
       if (profileMap != null) {
         writer.valueMap(profileMap);
@@ -197,9 +196,9 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
 
   /**
    * Manipulate the member list for this file.
-   * 
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -219,7 +218,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       Resource resource = request.getResource();
       Session session = resource.adaptTo(Session.class);
       AccessControlManager accessControlManager = session.getAccessControlManager();
-      
+
       Content node = resource.adaptTo(Content.class);
       ContentManager contentManager = resource.adaptTo(ContentManager.class);
 
@@ -229,14 +228,14 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       String[] viewers = StorageClientUtils.toStringArray(properties
           .get(POOLED_CONTENT_USER_VIEWER));
 
-      
+
       Set<String> managerSet = null;
       if ( managers == null ) {
         managerSet = Sets.newHashSet();
       } else {
         managerSet = Sets.newHashSet(managers);
       }
-      
+
       Set<String> viewersSet = null;
       if ( viewers == null ) {
         viewersSet = Sets.newHashSet();
@@ -253,7 +252,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
               aclModifications);
         }
       }
-      
+
       for (String removeManager : StorageClientUtils.nonNullStringArray(request.getParameterValues(":manager@Delete"))) {
         if (managerSet.contains(removeManager)) {
           managerSet.remove(removeManager);

@@ -181,7 +181,7 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
         if(selectors.contains("detailed")){
           profile = profileService.getProfileMap(au, session);
         }else{
-          profile = profileService.getCompactProfileMap(au, session);
+          profile = profileService.getCompactProfileMap(au);
         }
         if (profile != null) {
           writer.valueMap(profile);
@@ -234,11 +234,11 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
    * @param writer
    * @throws RepositoryException
    * @throws JSONException
-   * @throws StorageClientException 
-   * @throws AccessDeniedException 
+   * @throws StorageClientException
+   * @throws AccessDeniedException
    */
   protected TreeMap<String, Authorizable> getMembers(SlingHttpServletRequest request,
-      Group group, Comparator<String> comparator) throws 
+      Group group, Comparator<String> comparator) throws
       JSONException, AccessDeniedException, StorageClientException {
     TreeMap<String, Authorizable> map = new TreeMap<String, Authorizable>(comparator);
 
@@ -274,8 +274,8 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
    * @param writer
    * @throws RepositoryException
    * @throws JSONException
-   * @throws StorageClientException 
-   * @throws AccessDeniedException 
+   * @throws StorageClientException
+   * @throws AccessDeniedException
    */
   protected TreeMap<String, Authorizable> getManagers(SlingHttpServletRequest request,
       Group group, Comparator<String> comparator) throws

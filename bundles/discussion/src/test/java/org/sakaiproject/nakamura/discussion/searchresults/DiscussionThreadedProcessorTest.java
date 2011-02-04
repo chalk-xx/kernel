@@ -37,7 +37,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
@@ -77,7 +77,7 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
 
     Session session = createMock(Session.class);
 
-    ProfileService profileService = createNiceMock(ProfileService.class);
+    LiteProfileService profileService = createNiceMock(LiteProfileService.class);
     processor.profileService = profileService;
 
     AccessControlManager accessControlManager = createNiceMock(AccessControlManager.class);

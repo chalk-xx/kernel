@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.connections;
+package org.sakaiproject.nakamura.connections.search;
 
 import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SEARCH_PROP_CONNECTIONSTORE;
 
@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
+import org.sakaiproject.nakamura.connections.ConnectionUtils;
 
 import java.util.Map;
 

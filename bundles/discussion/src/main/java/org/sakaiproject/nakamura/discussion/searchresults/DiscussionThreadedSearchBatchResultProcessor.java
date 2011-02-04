@@ -34,7 +34,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -71,7 +71,7 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
   PresenceService presenceService;
 
   @Reference
-  ProfileService profileService;
+  LiteProfileService profileService;
 
   @Reference
   SolrSearchServiceFactory searchServiceFactory;
