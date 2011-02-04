@@ -205,7 +205,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       String thisUserId, String otherUserId, ConnectionOperation operation)
       throws ConnectionException {
 
-    Session session = resource.getResourceResolver().adaptTo(Session.class);
+    Session session = StorageClientUtils.adaptToSession(resource.getResourceResolver().adaptTo(javax.jcr.Session.class));
 
     if (thisUserId.equals(otherUserId)) {
       throw new ConnectionException(

@@ -159,7 +159,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   
   private static final String PROFILE_BASIC = "/basic/elements";
 
-  private static final String SAKAI_CONTACTSTORE_RT = "sakai/contactstore";
+  private static final String SAKAI_CONTACTSTORE_RT = "sparse/contactstore";
 
   private static final String SAKAI_CALENDAR_RT = "sakai/calendar";
 
