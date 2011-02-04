@@ -219,7 +219,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
     Session adminSession = null;
     try {
-      adminSession = repository.loginAdministrative(null);
+      adminSession = repository.loginAdministrative();
 
       // get the contact userstore nodes
       Content thisNode = getOrCreateConnectionNode(adminSession, thisAu, otherAu);

@@ -360,6 +360,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     // Connections
     createPath(authId, homePath + CONTACTS_FOLDER, SAKAI_CONTACTSTORE_RT, true, contentManager,
         accessControlManager, null);
+    authorizableManager.createGroup("g-contacts-" + authorizable.getId(), "g-contacts-" + authorizable.getId(), null);
     // Pages
     boolean createdPages = createPath(authId, homePath + PAGES_FOLDER, SAKAI_PAGES_RT, false, contentManager,
         accessControlManager, null);
