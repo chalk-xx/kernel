@@ -17,12 +17,13 @@
  */
 package org.sakaiproject.nakamura.activity;
 
-import static org.apache.jackrabbit.JcrConstants.NT_UNSTRUCTURED;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_STORE_NAME;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.EVENT_TOPIC;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_ACTOR_ID;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_APPLICATION_ID;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_TEMPLATE_ID;
+
+import com.google.common.collect.ImmutableMap;
 
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -46,8 +47,13 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
@@ -57,9 +63,6 @@ import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -126,7 +129,7 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
     // Create or verify that an ActivityStore exists for content node
     // An activity store will be created for each node where a .activity gets executed.
     // TODO Maybe we shouldn't allow it on sakai/activity and sakai/activityFeed nodes?
-    Node location = request.getResource().adaptTo(Node.class);
+    Content location = request.getResource().adaptTo(Content.class);
     if (location == null) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND);
       return;
@@ -134,27 +137,23 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
     Session session = null;
     String path = null;
     try {
-      session = location.getSession();
+      session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+      ContentManager contentManager = session.getContentManager();
       path = location.getPath() + "/" + ACTIVITY_STORE_NAME;
-      if (!location.hasNode(ACTIVITY_STORE_NAME)) {
+      if (!contentManager.exists(path)) {
         // need to create an activityStore
-        Node activityStoreNode = JcrUtils.deepGetOrCreateNode(session, path);
-        activityStoreNode.setProperty(
-            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-            ActivityConstants.ACTIVITY_STORE_RESOURCE_TYPE);
+        contentManager.update(new Content(path, ImmutableMap.of("sling/resourceType", StorageClientUtils.toStore(ActivityConstants.ACTIVITY_STORE_RESOURCE_TYPE))));
       }
       String id = ActivityUtils.createId();
-      path = ActivityUtils.getPathFromId(id, path);
-      // for some odd reason I must manually create the Node before dispatching to
-      // Sling...
-      Node activity = JcrUtils.deepGetOrCreateNode(session, path, NT_UNSTRUCTURED);
-      activity.addMixin("mix:created");
-    } catch (RepositoryException e) {
+      path = path + "/" + id;
+      contentManager.update(new Content(path, null));
+    } catch (StorageClientException e) {
       LOG.error(e.getMessage(), e);
-      throw new Error(e);
+    } catch (AccessDeniedException e) {
+      LOG.error(e.getMessage(), e);
     }
 
-    final String activityItemPath = path;
+    final String activityItemPath = "/" + path;
     final RequestPathInfo requestPathInfo = request.getRequestPathInfo();
     // Wrapper which needs to remove the .activity selector from RequestPathInfo to avoid
     // an infinite loop.
@@ -177,26 +176,22 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
     request.getRequestDispatcher(target).forward(wrappedRequest, response);
 
     // next add the current user to the actor property
-    try {
 
-      if (session.hasPendingChanges()) {
-        session.save();
+      try {
+        Content activity = session.getContentManager().get(path);
+        activity.setProperty(PARAM_ACTOR_ID, currentUser);
+        activity.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE);
+        session.getContentManager().update(activity);
+      } catch (StorageClientException e) {
+        LOG.error("StorageClientException updating a Content object for an activity.");
+      } catch (AccessDeniedException e) {
+        LOG.error("AccessDeniedException updating a Content object for an activity.");
       }
-      Node activity = (Node) session.getItem(activityItemPath);
-      activity.setProperty(PARAM_ACTOR_ID, currentUser);
-      activity.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-          ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE);
-      if (session.hasPendingChanges()) {
-        session.save();
-      }
-    } catch (RepositoryException e) {
-      LOG.error(e.getMessage(), e);
-      throw new Error(e);
-    }
     // post the asynchronous OSGi event
     final Dictionary<String, String> properties = new Hashtable<String, String>();
     properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
-    properties.put(ActivityConstants.EVENT_PROP_PATH, activityItemPath);
+    properties.put(ActivityConstants.EVENT_PROP_PATH, path);
     EventUtils.sendOsgiEvent(target, properties, EVENT_TOPIC, eventAdmin);
   }
 

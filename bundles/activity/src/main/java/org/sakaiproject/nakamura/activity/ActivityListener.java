@@ -30,6 +30,9 @@ import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.activity.ActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityRouterManager;
 import org.sakaiproject.nakamura.api.activity.ActivityUtils;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +41,6 @@ import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -55,7 +57,7 @@ public class ActivityListener implements MessageListener {
 
   // References needed to actually deliver the activity.
   @Reference
-  protected SlingRepository slingRepository;
+  protected Repository slingRepository;
   @Reference
   protected ActivityRouterManager activityRouterManager;
 
@@ -110,10 +112,10 @@ public class ActivityListener implements MessageListener {
       final String activityItemPath = message
           .getStringProperty(ActivityConstants.EVENT_PROP_PATH);
       LOG.info("Processing activity: {}", activityItemPath);
-      Session session = slingRepository.loginAdministrative(null); // usage checked and Ok KERN-577
+      Session session = slingRepository.loginAdministrative(); // usage checked and Ok KERN-577
       // usage is NOT ok. whoever made the comment above, sessions must be logged out or they leak.
       try {
-        Node activity = (Node) session.getItem(activityItemPath);
+        Content activity = session.getContentManager().get(activityItemPath);
         if (!activity.hasProperty(PARAM_ACTOR_ID)) {
           // we must know the actor
           throw new IllegalStateException(
