@@ -27,7 +27,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -168,7 +167,7 @@ public class SparseListVersionsServletHandler extends AbstractSafeMethodsServlet
       throws JSONException, AccessDeniedException, StorageClientException {
     String user = null;
     if (content.hasProperty(Content.VERSION_SAVEDBY)) {
-      user = StorageClientUtils.toString(content.getProperty(Content.VERSION_SAVEDBY));
+      user = (String) content.getProperty(Content.VERSION_SAVEDBY);
     }
     
 

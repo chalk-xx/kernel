@@ -411,8 +411,8 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final org.sakaiproject.nakamura.api.lite.authorizable.Authorizable az = userManager
           .findAuthorizable(session.getUserId());
 
-      final boolean releasePrincipal = StorageClientUtils.toBoolean(effectiveSettings
-          .get(RELEASE_PRINCIPAL_NAME));
+      final boolean releasePrincipal = (Boolean)effectiveSettings
+          .get(RELEASE_PRINCIPAL_NAME);
       if (releasePrincipal) {
         launchProps.put(USER_ID, az.getId());
       }
@@ -434,9 +434,9 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
       // Content groupProfileNode = groupHomeNode.getNode("public/authprofile");
       launchProps.put(CONTEXT_ID, contextId);
       launchProps.put(CONTEXT_TITLE,
-          StorageClientUtils.toString(groupProfileNode.getProperty("sakai:group-title")));
+          (String)groupProfileNode.getProperty("sakai:group-title"));
       launchProps.put(CONTEXT_LABEL,
-          StorageClientUtils.toString(groupProfileNode.getProperty("sakai:group-id")));
+          (String)groupProfileNode.getProperty("sakai:group-id"));
 
       // FIXME how to determine site type?
       // CourseSection probably satisfies 90% of our use cases.
@@ -456,17 +456,17 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
         launchProps.put(ROLES, "Learner");
       }
 
-      final boolean releaseNames = StorageClientUtils.toBoolean(effectiveSettings
-          .get(RELEASE_NAMES));
+      final boolean releaseNames = (Boolean)effectiveSettings
+          .get(RELEASE_NAMES);
       if (releaseNames) {
         String firstName = null;
         if (az.hasProperty("firstName")) {
-          firstName = StorageClientUtils.toStringArray(az.getProperty("firstName"))[0];
+          firstName = ((String[])az.getProperty("firstName"))[0];
           launchProps.put(LIS_PERSON_NAME_GIVEN, firstName);
         }
         String lastName = null;
         if (az.hasProperty("lastName")) {
-          lastName = StorageClientUtils.toStringArray(az.getProperty("lastName"))[0];
+          lastName = ((String[])az.getProperty("lastName"))[0];
           launchProps.put(LIS_PERSON_NAME_FAMILY, lastName);
         }
         StringBuilder sb = new StringBuilder();
@@ -484,11 +484,11 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
         }
       }
 
-      final boolean releaseEmail = StorageClientUtils.toBoolean(effectiveSettings
-          .get(RELEASE_EMAIL));
+      final boolean releaseEmail = (Boolean) effectiveSettings
+          .get(RELEASE_EMAIL);
       if (releaseEmail) {
         if (az.hasProperty("email")) {
-          final String email = StorageClientUtils.toStringArray(az.getProperty("email"))[0];
+          final String email = ((String[])az.getProperty("email"))[0];
           launchProps.put(LIS_PERSON_CONTACT_EMAIL_PRIMARY, email);
         }
       }
@@ -498,7 +498,7 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
       // we will always launch in an iframe for the time being
       launchProps.put(LAUNCH_PRESENTATION_DOCUMENT_TARGET, "iframe");
 
-      final boolean debug = StorageClientUtils.toBoolean(effectiveSettings.get(DEBUG));
+      final boolean debug = (Boolean) effectiveSettings.get(DEBUG);
       // might be useful for the remote end to know if debug is enabled...
       launchProps.put(DEBUG, "" + debug);
 
@@ -621,7 +621,7 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
     // grab admin settings from /var/basiclti/* if they exist...
     String vtoolId = null;
     if (node.hasProperty(LTI_VTOOL_ID)) {
-      vtoolId = StorageClientUtils.toString(node.getProperty(LTI_VTOOL_ID));
+      vtoolId = (String)node.getProperty(LTI_VTOOL_ID);
     } else {
       vtoolId = "basiclti";
     }
@@ -808,10 +808,9 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
                   if (requestParameterMap.containsKey(typeHint)
                       && "Boolean".equals(requestParameterMap.get(typeHint)[0]
                           .getString())) {
-                    node.setProperty(key,
-                        StorageClientUtils.toStore(Boolean.valueOf(value)));
+                    node.setProperty(key,Boolean.valueOf(value));
                   } else {
-                    node.setProperty(key, StorageClientUtils.toStore(value));
+                    node.setProperty(key, value);
                   }
                 }
               }
@@ -973,7 +972,7 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
         settings = new HashMap<String, String>((int) properties.size());
         for (Entry<String, Object> entry : properties.entrySet()) {
           if (sensitiveKeys.contains(entry.getKey())) { // the ones we care about
-            settings.put(entry.getKey(), StorageClientUtils.toString(entry.getValue()));
+            settings.put(entry.getKey(), (String)entry.getValue());
           }
         }
       } else {
@@ -1203,8 +1202,8 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final String traversalPath = traversalNode.getPath();
       lastSlash = traversalPath.lastIndexOf("/");
       if (traversalNode.hasProperty("sling:resourceType")) {
-        if ("sakai/group-home".equals(StorageClientUtils.toString(traversalNode
-            .getProperty("sling:resourceType")))) {
+        if ("sakai/group-home".equals((String)traversalNode
+            .getProperty("sling:resourceType"))) {
           // found the parent site node
           returnNode = traversalNode;
           break;

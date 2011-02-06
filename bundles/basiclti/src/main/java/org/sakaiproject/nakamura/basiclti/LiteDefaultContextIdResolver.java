@@ -22,7 +22,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.basiclti.LiteBasicLTIContextIdResolver;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +64,7 @@ public class LiteDefaultContextIdResolver implements LiteBasicLTIContextIdResolv
     String contextId = null;
     if (node.hasProperty(key)) {
       // we have a special context_id we can use
-      contextId = StorageClientUtils.toString(node.getProperty(key));
+      contextId = (String) node.getProperty(key);
     } else {
       // just use the path
       contextId = node.getPath();

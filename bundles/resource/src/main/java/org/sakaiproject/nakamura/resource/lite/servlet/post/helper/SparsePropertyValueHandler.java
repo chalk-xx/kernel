@@ -18,12 +18,10 @@
 package org.sakaiproject.nakamura.resource.lite.servlet.post.helper;
 
 import org.apache.sling.servlets.post.Modification;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.RemoveProperty;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.resource.DateParser;
 import org.sakaiproject.nakamura.api.resource.lite.SparseRequestProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -36,7 +34,6 @@ import javax.jcr.RepositoryException;
  * example, "lastModified" with an empty value is stored as the current Date.
  */
 public class SparsePropertyValueHandler {
-  private static final Logger LOGGER = LoggerFactory.getLogger(SparsePropertyValueHandler.class);
 
   /**
    * String constant for type name as used in serialization.
@@ -161,19 +158,6 @@ public class SparsePropertyValueHandler {
     // no explicit typehint
 
     String type = prop.getTypeHint();
-    if (type != null) {
-      // SlingPostServlet's "@TypeHint" functionality can no longer be safely
-      // supported. Because property type is not persisted in Sparse, there is
-      // no way for a generic GET request to know how to reverse the data type
-      // translation from storage. Instead, specialized resource handlers
-      // must be used to convert Content as needed. For discussion, see:
-      // http://groups.google.com/group/sakai-kernel/browse_thread/thread/e0cb8c571a95feb1
-      //
-      // For now, log attempts to use @TypeHint to help find client code that needs
-      // to be updated. At some point, we will want to reduce the logging level.
-      LOGGER.info("Ignored request to store sparse content property {} with type {}", prop.getPath(), type);
-    }
-
     String[] values = prop.getStringValues();
 
     if (values == null) {
@@ -184,21 +168,18 @@ public class SparsePropertyValueHandler {
       }
     } else if (values.length == 0) {
       // do not create new prop here, but clear existing
-      content.setProperty(prop.getName(), StorageClientUtils.toStore(""));
+      content.setProperty(prop.getName(), new RemoveProperty());
       changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
     } else if (values.length == 1) {
       if (values[0].length() == 0) {
-        content.setProperty(prop.getName(), StorageClientUtils.toStore(""));
+        content.setProperty(prop.getName(), new RemoveProperty());
         changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
-
       } else {
-        content.setProperty(prop.getName(),
-            StorageClientUtils.toStore(values));
+        content.setProperty(prop.getName(),fromRequest(type,values));
         changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
       }
     } else {
-      content.setProperty(prop.getName(),
-          StorageClientUtils.toStore(values));
+      content.setProperty(prop.getName(),fromRequest(type, values));
       changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
     }
   }
@@ -208,9 +189,15 @@ public class SparsePropertyValueHandler {
    */
   private Object fromRequest(String type, String[] values) {
     if ( type == null ) {
+      if ( values.length == 1 ) {
+        return values[0];
+      } 
       return values;
     }
     if (type.equals(TYPENAME_STRING)) {
+      if ( values.length == 1 ) {
+        return values[0];
+      } 
       return values;
     } else if (type.equals(TYPENAME_BINARY)) {
       return null;
@@ -219,32 +206,51 @@ public class SparsePropertyValueHandler {
       for (int i = 0; i < values.length; i++) {
         b[i] = Boolean.parseBoolean(values[i]);
       }
+      if ( values.length == 1 ) {
+        return b[0];
+      } 
       return b;
+      
     } else if (type.equals(TYPENAME_LONG)) {
       long[] b = new long[values.length];
       for (int i = 0; i < values.length; i++) {
         b[i] = Long.parseLong(values[i]);
       }
+      if ( values.length == 1 ) {
+        return b[0];
+      } 
       return b;
     } else if (type.equals(TYPENAME_DOUBLE)) {
       double[] b = new double[values.length];
       for (int i = 0; i < values.length; i++) {
         b[i] = Double.parseDouble(values[i]);
       }
+      if ( values.length == 1 ) {
+        return b[0];
+      } 
       return b;
     } else if (type.equals(TYPENAME_DECIMAL)) {
       BigDecimal[] b = new BigDecimal[values.length];
       for (int i = 0; i < values.length; i++) {
         b[i] = new BigDecimal(values[i]);
       }
+      if ( values.length == 1 ) {
+        return b[0];
+      } 
       return b;
     } else if (type.equals(TYPENAME_DATE)) {
       Calendar[] b = new Calendar[values.length];
       for (int i = 0; i < values.length; i++) {
         b[i] = dateParser.parse(values[i]);
       }
+      if ( values.length == 1 ) {
+        return b[0];
+      } 
       return b;
     }
+    if ( values.length == 1 ) {
+      return values[0];
+    } 
     return values;
   }
 
