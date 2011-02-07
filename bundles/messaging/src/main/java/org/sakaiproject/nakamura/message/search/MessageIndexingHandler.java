@@ -49,8 +49,11 @@ import java.util.Set;
  *
  */
 public class MessageIndexingHandler implements IndexingHandler {
-  private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of("messagebox",
-      "type", "created", "category", "from", "to");
+  private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of(
+      // fields required by the messaging bundle
+      "messagebox", "type", "created", "category", "from", "to",
+      // extra fields required by the discussion bundle
+      "marker", "sendstate", "initialpost");
 
   private static final Logger logger = LoggerFactory
       .getLogger(MessageIndexingHandler.class);
