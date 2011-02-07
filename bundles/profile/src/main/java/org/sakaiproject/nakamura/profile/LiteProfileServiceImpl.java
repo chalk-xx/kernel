@@ -65,6 +65,21 @@ public class LiteProfileServiceImpl implements LiteProfileService {
       compactProfile.put("groupid", authorizable.getId());
       compactProfile.put("sakai:group-id", authorizable.getId());
     } else if (authorizable instanceof User) {
+      // TODO BL120 this is not ultimately how we'll build a profile
+      ValueMap basic = new ValueMapDecorator(new HashMap<String, Object>());
+      ValueMap elements = new ValueMapDecorator(new HashMap<String, Object>());
+      ValueMap firstName = new ValueMapDecorator(new HashMap<String, Object>());
+      ValueMap lastName = new ValueMapDecorator(new HashMap<String, Object>());
+      ValueMap email = new ValueMapDecorator(new HashMap<String, Object>());
+      firstName.put("value", authorizable.getId());
+      lastName.put("value", authorizable.getId());
+      email.put("value", "unknown@example.com");
+      elements.put("firstName", firstName);
+      elements.put("lastName", lastName);
+      elements.put("email", email);
+      basic.put("elements", elements);
+      compactProfile.put("basic", basic);
+      compactProfile.put("rep:userId", authorizable.getId());
       compactProfile.put("userid", authorizable.getId());
     }
 

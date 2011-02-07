@@ -23,14 +23,11 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -39,13 +36,16 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
 
-import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -124,7 +124,8 @@ public class UserExistsServlet extends SlingSafeMethodsServlet {
       throws ServletException, IOException {
     long start = System.currentTimeMillis();
     try {
-      Session session = request.getResourceResolver().adaptTo(Session.class);
+      Session session =
+        StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
       RequestParameter idParam = request.getRequestParameter("userid");
       if (idParam == null) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST, "This request must have a 'userid' parameter.");
@@ -138,9 +139,9 @@ public class UserExistsServlet extends SlingSafeMethodsServlet {
       String id = idParam.getString();
       LOGGER.debug("Checking for existence of {}", id);
       if (session != null) {
-          UserManager userManager = AccessControlUtil.getUserManager(session);
+          AuthorizableManager userManager = session.getAuthorizableManager();
           if (userManager != null) {
-              Authorizable authorizable = userManager.getAuthorizable(id);
+              Authorizable authorizable = userManager.findAuthorizable(id);
               if (authorizable != null) {
                   response.setStatus(HttpServletResponse.SC_NO_CONTENT);
               } else response.sendError(HttpServletResponse.SC_NOT_FOUND);
