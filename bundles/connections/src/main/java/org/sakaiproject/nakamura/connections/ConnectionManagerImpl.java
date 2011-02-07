@@ -205,7 +205,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       String thisUserId, String otherUserId, ConnectionOperation operation)
       throws ConnectionException {
 
-    Session session = resource.getResourceResolver().adaptTo(Session.class);
+    Session session = StorageClientUtils.adaptToSession(resource.getResourceResolver().adaptTo(javax.jcr.Session.class));
 
     if (thisUserId.equals(otherUserId)) {
       throw new ConnectionException(
@@ -219,7 +219,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
     Session adminSession = null;
     try {
-      adminSession = repository.loginAdministrative(null);
+      adminSession = repository.loginAdministrative();
 
       // get the contact userstore nodes
       Content thisNode = getOrCreateConnectionNode(adminSession, thisAu, otherAu);
@@ -344,11 +344,13 @@ public class ConnectionManagerImpl implements ConnectionManager {
       ContentManager contentManager = session.getContentManager();
       String path = ConnectionUtils.getConnectionPathBase(user);
       Content content = contentManager.get(path);
-      for ( Content connection : content.listChildren() ) {
-        String resourceType = StorageClientUtils.toString(connection.getProperty("sling:resourceType"));
-        ConnectionState connectionState = ConnectionState.valueOf(StorageClientUtils.toString(connection.getProperty(ConnectionConstants.SAKAI_CONNECTION_STATE)));
-        if ( ConnectionConstants.SAKAI_CONTACT_RT.equals(resourceType) && state.equals(connectionState)) {
-          connections.add(StorageClientUtils.getObjectName(connection.getPath()));
+      if (content != null) {
+        for ( Content connection : content.listChildren() ) {
+          String resourceType = StorageClientUtils.toString(connection.getProperty("sling:resourceType"));
+          ConnectionState connectionState = ConnectionState.valueOf(StorageClientUtils.toString(connection.getProperty(ConnectionConstants.SAKAI_CONNECTION_STATE)));
+          if ( ConnectionConstants.SAKAI_CONTACT_RT.equals(resourceType) && state.equals(connectionState)) {
+            connections.add(StorageClientUtils.getObjectName(connection.getPath()));
+          }
         }
       }
     } catch (StorageClientException e) {

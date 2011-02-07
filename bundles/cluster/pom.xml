@@ -45,7 +45,6 @@
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency></Embed-Dependency>
             <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
-            <Sakai-Initial-Security>SLING-INF/acl/cluster-acl.json</Sakai-Initial-Security>   
           </instructions>
         </configuration>
       </plugin>

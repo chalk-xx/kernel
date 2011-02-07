@@ -170,10 +170,10 @@ public class ExtendedJSONWriter extends JSONWriter {
       Object propValue = prop.getValue();
 
       write.key(propName);
-      if (isUserPath(propName, propValue)) {
-        write.value(PathUtils.translateAuthorizablePath(propValue));
+      if (isUserPath(propName, value)) {
+        write.value(PathUtils.translateAuthorizablePath(value));
       } else {
-        write.value(propValue);
+        write.value(value);
       }
     }
   }
@@ -182,18 +182,18 @@ public class ExtendedJSONWriter extends JSONWriter {
   public JSONWriter value(Object object) throws JSONException {
     if ( object instanceof Object[]) {
       Object[] oarray = (Object[]) object;
-    if (  oarray.length > 0 ) {
-      if ( oarray.length == 1) {
-        value(oarray[0]);
-      } else {
-        array();
-        for ( Object o : oarray) {
-          value(o);
+      if (  oarray.length > 0 ) {
+        if ( oarray.length == 1) {
+          value(oarray[0]);
+        } else {
+          array();
+          for ( Object o : oarray) {
+            value(o);
+          }
+          endArray();
         }
-        endArray();
       }
-    }
-    return this;
+      return this;
     } else {
       return super.value(object);
     }

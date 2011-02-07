@@ -15,8 +15,8 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 
 import java.util.Arrays;
@@ -46,7 +46,7 @@ import javax.servlet.ServletException;
  * <dd>An array of ace principal names to delete. Note the principal name is the primary
  * key of the Ace in the Acl</dd>
  * </dl>
- * 
+ *
  * <h4>Response</h4>
  * <dl>
  * <dt>200</dt>
@@ -56,7 +56,7 @@ import javax.servlet.ServletException;
  * <dt>500</dt>
  * <dd>Failure. HTML explains the failure.</dd>
  * </dl>
- * 
+ *
  */
 
 @SlingServlet(resourceTypes={"sparse/Content"}, methods={"POST"}, selectors={"deleteAce"})
@@ -65,7 +65,7 @@ public class DeleteAcesServlet extends AbstractAccessPostServlet {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.apache.sling.jackrabbit.accessmanager.post.AbstractAccessPostServlet#handleOperation
    * (org.apache.sling.api.SlingHttpServletRequest,
@@ -98,9 +98,12 @@ public class DeleteAcesServlet extends AbstractAccessPostServlet {
       pidSet.addAll(Arrays.asList(applyTo));
       List<AclModification> aclModifications = Lists.newArrayList();
       for ( String p : pidSet) {
-        AclModification.removeAcl(true, Permissions.ALL, p, aclModifications);
+        aclModifications.add(new AclModification(AclModification.grantKey(p), 0,
+            Operation.OP_DEL));
+        aclModifications.add(new AclModification(AclModification.denyKey(p), 0,
+            Operation.OP_DEL));
       }
-      
+
       AccessControlManager accessControlManager = session.getAccessControlManager();
       accessControlManager.setAcl(Security.ZONE_CONTENT, resourcePath, aclModifications.toArray(new AclModification[aclModifications.size()]));
     }

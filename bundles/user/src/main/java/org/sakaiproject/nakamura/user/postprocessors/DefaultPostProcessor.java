@@ -159,7 +159,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   
   private static final String PROFILE_BASIC = "/basic/elements";
 
-  private static final String SAKAI_CONTACTSTORE_RT = "sakai/contactstore";
+  private static final String SAKAI_CONTACTSTORE_RT = "sparse/contactstore";
 
   private static final String SAKAI_CALENDAR_RT = "sakai/calendar";
 
@@ -274,6 +274,18 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     String authId = authorizable.getId();
     String homePath = LitePersonalUtils.getHomePath(authId);
 
+    // User Authorizable PostProcessor
+    // ==============================
+    // no action required
+
+    // Group Authorizable PostProcessor
+    // ==============================
+    // no action required (IMO we should drop the generated group and use ACL on the
+    // object itself)
+    if ( isGroup ) {
+      updateManagersGroup(authorizable, authorizableManager, accessControlManager, parameters);
+    }
+    
     // Home Authorizable PostProcessor
     // ==============================
     // home path
@@ -339,18 +351,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     createPath(authId, LitePersonalUtils.getPrivatePath(authId), SAKAI_PRIVATE_RT,
         true, contentManager, accessControlManager, null);
 
-    // User Authorizable PostProcessor
-    // ==============================
-    // no action required
-
-    // Group Authorizable PostProcessor
-    // ==============================
-    // no action required (IMO we should drop the generated group and use ACL on the
-    // object itself)
-    if ( isGroup ) {
-      updateManagersGroup(authorizable, authorizableManager, accessControlManager, parameters);
-    }
-
     // Message PostProcessor
     createPath(authId, homePath + MESSAGE_FOLDER, SAKAI_MESSAGESTORE_RT, true, contentManager,
         accessControlManager, null);
@@ -360,6 +360,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     // Connections
     createPath(authId, homePath + CONTACTS_FOLDER, SAKAI_CONTACTSTORE_RT, true, contentManager,
         accessControlManager, null);
+    authorizableManager.createGroup("g-contacts-" + authorizable.getId(), "g-contacts-" + authorizable.getId(), null);
     // Pages
     boolean createdPages = createPath(authId, homePath + PAGES_FOLDER, SAKAI_PAGES_RT, false, contentManager,
         accessControlManager, null);
@@ -615,7 +616,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         JSONObject elements = basic.getJSONObject("elements");
         if (elements != null) {
           for (Object propName : elements.entrySet()) {
-            retval.put((String)propName, elements.get(propName));
+            retval.put((String) ((Map.Entry)propName).getKey(), elements.get(((Map.Entry)propName).getKey()));
           }
         }
       }

@@ -23,30 +23,30 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.framework.Constants;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.search.Aggregator;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
-import org.sakaiproject.nakamura.api.search.SearchException;
-import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
-import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.query.Query;
-import javax.jcr.query.Row;
 
 /**
  * Search result processor to write out profile information when search returns home nodes
- * (sakai/user-home).
+ * (sakai/user-home). This result processor should live in the user bundle but at the time
+ * of this writing, moving to that bundle creates a cyclical dependency of:<br/>
+ * search -&gt; personal -&gt; user -&gt; search
  */
 @Component
 @Service
@@ -54,12 +54,12 @@ import javax.jcr.query.Row;
   @Property(name = Constants.SERVICE_VENDOR, value = "The Sakai Foundation"),
   @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "Profile")
 })
-public class ProfileNodeSearchResultProcessor implements SearchResultProcessor {
+public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcessor {
   @Reference
-  private SearchServiceFactory searchServiceFactory;
+  private SolrSearchServiceFactory searchServiceFactory;
 
   @Reference
-  private ProfileService profileService;
+  private LiteProfileService profileService;
 
   @Reference
   private PresenceService presenceService;
@@ -67,8 +67,8 @@ public class ProfileNodeSearchResultProcessor implements SearchResultProcessor {
   public ProfileNodeSearchResultProcessor() {
   }
 
-  ProfileNodeSearchResultProcessor(SearchServiceFactory searchServiceFactory,
-      ProfileService profileService, PresenceService presenceService) {
+  ProfileNodeSearchResultProcessor(SolrSearchServiceFactory searchServiceFactory,
+      LiteProfileService profileService, PresenceService presenceService) {
     if (searchServiceFactory == null || profileService == null || presenceService == null) {
       throw new IllegalArgumentException(
           "SearchServiceFactory, ProfileService and PresenceService must be set when not using as a component");
@@ -84,9 +84,10 @@ public class ProfileNodeSearchResultProcessor implements SearchResultProcessor {
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      Query query) throws SearchException {
-    return searchServiceFactory.getSearchResultSet(request, query);
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      String queryString) throws SolrSearchException {
+    // return the result set
+    return searchServiceFactory.getSearchResultSet(request, queryString);
   }
 
   /**
@@ -96,20 +97,21 @@ public class ProfileNodeSearchResultProcessor implements SearchResultProcessor {
    *      org.apache.sling.commons.json.io.JSONWriter,
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.Row)
    */
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
-      Aggregator aggregator, Row row) throws JSONException, RepositoryException {
-    Node homeNode = row.getNode();
-    String profilePath = homeNode.getPath() + "/public/authprofile";
-    Session session = homeNode.getSession();
-    Node profileNode = session.getNode(profilePath);
+  public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result) throws JSONException {
+    String path = result.getPath();
+    ResourceResolver resolver = request.getResourceResolver();
+    Resource resource = resolver.getResource(path);
     write.object();
-    ValueMap map = profileService.getProfileMap(profileNode);
-    ((ExtendedJSONWriter) write).valueMapInternals(map);
+    if (resource != null) {
+      Content content = resource.adaptTo(Content.class);
+      ValueMap map = profileService.getProfileMap(content);
+      ((ExtendedJSONWriter) write).valueMapInternals(map);
+    }
 
     // If this is a User Profile, then include Presence data.
-    if (profileNode.hasProperty("rep:userId")) {
-      PresenceUtils.makePresenceJSON(write, profileNode.getProperty("rep:userId")
-          .getString(), presenceService, true);
+    String userId = (String) result.getFirstValue(User.NAME_FIELD);
+    if (userId != null) {
+      PresenceUtils.makePresenceJSON(write, userId, presenceService, true);
     }
     write.endObject();
   }
