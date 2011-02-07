@@ -126,10 +126,10 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       }
 
       Map<String, Object> properties = node.getProperties();
-      String[] managers = StorageClientUtils.toStringArray(properties
-          .get(POOLED_CONTENT_USER_MANAGER));
-      String[] viewers = StorageClientUtils.toStringArray(properties
-          .get(POOLED_CONTENT_USER_VIEWER));
+      String[] managers = (String[]) properties
+          .get(POOLED_CONTENT_USER_MANAGER);
+      String[] viewers = (String[]) properties
+          .get(POOLED_CONTENT_USER_VIEWER);
 
 
       boolean detailed = false;
@@ -228,10 +228,10 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       ContentManager contentManager = resource.adaptTo(ContentManager.class);
 
       Map<String, Object> properties = node.getProperties();
-      String[] managers = StorageClientUtils.toStringArray(properties
-          .get(POOLED_CONTENT_USER_MANAGER));
-      String[] viewers = StorageClientUtils.toStringArray(properties
-          .get(POOLED_CONTENT_USER_VIEWER));
+      String[] managers = (String[]) properties
+          .get(POOLED_CONTENT_USER_MANAGER);
+      String[] viewers = (String[]) properties
+          .get(POOLED_CONTENT_USER_VIEWER);
 
 
       Set<String> managerSet = null;
@@ -306,9 +306,9 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       
 
       node.setProperty(POOLED_CONTENT_USER_VIEWER,
-          StorageClientUtils.toStore(viewersSet.toArray(new String[viewersSet.size()])));
+          viewersSet.toArray(new String[viewersSet.size()]));
       node.setProperty(POOLED_CONTENT_USER_MANAGER,
-          StorageClientUtils.toStore(managerSet.toArray(new String[managerSet.size()])));
+          managerSet.toArray(new String[managerSet.size()]));
       LOGGER.debug("Set Managers to {}",Arrays.toString(managerSet.toArray(new String[managerSet.size()])));
       LOGGER.debug("Set Viewsers to {}",Arrays.toString(viewersSet.toArray(new String[managerSet.size()])));
       LOGGER.debug("ACL Modifications {}",Arrays.toString(aclModifications.toArray(new AclModification[aclModifications.size()])));

@@ -248,12 +248,12 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       // Create a proper nt:file node in jcr with some properties on it to make it possible
       // to locate this pool file without having to use the path.
       Map<String, Object> contentProperties = new HashMap<String, Object>();
-      contentProperties.put(POOLED_CONTENT_FILENAME, StorageClientUtils.toStore(value.getFileName()));
-      contentProperties.put(SLING_RESOURCE_TYPE_PROPERTY, StorageClientUtils.toStore(POOLED_CONTENT_RT));
-      contentProperties.put(POOLED_CONTENT_CREATED_FOR, StorageClientUtils.toStore(au.getId()));
-      contentProperties.put(POOLED_NEEDS_PROCESSING, StorageClientUtils.toStore("true"));
-      contentProperties.put(Content.MIMETYPE, StorageClientUtils.toStore(contentType));
-      contentProperties.put(POOLED_CONTENT_USER_MANAGER, StorageClientUtils.toStore(new String[]{au.getId()}) );
+      contentProperties.put(POOLED_CONTENT_FILENAME, value.getFileName());
+      contentProperties.put(SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_RT);
+      contentProperties.put(POOLED_CONTENT_CREATED_FOR, au.getId());
+      contentProperties.put(POOLED_NEEDS_PROCESSING, "true");
+      contentProperties.put(Content.MIMETYPE, contentType);
+      contentProperties.put(POOLED_CONTENT_USER_MANAGER, new String[]{au.getId()});
       
       Content content = new Content(poolId,contentProperties);
       

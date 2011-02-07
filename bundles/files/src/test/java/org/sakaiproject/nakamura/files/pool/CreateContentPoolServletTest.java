@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableMap;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.kahadb.util.ByteArrayInputStream;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -87,8 +86,6 @@ public class CreateContentPoolServletTest {
   private UserManager userManager;
   @Mock
   private PrincipalManager principalManager;
-  @Mock
-  private Authorizable iebAuthorizable;
   @Mock
   private Node parentNode;
   @Mock

@@ -115,8 +115,8 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
         String nodePath = content.getPath();
         Map<String, Object> properties = content.getProperties();
         Set<String> tagUuids = Sets.newHashSet(StorageClientUtils
-            .nonNullStringArray(StorageClientUtils.toStringArray(properties
-                .get(SAKAI_TAG_UUIDS))));
+            .nonNullStringArray((String[]) properties
+                .get(SAKAI_TAG_UUIDS)));
 
         if (tagUuids.size() > 0) {
           sb.append("+(taguuid:").append(StringUtils.join(tagUuids, " taguuid:"))

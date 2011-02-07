@@ -158,12 +158,12 @@ public class FileUtils {
     if (linkNode == null) {
       linkNode = new Content(link, ImmutableMap.of(
           JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-          (Object) StorageClientUtils.toStore(RT_SAKAI_LINK), SAKAI_LINK,
-          StorageClientUtils.toStore(content.getPath())));
+          (Object) RT_SAKAI_LINK, SAKAI_LINK,
+          content.getPath()));
     } else {
       linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-          StorageClientUtils.toStore(RT_SAKAI_LINK));
-      linkNode.setProperty(SAKAI_LINK, StorageClientUtils.toStore(content.getPath()));
+          RT_SAKAI_LINK);
+      linkNode.setProperty(SAKAI_LINK, content.getPath());
     }
     contentManager.update(linkNode);
     return true;
@@ -232,7 +232,6 @@ public class FileUtils {
   public static void writeFileNode(Content content,
       org.sakaiproject.nakamura.api.lite.Session session, JSONWriter write, int maxDepth)
       throws JSONException, StorageClientException {
-    ContentManager contentManager = session.getContentManager();
     write.object();
 
     // dump all the properties.
@@ -245,7 +244,7 @@ public class FileUtils {
     cal.setTimeInMillis(StorageClientUtils.toLong(content.getProperty(Content.LASTMODIFIED)));
     write.value(DateUtils.iso8601(cal));
     write.key(JcrConstants.JCR_MIMETYPE);
-    write.value(StorageClientUtils.toString(content.getProperty(Content.MIMETYPE)));
+    write.value(content.getProperty(Content.MIMETYPE));
     write.key(JcrConstants.JCR_DATA);
     write.value(StorageClientUtils.toLong(content.getProperty(Content.LENGTH_FIELD)));
     write.endObject();
@@ -297,7 +296,7 @@ public class FileUtils {
 
     // Write the actual file.
     if (content.hasProperty(SAKAI_LINK)) {
-      String linkPath = StorageClientUtils.toString(content.getProperty(SAKAI_LINK));
+      String linkPath = (String) content.getProperty(SAKAI_LINK);
       writer.key("file");
       try {
         Content fileNode = contentManager.get(linkPath);
@@ -484,10 +483,10 @@ public class FileUtils {
   }
   
   private static String[] getTags(Content tagNode) {
-    String tagUuid = StorageClientUtils.toString(tagNode.getProperty(Content.UUID_FIELD));
+    String tagUuid = (String) tagNode.getProperty(Content.UUID_FIELD);
     String tagName = "";
     if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
-      tagName = StorageClientUtils.toString(tagNode.getProperty(SAKAI_TAG_NAME));
+      tagName = (String) tagNode.getProperty(SAKAI_TAG_NAME);
     }
     return new String[] { tagUuid, tagName };
   }
@@ -498,20 +497,20 @@ public class FileUtils {
       StorageClientException {
     boolean sendEvent = false;
     Map<String, Object> properties = content.getProperties();
-    Set<String> uuidSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray(StorageClientUtils.toStringArray(properties
-        .get(SAKAI_TAG_UUIDS))));
+    Set<String> uuidSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[]) properties
+        .get(SAKAI_TAG_UUIDS)));
     if (!uuidSet.contains(tags[0])) {
       uuidSet.add(tags[0]);
       content.setProperty(SAKAI_TAG_UUIDS,
-          StorageClientUtils.toStore(uuidSet.toArray(new String[uuidSet.size()])));
+          uuidSet.toArray(new String[uuidSet.size()]));
       sendEvent = true;
     }
-    Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray(StorageClientUtils.toStringArray(properties
-        .get(SAKAI_TAG_NAME))));
+    Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[]) properties
+        .get(SAKAI_TAG_NAME)));
     if (!nameSet.contains(tags[1])) {
       nameSet.add(tags[1]);
       content.setProperty(SAKAI_TAG_NAME,
-          StorageClientUtils.toStore(nameSet.toArray(new String[nameSet.size()])));
+          nameSet.toArray(new String[nameSet.size()]));
       sendEvent = true;
     }
 
@@ -578,20 +577,20 @@ public class FileUtils {
       StorageClientException {
     boolean updated = false;
     Map<String, Object> properties = content.getProperties();
-    Set<String> uuidSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray(StorageClientUtils.toStringArray(properties
-        .get(SAKAI_TAG_UUIDS))));
+    Set<String> uuidSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[]) properties
+        .get(SAKAI_TAG_UUIDS)));
     if (uuidSet.contains(tags[0])) {
       uuidSet.remove(tags[0]);
       content.setProperty(SAKAI_TAG_UUIDS,
-          StorageClientUtils.toStore(uuidSet.toArray(new String[uuidSet.size()])));
+          uuidSet.toArray(new String[uuidSet.size()]));
       updated = true;
     }
-    Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray(StorageClientUtils.toStringArray(properties
-        .get(SAKAI_TAG_NAME))));
+    Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[]) properties
+        .get(SAKAI_TAG_NAME)));
     if (nameSet.contains(tags[1])) {
       nameSet.remove(tags[1]);
       content.setProperty(SAKAI_TAG_NAME,
-          StorageClientUtils.toStore(nameSet.toArray(new String[nameSet.size()])));
+          nameSet.toArray(new String[nameSet.size()]));
       updated = true;
     }
     if (updated) {
