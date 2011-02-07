@@ -21,6 +21,8 @@ package org.sakaiproject.nakamura.api.calendar;
  *
  */
 public interface CalendarConstants {
+  /** Property name for link to profile from calendar signup */
+  String SAKAI_CALENDAR_PROFILE_LINK = "sakai:calendar-profile-link";
 
   /**
    * The resource type value for a calendar.
@@ -33,7 +35,7 @@ public interface CalendarConstants {
   public static final String SAKAI_CALENDAR_NODENAME = "calendar";
 
   /**
-   * The resource type value for a vevent.
+   * The resource type value for a event.
    */
   public static final String SAKAI_CALENDAR_EVENT_RT = "sakai/calendar-event";
 
@@ -76,6 +78,6 @@ public interface CalendarConstants {
    * hold the uuid of that original node.
    */
   public static final String SAKAI_SIGNEDUP_ORIGINAL_EVENT = "sakai:original-event";
-  
+
   public static final String TOPIC_CALENDAR_SIGNUP = "org/sakaiproject/nakamura/calendar/signup";
 }
