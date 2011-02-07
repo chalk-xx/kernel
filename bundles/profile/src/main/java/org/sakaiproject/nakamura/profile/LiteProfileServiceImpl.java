@@ -145,18 +145,30 @@ public class LiteProfileServiceImpl implements LiteProfileService {
     if (User.ANON_USER.equals(authorizable.getId())) {
       return anonymousProfile();
     }
+    ValueMap profileMap = null;
     try {
       Content profileNode = session.getContentManager().get(getProfilePath(authorizable));
       if (profileNode != null) {
-        return getProfileMap(profileNode);
+        profileMap = getProfileMap(profileNode);
+        if (authorizable instanceof Group) {
+          profileMap.put("groupid", authorizable.getId());
+          profileMap.put("sakai:group-id", authorizable.getId());
+        } else if (authorizable instanceof User) {
+          profileMap.put("rep:userId", authorizable.getId());
+          profileMap.put("userid", authorizable.getId());
+        }
       }
     } catch (StorageClientException e) {
       LOG.error(e.getLocalizedMessage(), e);
     } catch (AccessDeniedException e) {
       LOG.error(e.getLocalizedMessage(), e);
     }
-    // default to an empty ValueMap
-    return new ValueMapDecorator(new HashMap<String, Object>());
+    if (profileMap == null) {
+      profileMap = new ValueMapDecorator(new HashMap<String, Object>());
+    }
+    // we'll tack on all the authorizable's properties
+    profileMap.putAll(authorizable.getSafeProperties());
+    return profileMap;
   }
 
   private ValueMap anonymousProfile() {
