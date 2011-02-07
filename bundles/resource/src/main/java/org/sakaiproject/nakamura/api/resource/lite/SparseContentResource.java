@@ -23,7 +23,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
-import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -87,8 +86,8 @@ public class SparseContentResource extends AbstractResource {
     metadata.setContentLength(StorageClientUtils.toLong(props.get(Content.LENGTH_FIELD)));
     metadata.setCreationTime(StorageClientUtils.toLong(props.get(Content.CREATED)));
     metadata.setModificationTime(StorageClientUtils.toLong(props.get(Content.LASTMODIFIED)));
-    metadata.setResolutionPath(StorageClientUtils.toString(content.getPath()));
-    metadata.setResolutionPathInfo(StorageClientUtils.toString(content.getPath()));
+    metadata.setResolutionPath(content.getPath());
+    metadata.setResolutionPathInfo(content.getPath());
   }
 
   /**
@@ -153,7 +152,7 @@ public class SparseContentResource extends AbstractResource {
    * @see org.apache.sling.api.resource.Resource#getResourceType()
    */
   public String getResourceType() {
-    String type = StorageClientUtils.toString(content.getProperties().get("sling:resourceType"));
+    String type = (String) content.getProperty("sling:resourceType");
     if (type == null) {
       type = SPARSE_CONTENT_UNKNOWN_RT;
     }

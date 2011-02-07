@@ -23,7 +23,6 @@ import org.apache.jackrabbit.api.security.user.Impersonation;
 import org.apache.jackrabbit.core.security.SystemPrincipal;
 import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
 import org.apache.jackrabbit.core.security.principal.PrincipalIteratorAdapter;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.util.Iterables;
 import org.sakaiproject.nakamura.api.lite.util.PreemptiveIterator;
@@ -48,8 +47,8 @@ public class SparseImpersonationImpl implements Impersonation {
   @SuppressWarnings("unchecked")
   public PrincipalIterator getImpersonators() throws RepositoryException {
     User u = sparseUser.getSparseUser();
-    String impersonators = StorageClientUtils.toString(u
-        .getProperty(User.PRINCIPALS_FIELD));
+    String impersonators = (String) u
+        .getProperty(User.PRINCIPALS_FIELD);
     if (impersonators == null) {
       return new PrincipalIteratorAdapter(Collections.EMPTY_LIST);
     }
@@ -88,15 +87,14 @@ public class SparseImpersonationImpl implements Impersonation {
       return false;
     }
     User u = sparseUser.getSparseUser();
-    String impersonators = StorageClientUtils.toString(u
-        .getProperty(User.IMPERSONATORS_FIELD));
+    String impersonators = (String) u
+        .getProperty(User.IMPERSONATORS_FIELD);
     Set<String> imp = new HashSet<String>();
     Collections.addAll(imp, StringUtils.split(impersonators, ';'));
     String name = principal.getName();
     if (!imp.contains(name)) {
       imp.add(name);
-      u.setProperty(User.PRINCIPALS_FIELD,
-          StorageClientUtils.toStore(StringUtils.join(imp, ';')));
+      u.setProperty(User.PRINCIPALS_FIELD,StringUtils.join(imp, ';'));
       sparseUser.save();
       return true;
     }
@@ -108,15 +106,15 @@ public class SparseImpersonationImpl implements Impersonation {
       return false;
     }
     User u = sparseUser.getSparseUser();
-    String impersonators = StorageClientUtils.toString(u
-        .getProperty(User.IMPERSONATORS_FIELD));
+    String impersonators = (String) u
+        .getProperty(User.IMPERSONATORS_FIELD);
     Set<String> imp = new HashSet<String>();
     Collections.addAll(imp, StringUtils.split(impersonators, ';'));
     String name = principal.getName();
     if (imp.contains(name)) {
       imp.remove(name);
       u.setProperty(User.PRINCIPALS_FIELD,
-          StorageClientUtils.toStore(StringUtils.join(imp, ';')));
+          StringUtils.join(imp, ';'));
       sparseUser.save();
       return true;
     }
@@ -129,8 +127,8 @@ public class SparseImpersonationImpl implements Impersonation {
       return true;
     }
     User u = sparseUser.getSparseUser();
-    String impersonators = StorageClientUtils.toString(u
-        .getProperty(User.IMPERSONATORS_FIELD));
+    String impersonators = (String) u
+        .getProperty(User.IMPERSONATORS_FIELD);
     Set<String> imp = new HashSet<String>();
     Collections.addAll(imp, StringUtils.split(impersonators, ';'));
     for (Principal p : subject.getPrincipals()) {

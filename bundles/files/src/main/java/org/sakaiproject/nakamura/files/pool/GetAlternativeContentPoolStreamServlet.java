@@ -169,7 +169,7 @@ public class GetAlternativeContentPoolStreamServlet extends SlingSafeMethodsServ
       response.setDateHeader(HEADER_LAST_MODIFIED, modifTime);
     }
 
-    String contentType = StorageClientUtils.toString(properties.get(StorageClientUtils.getAltField(Content.MIMETYPE, alternativeStream)));
+    String contentType = (String) properties.get(StorageClientUtils.getAltField(Content.MIMETYPE, alternativeStream));
     if (contentType == null) {
       final String ct = getServletContext().getMimeType(resource.getPath());
       if (ct != null) {
@@ -180,7 +180,7 @@ public class GetAlternativeContentPoolStreamServlet extends SlingSafeMethodsServ
       response.setContentType(contentType);
     }
 
-    String encoding = StorageClientUtils.toString(properties.get(StorageClientUtils.getAltField(Content.ENCODING, alternativeStream)));
+    String encoding = (String) properties.get(StorageClientUtils.getAltField(Content.ENCODING, alternativeStream));
     if (encoding != null) {
       response.setCharacterEncoding(encoding);
     }

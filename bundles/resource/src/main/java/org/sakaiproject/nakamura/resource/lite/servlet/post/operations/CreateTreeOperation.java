@@ -26,7 +26,6 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -105,9 +104,9 @@ public class CreateTreeOperation extends AbstractSparsePostOperation {
           for (int i = 0; i < arr.length(); i++) {
             values[i] = arr.getString(i);
           }
-          properties.put(key, StorageClientUtils.toStore(values));
+          properties.put(key, values);
         } else {
-          properties.put(key, StorageClientUtils.toStore(obj));
+          properties.put(key, obj);
         }
       }
     }

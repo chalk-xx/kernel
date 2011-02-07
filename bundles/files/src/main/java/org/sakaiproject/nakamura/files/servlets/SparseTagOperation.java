@@ -29,7 +29,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.event.EventAdmin;
@@ -41,7 +40,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -135,7 +133,7 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
           response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Provided key not found. Key was "+key.getString());
           return;
         }
-        if (!"sakai/tag".equals(StorageClientUtils.toString(tagNode.getProperty("sling:resourceType")))) {
+        if (!"sakai/tag".equals(tagNode.getProperty("sling:resourceType"))) {
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
               "Provided key doesn't point to a tag.");
           return;
@@ -148,7 +146,7 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
           try {
             String tagName = "";
             if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
-              tagName = StorageClientUtils.toString(tagNode.getProperty(SAKAI_TAG_NAME));
+              tagName = (String) tagNode.getProperty(SAKAI_TAG_NAME);
             }
             Dictionary<String, String> properties = new Hashtable<String, String>();
             properties.put(UserConstants.EVENT_PROP_USERID, user);

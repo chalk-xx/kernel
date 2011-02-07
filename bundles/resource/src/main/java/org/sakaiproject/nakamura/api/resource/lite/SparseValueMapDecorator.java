@@ -201,7 +201,7 @@ public class SparseValueMapDecorator implements ValueMap {
    *          type
    * @return the converted object
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "deprecation" })
   private <T> T convert(Object obj, Class<T> type) {
     LOG.debug("convert(Object {}, Class<T> {})", obj, type);
     try {

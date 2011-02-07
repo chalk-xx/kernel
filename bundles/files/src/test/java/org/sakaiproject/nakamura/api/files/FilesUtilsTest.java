@@ -281,6 +281,7 @@ public class FilesUtilsTest {
     // see CreateContentPoolServlet.generatePoolId() method
     when(session.getNode("/_p/k/dg/dd/nr/poolId1234")).thenReturn(poolIdNode);
     try {
+      @SuppressWarnings("unused")
       Node node = resolveNode("poolId1234", resourceResolver);
       
       // TODO: fix this

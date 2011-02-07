@@ -39,31 +39,11 @@ import javax.jcr.ValueFormatException;
 import javax.jcr.nodetype.PropertyDefinition;
 
 public class ExtendedJSONWriter extends JSONWriter {
-  private static final String TRUE = "true";
-  private static final String FALSE = "false";
 
   public ExtendedJSONWriter(Writer w) {
     super(w);
   }
 
-  /**
-   * Handle boolean values as booleans.
-   * 
-   * {@inheritDoc}
-   * 
-   * @see org.apache.sling.commons.json.io.JSONWriter#value(java.lang.Object)
-   */
-  @Override
-  public JSONWriter value(Object o) throws JSONException {
-    // TODO BL120 handle strings that look like booleans as booleans
-    if (o instanceof String) {
-      final String s = (String) o;
-      if (TRUE.equals(s) || FALSE.equals(s)) {
-        return super.value(Boolean.parseBoolean(s));
-      }
-    }
-    return super.value(o);
-  }
 
   public void valueMap(Map<String, Object> valueMap) throws JSONException {
     ExtendedJSONWriter.writeValueMap(this, valueMap);
@@ -187,23 +167,43 @@ public class ExtendedJSONWriter extends JSONWriter {
     Map<String, Object> props = content.getProperties();
     for (Entry<String, Object> prop : props.entrySet()) {
       String propName = prop.getKey();
-      String[] values = StorageClientUtils.toStringArray(prop.getValue());
-      String value = (values.length > 1) ? null : values[0];
+      Object propValue = prop.getValue();
 
       write.key(propName);
-      if (isUserPath(propName, value)) {
-        write.value(PathUtils.translateAuthorizablePath(value));
+      if (isUserPath(propName, firstElement(propValue))) {
+        write.value(PathUtils.translateAuthorizablePath(firstElement(propValue)));
       } else {
-        if (value != null) {
-          write.value(value);
+        write.value(propValue);
+      }
+    }
+  }
+  
+  private static Object firstElement(Object value) {
+    if ( value instanceof Object[] ) {
+      return ((Object[])value)[0];
+    }
+    return value;
+  }
+
+
+  @Override
+  public JSONWriter value(Object object) throws JSONException {
+    if ( object instanceof Object[]) {
+      Object[] oarray = (Object[]) object;
+      if (  oarray.length > 0 ) {
+        if ( oarray.length == 1) {
+          value(oarray[0]);
         } else {
-          write.array();
-          for (String v : values) {
-            write.value(v);
+          array();
+          for ( Object o : oarray) {
+            value(o);
           }
-          write.endArray();
+          endArray();
         }
       }
+      return this;
+    } else {
+      return super.value(object);
     }
   }
 

@@ -57,7 +57,6 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparsePostOperation;
-import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.resource.lite.SparseNonExistingResource;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -157,9 +156,9 @@ public class LiteBasicLTIPostOperation extends AbstractSparsePostOperation {
                       && "Boolean".equals(requestParameterMap.get(typeHint)[0]
                           .getString())) {
                     node.setProperty(key,
-                        StorageClientUtils.toStore(Boolean.valueOf(value)));
+                        Boolean.valueOf(value));
                   } else {
-                    node.setProperty(key, StorageClientUtils.toStore(value));
+                    node.setProperty(key, value);
                   }
                 }
               }
@@ -209,7 +208,7 @@ public class LiteBasicLTIPostOperation extends AbstractSparsePostOperation {
       // adminNodePath);
       for (final Entry<String, String> entry : sensitiveData.entrySet()) {
         adminNode.setProperty(entry.getKey(),
-            StorageClientUtils.toStore(entry.getValue()));
+            entry.getValue());
       }
       // ensure only admins can read the node
       accessControlSensitiveNode(adminNodePath, adminSession, userSession.getUserId());

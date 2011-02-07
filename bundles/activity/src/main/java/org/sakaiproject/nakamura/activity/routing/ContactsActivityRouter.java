@@ -20,8 +20,6 @@ package org.sakaiproject.nakamura.activity.routing;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.activity.AbstractActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
@@ -30,7 +28,14 @@ import org.sakaiproject.nakamura.api.activity.ActivityRouter;
 import org.sakaiproject.nakamura.api.activity.ActivityUtils;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,7 +92,6 @@ public class ContactsActivityRouter implements ActivityRouter {
         String activityPath = activity.getPath();
         AccessControlManager adminACM = AccessControlUtil
             .getAccessControlManager(adminSession);
-        UserManager um = AccessControlUtil.getUserManager(adminSession);
         Privilege readPriv = adminACM.privilegeFromName("jcr:read");
         Privilege[] privs = new Privilege[] { readPriv };
         for (String connection : connections) {
@@ -108,8 +112,7 @@ public class ContactsActivityRouter implements ActivityRouter {
 
           if (allowCopy) {
             // Get the activity feed for this contact and deliver it.
-            Authorizable au = um.getAuthorizable(connection);
-            activityFeedPath = ActivityUtils.getUserFeed(au);
+            activityFeedPath = ActivityUtils.getUserFeed(connection);
             ActivityRoute route = new AbstractActivityRoute(activityFeedPath) {
             };
             routes.add(route);
@@ -117,6 +120,42 @@ public class ContactsActivityRouter implements ActivityRouter {
         }
       }
     } catch (RepositoryException e) {
+      LOGGER.error(
+          "Exception when trying to deliver an activity to contacts feed.", e);
+    }
+  }
+
+  public void route(Content activity, List<ActivityRoute> routes, org.sakaiproject.nakamura.api.lite.Session adminSession) {
+    try {
+      String activityFeedPath = null;
+      String actor = (String) activity.getProperty(ActivityConstants.PARAM_ACTOR_ID);
+      List<String> connections = connectionManager.getConnectedUsers(adminSession, actor,
+          ConnectionState.ACCEPTED);
+      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager accessControlManager = adminSession.getAccessControlManager();
+      AuthorizableManager authorizableManager = adminSession.getAuthorizableManager();
+      if (connections != null && connections.size() > 0) {
+
+        String activityPath = activity.getPath();
+        for (String connection : connections) {
+          // Check if this connection has READ access on the path.
+          try {
+          Authorizable authorizable = authorizableManager.findAuthorizable(connection);
+          boolean allowCopy = accessControlManager.can(authorizable, Security.ZONE_CONTENT, activityPath, Permissions.CAN_READ);
+          if (allowCopy) {
+            // Get the activity feed for this contact and deliver it.
+            activityFeedPath = ActivityUtils.getUserFeed(connection);
+            ActivityRoute route = new AbstractActivityRoute(activityFeedPath) {
+            };
+            routes.add(route);
+          }
+          } catch ( StorageClientException e) {
+            LOGGER.error(e.getMessage(),e);            
+          } catch (AccessDeniedException e) {
+            LOGGER.error(e.getMessage(),e);
+          }
+        }
+      }
+    } catch (StorageClientException e) {
       LOGGER.error(
           "Exception when trying to deliver an activity to contacts feed.", e);
     }

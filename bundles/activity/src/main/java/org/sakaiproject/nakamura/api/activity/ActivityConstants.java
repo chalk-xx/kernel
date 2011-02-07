@@ -86,6 +86,7 @@ public interface ActivityConstants {
    * OSGi event that gets triggered when an activity occurs.
    */
   public static final String EVENT_TOPIC = "org/sakaiproject/nakamura/activity";
+  public static final String LITE_EVENT_TOPIC = "org/sakaiproject/nakamura/lite/activity";
   /**
    * The property in the event which will hold the location to the original activity.
    */

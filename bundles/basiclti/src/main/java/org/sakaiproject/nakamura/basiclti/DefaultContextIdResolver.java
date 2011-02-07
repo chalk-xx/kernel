@@ -17,9 +17,7 @@
  */
 package org.sakaiproject.nakamura.basiclti;
 
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.basiclti.BasicLTIContextIdResolver;
 import org.slf4j.Logger;

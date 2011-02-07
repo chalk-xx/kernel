@@ -130,8 +130,8 @@ public class ManageMembersContentPoolServletTest {
         ImmutableMap.of("x", (Object) "y"));
     sparseSession.getContentManager().update(
         new Content("pooled-content-id", ImmutableMap.of("x", (Object) "y",
-            POOLED_CONTENT_USER_MANAGER, "alice,ieb", POOLED_CONTENT_USER_VIEWER,
-            "bob,mark,john")));
+            POOLED_CONTENT_USER_MANAGER, new String[]{"alice","ieb"}, POOLED_CONTENT_USER_VIEWER,
+            new String[]{"bob","mark","john"})));
     sparseSession.getAccessControlManager().setAcl(
         Security.ZONE_CONTENT,
         "pooled-content-id",
@@ -221,7 +221,7 @@ public class ManageMembersContentPoolServletTest {
       when(qr.getNodes()).thenReturn(iterator);
 
       MockNode aliceNode = new MockNode(fileNode.getPath() + "/members/a/al/alice");
-      aliceNode.setProperty(POOLED_CONTENT_USER_MANAGER, "alice");
+      aliceNode.setProperty(POOLED_CONTENT_USER_MANAGER, new String[]{"alice"});
       when(adminSession.itemExists(aliceNode.getPath())).thenReturn(true);
       when(adminSession.getItem(aliceNode.getPath())).thenReturn(aliceNode);
       when(adminSession.getNode(aliceNode.getPath())).thenReturn(aliceNode);
@@ -229,7 +229,7 @@ public class ManageMembersContentPoolServletTest {
       when(userManager.getAuthorizable("alice")).thenReturn(alice);
 
       MockNode bobNode = new MockNode(fileNode.getPath() + "/members/b/bo/bob");
-      bobNode.setProperty(POOLED_CONTENT_USER_VIEWER, "bob");
+      bobNode.setProperty(POOLED_CONTENT_USER_VIEWER, new String[]{"bob"});
       when(adminSession.itemExists(bobNode.getPath())).thenReturn(true);
       when(adminSession.getItem(bobNode.getPath())).thenReturn(bobNode);
       Authorizable bob = MockitoTestUtils.createAuthorizable("bob", false);

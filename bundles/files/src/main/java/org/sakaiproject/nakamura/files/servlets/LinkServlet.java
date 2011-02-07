@@ -36,7 +36,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.files.LinkHandler;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.files.JcrInternalFileHandler;
 import org.sakaiproject.nakamura.files.SparseContentInternalFileHandler;
@@ -86,8 +85,7 @@ public class LinkServlet extends SlingSafeMethodsServlet {
       if (node != null && node.hasProperty(FilesConstants.SAKAI_LINK)) {
         link = node.getProperty(FilesConstants.SAKAI_LINK).getString();
       } else if (content != null && content.hasProperty(FilesConstants.SAKAI_LINK)) {
-        link = StorageClientUtils
-            .toString(content.getProperty(FilesConstants.SAKAI_LINK));
+        link = (String) content.getProperty(FilesConstants.SAKAI_LINK);
       }
       System.err.println("Link is "+link);
 

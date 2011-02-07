@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.api.activity;
 
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+
 import java.util.List;
 
 import javax.jcr.Node;
@@ -31,5 +34,7 @@ public interface ActivityRouterManager {
    * @return Gets all the {@link ActivityRoute} for a specific activity.
    */
   List<ActivityRoute> getActivityRoutes(Node activity);
+
+  List<ActivityRoute> getActivityRoutes(Content activity, Session adminSession);
 
 }
