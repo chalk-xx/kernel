@@ -27,7 +27,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
@@ -36,7 +35,6 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -64,7 +62,6 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
    */
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> results) throws JSONException {
-    try {
       List<ResourceActivity> resources = new ArrayList<ResourceActivity>();
       ResourceResolver resolver = request.getResourceResolver();
       while (results.hasNext()) {
@@ -76,14 +73,14 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
         int daysAgo = deriveDateWindow(request);
 
         if (content.hasProperty("timestamp")) {
-          Calendar timestamp = StorageClientUtils.toCalendar(content.getProperty("timestamp"));
+          Calendar timestamp = (Calendar) content.getProperty("timestamp");
           Calendar specifiedDaysAgo = new GregorianCalendar();
           specifiedDaysAgo.add(Calendar.DAY_OF_MONTH, -daysAgo);
           if (timestamp.before(specifiedDaysAgo)) {
             // we stop counting once we get to the old stuff
             break;
           } else {
-            String resourceId = StorageClientUtils.toString(content.getProperty("resourceId"));
+            String resourceId = (String) content.getProperty("resourceId");
             if (!resources.contains(new ResourceActivity(resourceId))) {
               String resourcePath = LitePersonalUtils.getProfilePath(resourceId);
               Content resourceContent = null;
@@ -94,7 +91,7 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
                 // or if the group path simply doesn't exist
                 continue;
               }
-              String resourceName = StorageClientUtils.toString(resourceContent.getProperty("sakai:group-title"));
+              String resourceName = (String) resourceContent.getProperty("sakai:group-title");
               resources.add(new ResourceActivity(resourceId, 0, resourceName));
             }
             // increment the count for this particular resource.
@@ -120,9 +117,6 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
       }
       write.endArray();
       write.endObject();
-    } catch (ParseException e) {
-      throw new JSONException(e.getMessage());
-    }
   }
 
   private int deriveDateWindow(SlingHttpServletRequest request) {

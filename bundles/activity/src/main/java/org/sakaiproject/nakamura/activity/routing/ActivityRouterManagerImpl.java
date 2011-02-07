@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.activity.ActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityRouter;
 import org.sakaiproject.nakamura.api.activity.ActivityRouterManager;
+import org.sakaiproject.nakamura.api.lite.Session;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,6 +63,14 @@ public class ActivityRouterManagerImpl implements ActivityRouterManager {
 
   }
 
+  public List<ActivityRoute> getActivityRoutes(org.sakaiproject.nakamura.api.lite.content.Content activity, Session adminSession) {
+    List<ActivityRoute> routes = new ArrayList<ActivityRoute>();
+    for (ActivityRouter router : routers) {
+      router.route(activity, routes, adminSession);
+    }
+    return routes;
+  }
+
   protected void addActivityRouter(ActivityRouter router) {
     activityRouters.add(router);
     routers = getSortedList();
@@ -87,4 +96,5 @@ public class ActivityRouterManagerImpl implements ActivityRouterManager {
     });
     return sortedRouters;
   }
+
 }

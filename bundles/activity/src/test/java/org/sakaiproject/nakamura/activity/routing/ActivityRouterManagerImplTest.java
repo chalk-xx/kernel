@@ -22,6 +22,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.activity.ActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityRouter;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.util.List;
@@ -52,6 +54,9 @@ public class ActivityRouterManagerImplTest extends AbstractEasyMockTest {
       public int getPriority() {
         return 50;
       }
+
+      public void route(Content activity, List<ActivityRoute> routes, Session adminSession) {
+      }
     };
     ActivityRouter router2 = new ActivityRouter() {
 
@@ -61,6 +66,11 @@ public class ActivityRouterManagerImplTest extends AbstractEasyMockTest {
 
       public int getPriority() {
         return 100;
+      }
+
+      public void route(Content activity, List<ActivityRoute> routes, Session adminSession) {
+        // TODO Auto-generated method stub
+        
       }
     };
 
