@@ -608,6 +608,17 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   private Map<String, Object> processProfileParameters(String profileTemplate,
       Authorizable authorizable, Map<String, Object[]> parameters) {
     Map<String, Object> retval = new HashMap<String, Object>();
+    // default profile values
+    // may be overwritten by the PROFILE_JSON_IMPORT_PARAMETER
+    for (String param : profileParams) {
+      String val = "unknown";
+      if (parameters.containsKey(param)) {
+        val = (String) parameters.get(param)[0];
+      } else if (authorizable.hasProperty(param)) {
+        val = StorageClientUtils.toString(authorizable.getProperty(param));
+      }
+      retval.put(param, StorageClientUtils.toStore(val));
+    }
     if (parameters.containsKey(PROFILE_JSON_IMPORT_PARAMETER)) {
       String profileJson = (String) parameters.get(PROFILE_JSON_IMPORT_PARAMETER)[0];
       JSONObject jsonObject = JSONObject.fromObject(profileJson);
@@ -616,20 +627,12 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         JSONObject elements = basic.getJSONObject("elements");
         if (elements != null) {
           for (Object propName : elements.entrySet()) {
-            retval.put((String) ((Map.Entry)propName).getKey(), elements.get(((Map.Entry)propName).getKey()));
+            JSONObject element = (JSONObject) elements.get(((Map.Entry)propName).getKey());
+            retval.put((String) ((Map.Entry)propName).getKey(), element.get("value"));
           }
         }
       }
     }
-      for (String param : profileParams) {
-        String val = "unknown";
-        if (parameters.containsKey(param)) {
-          val = (String) parameters.get(param)[0];
-        } else if (authorizable.hasProperty(param)) {
-          val = StorageClientUtils.toString(authorizable.getProperty(param));
-        }
-        retval.put(param, StorageClientUtils.toStore(val));
-      }
       return retval;
   }
 
