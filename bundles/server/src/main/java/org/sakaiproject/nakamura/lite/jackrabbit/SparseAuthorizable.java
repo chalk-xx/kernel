@@ -219,7 +219,7 @@ public class SparseAuthorizable implements Authorizable {
   }
 
   public Value[] getProperty(String name) throws RepositoryException {
-    String s = StorageClientUtils.toString(sparseAuthorizable.getProperty(name));
+    String s = (String) sparseAuthorizable.getProperty(name);
     if (s != null) {
       String[] parts = StringUtils.split(s, ',');
       Value[] v = new Value[parts.length];
