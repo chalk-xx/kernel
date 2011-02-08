@@ -112,10 +112,12 @@ public class ConnectionIndexingHandler implements IndexingHandler {
           String contactName = path.substring(lastSlash + 1);
           AuthorizableManager am = session.getAuthorizableManager();
           Authorizable contactAuth = am.findAuthorizable(contactName);
-          for (String prop : FLATTENED_PROPS) {
-            Object value = contactAuth.getProperty(prop);
-            if ( value != null ) {
-              doc.addField(prop, value);
+          if ( contactAuth != null ) {
+            for (String prop : FLATTENED_PROPS) {
+              Object value = contactAuth.getProperty(prop);
+              if ( value != null ) {
+                doc.addField(prop, value);
+              }
             }
           }
 

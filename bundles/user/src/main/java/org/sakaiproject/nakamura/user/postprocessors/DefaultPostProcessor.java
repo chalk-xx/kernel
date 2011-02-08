@@ -292,10 +292,10 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     if (!contentManager.exists(homePath)) {
       Builder<String, Object> props = ImmutableMap.builder();
       if (isGroup) {
-        props.put(SLING_RESOURCE_TYPE, StorageClientUtils.toStore(SAKAI_GROUP_HOME_RT));
+        props.put(SLING_RESOURCE_TYPE, SAKAI_GROUP_HOME_RT);
 
       } else {
-        props.put(SLING_RESOURCE_TYPE, StorageClientUtils.toStore(SAKAI_USER_HOME_RT));
+        props.put(SLING_RESOURCE_TYPE, SAKAI_USER_HOME_RT);
       }
       if (authorizable.hasProperty(SAKAI_SEARCH_EXCLUDE_TREE_PROP)) {
         // raw copy
@@ -437,7 +437,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
               for ( int i = 0; i < v.length; i++ ) {
                 s[i] = v[i].getDate();
               }
-              builder.put(p.getName(), StorageClientUtils.toStore(s));
+              builder.put(p.getName(), s);
               break;
             }
           default:
@@ -446,7 +446,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
               for ( int i = 0; i < v.length; i++ ) {
                 s[i] = v[i].getString();
               }
-              builder.put(p.getName(), StorageClientUtils.toStore(s));
+              builder.put(p.getName(), s);
               break;
             }
           }
@@ -455,22 +455,22 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           Value v = p.getValue();
           switch(type) {
           case PropertyType.BOOLEAN:
-            builder.put(p.getName(), StorageClientUtils.toStore(v.getBoolean()));
+            builder.put(p.getName(), v.getBoolean());
             break;
           case PropertyType.DATE:
-            builder.put(p.getName(), StorageClientUtils.toStore(v.getDate()));
+            builder.put(p.getName(), v.getDate());
             break;
           case PropertyType.DECIMAL:
-            builder.put(p.getName(), StorageClientUtils.toStore(v.getDecimal()));
+            builder.put(p.getName(), v.getDecimal());
             break;
           case PropertyType.LONG:
-            builder.put(p.getName(), StorageClientUtils.toStore(v.getLong()));
+            builder.put(p.getName(), v.getLong());
             break;
           case PropertyType.STRING:
-            builder.put(p.getName(), StorageClientUtils.toStore(v.getString()));
+            builder.put(p.getName(), v.getString());
             break;
           default:
-            builder.put(p.getName(), StorageClientUtils.toStore(v.getString()));
+            builder.put(p.getName(), v.getString());
             break;
           }
         }
@@ -491,10 +491,10 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           if ( content == null ) {
             content = contentManager.get(thisPath);
             if ( contentNode.hasProperty(JcrConstants.JCR_MIMETYPE)) {
-              content.setProperty(Content.MIMETYPE, StorageClientUtils.toStore(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString()));
+              content.setProperty(Content.MIMETYPE, contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
             }
             if ( contentNode.hasProperty(JcrConstants.JCR_LASTMODIFIED)) {
-              content.setProperty(Content.LASTMODIFIED, StorageClientUtils.toStore(contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getLong()));
+              content.setProperty(Content.LASTMODIFIED, contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getLong());
             }
           }
         }
@@ -540,20 +540,20 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     if ( !authorizable.hasProperty(PROP_MANAGERS_GROUP) ) {
       // if authorizable.getId() is unique, then it only has 1 manages group, which is also unique by definition.
        String managersGroupId = authorizable.getId() + "-managers";
-       authorizable.setProperty(PROP_MANAGERS_GROUP, StorageClientUtils.toStore(managersGroupId));
-       Set<String> managers = Sets.newHashSet(StorageClientUtils.toStringArray(authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
+       authorizable.setProperty(PROP_MANAGERS_GROUP, managersGroupId);
+       Set<String> managers = Sets.newHashSet((String[])authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS));
        managers.add(managersGroupId);
-       authorizable.setProperty(UserConstants.PROP_GROUP_MANAGERS, StorageClientUtils.toStore(managers.toArray(new String[managers.size()])));
+       authorizable.setProperty(UserConstants.PROP_GROUP_MANAGERS, managers.toArray(new String[managers.size()]));
 
 
        authorizableManager.updateAuthorizable(authorizable);
 
        authorizableManager.createGroup(managersGroupId, managersGroupId, ImmutableMap.of(
-           PROP_MANAGED_GROUP, StorageClientUtils.toStore(authorizable.getId()), // the ID of the group this group manages
-           PROP_MANAGERS_GROUP,StorageClientUtils.toStore(managersGroupId), // the ID of the special managers group
-           PROP_GROUP_MANAGERS,StorageClientUtils.toStore(managersGroupId), // the managers of this group (ie itself)
-           PROP_BARE_AUTHORIZABLE, StorageClientUtils.toStore(true)
-           ));
+           PROP_MANAGED_GROUP, (Object)authorizable.getId(), // the ID of the group this group manages
+           PROP_MANAGERS_GROUP,managersGroupId, // the ID of the special managers group
+           PROP_GROUP_MANAGERS,managersGroupId, // the managers of this group (ie itself)
+           PROP_BARE_AUTHORIZABLE, true)
+           );
 
        Group managersGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
        Object[] addValues = parameters.get(PARAM_ADD_TO_MANAGERS_GROUP);
@@ -611,13 +611,13 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     // default profile values
     // may be overwritten by the PROFILE_JSON_IMPORT_PARAMETER
     for (String param : profileParams) {
-      String val = "unknown";
+      Object val = "unknown";
       if (parameters.containsKey(param)) {
-        val = (String) parameters.get(param)[0];
+        val = parameters.get(param)[0];
       } else if (authorizable.hasProperty(param)) {
-        val = StorageClientUtils.toString(authorizable.getProperty(param));
+        val = authorizable.getProperty(param);
       }
-      retval.put(param, StorageClientUtils.toStore(val));
+      retval.put(param, val);
     }
     if (parameters.containsKey(PROFILE_JSON_IMPORT_PARAMETER)) {
       String profileJson = (String) parameters.get(PROFILE_JSON_IMPORT_PARAMETER)[0];
@@ -626,9 +626,16 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       if (basic != null) {
         JSONObject elements = basic.getJSONObject("elements");
         if (elements != null) {
-          for (Object propName : elements.entrySet()) {
-            JSONObject element = (JSONObject) elements.get(((Map.Entry)propName).getKey());
-            retval.put((String) ((Map.Entry)propName).getKey(), element.get("value"));
+          for (Object o : elements.entrySet()) {
+            @SuppressWarnings("unchecked")
+            Entry<String, Object> e = (Entry<String, Object>) o;
+            Object object = elements.get(e.getKey());
+            if ( object instanceof JSONObject) {
+              JSONObject element = (JSONObject) object;
+              retval.put(e.getKey(), element.get("value"));
+            } else {
+              retval.put(e.getKey(), object);
+            }
           }
         }
       }
@@ -684,15 +691,15 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
     Set<String> managerSettings = null;
     if (authorizable.hasProperty(UserConstants.PROP_GROUP_MANAGERS)) {
-      managerSettings = ImmutableSet.of(StorageClientUtils.toStringArray(authorizable
-          .getProperty(UserConstants.PROP_GROUP_MANAGERS)));
+      managerSettings = ImmutableSet.of((String[])authorizable
+          .getProperty(UserConstants.PROP_GROUP_MANAGERS));
     } else {
       managerSettings = ImmutableSet.of();
     }
     Set<String> viewerSettings = null;
     if (authorizable.hasProperty(UserConstants.PROP_GROUP_VIEWERS)) {
-      viewerSettings = ImmutableSet.of(StorageClientUtils.toStringArray(authorizable
-          .getProperty(UserConstants.PROP_GROUP_VIEWERS)));
+      viewerSettings = ImmutableSet.of((String[])authorizable
+          .getProperty(UserConstants.PROP_GROUP_VIEWERS));
     } else {
       viewerSettings = ImmutableSet.of();
     }
