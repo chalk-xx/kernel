@@ -18,7 +18,6 @@ import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
@@ -82,7 +81,7 @@ public class LiteGroupGetServletTest {
 
   @Test
   public void testNonGroupAuthorizable() throws Exception {
-    User user = new User(ImmutableMap.of(User.ID_FIELD, StorageClientUtils.toStore("test")));
+    User user = new User(ImmutableMap.of(User.ID_FIELD, (Object)"test"));
     badAuthorizable(user);
   }
 
