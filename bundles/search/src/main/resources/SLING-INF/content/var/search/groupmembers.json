@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "+resourceType:sakai/user-profile ${q} ${_groupQuery};${sortOn} ${sortOrder}",
+  "sakai:query-template": '+resourceType:sakai/user-profile "${q}" ${_groupQuery};${sortOn} ${sortOrder}',
   "_groupQuery": "",
   "sortOn": "score",
   "sortOrder": "desc",

@@ -23,14 +23,17 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.framework.Constants;
-import org.sakaiproject.nakamura.api.lite.authorizable.User;
-import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.LiteProfileService;
@@ -41,6 +44,8 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Search result processor to write out profile information when search returns home nodes
@@ -55,6 +60,8 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
   @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "Profile")
 })
 public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcessor {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ProfileNodeSearchResultProcessor.class);
+
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
 
@@ -98,21 +105,31 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.Row)
    */
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result) throws JSONException {
-    String path = result.getPath();
     ResourceResolver resolver = request.getResourceResolver();
-    Resource resource = resolver.getResource(path);
-    write.object();
-    if (resource != null) {
-      Content content = resource.adaptTo(Content.class);
-      ValueMap map = profileService.getProfileMap(content);
-      ((ExtendedJSONWriter) write).valueMapInternals(map);
-    }
+    Session session = StorageClientUtils.adaptToSession(resolver
+        .adaptTo(javax.jcr.Session.class));
 
-    // If this is a User Profile, then include Presence data.
-    String userId = (String) result.getFirstValue(User.NAME_FIELD);
-    if (userId != null) {
-      PresenceUtils.makePresenceJSON(write, userId, presenceService, true);
+    try {
+      AuthorizableManager authMgr = session.getAuthorizableManager();
+
+      String name = (String) result.getFirstValue(Authorizable.NAME_FIELD);
+      Authorizable auth = authMgr.findAuthorizable(name);
+
+      write.object();
+      if (auth != null) {
+        ValueMap map = profileService.getProfileMap(auth, session);
+        ExtendedJSONWriter.writeValueMapInternals(write, map);
+      }
+
+      // If this is a User Profile, then include Presence data.
+      if (!auth.isGroup()) {
+        PresenceUtils.makePresenceJSON(write, name, presenceService, true);
+      }
+      write.endObject();
+    } catch (StorageClientException e) {
+      LOGGER.error(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      LOGGER.error(e.getMessage(), e);
     }
-    write.endObject();
   }
 }

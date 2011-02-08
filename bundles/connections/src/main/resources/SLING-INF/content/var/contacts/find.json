@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "+path:${_connectionstore} +resourceType:sakai/contact state:(+${state} -NONE) +(name:${q} OR firstName:${q} OR lastName:${q} OR email:${q});${sortOn} ${sortOrder}",
+  "sakai:query-template": '+path:${_connectionstore} +resourceType:sakai/contact state:(+"${state}" -NONE) +(name:"${q}" firstName:"${q}" lastName:"${q}" email:"${q}");${sortOn} ${sortOrder}',
   "state": "ACCEPTED",
   "q": "*",
   "sortOn": "score",

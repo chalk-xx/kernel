@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.message;
+package org.sakaiproject.nakamura.message.search;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -31,6 +31,8 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingService;
+import org.sakaiproject.nakamura.message.MessagingServiceImpl;
+import org.sakaiproject.nakamura.message.search.MessageSearchPropertyProvider;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 

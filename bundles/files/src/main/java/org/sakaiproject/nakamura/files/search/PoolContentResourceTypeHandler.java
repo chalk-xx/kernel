@@ -59,7 +59,7 @@ import java.util.Set;
 /**
  * Indexes content with the property sling:resourceType = "sakai/pooled-content".
  */
-@Component
+@Component(immediate = true)
 public class PoolContentResourceTypeHandler implements IndexingHandler {
 
   private static final Set<String> IGNORE_NAMESPACES = ImmutableSet.of("jcr", "rep");

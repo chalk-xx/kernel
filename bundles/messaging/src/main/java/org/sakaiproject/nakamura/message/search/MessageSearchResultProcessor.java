@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.message;
+package org.sakaiproject.nakamura.message.search;
 
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_FROM;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE;
@@ -76,20 +76,6 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
   public void unbindWriters(LiteMessageProfileWriter writer) {
     writers.remove(writer.getType());
   }
-//  protected MessageProfileWriterTracker tracker;
-
-//  protected void activate(ComponentContext context) {
-//    BundleContext bundleContext = context.getBundleContext();
-//    tracker = new MessageProfileWriterTracker(bundleContext);
-//    tracker.open();
-//  }
-//
-//  protected void deactivate(ComponentContext context) {
-//    if (tracker != null) {
-//      tracker.close();
-//      tracker = null;
-//    }
-//  }
 
   /**
    * Parses the message to a usable JSON format for the UI.

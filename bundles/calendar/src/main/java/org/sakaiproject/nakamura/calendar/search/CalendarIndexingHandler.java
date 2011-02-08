@@ -15,10 +15,16 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.connections.search;
+package org.sakaiproject.nakamura.calendar.search;
+
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_EVENT_RT;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_PROFILE_LINK;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_PROPERTY_PREFIX;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_RT;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_EVENT_SIGNUP_PARTICIPANT_RT;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SIGNUP_NODE_RT;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 import org.apache.commons.lang.StringUtils;
@@ -26,15 +32,14 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.sling.api.SlingConstants;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
-import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
-import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
@@ -46,40 +51,33 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * <p>Indexing handler for contact connections between two users.</p>
- * <p>The fields that are indexed are:<br/>
- * <ul>
- * <li>connection status: state</li>
- * <li>contact's username: name</li>
- * <li>contact's first name: firstName</li>
- * <li>contact's last name: lastName</li>
- * <li>contact's email: email</li>
- * </ul>
+ *
  */
 @Component(immediate = true)
-public class ConnectionIndexingHandler implements IndexingHandler {
+public class CalendarIndexingHandler implements IndexingHandler {
 
   private static final Logger logger = LoggerFactory
-      .getLogger(ConnectionIndexingHandler.class);
-
-  private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of("state");
-  private static final Set<String> FLATTENED_PROPS = ImmutableSet.of("name", "firstName",
-      "lastName", "email");
+      .getLogger(CalendarIndexingHandler.class);
 
   @Reference(target = "(type=sparse)")
   private ResourceIndexingService resourceIndexingService;
 
   @Activate
   protected void activate(Map<?, ?> props) {
-    resourceIndexingService.addHandler(ConnectionConstants.SAKAI_CONTACT_RT, this);
+    resourceIndexingService.addHandler(SAKAI_CALENDAR_RT, this);
+    resourceIndexingService.addHandler(SAKAI_CALENDAR_EVENT_RT, this);
+    resourceIndexingService.addHandler(SIGNUP_NODE_RT, this);
+    resourceIndexingService.addHandler(SAKAI_EVENT_SIGNUP_PARTICIPANT_RT, this);
   }
 
   @Deactivate
   protected void deactivate(Map<?, ?> props) {
-    resourceIndexingService.removeHandler(ConnectionConstants.SAKAI_CONTACT_RT, this);
+    resourceIndexingService.removeHandler(SAKAI_CALENDAR_RT, this);
+    resourceIndexingService.removeHandler(SAKAI_CALENDAR_EVENT_RT, this);
+    resourceIndexingService.removeHandler(SIGNUP_NODE_RT, this);
+    resourceIndexingService.removeHandler(SAKAI_EVENT_SIGNUP_PARTICIPANT_RT, this);
   }
 
   /**
@@ -101,21 +99,21 @@ public class ConnectionIndexingHandler implements IndexingHandler {
 
         if (content != null) {
           SolrInputDocument doc = new SolrInputDocument();
-          for (String prop : WHITELISTED_PROPS) {
-            String value = StorageClientUtils.toString(content.getProperty(prop));
-            doc.addField(prop, value);
-          }
 
-          // flatten out the contact so we can search it
-          int lastSlash = path.lastIndexOf('/');
-          String contactName = path.substring(lastSlash + 1);
-          AuthorizableManager am = session.getAuthorizableManager();
-          Authorizable contactAuth = am.findAuthorizable(contactName);
-          for (String prop : FLATTENED_PROPS) {
-            String value = StorageClientUtils.toString(contactAuth.getProperty(prop));
-            doc.addField(prop, value);
+          String resourceType = StorageClientUtils.toString(content
+              .getProperty(SlingConstants.PROPERTY_RESOURCE_TYPE));
+          if (SAKAI_EVENT_SIGNUP_PARTICIPANT_RT.equals(resourceType)) {
+            // the default fields are good for the other resource types.
+            // SAKAI_EVENT_SIGNUP_PARTICIPANT_RT needs to flatten out the data to search
+            // on the profile of the user that signed up.
+            String value = StorageClientUtils.toString(content
+                .getProperty(SAKAI_CALENDAR_PROFILE_LINK));
+            doc.addField(Authorizable.NAME_FIELD, value);
+          } else {
+            String value = StorageClientUtils.toString(content
+                .getProperty(SAKAI_CALENDAR_PROPERTY_PREFIX + "DTSTART"));
+            doc.addField("vcal-DTSTART", value);
           }
-
           doc.addField(_DOC_SOURCE_OBJECT, content);
           documents.add(doc);
         }

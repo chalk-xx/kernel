@@ -1,7 +1,9 @@
 {
-  "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_userMessagePath}//element(*)MetaData[(@sling:resourceType='sakai/message' and @sakai:type='chat'){_from}] order by @{sortOn|jcr:created} {sortOrder|descending}",
-  "sling:resourceType": "sakai/search",
+  "sakai:query-template": "+path:${_userMessagePath} +resourceType:sakai/message +type:chat ${_from};{sortOn} ${sortOrder}",
+  "_from": "",
+  "sortOn": "created",
+  "sortOrder": "desc",
+  "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "ChatMessage",
   "sakai:resultprocessor": "Message",
   "sakai:title": "Messaging - User - Chat - All.",
@@ -9,7 +11,7 @@
   "sakai:parameters" : [
                         "{\"name\" : \"_from\", \"description\" : \"Comma seperated list of userid's of sender's - Optional.\"}",
                         "{\"name\" : \"sortOn\", \"description\" : \"Sort the results on this property - Optional.\"}",
-                        "{\"name\" : \"sortOrder\", \"description\" : \"Either 'ascending' or 'descending' - Optional.\"}"
+                        "{\"name\" : \"sortOrder\", \"description\" : \"Either 'asc' or 'desc' - Optional.\"}"
     ],
   "sakai:description": [
                       "This search will dump all the chat messages in your message store.",
