@@ -31,7 +31,6 @@ import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
@@ -102,8 +101,10 @@ public class ConnectionIndexingHandler implements IndexingHandler {
         if (content != null) {
           SolrInputDocument doc = new SolrInputDocument();
           for (String prop : WHITELISTED_PROPS) {
-            String value = StorageClientUtils.toString(content.getProperty(prop));
-            doc.addField(prop, value);
+            Object value = content.getProperty(prop);
+            if ( value != null ) {
+              doc.addField(prop, value);
+            }
           }
 
           // flatten out the contact so we can search it
@@ -112,8 +113,10 @@ public class ConnectionIndexingHandler implements IndexingHandler {
           AuthorizableManager am = session.getAuthorizableManager();
           Authorizable contactAuth = am.findAuthorizable(contactName);
           for (String prop : FLATTENED_PROPS) {
-            String value = StorageClientUtils.toString(contactAuth.getProperty(prop));
-            doc.addField(prop, value);
+            Object value = contactAuth.getProperty(prop);
+            if ( value != null ) {
+              doc.addField(prop, value);
+            }
           }
 
           doc.addField(_DOC_SOURCE_OBJECT, content);

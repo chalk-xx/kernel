@@ -183,8 +183,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
     try {
       if (userContactNode.hasProperty(ConnectionConstants.SAKAI_CONNECTION_STATE)) {
 
-        return ConnectionState.valueOf(StorageClientUtils.toString(userContactNode.getProperty(
-            ConnectionConstants.SAKAI_CONNECTION_STATE)));
+        return ConnectionState.valueOf((String) userContactNode.getProperty(
+            ConnectionConstants.SAKAI_CONNECTION_STATE));
       }
     } catch (Exception e) {
     }
@@ -346,8 +346,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
       Content content = contentManager.get(path);
       if (content != null) {
         for ( Content connection : content.listChildren() ) {
-          String resourceType = StorageClientUtils.toString(connection.getProperty("sling:resourceType"));
-          ConnectionState connectionState = ConnectionState.valueOf(StorageClientUtils.toString(connection.getProperty(ConnectionConstants.SAKAI_CONNECTION_STATE)));
+          String resourceType = (String) connection.getProperty("sling:resourceType");
+          ConnectionState connectionState = ConnectionState.valueOf((String) connection.getProperty(ConnectionConstants.SAKAI_CONNECTION_STATE));
           if ( ConnectionConstants.SAKAI_CONTACT_RT.equals(resourceType) && state.equals(connectionState)) {
             connections.add(StorageClientUtils.getObjectName(connection.getPath()));
           }
@@ -367,8 +367,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
     ContentManager contentManager = session.getContentManager();
     if (!contentManager.exists(nodePath)) {
       contentManager.update(new Content(nodePath, ImmutableMap.of("sling:resourceType",
-            StorageClientUtils.toStore(ConnectionConstants.SAKAI_CONTACT_RT),
-            "reference", StorageClientUtils.toStore(LitePersonalUtils.getProfilePath(toUser.getId())))));
+          (Object)ConnectionConstants.SAKAI_CONTACT_RT,
+            "reference", LitePersonalUtils.getProfilePath(toUser.getId()))));
     }
     return contentManager.get(nodePath);
   }
@@ -377,7 +377,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       Session session, Content fromNode, Content toNode)  {
     Set<String> toRelationships = new HashSet<String>();
     Set<String> fromRelationships = new HashSet<String>();
-    Map<String, String[]> sharedProperties = new HashMap<String, String[]>();
+    Map<String, Object> sharedProperties = new HashMap<String, Object>();
     for (Entry<String, String[]> rp : requestProperties.entrySet()) {
       String key = rp.getKey();
       String[] values = rp.getValue();
@@ -389,15 +389,19 @@ public class ConnectionManagerImpl implements ConnectionManager {
         fromRelationships.addAll(Arrays.asList(values));
         toRelationships.addAll(Arrays.asList(values));
       } else {
-        sharedProperties.put(key, values);
+        if ( values.length == 1 ) {
+          sharedProperties.put(key, values[0]);
+        } else if ( values.length > 1 ) {
+          sharedProperties.put(key, values);
+        }
       }
     }
     addArbitraryProperties(fromNode, sharedProperties);
-    fromNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES, StorageClientUtils.toStore(fromRelationships
-        .toArray(new String[fromRelationships.size()])));
+    fromNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES, fromRelationships
+        .toArray(new String[fromRelationships.size()]));
     addArbitraryProperties(toNode, sharedProperties);
-    toNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES, StorageClientUtils.toStore(toRelationships
-        .toArray(new String[toRelationships.size()])));
+    toNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES, toRelationships
+        .toArray(new String[toRelationships.size()]));
   }
 
   /**
@@ -406,14 +410,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
    * @param node
    * @param properties
    */
-  protected void addArbitraryProperties(Content node, Map<String, String[]> properties) {
-    for (Entry<String, String[]> param : properties.entrySet()) {
-      String[] values = param.getValue();
-      if (values.length == 1) {
-        node.setProperty(param.getKey(), StorageClientUtils.toStore(values[0]));
-      } else {
-        node.setProperty(param.getKey(), StorageClientUtils.toStore(values));
-      }
+  protected void addArbitraryProperties(Content node, Map<String, Object> properties) {
+    for (Entry<String, Object> param : properties.entrySet()) {
+        node.setProperty(param.getKey(), param.getValue());
     }
   }
 
