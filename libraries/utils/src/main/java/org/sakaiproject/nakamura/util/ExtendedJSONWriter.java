@@ -169,12 +169,14 @@ public class ExtendedJSONWriter extends JSONWriter {
       String propName = prop.getKey();
       Object propValue = prop.getValue();
 
-      write.key(propName);
       Object value = firstElement(propValue);
-      if (isUserPath(propName, value)) {
-        write.value(PathUtils.translateAuthorizablePath(value));
-      } else {
-        write.value(propValue);
+      if ( value != null ) {
+        write.key(propName);
+        if (isUserPath(propName, value)) {
+          write.value(PathUtils.translateAuthorizablePath(value));
+        } else {
+          write.value(propValue);
+        }
       }
     }
   }
