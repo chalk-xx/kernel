@@ -20,12 +20,10 @@ package org.sakaiproject.nakamura.user.resource;
 import junit.framework.Assert;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.core.security.UserPrincipal;
 import org.apache.sling.api.SlingException;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -33,7 +31,6 @@ import org.easymock.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
-import java.security.Principal;
 import java.util.Iterator;
 
 import javax.jcr.AccessDeniedException;

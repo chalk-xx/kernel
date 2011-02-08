@@ -42,7 +42,6 @@ import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -118,7 +117,7 @@ public class LiteAbstractSakaiGroupPostServletTest {
 
     servlet.updateOwnership(request, group, new String[] { "joe" }, null, toSave);
 
-    Set<String> values = ImmutableSet.of(StorageClientUtils.toStringArray(group.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
+    Set<String> values = ImmutableSet.of((String[])group.getProperty(UserConstants.PROP_GROUP_MANAGERS));
     assertTrue(values.contains("jeff"));
     assertTrue(values.contains("jack"));
     assertTrue(values.contains("john"));
@@ -140,7 +139,7 @@ public class LiteAbstractSakaiGroupPostServletTest {
     Map<String, Object> toSave = Maps.newLinkedHashMap();
     servlet.updateOwnership(request, group, new String[0], null,toSave);
 
-    Set<String> values = ImmutableSet.of(StorageClientUtils.toStringArray(group.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
+    Set<String> values = ImmutableSet.of((String[])group.getProperty(UserConstants.PROP_GROUP_MANAGERS));
     assertTrue(values.contains("jack"));
     assertEquals(1, values.size());
   }
@@ -148,7 +147,7 @@ public class LiteAbstractSakaiGroupPostServletTest {
   @Test
   public void testNonJoinableGroup() throws Exception {
     Session adminSession = repository.loginAdministrative();
-    adminSession.getAuthorizableManager().createGroup("g-fooNoJoin", "FooNoJoin", ImmutableMap.of(UserConstants.PROP_JOINABLE_GROUP,StorageClientUtils.toStore("no")));
+    adminSession.getAuthorizableManager().createGroup("g-fooNoJoin", "FooNoJoin", ImmutableMap.of(UserConstants.PROP_JOINABLE_GROUP,(Object)"no"));
     adminSession.logout();
     
     Group group = (Group) session.getAuthorizableManager().findAuthorizable("g-fooNoJoin");

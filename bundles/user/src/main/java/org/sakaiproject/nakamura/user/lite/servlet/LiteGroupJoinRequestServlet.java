@@ -122,7 +122,7 @@ public class LiteGroupJoinRequestServlet extends SlingAllMethodsServlet {
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
     Group targetGroup = (Group) authorizableManager.findAuthorizable(groupId);
     Joinable joinable = Joinable.no;
-    String joinability = StorageClientUtils.toString(profileContent.getProperty("sakai:group-joinable"));
+    String joinability = (String) profileContent.getProperty("sakai:group-joinable");
     if (joinability != null) {
       joinable = Joinable.valueOf(joinability);
     }
@@ -141,13 +141,13 @@ public class LiteGroupJoinRequestServlet extends SlingAllMethodsServlet {
         if (contentManager.exists(group.getPath() + "/joinrequests/"+userId)) {
           // just update the date
           Content joinRequestUpdate = contentManager.get(group.getPath() + "/joinrequests/"+userId);
-          joinRequestUpdate.setProperty("requested", StorageClientUtils.toStore(Calendar.getInstance()));
+          joinRequestUpdate.setProperty("requested", Calendar.getInstance());
           contentManager.update(joinRequestUpdate);
         } else {
           contentManager.update(new Content(group.getPath() + "/joinrequests/"+userId, ImmutableMap.of(
-              "requested", StorageClientUtils.toStore(Calendar.getInstance()),
-              "profile", StorageClientUtils.toStore(LitePersonalUtils.getProfilePath(userId)),
-              "sling:resourceType", StorageClientUtils.toStore("sakai/joinrequest")
+              "requested", (Object)Calendar.getInstance(),
+              "profile", LitePersonalUtils.getProfilePath(userId),
+              "sling:resourceType", "sakai/joinrequest"
           )));
         }
         break;

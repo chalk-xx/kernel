@@ -17,11 +17,9 @@
  */
 package org.sakaiproject.nakamura.lite.jackrabbit;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
@@ -194,14 +192,12 @@ public class SparseAuthorizable implements Authorizable {
   }
 
   public void setProperty(String name, Value[] value) throws RepositoryException {
-    StringBuilder sb = new StringBuilder();
     List<String> values = new ArrayList<String>();
     for (Value v : value) {
       String sv = v.getString();
       values.add(sv);
-      sb.append(StorageClientUtils.arrayEscape(sv)).append(",");
     }
-    sparseAuthorizable.setProperty(name, sb.toString());
+    sparseAuthorizable.setProperty(name, values.toArray(new String[values.size()]));
     save();
     try {
       // FIXME: ACL via properties was always wrong.
@@ -219,16 +215,18 @@ public class SparseAuthorizable implements Authorizable {
   }
 
   public Value[] getProperty(String name) throws RepositoryException {
-    // BL120 KERN-1523 fixed ClassCastException
-    if (sparseAuthorizable.hasProperty(name)) {
-      String s = (String) sparseAuthorizable.getProperty(name);
-      if (s != null) {
-        String[] parts = StringUtils.split(s, ',');
+    Object s = sparseAuthorizable.getProperty(name);
+    if (s != null) {
+      if ( s instanceof Object[] ) {
+        Object[] parts = (Object[]) s;
         Value[] v = new Value[parts.length];
         for (int i = 0; i < parts.length; i++) {
-          v[i] = valueFactory.createValue(StorageClientUtils.arrayUnEscape(parts[i]));
+          v[i] = valueFactory.createValue(String.valueOf(parts[i]));
         }
-        return v;
+        return v;        
+      } else {
+        Value[] v = new Value[1];
+        v[0] = valueFactory.createValue(String.valueOf(s));
       }
     }
     return null;

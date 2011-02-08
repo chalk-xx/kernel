@@ -279,24 +279,35 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
       jsonWriter.key("user").object();
       jsonWriter.key("lastUpdate").value(clusterUser.getLastModified());
       jsonWriter.key("homeServer").value(clusterUser.getServerId());
-      jsonWriter.key("id").value(user.getID());
+      String userId = user.getID();
+      jsonWriter.key("id").value(userId);
       jsonWriter.key("principal").value(user.getPrincipal().getName());
       jsonWriter.key("properties").object();
+      boolean noName = true;
       for (Iterator<?> pi = user.getPropertyNames(); pi.hasNext();) {
         String propertyName = (String) pi.next();
         if (!blacklist.contains(propertyName)) {
-          jsonWriter.key(propertyName);
           Value[] propertyValues = user.getProperty(propertyName);
-          if (propertyValues.length == 1) {
-            jsonWriter.value(propertyValues[0].getString());
-          } else {
-            jsonWriter.array();
-            for (Value v : propertyValues) {
-              jsonWriter.value(v.getString());
+          if ( propertyValues != null ) {
+            jsonWriter.key(propertyName);
+            if ( "name".equals(propertyName) ) {
+              noName = false;
             }
-            jsonWriter.endArray();
+            if (propertyValues.length == 1) {
+              jsonWriter.value(propertyValues[0].getString());
+            } else {
+              jsonWriter.array();
+              for (Value v : propertyValues) {
+                jsonWriter.value(v.getString());
+              }
+              jsonWriter.endArray();
+            }
           }
         }
+      }
+      if ( noName ) {
+        jsonWriter.key("name");
+        jsonWriter.value(userId);
       }
       jsonWriter.endObject(); // properties
 
