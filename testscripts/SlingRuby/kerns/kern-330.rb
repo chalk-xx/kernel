@@ -174,7 +174,7 @@ class TC_Kern330Test < Test::Unit::TestCase
     res = @s.execute_get(@s.url_for("#{homefolder}/private/foo/bar/b.json"))
     result = JSON.parse(res.body);
     assert_equal("beta", result["title"], "Expected string value 'beta'")
-    tags = result["sakai:tags"].split(',')
+    tags = result["sakai:tags"]
     assert_equal(2, tags.length, "Expected multivalued property in " + res.body)
 
   end

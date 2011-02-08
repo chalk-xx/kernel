@@ -17,6 +17,10 @@
 package org.sakaiproject.nakamura.user.servlet;
 
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -81,9 +85,7 @@ import javax.servlet.http.HttpServletResponse;
 @ServiceDocumentation(name="User Exists Servlet",
     description="Tests for existence of user. This servlet responds at /system/userManager/user.exists.html",
     shortDescription="Tests for existence of user",
-    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/userManager/user.exists.html",
-        selectors=@ServiceSelector(name="exists", description="Tests for existence of user."),
-        extensions=@ServiceExtension(name="html", description="GETs produce HTML with request status.")),
+    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/userManager/user.exists.html"),
     methods=@ServiceMethod(name="GET",
         description={"Checks for existence of user with id supplied in the userid parameter."},
         parameters={
@@ -92,14 +94,7 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceResponse(code=204,description="Success, user exists."),
         @ServiceResponse(code=404,description="Bad request: the required userid parameter was missing.")
         }))
-// @Component(immediate=true, metatype=true, label="Sakai Nakamura :: User Existence Check Servlet",
-//     description="Returns 204 if userid exists, 404 if not")
-// @Service(value=javax.servlet.Servlet.class)
-// @Properties(value = {
-//     @Property(name="sling.servlet.resourceTypes", value="sling/users"),
-//     @Property(name="sling.servlet.methods", value="GET"),
-//     @Property(name="sling.servlet.selectors", value="exists")
-// })
+@SlingServlet(paths = { "/system/userManager/user.exists.html" }, generateComponent = true, generateService = true, methods = { "GET" })
 public class UserExistsServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = 7051557537133012560L;
 

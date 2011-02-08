@@ -46,7 +46,7 @@ class TC_Kern563Test < Test::Unit::TestCase
     @s.switch_user(user)
     params = {"locale" => "nl_BE"}
     
-    @s.execute_post(@s.url_for("system/lite/userManager/user/#{userid}.update.html"), params)
+    @s.execute_post(@s.url_for("system/userManager/user/#{userid}.update.html"), params)
     
     resp = @s.execute_get(@s.url_for("/system/me"))
     assert_equal(200, resp.code.to_i)
