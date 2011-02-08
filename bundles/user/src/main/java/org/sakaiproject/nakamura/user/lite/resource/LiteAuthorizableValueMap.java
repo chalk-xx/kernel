@@ -19,11 +19,8 @@ package org.sakaiproject.nakamura.user.lite.resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Array;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -37,7 +34,6 @@ import java.util.Set;
  * ValueMap implementation for Authorizable Resources
  */
 public class LiteAuthorizableValueMap implements ValueMap {
-    private Logger logger = LoggerFactory.getLogger(LiteAuthorizableValueMap.class);
 
 
     private Authorizable authorizable;
@@ -162,7 +158,7 @@ public class LiteAuthorizableValueMap implements ValueMap {
                 boolean array = type.isArray();
 
                     if (array) {
-                      String[] values = StorageClientUtils.toStringArray(value);
+                      String[] values = (String[]) value;
                       
                         result = (T) convertToArray(values,
                             type.getComponentType());
@@ -195,7 +191,7 @@ public class LiteAuthorizableValueMap implements ValueMap {
     private <T> T convertToType(int index, Object value, Class<T> type) {
 
         if (String.class == type) {
-            return (T) StorageClientUtils.toString(value);
+            return (T) value;
         } else if (Byte.class == type) {
           return (T) Byte.valueOf((byte)StorageClientUtils.toLong(value));
         } else if (Short.class == type) {
@@ -205,19 +201,15 @@ public class LiteAuthorizableValueMap implements ValueMap {
         } else if (Long.class == type) {
           return (T) Long.valueOf(StorageClientUtils.toLong(value));
         } else if (Float.class == type) {
-            return (T) new Float(StorageClientUtils.toString(value));
+            return (T) new Float((Double)value);
         } else if (Double.class == type) {
-            return (T) new Double(StorageClientUtils.toString(value));
+            return (T) value;
         } else if (Boolean.class == type) {
-            return (T) Boolean.valueOf(StorageClientUtils.toString(value));
+            return (T) value;
         } else if (Date.class == type) {
-            return (T) new Date(StorageClientUtils.toLong(value));
+            return (T) value;
         } else if (Calendar.class == type) {
-          try {
-            return (T) StorageClientUtils.toCalendar(value);
-          } catch (ParseException e) {
-            logger.warn("Failed to parse calendar value {}", value);
-          }
+            return (T) value;
         }
 
         // fallback in case of unsupported type
