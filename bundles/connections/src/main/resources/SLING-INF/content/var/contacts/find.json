@@ -4,7 +4,7 @@
   "q": "*",
   "sortOn": "score",
   "sortOrder": "desc",
-  "sling:resourceType": "sakai/search",
+  "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "Connection",
   "sakai:resultprocessor": "ConnectionFinder",
   "sakai:title": "Contacts - Search.",
