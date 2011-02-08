@@ -287,7 +287,8 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
     // group and may not apply.
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
-    String[] managersGroup = (String[]) group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
+    String[] managersGroup = (String[]) StorageClientUtils.toStringArray(group
+        .getProperty(UserConstants.PROP_MANAGERS_GROUP));
     if (managersGroup != null && managersGroup.length == 1) {
       String mgrGroupName = managersGroup[0];
 
