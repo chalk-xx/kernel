@@ -39,10 +39,12 @@ class TC_Kern1045 < Test::Unit::TestCase
 
  
     # Search the files that I manage .. should be 1
+    sleep(20)
     res = @s.execute_get(@s.url_for("/var/search/pool/me/manager.tidy.infinity.json?q=*"))
     assert_equal("200",res.code,res.body)
     json = JSON.parse(res.body)
-    assert_equal("binary-length:#{fileBody.length}",json["results"][0]["jcr:content"]["jcr:data"])
+    assert_equal(1, json["results"].length)
+    assert_equal(fileBody.length ,json["results"][0]["content"]["length"])
 
   end
 
