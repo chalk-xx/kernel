@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -38,6 +39,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.TopicIndexer;
@@ -47,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -77,6 +80,9 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
 
   @Reference
   private TopicIndexer topicIndexer;
+  
+  @Reference
+  private LiteProfileService profileService;
 
   // ---------- SCR integration ------------------------------------------------
   @Activate
@@ -120,7 +126,9 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
         if (authorizable != null) {
           SolrInputDocument doc = new SolrInputDocument();
 
-          Map<String, Object> properties = authorizable.getSafeProperties();
+          Map<String, Object> properties = new HashMap<String, Object>();
+          properties.putAll(authorizable.getSafeProperties());
+          ValueMap compactProfile = profileService.getCompactProfileMap(authorizable);
 
           if (authorizable.isGroup()) {
             // add group properties
@@ -132,6 +140,9 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
               }
             }
           } else {
+            addPropertyIfExists(properties, compactProfile, "firstName");
+            addPropertyIfExists(properties, compactProfile, "lastName");
+            addPropertyIfExists(properties, compactProfile, "email");
             // add user properties
             Set<String> fields = USER_WHITELISTED_PROPS;
 
@@ -166,6 +177,16 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     }
     logger.debug("Got documents {} ", documents);
     return documents;
+  }
+
+  private void addPropertyIfExists(Map<String, Object> properties,
+      ValueMap compactProfile, String property) {
+    try {
+      properties.put(property, ((ValueMap) ((ValueMap) ((ValueMap)compactProfile.get("basic")).get("elements")).get(property)).get("value"));
+    } catch (NullPointerException npe) {
+      return;
+    }
+    
   }
 
   /**
