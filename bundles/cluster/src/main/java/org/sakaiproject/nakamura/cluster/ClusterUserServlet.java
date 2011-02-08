@@ -279,15 +279,20 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
       jsonWriter.key("user").object();
       jsonWriter.key("lastUpdate").value(clusterUser.getLastModified());
       jsonWriter.key("homeServer").value(clusterUser.getServerId());
-      jsonWriter.key("id").value(user.getID());
+      String userId = user.getID();
+      jsonWriter.key("id").value(userId);
       jsonWriter.key("principal").value(user.getPrincipal().getName());
       jsonWriter.key("properties").object();
+      boolean noName = true;
       for (Iterator<?> pi = user.getPropertyNames(); pi.hasNext();) {
         String propertyName = (String) pi.next();
         if (!blacklist.contains(propertyName)) {
           Value[] propertyValues = user.getProperty(propertyName);
           if ( propertyValues != null ) {
             jsonWriter.key(propertyName);
+            if ( "name".equals(propertyName) ) {
+              noName = false;
+            }
             if (propertyValues.length == 1) {
               jsonWriter.value(propertyValues[0].getString());
             } else {
@@ -299,6 +304,10 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
             }
           }
         }
+      }
+      if ( noName ) {
+        jsonWriter.key("name");
+        jsonWriter.value(userId);
       }
       jsonWriter.endObject(); // properties
 
