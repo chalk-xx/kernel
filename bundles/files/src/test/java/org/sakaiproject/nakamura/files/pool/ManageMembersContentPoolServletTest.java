@@ -145,7 +145,9 @@ public class ManageMembersContentPoolServletTest {
     // TODO With this, we are testing the internals of the ProfileServiceImpl
     // class as well as the internals of the MeServlet class. Mocking it would
     // reduce the cost of test maintenance.
-    servlet.profileService = new LiteProfileServiceImpl();
+    TLiteProfileServiceImpl liteProfileService =  new TLiteProfileServiceImpl();
+    liteProfileService.setSparseRepository(sparseRepository);
+    servlet.profileService = liteProfileService;
     when(resource.getResourceResolver()).thenReturn(resourceResolver);
     when(resourceResolver.adaptTo(Session.class)).thenReturn(session);
 
