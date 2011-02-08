@@ -20,12 +20,10 @@ package org.sakaiproject.nakamura.connections.search;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import com.google.common.collect.ImmutableSet;
+import static org.mockito.Mockito.withSettings;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestPathInfo;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONObject;
@@ -35,18 +33,18 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.connections.search.ConnectionFinderSearchResultProcessor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
-import java.util.Collection;
 import java.util.HashMap;
 
 /**
@@ -61,19 +59,29 @@ public class ConnectionFinderSearchResultProcessorTest {
   @Mock
   SolrSearchServiceFactory searchServiceFactory;
 
+  @Mock
+  Session session;
+
+  @Mock
+  ContentManager cm;
+
   @Test
   public void test() throws Exception {
     ConnectionFinderSearchResultProcessor processor = new ConnectionFinderSearchResultProcessor();
     processor.searchServiceFactory = searchServiceFactory;
     processor.profileService = profileService;
 
+    Object hybridSession = mock(javax.jcr.Session.class, withSettings()
+        .extraInterfaces(SessionAdaptable.class));
+
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     ResourceResolver resolver = mock(ResourceResolver.class);
     AuthorizableManager am = mock(AuthorizableManager.class);
-    Session session = mock(Session.class);
     when(request.getResourceResolver()).thenReturn(resolver);
-    when(resolver.adaptTo(Session.class)).thenReturn(session);
+    when(resolver.adaptTo(javax.jcr.Session.class)).thenReturn((javax.jcr.Session) hybridSession);
+    when(((SessionAdaptable) hybridSession).getSession()).thenReturn(session);
     when(session.getAuthorizableManager()).thenReturn(am);
+    when(session.getContentManager()).thenReturn(cm);
 
     when(request.getRemoteUser()).thenReturn("alice");
     Authorizable auAlice = mock(Authorizable.class);
@@ -95,15 +103,11 @@ public class ConnectionFinderSearchResultProcessorTest {
 
     Result result = mock(Result.class);
     when(result.getPath()).thenReturn("a:alice/contacts/bob");
-    HashMap<String, Collection<Object>> props = new HashMap<String, Collection<Object>>();
-    props.put(User.NAME_FIELD, ImmutableSet.of((Object) "bob"));
-    when(result.getProperties()).thenReturn(props);
+    when(result.getFirstValue(User.NAME_FIELD)).thenReturn("bob");
 
     Content contactNode = new Content("a:alice/contacts/bob", null);
     contactNode.setProperty("sling:resourceType", "sakai/contact");
-    Resource contactRes = mock(Resource.class);
-    when(resolver.getResource("a:alice/contacts/bob")).thenReturn(contactRes);
-    when(contactRes.adaptTo(Content.class)).thenReturn(contactNode);
+    when(cm.get("a:alice/contacts/bob")).thenReturn(contactNode);
 
     RequestPathInfo pathInfo = mock(RequestPathInfo.class);
     when(request.getRequestPathInfo()).thenReturn(pathInfo);
@@ -118,5 +122,4 @@ public class ConnectionFinderSearchResultProcessorTest {
     assertEquals("sakai/contact", o.getJSONObject("details").getString(
         "sling:resourceType"));
   }
-
 }

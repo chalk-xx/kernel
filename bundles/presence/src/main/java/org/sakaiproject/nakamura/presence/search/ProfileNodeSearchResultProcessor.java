@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -105,8 +104,7 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.Row)
    */
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result) throws JSONException {
-    ResourceResolver resolver = request.getResourceResolver();
-    Session session = StorageClientUtils.adaptToSession(resolver
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
         .adaptTo(javax.jcr.Session.class));
 
     try {

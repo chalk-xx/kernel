@@ -105,13 +105,14 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
     String path = content.getPath();
     write.value(path.substring(path.lastIndexOf('/') + 1));
 
-    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
+        .adaptTo(javax.jcr.Session.class));
 
     // Write out all the recipients their information on this message.
     // We always return this as an array, even if it is only 1 recipient.
     LiteMessageProfileWriter defaultProfileWriter = writers.get("internal");
     if (content.hasProperty(PROP_SAKAI_TO)) {
-      String toVal = StorageClientUtils.toString(content.getProperty(PROP_SAKAI_TO));
+      String toVal = (String) content.getProperty(PROP_SAKAI_TO);
       String[] rcpts = StringUtils.split(toVal, ',');
       write.key("userTo");
       write.array();
@@ -137,7 +138,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
     // We add in the option to support multiple cases.
     // For now we expect it to always be the user who sends the message.
     if (content.hasProperty(PROP_SAKAI_FROM)) {
-      String fromVal = StorageClientUtils.toString(content.getProperty(PROP_SAKAI_FROM));
+      String fromVal = (String) content.getProperty(PROP_SAKAI_FROM);
       String[] senders = StringUtils.split(fromVal, ',');
       write.key("userFrom");
       write.array();

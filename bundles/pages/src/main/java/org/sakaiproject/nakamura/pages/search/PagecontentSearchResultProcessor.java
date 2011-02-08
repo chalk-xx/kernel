@@ -8,11 +8,14 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.Result;
@@ -21,6 +24,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 /**
  * Formats user profile node search results
@@ -57,20 +61,27 @@ public class PagecontentSearchResultProcessor implements SolrSearchResultProcess
 
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
       throws JSONException {
-    ResourceResolver resolver = request.getResourceResolver();
-    String parentPath = getParentPath(result.getPath());
-    Content parentContent = resolver.getResource(parentPath).adaptTo(Content.class);
-    if (parentContent.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
-      String type = StorageClientUtils.toString(parentContent
-          .getProperty(SLING_RESOURCE_TYPE_PROPERTY));
-      if (type.equals("sakai/page")) {
-        searchResultProcessor.writeResult(request, write, result);
-        return;
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
+        .adaptTo(javax.jcr.Session.class));
+    try {
+      ContentManager cm = session.getContentManager();
+      String parentPath = PathUtils.getParentReference(result.getPath());
+      Content parentContent = cm.get(parentPath);
+      if (parentContent.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
+        String type = (String) parentContent.getProperty(SLING_RESOURCE_TYPE_PROPERTY);
+        if (type.equals("sakai/page")) {
+          searchResultProcessor.writeResult(request, write, result);
+          return;
+        }
       }
+      Content content = cm.get(result.getPath());
+      int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
+      ExtendedJSONWriter.writeContentTreeToWriter(write, content, maxTraversalDepth);
+    } catch (StorageClientException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      throw new RuntimeException(e.getMessage(), e);
     }
-    Content content = resolver.getResource(result.getPath()).adaptTo(Content.class);
-    int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
-    ExtendedJSONWriter.writeContentTreeToWriter(write, content, maxTraversalDepth);
   }
 
   /**
@@ -82,22 +93,5 @@ public class PagecontentSearchResultProcessor implements SolrSearchResultProcess
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
       String query) throws SolrSearchException {
     return searchServiceFactory.getSearchResultSet(request, query);
-  }
-
-  public String getParentPath(String path) {
-    if ("/".equals(path)) {
-      return "/";
-    }
-    int i = path.lastIndexOf('/');
-    if (i == path.length() - 1) {
-      i = path.substring(0, i).lastIndexOf('/');
-    }
-    String res = path;
-    if (i > 0) {
-      res = path.substring(0, i);
-    } else if (i == 0) {
-      return "/";
-    }
-    return res;
   }
 }

@@ -23,12 +23,12 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.discussion.Post;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
@@ -71,10 +71,11 @@ public class CommentSearchResultProcessor implements SolrSearchResultProcessor {
    */
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
       throws JSONException {
-    ResourceResolver resolver = request.getResourceResolver();
-    Content content = resolver.getResource(result.getPath()).adaptTo(Content.class);
-    Post p = new Post(content, resolver.adaptTo(Session.class));
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
+        .adaptTo(javax.jcr.Session.class));
     try {
+      Content content = session.getContentManager().get(result.getPath());
+      Post p = new Post(content, session);
       p.outputPostAsJSON((ExtendedJSONWriter) write, presenceService, profileService);
     } catch (StorageClientException e) {
       throw new RuntimeException(e.getMessage(), e);

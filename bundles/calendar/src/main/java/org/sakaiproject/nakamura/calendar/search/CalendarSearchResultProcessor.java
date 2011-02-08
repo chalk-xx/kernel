@@ -23,11 +23,11 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
@@ -76,8 +76,8 @@ public class CalendarSearchResultProcessor implements SolrSearchResultProcessor 
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
       throws JSONException {
     String name = (String) result.getFirstValue(Authorizable.NAME_FIELD);
-    ResourceResolver resolver = request.getResourceResolver();
-    Session session = resolver.adaptTo(Session.class);
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
+        .adaptTo(javax.jcr.Session.class));
 
     try {
       AuthorizableManager authMgr = session.getAuthorizableManager();
