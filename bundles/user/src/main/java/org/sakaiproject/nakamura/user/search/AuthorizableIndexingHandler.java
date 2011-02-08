@@ -67,7 +67,8 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       "firstName", "lastName", "email", "type");
 
   private static final Map<String, String> GROUP_WHITELISTED_PROPS = ImmutableMap.of(
-      "group-id", "name", "group-title", "title", "group-description", "description");
+      "name", "name", "type", "type", "sakai:group-title", "title",
+      "sakai:group-description", "description");
 
   // list of authorizables to not index
   private static final Set<String> BLACKLISTED_AUTHZ = ImmutableSet.of("admin",
@@ -106,8 +107,9 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     // get the name of the authorizable (user,group)
     String name = (String) event.getProperty(FIELD_PATH);
 
-    // stop processing if the user isn't to be indexed
-    if (BLACKLISTED_AUTHZ.contains(name)) {
+    // stop processing if the authorizable isn't to be indexed
+    // *-managers are groups used for linking and shouldn't be searchable
+    if (BLACKLISTED_AUTHZ.contains(name) || name.endsWith("-managers")) {
       return Collections.emptyList();
     }
 
@@ -124,20 +126,25 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
 
           if (authorizable.isGroup()) {
             // add group properties
-            Map<String, String> fields = GROUP_WHITELISTED_PROPS;
+            Map<String, String> allowedFields = GROUP_WHITELISTED_PROPS;
 
             for (Entry<String, Object> p : properties.entrySet()) {
-              if (fields.containsKey(p.getKey())) {
-                doc.addField(fields.get(p.getKey()), p.getValue());
+              String key = p.getKey();
+              if (allowedFields.containsKey(key)) {
+                String mappedKey = allowedFields.get(key);
+                Object value = p.getValue();
+                doc.addField(mappedKey, value);
               }
             }
           } else {
             // add user properties
-            Set<String> fields = USER_WHITELISTED_PROPS;
+            Set<String> allowedFields = USER_WHITELISTED_PROPS;
 
             for (Entry<String, Object> p : properties.entrySet()) {
-              if (fields.contains(p.getKey())) {
-                doc.addField(p.getKey(), p.getValue());
+              String key = p.getKey();
+              if (allowedFields.contains(key)) {
+                Object value = p.getValue();
+                doc.addField(key, value);
               }
             }
           }
