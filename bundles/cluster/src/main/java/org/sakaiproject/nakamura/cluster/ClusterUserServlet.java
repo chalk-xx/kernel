@@ -285,16 +285,18 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
       for (Iterator<?> pi = user.getPropertyNames(); pi.hasNext();) {
         String propertyName = (String) pi.next();
         if (!blacklist.contains(propertyName)) {
-          jsonWriter.key(propertyName);
           Value[] propertyValues = user.getProperty(propertyName);
-          if (propertyValues.length == 1) {
-            jsonWriter.value(propertyValues[0].getString());
-          } else {
-            jsonWriter.array();
-            for (Value v : propertyValues) {
-              jsonWriter.value(v.getString());
+          if ( propertyValues != null ) {
+            jsonWriter.key(propertyName);
+            if (propertyValues.length == 1) {
+              jsonWriter.value(propertyValues[0].getString());
+            } else {
+              jsonWriter.array();
+              for (Value v : propertyValues) {
+                jsonWriter.value(v.getString());
+              }
+              jsonWriter.endArray();
             }
-            jsonWriter.endArray();
           }
         }
       }
