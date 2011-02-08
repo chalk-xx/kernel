@@ -27,7 +27,6 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.sling.api.resource.ValueMap;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -49,7 +48,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -70,8 +68,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       "firstName", "lastName", "email", "type");
 
   private static final Map<String, String> GROUP_WHITELISTED_PROPS = ImmutableMap.of(
-      "name", "name", "type", "type", "sakai:group-title", "title",
-      "sakai:group-description", "description");
+      "group-id", "name", "group-title", "title", "group-description", "description");
 
   // list of authorizables to not index
   private static final Set<String> BLACKLISTED_AUTHZ = ImmutableSet.of("admin",
@@ -82,9 +79,6 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
   @Reference
   private TopicIndexer topicIndexer;
   
-  @Reference
-  private LiteProfileService profileService;
-
   // ---------- SCR integration ------------------------------------------------
   @Activate
   protected void activate(Map<?, ?> props) {
@@ -113,9 +107,8 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     // get the name of the authorizable (user,group)
     String name = (String) event.getProperty(FIELD_PATH);
 
-    // stop processing if the authorizable isn't to be indexed
-    // *-managers are groups used for linking and shouldn't be searchable
-    if (BLACKLISTED_AUTHZ.contains(name) || name.endsWith("-managers")) {
+    // stop processing if the user isn't to be indexed
+    if (BLACKLISTED_AUTHZ.contains(name)) {
       return Collections.emptyList();
     }
 
@@ -128,34 +121,24 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
         if (authorizable != null) {
           SolrInputDocument doc = new SolrInputDocument();
 
-          Map<String, Object> properties = new HashMap<String, Object>();
-          properties.putAll(authorizable.getSafeProperties());
-          ValueMap compactProfile = profileService.getCompactProfileMap(authorizable);
+          Map<String, Object> properties = authorizable.getSafeProperties();
 
           if (authorizable.isGroup()) {
             // add group properties
-            Map<String, String> allowedFields = GROUP_WHITELISTED_PROPS;
+            Map<String, String> fields = GROUP_WHITELISTED_PROPS;
 
             for (Entry<String, Object> p : properties.entrySet()) {
-              String key = p.getKey();
-              if (allowedFields.containsKey(key)) {
-                String mappedKey = allowedFields.get(key);
-                Object value = p.getValue();
-                doc.addField(mappedKey, value);
+              if (fields.containsKey(p.getKey())) {
+                doc.addField(fields.get(p.getKey()), p.getValue());
               }
             }
           } else {
-            addPropertyIfExists(properties, compactProfile, "firstName");
-            addPropertyIfExists(properties, compactProfile, "lastName");
-            addPropertyIfExists(properties, compactProfile, "email");
             // add user properties
-            Set<String> allowedFields = USER_WHITELISTED_PROPS;
+            Set<String> fields = USER_WHITELISTED_PROPS;
 
             for (Entry<String, Object> p : properties.entrySet()) {
-              String key = p.getKey();
-              if (allowedFields.contains(key)) {
-                Object value = p.getValue();
-                doc.addField(key, value);
+              if (fields.contains(p.getKey())) {
+                doc.addField(p.getKey(), p.getValue());
               }
             }
           }
@@ -184,16 +167,6 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     }
     logger.debug("Got documents {} ", documents);
     return documents;
-  }
-
-  private void addPropertyIfExists(Map<String, Object> properties,
-      ValueMap compactProfile, String property) {
-    try {
-      properties.put(property, ((ValueMap) ((ValueMap) ((ValueMap)compactProfile.get("basic")).get("elements")).get(property)).get("value"));
-    } catch (NullPointerException npe) {
-      return;
-    }
-    
   }
 
   /**

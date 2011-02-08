@@ -46,7 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,9 +74,6 @@ public class ConnectionIndexingHandler implements IndexingHandler {
   @Reference(target = "(type=sparse)")
   private ResourceIndexingService resourceIndexingService;
   
-  @Reference
-  private LiteProfileService profileService;
-
   @Activate
   protected void activate(Map<?, ?> props) {
     resourceIndexingService.addHandler(ConnectionConstants.SAKAI_CONTACT_RT, this);
@@ -120,12 +116,7 @@ public class ConnectionIndexingHandler implements IndexingHandler {
           String contactName = path.substring(lastSlash + 1);
           AuthorizableManager am = session.getAuthorizableManager();
           Authorizable contactAuth = am.findAuthorizable(contactName);
-          Map<String, Object> contactProps = new HashMap<String, Object>();
-          ValueMap compactProfile = profileService.getCompactProfileMap(contactAuth);
-          contactProps.putAll(contactAuth.getSafeProperties());
-          addPropertyIfExists(contactProps, compactProfile, "firstName");
-          addPropertyIfExists(contactProps, compactProfile, "lastName");
-          addPropertyIfExists(contactProps, compactProfile, "email");
+          Map<String, Object> contactProps = contactAuth.getSafeProperties();
           if ( contactAuth != null ) {
             for (String prop : FLATTENED_PROPS) {
               Object value = contactProps.get(prop);
@@ -146,16 +137,6 @@ public class ConnectionIndexingHandler implements IndexingHandler {
     }
     logger.debug("Got documents {} ", documents);
     return documents;
-  }
-  
-  private void addPropertyIfExists(Map<String, Object> properties,
-      ValueMap compactProfile, String property) {
-    try {
-      properties.put(property, ((ValueMap) ((ValueMap) ((ValueMap)compactProfile.get("basic")).get("elements")).get(property)).get("value"));
-    } catch (NullPointerException npe) {
-      return;
-    }
-    
   }
 
   /**
