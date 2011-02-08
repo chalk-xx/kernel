@@ -331,12 +331,15 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       Map<String, Object> acl = Maps.newHashMap();
       syncOwnership(authorizable, acl, aclModifications);
 
-      accessControlManager.setAcl(Security.ZONE_CONTENT, homePath,
-          aclModifications.toArray(new AclModification[aclModifications.size()]));
+      AclModification[] aclMods = aclModifications.toArray(new AclModification[aclModifications.size()]);
+      accessControlManager.setAcl(Security.ZONE_CONTENT, homePath, aclMods);
+      
+      accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(), aclMods);
 
     } else {
       // Sync the Acl on the home folder with whatever is present in the authorizable
       // permissions.
+      
       Map<String, Object> acl = accessControlManager.getAcl(Security.ZONE_CONTENT,
           homePath);
       List<AclModification> aclModifications = new ArrayList<AclModification>();
@@ -345,6 +348,16 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
       accessControlManager.setAcl(Security.ZONE_CONTENT, homePath,
           aclModifications.toArray(new AclModification[aclModifications.size()]));
+      
+      acl = accessControlManager.getAcl(Security.ZONE_AUTHORIZABLES,
+          authorizable.getId());
+      aclModifications = new ArrayList<AclModification>();
+
+      syncOwnership(authorizable, acl, aclModifications);
+
+      accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES,  authorizable.getId(),
+          aclModifications.toArray(new AclModification[aclModifications.size()]));
+
     }
     createPath(authId, LitePersonalUtils.getPublicPath(authId), SAKAI_PUBLIC_RT,
         false, contentManager, accessControlManager, null);
@@ -758,6 +771,12 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       aclModifications.add(new AclModification(AclModification.grantKey(Group.EVERYONE),
           Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE));
 
+    }
+    
+    LOGGER.info("Viewer Settings {}",viewerSettings );
+    LOGGER.info("Manager Settings {}",managerSettings );
+    for ( AclModification a : aclModifications ) {
+      LOGGER.info("     Change {} ",a);
     }
 
   }

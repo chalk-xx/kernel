@@ -32,7 +32,6 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
@@ -161,12 +160,17 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
                         break;
                 }
             }
-
+        } catch ( AccessDeniedException e ) {
+          log.info("Exception while handling POST "
+              + request.getResource().getPath() + " with "
+              + getClass().getName());
+          log.debug("Exception was "+e.getMessage(),e);
+          htmlResponse.setStatus(403, e.getMessage());
         } catch (ResourceNotFoundException rnfe) {
             htmlResponse.setStatus(HttpServletResponse.SC_NOT_FOUND,
                 rnfe.getMessage());
         } catch (Throwable throwable) {
-            log.debug("Exception while handling POST "
+            log.info("Exception while handling POST "
                 + request.getResource().getPath() + " with "
                 + getClass().getName(), throwable);
             htmlResponse.setError(throwable);
@@ -586,7 +590,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
                     Calendar c = dateParser.parse(values[0]);
                     if (c != null) {
                       
-                          parent.setProperty(prop.getName(), StorageClientUtils.toStore(c));
+                          parent.setProperty(prop.getName(), c);
                           toSave.put(parent.getId(),parent);
                          changes.add(Modification.onModified(parentPath
                                 + "/" + prop.getName()));
@@ -595,7 +599,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
                     // fall back to default behaviour
                 }
                 toSave.put(parent.getId(),parent);
-                parent.setProperty(prop.getName(), StorageClientUtils.toStore(values[0]));
+                parent.setProperty(prop.getName(), values[0]);
             }
         } else {
             removePropertyIfExists(parent, prop.getName());
@@ -603,7 +607,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
                 // try conversion
                 Calendar[] c = dateParser.parse(values);
                 if (c != null) {
-                    parent.setProperty(prop.getName(), StorageClientUtils.toStore(c));
+                    parent.setProperty(prop.getName(), c);
                     toSave.put(parent.getId(),parent);
                     changes.add(Modification.onModified(parentPath + "/"
                         + prop.getName()));
@@ -612,7 +616,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
                 // fall back to default behaviour
             }
 
-            parent.setProperty(prop.getName(), StorageClientUtils.toStore(values));
+            parent.setProperty(prop.getName(), values);
             toSave.put(parent.getId(),parent);
             changes.add(Modification.onModified(parentPath + "/"
                 + prop.getName()));
