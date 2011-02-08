@@ -219,14 +219,17 @@ public class SparseAuthorizable implements Authorizable {
   }
 
   public Value[] getProperty(String name) throws RepositoryException {
-    String s = (String) sparseAuthorizable.getProperty(name);
-    if (s != null) {
-      String[] parts = StringUtils.split(s, ',');
-      Value[] v = new Value[parts.length];
-      for (int i = 0; i < parts.length; i++) {
-        v[i] = valueFactory.createValue(StorageClientUtils.arrayUnEscape(parts[i]));
+    // BL120 KERN-1523 fixed ClassCastException
+    if (sparseAuthorizable.hasProperty(name)) {
+      String s = (String) sparseAuthorizable.getProperty(name);
+      if (s != null) {
+        String[] parts = StringUtils.split(s, ',');
+        Value[] v = new Value[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+          v[i] = valueFactory.createValue(StorageClientUtils.arrayUnEscape(parts[i]));
+        }
+        return v;
       }
-      return v;
     }
     return null;
   }
