@@ -33,6 +33,14 @@ class TC_Kern1376Test < Test::Unit::TestCase
 	contentpath = @s.url_for("/p/#{contentid}")
 
 	# Add three activity notes.
+    res = @s.execute_post("#{contentpath}.html", { "testing" => "testvalue" })
+    assert_equal("200", res.code, " #{manager.name} should have been granted write to #{contentpath} ")
+    @log.info(" #{manager.name} can write to the resource ")
+    res = @s.execute_get("#{contentpath}.json")
+    assert_equal("200", res.code, "Unable to get the metadata for the resource ")
+    m = JSON.parse(res.body)
+    assert_equal(m["testing"], "testvalue", "Looks like the property was not written Got #{res.body}")
+    
 	add_activity(contentpath, "status", "default", "First activity")
 	add_activity(contentpath, "status", "default", "Second activity")
 	add_activity(contentpath, "status", "default", "Third activity")

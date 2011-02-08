@@ -17,12 +17,6 @@
 package org.sakaiproject.nakamura.user.servlet;
 
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -98,23 +92,23 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceResponse(code=204,description="Success, user exists."),
         @ServiceResponse(code=404,description="Bad request: the required userid parameter was missing.")
         }))
-@Component(immediate=true, metatype=true, label="Sakai Nakamura :: User Existence Check Servlet",
-    description="Returns 204 if userid exists, 404 if not")
-@Service(value=javax.servlet.Servlet.class)
-@Properties(value = {
-    @Property(name="sling.servlet.resourceTypes", value="sling/users"),
-    @Property(name="sling.servlet.methods", value="GET"),
-    @Property(name="sling.servlet.selectors", value="exists")
-})
+// @Component(immediate=true, metatype=true, label="Sakai Nakamura :: User Existence Check Servlet",
+//     description="Returns 204 if userid exists, 404 if not")
+// @Service(value=javax.servlet.Servlet.class)
+// @Properties(value = {
+//     @Property(name="sling.servlet.resourceTypes", value="sling/users"),
+//     @Property(name="sling.servlet.methods", value="GET"),
+//     @Property(name="sling.servlet.selectors", value="exists")
+// })
 public class UserExistsServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = 7051557537133012560L;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(UserExistsServlet.class);
 
-  @Property(label="Delay (MS)",
-      description="Number of milliseconds to delay before responding; 0 to return as quickly as possible",
-      longValue=UserExistsServlet.USER_EXISTS_DELAY_MS_DEFAULT)
+//@Property(label="Delay (MS)",
+//      description="Number of milliseconds to delay before responding; 0 to return as quickly as possible",
+//      longValue=UserExistsServlet.USER_EXISTS_DELAY_MS_DEFAULT)
   public static final String USER_EXISTS_DELAY_MS_PROPERTY = "user.exists.delay.ms";
   public static final long USER_EXISTS_DELAY_MS_DEFAULT = 200;
   protected long delayMs;
@@ -164,7 +158,7 @@ public class UserExistsServlet extends SlingSafeMethodsServlet {
     }
   }
 
-  @Activate @Modified
+//  @Activate @Modified
   protected void modified(Map<?, ?> props) {
     delayMs = OsgiUtil.toLong(props.get(USER_EXISTS_DELAY_MS_PROPERTY),
         USER_EXISTS_DELAY_MS_DEFAULT);

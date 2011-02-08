@@ -33,7 +33,6 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestPathInfo;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
