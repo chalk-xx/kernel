@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
@@ -117,6 +118,6 @@ public class ActivityIndexingHandler implements IndexingHandler {
       Event event) {
     logger.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty(FIELD_PATH);
-    return ImmutableList.of("id:" + path);
+    return ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
   }
 }

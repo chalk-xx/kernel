@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -38,7 +39,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.TopicIndexer;
@@ -78,7 +78,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
 
   @Reference
   private TopicIndexer topicIndexer;
-  
+
   // ---------- SCR integration ------------------------------------------------
   @Activate
   protected void activate(Map<?, ?> props) {
@@ -182,7 +182,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     if (topic.endsWith(StoreListener.DELETE_TOPIC) || topic.endsWith(StoreListener.UPDATED_TOPIC)) {
       logger.debug("GetDelete for {} ", event);
       String groupName = (String) event.getProperty(UserConstants.EVENT_PROP_USERID);
-      retval = ImmutableList.of("id:" + groupName);
+      retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(groupName));
     }
     return retval;
 
