@@ -37,7 +37,6 @@ import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -100,18 +99,16 @@ public class CalendarIndexingHandler implements IndexingHandler {
         if (content != null) {
           SolrInputDocument doc = new SolrInputDocument();
 
-          String resourceType = StorageClientUtils.toString(content
-              .getProperty(SlingConstants.PROPERTY_RESOURCE_TYPE));
+          String resourceType = (String) content
+              .getProperty(SlingConstants.PROPERTY_RESOURCE_TYPE);
           if (SAKAI_EVENT_SIGNUP_PARTICIPANT_RT.equals(resourceType)) {
             // the default fields are good for the other resource types.
             // SAKAI_EVENT_SIGNUP_PARTICIPANT_RT needs to flatten out the data to search
             // on the profile of the user that signed up.
-            String value = StorageClientUtils.toString(content
-                .getProperty(SAKAI_CALENDAR_PROFILE_LINK));
+            Object value = content.getProperty(SAKAI_CALENDAR_PROFILE_LINK);
             doc.addField(Authorizable.NAME_FIELD, value);
           } else {
-            String value = StorageClientUtils.toString(content
-                .getProperty(SAKAI_CALENDAR_PROPERTY_PREFIX + "DTSTART"));
+            Object value = content.getProperty(SAKAI_CALENDAR_PROPERTY_PREFIX + "DTSTART");
             doc.addField("vcal-DTSTART", value);
           }
           doc.addField(_DOC_SOURCE_OBJECT, content);

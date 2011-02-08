@@ -461,12 +461,12 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
       if (releaseNames) {
         String firstName = null;
         if (az.hasProperty("firstName")) {
-          firstName = ((String[])az.getProperty("firstName"))[0];
+          firstName = ((String)az.getProperty("firstName"));
           launchProps.put(LIS_PERSON_NAME_GIVEN, firstName);
         }
         String lastName = null;
         if (az.hasProperty("lastName")) {
-          lastName = ((String[])az.getProperty("lastName"))[0];
+          lastName = ((String)az.getProperty("lastName"));
           launchProps.put(LIS_PERSON_NAME_FAMILY, lastName);
         }
         StringBuilder sb = new StringBuilder();
@@ -488,7 +488,7 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
           .get(RELEASE_EMAIL);
       if (releaseEmail) {
         if (az.hasProperty("email")) {
-          final String email = ((String[])az.getProperty("email"))[0];
+          final String email = ((String)az.getProperty("email"));
           launchProps.put(LIS_PERSON_CONTACT_EMAIL_PRIMARY, email);
         }
       }

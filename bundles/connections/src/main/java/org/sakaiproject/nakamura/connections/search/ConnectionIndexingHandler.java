@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.connections.search;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
@@ -26,6 +27,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
@@ -36,6 +38,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
@@ -64,13 +67,13 @@ public class ConnectionIndexingHandler implements IndexingHandler {
   private static final Logger logger = LoggerFactory
       .getLogger(ConnectionIndexingHandler.class);
 
-  private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of("state");
+  private static final Map<String, String> WHITELISTED_PROPS = ImmutableMap.of("sakai:state", "state");
   private static final Set<String> FLATTENED_PROPS = ImmutableSet.of("name", "firstName",
       "lastName", "email");
 
   @Reference(target = "(type=sparse)")
   private ResourceIndexingService resourceIndexingService;
-
+  
   @Activate
   protected void activate(Map<?, ?> props) {
     resourceIndexingService.addHandler(ConnectionConstants.SAKAI_CONTACT_RT, this);
@@ -91,6 +94,7 @@ public class ConnectionIndexingHandler implements IndexingHandler {
       Event event) {
     String path = (String) event.getProperty(FIELD_PATH);
 
+    logger.info("Indexing connections at path {}", path);
     List<SolrInputDocument> documents = Lists.newArrayList();
     if (!StringUtils.isBlank(path)) {
       try {
@@ -100,10 +104,10 @@ public class ConnectionIndexingHandler implements IndexingHandler {
 
         if (content != null) {
           SolrInputDocument doc = new SolrInputDocument();
-          for (String prop : WHITELISTED_PROPS) {
-            Object value = content.getProperty(prop);
+          for (String propName : WHITELISTED_PROPS.keySet()) {
+            Object value = content.getProperty(propName);
             if ( value != null ) {
-              doc.addField(prop, value);
+              doc.addField(WHITELISTED_PROPS.get(propName), value);
             }
           }
 
@@ -112,9 +116,10 @@ public class ConnectionIndexingHandler implements IndexingHandler {
           String contactName = path.substring(lastSlash + 1);
           AuthorizableManager am = session.getAuthorizableManager();
           Authorizable contactAuth = am.findAuthorizable(contactName);
+          Map<String, Object> contactProps = contactAuth.getSafeProperties();
           if ( contactAuth != null ) {
             for (String prop : FLATTENED_PROPS) {
-              Object value = contactAuth.getProperty(prop);
+              Object value = contactProps.get(prop);
               if ( value != null ) {
                 doc.addField(prop, value);
               }

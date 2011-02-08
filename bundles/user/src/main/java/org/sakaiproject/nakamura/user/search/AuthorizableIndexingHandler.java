@@ -38,6 +38,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.TopicIndexer;
@@ -77,7 +78,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
 
   @Reference
   private TopicIndexer topicIndexer;
-
+  
   // ---------- SCR integration ------------------------------------------------
   @Activate
   protected void activate(Map<?, ?> props) {
