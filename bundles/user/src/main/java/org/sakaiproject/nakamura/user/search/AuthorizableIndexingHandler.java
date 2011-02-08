@@ -156,6 +156,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
           doc.setField(FIELD_ID, name);
 
           documents.add(doc);
+          logger.info("Added authorizable for searching: {}", name);
         }
       } catch (StorageClientException e) {
         logger.warn(e.getMessage(), e);
