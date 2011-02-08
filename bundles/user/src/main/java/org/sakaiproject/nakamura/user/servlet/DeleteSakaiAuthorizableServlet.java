@@ -91,11 +91,11 @@ import javax.servlet.http.HttpServletResponse;
  * </code>
  *
  *
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sling/user" values.1="sling/group" values.2="sling/userManager"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="delete"
+ * @disabled.scr.component metatype="no" immediate="true"
+ * @disabled.scr.service interface="javax.servlet.Servlet"
+ * @disabled.scr.property name="sling.servlet.resourceTypes" values.0="sling/user" values.1="sling/group" values.2="sling/userManager"
+ * @disabled.scr.property name="sling.servlet.methods" value="POST"
+ * @disabled.scr.property name="sling.servlet.selectors" value="delete"
  *
  *
  */
@@ -133,12 +133,12 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
 
 
   /**
-   * @scr.reference
+   * @disabled.scr.reference
    */
   protected transient AuthorizablePostProcessService postProcessorService;
 
   /**
-   * @scr.reference
+   * @disabled.scr.reference
    */
   protected transient EventAdmin eventAdmin;
 

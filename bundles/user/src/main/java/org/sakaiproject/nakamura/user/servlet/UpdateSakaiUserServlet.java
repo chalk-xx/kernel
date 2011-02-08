@@ -87,11 +87,11 @@ import javax.servlet.http.HttpServletResponse;
  *
  *
  *
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sling/user"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="update"
+ * @disabled.scr.component metatype="no" immediate="true"
+ * @disabled.scr.service interface="javax.servlet.Servlet"
+ * @disabled.scr.property name="sling.servlet.resourceTypes" value="sling/user"
+ * @disabled.scr.property name="sling.servlet.methods" value="POST"
+ * @disabled.scr.property name="sling.servlet.selectors" value="update"
  *
  */
 @ServiceDocumentation(name="Update User Servlet",
@@ -130,14 +130,14 @@ public class UpdateSakaiUserServlet extends UpdateUserServlet {
       .getLogger(UpdateSakaiUserServlet.class);
 
   /**
-   * @scr.reference
+   * @disabled.scr.reference
    */
   private transient AuthorizablePostProcessService postProcessorService;
 
   /**
    * Used to launch OSGi events.
    *
-   * @scr.reference
+   * @disabled.scr.reference
    */
   protected transient EventAdmin eventAdmin;
 

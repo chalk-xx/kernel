@@ -30,13 +30,13 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * The <code>GroupGetServlet</code>
  *
- * @scr.component immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description" value="Renders groups"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values="sling/group"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.extensions" value="json"
+ * @disabled.scr.component immediate="true"
+ * @disabled.scr.service interface="javax.servlet.Servlet"
+ * @disabled.scr.property name="service.description" value="Renders groups"
+ * @disabled.scr.property name="service.vendor" value="The Sakai Foundation"
+ * @disabled.scr.property name="sling.servlet.resourceTypes" values="sling/group"
+ * @disabled.scr.property name="sling.servlet.methods" value="GET"
+ * @disabled.scr.property name="sling.servlet.extensions" value="json"
  */
 @ServiceDocumentation(name="Get Group Servlet",
     description="Returns a group in json format, using all the standard Sling semantics, but includes group profile." +
