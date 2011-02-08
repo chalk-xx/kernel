@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.api.SlingConstants;
@@ -54,6 +55,7 @@ import java.util.Map;
 /**
  *
  */
+@Component(immediate = true)
 public class CalendarIndexingHandler implements IndexingHandler {
 
   private static final Logger logger = LoggerFactory

@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.solr.common.SolrInputDocument;
@@ -58,6 +59,7 @@ import java.util.Set;
  * <li>contact's email: email</li>
  * </ul>
  */
+@Component(immediate = true)
 public class ConnectionIndexingHandler implements IndexingHandler {
 
   private static final Logger logger = LoggerFactory

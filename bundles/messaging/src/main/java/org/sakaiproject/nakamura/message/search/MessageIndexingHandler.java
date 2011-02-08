@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.solr.common.SolrInputDocument;
@@ -48,6 +49,7 @@ import java.util.Set;
 /**
  *
  */
+@Component(immediate = true)
 public class MessageIndexingHandler implements IndexingHandler {
   private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of(
       // fields required by the messaging bundle

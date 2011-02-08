@@ -26,7 +26,6 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
@@ -51,7 +50,6 @@ import java.util.Set;
  *
  */
 @Component(immediate = true)
-@Service
 public class ResourceUpdateIndexingHandler implements IndexingHandler {
 
   // list of properties to be indexed

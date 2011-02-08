@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.user.search;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
@@ -54,7 +55,7 @@ import java.util.Set;
 /**
  *
  */
-@Component
+@Component(immediate = true)
 public class AuthorizableIndexingHandler implements IndexingHandler {
   private static final String[] DEFAULT_TOPICS = {
       StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.ADDED_TOPIC,
@@ -62,8 +63,11 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.UPDATED_TOPIC };
 
   // list of properties to be indexed
-  private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of("name",
+  private static final Set<String> USER_WHITELISTED_PROPS = ImmutableSet.of("name",
       "firstName", "lastName", "email", "type");
+
+  private static final Map<String, String> GROUP_WHITELISTED_PROPS = ImmutableMap.of(
+      "group-id", "name", "group-title", "title", "group-description", "description");
 
   // list of authorizables to not index
   private static final Set<String> BLACKLISTED_AUTHZ = ImmutableSet.of("admin",
@@ -118,9 +122,23 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
 
           Map<String, Object> properties = authorizable.getSafeProperties();
 
-          for (Entry<String, Object> p : properties.entrySet()) {
-            if (WHITELISTED_PROPS.contains(p.getKey())) {
-              doc.addField(p.getKey(), p.getValue());
+          if (authorizable.isGroup()) {
+            // add group properties
+            Map<String, String> fields = GROUP_WHITELISTED_PROPS;
+
+            for (Entry<String, Object> p : properties.entrySet()) {
+              if (fields.containsKey(p.getKey())) {
+                doc.addField(fields.get(p.getKey()), p.getValue());
+              }
+            }
+          } else {
+            // add user properties
+            Set<String> fields = USER_WHITELISTED_PROPS;
+
+            for (Entry<String, Object> p : properties.entrySet()) {
+              if (fields.contains(p.getKey())) {
+                doc.addField(p.getKey(), p.getValue());
+              }
             }
           }
 
@@ -157,8 +175,14 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
    */
   public Collection<String> getDeleteQueries(RepositorySession repositorySession,
       Event event) {
-    logger.debug("GetDelete for {} ", event);
-    String groupName = (String) event.getProperty(UserConstants.EVENT_PROP_USERID);
-    return ImmutableList.of("id:" + groupName);
+    Collection<String> retval = Collections.emptyList();
+    String topic = event.getTopic();
+    if (topic.endsWith(StoreListener.DELETE_TOPIC) || topic.endsWith(StoreListener.UPDATED_TOPIC)) {
+      logger.debug("GetDelete for {} ", event);
+      String groupName = (String) event.getProperty(UserConstants.EVENT_PROP_USERID);
+      retval = ImmutableList.of("id:" + groupName);
+    }
+    return retval;
+
   }
 }
