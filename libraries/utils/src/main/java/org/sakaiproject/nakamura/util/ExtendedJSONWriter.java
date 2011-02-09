@@ -18,12 +18,14 @@
 package org.sakaiproject.nakamura.util;
 
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -174,6 +176,8 @@ public class ExtendedJSONWriter extends JSONWriter {
         write.key(propName);
         if (isUserPath(propName, value)) {
           write.value(PathUtils.translateAuthorizablePath(value));
+        } else if(propValue instanceof Object[]) {
+          write.value(new JSONArray(Arrays.asList((Object[])propValue)));
         } else {
           write.value(propValue);
         }
