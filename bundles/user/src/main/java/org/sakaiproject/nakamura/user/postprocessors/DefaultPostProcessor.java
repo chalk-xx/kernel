@@ -531,7 +531,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   @Deprecated
   private void deleteManagersGroup(Authorizable authorizable, AuthorizableManager authorizableManager) {
     if (authorizable.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-      String managersGroup = StorageClientUtils.toString(authorizable.getProperty(UserConstants.PROP_MANAGERS_GROUP));
+      String managersGroup = (String) authorizable.getProperty(UserConstants.PROP_MANAGERS_GROUP);
       LOGGER.debug(" {} deleting managers group  {}",authorizable.getId(), managersGroup);
       try {
         authorizableManager.delete(managersGroup);
@@ -607,7 +607,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
        }
     } else {
       boolean isUpdateNeeded = false;
-      String managersGroupId = StorageClientUtils.toString(authorizable.getProperty(PROP_MANAGERS_GROUP));
+      String managersGroupId = (String) authorizable.getProperty(PROP_MANAGERS_GROUP);
       Group managersGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
       Object[] removeValues = parameters.get(PARAM_REMOVE_FROM_MANAGERS_GROUP);
       if ((removeValues != null) && (removeValues instanceof String[])) {
