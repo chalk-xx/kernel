@@ -175,7 +175,7 @@ public class ExtendedJSONWriter extends JSONWriter {
         if (isUserPath(propName, value)) {
           write.value(PathUtils.translateAuthorizablePath(value));
         } else {
-          write.value(propValue);
+          write.value(value);
         }
       }
     }
