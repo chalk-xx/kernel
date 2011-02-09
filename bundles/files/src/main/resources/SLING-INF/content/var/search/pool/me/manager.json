@@ -5,6 +5,7 @@
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "PooledContent",
+  "sakai:resultprocessor": "FullResource",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",
   "sakai:title": "Pooled Content - Me - Manager",

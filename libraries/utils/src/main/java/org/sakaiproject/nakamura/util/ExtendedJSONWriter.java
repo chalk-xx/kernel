@@ -71,7 +71,7 @@ public class ExtendedJSONWriter extends JSONWriter {
   }
   public static void writeValueMapInternals(JSONWriter writer, Map<String, ?> valueMap) throws JSONException {
     if (valueMap != null) {
-      for (Entry<String,?> e : valueMap.entrySet()) {
+      for (Entry<String, ?> e : valueMap.entrySet()) {
         writer.key(e.getKey());
         writeValueInternal(writer, e.getValue());
       }

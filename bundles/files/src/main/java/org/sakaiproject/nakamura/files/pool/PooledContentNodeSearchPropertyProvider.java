@@ -26,6 +26,7 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 
 import java.util.Map;
@@ -53,7 +54,8 @@ public class PooledContentNodeSearchPropertyProvider implements SolrSearchProper
       ResourceResolver resourceResolver = request.getResourceResolver();
       Resource pooledResource = resourceResolver.getResource(resourcePath);
       if (pooledResource != null) {
-        String safePath = ClientUtils.escapeQueryChars(pooledResource.getPath());
+        Content pooledContent = pooledResource.adaptTo(Content.class);
+        String safePath = ClientUtils.escapeQueryChars(pooledContent.getPath());
         propertiesMap.put(POOLED_CONTENT_NODE_PATH_PROPERTY, safePath);
       }
     }
