@@ -45,6 +45,7 @@ class TC_Kern1376Test < Test::Unit::TestCase
 	add_activity(contentpath, "status", "default", "Second activity")
 	add_activity(contentpath, "status", "default", "Third activity")
 
+    sleep(20)
     res = @s.execute_get(@s.url_for("/var/search/pool/activityfeed.json"), {
       "p" => "/p/#{contentid}"
     })
