@@ -50,24 +50,35 @@ import javax.jms.MessageListener;
 @Component
 @Service
 public class JdbcMessageListener implements MessageListener {
+  public static final String DEFAULT_CONNECTION_URL = "jdbc:derby:testdb;create=true";
+  public static final String DEFAULT_JDBC_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
+  public static final String DEFAULT_USER = "sa";
+  public static final String DEFAULT_PASS = "";
+
+  @Property(JdbcMessageListener.DEFAULT_CONNECTION_URL)
+  public static final String CONNECTION_URL = "jdbc-url";
+
+  @Property(JdbcMessageListener.DEFAULT_JDBC_DRIVER)
+  public static final String JDBC_DRIVER = "jdbc-driver";
+
   /** property for unit test to inject a connection */
   static final String _CONNECTION = "connection";
+
+  /** user ID field in message */
+  static final String USER_ID = "userid";
+
+  /** cluster server ID in message */
+  static final String CLUSTER_SERVER_ID = "clusterServerId";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JdbcMessageListener.class);
   private static final String CHECK_SCHEMA_PROP = "check.schema";
   private static final String SQL_EVENT = "insert.event";
   private static final String SQL_EVENT_PROP = "insert.event_prop";
 
-  @Property("jdbc:derby:db;create=true")
-  public static final String CONNECTION_URL = "jdbc-url";
-
-  @Property("org.apache.derby.jdbc.EmbeddedDriver")
-  public static final String JDBC_DRIVER = "jdbc-driver";
-
-  @Property("sa")
+  @Property(JdbcMessageListener.DEFAULT_USER)
   private static final String USERNAME = "username";
 
-  @Property("")
+  @Property(JdbcMessageListener.DEFAULT_PASS)
   private static final String PASSWORD = "password";
 
   private Connection conn;
@@ -82,17 +93,24 @@ public class JdbcMessageListener implements MessageListener {
 
   private Properties sql;
 
-  @Activate
-  protected void activate(Map<?, ?> props) throws SQLException, IOException {
-    conn = props.containsKey(_CONNECTION) ? (Connection) props.get(_CONNECTION)
-                                          : getConnection();
+  private String driver;
 
+  @Activate
+  protected void activate(Map<?, ?> props) throws Exception {
     // get connection to database
-    username = props.containsKey(USERNAME) ? (String) props.get(USERNAME) : "";
-    password = props.containsKey(PASSWORD) ? (String) props.get(PASSWORD) : "";
-    url = props.containsKey(CONNECTION_URL) ? (String) props.get(CONNECTION_URL) : "";
+    driver = props.containsKey(JDBC_DRIVER) ? (String) props.get(JDBC_DRIVER)
+                                           : JdbcMessageListener.DEFAULT_JDBC_DRIVER;
+    username = props.containsKey(USERNAME) ? (String) props.get(USERNAME)
+                                          : JdbcMessageListener.DEFAULT_USER;
+    password = props.containsKey(PASSWORD) ? (String) props.get(PASSWORD)
+                                          : JdbcMessageListener.DEFAULT_PASS;
+    url = props.containsKey(CONNECTION_URL) ? (String) props.get(CONNECTION_URL)
+                                           : JdbcMessageListener.DEFAULT_CONNECTION_URL;
     connectionProperties = new Properties();
     connectionProperties.putAll(props);
+
+    conn = props.containsKey(_CONNECTION) ? (Connection) props.get(_CONNECTION)
+                                          : getConnection();
 
     DatabaseMetaData metadata = conn.getMetaData();
     String dbProductName = metadata.getDatabaseProductName().replaceAll(" ", "");
@@ -109,6 +127,66 @@ public class JdbcMessageListener implements MessageListener {
   }
 
   /**
+   * {@inheritDoc}
+   *
+   * @see javax.jms.MessageListener#onMessage(javax.jms.Message)
+   */
+  public void onMessage(Message msg) {
+    try {
+      // collect the common data
+      String type = msg.getJMSType();
+      String serverId = msg.getStringProperty(CLUSTER_SERVER_ID);
+      String user = "system";
+      if (msg.propertyExists(USER_ID)) {
+        user = msg.getStringProperty(USER_ID);
+      }
+
+      // insert common data as hub record
+      PreparedStatement ps = conn.prepareStatement(sql.getProperty(SQL_EVENT),
+          Statement.RETURN_GENERATED_KEYS);
+      ps.setString(1, type);
+      ps.setString(2, serverId);
+      ps.setString(3, user);
+      ps.setTimestamp(4, new Timestamp(msg.getJMSTimestamp()));
+      ps.executeUpdate();
+      ResultSet rs = ps.getGeneratedKeys();
+      int hubId = -1;
+      if (rs == null || !rs.next()) {
+        String m = "Unable to get ID of inserted hub record.";
+        LOGGER.error(m);
+        throw new RuntimeException(m);
+      }
+      hubId = rs.getInt(1);
+
+      // deal with the extraneous properties
+      ps = conn.prepareStatement(sql.getProperty(SQL_EVENT_PROP));
+
+      @SuppressWarnings("unchecked")
+      Enumeration<String> propNames = msg.getPropertyNames();
+      while (propNames.hasMoreElements()) {
+        String propName = propNames.nextElement();
+        if (USER_ID.equals(propName) || CLUSTER_SERVER_ID.equals(propName)) {
+          continue;
+        }
+
+        Object obj = msg.getObjectProperty(propName);
+        ps.setInt(1, hubId);
+        ps.setString(2, propName);
+        ps.setObject(3, obj);
+        ps.executeUpdate();
+      }
+    } catch (Exception e) {
+      LOGGER.error(
+          "Failed to insert the JMS message in the JDBC store: " + e.getMessage(), e);
+      if (e instanceof RuntimeException) {
+        throw (RuntimeException) e;
+      } else {
+        throw new RuntimeException(e.getMessage(), e);
+      }
+    }
+  }
+
+  /**
    * Load the SQL script for the driver being used.
    *
    * @param dbProductName
@@ -116,15 +194,11 @@ public class JdbcMessageListener implements MessageListener {
    * @throws IOException If there is a problem reading the DDL file.
    */
   private void loadSql(String dbProductName) throws SQLException, IOException {
-    // try getting the product specific sql file
-    InputStream sqlFile = getClass().getResourceAsStream("client." + dbProductName + ".sql");
-    if (sqlFile == null) {
-      // try getting the generic sql file
-      sqlFile = getClass().getResourceAsStream("client.sql");
-    }
+    // try getting the generic sql file
+    InputStream sqlFile = loadFile("client", "sql", dbProductName);
 
     if (sqlFile == null) {
-      throw new SQLException("Unable to load sql file for " + dbProductName);
+      throw new SQLException("Unable to load sql file for: " + dbProductName);
     } else {
       // load up the found sql file
       sql = new Properties();
@@ -146,81 +220,32 @@ public class JdbcMessageListener implements MessageListener {
       stmt.execute(sql.getProperty(CHECK_SCHEMA_PROP));
     } catch (SQLException e) {
       // failed the schema check; load and execute the ddl
-      InputStream ddlFile = getClass().getResourceAsStream("client." + dbProductName + ".ddl");
-      if (ddlFile == null) {
-        ddlFile = getClass().getResourceAsStream("client.ddl");
-      }
+      InputStream ddlFile = loadFile("client", "ddl", dbProductName);
 
       if (ddlFile == null) {
-        throw new SQLException("Unable to load ddl file for " + dbProductName);
+        throw new SQLException("Unable to load ddl file for: " + dbProductName);
       } else {
         // read up the whole ddl file then execute it
-        StringBuilder builder = new StringBuilder();
+        StringBuilder ddl = new StringBuilder();
         BufferedReader reader = new BufferedReader(new InputStreamReader(ddlFile));
         String line = null;
         while ((line = reader.readLine()) != null) {
-          builder.append(line);
+          ddl.append(line);
+
+          if (line.endsWith(";")) {
+            stmt.execute(ddl.substring(0, ddl.length() - 1));
+            ddl = new StringBuilder();
+          }
         }
-        stmt.execute(builder.toString());
       }
     } finally {
       stmt.close();
     }
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * @see javax.jms.MessageListener#onMessage(javax.jms.Message)
-   */
-  public void onMessage(Message msg) {
-    try {
-      // collect the common data
-      String type = msg.getJMSType();
-      String serverId = msg.getStringProperty("clusterServerId");
-      String user = "system";
-      if (msg.propertyExists("userid")) {
-        user = msg.getStringProperty("userid");
-      }
+  private Connection getConnection() throws ClassNotFoundException, SQLException {
+    Class.forName(driver);
 
-      // insert common data as hub record
-      PreparedStatement ps = conn.prepareStatement(SQL_EVENT);
-      ps.setString(1, type);
-      ps.setString(2, serverId);
-      ps.setString(3, user);
-      ps.setTimestamp(4, new Timestamp(msg.getJMSTimestamp()));
-      ps.executeUpdate();
-      ResultSet rs = ps.getGeneratedKeys();
-      int hubId = -1;
-      if (!rs.next()) {
-        LOGGER.error("Unable to get ID of inserted hub record.");
-        return;
-      }
-      hubId = rs.getInt(1);
-
-      // deal with the extraneous properties
-      ps = conn.prepareStatement(SQL_EVENT_PROP);
-
-      @SuppressWarnings("unchecked")
-      Enumeration<String> propNames = msg.getPropertyNames();
-      while (propNames.hasMoreElements()) {
-        String propName = propNames.nextElement();
-        if ("userid".equals(propName)) {
-          continue;
-        }
-
-        Object obj = msg.getObjectProperty(propName);
-        ps.setInt(1, hubId);
-        ps.setObject(2, obj);
-        ps.executeUpdate();
-      }
-    } catch (Exception e) {
-      LOGGER.error(
-          "Failed to insert the JMS message in the JDBC store: " + e.getMessage(), e);
-    }
-  }
-
-  private Connection getConnection() throws SQLException {
     Connection conn = null;
     if (username != null && username.length() > 0) {
       conn = DriverManager.getConnection(url, username, password);
@@ -228,5 +253,16 @@ public class JdbcMessageListener implements MessageListener {
       conn = DriverManager.getConnection(url, connectionProperties);
     }
     return conn;
+  }
+
+  private InputStream loadFile(String name, String extension, String dbProductName) {
+    InputStream file = null;
+    if (dbProductName != null && dbProductName.length() > 0) {
+      file = getClass().getResourceAsStream(name + "." + dbProductName + "." + extension);
+    }
+    if (file == null) {
+      file = getClass().getResourceAsStream(name + "." + extension);
+    }
+    return file;
   }
 }

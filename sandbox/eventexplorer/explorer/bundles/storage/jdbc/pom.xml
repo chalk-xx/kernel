@@ -8,7 +8,7 @@
     <version>0.10-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
-  <artifactId>org.sakaiproject.nakamura.eventexplorer.listeners.oracle</artifactId>
+  <artifactId>org.sakaiproject.nakamura.eventexplorer.listeners.jdbc</artifactId>
   <packaging>bundle</packaging>
   <version>0.10-SNAPSHOT</version>
   <name>Sakai Nakamura :: Sakai JMS Listeners</name>
@@ -60,6 +60,14 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-nop</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derby</artifactId>
+      <version>10.7.1.1</version>
+      <!-- used in testing but can change scope to use outside of testing -->
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

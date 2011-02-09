@@ -14,7 +14,7 @@
   <modules>
     <module>bundles/cassandrathrift</module>
     <module>bundles/listeners</module>
-    <module>bundles/storage/oracle</module>
+    <module>bundles/storage/jdbc</module>
     <module>app</module>
   </modules>
 </project>
