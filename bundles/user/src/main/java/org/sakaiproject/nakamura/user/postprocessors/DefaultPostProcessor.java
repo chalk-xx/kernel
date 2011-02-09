@@ -19,6 +19,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.PropertyOption;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -27,6 +28,7 @@ import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
+import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -66,7 +68,7 @@ import javax.jcr.Value;
 import javax.jcr.nodetype.PropertyDefinition;
 
 /**
- *
+ * 
  * <pre>
  * HomePostProcessor
  *  It creates the following if they dont exist (or onCreate)
@@ -83,59 +85,59 @@ import javax.jcr.nodetype.PropertyDefinition;
  *  a:userID/public
  *  a:userID/private
  *      + permissions: everyone and anon denied read
- *
+ * 
  *  If they do exist (on everything else except delete)
  *  a:userID
  *     Change permissions to match visibility
  *     Change permissions to match managers and viewers
- *
- *
+ * 
+ * 
  * Sakai Group Postprocessor
  * sets the path property in the authorizable
  * sets a group-manages property name to the name of an auto generated group
  * generates that group (does not trigger any post processors)
  * sets properties in the manger group
  * adds members and removes members according to the request properties sakai:manager and sakai:manager@Delete
- *
+ * 
  * Sakau User Post processor
  * sets the path property in the authorizable
- *
- *
+ * 
+ * 
  * Message Post Processor
  * a:userID/message
  *    - sling:resourceType = sakai/messagestore
  *    + permissions: user can all
  *                   anon deny all
  *                   everyone deny all
- *
+ * 
  * Calendar
  * a:userID/calendar
  *     - sling:resourceType = sakai/calendar
  *     _ stores a default calendar (empty with no properties)
  *     + grants userID all
- *
+ * 
  * Connections
  * a:userID/contacts
  *     - sling:resourceType = sakai/contactstore
  *     + deny all for anon and everyone
  *       grants user all, except anon
  *     + creates a private group of viewers that only the current user can view (could be delayed as not used then)
- *
+ * 
  *  Pages post processor
  *  a:userId/pages
  *      Copies a template content tree verbatum from a uder defined location into the pages folder
- *
- *
+ * 
+ * 
  * Profile post Processor
  * a:userId/profile
  *     - sling:resourceType = sakai/group-profile | sakai/user-profile
  *      Copies a template of content posted by the UI to generate a tree of content after processing, uses the ContentLoader to achieve this.
  *      Copies all the Authorizable Properties onto the authorizable node.
- *
- *
- *
+ * 
+ * 
+ * 
  * -----------------
- *
+ * 
  * We can hard code everything other than the profile importer in a single class
  * IMO the manager group is superfluous on a user and adds unecessary expense
  * </pre>
@@ -181,7 +183,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
   private static final String SAKAI_PAGES_RT = "sakai/pages";
 
-
   private static final String SLING_RESOURCE_TYPE = "sling:resourceType";
   public static final String VISIBILITY_PRIVATE = "private";
   public static final String VISIBILITY_LOGGED_IN = "logged_in";
@@ -189,47 +190,47 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
   public static final String PROFILE_JSON_IMPORT_PARAMETER = ":sakai:profile-import";
   /**
-   * Optional parameter containing the path of a Pages source that should be used instead of
-   * the default template.
+   * Optional parameter containing the path of a Pages source that should be used instead
+   * of the default template.
    */
   public static final String PAGES_TEMPLATE_PARAMETER = ":sakai:pages-template";
 
   public static final String PARAM_ADD_TO_MANAGERS_GROUP = ":sakai:manager";
-  public static final String PARAM_REMOVE_FROM_MANAGERS_GROUP = PARAM_ADD_TO_MANAGERS_GROUP + SlingPostConstants.SUFFIX_DELETE;
+  public static final String PARAM_REMOVE_FROM_MANAGERS_GROUP = PARAM_ADD_TO_MANAGERS_GROUP
+      + SlingPostConstants.SUFFIX_DELETE;
 
   @Property(description = "The default access settings for the home of a new user or group.", value = VISIBILITY_PUBLIC, options = {
       @PropertyOption(name = VISIBILITY_PRIVATE, value = "The home is private."),
       @PropertyOption(name = VISIBILITY_LOGGED_IN, value = "The home is blocked to anonymous users; all logged-in users can see it."),
       @PropertyOption(name = VISIBILITY_PUBLIC, value = "The home is completely public.") })
-
   static final String PROFILE_IMPORT_TEMPLATE = "sakai.user.profile.template.default";
   static final String PROFILE_IMPORT_TEMPLATE_DEFAULT = "{'basic':{'elements':{'firstName':{'value':'@@firstName@@'},'lastName':{'value':'@@lastName@@'},'email':{'value':'@@email@@'}},'access':'everybody'}}";
 
-
-  @Property(value="/var/templates/pages/systemuser")
+  @Property(value = "/var/templates/pages/systemuser")
   public static final String DEFAULT_USER_PAGES_TEMPLATE = "default.user.template";
   private String defaultUserPagesTemplate;
 
-  @Property(value="/var/templates/pages/systemgroup")
+  @Property(value = "/var/templates/pages/systemgroup")
   public static final String DEFAULT_GROUP_PAGES_TEMPLATE = "default.group.template";
   private String defaultGroupPagesTemplate;
-
 
   private String defaultProfileTemplate;
   private ArrayList<String> profileParams = new ArrayList<String>();
   static final String VISIBILITY_PREFERENCE = "visibility.preference";
   static final String VISIBILITY_PREFERENCE_DEFAULT = VISIBILITY_PUBLIC;
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPostProcessor.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(DefaultPostProcessor.class);
 
-
+  @Reference
+  protected Repository repository;
 
   private String visibilityPreference;
 
-
   @Activate
   @Modified
-  protected void modified(Map<?, ?> props) {
+  protected void modified(Map<?, ?> props) throws Exception {
+
     visibilityPreference = OsgiUtil.toString(props.get(VISIBILITY_PREFERENCE),
         VISIBILITY_PREFERENCE_DEFAULT);
 
@@ -247,13 +248,47 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       startPos = endPos;
     }
 
-    defaultUserPagesTemplate = OsgiUtil.toString(props.get(DEFAULT_USER_PAGES_TEMPLATE), "");
-    defaultGroupPagesTemplate = OsgiUtil.toString(props.get(DEFAULT_GROUP_PAGES_TEMPLATE), "");
+    defaultUserPagesTemplate = OsgiUtil.toString(props.get(DEFAULT_USER_PAGES_TEMPLATE),
+        "");
+    defaultGroupPagesTemplate = OsgiUtil.toString(
+        props.get(DEFAULT_GROUP_PAGES_TEMPLATE), "");
+
+    createDefaultUsers();
 
   }
 
-  public void process(SlingHttpServletRequest request, Authorizable authorizable, Session session, Modification change,
-      Map<String, Object[]> parameters) throws Exception {
+  private void createDefaultUsers() throws Exception {
+    Session session = repository.loginAdministrative();
+    try {
+      AuthorizableManager authorizableManager = session.getAuthorizableManager();
+      Authorizable admin = authorizableManager.findAuthorizable(User.ADMIN_USER);
+      Map<String, Object[]> adminMap = ImmutableMap.of("email", new Object[]{"admin@sakai.invalid"},
+          "firstName", new Object[]{"Admin"},
+          "lastName", new Object[]{"User"},
+          "sakai:search-exclude-tree", new Object[]{true},
+          ":sakai:profile-import", new Object[]{"{'basic': {'access': 'everybody', 'elements': {'email': {'value': 'admin@sakai.invalid'}, 'firstName': {'value': 'Admin'}, 'lastName': {'value': 'User'}}}}"});
+      process(null, admin, session, Modification.onModified("admin"), adminMap); 
+      Authorizable anon = authorizableManager.findAuthorizable(User.ANON_USER);
+      Map<String, Object[]> anonMap = ImmutableMap.of("email", new Object[]{"anon@sakai.invalid"},
+          "firstName", new Object[]{"Anon"},
+          "lastName", new Object[]{"User"},
+          "sakai:search-exclude-tree", new Object[]{true},
+          ":sakai:profile-import", new Object[]{"{'basic': {'access': 'everybody', 'elements': {'email': {'value': 'anon@sakai.invalid'}, 'firstName': {'value': 'Anon'}, 'lastName': {'value': 'User'}}}}"});
+      process(null, anon, session, Modification.onModified("anon"), anonMap);
+    } finally {
+      if (session != null) {
+        try {
+          session.logout();
+        } catch (Exception e) {
+          LOGGER.debug(e.getMessage(),e);
+        }
+      }
+    }
+  }
+
+  public void process(SlingHttpServletRequest request, Authorizable authorizable,
+      Session session, Modification change, Map<String, Object[]> parameters)
+      throws Exception {
     LOGGER.debug("Default Prost processor on {} with {} ", authorizable.getId(), change);
 
     ContentManager contentManager = session.getContentManager();
@@ -263,7 +298,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
     if (ModificationType.DELETE.equals(change.getType())) {
       LOGGER.debug("Performing delete operation on {} ", authorizable.getId());
-      if ( isGroup ) {
+      if (isGroup) {
         deleteManagersGroup(authorizable, authorizableManager);
       }
       return; // do not
@@ -282,8 +317,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     // ==============================
     // no action required (IMO we should drop the generated group and use ACL on the
     // object itself)
-    if ( isGroup ) {
-      updateManagersGroup(authorizable, authorizableManager, accessControlManager, parameters);
+    if (isGroup) {
+      updateManagersGroup(authorizable, authorizableManager, accessControlManager,
+          parameters);
     }
 
     // Home Authorizable PostProcessor
@@ -331,10 +367,12 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       Map<String, Object> acl = Maps.newHashMap();
       syncOwnership(authorizable, acl, aclModifications);
 
-      AclModification[] aclMods = aclModifications.toArray(new AclModification[aclModifications.size()]);
+      AclModification[] aclMods = aclModifications
+          .toArray(new AclModification[aclModifications.size()]);
       accessControlManager.setAcl(Security.ZONE_CONTENT, homePath, aclMods);
 
-      accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(), aclMods);
+      accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(),
+          aclMods);
 
     } else {
       // Sync the Acl on the home folder with whatever is present in the authorizable
@@ -349,68 +387,76 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       accessControlManager.setAcl(Security.ZONE_CONTENT, homePath,
           aclModifications.toArray(new AclModification[aclModifications.size()]));
 
-      acl = accessControlManager.getAcl(Security.ZONE_AUTHORIZABLES,
-          authorizable.getId());
+      acl = accessControlManager
+          .getAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId());
       aclModifications = new ArrayList<AclModification>();
 
       syncOwnership(authorizable, acl, aclModifications);
 
-      accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES,  authorizable.getId(),
+      accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(),
           aclModifications.toArray(new AclModification[aclModifications.size()]));
 
     }
-    createPath(authId, LitePersonalUtils.getPublicPath(authId), SAKAI_PUBLIC_RT,
-        false, contentManager, accessControlManager, null);
-    createPath(authId, LitePersonalUtils.getPrivatePath(authId), SAKAI_PRIVATE_RT,
-        true, contentManager, accessControlManager, null);
+    createPath(authId, LitePersonalUtils.getPublicPath(authId), SAKAI_PUBLIC_RT, false,
+        contentManager, accessControlManager, null);
+    createPath(authId, LitePersonalUtils.getPrivatePath(authId), SAKAI_PRIVATE_RT, true,
+        contentManager, accessControlManager, null);
 
     // Message PostProcessor
-    createPath(authId, homePath + MESSAGE_FOLDER, SAKAI_MESSAGESTORE_RT, true, contentManager,
-        accessControlManager, null);
+    createPath(authId, homePath + MESSAGE_FOLDER, SAKAI_MESSAGESTORE_RT, true,
+        contentManager, accessControlManager, null);
     // Calendar
-    createPath(authId, homePath + CALENDAR_FOLDER, SAKAI_CALENDAR_RT, false, contentManager,
-        accessControlManager, null);
+    createPath(authId, homePath + CALENDAR_FOLDER, SAKAI_CALENDAR_RT, false,
+        contentManager, accessControlManager, null);
     // Connections
-    createPath(authId, homePath + CONTACTS_FOLDER, SAKAI_CONTACTSTORE_RT, true, contentManager,
-        accessControlManager, null);
-    authorizableManager.createGroup("g-contacts-" + authorizable.getId(), "g-contacts-" + authorizable.getId(), null);
+    createPath(authId, homePath + CONTACTS_FOLDER, SAKAI_CONTACTSTORE_RT, true,
+        contentManager, accessControlManager, null);
+    authorizableManager.createGroup("g-contacts-" + authorizable.getId(), "g-contacts-"
+        + authorizable.getId(), null);
     // Pages
-    boolean createdPages = createPath(authId, homePath + PAGES_FOLDER, SAKAI_PAGES_RT, false, contentManager,
-        accessControlManager, null);
-    createPath(authId, homePath + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false, contentManager,
-        accessControlManager, null);
-    if ( createdPages ) {
-      intitializeContent(request, authorizable, session,  homePath + PAGES_FOLDER, parameters);
+    boolean createdPages = createPath(authId, homePath + PAGES_FOLDER, SAKAI_PAGES_RT,
+        false, contentManager, accessControlManager, null);
+    createPath(authId, homePath + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false,
+        contentManager, accessControlManager, null);
+    if (createdPages) {
+      intitializeContent(request, authorizable, session, homePath + PAGES_FOLDER,
+          parameters);
     }
     // Profile
-    String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT : SAKAI_USER_PROFILE_RT;
-    createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER, profileType, false, contentManager,
-        accessControlManager, null);
-    
-    Map<String, Object> profileProperties = processProfileParameters(defaultProfileTemplate, authorizable, parameters);
+    String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT
+                                                        : SAKAI_USER_PROFILE_RT;
+    createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
+        profileType, false, contentManager, accessControlManager, null);
+
+    Map<String, Object> profileProperties = processProfileParameters(
+        defaultProfileTemplate, authorizable, parameters);
     for (String propName : profileProperties.keySet()) {
       authorizable.setProperty(propName, profileProperties.get(propName));
     }
     authorizableManager.updateAuthorizable(authorizable);
-    createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC, "nt:unstructured", 
-        false, contentManager, accessControlManager, profileProperties);
+    createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC,
+        "nt:unstructured", false, contentManager, accessControlManager, profileProperties);
 
   }
 
-  private void intitializeContent(SlingHttpServletRequest request, Authorizable authorizable, Session session,
-      String pagesPath, Map<String, Object[]> parameters) throws StorageClientException, AccessDeniedException, IOException  {
+  private void intitializeContent(SlingHttpServletRequest request,
+      Authorizable authorizable, Session session, String pagesPath,
+      Map<String, Object[]> parameters) throws StorageClientException,
+      AccessDeniedException, IOException {
     String templatePath = null;
 
     // Check for an explicit pages template path.
     Object[] templateParameterValues = parameters.get(PAGES_TEMPLATE_PARAMETER);
     if (templateParameterValues != null) {
-      if ((templateParameterValues.length == 1) && templateParameterValues[0] instanceof String) {
+      if ((templateParameterValues.length == 1)
+          && templateParameterValues[0] instanceof String) {
         String templateParameterValue = (String) templateParameterValues[0];
         if (templateParameterValue.length() > 0) {
           templatePath = templateParameterValue;
         }
       } else {
-        LOGGER.warn("Unexpected {} value = {}. Using defaults instead.", PAGES_TEMPLATE_PARAMETER, templateParameterValues);
+        LOGGER.warn("Unexpected {} value = {}. Using defaults instead.",
+            PAGES_TEMPLATE_PARAMETER, templateParameterValues);
       }
     }
 
@@ -423,128 +469,138 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       }
     }
 
-    Resource resource = request.getResourceResolver().resolve(templatePath);
-    Node node = resource.adaptTo(Node.class);
-    if ( node != null) {
-      try {
-        recursiveCopy(node, pagesPath, session.getContentManager());
-      } catch (RepositoryException e) {
-        LOGGER.warn("Failed to Copy JCR Template ",e);
-        throw new StorageClientException(e.getMessage(),e);
+    if (request != null) {
+      Resource resource = request.getResourceResolver().resolve(templatePath);
+      Node node = resource.adaptTo(Node.class);
+      if (node != null) {
+        try {
+          recursiveCopy(node, pagesPath, session.getContentManager());
+        } catch (RepositoryException e) {
+          LOGGER.warn("Failed to Copy JCR Template ", e);
+          throw new StorageClientException(e.getMessage(), e);
+        }
+      } else {
+        session.getContentManager().copy(templatePath, pagesPath, true);
       }
-    } else {
-      session.getContentManager().copy(templatePath, pagesPath, true);
     }
   }
 
-  private void recursiveCopy(Node node, String thisPath, ContentManager contentManager) throws RepositoryException, StorageClientException, AccessDeniedException, IOException {
-      Builder<String, Object> builder = ImmutableMap.builder();
-      PropertyIterator pi = node.getProperties();
-      while(pi.hasNext()) {
-        javax.jcr.Property p = pi.nextProperty();
-        LOGGER.debug("Setting property {}:{} ",thisPath,p.getName());
-        PropertyDefinition pd = p.getDefinition();
-        int type = pd.getRequiredType();
-        if ( pd.isMultiple() ) {
-          Value[] v = p.getValues();
-          switch(type) {
-          case PropertyType.DATE:
-            {
-              Calendar[] s = new Calendar[v.length];
-              for ( int i = 0; i < v.length; i++ ) {
-                s[i] = v[i].getDate();
-              }
-              builder.put(p.getName(), s);
-              break;
-            }
-          default:
-            {
-              String[] s = new String[v.length];
-              for ( int i = 0; i < v.length; i++ ) {
-                s[i] = v[i].getString();
-              }
-              builder.put(p.getName(), s);
-              break;
-            }
+  private void recursiveCopy(Node node, String thisPath, ContentManager contentManager)
+      throws RepositoryException, StorageClientException, AccessDeniedException,
+      IOException {
+    Builder<String, Object> builder = ImmutableMap.builder();
+    PropertyIterator pi = node.getProperties();
+    while (pi.hasNext()) {
+      javax.jcr.Property p = pi.nextProperty();
+      LOGGER.debug("Setting property {}:{} ", thisPath, p.getName());
+      PropertyDefinition pd = p.getDefinition();
+      int type = pd.getRequiredType();
+      if (pd.isMultiple()) {
+        Value[] v = p.getValues();
+        switch (type) {
+        case PropertyType.DATE: {
+          Calendar[] s = new Calendar[v.length];
+          for (int i = 0; i < v.length; i++) {
+            s[i] = v[i].getDate();
           }
-
-        } else {
-          Value v = p.getValue();
-          switch(type) {
-          case PropertyType.BOOLEAN:
-            builder.put(p.getName(), v.getBoolean());
-            break;
-          case PropertyType.DATE:
-            builder.put(p.getName(), v.getDate());
-            break;
-          case PropertyType.DECIMAL:
-            builder.put(p.getName(), v.getDecimal());
-            break;
-          case PropertyType.LONG:
-            builder.put(p.getName(), v.getLong());
-            break;
-          case PropertyType.STRING:
-            builder.put(p.getName(), v.getString());
-            break;
-          default:
-            builder.put(p.getName(), v.getString());
-            break;
-          }
+          builder.put(p.getName(), s);
+          break;
         }
-        Content content = contentManager.get(thisPath);
-        if ( content == null ) {
-          contentManager.update(new Content(thisPath, builder.build()));
-        } else {
-          Map<String,Object> props = builder.build();
-          for ( Entry<String, Object> e : props.entrySet()) {
-            content.setProperty(e.getKey(), e.getValue());
+        default: {
+          String[] s = new String[v.length];
+          for (int i = 0; i < v.length; i++) {
+            s[i] = v[i].getString();
           }
+          builder.put(p.getName(), s);
+          break;
+        }
         }
 
-        if ( JcrConstants.NT_FILE.equals(node.getPrimaryNodeType().getName())) {
-          Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
-          javax.jcr.Property data = contentNode.getProperty(JcrConstants.JCR_DATA);
-          contentManager.writeBody(thisPath, data.getBinary().getStream());
-          if ( content == null ) {
-            content = contentManager.get(thisPath);
-            if ( contentNode.hasProperty(JcrConstants.JCR_MIMETYPE)) {
-              content.setProperty(Content.MIMETYPE, contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
-            }
-            if ( contentNode.hasProperty(JcrConstants.JCR_LASTMODIFIED)) {
-              content.setProperty(Content.LASTMODIFIED, contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getLong());
-            }
+      } else {
+        Value v = p.getValue();
+        switch (type) {
+        case PropertyType.BOOLEAN:
+          builder.put(p.getName(), v.getBoolean());
+          break;
+        case PropertyType.DATE:
+          builder.put(p.getName(), v.getDate());
+          break;
+        case PropertyType.DECIMAL:
+          builder.put(p.getName(), v.getDecimal());
+          break;
+        case PropertyType.LONG:
+          builder.put(p.getName(), v.getLong());
+          break;
+        case PropertyType.STRING:
+          builder.put(p.getName(), v.getString());
+          break;
+        default:
+          builder.put(p.getName(), v.getString());
+          break;
+        }
+      }
+      Content content = contentManager.get(thisPath);
+      if (content == null) {
+        contentManager.update(new Content(thisPath, builder.build()));
+      } else {
+        Map<String, Object> props = builder.build();
+        for (Entry<String, Object> e : props.entrySet()) {
+          content.setProperty(e.getKey(), e.getValue());
+        }
+      }
+
+      if (JcrConstants.NT_FILE.equals(node.getPrimaryNodeType().getName())) {
+        Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
+        javax.jcr.Property data = contentNode.getProperty(JcrConstants.JCR_DATA);
+        contentManager.writeBody(thisPath, data.getBinary().getStream());
+        if (content == null) {
+          content = contentManager.get(thisPath);
+          if (contentNode.hasProperty(JcrConstants.JCR_MIMETYPE)) {
+            content.setProperty(Content.MIMETYPE,
+                contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
+          }
+          if (contentNode.hasProperty(JcrConstants.JCR_LASTMODIFIED)) {
+            content.setProperty(Content.LASTMODIFIED,
+                contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getLong());
           }
         }
-        if ( content != null ) {
-          contentManager.update(content);
+      }
+      if (content != null) {
+        contentManager.update(content);
+      }
+      NodeIterator ni = node.getNodes();
+      while (ni.hasNext()) {
+        Node n = ni.nextNode();
+        if (!JcrConstants.NT_FILE.equals(n.getPrimaryNodeType().getName())) {
+          recursiveCopy(n, thisPath + "/" + n.getName(), contentManager);
         }
-        NodeIterator ni = node.getNodes();
-        while(ni.hasNext()) {
-          Node n = ni.nextNode();
-          if ( !JcrConstants.NT_FILE.equals(n.getPrimaryNodeType().getName()) ) {
-            recursiveCopy(n, thisPath+"/"+n.getName(), contentManager);
-          }
-        }
+      }
     }
   }
 
   @Deprecated
-  private void deleteManagersGroup(Authorizable authorizable, AuthorizableManager authorizableManager) {
+  private void deleteManagersGroup(Authorizable authorizable,
+      AuthorizableManager authorizableManager) {
     if (authorizable.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-      String managersGroup = (String) authorizable.getProperty(UserConstants.PROP_MANAGERS_GROUP);
-      LOGGER.debug(" {} deleting managers group  {}",authorizable.getId(), managersGroup);
+      String managersGroup = (String) authorizable
+          .getProperty(UserConstants.PROP_MANAGERS_GROUP);
+      LOGGER
+          .debug(" {} deleting managers group  {}", authorizable.getId(), managersGroup);
       try {
         authorizableManager.delete(managersGroup);
-      } catch ( Exception e ) {
-        LOGGER.info("Failed to delete managers group {}  {}",managersGroup);
+      } catch (Exception e) {
+        LOGGER.info("Failed to delete managers group {}  {}", managersGroup);
       }
     } else {
-      LOGGER.debug(" {} has no manager group {} ", authorizable, authorizable.getSafeProperties());
+      LOGGER.debug(" {} has no manager group {} ", authorizable,
+          authorizable.getSafeProperties());
     }
   }
 
   /**
-   * Create or update the managers group. Note, this is deprecated since this is not how we will do this longer term.
+   * Create or update the managers group. Note, this is deprecated since this is not how
+   * we will do this longer term.
+   * 
    * @param authorizable
    * @param authorizableManager
    * @param accessControlManager
@@ -553,58 +609,71 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
    * @throws StorageClientException
    */
   @Deprecated
-  private void updateManagersGroup(Authorizable authorizable, AuthorizableManager authorizableManager, AccessControlManager accessControlManager, Map<String, Object[]> parameters) throws AccessDeniedException, StorageClientException {
-    if ( !authorizable.hasProperty(PROP_MANAGERS_GROUP) ) {
-      // if authorizable.getId() is unique, then it only has 1 manages group, which is also unique by definition.
-       String managersGroupId = authorizable.getId() + "-managers";
-       authorizable.setProperty(PROP_MANAGERS_GROUP, managersGroupId);
-       Set<String> managers = Sets.newHashSet((String[])authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS));
-       managers.add(managersGroupId);
-       authorizable.setProperty(UserConstants.PROP_GROUP_MANAGERS, managers.toArray(new String[managers.size()]));
+  private void updateManagersGroup(Authorizable authorizable,
+      AuthorizableManager authorizableManager, AccessControlManager accessControlManager,
+      Map<String, Object[]> parameters) throws AccessDeniedException,
+      StorageClientException {
+    if (!authorizable.hasProperty(PROP_MANAGERS_GROUP)) {
+      // if authorizable.getId() is unique, then it only has 1 manages group, which is
+      // also unique by definition.
+      String managersGroupId = authorizable.getId() + "-managers";
+      authorizable.setProperty(PROP_MANAGERS_GROUP, managersGroupId);
+      Set<String> managers = Sets.newHashSet((String[]) authorizable
+          .getProperty(UserConstants.PROP_GROUP_MANAGERS));
+      managers.add(managersGroupId);
+      authorizable.setProperty(UserConstants.PROP_GROUP_MANAGERS,
+          managers.toArray(new String[managers.size()]));
 
+      authorizableManager.updateAuthorizable(authorizable);
 
-       authorizableManager.updateAuthorizable(authorizable);
+      authorizableManager.createGroup(managersGroupId, managersGroupId,
+          ImmutableMap.of(PROP_MANAGED_GROUP, (Object) authorizable.getId(), // the ID of
+                                                                             // the group
+                                                                             // this group
+                                                                             // manages
+              PROP_MANAGERS_GROUP, managersGroupId, // the ID of the special managers
+                                                    // group
+              PROP_GROUP_MANAGERS, managersGroupId, // the managers of this group (ie
+                                                    // itself)
+              PROP_BARE_AUTHORIZABLE, true));
 
-       authorizableManager.createGroup(managersGroupId, managersGroupId, ImmutableMap.of(
-           PROP_MANAGED_GROUP, (Object)authorizable.getId(), // the ID of the group this group manages
-           PROP_MANAGERS_GROUP,managersGroupId, // the ID of the special managers group
-           PROP_GROUP_MANAGERS,managersGroupId, // the managers of this group (ie itself)
-           PROP_BARE_AUTHORIZABLE, true)
-           );
+      Group managersGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
+      Object[] addValues = parameters.get(PARAM_ADD_TO_MANAGERS_GROUP);
+      if ((addValues != null) && (addValues instanceof String[])) {
+        for (String memberId : (String[]) addValues) {
+          Authorizable toAdd = authorizableManager.findAuthorizable(memberId);
+          if (toAdd != null) {
+            managersGroup.addMember(toAdd.getId());
+          } else {
+            LOGGER.warn("Could not add {} to managers group {}", memberId,
+                managersGroupId);
+          }
+        }
+      }
+      authorizableManager.updateAuthorizable(managersGroup);
 
-       Group managersGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
-       Object[] addValues = parameters.get(PARAM_ADD_TO_MANAGERS_GROUP);
-       if ((addValues != null) && (addValues instanceof String[])) {
-         for (String memberId : (String [])addValues) {
-           Authorizable toAdd = authorizableManager.findAuthorizable(memberId);
-           if (toAdd != null) {
-             managersGroup.addMember(toAdd.getId());
-           } else {
-             LOGGER.warn("Could not add {} to managers group {}", memberId, managersGroupId);
-           }
-         }
-       }
-       authorizableManager.updateAuthorizable(managersGroup);
+      // grant the mangers group management over this group
+      accessControlManager.setAcl(
+          Security.ZONE_AUTHORIZABLES,
+          authorizable.getId(),
+          new AclModification[] { new AclModification(AclModification
+              .grantKey(managersGroupId), Permissions.CAN_MANAGE.getPermission(),
+              Operation.OP_REPLACE) });
+      // and over itself
+      accessControlManager.setAcl(
+          Security.ZONE_AUTHORIZABLES,
+          managersGroupId,
+          new AclModification[] { new AclModification(AclModification
+              .grantKey(managersGroupId), Permissions.CAN_MANAGE.getPermission(),
+              Operation.OP_REPLACE) });
 
-
-       // grant the mangers group management over this group
-       accessControlManager.setAcl(
-           Security.ZONE_AUTHORIZABLES, authorizable.getId(), new AclModification[] {
-             new AclModification(AclModification.grantKey(managersGroupId), Permissions.CAN_MANAGE.getPermission(), Operation.OP_REPLACE)
-           });
-       // and over itself
-       accessControlManager.setAcl(
-           Security.ZONE_AUTHORIZABLES, managersGroupId, new AclModification[] {
-             new AclModification(AclModification.grantKey(managersGroupId), Permissions.CAN_MANAGE.getPermission(), Operation.OP_REPLACE)
-           });
-
-       // The Manager members must be included in all access rights granted to Group
-       // members.
-       if (authorizable.isGroup()) {
-         Group mainGroup = (Group) authorizable;
-         mainGroup.addMember(managersGroupId);
-         authorizableManager.updateAuthorizable(mainGroup);
-       }
+      // The Manager members must be included in all access rights granted to Group
+      // members.
+      if (authorizable.isGroup()) {
+        Group mainGroup = (Group) authorizable;
+        mainGroup.addMember(managersGroupId);
+        authorizableManager.updateAuthorizable(mainGroup);
+      }
     } else {
       boolean isUpdateNeeded = false;
       String managersGroupId = (String) authorizable.getProperty(PROP_MANAGERS_GROUP);
@@ -612,19 +681,20 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       Object[] removeValues = parameters.get(PARAM_REMOVE_FROM_MANAGERS_GROUP);
       if ((removeValues != null) && (removeValues instanceof String[])) {
         isUpdateNeeded = true;
-        for (String memberId : (String [])removeValues) {
-           managersGroup.removeMember(memberId);
+        for (String memberId : (String[]) removeValues) {
+          managersGroup.removeMember(memberId);
         }
       }
       Object[] addValues = parameters.get(PARAM_ADD_TO_MANAGERS_GROUP);
       if ((addValues != null) && (addValues instanceof String[])) {
         isUpdateNeeded = true;
-        for (String memberId : (String [])addValues) {
+        for (String memberId : (String[]) addValues) {
           Authorizable toAdd = authorizableManager.findAuthorizable(memberId);
           if (toAdd != null) {
             managersGroup.addMember(toAdd.getId());
           } else {
-            LOGGER.warn("Could not add {} to managers group {}", memberId, managersGroup.getId());
+            LOGGER.warn("Could not add {} to managers group {}", memberId,
+                managersGroup.getId());
           }
         }
       }
@@ -659,7 +729,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
             @SuppressWarnings("unchecked")
             Entry<String, Object> e = (Entry<String, Object>) o;
             Object object = elements.get(e.getKey());
-            if ( object instanceof JSONObject) {
+            if (object instanceof JSONObject) {
               JSONObject element = (JSONObject) object;
               retval.put(e.getKey(), element.get("value"));
             } else {
@@ -669,11 +739,12 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         }
       }
     }
-      return retval;
+    return retval;
   }
 
-  private boolean createPath(String authId, String path, String resourceType, boolean isPrivate,
-      ContentManager contentManager, AccessControlManager accessControlManager, Map<String, Object>additionalProperties)
+  private boolean createPath(String authId, String path, String resourceType,
+      boolean isPrivate, ContentManager contentManager,
+      AccessControlManager accessControlManager, Map<String, Object> additionalProperties)
       throws AccessDeniedException, StorageClientException {
     Builder<String, Object> propertyBuilder = ImmutableMap.builder();
     propertyBuilder.put(SLING_RESOURCE_TYPE, resourceType);
@@ -691,8 +762,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
                     Permissions.ALL.getPermission(), Operation.OP_REPLACE),
                 new AclModification(AclModification.denyKey(Group.EVERYONE),
                     Permissions.ALL.getPermission(), Operation.OP_REPLACE),
-                new AclModification(AclModification.grantKey(authId),
-                    Permissions.ALL.getPermission(), Operation.OP_REPLACE)});
+                new AclModification(AclModification.grantKey(authId), Permissions.ALL
+                    .getPermission(), Operation.OP_REPLACE) });
       }
       return true;
     }
@@ -711,7 +782,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     acl.remove(AclModification.denyKey(authorizable.getId()));
     acl.remove(AclModification.grantKey(authorizable.getId()));
 
-
     // make sure the owner has permission on their home
     if (authorizable instanceof User && !User.ANON_USER.equals(authorizable.getId())) {
       AclModification.addAcl(true, Permissions.ALL, authorizable.getId(),
@@ -720,14 +790,14 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
     Set<String> managerSettings = null;
     if (authorizable.hasProperty(UserConstants.PROP_GROUP_MANAGERS)) {
-      managerSettings = ImmutableSet.of((String[])authorizable
+      managerSettings = ImmutableSet.of((String[]) authorizable
           .getProperty(UserConstants.PROP_GROUP_MANAGERS));
     } else {
       managerSettings = ImmutableSet.of();
     }
     Set<String> viewerSettings = null;
     if (authorizable.hasProperty(UserConstants.PROP_GROUP_VIEWERS)) {
-      viewerSettings = ImmutableSet.of((String[])authorizable
+      viewerSettings = ImmutableSet.of((String[]) authorizable
           .getProperty(UserConstants.PROP_GROUP_VIEWERS));
     } else {
       viewerSettings = ImmutableSet.of();
@@ -789,14 +859,11 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
     }
 
-    LOGGER.info("Viewer Settings {}",viewerSettings );
-    LOGGER.info("Manager Settings {}",managerSettings );
-    for ( AclModification a : aclModifications ) {
-      LOGGER.info("     Change {} ",a);
+    LOGGER.info("Viewer Settings {}", viewerSettings);
+    LOGGER.info("Manager Settings {}", managerSettings);
+    for (AclModification a : aclModifications) {
+      LOGGER.info("     Change {} ", a);
     }
 
   }
 }
-
-
-
