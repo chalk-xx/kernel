@@ -53,6 +53,7 @@ class TC_MyContactTest < Test::Unit::TestCase
     @log.info("Nico is accpting invitation from Aaron")
     res = @cm.accept_contact("aaron"+m)
     assert_equal("200", res.code, "Expecting acceptance of the contact")
+    wait_for_indexer()
     contacts = @cm.get_accepted()
     assert_not_nil(contacts, "Expected to get an accepted back ")
     assert_equal(1, contacts["results"].size, "Only expecting a single acceptance ")
