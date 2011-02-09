@@ -66,9 +66,9 @@ import javax.jcr.Value;
 import javax.jcr.nodetype.PropertyDefinition;
 
 /**
- * 
+ *
  * <pre>
- * HomePostProcessor 
+ * HomePostProcessor
  *  It creates the following if they dont exist (or onCreate)
  *  a:userID
  *      - sling:resourceType = sakai/user-home | sakai/group-home
@@ -83,59 +83,59 @@ import javax.jcr.nodetype.PropertyDefinition;
  *  a:userID/public
  *  a:userID/private
  *      + permissions: everyone and anon denied read
- *  
+ *
  *  If they do exist (on everything else except delete)
  *  a:userID
  *     Change permissions to match visibility
  *     Change permissions to match managers and viewers
- *     
- *  
+ *
+ *
  * Sakai Group Postprocessor
  * sets the path property in the authorizable
  * sets a group-manages property name to the name of an auto generated group
  * generates that group (does not trigger any post processors)
  * sets properties in the manger group
  * adds members and removes members according to the request properties sakai:manager and sakai:manager@Delete
- * 
+ *
  * Sakau User Post processor
  * sets the path property in the authorizable
- * 
- * 
+ *
+ *
  * Message Post Processor
  * a:userID/message
  *    - sling:resourceType = sakai/messagestore
  *    + permissions: user can all
  *                   anon deny all
  *                   everyone deny all
- *                   
+ *
  * Calendar
  * a:userID/calendar
  *     - sling:resourceType = sakai/calendar
  *     _ stores a default calendar (empty with no properties)
  *     + grants userID all
- *  
- * Connections   
+ *
+ * Connections
  * a:userID/contacts
  *     - sling:resourceType = sakai/contactstore
  *     + deny all for anon and everyone
  *       grants user all, except anon
  *     + creates a private group of viewers that only the current user can view (could be delayed as not used then)
- *  
+ *
  *  Pages post processor
- *  a:userId/pages 
+ *  a:userId/pages
  *      Copies a template content tree verbatum from a uder defined location into the pages folder
- *      
- * 
+ *
+ *
  * Profile post Processor
  * a:userId/profile
  *     - sling:resourceType = sakai/group-profile | sakai/user-profile
  *      Copies a template of content posted by the UI to generate a tree of content after processing, uses the ContentLoader to achieve this.
  *      Copies all the Authorizable Properties onto the authorizable node.
- * 
- * 
- * 
+ *
+ *
+ *
  * -----------------
- * 
+ *
  * We can hard code everything other than the profile importer in a single class
  * IMO the manager group is superfluous on a user and adds unecessary expense
  * </pre>
@@ -146,7 +146,7 @@ import javax.jcr.nodetype.PropertyDefinition;
 public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
   private static final String PAGES_FOLDER = "/pages";
-  
+
   private static final String PAGES_DEFAULT_FILE = "/pages/index.html";
 
   private static final String CONTACTS_FOLDER = "/contacts";
@@ -156,7 +156,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   private static final String MESSAGE_FOLDER = "/message";
 
   private static final String PROFILE_FOLDER = "/authprofile";
-  
+
   private static final String PROFILE_BASIC = "/basic/elements";
 
   private static final String SAKAI_CONTACTSTORE_RT = "sparse/contactstore";
@@ -176,9 +176,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   private static final String SAKAI_GROUP_HOME_RT = "sakai/group-home";
 
   private static final String SAKAI_GROUP_PROFILE_RT = "sakai/group-profile";
-  
+
   private static final String SAKAI_USER_PROFILE_RT = "sakai/user-profile";
-  
+
   private static final String SAKAI_PAGES_RT = "sakai/pages";
 
 
@@ -186,7 +186,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   public static final String VISIBILITY_PRIVATE = "private";
   public static final String VISIBILITY_LOGGED_IN = "logged_in";
   public static final String VISIBILITY_PUBLIC = "public";
-  
+
   public static final String PROFILE_JSON_IMPORT_PARAMETER = ":sakai:profile-import";
   /**
    * Optional parameter containing the path of a Pages source that should be used instead of
@@ -201,11 +201,11 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       @PropertyOption(name = VISIBILITY_PRIVATE, value = "The home is private."),
       @PropertyOption(name = VISIBILITY_LOGGED_IN, value = "The home is blocked to anonymous users; all logged-in users can see it."),
       @PropertyOption(name = VISIBILITY_PUBLIC, value = "The home is completely public.") })
-      
+
   static final String PROFILE_IMPORT_TEMPLATE = "sakai.user.profile.template.default";
   static final String PROFILE_IMPORT_TEMPLATE_DEFAULT = "{'basic':{'elements':{'firstName':{'value':'@@firstName@@'},'lastName':{'value':'@@lastName@@'},'email':{'value':'@@email@@'}},'access':'everybody'}}";
-  
-  
+
+
   @Property(value="/var/templates/pages/systemuser")
   public static final String DEFAULT_USER_PAGES_TEMPLATE = "default.user.template";
   private String defaultUserPagesTemplate;
@@ -214,7 +214,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   public static final String DEFAULT_GROUP_PAGES_TEMPLATE = "default.group.template";
   private String defaultGroupPagesTemplate;
 
-  
+
   private String defaultProfileTemplate;
   private ArrayList<String> profileParams = new ArrayList<String>();
   static final String VISIBILITY_PREFERENCE = "visibility.preference";
@@ -232,7 +232,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   protected void modified(Map<?, ?> props) {
     visibilityPreference = OsgiUtil.toString(props.get(VISIBILITY_PREFERENCE),
         VISIBILITY_PREFERENCE_DEFAULT);
-    
+
     defaultProfileTemplate = PROFILE_IMPORT_TEMPLATE_DEFAULT;
 
     int startPos = defaultProfileTemplate.indexOf("@@");
@@ -246,7 +246,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       }
       startPos = endPos;
     }
-    
+
     defaultUserPagesTemplate = OsgiUtil.toString(props.get(DEFAULT_USER_PAGES_TEMPLATE), "");
     defaultGroupPagesTemplate = OsgiUtil.toString(props.get(DEFAULT_GROUP_PAGES_TEMPLATE), "");
 
@@ -285,7 +285,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     if ( isGroup ) {
       updateManagersGroup(authorizable, authorizableManager, accessControlManager, parameters);
     }
-    
+
     // Home Authorizable PostProcessor
     // ==============================
     // home path
@@ -333,13 +333,13 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
       AclModification[] aclMods = aclModifications.toArray(new AclModification[aclModifications.size()]);
       accessControlManager.setAcl(Security.ZONE_CONTENT, homePath, aclMods);
-      
+
       accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(), aclMods);
 
     } else {
       // Sync the Acl on the home folder with whatever is present in the authorizable
       // permissions.
-      
+
       Map<String, Object> acl = accessControlManager.getAcl(Security.ZONE_CONTENT,
           homePath);
       List<AclModification> aclModifications = new ArrayList<AclModification>();
@@ -348,7 +348,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
       accessControlManager.setAcl(Security.ZONE_CONTENT, homePath,
           aclModifications.toArray(new AclModification[aclModifications.size()]));
-      
+
       acl = accessControlManager.getAcl(Security.ZONE_AUTHORIZABLES,
           authorizable.getId());
       aclModifications = new ArrayList<AclModification>();
@@ -384,10 +384,10 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     }
     // Profile
     String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT : SAKAI_USER_PROFILE_RT;
-    createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER, profileType, false, contentManager, 
+    createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER, profileType, false, contentManager,
         accessControlManager, null);
-    
-    createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC, "nt:unstructured", 
+
+    createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC, "nt:unstructured",
         false, contentManager, accessControlManager, processProfileParameters(defaultProfileTemplate,
             authorizable, parameters));
 
@@ -418,7 +418,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         templatePath = defaultUserPagesTemplate;
       }
     }
-    
+
     Resource resource = request.getResourceResolver().resolve(templatePath);
     Node node = resource.adaptTo(Node.class);
     if ( node != null) {
@@ -463,7 +463,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
               break;
             }
           }
-          
+
         } else {
           Value v = p.getValue();
           switch(type) {
@@ -496,7 +496,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
             content.setProperty(e.getKey(), e.getValue());
           }
         }
-        
+
         if ( JcrConstants.NT_FILE.equals(node.getPrimaryNodeType().getName())) {
           Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
           javax.jcr.Property data = contentNode.getProperty(JcrConstants.JCR_DATA);
@@ -593,17 +593,28 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
            Security.ZONE_AUTHORIZABLES, managersGroupId, new AclModification[] {
              new AclModification(AclModification.grantKey(managersGroupId), Permissions.CAN_MANAGE.getPermission(), Operation.OP_REPLACE)
            });
+
+       // The Manager members must be included in all access rights granted to Group
+       // members.
+       if (authorizable.isGroup()) {
+         Group mainGroup = (Group) authorizable;
+         mainGroup.addMember(managersGroupId);
+         authorizableManager.updateAuthorizable(mainGroup);
+       }
     } else {
+      boolean isUpdateNeeded = false;
       String managersGroupId = StorageClientUtils.toString(authorizable.getProperty(PROP_MANAGERS_GROUP));
       Group managersGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
       Object[] removeValues = parameters.get(PARAM_REMOVE_FROM_MANAGERS_GROUP);
       if ((removeValues != null) && (removeValues instanceof String[])) {
+        isUpdateNeeded = true;
         for (String memberId : (String [])removeValues) {
            managersGroup.removeMember(memberId);
         }
       }
       Object[] addValues = parameters.get(PARAM_ADD_TO_MANAGERS_GROUP);
       if ((addValues != null) && (addValues instanceof String[])) {
+        isUpdateNeeded = true;
         for (String memberId : (String [])addValues) {
           Authorizable toAdd = authorizableManager.findAuthorizable(memberId);
           if (toAdd != null) {
@@ -613,8 +624,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           }
         }
       }
-      // update knows if anything has changed and wont update if nothing changed.
-      authorizableManager.updateAuthorizable(managersGroup);
+      if (isUpdateNeeded) {
+        authorizableManager.updateAuthorizable(managersGroup);
+      }
     }
   }
 
@@ -694,7 +706,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     acl.remove(AclModification.grantKey(Group.EVERYONE));
     acl.remove(AclModification.denyKey(authorizable.getId()));
     acl.remove(AclModification.grantKey(authorizable.getId()));
-    
+
 
     // make sure the owner has permission on their home
     if (authorizable instanceof User && !User.ANON_USER.equals(authorizable.getId())) {
@@ -772,7 +784,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE));
 
     }
-    
+
     LOGGER.info("Viewer Settings {}",viewerSettings );
     LOGGER.info("Manager Settings {}",managerSettings );
     for ( AclModification a : aclModifications ) {
@@ -781,6 +793,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
   }
 }
-  
-  
+
+
 
