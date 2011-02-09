@@ -107,6 +107,7 @@ class TC_Kern926Test < Test::Unit::TestCase
     url = @fm.url_for_pooled_file(id)
 
     # Search the files that I manage .. should be 1
+    wait_for_indexer()
     res = @fm.search_my_managed("*")
     files = JSON.parse(res.body)
     assert_equal(1, files["total"], "Expected 1 file.")
@@ -118,6 +119,7 @@ class TC_Kern926Test < Test::Unit::TestCase
 
     @s.switch_user(viewer)
     # Search the files that I can view .. should be 1
+    wait_for_indexer()
     res = @fm.search_my_viewed("*")
     files = JSON.parse(res.body)
     assert_equal(1, files["total"], "Expected 1 file.")
@@ -159,6 +161,7 @@ class TC_Kern926Test < Test::Unit::TestCase
     assert_equal(principals.include?(group.name),true)
     @log.info("Got User principals for #{groupuser.name} as #{principals} which contains #{group.name}")
     
+    wait_for_indexer()
     res = @fm.search_my_viewed("*")
     files = JSON.parse(res.body)
     assert_equal(1, files["total"], "Expected 1 file. #{res.body}")
