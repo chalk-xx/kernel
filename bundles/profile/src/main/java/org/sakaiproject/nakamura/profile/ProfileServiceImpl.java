@@ -104,6 +104,11 @@ public class ProfileServiceImpl implements ProfileService {
       profileMap.putAll(getProfileMap(profileContent, session));
     }
     profileMap.put(USER_BASIC, basicProfileMapForAuthorizable(authorizable));
+    if (authorizable.isGroup()) {
+      addGroupProperties(authorizable, profileMap);
+    } else {
+      addUserProperties(authorizable, profileMap);
+    }
     return profileMap;
   }
 
@@ -193,18 +198,26 @@ public class ProfileServiceImpl implements ProfileService {
     compactProfile.put(USER_BASIC, basicProfileMapForAuthorizable(authorizable));
 
     if (authorizable.isGroup()) {
-      // For a group we just dump it's title and description.
-      compactProfile.put("groupid", authorizable.getId());
-      compactProfile.put("sakai:group-id", authorizable.getId());
-      compactProfile.put(GROUP_TITLE_PROPERTY, authorizable.getProperty(GROUP_TITLE_PROPERTY));
-      compactProfile.put(GROUP_DESCRIPTION_PROPERTY, authorizable
-          .getProperty(GROUP_DESCRIPTION_PROPERTY));
+      addGroupProperties(authorizable, compactProfile);
     } else {
-      // Backward compatible reasons.
-      compactProfile.put("userid", authorizable.getId());
-      compactProfile.put("hash", authorizable.getId());
+      addUserProperties(authorizable, compactProfile);
     }
     return compactProfile;
+  }
+
+  private void addUserProperties(Authorizable user, ValueMap profileMap) {
+    // Backward compatible reasons.
+    profileMap.put("userid", user.getId());
+    profileMap.put("hash", user.getId());
+  }
+
+  private void addGroupProperties(Authorizable group, ValueMap profileMap) {
+    // For a group we just dump it's title and description.
+    profileMap.put("groupid", group.getId());
+    profileMap.put("sakai:group-id", group.getId());
+    profileMap.put(GROUP_TITLE_PROPERTY, group.getProperty(GROUP_TITLE_PROPERTY));
+    profileMap.put(GROUP_DESCRIPTION_PROPERTY, group
+        .getProperty(GROUP_DESCRIPTION_PROPERTY));
   }
 
   private ValueMap basicProfileMapForAuthorizable(Authorizable authorizable) {
