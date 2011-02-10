@@ -31,6 +31,7 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
@@ -660,8 +661,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       // also unique by definition.
       String managersGroupId = authorizable.getId() + "-managers";
       authorizable.setProperty(PROP_MANAGERS_GROUP, managersGroupId);
-      Set<String> managers = Sets.newHashSet((String[]) authorizable
-          .getProperty(UserConstants.PROP_GROUP_MANAGERS));
+      Set<String> managers = Sets.newHashSet(StorageClientUtils.nonNullStringArray(
+          (String[])authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
       managers.add(managersGroupId);
       authorizable.setProperty(UserConstants.PROP_GROUP_MANAGERS,
           managers.toArray(new String[managers.size()]));
