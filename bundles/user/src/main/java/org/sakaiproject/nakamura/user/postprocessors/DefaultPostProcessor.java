@@ -676,7 +676,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
                                                                              // manages
               PROP_MANAGERS_GROUP, managersGroupId, // the ID of the special managers
                                                     // group
-              PROP_GROUP_MANAGERS, managersGroupId, // the managers of this group (ie
+              PROP_GROUP_MANAGERS, new String[] {managersGroupId}, // the managers of this group (ie
                                                     // itself)
               PROP_BARE_AUTHORIZABLE, true));
 
