@@ -33,12 +33,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.message.internal.LiteInternalMessageHandler;
-import org.sakaiproject.nakamura.message.search.MessageSearchResultProcessor;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.ByteArrayOutputStream;
@@ -125,9 +123,8 @@ public class MessageSearchResultProcessorTest {
 
   private Content createDummyMessage(String msgID) {
     Content c = new Content("/path/to/store/" + msgID, null);
-    c.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
-        StorageClientUtils.toStore(MessageConstants.BOX_INBOX));
-    c.setProperty("foo", StorageClientUtils.toStore(new String[] { "a", "b" }));
+    c.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
+    c.setProperty("foo", new String[] { "a", "b" });
     return c;
   }
 

@@ -23,7 +23,7 @@ class TC_Kern289Test < Test::Unit::TestCase
     @s.switch_user(u1)
     cm.invite_contact(u2.name, "follower")
     #@s.debug = true
-    sleep(20)
+    wait_for_indexer()
     contacts = cm.get_all()
     #@s.debug = false
     assert_not_nil(contacts)

@@ -19,12 +19,12 @@ class TC_Kern288Test < Test::Unit::TestCase
     cm = ContactManager.new(@s)
     @s.switch_user(u1)
     cm.invite_contact(u2.name, "follower")
-	sleep 20
+    wait_for_indexer()
     pending = cm.get_pending
     assert(pending["results"].size == 1, "Expected pending invitation")
     res = cm.cancel_invitation(u2.name)
     assert_equal("200", res.code, "Expected cancel to succeed")
-	sleep 20
+    wait_for_indexer()
     pending = cm.get_pending
     assert(pending["results"].size == 0, "Expected no pending invitation")
   end

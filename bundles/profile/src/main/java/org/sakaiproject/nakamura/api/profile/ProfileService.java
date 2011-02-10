@@ -17,10 +17,12 @@
  */
 package org.sakaiproject.nakamura.api.profile;
 
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.resource.ValueMap;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 
-import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
@@ -30,28 +32,6 @@ import javax.jcr.Session;
 public interface ProfileService {
 
 
-  /**
-   * Gets profile information from JCR and expands external resources efficiently.
-   *
-   * @param authorizable
-   *          The profile of this authorizable will be written out.
-   * @param session
-   *          A JCR Session that can be used to access the necessary nodes.
-   *
-   * @return A Map that represents the profile, or null if no profile was found.
-   */
-  ValueMap getProfileMap(Authorizable authorizable, Session session)
-      throws RepositoryException;
-
-  /**
-   * Gets profile information from JCR and expands external resources efficiently.
-   *
-   * @param profileNode
-   *          The node that represents the top level profile node.
-   *
-   * @return A Map that represents the profile.
-   */
-  ValueMap getProfileMap(Node profileNode) throws RepositoryException;
 
   /**
    * Gets the compact profile information from JCR and expands external resources
@@ -63,9 +43,16 @@ public interface ProfileService {
    *          A JCR Session that can be used to access the necessary nodes.
    *
    * @return A Map that represents the profile, or null if no profile was found.
+   * @throws AccessDeniedException 
    */
-  ValueMap getCompactProfileMap(Authorizable authorizable, Session session)
-      throws RepositoryException;
+  ValueMap getProfileMap(
+      Authorizable authorizable,
+      Session session) throws RepositoryException, StorageClientException, AccessDeniedException;
+
+  ValueMap getProfileMap(Content profileContent, Session session) throws RepositoryException;
+
+  ValueMap getProfileMap(
+      org.apache.jackrabbit.api.security.user.Authorizable authorizable, Session session) throws RepositoryException;
 
   /**
    * Gets the compact profile information from JCR and expands external resources
@@ -76,5 +63,14 @@ public interface ProfileService {
    *
    * @return A Map that represents the profile.
    */
-  ValueMap getCompactProfileMap(Node profileNode) throws RepositoryException;
+  ValueMap getCompactProfileMap(
+      Authorizable authorizable,
+      Session session) throws RepositoryException, StorageClientException,
+      AccessDeniedException;
+
+
+  ValueMap getCompactProfileMap(org.apache.jackrabbit.api.security.user.Authorizable au,
+      Session session) throws RepositoryException;
+
+
 }

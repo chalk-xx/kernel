@@ -57,7 +57,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -97,7 +98,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
 
 
   @Reference
-  protected transient LiteProfileService profileService;
+  protected transient ProfileService profileService;
 
   /**
    * Retrieves the list of members.
@@ -113,6 +114,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
     try {
       // Get hold of the actual file.
       Resource resource = request.getResource();
+     javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
       Session session = resource.adaptTo(Session.class);
 
       AuthorizableManager am = session.getAuthorizableManager();
@@ -149,13 +151,13 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       writer.key("managers");
       writer.array();
       for (String manager : StorageClientUtils.nonNullStringArray(managers)) {
-        writeProfileMap(session, am, writer, manager, detailed);
+        writeProfileMap(jcrSession, am, writer, manager, detailed);
       }
       writer.endArray();
       writer.key("viewers");
       writer.array();
       for (String viewer : StorageClientUtils.nonNullStringArray(viewers)) {
-        writeProfileMap(session, am, writer, viewer, detailed);
+        writeProfileMap(jcrSession, am, writer, viewer, detailed);
       }
       writer.endArray();
       writer.endObject();
@@ -168,20 +170,23 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
     } catch (AccessDeniedException e) {
       response.sendError(SC_INTERNAL_SERVER_ERROR, "Failed to generate proper JSON.");
       LOGGER.error(e.getMessage(), e);
+    } catch (RepositoryException e) {
+      response.sendError(SC_INTERNAL_SERVER_ERROR, "Failed to generate proper JSON.");
+      LOGGER.error(e.getMessage(), e);
     }
 
   }
 
-  private void writeProfileMap(Session session, AuthorizableManager um,
+  private void writeProfileMap(javax.jcr.Session jcrSession, AuthorizableManager um,
       ExtendedJSONWriter writer, String user, boolean detailed)
-      throws JSONException, AccessDeniedException, StorageClientException {
+      throws JSONException, AccessDeniedException, StorageClientException, RepositoryException {
     Authorizable au = um.findAuthorizable(user);
     if (au != null) {
       ValueMap profileMap = null;
       if (detailed) {
-        profileMap = profileService.getProfileMap(au, session);
+        profileMap = profileService.getProfileMap(au, jcrSession);
       } else {
-        profileMap = profileService.getCompactProfileMap(au);
+        profileMap = profileService.getCompactProfileMap(au, jcrSession);
       }
       if (profileMap != null) {
         writer.valueMap(profileMap);
@@ -251,7 +256,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       List<AclModification> aclModifications = Lists.newArrayList();
 
       for (String addManager : StorageClientUtils.nonNullStringArray(request.getParameterValues(":manager"))) {
-        if (!managerSet.contains(addManager)) {
+        if ((addManager.length() > 0) && !managerSet.contains(addManager)) {
           managerSet.add(addManager);
           AclModification.addAcl(true, Permissions.CAN_MANAGE, addManager,
               aclModifications);
@@ -259,7 +264,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       }
 
       for (String removeManager : StorageClientUtils.nonNullStringArray(request.getParameterValues(":manager@Delete"))) {
-        if (managerSet.contains(removeManager)) {
+        if ((removeManager.length() > 0) && managerSet.contains(removeManager)) {
           managerSet.remove(removeManager);
           AclModification.removeAcl(true, Permissions.CAN_MANAGE, removeManager,
               aclModifications);
@@ -267,13 +272,13 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       }
 
       for (String addViewer : StorageClientUtils.nonNullStringArray(request.getParameterValues(":viewer"))) {
-        if (!viewersSet.contains(addViewer)) {
+        if ((addViewer.length() > 0) && !viewersSet.contains(addViewer)) {
           viewersSet.add(addViewer);
           AclModification.addAcl(true, Permissions.CAN_READ, addViewer, aclModifications);
         }
       }
       for (String removeViewer : StorageClientUtils.nonNullStringArray(request.getParameterValues(":viewer@Delete"))) {
-        if (viewersSet.contains(removeViewer)) {
+        if ((removeViewer.length() > 0) && viewersSet.contains(removeViewer)) {
           viewersSet.remove(removeViewer);
           if (!managerSet.contains(removeViewer)) {
             AclModification.removeAcl(true, Permissions.CAN_READ, removeViewer,
@@ -284,6 +289,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
 
       // if there are viewers listed, then we need to remove anon and everyone read
       // grants, otherwise we need to remove the denys and add grants back in.
+      // TODO This is incorrect. Pooled Content is not public by default.
       if (viewersSet.size() > 0) {
         AclModification.removeAcl(true, Permissions.CAN_READ, User.ANON_USER,
             aclModifications);
@@ -303,7 +309,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
         AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
             aclModifications);
       }
-      
+
 
       node.setProperty(POOLED_CONTENT_USER_VIEWER,
           viewersSet.toArray(new String[viewersSet.size()]));

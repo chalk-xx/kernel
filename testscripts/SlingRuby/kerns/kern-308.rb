@@ -52,7 +52,7 @@ class TC_Kern308Test < Test::Unit::TestCase
     assert(g2.has_member(@s, u3.name), "Expected foreign user to be able to modify group")
     @s.switch_user(u3)
     res = g2.remove_member(@s, u2.name, "user")
-    assert_equal("500", res.code, "Expected not to be able to make change")
+    assert_not_equal("200", res.code, "Expected not to be able to make change")
     assert(g2.has_member(@s, u2.name), "Expected foreign user not to be able to modify group")
   end
 

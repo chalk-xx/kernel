@@ -61,6 +61,10 @@ module SlingTest
     @created_groups << groupname
     return g
   end
+  
+  def wait_for_indexer()
+    sleep(20)
+  end
 
 end
 

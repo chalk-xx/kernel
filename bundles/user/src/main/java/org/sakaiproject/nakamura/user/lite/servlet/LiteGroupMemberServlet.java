@@ -41,7 +41,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -104,7 +104,7 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = 7976930178619974246L;
 
   @Reference
-  protected transient LiteProfileService profileService;
+  protected transient ProfileService profileService;
 
   static final String ITEMS = "items";
   static final String PAGE = "page";
@@ -171,7 +171,7 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
           items, page);
 
       // Write the whole lot out.
-      Session session = request.getResourceResolver().adaptTo(Session.class);
+      javax.jcr.Session session = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
       writer.array();
       int i = 0;
       while (iterator.hasNext() && i < items) {
@@ -181,7 +181,7 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
         if(selectors.contains("detailed")){
           profile = profileService.getProfileMap(au, session);
         }else{
-          profile = profileService.getCompactProfileMap(au);
+          profile = profileService.getCompactProfileMap(au, session);
         }
         if (profile != null) {
           writer.valueMap(profile);
@@ -194,15 +194,23 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
       writer.endArray();
 
     } catch (JSONException e) {
+      logger.error(e.getMessage(),e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Failed to build a proper JSON output.");
       return;
     } catch (StorageClientException e) {
+      logger.error(e.getMessage(),e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
       "Failed to get members.");
       return;
     } catch (AccessDeniedException e) {
+      logger.error(e.getMessage());
       response.sendError(HttpServletResponse.SC_FORBIDDEN,
+      "Failed to get members.");
+      return;
+    } catch (RepositoryException e) {
+      logger.error(e.getMessage(),e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
       "Failed to get members.");
       return;
     }

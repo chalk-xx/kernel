@@ -17,9 +17,10 @@
  */
 package org.sakaiproject.nakamura.profile;
 
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
 
-import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
@@ -39,17 +40,15 @@ public class ProviderSettingsFactory {
    * @see org.sakaiproject.nakamura.api.profile.ProviderSettingsFactory#newProviderSettings(java.lang.String,
    *      javax.jcr.Node)
    */
-  public ProviderSettings newProviderSettings(String path, Node node)
+  public ProviderSettings newProviderSettings(String path, Content profileContent, Session session)
       throws RepositoryException {
-    if (node.hasProperty("sakai:source")) {
-      if ("external".equals(node.getProperty("sakai:source").getString())) {
-        System.err.println("Is external " + node.getProperty("sakai:source").getString());
+    if (profileContent.hasProperty("sakai:source")) {
+      if ("external".equals(profileContent.getProperty("sakai:source"))) {
+        System.err.println("Is external " + profileContent.getProperty("sakai:source"));
         
-        Session session = node.getSession();
-        String providerSettings = appendPath(PROVIDER_SETTINGS, path);
-        System.err.println("Locating "+providerSettings);
+        String providerSettings = StorageClientUtils.newPath(PROVIDER_SETTINGS, path);
         if (session.nodeExists(providerSettings)) {
-          return new ProviderSettingsImpl(node, session.getNode(providerSettings));
+          return new ProviderSettingsImpl(profileContent, session.getNode(providerSettings));
         } else {
           System.err.println("No Settings "+providerSettings);   
         }
@@ -58,20 +57,5 @@ public class ProviderSettingsFactory {
     return null;
   }
 
-  /**
-   * @param string
-   * @param name
-   * @return
-   */
-  private String appendPath(String path, String name) {
-    System.err.println("Appending ["+path+"]["+name);
-    if (path.endsWith("/")) {
-      return path + name;
-    }
-    if (name.startsWith("/")) {
-      return path + name;
-    }
-    return path + "/" + name;
-  }
 
 }
