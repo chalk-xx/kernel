@@ -27,7 +27,6 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
@@ -66,7 +65,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
    */
   @Reference
   protected transient Repository repository;
-  
+
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteAbstractSakaiGroupPostServlet.class);
 
@@ -77,14 +76,14 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
    *
    * @param request
    * @param authorizable
-   * @param toSave 
-   * @throws StorageClientException 
-   * @throws AccessDeniedException 
+   * @param toSave
+   * @throws StorageClientException
+   * @throws AccessDeniedException
    * @throws RepositoryException
    */
   protected void updateGroupMembership(SlingHttpServletRequest request, Session session,
       Authorizable authorizable, List<Modification> changes, Map<String, Object> toSave) throws AccessDeniedException, StorageClientException  {
-    updateGroupMembership(request, session, authorizable, 
+    updateGroupMembership(request, session, authorizable,
         SlingPostConstants.RP_PREFIX + "member", changes, toSave);
   }
 
@@ -96,12 +95,13 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
           + group.getId();
 
       boolean changed = false;
-      
+
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
 
       // first remove any members posted as ":member@Delete"
       String[] membersToDelete = request.getParameterValues(paramName + SlingPostConstants.SUFFIX_DELETE);
       if (membersToDelete != null) {
+        toSave.put(group.getId(), group);
         LOGGER.info("Members to delete {} ",membersToDelete);
         for (String member : membersToDelete) {
           String memberId = getAuthIdFromParameter(member);
@@ -109,7 +109,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
           changed = true;
         }
       }
-      
+
       Joinable groupJoin = getJoinable(group);
 
       // second add any members posted as ":member"
@@ -143,18 +143,18 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
                   ungetSession(adminSession);
               }
             }else{
-              LOGGER.debug("Group {} is not Joinable: User {} adding {}  ",new Object[]{group.getId(), session.getUserId(), memberAuthorizable.getId(),});
+              LOGGER.info("Group {} is not Joinable: User {} adding {}  ",new Object[]{group.getId(), session.getUserId(), memberAuthorizable.getId(),});
               //group is restricted, so use the current user's authorization
               //to add the member to the group:
-              
+
               group.addMember(memberAuthorizable.getId());
-              if ( LOGGER.isDebugEnabled() ) {
-                LOGGER.debug("Membership now {} {} {}", new Object[]{ Arrays.toString(group.getMembers()), Arrays.toString(group.getMembersAdded()), Arrays.toString(group.getMembersRemoved())});
+              if ( LOGGER.isInfoEnabled() ) {
+                LOGGER.info("{} Membership now {} {} {}", new Object[]{ group.getId(),Arrays.toString(group.getMembers()), Arrays.toString(group.getMembersAdded()), Arrays.toString(group.getMembersRemoved())});
               }
               toSave.put(group.getId(), group);
               Group gt = (Group) toSave.get(group.getId());
-              if ( LOGGER.isDebugEnabled() ) {
-                LOGGER.debug("Membership now {} {} {}", new Object[]{ Arrays.toString(gt.getMembers()), Arrays.toString(gt.getMembersAdded()), Arrays.toString(gt.getMembersRemoved())});
+              if ( LOGGER.isInfoEnabled() ) {
+                LOGGER.info("{} Membership now {} {} {}", new Object[]{ group.getId(),Arrays.toString(gt.getMembers()), Arrays.toString(gt.getMembersAdded()), Arrays.toString(gt.getMembersRemoved())});
               }
               changed = true;
             }
@@ -164,20 +164,23 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
                 membersToRemoveFromPeer.add(memberAuthorizable);
               }
             }
+          } else {
+            LOGGER.warn("member not found {} ", memberId);
           }
         }
-        if (peerGroup != null) {
+        if ((peerGroup != null) && (membersToRemoveFromPeer.size() > 0)) {
           for (Authorizable member : membersToRemoveFromPeer) {
-            if ( LOGGER.isDebugEnabled() ) {
-              LOGGER.debug("Removing Member {} from {} ",member.getId(),peerGroup.getId());
+            if ( LOGGER.isInfoEnabled() ) {
+              LOGGER.info("Removing Member {} from {} ",member.getId(), peerGroup.getId());
             }
             peerGroup.removeMember(member.getId());
           }
           toSave.put(peerGroup.getId(), peerGroup);
-          if ( LOGGER.isDebugEnabled() ) {
-            LOGGER.debug("Just Updated Peer Group Membership now {} {} {}", new Object[]{ Arrays.toString(peerGroup.getMembers()), Arrays.toString(peerGroup.getMembersAdded()), Arrays.toString(peerGroup.getMembersRemoved())});
+          if ( LOGGER.isInfoEnabled() ) {
+            LOGGER.info("{} Just Updated Peer Group Membership now {} {} {}", new Object[]{peerGroup.getId(), Arrays.toString(peerGroup.getMembers()), Arrays.toString(peerGroup.getMembersAdded()), Arrays.toString(peerGroup.getMembersRemoved())});
           }
         }
+
       }
 
       if (changed) {
@@ -197,7 +200,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
   private Group getPeerGroupOf(Group group, AuthorizableManager authorizableManager, Map<String, Object> toSave) throws AccessDeniedException, StorageClientException  {
     Group peerGroup = null;
     if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-      String managersGroupId = StorageClientUtils.toString(group.getProperty(UserConstants.PROP_MANAGERS_GROUP));
+      String managersGroupId = (String) group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
       if ( group.getId().equals(managersGroupId)) {
         return group;
       }
@@ -213,7 +216,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
         }
       }
     } else if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
-      String managedGroupId = StorageClientUtils.toString(group.getProperty(UserConstants.PROP_MANAGED_GROUP));
+      String managedGroupId = (String) group.getProperty(UserConstants.PROP_MANAGED_GROUP);
       if ( group.getId().equals(managedGroupId)) {
         return group;
       }
@@ -243,7 +246,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
    *          a list of principals who are allowed to admin the group.
    * @param changes
    *          changes made
-   * @param toSave 
+   * @param toSave
    * @throws RepositoryException
    */
   protected void updateOwnership(SlingHttpServletRequest request, Group group,
@@ -270,16 +273,16 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
    *          deletes.
    * @param extraPropertyValues
    *          An array of authorizable IDs that should be added as well.
-   * @param toSave 
+   * @param toSave
    * @throws RepositoryException
    */
   protected void handleAuthorizablesOnProperty(SlingHttpServletRequest request,
       Group group, String propertyName, String paramName,
       String[] extraPropertyValues, Map<String, Object> toSave)  {
     Set<String> propertyValueSet = new HashSet<String>();
-    
+
     if (group.hasProperty(propertyName)) {
-      String[] existingProperties = StorageClientUtils.toStringArray(group.getProperty(propertyName));
+      String[] existingProperties = (String[]) group.getProperty(propertyName);
       for (String property : existingProperties) {
         propertyValueSet.add(property);
       }
@@ -316,10 +319,10 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
 
     // Write the property.
     if (changed) {
-      group.setProperty(propertyName, StorageClientUtils.toStore(propertyValueSet.toArray(new String[propertyValueSet.size()])));
+      group.setProperty(propertyName, propertyValueSet.toArray(new String[propertyValueSet.size()]));
       if ( LOGGER.isDebugEnabled() ) {
         LOGGER.debug("Adding to save Queue {} {}",group.getId(),group.getSafeProperties());
-      } 
+      }
       toSave.put(group.getId(), group);
     }
   }
@@ -331,9 +334,9 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
 
   /**
    * Returns an administrative session to the default workspace.
-   * @throws AccessDeniedException 
-   * @throws StorageClientException 
-   * @throws ClientPoolException 
+   * @throws AccessDeniedException
+   * @throws StorageClientException
+   * @throws ClientPoolException
    */
   private Session getSession() throws ClientPoolException, StorageClientException, AccessDeniedException  {
     return getRepository().loginAdministrative();
@@ -361,7 +364,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
   public Joinable getJoinable(Authorizable authorizable) {
       if (authorizable instanceof Group && authorizable.hasProperty(UserConstants.PROP_JOINABLE_GROUP)) {
         try {
-          String joinable = StorageClientUtils.toString(authorizable.getProperty(UserConstants.PROP_JOINABLE_GROUP));
+          String joinable = (String) authorizable.getProperty(UserConstants.PROP_JOINABLE_GROUP);
           LOGGER.info("Joinable Property on {} {} ", authorizable, joinable);
           if (joinable != null) {
             return Joinable.valueOf(joinable);

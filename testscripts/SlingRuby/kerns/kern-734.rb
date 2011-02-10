@@ -58,7 +58,6 @@ class TC_Kern734Test < Test::Unit::TestCase
 	res = @s.execute_get(@s.url_for("/system/me"))
 	assert_equal("200",res.code)
 	props = JSON.parse(res.body)
-	@log.debug(res.body)
 	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
 	assert_equal(testUser.name, props["user"]["userid"],"Authentication failed, didnt get expected user")
 	homeFolderTestFile = "/~#{testUser.name}/testarea"+m+type
@@ -68,8 +67,10 @@ class TC_Kern734Test < Test::Unit::TestCase
 	res = @s.execute_get(@s.url_for(homeFolderTestFile+".json"))
 	assert_equal("200",res.code)
 	props = JSON.parse(res.body)
+	@log.debug(res.body)
+        
 	# check the node really was last modified by the correct user.
-	assert_equal(testUser.name, props["jcr:lastModifiedBy"])
+	assert_equal(testUser.name, props["lastModifiedBy"])
 	
   end
 

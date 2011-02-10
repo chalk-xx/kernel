@@ -191,7 +191,8 @@ class TC_Kern740Test < Test::Unit::TestCase
 	assert_equal("200",res.code)
 	props = JSON.parse(res.body)
 	# check the node really was last modified by the correct user.
-	assert_equal(u, props["jcr:lastModifiedBy"])
+  # assert_equal(u, props["jcr:lastModifiedBy"])
+	assert_equal(u, props["createdBy"])
 
   end
   

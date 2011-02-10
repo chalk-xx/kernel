@@ -18,12 +18,14 @@
 package org.sakaiproject.nakamura.util;
 
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -43,6 +45,7 @@ public class ExtendedJSONWriter extends JSONWriter {
   public ExtendedJSONWriter(Writer w) {
     super(w);
   }
+
 
   public void valueMap(Map<String, Object> valueMap) throws JSONException {
     ExtendedJSONWriter.writeValueMap(this, valueMap);
@@ -70,7 +73,7 @@ public class ExtendedJSONWriter extends JSONWriter {
   }
   public static void writeValueMapInternals(JSONWriter writer, Map<String, ?> valueMap) throws JSONException {
     if (valueMap != null) {
-      for (Entry<String,?> e : valueMap.entrySet()) {
+      for (Entry<String, ?> e : valueMap.entrySet()) {
         writer.key(e.getKey());
         writeValueInternal(writer, e.getValue());
       }
@@ -166,14 +169,51 @@ public class ExtendedJSONWriter extends JSONWriter {
     Map<String, Object> props = content.getProperties();
     for (Entry<String, Object> prop : props.entrySet()) {
       String propName = prop.getKey();
-      String propValue = StorageClientUtils.toString(prop.getValue());
+      Object propValue = prop.getValue();
 
-      write.key(propName);
-      if (isUserPath(propName, propValue)) {
-        write.value(PathUtils.translateAuthorizablePath(propValue));
-      } else {
-        write.value(propValue);
+      Object value = firstElement(propValue);
+      if ( value != null ) {
+        write.key(propName);
+        if (isUserPath(propName, value)) {
+          write.value(PathUtils.translateAuthorizablePath(value));
+        } else if(propValue instanceof Object[]) {
+          write.value(new JSONArray(Arrays.asList((Object[])propValue)));
+        } else {
+          write.value(propValue);
+        }
       }
+    }
+  }
+  
+  private static Object firstElement(Object value) {
+    if ( value instanceof Object[] ) {
+      if ( ((Object[])value).length == 0) {
+        return null;
+      }
+      return ((Object[])value)[0];
+    }
+    return value;
+  }
+
+
+  @Override
+  public JSONWriter value(Object object) throws JSONException {
+    if ( object instanceof Object[]) {
+      Object[] oarray = (Object[]) object;
+      if (  oarray.length > 0 ) {
+        if ( oarray.length == 1) {
+          value(oarray[0]);
+        } else {
+          array();
+          for ( Object o : oarray) {
+            value(o);
+          }
+          endArray();
+        }
+      }
+      return this;
+    } else {
+      return super.value(object);
     }
   }
 

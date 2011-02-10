@@ -43,7 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 @Component(immediate = true, metatype = true)
 @Service(value = ResourceProvider.class)
 @Properties(value = {
-    @Property(name = "provider.roots", value = "/system/lite/userManager/"),
+    @Property(name = "provider.roots", value = "/system/userManager/"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class LiteAuthorizableResourceProvider implements ResourceProvider {
 
@@ -52,7 +52,7 @@ public class LiteAuthorizableResourceProvider implements ResourceProvider {
    */
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  public static final String SYSTEM_USER_MANAGER_PATH = "/system/lite/userManager";
+  public static final String SYSTEM_USER_MANAGER_PATH = "/system/userManager";
 
   public static final String SYSTEM_USER_MANAGER_USER_PATH = SYSTEM_USER_MANAGER_PATH
       + "/user";

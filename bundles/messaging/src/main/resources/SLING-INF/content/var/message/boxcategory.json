@@ -1,7 +1,8 @@
 {
-  "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_userMessagePath}//element(*)MetaData[@sling:resourceType='sakai/message' and @sakai:messagebox='{box}' and @sakai:category='{category}'] order by @{sortOn|jcr:created} {sortOrder|descending}",
-  "sling:resourceType": "sakai/search",
+  "sakai:query-template": '+path:${_userMessagePath} +resourceType:sakai/message +messagebox:"{box}" +category:"{category}";${sortOn} ${sortOrder}',
+  "sortOn": "created",
+  "sortOrder": "desc",
+  "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "Message",
   "sakai:resultprocessor": "Message",
   "sakai:title": "Messaging - User - Box and category.",
@@ -10,7 +11,7 @@
                         "{\"name\" : \"box\", \"description\" : \"The messagebox you want the messages for.\"}",
                         "{\"name\" : \"category\", \"description\" : \"The category you want the messages filtered on.\"}",
                         "{\"name\" : \"sortOn\", \"description\" : \"Sort the results on this property.\"}",
-                      "{\"name\" : \"sortOrder\", \"description\" : \"Either 'ascending' or 'descending'.\"}"
+                      "{\"name\" : \"sortOrder\", \"description\" : \"Either 'asc' or 'desc'.\"}"
     ],
   "sakai:description": [
                       "This search will dump all the messages for the specified messagebox matching the provided category."

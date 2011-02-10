@@ -43,7 +43,7 @@ public class PersonalActivityRouterTest extends AbstractActivityRouterTest {
     ActivityRoute route = routes.get(0);
     String dest = route.getDestination();
 
-    Assert.assertEquals(ActivityUtils.getUserFeed(auJack), dest);
+    Assert.assertEquals(ActivityUtils.getUserFeed("jack"), dest);
     verify();
   }
 

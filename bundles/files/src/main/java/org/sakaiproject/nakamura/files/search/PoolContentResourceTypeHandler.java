@@ -28,13 +28,13 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
@@ -60,7 +60,7 @@ import java.util.Set;
 /**
  * Indexes content with the property sling:resourceType = "sakai/pooled-content".
  */
-@Component
+@Component(immediate = true)
 public class PoolContentResourceTypeHandler implements IndexingHandler {
 
   private static final Set<String> IGNORE_NAMESPACES = ImmutableSet.of("jcr", "rep");
@@ -180,6 +180,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
    *         array is returned if no principals can read the path.
    * @throws StorageClientException
    */
+  @SuppressWarnings("unused")
   private String[] getReadingPrincipals(Session session, String path) throws StorageClientException {
     AccessControlManager accessControlManager = session.getAccessControlManager();
     return accessControlManager.findPrincipals(Security.ZONE_CONTENT ,path, Permissions.CAN_READ.getPermission(), true);
@@ -198,7 +199,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     if ( ignore ) {
       return Collections.emptyList();
     } else {
-      return ImmutableList.of("id:" + path);
+      return ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
     }
   }
 
@@ -231,11 +232,12 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
    *         array.
    */
   private Iterable<?> convertToIndex(Entry<String, Object> p) {
-    String name = p.getKey();
-    if (ARRAY_PROPERTIES.contains(name)) {
-      return Iterables.of(StorageClientUtils.toStringArray(p.getValue()));
+    Object values = p.getValue();
+    if ( values instanceof Object[] ) {
+      return Iterables.of((Object[])values);
     }
-    return Iterables.of(new String[] { StorageClientUtils.toString(p.getValue()) });
+
+    return Iterables.of(new Object[] { values });
   }
 
   /**

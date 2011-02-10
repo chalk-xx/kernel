@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "+${q} ${_tags}${_usedin};${sortOn} ${sortOrder}",
+  "sakai:query-template": '+content:"${q}" ${_tags}${_usedin};${sortOn} ${sortOrder}',
   "_tags": "",
   "_usedin": "",
   "sortOn": "score",

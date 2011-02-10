@@ -1,8 +1,8 @@
 {
-  "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_userMessagePath}//element(*)Metadata[@sling:resourceType='sakai/message' and jcr:contains(@sakai:from, '*{from}*')] order by @{sortOn|jcr:created} {sortOrder|descending}",
-  "sakai:query-template-from=%2A": "/{_userMessagePath}//element(*)Metadata[@sling:resourceType='sakai/message' ] order by @{sortOn|jcr:created} {sortOrder|descending}",
-  "sling:resourceType": "sakai/search",
+  "sakai:query-template": '+path:${_userMessagePath} +resourceType:sakai/message +from:"${from}*";${sortOn} ${sortOrder}',
+  "sortOn": "created",
+  "sortOrder": "desc",
+  "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "Message",
   "sakai:resultprocessor": "Message",
   "sakai:title": "Messaging - User - From.",
@@ -10,7 +10,7 @@
   "sakai:parameters" : [
                       "{\"name\" : \"from\", \"description\" : \"The sender you want to match against.\"}",
                       "{\"name\" : \"sortOn\", \"description\" : \"Sort the results on this property.\"}",
-                      "{\"name\" : \"sortOrder\", \"description\" : \"Either 'ascending' or 'descending'.\"}"
+                      "{\"name\" : \"sortOrder\", \"description\" : \"Either 'asc' or 'desc'.\"}"
     ],
   "sakai:description": [
                       "This search will go trough the current's user entire message store looking for messages matching the 'sakai:from' property against the to request parameter value."

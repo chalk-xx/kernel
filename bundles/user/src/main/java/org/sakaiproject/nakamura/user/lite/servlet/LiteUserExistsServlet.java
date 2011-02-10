@@ -85,9 +85,9 @@ import javax.servlet.http.HttpServletResponse;
  * <h4>Notes</h4>
  */
 @ServiceDocumentation(name="User Exists Servlet",
-    description="Tests for existence of user. This servlet responds at /system/lite/userManager/user.exists.html",
+    description="Tests for existence of user. This servlet responds at /system/userManager/user.exists.html",
     shortDescription="Tests for existence of user",
-    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/lite/userManager/user.exists.html",
+    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/userManager/user.exists.html",
         selectors=@ServiceSelector(name="exists", description="Tests for existence of user."),
         extensions=@ServiceExtension(name="html", description="GETs produce HTML with request status.")),
     methods=@ServiceMethod(name="GET",

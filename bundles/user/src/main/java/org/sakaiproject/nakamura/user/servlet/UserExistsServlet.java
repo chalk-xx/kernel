@@ -17,20 +17,15 @@
 package org.sakaiproject.nakamura.user.servlet;
 
 
-import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -39,13 +34,16 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
 
-import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -87,9 +85,7 @@ import javax.servlet.http.HttpServletResponse;
 @ServiceDocumentation(name="User Exists Servlet",
     description="Tests for existence of user. This servlet responds at /system/userManager/user.exists.html",
     shortDescription="Tests for existence of user",
-    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/userManager/user.exists.html",
-        selectors=@ServiceSelector(name="exists", description="Tests for existence of user."),
-        extensions=@ServiceExtension(name="html", description="GETs produce HTML with request status.")),
+    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/userManager/user.exists.html"),
     methods=@ServiceMethod(name="GET",
         description={"Checks for existence of user with id supplied in the userid parameter."},
         parameters={
@@ -98,23 +94,16 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceResponse(code=204,description="Success, user exists."),
         @ServiceResponse(code=404,description="Bad request: the required userid parameter was missing.")
         }))
-@Component(immediate=true, metatype=true, label="Sakai Nakamura :: User Existence Check Servlet",
-    description="Returns 204 if userid exists, 404 if not")
-@Service(value=javax.servlet.Servlet.class)
-@Properties(value = {
-    @Property(name="sling.servlet.resourceTypes", value="sling/users"),
-    @Property(name="sling.servlet.methods", value="GET"),
-    @Property(name="sling.servlet.selectors", value="exists")
-})
+@SlingServlet(paths = { "/system/userManager/user.exists.html" }, generateComponent = true, generateService = true, methods = { "GET" })
 public class UserExistsServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = 7051557537133012560L;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(UserExistsServlet.class);
 
-  @Property(label="Delay (MS)",
-      description="Number of milliseconds to delay before responding; 0 to return as quickly as possible",
-      longValue=UserExistsServlet.USER_EXISTS_DELAY_MS_DEFAULT)
+//@Property(label="Delay (MS)",
+//      description="Number of milliseconds to delay before responding; 0 to return as quickly as possible",
+//      longValue=UserExistsServlet.USER_EXISTS_DELAY_MS_DEFAULT)
   public static final String USER_EXISTS_DELAY_MS_PROPERTY = "user.exists.delay.ms";
   public static final long USER_EXISTS_DELAY_MS_DEFAULT = 200;
   protected long delayMs;
@@ -124,7 +113,8 @@ public class UserExistsServlet extends SlingSafeMethodsServlet {
       throws ServletException, IOException {
     long start = System.currentTimeMillis();
     try {
-      Session session = request.getResourceResolver().adaptTo(Session.class);
+      Session session =
+        StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
       RequestParameter idParam = request.getRequestParameter("userid");
       if (idParam == null) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST, "This request must have a 'userid' parameter.");
@@ -138,9 +128,9 @@ public class UserExistsServlet extends SlingSafeMethodsServlet {
       String id = idParam.getString();
       LOGGER.debug("Checking for existence of {}", id);
       if (session != null) {
-          UserManager userManager = AccessControlUtil.getUserManager(session);
+          AuthorizableManager userManager = session.getAuthorizableManager();
           if (userManager != null) {
-              Authorizable authorizable = userManager.getAuthorizable(id);
+              Authorizable authorizable = userManager.findAuthorizable(id);
               if (authorizable != null) {
                   response.setStatus(HttpServletResponse.SC_NO_CONTENT);
               } else response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -163,7 +153,7 @@ public class UserExistsServlet extends SlingSafeMethodsServlet {
     }
   }
 
-  @Activate @Modified
+//  @Activate @Modified
   protected void modified(Map<?, ?> props) {
     delayMs = OsgiUtil.toLong(props.get(USER_EXISTS_DELAY_MS_PROPERTY),
         USER_EXISTS_DELAY_MS_DEFAULT);

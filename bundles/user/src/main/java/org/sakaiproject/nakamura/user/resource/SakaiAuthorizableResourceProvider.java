@@ -41,13 +41,13 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Resource Provider implementation for jackrabbit UserManager resources.
  *
- * @scr.component immediate="true" label="%authorizable.resourceprovider.name"
+ * @disabled.scr.component immediate="true" label="%authorizable.resourceprovider.name"
  *                description="%authorizable.resourceprovider.description"
- * @scr.property name="service.description"
+ * @disabled.scr.property name="service.description"
  *               value="Resource provider implementation for UserManager resources"
- * @scr.property name="service.vendor" value="The Apache Software Foundation"
- * @scr.property name="provider.roots" value="/system/userManager/"
- * @scr.service interface="org.apache.sling.api.resource.ResourceProvider"
+ * @disabled.scr.property name="service.vendor" value="The Apache Software Foundation"
+ * @disabled.scr.property name="provider.roots" value="/system/userManager/"
+ * @disabled.scr.service interface="org.apache.sling.api.resource.ResourceProvider"
  */
 public class SakaiAuthorizableResourceProvider implements ResourceProvider {
 

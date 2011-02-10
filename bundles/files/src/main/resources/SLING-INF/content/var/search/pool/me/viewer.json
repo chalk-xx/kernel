@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "+resourceType:sakai/pooled-content AND (${q} OR content:${q}){_meViewerGroups};${sortOn} ${sortOrder}",
+  "sakai:query-template": '+resourceType:sakai/pooled-content +("${q}" OR content:"${q}"){_meViewerGroups};${sortOn} ${sortOrder}',
   "_meViewerGroups": "",
   "sortOn": "score",
   "sortOrder": "desc",

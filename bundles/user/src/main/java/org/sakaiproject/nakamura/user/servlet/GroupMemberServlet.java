@@ -17,10 +17,6 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -92,17 +88,17 @@ import javax.servlet.http.HttpServletResponse;
     )
   }
 )
-@SlingServlet(resourceTypes = { "sling/group" }, methods = { "GET" }, selectors = {
-    "members", "managers", "detailed" }, extensions = { "json" })
-@Properties(value = {
-    @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Renders the members or managers for a group") })
+//@SlingServlet(resourceTypes = { "sling/group" }, methods = { "GET" }, selectors = {
+//    "members", "managers", "detailed" }, extensions = { "json" })
+//@Properties(value = {
+//    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+//    @Property(name = "service.description", value = "Renders the members or managers for a group") })
 public class GroupMemberServlet extends SlingSafeMethodsServlet {
 
   private static final Logger logger = LoggerFactory.getLogger(GroupMemberServlet.class);
   private static final long serialVersionUID = 7976930178619974246L;
 
-  @Reference
+  // @Reference
   protected transient ProfileService profileService;
 
   static final String ITEMS = "items";

@@ -18,7 +18,7 @@
 package org.sakaiproject.nakamura.resource.lite.servlet.post.helper;
 
 import org.apache.sling.servlets.post.Modification;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.RemoveProperty;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.resource.DateParser;
 import org.sakaiproject.nakamura.api.resource.lite.SparseRequestProperty;
@@ -34,7 +34,6 @@ import javax.jcr.RepositoryException;
  * example, "lastModified" with an empty value is stored as the current Date.
  */
 public class SparsePropertyValueHandler {
-
 
   /**
    * String constant for type name as used in serialization.
@@ -169,30 +168,36 @@ public class SparsePropertyValueHandler {
       }
     } else if (values.length == 0) {
       // do not create new prop here, but clear existing
-      content.setProperty(prop.getName(), StorageClientUtils.toStore(""));
+      content.setProperty(prop.getName(), new RemoveProperty());
       changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
     } else if (values.length == 1) {
       if (values[0].length() == 0) {
-        content.setProperty(prop.getName(), StorageClientUtils.toStore(""));
+        content.setProperty(prop.getName(), new RemoveProperty());
         changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
-
       } else {
-        content.setProperty(prop.getName(),
-            StorageClientUtils.toStore(fromRequest(type, values)));
+        content.setProperty(prop.getName(),fromRequest(type,values));
         changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
       }
     } else {
-      content.setProperty(prop.getName(),
-          StorageClientUtils.toStore(fromRequest(type, values)));
+      content.setProperty(prop.getName(),fromRequest(type, values));
       changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
     }
   }
 
+  /**
+   * TODO Not currently used but kept here while we work on Sparse port.
+   */
   private Object fromRequest(String type, String[] values) {
     if ( type == null ) {
+      if ( values.length == 1 ) {
+        return values[0];
+      } 
       return values;
     }
     if (type.equals(TYPENAME_STRING)) {
+      if ( values.length == 1 ) {
+        return values[0];
+      } 
       return values;
     } else if (type.equals(TYPENAME_BINARY)) {
       return null;
@@ -201,32 +206,51 @@ public class SparsePropertyValueHandler {
       for (int i = 0; i < values.length; i++) {
         b[i] = Boolean.parseBoolean(values[i]);
       }
+      if ( values.length == 1 ) {
+        return b[0];
+      } 
       return b;
+      
     } else if (type.equals(TYPENAME_LONG)) {
       long[] b = new long[values.length];
       for (int i = 0; i < values.length; i++) {
         b[i] = Long.parseLong(values[i]);
       }
+      if ( values.length == 1 ) {
+        return b[0];
+      } 
       return b;
     } else if (type.equals(TYPENAME_DOUBLE)) {
       double[] b = new double[values.length];
       for (int i = 0; i < values.length; i++) {
         b[i] = Double.parseDouble(values[i]);
       }
+      if ( values.length == 1 ) {
+        return b[0];
+      } 
       return b;
     } else if (type.equals(TYPENAME_DECIMAL)) {
       BigDecimal[] b = new BigDecimal[values.length];
       for (int i = 0; i < values.length; i++) {
         b[i] = new BigDecimal(values[i]);
       }
+      if ( values.length == 1 ) {
+        return b[0];
+      } 
       return b;
     } else if (type.equals(TYPENAME_DATE)) {
       Calendar[] b = new Calendar[values.length];
       for (int i = 0; i < values.length; i++) {
         b[i] = dateParser.parse(values[i]);
       }
+      if ( values.length == 1 ) {
+        return b[0];
+      } 
       return b;
     }
+    if ( values.length == 1 ) {
+      return values[0];
+    } 
     return values;
   }
 

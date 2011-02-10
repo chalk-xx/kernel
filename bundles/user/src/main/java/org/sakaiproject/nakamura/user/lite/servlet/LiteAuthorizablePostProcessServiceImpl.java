@@ -30,7 +30,6 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessor;
@@ -79,7 +78,7 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
       ModificationType change, Map<String, Object[]> parameters) throws Exception {
     // Set up the Modification argument.
 
-    if ( StorageClientUtils.toBoolean(authorizable.getProperty(UserConstants.PROP_BARE_AUTHORIZABLE))) {
+    if ( Boolean.valueOf(String.valueOf(authorizable.getProperty(UserConstants.PROP_BARE_AUTHORIZABLE)))) {
       return; // bare authorizables have no extra objects
     }
 

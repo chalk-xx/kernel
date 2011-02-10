@@ -123,7 +123,7 @@ methods = @ServiceMethod(name = "POST", description = {
     "Creates a new user with a name :name, and password pwd, "
         + "storing additional parameters as properties of the new user.",
     "Example<br><pre>curl -F:name=username -Fpwd=password -FpwdConfirm=password "
-        + "-Fproperty1=value1 http://localhost:8080/system/lite/userManager/user.create.html</pre>" }, parameters = {
+        + "-Fproperty1=value1 http://localhost:8080/system/userManager/user.create.html</pre>" }, parameters = {
     @ServiceParameter(name = ":name", description = "The name of the new user (required)"),
     @ServiceParameter(name = "pwd", description = "The password of the new user (required)"),
     @ServiceParameter(name = "pwdConfirm", description = "The password of the new user (required)"),

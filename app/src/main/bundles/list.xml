@@ -652,11 +652,6 @@ KERN-1187
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.userinitializer</artifactId>
-      <version>0.10-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.http</artifactId>
       <version>0.10-SNAPSHOT</version>
     </bundle>

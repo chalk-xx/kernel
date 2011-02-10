@@ -18,12 +18,6 @@
 
 package org.sakaiproject.nakamura.presence.servlets;
 
-import java.io.IOException;
-
-import javax.jcr.Session;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -41,25 +35,31 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+
+import javax.jcr.Session;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(resourceTypes = { "sakai/presence" }, generateComponent = true, generateService = true, methods = { "POST" }, extensions = { "json" })
 @Properties(value = {
     @Property(name = "service.description", value = { "Controls the presence for the current user." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
-@ServiceDocumentation(name = "Presence Control Servlet", 
+@ServiceDocumentation(name = "Presence Control Servlet",
     description = "Controls the presence, and location for the current user using standard HTTP verbs to perform the control",
     shortDescription="Controls the presence for the current user",
-    bindings = @ServiceBinding(type = BindingType.TYPE, 
+    bindings = @ServiceBinding(type = BindingType.TYPE,
         bindings = "sakai/presence",
         extensions = @ServiceExtension(name="json", description={
             "The response to the action is html, although no content is returned from this servlet, only status messages."
         })
-    ), 
-    methods = { 
-         @ServiceMethod(name = "POST", 
+    ),
+    methods = {
+         @ServiceMethod(name = "POST",
              description = {
                  "Pings the user and sets the location and status if specified.",
                  "<pre>" +
@@ -138,7 +138,7 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
     if ( session != null ) {
       user = session.getUserID();
     }
-    if (user == null || UserConstants.ANON_USERID.equals(user) ) {
+    if (user == null || PresenceUtils.ANON_USERID.equals(user) ) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "User must be logged in to ping their status and set location");
       return;

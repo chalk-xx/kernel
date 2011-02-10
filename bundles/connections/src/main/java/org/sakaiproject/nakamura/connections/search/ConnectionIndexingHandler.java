@@ -18,19 +18,21 @@
 package org.sakaiproject.nakamura.connections.search;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
@@ -45,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -58,12 +61,14 @@ import java.util.Set;
  * <li>contact's email: email</li>
  * </ul>
  */
+@Component(immediate = true)
 public class ConnectionIndexingHandler implements IndexingHandler {
 
   private static final Logger logger = LoggerFactory
       .getLogger(ConnectionIndexingHandler.class);
 
-  private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of("state");
+  private static final Map<String, String> WHITELISTED_PROPS = ImmutableMap.of(
+      "sakai:state", "state");
   private static final Set<String> FLATTENED_PROPS = ImmutableSet.of("name", "firstName",
       "lastName", "email");
 
@@ -90,6 +95,7 @@ public class ConnectionIndexingHandler implements IndexingHandler {
       Event event) {
     String path = (String) event.getProperty(FIELD_PATH);
 
+    logger.info("Indexing connections at path {}", path);
     List<SolrInputDocument> documents = Lists.newArrayList();
     if (!StringUtils.isBlank(path)) {
       try {
@@ -97,30 +103,42 @@ public class ConnectionIndexingHandler implements IndexingHandler {
         ContentManager cm = session.getContentManager();
         Content content = cm.get(path);
 
-        if (content != null) {
+        int lastSlash = path.lastIndexOf('/');
+        String contactName = path.substring(lastSlash + 1);
+        AuthorizableManager am = session.getAuthorizableManager();
+        Authorizable contactAuth = am.findAuthorizable(contactName);
+
+        if (content != null && contactAuth != null) {
           SolrInputDocument doc = new SolrInputDocument();
-          for (String prop : WHITELISTED_PROPS) {
-            String value = StorageClientUtils.toString(content.getProperty(prop));
-            doc.addField(prop, value);
+          for (Entry<String, String> prop: WHITELISTED_PROPS.entrySet()) {
+            String key = prop.getKey();
+            Object value = content.getProperty(key);
+            if ( value != null ) {
+              doc.addField(WHITELISTED_PROPS.get(key), value);
+            }
           }
 
           // flatten out the contact so we can search it
-          int lastSlash = path.lastIndexOf('/');
-          String contactName = path.substring(lastSlash + 1);
-          AuthorizableManager am = session.getAuthorizableManager();
-          Authorizable contactAuth = am.findAuthorizable(contactName);
-          for (String prop : FLATTENED_PROPS) {
-            String value = StorageClientUtils.toString(contactAuth.getProperty(prop));
-            doc.addField(prop, value);
+          Map<String, Object> contactProps = contactAuth.getSafeProperties();
+          if ( contactAuth != null ) {
+            for (String prop : FLATTENED_PROPS) {
+              Object value = contactProps.get(prop);
+              if ( value != null ) {
+                doc.addField(prop, value);
+              }
+            }
           }
 
           doc.addField(_DOC_SOURCE_OBJECT, content);
           documents.add(doc);
+        } else {
+          logger.warn("Did not index {}: Content == {}; Contact Auth == {}",
+              new Object[] { path, content, contactAuth });
         }
       } catch (StorageClientException e) {
-        logger.warn(e.getMessage(), e);
+        logger.error(e.getMessage(), e);
       } catch (AccessDeniedException e) {
-        logger.warn(e.getMessage(), e);
+        logger.error(e.getMessage(), e);
       }
     }
     logger.debug("Got documents {} ", documents);
@@ -137,7 +155,7 @@ public class ConnectionIndexingHandler implements IndexingHandler {
       Event event) {
     logger.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty(FIELD_PATH);
-    return ImmutableList.of("id:" + path);
+    return ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
   }
 
 }

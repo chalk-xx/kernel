@@ -35,6 +35,12 @@
     </plugins>
   </build>
   <dependencies>
+  
+    <dependency>
+      <groupId>com.google.collections</groupId>
+      <artifactId>google-collections</artifactId>
+    </dependency>
+    
     <!--  JCR, Jackrabbit and Sling -->
     <dependency>
       <groupId>javax.jcr</groupId>

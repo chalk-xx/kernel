@@ -32,6 +32,7 @@ class TC_MyContactTest < Test::Unit::TestCase
     res = @cm.invite_contact("nico"+m, [ "coworker", "friend" ])
     assert_equal("200", res.code, "Expected to be able to request contact addition "+res.body)
     @log.info("Checking that The invitation to Nico is pending")
+    sleep(20)
     contacts = @cm.get_pending()
     assert_not_nil(contacts, "Expected to get contacts back")
     assert_equal(1, contacts["results"].size, "Expected single pending request back")

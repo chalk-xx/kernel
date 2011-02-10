@@ -126,10 +126,10 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       }
 
       Map<String, Object> properties = node.getProperties();
-      String[] managers = StorageClientUtils.toStringArray(properties
-          .get(POOLED_CONTENT_USER_MANAGER));
-      String[] viewers = StorageClientUtils.toStringArray(properties
-          .get(POOLED_CONTENT_USER_VIEWER));
+      String[] managers = (String[]) properties
+          .get(POOLED_CONTENT_USER_MANAGER);
+      String[] viewers = (String[]) properties
+          .get(POOLED_CONTENT_USER_VIEWER);
 
 
       boolean detailed = false;
@@ -218,15 +218,20 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       Resource resource = request.getResource();
       Session session = resource.adaptTo(Session.class);
       AccessControlManager accessControlManager = session.getAccessControlManager();
-
+      AuthorizableManager authorizableManager = session.getAuthorizableManager();
+      Authorizable thisUser = authorizableManager.findAuthorizable(session.getUserId());
       Content node = resource.adaptTo(Content.class);
+      if (! accessControlManager.can(thisUser, Security.ZONE_CONTENT, node.getPath(), Permissions.CAN_WRITE)) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        return;
+      }
       ContentManager contentManager = resource.adaptTo(ContentManager.class);
 
       Map<String, Object> properties = node.getProperties();
-      String[] managers = StorageClientUtils.toStringArray(properties
-          .get(POOLED_CONTENT_USER_MANAGER));
-      String[] viewers = StorageClientUtils.toStringArray(properties
-          .get(POOLED_CONTENT_USER_VIEWER));
+      String[] managers = (String[]) properties
+          .get(POOLED_CONTENT_USER_MANAGER);
+      String[] viewers = (String[]) properties
+          .get(POOLED_CONTENT_USER_VIEWER);
 
 
       Set<String> managerSet = null;
@@ -298,11 +303,12 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
         AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
             aclModifications);
       }
+      
 
       node.setProperty(POOLED_CONTENT_USER_VIEWER,
-          StorageClientUtils.toStore(viewersSet.toArray(new String[viewersSet.size()])));
+          viewersSet.toArray(new String[viewersSet.size()]));
       node.setProperty(POOLED_CONTENT_USER_MANAGER,
-          StorageClientUtils.toStore(managerSet.toArray(new String[managerSet.size()])));
+          managerSet.toArray(new String[managerSet.size()]));
       LOGGER.debug("Set Managers to {}",Arrays.toString(managerSet.toArray(new String[managerSet.size()])));
       LOGGER.debug("Set Viewsers to {}",Arrays.toString(viewersSet.toArray(new String[managerSet.size()])));
       LOGGER.debug("ACL Modifications {}",Arrays.toString(aclModifications.toArray(new AclModification[aclModifications.size()])));
@@ -313,7 +319,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
 
       response.setStatus(SC_OK);
     } catch (AccessDeniedException e) {
-      LOGGER.error("Could not set some permissions on [{}] Cause:{}",
+      LOGGER.error("Insufficient permissions to modify [{}] Cause:{}",
           request.getPathInfo(), e.getMessage());
       LOGGER.debug(e.getMessage(), e);
       response.sendError(SC_UNAUTHORIZED, "Could not set permissions.");

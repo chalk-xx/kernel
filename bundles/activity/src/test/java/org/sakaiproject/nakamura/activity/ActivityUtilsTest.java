@@ -40,9 +40,9 @@ public class ActivityUtilsTest extends AbstractEasyMockTest{
   public void testUserFeed() throws RepositoryException {
     String user = "admin";
     Authorizable au = createAuthorizable(user, false, true);
-    String expected = "/_user/a/ad/admin/private/"
+    String expected = "a:admin/private/"
         + ActivityConstants.ACTIVITY_FEED_NAME;
-    String result = ActivityUtils.getUserFeed(au);
+    String result = ActivityUtils.getUserFeed(user);
     Assert.assertEquals(expected, result);
   }
 

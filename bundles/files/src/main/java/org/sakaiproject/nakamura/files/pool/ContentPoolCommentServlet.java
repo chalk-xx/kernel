@@ -39,7 +39,6 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -127,7 +126,7 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       if (comments != null) {
         for (Content comment : comments.listChildren()) {
           Map<String, Object> properties = comment.getProperties();
-          String authorId = StorageClientUtils.toString(properties.get(AUTHOR));
+          String authorId = (String)properties.get(AUTHOR);
           w.object();
 
           try {
@@ -140,13 +139,13 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
           }
 
           w.key(COMMENT);
-          w.value(StorageClientUtils.toString(properties.get(COMMENT)));
+          w.value(properties.get(COMMENT));
 
           w.key(COMMENT_ID);
           w.value(comment.getPath());
 
           w.key(CREATED);
-          w.value(StorageClientUtils.toString(properties.get(CREATED)));
+          w.value(properties.get(CREATED));
 
           w.endObject();
 
@@ -215,8 +214,8 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       Calendar cal = Calendar.getInstance();
       String newNodeName = Long.toString(cal.getTimeInMillis());
       Content newComment = new Content(path + "/" + newNodeName, ImmutableMap.of(AUTHOR,
-          StorageClientUtils.toStore(request.getRemoteUser()), COMMENT,
-          StorageClientUtils.toStore(body), CREATED, StorageClientUtils.toStore(cal)));
+          (Object)request.getRemoteUser(), COMMENT,
+          body, CREATED, cal.getTimeInMillis()));
 
       contentManager.update(newComment);
 
@@ -296,8 +295,8 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
    */
   private boolean isManager(Content poolItem, String userId) {
     Map<String, Object> properties = poolItem.getProperties();
-    String managers = StorageClientUtils.toString(properties
-        .get(POOLED_CONTENT_USER_MANAGER));
+    String managers = (String) properties
+        .get(POOLED_CONTENT_USER_MANAGER);
     // assuming there is no , in the principals
     return ( managers.indexOf(userId) > 0 );
   }

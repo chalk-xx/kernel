@@ -100,24 +100,24 @@ import javax.servlet.http.HttpServletResponse;
  * </code>
  *
  *
- * @scr.component immediate="true" label="%createUser.post.operation.name"
+ * @disabled.scr.component immediate="true" label="%createUser.post.operation.name"
  *                description="%createUser.post.operation.description"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sling/users"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="create"
+ * @disabled.scr.service interface="javax.servlet.Servlet"
+ * @disabled.scr.property name="sling.servlet.resourceTypes" value="sling/users"
+ * @disabled.scr.property name="sling.servlet.methods" value="POST"
+ * @disabled.scr.property name="sling.servlet.selectors" value="create"
  *
- * @scr.property name="password.digest.algorithm" value="sha1"
+ * @disabled.scr.property name="password.digest.algorithm" value="sha1"
  *
  *
- * @scr.property name="servlet.post.dateFormats"
+ * @disabled.scr.property name="servlet.post.dateFormats"
  *               values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
  *               values.1="yyyy-MM-dd'T'HH:mm:ss.SSSZ" values.2="yyyy-MM-dd'T'HH:mm:ss"
  *               values.3="yyyy-MM-dd" values.4="dd.MM.yyyy HH:mm:ss"
  *               values.5="dd.MM.yyyy"
  *
  *
- * @scr.property name="self.registration.enabled" label="%self.registration.enabled.name"
+ * @disabled.scr.property name="self.registration.enabled" label="%self.registration.enabled.name"
  *               description="%self.registration.enabled.description"
  *               valueRef="DEFAULT_SELF_REGISTRATION_ENABLED"
  *
@@ -178,21 +178,21 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
     /**
      * The JCR Repository we access to resolve resources
      *
-     * @scr.reference
+     * @disabled.scr.reference
      */
     private transient SlingRepository repository;
 
     /**
      * Used to launch OSGi events.
      *
-     * @scr.reference
+     * @disabled.scr.reference
      */
     protected transient EventAdmin eventAdmin;
 
     /**
      * Used to post process authorizable creation request.
      *
-     * @scr.reference
+     * @disabled.scr.reference
      */
     private transient AuthorizablePostProcessService postProcessorService;
 
@@ -202,7 +202,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet  {
 
     /**
      *
-     * @scr.reference
+     * @disabled.scr.reference
      */
     protected transient RequestTrustValidatorService requestTrustValidatorService;
 

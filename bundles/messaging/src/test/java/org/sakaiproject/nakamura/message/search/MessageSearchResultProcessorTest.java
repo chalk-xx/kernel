@@ -15,56 +15,69 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.message;
+package org.sakaiproject.nakamura.message.search;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
-import org.sakaiproject.nakamura.api.message.MessagingService;
-import org.sakaiproject.nakamura.message.internal.InternalMessageHandler;
+import org.sakaiproject.nakamura.message.internal.LiteInternalMessageHandler;
+import org.sakaiproject.nakamura.message.search.MessageSearchResultProcessor;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 
-import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.ValueFormatException;
-import javax.jcr.lock.LockException;
-import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.version.VersionException;
 
 /**
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class MessageSearchResultProcessorTest {
 
   private MessageSearchResultProcessor proc;
-  private MessagingService messagingService;
+
+  @Mock
+  private LiteMessagingService messagingService;
+
+  @Mock
+  private ResourceResolver resolver;
+
+  @Mock
+  private Session session;
+
+  @Mock
+  private SlingHttpServletRequest request;
 
   @Before
   public void setUp() {
-    messagingService = mock(MessagingService.class);
-
     proc = new MessageSearchResultProcessor();
     proc.messagingService = messagingService;
 
-    InternalMessageHandler handler = new InternalMessageHandler();
-    MessageProfileWriterTracker tracker = mock(MessageProfileWriterTracker.class);
-    when(tracker.getMessageProfileWriterByType("internal")).thenReturn(handler);
-    proc.tracker = tracker;
+    when(request.getResourceResolver()).thenReturn(resolver);
+    when(resolver.adaptTo(Session.class)).thenReturn(session);
+
+    LiteInternalMessageHandler handler = new LiteInternalMessageHandler();
+    proc.bindWriters(handler);
   }
 
   @After
@@ -74,27 +87,26 @@ public class MessageSearchResultProcessorTest {
 
   @Test
   public void testProc() throws JSONException, RepositoryException, IOException {
-    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Writer w = new PrintWriter(baos);
-    JSONWriter write = new JSONWriter(w);
-
-    Session session = mock(Session.class);
+    ExtendedJSONWriter write = new ExtendedJSONWriter(w);
 
     // We handle a previous msg.
     String previousId = "prevId";
     String userID = "john";
     String pathToPrevMsg = "/path/to/store/prevId";
-    when(session.getUserID()).thenReturn(userID);
+    when(request.getRemoteUser()).thenReturn(userID);
+    when(session.getUserId()).thenReturn(userID);
     when(messagingService.getFullPathToMessage(userID, previousId, session)).thenReturn(
         pathToPrevMsg);
-    Node previousMsg = createDummyMessage(session, previousId);
-    when(session.itemExists(previousMsg.getPath())).thenReturn(true);
-    when(session.getItem(previousMsg.getPath())).thenReturn(previousMsg);
+    Content previousMsg = createDummyMessage(previousId);
+    Resource resource = mock(Resource.class);
+    when(resolver.getResource(previousMsg.getPath())).thenReturn(resource);
+    when(resource.adaptTo(Content.class)).thenReturn(previousMsg);
 
-    Node resultNode = createDummyMessage(session, "msgid");
+    Content resultNode = createDummyMessage("msgid");
     resultNode.setProperty(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE, previousId);
-    proc.writeNode(request, write, resultNode);
+    proc.writeContent(request, write, resultNode);
     w.flush();
 
     String s = baos.toString("UTF-8");
@@ -111,16 +123,12 @@ public class MessageSearchResultProcessorTest {
     assertEquals(prev.getString("id"), previousId);
   }
 
-  private MockNode createDummyMessage(Session session, String msgID)
-      throws ValueFormatException, VersionException, LockException,
-      ConstraintViolationException, RepositoryException {
-    String path = "/path/to/store/" + msgID;
-    MockNode msgNode = new MockNode(path);
-    msgNode.setSession(session);
-    msgNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
-        MessageConstants.BOX_INBOX);
-    msgNode.setProperty("foo", new String[] { "a", "b" });
-    return msgNode;
+  private Content createDummyMessage(String msgID) {
+    Content c = new Content("/path/to/store/" + msgID, null);
+    c.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
+        StorageClientUtils.toStore(MessageConstants.BOX_INBOX));
+    c.setProperty("foo", StorageClientUtils.toStore(new String[] { "a", "b" }));
+    return c;
   }
 
 }

@@ -28,7 +28,6 @@ import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -125,8 +124,7 @@ public class SparseGetVersionServletHandler extends AbstractSafeMethodsServletRe
         }
         if (type.equals(InputStream.class)) {
           getResourceMetadata()
-              .setContentLength(
-                  StorageClientUtils.toLong(versionContent
+              .setContentLength(toLong(versionContent
                       .getProperty(Content.LENGTH_FIELD)));
           try {
             return (AdapterType) contentManager.getVersionInputStream(versionContent.getPath(), versionName);
@@ -139,6 +137,13 @@ public class SparseGetVersionServletHandler extends AbstractSafeMethodsServletRe
           }
         }
         return super.adaptTo(type);
+      }
+
+      private long toLong(Object property) {
+        if ( property instanceof Long) {
+          return ((Long) property).longValue();
+        }
+        return 0;
       }
 
       /**
@@ -158,8 +163,8 @@ public class SparseGetVersionServletHandler extends AbstractSafeMethodsServletRe
        */
       @Override
       public String getResourceType() {
-        return StorageClientUtils.toString(versionContent
-            .getProperty("sling:resourceType"));
+        return (String) versionContent
+            .getProperty("sling:resourceType");
       }
 
       /**
@@ -169,8 +174,8 @@ public class SparseGetVersionServletHandler extends AbstractSafeMethodsServletRe
        */
       @Override
       public String getResourceSuperType() {
-        return StorageClientUtils.toString(versionContent
-            .getProperty("sling:resourceSuperType"));
+        return (String) versionContent
+            .getProperty("sling:resourceSuperType");
       }
 
     };

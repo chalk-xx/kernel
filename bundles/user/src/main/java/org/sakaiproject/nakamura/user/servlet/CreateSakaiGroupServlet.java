@@ -107,13 +107,13 @@ import javax.servlet.http.HttpServletResponse;
  *
  * <h4>Notes</h4>
  *
- * @scr.component immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sling/groups"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="create"
+ * @disabled.scr.component immediate="true"
+ * @disabled.scr.service interface="javax.servlet.Servlet"
+ * @disabled.scr.property name="sling.servlet.resourceTypes" value="sling/groups"
+ * @disabled.scr.property name="sling.servlet.methods" value="POST"
+ * @disabled.scr.property name="sling.servlet.selectors" value="create"
  *
- * @scr.property name="servlet.post.dateFormats"
+ * @disabled.scr.property name="servlet.post.dateFormats"
  *               values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
  *               values.1="yyyy-MM-dd'T'HH:mm:ss.SSSZ" values.2="yyyy-MM-dd'T'HH:mm:ss"
  *               values.3="yyyy-MM-dd" values.4="dd.MM.yyyy HH:mm:ss"
@@ -159,27 +159,27 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
   /**
    * The JCR Repository we access to resolve resources
    *
-   * @scr.reference
+   * @disabled.scr.reference
    */
   protected transient SlingRepository repository;
 
   /**
    * Used to launch OSGi events.
    *
-   * @scr.reference
+   * @disabled.scr.reference
    */
   protected transient EventAdmin eventAdmin;
 
   /**
    * Used to create the group.
    *
-   * @scr.reference
+   * @disabled.scr.reference
    */
   protected transient AuthorizablePostProcessService postProcessorService;
 
   /**
    *
-   * @scr.property value="authenticated,everyone" type="String"
+   * @disabled.scr.property value="authenticated,everyone" type="String"
    *               name="Groups who are allowed to create other groups" description=
    *               "A comma separated list of groups who area allowed to create other groups"
    */

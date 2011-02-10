@@ -41,7 +41,6 @@
 						<Export-Package>org.sakaiproject.nakamura.api.basiclti</Export-Package>
 						<Private-Package>org.sakaiproject.nakamura.basiclti.*</Private-Package>
 						<Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
-						<Sakai-Initial-Security>SLING-INF/acl/basiclti-acl.json</Sakai-Initial-Security>   
 						<Embed-Transitive>true</Embed-Transitive>
 						<Embed-Dependency>basiclti-util</Embed-Dependency>
 					</instructions>
@@ -77,6 +76,18 @@
 			<scope>provided</scope>
 		</dependency>
 		<!--  -->
+	    <dependency>
+	      <groupId>org.sakaiproject.nakamura</groupId>
+	      <artifactId>org.sakaiproject.nakamura.core</artifactId>
+	      <version>0.10-SNAPSHOT</version>
+	      <scope>provided</scope>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.sakaiproject.nakamura</groupId>
+	      <artifactId>org.sakaiproject.nakamura.resource</artifactId>
+	      <version>0.10-SNAPSHOT</version>
+	      <scope>provided</scope>
+	    </dependency>
 		<dependency>
 			<groupId>org.sakaiproject.nakamura</groupId>
 			<artifactId>org.sakaiproject.nakamura.doc</artifactId>

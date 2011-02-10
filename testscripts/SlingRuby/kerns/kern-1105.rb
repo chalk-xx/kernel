@@ -7,14 +7,15 @@ require 'rubygems'
 require 'json'
 require 'logger';
 require 'net/http';
-require 'sling/test';
+require 'uri';
+require 'test/unit';
 
 class TC_KERN1105_Test < Test::Unit::TestCase
 
   # connectivity information
   SERVER = 'localhost';
   PORT = 8080;
-  PATH = '/dev/';
+  PATH = '/index';
   USER = 'admin';
   PASS = 'admin';
 
@@ -49,7 +50,7 @@ class TC_KERN1105_Test < Test::Unit::TestCase
   	res = Net::HTTP.get_response(SERVER, PATH, PORT);
     assert_not_nil(res);
     assert_equal("200", res.code, "HTTP response should be 200.");
-    assert_not_equal(cookie_header, res['Set-Cookie'], "");
+    assert_not_equal(cookie_header, res['Set-Cookie'], "We should get a different cookie value");
 
   	count = 0;
   	lastJson = nil;
@@ -62,7 +63,7 @@ class TC_KERN1105_Test < Test::Unit::TestCase
   			res = http.request(req);
         assert_not_nil(res);
         assert_equal("200", res.code, "HTTP response should be 200.");
-        sleep(1);
+        sleep(0.1);
         # HTTP GET cluster user json
 				req = Net::HTTP::Get.new('/var/cluster/user.cookie.json?c=' + cookie_val, headers);
         req.basic_auth(USER, PASS);

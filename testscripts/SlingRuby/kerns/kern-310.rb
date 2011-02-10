@@ -25,7 +25,7 @@ class TC_Kern310Test < Test::Unit::TestCase
   def test_discovery_in_15_seconds
     m = Time.now.to_i.to_s
     #@s.log = true
-    n = create_node("content/mynode#{m}", { "sling:resourceType" => "foo/bar",
+    n = create_node("blarg/mynode#{m}", { "sling:resourceType" => "foo/bar",
                                             "title" => "some title" })
     filepath = upload_file("apps/foo/bar", "html.esp", $testscript)
     @s.switch_user(SlingUsers::User.anonymous)

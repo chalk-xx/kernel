@@ -17,103 +17,110 @@
  */
 package org.sakaiproject.nakamura.pages.search;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
+
 import junit.framework.Assert;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestPathInfo;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.easymock.EasyMock;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.search.Aggregator;
-import org.sakaiproject.nakamura.api.search.SearchException;
-import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
-import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
-import org.sakaiproject.nakamura.search.AggregateCount;
-import org.sakaiproject.nakamura.search.SearchServiceFactoryImpl;
-import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.StringWriter;
 
-import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.Value;
-import javax.jcr.query.Query;
-import javax.jcr.query.Row;
-
-
 /**
  *
  */
-public class PagecontentSearchResultProcessorTest extends AbstractEasyMockTest {
+@RunWith(MockitoJUnitRunner.class)
+public class PagecontentSearchResultProcessorTest {
+  @Mock
+  SlingHttpServletRequest request;
 
+  @Mock
+  ResourceResolver resolver;
+
+  @Mock
+  ContentManager cm;
+
+  @Mock
+  Session session;
+
+  @Mock
+  Result result;
+
+  @Mock
+  Resource parentResource;
+
+  @Mock
+  RequestPathInfo pathInfo;
+
+  @Mock
+  SolrSearchServiceFactory fact;
 
   @Test
-  public void test() throws SearchException, JSONException, RepositoryException {
-    SlingHttpServletRequest request = createNiceMock(SlingHttpServletRequest.class);
-    ResourceResolver resourceResolver = createNiceMock(ResourceResolver.class);
-    Value value = createNiceMock(Value.class);
-    Node node = createNiceMock(Node.class);
-    Property property = createNiceMock(Property.class);
-    PropertyIterator propertyIterator = createNiceMock(PropertyIterator.class);
+  public void test() throws Exception {
+    when(request.getResourceResolver()).thenReturn(resolver);
+    Object hybridSession = mock(javax.jcr.Session.class,
+        withSettings().extraInterfaces(SessionAdaptable.class));
+    when(resolver.adaptTo(javax.jcr.Session.class)).thenReturn(
+        (javax.jcr.Session) hybridSession);
+    when(((SessionAdaptable) hybridSession).getSession()).thenReturn(session);
+    when(result.getPath()).thenReturn("/test/path");
 
-    Row row = createNiceMock(Row.class);
-    EasyMock.expect(row.getNode()).andReturn(node).anyTimes();
-    EasyMock.expect(request.getResourceResolver()).andReturn(resourceResolver).anyTimes();
-    EasyMock.expect(row.getValue("jcr:path")).andReturn(value).anyTimes();
-    EasyMock.expect(value.getString()).andReturn("/test").anyTimes();
-    EasyMock.expect(node.getParent()).andReturn(node);
-    EasyMock.expect(node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)).andReturn(true);
-    EasyMock.expect(node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)).andReturn(property);
-    EasyMock.expect(property.getString()).andReturn("sakai/page");
-    EasyMock.expect(node.getProperties()).andReturn(propertyIterator);
+    when(session.getContentManager()).thenReturn(cm);
 
+    final Content content = new Content("/test/path", null);
+    final Content parentContent = new Content("/test", null);
+    parentContent.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, "sakai/page");
+    when(parentResource.adaptTo(Content.class)).thenReturn(parentContent);
+    when(request.getResourceResolver()).thenReturn(resolver);
+    when(cm.get("/test")).thenReturn(parentContent);
 
-    RequestPathInfo pathInfo = createNiceMock(RequestPathInfo.class);
-    EasyMock.expect(request.getRequestPathInfo()).andReturn(pathInfo);
-
-    replay();
-    AggregateCount aggregator = new AggregateCount(new String[] { "test" }, false);
-
+    when(request.getRequestPathInfo()).thenReturn(pathInfo);
 
     StringWriter stringWriter = new StringWriter();
     JSONWriter write = new JSONWriter(stringWriter);
 
-    SearchServiceFactoryImpl fact = new SearchServiceFactoryImpl();
-    SearchResultProcessor proc = new SearchResultProcessor() {
-      public void writeNode(SlingHttpServletRequest request, JSONWriter write,
-          Aggregator aggregator, Row row) throws JSONException, RepositoryException {
-        Node node = row.getNode();
-        if (aggregator != null) {
-          aggregator.add(node);
-        }
-
+    SolrSearchResultProcessor proc = new SolrSearchResultProcessor() {
+      public void writeResult(SlingHttpServletRequest request, JSONWriter write,
+          Result result) throws JSONException {
         int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
-        ExtendedJSONWriter.writeNodeTreeToWriter(write, node, maxTraversalDepth);
+        ExtendedJSONWriter.writeContentTreeToWriter(write, content, maxTraversalDepth);
       }
 
-      public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
-          throws SearchException {
+      public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+          String query) throws SolrSearchException {
         return null;
       }
     };
+
     PagecontentSearchResultProcessor pagecontentSearchResultProcessor = new PagecontentSearchResultProcessor(fact, proc);
-    pagecontentSearchResultProcessor.writeNode(request, write, aggregator, row);
+    pagecontentSearchResultProcessor.writeResult(request, write, result);
 
     String output = stringWriter.toString();
     Assert.assertTrue(output.length() > 0);
     // Make sure that the output is valid JSON.
     new JSONObject(output);
-
-
-    verify();
-
   }
 }

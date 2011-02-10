@@ -10,43 +10,44 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.nakamura.api.search.Aggregator;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
-import org.sakaiproject.nakamura.api.search.SearchException;
-import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
-import org.sakaiproject.nakamura.api.search.SearchResultSet;
-import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.query.Query;
-import javax.jcr.query.Row;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 /**
  * Formats user profile node search results
  *
  */
-@Component(immediate = true, label = "PagecontentSearchResultProcessor", description = "Formatter for pagecontent search results.")
+@Component(label = "PagecontentSearchResultProcessor", description = "Formatter for pagecontent search results.")
+@Service
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "Pagecontent"),
     @Property(name = "sakai.search.resourcetype", value = "sakai/pagecontent")
 })
-// TODO is this used any more? I couldn't find any references to it -cfh
-@Service(value = SearchResultProcessor.class)
-public class PagecontentSearchResultProcessor implements SearchResultProcessor {
+public class PagecontentSearchResultProcessor implements SolrSearchResultProcessor {
 
-  private static final String DEFAULT_SEARCH_PROC_TARGET = "(&(" + SearchConstants.REG_PROCESSOR_NAMES + "=Node))";
+  private static final String DEFAULT_SEARCH_PROC_TARGET = "(&(" + SearchConstants.REG_PROCESSOR_NAMES + "=Resource))";
   @Reference(target = DEFAULT_SEARCH_PROC_TARGET)
-  private SearchResultProcessor searchResultProcessor;
+  private SolrSearchResultProcessor searchResultProcessor;
 
   @Reference
-  protected SearchServiceFactory searchServiceFactory;
+  private SolrSearchServiceFactory searchServiceFactory;
 
-  PagecontentSearchResultProcessor(SearchServiceFactory searchServiceFactory,
-      SearchResultProcessor searchResultProcessor) {
+  PagecontentSearchResultProcessor(SolrSearchServiceFactory searchServiceFactory,
+      SolrSearchResultProcessor searchResultProcessor) {
     if ( searchServiceFactory == null ) {
       throw new NullPointerException("Search Service Factory Must be set when not using as a component");
     }
@@ -58,23 +59,29 @@ public class PagecontentSearchResultProcessor implements SearchResultProcessor {
   public PagecontentSearchResultProcessor() {
   }
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
-      Aggregator aggregator, Row row) throws JSONException, RepositoryException {
-    Node node = row.getNode();
-    Node parentNode = node.getParent();
-    if (parentNode.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
-      String type = parentNode.getProperty(SLING_RESOURCE_TYPE_PROPERTY)
-          .getString();
-      if (type.equals("sakai/page")) {
-        searchResultProcessor.writeNode(request, write, aggregator, row);
-        return;
+  public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
+      throws JSONException {
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
+        .adaptTo(javax.jcr.Session.class));
+    try {
+      ContentManager cm = session.getContentManager();
+      String parentPath = PathUtils.getParentReference(result.getPath());
+      Content parentContent = cm.get(parentPath);
+      if (parentContent.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
+        String type = (String) parentContent.getProperty(SLING_RESOURCE_TYPE_PROPERTY);
+        if (type.equals("sakai/page")) {
+          searchResultProcessor.writeResult(request, write, result);
+          return;
+        }
       }
+      Content content = cm.get(result.getPath());
+      int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
+      ExtendedJSONWriter.writeContentTreeToWriter(write, content, maxTraversalDepth);
+    } catch (StorageClientException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      throw new RuntimeException(e.getMessage(), e);
     }
-    if (aggregator != null) {
-      aggregator.add(node);
-    }
-    int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
-    ExtendedJSONWriter.writeNodeTreeToWriter(write, node, maxTraversalDepth);
   }
 
   /**
@@ -83,9 +90,8 @@ public class PagecontentSearchResultProcessor implements SearchResultProcessor {
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      Query query) throws SearchException {
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      String query) throws SolrSearchException {
     return searchServiceFactory.getSearchResultSet(request, query);
   }
-
 }

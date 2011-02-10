@@ -1,10 +1,11 @@
 {
-  "sakai:query-template": "+resourceType:sakai/pooled-content AND (${q} OR content:${q})${_meManagerGroups};${sortOn} ${sortOrder}",
+  "sakai:query-template": '+resourceType:sakai/pooled-content AND ("${q}" content:"${q}")${_meManagerGroups};${sortOn} ${sortOrder}',
   "_meManagerGroups": "",
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "PooledContent",
+  "sakai:resultprocessor": "FullResource",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",
   "sakai:title": "Pooled Content - Me - Manager",

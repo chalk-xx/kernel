@@ -79,11 +79,11 @@ import org.sakaiproject.nakamura.api.doc.ServiceSelector;
  *
  * <h4>Notes</h4>
  *
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sling/user"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="changePassword"
+ * @disabled.scr.component metatype="no" immediate="true"
+ * @disabled.scr.service interface="javax.servlet.Servlet"
+ * @disabled.scr.property name="sling.servlet.resourceTypes" value="sling/user"
+ * @disabled.scr.property name="sling.servlet.methods" value="POST"
+ * @disabled.scr.property name="sling.servlet.selectors" value="changePassword"
  */
 @ServiceDocumentation(name="Change Password Servlet",
     description="Changes user password. Maps on to nodes of resourceType sling/user " +

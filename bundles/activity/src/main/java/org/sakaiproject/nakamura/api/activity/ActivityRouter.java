@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.api.activity;
 
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+
 import java.util.List;
 
 import javax.jcr.Node;
@@ -42,5 +45,7 @@ public interface ActivityRouter {
    *         first.
    */
   public int getPriority();
+
+  public void route(Content activity, List<ActivityRoute> routes, Session adminSession);
 
 }

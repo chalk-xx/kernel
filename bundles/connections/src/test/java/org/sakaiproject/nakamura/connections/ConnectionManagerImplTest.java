@@ -30,7 +30,6 @@ import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
@@ -69,16 +68,16 @@ public class ConnectionManagerImplTest {
     session.getContentManager().update(new Content("/path/to/connection/node", null));  
     Content node = session.getContentManager().get("/path/to/connection/node");
     
-    Map<String, String[]> properties = new HashMap<String, String[]>();
+    Map<String, Object> properties = new HashMap<String, Object>();
     properties.put("alfa", new String[] { "a" });
     properties.put("beta", new String[] { "a", "b" });
-    properties.put("charlie", new String[] { "c" });
+    properties.put("charlie", "c");
 
     connectionManager.addArbitraryProperties(node, properties);
     
-    assertEquals(StorageClientUtils.toStringArray(node.getProperty("alfa")).length, 1);
-    assertEquals(StorageClientUtils.toStringArray(node.getProperty("beta")).length, 2);
-    assertEquals(StorageClientUtils.toStringArray(node.getProperty("charlie")).length, 1);
+    Assert.assertArrayEquals((String[])node.getProperty("alfa"), new String[]{"a"});
+    Assert.assertArrayEquals((String[])node.getProperty("beta"), new String[]{"a","b"});
+    assertEquals(node.getProperty("charlie"), "c");
   }
 
   @Test
@@ -101,9 +100,9 @@ public class ConnectionManagerImplTest {
 
     connectionManager.handleInvitation(props, null, fromNode, toNode);
 
-    String[] fromValues = StorageClientUtils.toStringArray(fromNode.getProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES));
+    String[] fromValues = (String[]) fromNode.getProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES);
 
-    String[] toValues = StorageClientUtils.toStringArray(toNode.getProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES));
+    String[] toValues = (String[]) toNode.getProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES);
 
     assertEquals(3, fromValues.length);
     int j = 0;
@@ -142,11 +141,11 @@ public class ConnectionManagerImplTest {
     Assert.assertTrue((j&4)==4);
 
 
-    String[] fromRandomValues = StorageClientUtils.toStringArray(fromNode.getProperty("random"));
-    String[] toRandomValues =  StorageClientUtils.toStringArray(toNode.getProperty("random"));
+    String fromRandomValues = (String) fromNode.getProperty("random");
+    String toRandomValues =  (String) toNode.getProperty("random");
 
-    assertEquals("israndom", fromRandomValues[0]);
-    assertEquals("israndom", toRandomValues[0]);
+    assertEquals("israndom", fromRandomValues);
+    assertEquals("israndom", toRandomValues);
   }
 
   @Test
@@ -204,12 +203,12 @@ public class ConnectionManagerImplTest {
     assertEquals(ConnectionState.NONE, state);
 
     // Passing in node with state property.
-    node.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE, StorageClientUtils.toStore("ACCEPTED"));
+    node.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE, "ACCEPTED");
     state = connectionManager.getConnectionState(node);
     assertEquals(ConnectionState.ACCEPTED, state);
 
     // Passing in node with wrong state property.
-    node.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE, StorageClientUtils.toStore("fubar"));
+    node.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE, "fubar");
     state = connectionManager.getConnectionState(node);
     assertEquals(ConnectionState.NONE, state);
   }
@@ -253,7 +252,7 @@ public class ConnectionManagerImplTest {
 
     Content result = connectionManager.getOrCreateConnectionNode(session, from, to);
     assertEquals("a:bob/contacts/alice", result.getPath());
-    assertEquals(ConnectionConstants.SAKAI_CONTACT_RT, StorageClientUtils.toString(result.getProperty("sling:resourceType")));
-    assertEquals("a:alice/public/authprofile", StorageClientUtils.toString(result.getProperty("reference")));
+    assertEquals(ConnectionConstants.SAKAI_CONTACT_RT, result.getProperty("sling:resourceType"));
+    assertEquals("a:alice/public/authprofile", result.getProperty("reference"));
   }
 }

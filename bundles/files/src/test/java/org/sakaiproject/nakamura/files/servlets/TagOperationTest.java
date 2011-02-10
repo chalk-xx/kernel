@@ -37,7 +37,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.files.pool.CreateContentPoolServlet;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;

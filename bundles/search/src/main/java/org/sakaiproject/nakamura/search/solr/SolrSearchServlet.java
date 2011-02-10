@@ -54,6 +54,7 @@ import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -363,12 +364,13 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     try {
       UserManager um = AccessControlUtil.getUserManager(session);
       Authorizable au = um.getAuthorizable(userId);
-      String userPrivatePath = PersonalUtils.getPrivatePath(au);
+      String userPrivatePath = ClientUtils.escapeQueryChars(PersonalUtils
+          .getPrivatePath(au));
       propertiesMap.put("_userPrivatePath", userPrivatePath);
     } catch (RepositoryException e) {
       LOGGER.error("Unable to get the authorizable for this user.", e);
     }
-    propertiesMap.put("_userId", userId);
+    propertiesMap.put("_userId", ClientUtils.escapeQueryChars(userId));
 
     // load properties from a property provider
     if (propertyProviderName != null) {
@@ -393,7 +395,8 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       // this keeps any _* variables from being replaced by request parameters.
       String value = propertiesMap.get(key);
       if (StringUtils.isBlank(value)) {
-        propertiesMap.put(entry.getKey(), vals[0].getString());
+        propertiesMap.put(entry.getKey(),
+            ClientUtils.escapeQueryChars(vals[0].getString()));
       }
     }
 

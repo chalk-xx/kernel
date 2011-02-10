@@ -17,9 +17,7 @@
  */
 package org.sakaiproject.nakamura.basiclti;
 
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.basiclti.BasicLTIContextIdResolver;
 import org.slf4j.Logger;
@@ -38,8 +36,8 @@ import javax.jcr.RepositoryException;
  * value of that property as the context_id. See: {@link #LTI_CONTEXT_ID}.
  * 
  */
-@Component(immediate = true, metatype = true)
-@Service
+// @Component(immediate = true, metatype = true)
+// @Service
 public class DefaultContextIdResolver implements BasicLTIContextIdResolver {
   private static final Logger LOG = LoggerFactory
       .getLogger(DefaultContextIdResolver.class);

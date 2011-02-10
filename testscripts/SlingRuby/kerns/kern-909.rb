@@ -69,6 +69,9 @@ class TC_Kern909Test < Test::Unit::TestCase
     innerJson = JSON.parse(innerBody)
     assert_equal(innerJson["title"], "alfa", "Expected changed title")
     assert_equal(innerJson["foo"], "barnone", "Expected changed string property")
+    # NOTE FOR SPARSE: we can't get _any_ numeric values from JSON,
+    # because they come out of the Content propertyMap as Strings
+    # and JSONWriter deals with them as such
     assert_equal(innerJson["unit"], 10, "Expected numeric property")
   end
 

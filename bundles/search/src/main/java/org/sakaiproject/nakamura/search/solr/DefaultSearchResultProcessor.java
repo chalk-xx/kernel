@@ -25,6 +25,9 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -70,6 +73,14 @@ public class DefaultSearchResultProcessor implements SolrSearchResultProcessor {
 
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
       throws JSONException {
-    ExtendedJSONWriter.writeValueMap(write,result.getProperties());
+    String contentPath = (String) result.getFirstValue("path");
+    Session session =
+      StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+    try {
+      Content contentResult = session.getContentManager().get(contentPath);
+      ExtendedJSONWriter.writeContentTreeToWriter(write, contentResult, -1);
+    } catch (Exception e) {
+      throw new JSONException(e);
+    }
   }
 }

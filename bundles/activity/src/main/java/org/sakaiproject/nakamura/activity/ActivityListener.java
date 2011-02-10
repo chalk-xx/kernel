@@ -18,7 +18,9 @@
 package org.sakaiproject.nakamura.activity;
 
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_ACTOR_ID;
-import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_SOURCE;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -29,16 +31,26 @@ import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.activity.ActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityRouterManager;
-import org.sakaiproject.nakamura.api.activity.ActivityUtils;
-import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.List;
 
 import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.PropertyIterator;
+import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFormatException;
 import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -59,8 +71,7 @@ public class ActivityListener implements MessageListener {
   @Reference
   protected ActivityRouterManager activityRouterManager;
 
-  public static final Logger LOG = LoggerFactory
-      .getLogger(ActivityListener.class);
+  public static final Logger LOG = LoggerFactory.getLogger(ActivityListener.class);
 
   private Connection connection = null;
 
@@ -102,7 +113,7 @@ public class ActivityListener implements MessageListener {
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see javax.jms.MessageListener#onMessage(javax.jms.Message)
    */
   public void onMessage(Message message) {
@@ -110,32 +121,37 @@ public class ActivityListener implements MessageListener {
       final String activityItemPath = message
           .getStringProperty(ActivityConstants.EVENT_PROP_PATH);
       LOG.info("Processing activity: {}", activityItemPath);
-      Session session = slingRepository.loginAdministrative(null); // usage checked and Ok KERN-577
-      // usage is NOT ok. whoever made the comment above, sessions must be logged out or they leak.
+      Session session = slingRepository.loginAdministrative(null); // usage checked and Ok
+                                                                   // KERN-577
+      // usage is NOT ok. whoever made the comment above, sessions must be logged out or
+      // they leak.
       try {
         Node activity = (Node) session.getItem(activityItemPath);
         if (!activity.hasProperty(PARAM_ACTOR_ID)) {
           // we must know the actor
-          throw new IllegalStateException(
-              "Could not determine actor of activity: " + activity);
+          throw new IllegalStateException("Could not determine actor of activity: "
+              + activity);
         }
-  
+
         // Get all the routes for this activity.
-        List<ActivityRoute> routes = activityRouterManager
-            .getActivityRoutes(activity);
-  
+        List<ActivityRoute> routes = activityRouterManager.getActivityRoutes(activity);
+
         // Copy the activity items to each endpoint.
         for (ActivityRoute route : routes) {
           deliverActivityToFeed(session, activity, route.getDestination());
         }
       } finally {
-        try { 
-          session.logout(); 
-        } catch ( Exception e) {
-          LOG.warn("Failed to logout of administrative session {} ",e.getMessage());
+        try {
+          session.logout();
+        } catch (Exception e) {
+          LOG.warn("Failed to logout of administrative session {} ", e.getMessage());
         }
       }
 
+    } catch (AccessDeniedException e) {
+      LOG.error("Got a repository exception in the activity listener.", e);
+    } catch (StorageClientException e) {
+      LOG.error("Got a repository exception in the activity listener.", e);
     } catch (JMSException e) {
       LOG.error("Got a JMS exception in the activity listener.", e);
     } catch (RepositoryException e) {
@@ -145,7 +161,7 @@ public class ActivityListener implements MessageListener {
 
   /**
    * Delivers an activity to a feed.
-   *
+   * 
    * @param session
    *          The session that should be used to do the delivering.
    * @param activity
@@ -153,56 +169,102 @@ public class ActivityListener implements MessageListener {
    * @param activityFeedPath
    *          The path that holds the feed where the activity should be delivered.
    * @throws RepositoryException
+   * @throws StorageClientException 
+   * @throws AccessDeniedException 
    */
   protected void deliverActivityToFeed(Session session, Node activity,
-      String activityFeedPath) throws RepositoryException {
+      String activityFeedPath) throws RepositoryException, AccessDeniedException, StorageClientException {
     // ensure the activityFeed node with the proper type
-    Node activityFeedNode = JcrUtils.deepGetOrCreateNode(session,
-        activityFeedPath);
-    if (activityFeedNode.isNew()) {
-      activityFeedNode.setProperty(
-          JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-          ActivityConstants.ACTIVITY_FEED_RESOURCE_TYPE);
-      session.save();
+    org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils
+        .adaptToSession(session);
+    ContentManager contentManager = sparseSession.getContentManager();
+    String deliveryPath = StorageClientUtils
+        .newPath(activityFeedPath, activity.getName());
+    Builder<String, Object> contentProperties = ImmutableMap.builder();
+    contentProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+        ActivityConstants.ACTIVITY_FEED_RESOURCE_TYPE);
+    PropertyIterator pi = activity.getProperties();
+    while (pi.hasNext()) {
+      Property p = pi.nextProperty();
+      Object v = getValues(p);
+      if ( v != null ) {
+        contentProperties.put(p.getName(), v);
+      }
     }
-    // activityFeed exists, let's continue with delivery
-    // activityFeed is a BigStore, get the hashed (real) path
-    final String deliveryPath = ActivityUtils.getPathFromId(activity.getName(),
-        activityFeedPath);
-    // ensure the parent path exists before we copy source activity
-    final String parentPath = deliveryPath.substring(0, deliveryPath
-        .lastIndexOf("/"));
-    final Node parentNode = JcrUtils.deepGetOrCreateNode(session, parentPath);
-    if (parentNode.isNew()) {
-      session.save();
-    }
-    // now copy the activity from the store to the feed
-    copyActivityItem(session, activity.getPath(), deliveryPath);
+
+    Content content = new Content(deliveryPath, contentProperties.build());
+    contentManager.update(content);
   }
 
-  /**
-   * Copies an activity over.
-   *
-   * @param session
-   *          The session that should be used to do the copying.
-   * @param source
-   *          The path of the original activity.
-   * @param destination
-   *          The path where the activity should be copied to.
-   * @throws RepositoryException
-   */
-  protected void copyActivityItem(Session session, String source,
-      String destination) throws RepositoryException {
-    LOG.debug("copyActivityItem(Session {}, String {}, String {})",
-        new Object[] { session, source, destination });
-    // now copy the activity from the source to the destination
-    session.getWorkspace().copy(source, destination);
-    // next let's create a source property to refer back to the original item
-    // in the ActivityStore
-    Node feedItem = (Node) session.getItem(destination);
-    feedItem.setProperty(PARAM_SOURCE, source);
-    if (session.hasPendingChanges()) {
-      session.save();
+  private Object getValues(Property p) throws ValueFormatException, RepositoryException {
+    int type = p.getType();
+    if (p.getDefinition().isMultiple()) {
+      Value[] values = p.getValues();
+      switch (type) {
+      case PropertyType.BOOLEAN: {
+        boolean[] b = new boolean[values.length];
+        for (int i = 0; i < b.length; i++) {
+          b[i] = values[i].getBoolean();
+        }
+        return b;
+      }
+      case PropertyType.DATE: {
+        Calendar[] b = new Calendar[values.length];
+        for (int i = 0; i < b.length; i++) {
+          b[i] = values[i].getDate();
+        }
+        return b;
+      }
+      case PropertyType.DECIMAL: {
+        BigDecimal[] b = new BigDecimal[values.length];
+        for (int i = 0; i < b.length; i++) {
+          b[i] = values[i].getDecimal();
+        }
+        return b;
+      }
+      case PropertyType.DOUBLE: {
+        double[] b = new double[values.length];
+        for (int i = 0; i < b.length; i++) {
+          b[i] = values[i].getDouble();
+        }
+        return b;
+      }
+      case PropertyType.LONG: {
+        long[] b = new long[values.length];
+        for (int i = 0; i < b.length; i++) {
+          b[i] = values[i].getLong();
+        }
+        return b;
+      }
+      case PropertyType.BINARY:
+        return null;
+      default: {
+        String[] b = new String[values.length];
+        for (int i = 0; i < b.length; i++) {
+          b[i] = values[i].getString();
+        }
+        return b;
+      }
+      }
+    } else {
+      Value value = p.getValue();
+      switch (type) {
+      case PropertyType.BOOLEAN:
+        return value.getBoolean();
+      case PropertyType.DATE:
+        return value.getDate();
+      case PropertyType.DECIMAL:
+        return value.getDecimal();
+      case PropertyType.DOUBLE:
+        return value.getDouble();
+      case PropertyType.LONG:
+        return value.getLong();
+      case PropertyType.BINARY:
+        return null;
+      default:
+        return value.getString();
+      }
+
     }
   }
 

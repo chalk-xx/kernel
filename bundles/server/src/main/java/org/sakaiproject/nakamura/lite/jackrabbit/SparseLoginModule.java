@@ -34,7 +34,6 @@ import org.apache.sling.jcr.jackrabbit.server.impl.security.TrustedCredentials;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Authenticator;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.slf4j.Logger;
@@ -144,8 +143,8 @@ public class SparseLoginModule extends AbstractLoginModule {
         return true;
       }
 
-      String impersonators = StorageClientUtils.toString(user
-          .getProperty(User.IMPERSONATORS_FIELD));
+      String impersonators = (String) user
+          .getProperty(User.IMPERSONATORS_FIELD);
       if (impersonators != null) {
         Set<String> imp = new HashSet<String>();
         Collections.addAll(imp, StringUtils.split(impersonators, ';'));

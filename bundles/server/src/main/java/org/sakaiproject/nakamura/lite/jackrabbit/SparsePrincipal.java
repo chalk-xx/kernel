@@ -37,6 +37,7 @@ public class SparsePrincipal implements ItemBasedPrincipal {
 
   public SparsePrincipal(String principalId, String location, String basePath) {
     this.principalId = principalId;
+    // TODO: check that this calculation of path is correct, I susepct its not.
     this.path = basePath + "/" + StorageClientUtils.shardPath(principalId);
     this.location = location;
 

@@ -96,12 +96,12 @@ import javax.servlet.http.HttpServletResponse;
  * curl -Fprop1=value2 -Fproperty1=value1 http://localhost:8080/system/userManager/group/testGroup.update.html
  * </code>
  *
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" values="sling/group"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="update"
- * @scr.property name="servlet.post.dateFormats"
+ * @disabled.scr.component metatype="no" immediate="true"
+ * @disabled.scr.service interface="javax.servlet.Servlet"
+ * @disabled.scr.property name="sling.servlet.resourceTypes" values="sling/group"
+ * @disabled.scr.property name="sling.servlet.methods" value="POST"
+ * @disabled.scr.property name="sling.servlet.selectors" value="update"
+ * @disabled.scr.property name="servlet.post.dateFormats"
  *               values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
  *               values.1="yyyy-MM-dd'T'HH:mm:ss.SSSZ" values.2="yyyy-MM-dd'T'HH:mm:ss"
  *               values.3="yyyy-MM-dd" values.4="dd.MM.yyyy HH:mm:ss"
@@ -143,21 +143,21 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
   /**
    * The post processor service.
    *
-   * @scr.reference
+   * @disabled.scr.reference
    */
   protected transient AuthorizablePostProcessService postProcessorService;
 
   /**
    * The JCR Repository we access to resolve resources
    *
-   * @scr.reference
+   * @disabled.scr.reference
    */
   private transient SlingRepository repository;
 
   /**
    * Used to launch OSGi events.
    *
-   * @scr.reference
+   * @disabled.scr.reference
    */
   protected transient EventAdmin eventAdmin;
 

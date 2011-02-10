@@ -17,21 +17,22 @@
  */
 package org.sakaiproject.nakamura.api.presence;
 
-import java.io.Writer;
-
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+
+import java.io.Writer;
 
 /**
  * Utils to handle the repetetive bits of the presence services
  */
 public class PresenceUtils {
+  public static final String ANON_USERID = "anonymous";
 
   /**
    * Method to generate the JSON related to the presence of a single user (or at least the
    * common parts of it), this will generate the entire user and the JSON writer object
-   * 
+   *
    * @param writer
    *          the writer to output the JSON into
    * @param userId
@@ -49,7 +50,7 @@ public class PresenceUtils {
   /**
    * Method to generate the JSON related to the presence of a single user (or at least the
    * common parts of it), this will generate the entire user and the JSON writer object
-   * 
+   *
    * @param writer
    *          the writer to output the JSON into
    * @param userId

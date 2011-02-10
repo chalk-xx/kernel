@@ -22,8 +22,6 @@ import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWER
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGED_GROUP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGERS_GROUP;
 
-import com.google.common.collect.Maps;
-
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;

@@ -26,13 +26,12 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -51,7 +50,6 @@ import java.util.Set;
  *
  */
 @Component(immediate = true)
-@Service
 public class ResourceUpdateIndexingHandler implements IndexingHandler {
 
   // list of properties to be indexed
@@ -94,8 +92,7 @@ public class ResourceUpdateIndexingHandler implements IndexingHandler {
         if (content != null) {
           SolrInputDocument doc = new SolrInputDocument();
           for (String prop : WHITELISTED_PROPS) {
-            String value = StorageClientUtils.toString(content.getProperty(prop));
-            doc.addField(prop, value);
+            doc.addField(prop, content.getProperty(prop));
           }
           doc.addField(_DOC_SOURCE_OBJECT, content);
           documents.add(doc);
@@ -120,6 +117,6 @@ public class ResourceUpdateIndexingHandler implements IndexingHandler {
     Event event) {
     logger.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty(FIELD_PATH);
-    return ImmutableList.of("id:" + path);
+    return ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
   }
 }

@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.util;
 
 
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 
 
@@ -58,21 +57,21 @@ public class LitePersonalUtils {
 
   public static String getPrimaryEmailAddress(Content profileNode){
     if (profileNode.hasProperty(PROP_EMAIL_ADDRESS)) {
-      return StorageClientUtils.toString(profileNode.getProperty(PROP_EMAIL_ADDRESS));
+      return (String) profileNode.getProperty(PROP_EMAIL_ADDRESS);
     }
     return null;
   }
 
   public static String[] getEmailAddresses(Content profileNode) {
     if (profileNode.hasProperty(PROP_EMAIL_ADDRESS)) {
-      return StorageClientUtils.toStringArray(profileNode.getProperty(PROP_EMAIL_ADDRESS));
+      return (String[]) profileNode.getProperty(PROP_EMAIL_ADDRESS);
     }
     return null;
   }
 
   public static String getPreferredMessageTransport(Content profileNode) {
     if (profileNode.hasProperty(PROP_PREFERRED_MESSAGE_TRANSPORT)) {
-      return StorageClientUtils.toString(profileNode.getProperty(PROP_PREFERRED_MESSAGE_TRANSPORT));
+      return (String) profileNode.getProperty(PROP_PREFERRED_MESSAGE_TRANSPORT);
     }
     return null;
   }

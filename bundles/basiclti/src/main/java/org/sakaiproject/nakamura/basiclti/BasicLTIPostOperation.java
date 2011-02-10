@@ -31,7 +31,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -43,7 +42,6 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.SlingPostOperation;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
@@ -91,7 +89,7 @@ import javax.jcr.version.VersionException;
   }
 )
 @Component(immediate = true)
-@Service(value = SlingPostOperation.class)
+// @Service(value = SlingPostOperation.class)
 @Properties(value = {
     @Property(name = "sling.post.operation", value = "basiclti"),
     @Property(name = "service.description", value = "Creates a sakai/basiclti settings node."),

@@ -23,11 +23,11 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
@@ -44,9 +44,6 @@ import org.sakaiproject.nakamura.connections.ConnectionUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * Formats connection search results. We get profile nodes from the query and make a
@@ -69,35 +66,34 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
 
   public void writeResult(SlingHttpServletRequest request, JSONWriter writer, Result result)
       throws JSONException {
-    Map<String, Collection<Object>> props = result.getProperties();
-    Collection<Object> names = props.get(User.NAME_FIELD);
-    if (names == null || names.size() == 0) {
+    String contactUser = (String) result.getFirstValue(User.NAME_FIELD);
+    if (contactUser == null) {
       throw new IllegalArgumentException("Missing " + User.NAME_FIELD);
     }
 
     String user = request.getRemoteUser();
-    String contactUser = (String) names.iterator().next();
 
-    ResourceResolver resolver = request.getResourceResolver();
-    Session session = resolver.adaptTo(Session.class);
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
+        .adaptTo(javax.jcr.Session.class));
     try {
       AuthorizableManager authMgr = session.getAuthorizableManager();
       Authorizable auth = authMgr.findAuthorizable(contactUser);
 
       String contactContentPath = ConnectionUtils.getConnectionPath(user, contactUser);
       logger.debug("getting " + contactContentPath);
-      Content contactContent = resolver.getResource(contactContentPath).adaptTo(Content.class);
+      Content contactContent = session.getContentManager().get(contactContentPath);
+      if (contactContent != null) {
+        int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
 
-      int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
-
-      writer.object();
-      writer.key("target");
-      writer.value(contactUser);
-      writer.key("profile");
-      ExtendedJSONWriter.writeValueMap(writer, profileService.getCompactProfileMap(auth));
-      writer.key("details");
-      ExtendedJSONWriter.writeContentTreeToWriter(writer, contactContent, maxTraversalDepth);
-      writer.endObject();
+        writer.object();
+        writer.key("target");
+        writer.value(contactUser);
+        writer.key("profile");
+        ExtendedJSONWriter.writeValueMap(writer, profileService.getCompactProfileMap(auth));
+        writer.key("details");
+        ExtendedJSONWriter.writeContentTreeToWriter(writer, contactContent, maxTraversalDepth);
+        writer.endObject();
+      }
     } catch (StorageClientException e) {
       throw new RuntimeException(e.getMessage(), e);
     } catch (AccessDeniedException e) {

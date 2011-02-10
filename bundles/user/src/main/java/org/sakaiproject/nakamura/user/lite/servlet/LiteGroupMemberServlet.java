@@ -287,11 +287,10 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
     // group and may not apply.
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
-    String[] managersGroup = StorageClientUtils.toStringArray(group.getProperty(UserConstants.PROP_MANAGERS_GROUP));
-    if (managersGroup != null && managersGroup.length == 1) {
-      String mgrGroupName = managersGroup[0];
+    String managersGroup = (String) group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
+    if (managersGroup != null ) {
 
-      Group mgrGroup = (Group) authorizableManager.findAuthorizable(mgrGroupName);
+      Group mgrGroup = (Group) authorizableManager.findAuthorizable(managersGroup);
 
       String[] members = mgrGroup.getMembers();
       for  (String memberName : members) {
@@ -316,9 +315,9 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
   private String getName(Authorizable member)  {
     String name = member.getId();
     if (member instanceof Group) {
-      name = StorageClientUtils.toString(member.getProperty("sakai:group-title"));
+      name = (String) member.getProperty("sakai:group-title");
     } else {
-      name = StorageClientUtils.toString(member.getProperty("lastName"));
+      name = (String) member.getProperty("lastName");
     }
     // We need to add the ID to keep the keys unique. (ieb, ???? name depends on member, so this does not keep the name unique)
     return name + member.getId();

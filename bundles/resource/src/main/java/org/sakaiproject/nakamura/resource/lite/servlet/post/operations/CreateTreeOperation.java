@@ -26,11 +26,11 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparsePostOperation;
+import org.sakaiproject.nakamura.resource.lite.servlet.post.SparseCreateServlet;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -44,7 +44,6 @@ public class CreateTreeOperation extends AbstractSparsePostOperation {
   private static final long serialVersionUID = 9207596135556346980L;
   public static final String TREE_PARAM = "tree";
   public static final String DELETE_PARAM = "delete";
-
 
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
@@ -68,8 +67,23 @@ public class CreateTreeOperation extends AbstractSparsePostOperation {
     }
 
     Resource resource = request.getResource();
-    Content content = resource.adaptTo(Content.class);
-    String path = content.getPath();
+    String path = null;
+    {
+      Content content = resource.adaptTo(Content.class);
+      if (content != null) {
+        path = content.getPath();
+      } else {
+        // for some reason, if the operation posts to a path that does not exist and the
+        // operation is create tree the SparseCreateServlet.doPost() operation is
+        // bypassed. This is an ugly fix that works wound that problem. I suspect
+        // somethings up in Sling.
+        path = (String) request
+            .getAttribute(SparseCreateServlet.CONTENT_TARGET_PATH_ATTRIBUTE);
+      }
+    }
+    if (path == null) {
+      throw new StorageClientException("No Path suppleid to create json tree at");
+    }
 
     // Check if we want to delete the entire tree before creating a new node.
     if (deleteParam != null && "1".equals(deleteParam.getString())) {
@@ -105,9 +119,9 @@ public class CreateTreeOperation extends AbstractSparsePostOperation {
           for (int i = 0; i < arr.length(); i++) {
             values[i] = arr.getString(i);
           }
-          properties.put(key, StorageClientUtils.toStore(values));
+          properties.put(key, values);
         } else {
-          properties.put(key, StorageClientUtils.toStore(obj));
+          properties.put(key, obj);
         }
       }
     }

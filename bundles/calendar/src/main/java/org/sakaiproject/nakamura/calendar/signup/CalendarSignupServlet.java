@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.calendar.signup;
 
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.PARTICIPANTS_NODE_NAME;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_NODENAME;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_PROFILE_LINK;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_RT;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_EVENT_SIGNUP_PARTICIPANT_RT;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_SIGNEDUP_DATE;
@@ -100,7 +101,6 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
   /**
    *
    */
-  private static final String SAKAI_CALENDAR_PROFILE_LINK = "sakai:calendar-profile-link";
   private static final long serialVersionUID = 2770138417371548411L;
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CalendarSignupServlet.class);
