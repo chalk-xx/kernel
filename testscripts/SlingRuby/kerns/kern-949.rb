@@ -28,7 +28,7 @@ class TC_Kern949Test < Test::Unit::TestCase
     managersgroup = Group.new(managersgroupname)
     details = managersgroup.details(@s)
     assert_equal(group.name, details["properties"]["sakai:managed-group"], "Managers group should point to its managed group")
-    assert_equal(managersgroupname, details["properties"]["rep:group-managers"], "Managers group should manage itself")
+    assert_equal(managersgroupname, details["properties"]["rep:group-managers"][0], "Managers group should manage itself")
     members = details["members"]
     assert(members.include?(manager.name), "Should have added user to managers group")
   end
@@ -59,7 +59,7 @@ class TC_Kern949Test < Test::Unit::TestCase
 
   def Xtest_managers_group_contention
     # this test is no longer valid and so has been disabled.
-   
+
     m = Time.now.to_f.to_s.gsub('.', '')
     manager = create_user("user-manager-#{m}")
     group = Group.new("g-test-#{m}")
