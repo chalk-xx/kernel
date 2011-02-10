@@ -32,6 +32,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
+import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
@@ -107,6 +109,8 @@ public class ConnectionFinderSearchResultProcessorTest {
 
     Content contactNode = new Content("a:alice/contacts/bob", null);
     contactNode.setProperty("sling:resourceType", "sakai/contact");
+    contactNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+        ConnectionState.ACCEPTED.toString());
     when(cm.get("a:alice/contacts/bob")).thenReturn(contactNode);
 
     RequestPathInfo pathInfo = mock(RequestPathInfo.class);

@@ -19,9 +19,10 @@ class TC_Kern345Test < Test::Unit::TestCase
     cm = ContactManager.new(@s)
     @s.switch_user(u1)
     cm.invite_contact(u2.name, [], ["follower"], ["leader"])
-    check_contact_relationships(cm, "follower")
+    wait_for_indexer()
+    check_contact_relationships(cm, "pending", "follower")
     @s.switch_user(u2)
-    check_contact_relationships(cm, "leader")
+    check_contact_relationships(cm, "invited", "leader")
   end
 
   def test_shared_and_asymmetric_relationships
@@ -33,10 +34,11 @@ class TC_Kern345Test < Test::Unit::TestCase
 	@log.info("As testuser#{m} inviting otheruser#{m} as a friend, colleque, follower")
     cm.invite_contact(u2.name, ["friend", "colleague"], ["follower"], ["leader"])
 	@log.info("Checking relationship testuser#{m} invited otheruser#{m} as a friend, colleque, follower")
-    check_contact_relationships(cm, "friend", "colleague", "follower")
+    wait_for_indexer()
+    check_contact_relationships(cm, "pending", "friend", "colleague", "follower")
     @s.switch_user(u2)
 	@log.info("Checking relationship  otheruser#{m} was invited by testuser#{m} as a friend, colleque, leader")
-    check_contact_relationships(cm, "friend", "colleague", "leader")
+    check_contact_relationships(cm, "invited", "friend", "colleague", "leader")
   end
 
   def test_removed_and_revised_relationships
@@ -51,17 +53,19 @@ class TC_Kern345Test < Test::Unit::TestCase
     cm.accept_contact(u1.name)
     @log.info "About to remove contact"
     cm.remove_contact(u1.name)
+    wait_for_indexer()
     @log.info "Afterwards..."
-    assert_equal(0, cm.get_all()["results"].length, "Should have removed all contacts")
+    assert_equal(0, cm.get_accepted()["results"].length, "Should have removed all contacts")
     @s.switch_user(u1)
     cm.invite_contact(u2.name, ["colleague"])
     @s.switch_user(u2)
     cm.accept_contact(u1.name)
-    check_contact_relationships(cm, "colleague")
+    wait_for_indexer()
+    check_contact_relationships(cm, "accepted", "colleague")
   end
 
-  def check_contact_relationships(cm, *relationships)
-    contact = cm.get_all()
+  def check_contact_relationships(cm, type, *relationships)
+    contact = cm.send("get_#{type}")
     assert_not_nil(contact["results"])
     assert_not_nil(contact["results"][0]," Expected to have a contact  "+contact["results"].to_s())
     assert_not_nil(contact["results"][0]["details"])
