@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.connections.search;
 
+import static org.sakaiproject.nakamura.api.connections.ConnectionState.NONE;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -25,6 +27,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
+import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -84,14 +88,15 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
       Content contactContent = session.getContentManager().get(contactContentPath);
       if (contactContent != null) {
         int maxTraversalDepth = SearchUtil.getTraversalDepth(request);
-
         writer.object();
         writer.key("target");
         writer.value(contactUser);
         writer.key("profile");
-        ExtendedJSONWriter.writeValueMap(writer, profileService.getCompactProfileMap(auth));
+        ExtendedJSONWriter.writeValueMap(writer,
+            profileService.getCompactProfileMap(auth));
         writer.key("details");
-        ExtendedJSONWriter.writeContentTreeToWriter(writer, contactContent, maxTraversalDepth);
+        ExtendedJSONWriter.writeContentTreeToWriter(writer, contactContent,
+            maxTraversalDepth);
         writer.endObject();
       }
     } catch (StorageClientException e) {
