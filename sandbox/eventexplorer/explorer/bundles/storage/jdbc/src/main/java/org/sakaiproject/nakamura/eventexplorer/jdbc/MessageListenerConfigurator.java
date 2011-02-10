@@ -59,8 +59,8 @@ public class MessageListenerConfigurator {
   protected void activate(Map<?, ?> props) throws IOException {
     Configuration config = configAdmin.getConfiguration(ROUTE_BUILDER_PID);
     Dictionary listenerProps = config.getProperties();
-    if (props == null) {
-      props = new Hashtable();
+    if (listenerProps == null) {
+      listenerProps = new Hashtable();
     }
     oldMessageListenerTarget = listenerProps.get(MESSAGE_LISTENER_TARGET);
     listenerProps.put(MESSAGE_LISTENER_TARGET, "(service.pid="
@@ -76,5 +76,6 @@ public class MessageListenerConfigurator {
     if (listenerProps != null) {
       listenerProps.put(MESSAGE_LISTENER_TARGET, oldMessageListenerTarget);
     }
+    config.update(listenerProps);
   }
 }
