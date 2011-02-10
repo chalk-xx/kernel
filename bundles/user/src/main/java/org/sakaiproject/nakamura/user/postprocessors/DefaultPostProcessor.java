@@ -31,7 +31,6 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
@@ -68,7 +67,7 @@ import javax.jcr.Value;
 import javax.jcr.nodetype.PropertyDefinition;
 
 /**
- *
+ * 
  * <pre>
  * HomePostProcessor
  *  It creates the following if they dont exist (or onCreate)
@@ -85,59 +84,59 @@ import javax.jcr.nodetype.PropertyDefinition;
  *  a:userID/public
  *  a:userID/private
  *      + permissions: everyone and anon denied read
- *
+ * 
  *  If they do exist (on everything else except delete)
  *  a:userID
  *     Change permissions to match visibility
  *     Change permissions to match managers and viewers
- *
- *
+ * 
+ * 
  * Sakai Group Postprocessor
  * sets the path property in the authorizable
  * sets a group-manages property name to the name of an auto generated group
  * generates that group (does not trigger any post processors)
  * sets properties in the manger group
  * adds members and removes members according to the request properties sakai:manager and sakai:manager@Delete
- *
+ * 
  * Sakau User Post processor
  * sets the path property in the authorizable
- *
- *
+ * 
+ * 
  * Message Post Processor
  * a:userID/message
  *    - sling:resourceType = sakai/messagestore
  *    + permissions: user can all
  *                   anon deny all
  *                   everyone deny all
- *
+ * 
  * Calendar
  * a:userID/calendar
  *     - sling:resourceType = sakai/calendar
  *     _ stores a default calendar (empty with no properties)
  *     + grants userID all
- *
+ * 
  * Connections
  * a:userID/contacts
  *     - sling:resourceType = sakai/contactstore
  *     + deny all for anon and everyone
  *       grants user all, except anon
  *     + creates a private group of viewers that only the current user can view (could be delayed as not used then)
- *
+ * 
  *  Pages post processor
  *  a:userId/pages
  *      Copies a template content tree verbatum from a uder defined location into the pages folder
- *
- *
+ * 
+ * 
  * Profile post Processor
  * a:userId/profile
  *     - sling:resourceType = sakai/group-profile | sakai/user-profile
  *      Copies a template of content posted by the UI to generate a tree of content after processing, uses the ContentLoader to achieve this.
  *      Copies all the Authorizable Properties onto the authorizable node.
- *
- *
- *
+ * 
+ * 
+ * 
  * -----------------
- *
+ * 
  * We can hard code everything other than the profile importer in a single class
  * IMO the manager group is superfluous on a user and adds unecessary expense
  * </pre>
@@ -223,7 +222,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       .getLogger(DefaultPostProcessor.class);
 
   /**
-   * Principals that dont manage, Admin has permissions everywhere already.
+   * Principals that dont manage, Admin has permissions everywhere already. 
    */
   private static final Set<String> NO_MANAGE = ImmutableSet.of(Group.EVERYONE, User.ANON_USER, User.ADMIN_USER);
 
@@ -661,10 +660,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       // also unique by definition.
       String managersGroupId = authorizable.getId() + "-managers";
       authorizable.setProperty(PROP_MANAGERS_GROUP, managersGroupId);
-
-      // Give the Managers membership write access to the Group Authorizable.
-      Set<String> managers = Sets.newHashSet(StorageClientUtils.nonNullStringArray(
-          (String[]) authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
+      Set<String> managers = Sets.newHashSet((String[]) authorizable
+          .getProperty(UserConstants.PROP_GROUP_MANAGERS));
       managers.add(managersGroupId);
       authorizable.setProperty(UserConstants.PROP_GROUP_MANAGERS,
           managers.toArray(new String[managers.size()]));
