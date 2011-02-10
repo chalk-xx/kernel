@@ -68,7 +68,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       "firstName", "lastName", "email", "type");
 
   private static final Map<String, String> GROUP_WHITELISTED_PROPS = ImmutableMap.of(
-      "group-id", "name", "group-title", "title", "group-description", "description");
+      "name", "name", "group-title", "title", "group-description", "description", "type", "type");
 
   // list of authorizables to not index
   private static final Set<String> BLACKLISTED_AUTHZ = ImmutableSet.of("admin",

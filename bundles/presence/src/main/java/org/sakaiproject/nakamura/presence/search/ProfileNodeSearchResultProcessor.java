@@ -121,11 +121,11 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
       if (auth != null) {
         ValueMap map = profileService.getProfileMap(auth, jcrSession);
         ExtendedJSONWriter.writeValueMapInternals(write, map);
-      }
 
-      // If this is a User Profile, then include Presence data.
-      if (!auth.isGroup()) {
-        PresenceUtils.makePresenceJSON(write, name, presenceService, true);
+        // If this is a User Profile, then include Presence data.
+        if (!auth.isGroup()) {
+          PresenceUtils.makePresenceJSON(write, name, presenceService, true);
+        }
       }
       write.endObject();
     } catch (StorageClientException e) {
