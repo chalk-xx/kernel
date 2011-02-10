@@ -31,7 +31,6 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
@@ -304,6 +303,26 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       return; // do not
     }
 
+    // WARNING: Creation and Update requests are more disjunct than is usual.
+    //
+    // In our current (bad) API, the only way to create a collaborative space (home
+    // folder, messaging, discussions, web pages, contacts, roles) is as a side-effect of
+    // creating an Authorizable. Because we want to let integrators create Group spaces
+    // without necessarily becoming Group members, this is done in an administrative session.
+    //
+    // After the collaborative space is created, its various functional areas are managed
+    // by specialized servlets and bundles. POSTs to an Authorizable are generally
+    // only updates to that Authorizable object and should not require implicit access
+    // to resources owned by the Authorizable. In particular, a request to add a member to
+    // an existing Group Authorizable should not implicitly create a Home folder, pages,
+    // contact lists, etc., for the Authorizable. (E.g., adding a member to the
+    // internally-generated Group Authorizable that holds personal connections should not
+    // recursively generate yet another connections-holding Group.)
+    //
+    // TODO We plan to replace this client-server API with a template-based approach that
+    // decouples Authorizable management from collaborative space creation.
+    boolean isCreate = ModificationType.CREATE.equals(change.getType());
+
     // If the sessionw as capable of performing the create or modify operation, it must be
     // capable of performing these operations.
     String authId = authorizable.getId();
@@ -318,65 +337,117 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     // no action required (IMO we should drop the generated group and use ACL on the
     // object itself)
     if (isGroup) {
-      updateManagersGroup(authorizable, authorizableManager, accessControlManager,
-          parameters);
+      if (isCreate) {
+        createManagersGroup(authorizable, authorizableManager, accessControlManager,
+            parameters);
+      } else {
+        updateManagersGroup(authorizable, authorizableManager, accessControlManager,
+            parameters);
+      }
     }
 
     // Home Authorizable PostProcessor
     // ==============================
     // home path
     if (!contentManager.exists(homePath)) {
-      Builder<String, Object> props = ImmutableMap.builder();
-      if (isGroup) {
-        props.put(SLING_RESOURCE_TYPE, SAKAI_GROUP_HOME_RT);
+      if (isCreate) {
+        Builder<String, Object> props = ImmutableMap.builder();
+        if (isGroup) {
+          props.put(SLING_RESOURCE_TYPE, SAKAI_GROUP_HOME_RT);
 
-      } else {
-        props.put(SLING_RESOURCE_TYPE, SAKAI_USER_HOME_RT);
+        } else {
+          props.put(SLING_RESOURCE_TYPE, SAKAI_USER_HOME_RT);
+        }
+        if (authorizable.hasProperty(SAKAI_SEARCH_EXCLUDE_TREE_PROP)) {
+          // raw copy
+          props.put(SAKAI_SEARCH_EXCLUDE_TREE_PROP,
+              authorizable.getProperty(SAKAI_SEARCH_EXCLUDE_TREE_PROP));
+        }
+        contentManager.update(new Content(homePath, props.build()));
+
+        List<AclModification> aclModifications = new ArrayList<AclModification>();
+        // KERN-886 : Depending on the profile preference we set some ACL's on the profile.
+        if (User.ANON_USER.equals(authId)) {
+          AclModification.addAcl(true, Permissions.CAN_READ, User.ANON_USER,
+              aclModifications);
+          AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
+              aclModifications);
+        } else if (VISIBILITY_PUBLIC.equals(visibilityPreference)) {
+          AclModification.addAcl(true, Permissions.CAN_READ, User.ANON_USER,
+              aclModifications);
+          AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
+              aclModifications);
+        } else if (VISIBILITY_LOGGED_IN.equals(visibilityPreference)) {
+          AclModification.addAcl(false, Permissions.CAN_READ, User.ANON_USER,
+              aclModifications);
+          AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
+              aclModifications);
+        } else if (VISIBILITY_PRIVATE.equals(visibilityPreference)) {
+          AclModification.addAcl(false, Permissions.CAN_READ, User.ANON_USER,
+              aclModifications);
+          AclModification.addAcl(false, Permissions.CAN_READ, Group.EVERYONE,
+              aclModifications);
+        }
+
+        Map<String, Object> acl = Maps.newHashMap();
+        syncOwnership(authorizable, acl, aclModifications);
+
+        AclModification[] aclMods = aclModifications
+            .toArray(new AclModification[aclModifications.size()]);
+        accessControlManager.setAcl(Security.ZONE_CONTENT, homePath, aclMods);
+
+        accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(),
+            aclMods);
+
+        // Create standard Home subpaths
+        createPath(authId, LitePersonalUtils.getPublicPath(authId), SAKAI_PUBLIC_RT, false,
+            contentManager, accessControlManager, null);
+        createPath(authId, LitePersonalUtils.getPrivatePath(authId), SAKAI_PRIVATE_RT, true,
+            contentManager, accessControlManager, null);
+
+        // Message PostProcessor
+        createPath(authId, homePath + MESSAGE_FOLDER, SAKAI_MESSAGESTORE_RT, true,
+            contentManager, accessControlManager, null);
+        // Calendar
+        createPath(authId, homePath + CALENDAR_FOLDER, SAKAI_CALENDAR_RT, false,
+            contentManager, accessControlManager, null);
+        // Connections
+        createPath(authId, homePath + CONTACTS_FOLDER, SAKAI_CONTACTSTORE_RT, true,
+            contentManager, accessControlManager, null);
+        authorizableManager.createGroup("g-contacts-" + authorizable.getId(), "g-contacts-"
+            + authorizable.getId(), null);
+        // Pages
+        boolean createdPages = createPath(authId, homePath + PAGES_FOLDER, SAKAI_PAGES_RT,
+            false, contentManager, accessControlManager, null);
+        createPath(authId, homePath + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false,
+            contentManager, accessControlManager, null);
+        if (createdPages) {
+          intitializeContent(request, authorizable, session, homePath + PAGES_FOLDER,
+              parameters);
+        }
+        // Profile
+        String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT
+                                                            : SAKAI_USER_PROFILE_RT;
+        createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
+            profileType, false, contentManager, accessControlManager, null);
+
+        Map<String, Object> profileProperties = processProfileParameters(
+            defaultProfileTemplate, authorizable, parameters);
+        for (String propName : profileProperties.keySet()) {
+          authorizable.setProperty(propName, profileProperties.get(propName));
+        }
+        authorizableManager.updateAuthorizable(authorizable);
+        createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC,
+            "nt:unstructured", false, contentManager, accessControlManager, profileProperties);
       }
-      if (authorizable.hasProperty(SAKAI_SEARCH_EXCLUDE_TREE_PROP)) {
-        // raw copy
-        props.put(SAKAI_SEARCH_EXCLUDE_TREE_PROP,
-            authorizable.getProperty(SAKAI_SEARCH_EXCLUDE_TREE_PROP));
-      }
-      contentManager.update(new Content(homePath, props.build()));
-
-      List<AclModification> aclModifications = new ArrayList<AclModification>();
-      // KERN-886 : Depending on the profile preference we set some ACL's on the profile.
-      if (User.ANON_USER.equals(authId)) {
-        AclModification.addAcl(true, Permissions.CAN_READ, User.ANON_USER,
-            aclModifications);
-        AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
-            aclModifications);
-      } else if (VISIBILITY_PUBLIC.equals(visibilityPreference)) {
-        AclModification.addAcl(true, Permissions.CAN_READ, User.ANON_USER,
-            aclModifications);
-        AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
-            aclModifications);
-      } else if (VISIBILITY_LOGGED_IN.equals(visibilityPreference)) {
-        AclModification.addAcl(false, Permissions.CAN_READ, User.ANON_USER,
-            aclModifications);
-        AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
-            aclModifications);
-      } else if (VISIBILITY_PRIVATE.equals(visibilityPreference)) {
-        AclModification.addAcl(false, Permissions.CAN_READ, User.ANON_USER,
-            aclModifications);
-        AclModification.addAcl(false, Permissions.CAN_READ, Group.EVERYONE,
-            aclModifications);
-      }
-
-      Map<String, Object> acl = Maps.newHashMap();
-      syncOwnership(authorizable, acl, aclModifications);
-
-      AclModification[] aclMods = aclModifications
-          .toArray(new AclModification[aclModifications.size()]);
-      accessControlManager.setAcl(Security.ZONE_CONTENT, homePath, aclMods);
-
-      accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(),
-          aclMods);
-
     } else {
-      // Sync the Acl on the home folder with whatever is present in the authorizable
-      // permissions.
+      // Attempt to sync the Acl on the home folder with whatever is present in the
+      // authorizable permissions. This is done for backwards compatibility. It
+      // will not succeed if the current session has write access to the Authorizable
+      // but lacks write access to the Home folder.
+      //
+      // TODO Consider dropping this feature since the Home path's ACL can be
+      // explicitly modified in a Batch POST.
 
       Map<String, Object> acl = accessControlManager.getAcl(Security.ZONE_CONTENT,
           homePath);
@@ -384,8 +455,13 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
       syncOwnership(authorizable, acl, aclModifications);
 
-      accessControlManager.setAcl(Security.ZONE_CONTENT, homePath,
-          aclModifications.toArray(new AclModification[aclModifications.size()]));
+      try {
+        accessControlManager.setAcl(Security.ZONE_CONTENT, homePath,
+            aclModifications.toArray(new AclModification[aclModifications.size()]));
+      } catch (AccessDeniedException e) {
+        LOGGER.info("User {} is not able to update ACLs for the Home path of Authorizable {} - exception {}",
+            new Object[] {session.getUserId(), authorizable.getId(), e.getMessage()});
+      }
 
       acl = accessControlManager
           .getAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId());
@@ -397,45 +473,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           aclModifications.toArray(new AclModification[aclModifications.size()]));
 
     }
-    createPath(authId, LitePersonalUtils.getPublicPath(authId), SAKAI_PUBLIC_RT, false,
-        contentManager, accessControlManager, null);
-    createPath(authId, LitePersonalUtils.getPrivatePath(authId), SAKAI_PRIVATE_RT, true,
-        contentManager, accessControlManager, null);
-
-    // Message PostProcessor
-    createPath(authId, homePath + MESSAGE_FOLDER, SAKAI_MESSAGESTORE_RT, true,
-        contentManager, accessControlManager, null);
-    // Calendar
-    createPath(authId, homePath + CALENDAR_FOLDER, SAKAI_CALENDAR_RT, false,
-        contentManager, accessControlManager, null);
-    // Connections
-    createPath(authId, homePath + CONTACTS_FOLDER, SAKAI_CONTACTSTORE_RT, true,
-        contentManager, accessControlManager, null);
-    authorizableManager.createGroup("g-contacts-" + authorizable.getId(), "g-contacts-"
-        + authorizable.getId(), null);
-    // Pages
-    boolean createdPages = createPath(authId, homePath + PAGES_FOLDER, SAKAI_PAGES_RT,
-        false, contentManager, accessControlManager, null);
-    createPath(authId, homePath + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false,
-        contentManager, accessControlManager, null);
-    if (createdPages) {
-      intitializeContent(request, authorizable, session, homePath + PAGES_FOLDER,
-          parameters);
-    }
-    // Profile
-    String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT
-                                                        : SAKAI_USER_PROFILE_RT;
-    createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
-        profileType, false, contentManager, accessControlManager, null);
-
-    Map<String, Object> profileProperties = processProfileParameters(
-        defaultProfileTemplate, authorizable, parameters);
-    for (String propName : profileProperties.keySet()) {
-      authorizable.setProperty(propName, profileProperties.get(propName));
-    }
-    authorizableManager.updateAuthorizable(authorizable);
-    createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC,
-        "nt:unstructured", false, contentManager, accessControlManager, profileProperties);
 
   }
 
@@ -598,9 +635,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   }
 
   /**
-   * Create or update the managers group. Note, this is deprecated since this is not how
+   * Create the managers group. Note, this is deprecated since this is not how
    * we will do this longer term.
-   * 
+   *
    * @param authorizable
    * @param authorizableManager
    * @param accessControlManager
@@ -609,7 +646,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
    * @throws StorageClientException
    */
   @Deprecated
-  private void updateManagersGroup(Authorizable authorizable,
+  private void createManagersGroup (Authorizable authorizable,
       AuthorizableManager authorizableManager, AccessControlManager accessControlManager,
       Map<String, Object[]> parameters) throws AccessDeniedException,
       StorageClientException {
@@ -675,6 +712,28 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         authorizableManager.updateAuthorizable(mainGroup);
       }
     } else {
+      LOGGER.info("Group {} already has Managers group {} - no changes made", authorizable,
+          (String) authorizable.getProperty(PROP_MANAGERS_GROUP));
+    }
+  }
+
+  /**
+   * If requested, update the managers group. Note, this is deprecated since this is not how
+   * we will do this longer term.
+   *
+   * @param authorizable
+   * @param authorizableManager
+   * @param accessControlManager
+   * @param parameters
+   * @throws AccessDeniedException
+   * @throws StorageClientException
+   */
+  @Deprecated
+  private void updateManagersGroup (Authorizable authorizable,
+      AuthorizableManager authorizableManager, AccessControlManager accessControlManager,
+      Map<String, Object[]> parameters) throws AccessDeniedException,
+      StorageClientException {
+    if (authorizable.hasProperty(PROP_MANAGERS_GROUP)) {
       boolean isUpdateNeeded = false;
       String managersGroupId = (String) authorizable.getProperty(PROP_MANAGERS_GROUP);
       Group managersGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
