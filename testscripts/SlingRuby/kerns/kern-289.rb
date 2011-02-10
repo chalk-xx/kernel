@@ -24,7 +24,7 @@ class TC_Kern289Test < Test::Unit::TestCase
     cm.invite_contact(u2.name, "follower")
     #@s.debug = true
     wait_for_indexer()
-    contacts = cm.get_all()
+    contacts = cm.get_pending()
     #@s.debug = false
     assert_not_nil(contacts)
     assert_not_nil(contacts["results"]," No Contacts found")
