@@ -1,5 +1,5 @@
 {
-  "sakai:query-template" : "+path:${_calendar-path} +vcal-DTSTART:[${_date-start} TO ${_date-end}] +resourceType:sakai/calendar*;${sortOn} ${sortOrder}",
+  "sakai:query-template" : "path:${_calendar-path} AND vcal-DTSTART:[${_date-start} TO ${_date-end}] AND resourceType:sakai/calendar*;${sortOn} ${sortOrder}",
   "sortOn": "vcal-DTSTART",
   "sortOrder": "asc",
   "sling:resourceType": "sakai/solr-search",

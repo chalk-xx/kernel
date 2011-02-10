@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": '+resourceType:sakai/pooled-content AND ("${q}" content:"${q}")${_meManagerGroups};${sortOn} ${sortOrder}',
+  "sakai:query-template": 'resourceType:sakai/pooled-content AND ("${q}" OR content:"${q}")${_meManagerGroups};${sortOn} ${sortOrder}',
   "_meManagerGroups": "",
   "sortOn": "score",
   "sortOrder": "desc",

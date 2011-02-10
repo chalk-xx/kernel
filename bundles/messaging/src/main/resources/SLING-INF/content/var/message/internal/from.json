@@ -1,6 +1,5 @@
 {
-//  "sakai:query-template": "/{_userMessagePath}//element(*)Metadata[@sling:resourceType='sakai/message' and @sakai:type='internal' and jcr:contains(@sakai:from, '*{from}*')] order by @{sortOn|jcr:created} {sortOrder|descending}",
-  "sakai:query-template": '+path:${_userMessagePath} +resourceType:sakai/message +type:internal +from:"${from}*";${sortOn} ${sortOrder}',
+  "sakai:query-template": 'path:${_userMessagePath} AND resourceType:sakai/message AND type:internal AND from:"${from}*";${sortOn} ${sortOrder}',
   "sortOn": "created",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",

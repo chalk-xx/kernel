@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "+taguuid:[* TO *]",
+  "sakai:query-template": "taguuid:[* TO *]",
   "sling:resourceType": "sakai/solr-search",
   "sakai:batchresultprocessor": "TagCloud",
   "sakai:title": "Tag Cloud",

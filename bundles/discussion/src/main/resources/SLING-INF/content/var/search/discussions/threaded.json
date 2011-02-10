@@ -1,5 +1,5 @@
 {
-  "sakai:query-template" : "+path:${path} +resourceType:sakai/message +type:discussion +marker:${marker};${sortOn} ${sortOrder}",
+  "sakai:query-template" : "path:${path} AND resourceType:sakai/message AND type:discussion AND marker:${marker};${sortOn} ${sortOrder}",
   "sortOn": "created",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",

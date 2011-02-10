@@ -1,5 +1,5 @@
 {
-  "sakai:query-template" : "+path:${_event-path}/signup/participants +resourceType:sakai/event-signup-participant;${sortOn} ${sortOrder}",
+  "sakai:query-template" : "path:${_event-path}/signup/participants AND resourceType:sakai/event-signup-participant;${sortOn} ${sortOrder}",
   "sortOn": "lastName",
   "sortOrder": "asc",
   "sling:resourceType": "sakai/solr-search",

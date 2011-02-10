@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": '+path:${_mySpace} +("${q}" content:"${q}" path:"${q}") ${_usedin}${_tags};${sortOn} ${sortOrder}',
+  "sakai:query-template": 'path:${_mySpace} AND ("${q}" OR content:"${q}" OR path:"${q}") ${_usedin}${_tags};${sortOn} ${sortOrder}',
   "_tags": "",
   "_usedin": "",
   "sortOn": "score",

@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "+path:/activity/content +resourceType:sakai/resource-update ;$sortOn $sortOrder",  
+  "sakai:query-template": "path:/activity/content AND resourceType:sakai/resource-update;$sortOn $sortOrder",  
   "sortOn": "timestamp",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
