@@ -34,7 +34,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -49,6 +49,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import javax.jcr.RepositoryException;
 
 /**
  * Formats message node search results
@@ -71,7 +73,7 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
   PresenceService presenceService;
 
   @Reference
-  LiteProfileService profileService;
+  ProfileService profileService;
 
   @Reference
   SolrSearchServiceFactory searchServiceFactory;
@@ -84,6 +86,7 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       Iterator<Result> iterator) throws JSONException {
 
     ResourceResolver resolver = request.getResourceResolver();
+    javax.jcr.Session jcrSession = resolver.adaptTo(javax.jcr.Session.class);
     List<String> basePosts = new ArrayList<String>();
     Map<String,List<Post>> postChildren = new HashMap<String, List<Post>>();
     Map<String,Post> allPosts = new HashMap<String, Post>();
@@ -124,11 +127,13 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
     try {
       // The posts are sorted, now return them as json.
       for (String basePostId : basePosts) {
-        allPosts.get(basePostId).outputPostAsJSON((ExtendedJSONWriter) writer, presenceService, profileService);
+        allPosts.get(basePostId).outputPostAsJSON((ExtendedJSONWriter) writer, presenceService, profileService, jcrSession);
       }
     } catch (StorageClientException e) {
       throw new RuntimeException(e.getMessage(), e);
     } catch (AccessDeniedException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    } catch (RepositoryException e) {
       throw new RuntimeException(e.getMessage(), e);
     }
   }

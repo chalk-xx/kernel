@@ -35,7 +35,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
@@ -43,6 +43,10 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
+import javax.jcr.RepositoryException;
+
+
+// TODO: move this into the right bundle, presence is not the right bundle.
 @Component(label = "UserSearchResultProcessor", description = "Formatter for user search results.")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
@@ -54,7 +58,7 @@ public class UserSearchResultProcessor implements SolrSearchResultProcessor {
   private PresenceService presenceService;
 
   @Reference
-  private LiteProfileService profileService;
+  private ProfileService profileService;
 
 
   @Reference
@@ -81,8 +85,8 @@ public class UserSearchResultProcessor implements SolrSearchResultProcessor {
    */
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
   throws JSONException {
-    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
-        .adaptTo(javax.jcr.Session.class));
+    javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+    Session session = StorageClientUtils.adaptToSession(jcrSession);
     String path = result.getPath();
     String userId = (String) result.getFirstValue(User.NAME_FIELD);
     if (userId != null) {
@@ -91,13 +95,15 @@ public class UserSearchResultProcessor implements SolrSearchResultProcessor {
         Authorizable auth = authMgr.findAuthorizable(path);
 
         write.object();
-        ValueMap map = profileService.getProfileMap(auth, session);
+        ValueMap map = profileService.getProfileMap(auth, jcrSession);
         ((ExtendedJSONWriter)write).valueMapInternals(map);
         PresenceUtils.makePresenceJSON(write, userId, presenceService, true);
         write.endObject();
       } catch (StorageClientException e) {
         throw new RuntimeException(e.getMessage(), e);
       } catch (AccessDeniedException e) {
+        throw new RuntimeException(e.getMessage(), e);
+      } catch (RepositoryException e) {
         throw new RuntimeException(e.getMessage(), e);
       }
     }

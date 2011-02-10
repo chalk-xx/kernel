@@ -172,11 +172,11 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
       while (iterator.hasNext() && i < items) {
         Entry<String, Authorizable> entry = iterator.next();
         Authorizable au = entry.getValue();
-        ValueMap profile;
+        ValueMap profile = null;
         if(selectors.contains("detailed")){
-          profile = profileService.getProfileMap(au, session);
+   // PORTED TO Lite cant use      profile = profileService.getProfileMap(au, session);
         }else{
-          profile = profileService.getCompactProfileMap(au, session);
+   // PORTED TO Lite cant use       profile = profileService.getCompactProfileMap(au, session);
         }
         if (profile != null) {
           writer.valueMap(profile);

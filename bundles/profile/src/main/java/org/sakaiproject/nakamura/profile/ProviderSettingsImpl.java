@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.profile;
 
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
 import org.sakaiproject.nakamura.util.JcrUtils;
 
@@ -33,7 +34,7 @@ import javax.jcr.ValueFormatException;
 public class ProviderSettingsImpl implements ProviderSettings {
 
   private String provider;
-  private Node profileNode;
+  private Content profileNode;
   private Node settingsNode;
   private Node providerNode;
 
@@ -44,9 +45,9 @@ public class ProviderSettingsImpl implements ProviderSettings {
    * @throws PathNotFoundException
    * @throws ValueFormatException
    */
-  public ProviderSettingsImpl(Node profileNode, Node settingsNode)
+  public ProviderSettingsImpl(Content profileContent, Node settingsNode)
       throws RepositoryException {
-    this.profileNode = profileNode;
+    this.profileNode = profileContent;
     this.settingsNode = settingsNode;
     if (settingsNode.hasProperty(ProviderSettings.PROFILE_PROVIDER)) {
       provider = settingsNode.getProperty(ProviderSettings.PROFILE_PROVIDER).getString();
@@ -54,7 +55,7 @@ public class ProviderSettingsImpl implements ProviderSettings {
     if (settingsNode.hasProperty(ProviderSettings.PROFILE_PROVIDER_SETTINGS)) {
       String providerSettingsPath = settingsNode.getProperty(
           ProviderSettings.PROFILE_PROVIDER_SETTINGS).getString();
-      Session session = profileNode.getSession();
+      Session session = settingsNode.getSession();
       if (session.nodeExists(providerSettingsPath)) {
         this.providerNode = session.getNode(providerSettingsPath);
       }
@@ -106,7 +107,7 @@ public class ProviderSettingsImpl implements ProviderSettings {
    *
    * @see org.sakaiproject.nakamura.api.profile.ProviderSettings#getNode()
    */
-  public Node getNode() {
+  public Content getNode() {
     return profileNode;
   }
 

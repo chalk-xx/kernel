@@ -35,7 +35,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -46,11 +46,15 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jcr.RepositoryException;
+
 /**
  * Search result processor to write out profile information when search returns home nodes
  * (sakai/user-home). This result processor should live in the user bundle but at the time
  * of this writing, moving to that bundle creates a cyclical dependency of:<br/>
  * search -&gt; personal -&gt; user -&gt; search
+ * 
+ * TODO: Sort the above out and move this code to the correct bundle.
  */
 @Component
 @Service
@@ -65,7 +69,7 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
   private SolrSearchServiceFactory searchServiceFactory;
 
   @Reference
-  private LiteProfileService profileService;
+  private ProfileService profileService;
 
   @Reference
   private PresenceService presenceService;
@@ -74,7 +78,7 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
   }
 
   ProfileNodeSearchResultProcessor(SolrSearchServiceFactory searchServiceFactory,
-      LiteProfileService profileService, PresenceService presenceService) {
+      ProfileService profileService, PresenceService presenceService) {
     if (searchServiceFactory == null || profileService == null || presenceService == null) {
       throw new IllegalArgumentException(
           "SearchServiceFactory, ProfileService and PresenceService must be set when not using as a component");
@@ -104,8 +108,8 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.Row)
    */
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result) throws JSONException {
-    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
-        .adaptTo(javax.jcr.Session.class));
+    javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+    Session session = StorageClientUtils.adaptToSession(jcrSession);
 
     try {
       AuthorizableManager authMgr = session.getAuthorizableManager();
@@ -115,7 +119,7 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
 
       write.object();
       if (auth != null) {
-        ValueMap map = profileService.getProfileMap(auth, session);
+        ValueMap map = profileService.getProfileMap(auth, jcrSession);
         ExtendedJSONWriter.writeValueMapInternals(write, map);
       }
 
@@ -127,6 +131,8 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
     } catch (StorageClientException e) {
       LOGGER.error(e.getMessage(), e);
     } catch (AccessDeniedException e) {
+      LOGGER.error(e.getMessage(), e);
+    } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);
     }
   }

@@ -20,11 +20,15 @@ class TC_KernMeTest < Test::Unit::TestCase
     public = user.public_path_for(@s)
     path = "#{public}/authprofile"
     props = {"firstName" => name, "_charset_" => "UTF-8"}
-    @s.execute_post(@s.url_for(path), props)
+    res = @s.execute_post(@s.url_for(path), props)
+    @log.info(res.body)
+    res = @s.execute_get(@s.url_for("#{path}.5.tidy.json"))
+    @log.info(res.body)
   end
   
   def get_system_me
     res = @s.execute_get(@s.url_for("/system/me"))
+    @log.info(res.body)
     return JSON.parse(res.body)
   end
   
@@ -40,6 +44,7 @@ class TC_KernMeTest < Test::Unit::TestCase
     characters = "foobar"
     set_first_name(characters, user)
     json = get_system_me()
+  
     
     # Check if name is correct.
     assert_equal(json["profile"]["firstName"], characters, "Safe characters didn't match")
