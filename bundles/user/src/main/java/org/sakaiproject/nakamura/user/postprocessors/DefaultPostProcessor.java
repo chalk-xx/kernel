@@ -272,14 +272,14 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           "lastName", new Object[]{"User"},
           "sakai:search-exclude-tree", new Object[]{true},
           ":sakai:profile-import", new Object[]{"{'basic': {'access': 'everybody', 'elements': {'email': {'value': 'admin@sakai.invalid'}, 'firstName': {'value': 'Admin'}, 'lastName': {'value': 'User'}}}}"});
-      process(null, admin, session, Modification.onModified("admin"), adminMap); 
+      process(null, admin, session, Modification.onCreated("admin"), adminMap);
       Authorizable anon = authorizableManager.findAuthorizable(User.ANON_USER);
       Map<String, Object[]> anonMap = ImmutableMap.of("email", new Object[]{"anon@sakai.invalid"},
           "firstName", new Object[]{"Anon"},
           "lastName", new Object[]{"User"},
           "sakai:search-exclude-tree", new Object[]{true},
           ":sakai:profile-import", new Object[]{"{'basic': {'access': 'everybody', 'elements': {'email': {'value': 'anon@sakai.invalid'}, 'firstName': {'value': 'Anon'}, 'lastName': {'value': 'User'}}}}"});
-      process(null, anon, session, Modification.onModified("anon"), anonMap);
+      process(null, anon, session, Modification.onCreated("anon"), anonMap);
     } finally {
       if (session != null) {
         try {

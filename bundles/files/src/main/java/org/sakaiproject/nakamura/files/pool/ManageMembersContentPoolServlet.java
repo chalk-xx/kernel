@@ -53,8 +53,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
-import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
@@ -286,30 +284,6 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
           }
         }
       }
-
-      // if there are viewers listed, then we need to remove anon and everyone read
-      // grants, otherwise we need to remove the denys and add grants back in.
-      // TODO This is incorrect. Pooled Content is not public by default.
-      if (viewersSet.size() > 0) {
-        AclModification.removeAcl(true, Permissions.CAN_READ, User.ANON_USER,
-            aclModifications);
-        AclModification.removeAcl(true, Permissions.CAN_READ, Group.EVERYONE,
-            aclModifications);
-        AclModification.addAcl(false, Permissions.CAN_READ, User.ANON_USER,
-            aclModifications);
-        AclModification.addAcl(false, Permissions.CAN_READ, Group.EVERYONE,
-            aclModifications);
-      } else {
-        AclModification.removeAcl(false, Permissions.CAN_READ, User.ANON_USER,
-            aclModifications);
-        AclModification.removeAcl(false, Permissions.CAN_READ, Group.EVERYONE,
-            aclModifications);
-        AclModification.addAcl(true, Permissions.CAN_READ, User.ANON_USER,
-            aclModifications);
-        AclModification.addAcl(true, Permissions.CAN_READ, Group.EVERYONE,
-            aclModifications);
-      }
-
 
       node.setProperty(POOLED_CONTENT_USER_VIEWER,
           viewersSet.toArray(new String[viewersSet.size()]));
