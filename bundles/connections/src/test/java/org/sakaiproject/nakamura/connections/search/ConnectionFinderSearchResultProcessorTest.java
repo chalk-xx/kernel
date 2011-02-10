@@ -39,7 +39,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 
@@ -54,7 +54,7 @@ import java.util.HashMap;
 public class ConnectionFinderSearchResultProcessorTest {
 
   @Mock
-  LiteProfileService profileService;
+  ProfileService profileService;
 
   @Mock
   SolrSearchServiceFactory searchServiceFactory;
@@ -92,7 +92,7 @@ public class ConnectionFinderSearchResultProcessorTest {
     HashMap<String, Object> auProps = new HashMap<String, Object>();
     auProps.put("lastName", "The Builder");
     when(auBob.getSafeProperties()).thenReturn(auProps);
-    when(profileService.getCompactProfileMap(auBob)).thenReturn(new ValueMapDecorator(auProps));
+    when(profileService.getCompactProfileMap(auBob, (javax.jcr.Session) hybridSession)).thenReturn(new ValueMapDecorator(auProps));
 
     when(am.findAuthorizable("alice")).thenReturn(auAlice);
     when(am.findAuthorizable("bob")).thenReturn(auBob);

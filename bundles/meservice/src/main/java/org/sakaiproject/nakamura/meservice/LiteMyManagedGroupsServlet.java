@@ -32,7 +32,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
 import java.util.Iterator;
@@ -117,7 +117,7 @@ import java.util.TreeMap;
   }
 )
 @SlingServlet(paths = { "/system/me/managedgroups" }, generateComponent = true, generateService = true, methods = { "GET" })
-@Reference(name="profileService", referenceInterface=LiteProfileService.class)
+@Reference(name="profileService", referenceInterface=ProfileService.class)
 public class LiteMyManagedGroupsServlet extends LiteAbstractMyGroupsServlet {
   private static final long serialVersionUID = 5286762541480563822L;
   @Override

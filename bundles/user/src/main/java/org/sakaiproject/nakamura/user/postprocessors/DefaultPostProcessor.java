@@ -221,6 +221,11 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(DefaultPostProcessor.class);
 
+  /**
+   * Principals that dont manage, Admin has permissions everywhere already. 
+   */
+  private static final Set<String> NO_MANAGE = ImmutableSet.of(Group.EVERYONE, User.ANON_USER, User.ADMIN_USER);
+
   @Reference
   protected Repository repository;
 
@@ -832,14 +837,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   private void syncOwnership(Authorizable authorizable, Map<String, Object> acl,
       List<AclModification> aclModifications) {
     // remove all acls we are not concerned with from the copy of the current state
-    acl.remove(AclModification.denyKey(User.ANON_USER));
-    acl.remove(AclModification.grantKey(User.ANON_USER));
-    acl.remove(AclModification.denyKey(User.ADMIN_USER));
-    acl.remove(AclModification.grantKey(User.ADMIN_USER));
-    acl.remove(AclModification.denyKey(Group.EVERYONE));
-    acl.remove(AclModification.grantKey(Group.EVERYONE));
-    acl.remove(AclModification.denyKey(authorizable.getId()));
-    acl.remove(AclModification.grantKey(authorizable.getId()));
 
     // make sure the owner has permission on their home
     if (authorizable instanceof User && !User.ANON_USER.equals(authorizable.getId())) {
@@ -865,7 +862,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     for (String key : acl.keySet()) {
       if (AclModification.isGrant(key)) {
         String principal = AclModification.getPrincipal(key);
-        if (!managerSettings.contains(principal)) {
+        if (!NO_MANAGE.contains(principal) && !managerSettings.contains(principal)) {
           // grant permission is present, but not present in managerSettings, manage
           // ability (which include read ability must be removed)
           if (viewerSettings.contains(principal)) {

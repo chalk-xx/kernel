@@ -46,7 +46,7 @@ import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +78,7 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
   protected transient LiteMessagingService messagingService;
 
   @Reference
-  protected transient LiteProfileService profileService;
+  protected transient ProfileService profileService;
 
   /**
    * Default constructor
@@ -156,14 +156,15 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
 
   /**
    * {@inheritDoc}
+   * @param jcrSession 
    *
    * @see org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter#writeProfileInformation(Session,
    *      String, org.apache.sling.commons.json.io.JSONWriter)
    */
-  public void writeProfileInformation(Session session, String recipient, JSONWriter write) {
+  public void writeProfileInformation(Session session, String recipient, JSONWriter write, javax.jcr.Session jcrSession) {
     try {
       Authorizable au = session.getAuthorizableManager().findAuthorizable(recipient);
-      ValueMap map = profileService.getCompactProfileMap(au);
+      ValueMap map = profileService.getCompactProfileMap(au, jcrSession);
       ((ExtendedJSONWriter) write).valueMap(map);
     } catch (Exception e) {
       LOG.error("Failed to write profile information for " + recipient, e);

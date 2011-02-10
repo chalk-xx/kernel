@@ -33,13 +33,15 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+
+import javax.jcr.RepositoryException;
 
 
 @Component(label = "GroupJoinRequestSearchResultProcessor", description = "Formatter for group join request search results.")
@@ -50,7 +52,7 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultProcessor {
 
   @Reference
-  private LiteProfileService profileService;
+  private ProfileService profileService;
 
 
   @Reference
@@ -77,8 +79,8 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
    */
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
       throws JSONException {
-    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
-        .adaptTo(javax.jcr.Session.class));
+    javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+    Session session = StorageClientUtils.adaptToSession(jcrSession);
     String path = result.getPath();
     String userId = (String) result.getFirstValue(User.NAME_FIELD);
     if (userId != null) {
@@ -87,12 +89,13 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
         Authorizable auth = authMgr.findAuthorizable(path);
 
         write.object();
-        ValueMap map = profileService.getCompactProfileMap(auth);
+        ValueMap map = profileService.getCompactProfileMap(auth, jcrSession);
         ((ExtendedJSONWriter)write).valueMapInternals(map);
         write.endObject();
       } catch (StorageClientException e) {
         throw new RuntimeException(e.getMessage(), e);
       } catch (AccessDeniedException e) {
+      } catch (RepositoryException e) {
         throw new RuntimeException(e.getMessage(), e);
       }
     }

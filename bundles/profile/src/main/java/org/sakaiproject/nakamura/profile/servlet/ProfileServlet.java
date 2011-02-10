@@ -32,6 +32,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -41,8 +42,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 import javax.jcr.AccessDeniedException;
-import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -87,9 +88,9 @@ public class ProfileServlet extends SlingSafeMethodsServlet {
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     Resource resource = request.getResource();
-    Node resourceNode = resource.adaptTo(Node.class);
+    Content profileContent = resource.adaptTo(Content.class);
     try {
-      ValueMap map = profileService.getProfileMap(resourceNode);
+      ValueMap map = profileService.getProfileMap(profileContent, resource.getResourceResolver().adaptTo(Session.class));
       ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
       writer.valueMap(map);
     } catch (AccessDeniedException e) {

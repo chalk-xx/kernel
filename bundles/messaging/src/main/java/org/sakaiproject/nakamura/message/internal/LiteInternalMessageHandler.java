@@ -53,8 +53,6 @@ import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
-import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -218,7 +216,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
    * @see org.sakaiproject.nakamura.api.message.MessageProfileWriter#writeProfileInformation(javax.jcr.Session,
    *      java.lang.String, org.apache.sling.commons.json.io.JSONWriter)
    */
-  public void writeProfileInformation(Session session, String recipient, JSONWriter write) {
+  public void writeProfileInformation(Session session, String recipient, JSONWriter write, javax.jcr.Session jcrSession) {
     try {
       // Look up the recipient and check if it is an authorizable.
       AuthorizableManager authorizableManager = session.getAuthorizableManager();

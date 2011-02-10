@@ -23,11 +23,13 @@ import static org.junit.Assert.assertEquals;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONObject;
+import org.easymock.classextension.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -37,7 +39,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
@@ -77,16 +79,14 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
 
     Session session = createMock(Session.class);
 
-    LiteProfileService profileService = createNiceMock(LiteProfileService.class);
+    ProfileService profileService = createNiceMock(ProfileService.class);
     processor.profileService = profileService;
 
     AccessControlManager accessControlManager = createNiceMock(AccessControlManager.class);
     expect(session.getAccessControlManager()).andReturn(accessControlManager).anyTimes();
     User adminUser = new User(ImmutableMap.of(User.ID_FIELD, (Object) "admin"));
     User anonUser = new User(ImmutableMap.of(User.ID_FIELD, (Object) "anonymous"));
-    expect(profileService.getCompactProfileMap(adminUser)).andReturn(
-        ValueMap.EMPTY).anyTimes();
-    expect(profileService.getCompactProfileMap(anonUser)).andReturn(
+    expect(profileService.getCompactProfileMap((Authorizable)EasyMock.anyObject(), (javax.jcr.Session)EasyMock.anyObject())).andReturn(
         ValueMap.EMPTY).anyTimes();
     AuthorizableManager authMgr = createNiceMock(AuthorizableManager.class);
     expect(session.getAuthorizableManager()).andReturn(authMgr).anyTimes();

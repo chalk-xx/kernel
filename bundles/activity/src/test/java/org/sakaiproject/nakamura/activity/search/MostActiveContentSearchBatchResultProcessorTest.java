@@ -17,6 +17,12 @@
  */
 package org.sakaiproject.nakamura.activity.search;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -26,16 +32,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.search.Aggregator;
-import org.sakaiproject.nakamura.files.pool.CreateContentPoolServlet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.query.Row;
-import javax.jcr.query.RowIterator;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -43,14 +40,16 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.query.Row;
+import javax.jcr.query.RowIterator;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MostActiveContentSearchBatchResultProcessorTest {
 
-  private Logger logger = LoggerFactory
-      .getLogger(MostActiveContentSearchBatchResultProcessorTest.class);
   private SlingHttpServletRequest request = mock(SlingHttpServletRequest.class,
       RETURNS_DEEP_STUBS);
 
