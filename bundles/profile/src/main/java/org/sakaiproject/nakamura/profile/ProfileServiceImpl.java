@@ -207,6 +207,7 @@ public class ProfileServiceImpl implements ProfileService {
 
   private void addUserProperties(Authorizable user, ValueMap profileMap) {
     // Backward compatible reasons.
+    profileMap.put("rep:userId", user.getId());
     profileMap.put("userid", user.getId());
     profileMap.put("hash", user.getId());
   }
