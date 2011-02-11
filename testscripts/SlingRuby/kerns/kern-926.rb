@@ -142,7 +142,7 @@ class TC_Kern926Test < Test::Unit::TestCase
     assert_equal("200",res.code)
     res = @s.execute_get("#{url}.tidy.10.json")
     @log.info("Got File at #{url} as #{res.body}")
-    
+
     props  = @um.get_group_props(group.name)
     members = props["members"]
     assert_not_nil(members)
@@ -150,7 +150,7 @@ class TC_Kern926Test < Test::Unit::TestCase
 
     @log.info("Got Group Props for #{group.name} as #{props["members"]} which contains #{groupuser.name}")
 
-    
+
 
     # The group user should now see 1 file.
     @s.switch_user(groupuser)
@@ -160,7 +160,7 @@ class TC_Kern926Test < Test::Unit::TestCase
     assert_not_nil(principals)
     assert_equal(principals.include?(group.name),true)
     @log.info("Got User principals for #{groupuser.name} as #{principals} which contains #{group.name}")
-    
+
     wait_for_indexer()
     res = @fm.search_my_viewed("*")
     files = JSON.parse(res.body)
