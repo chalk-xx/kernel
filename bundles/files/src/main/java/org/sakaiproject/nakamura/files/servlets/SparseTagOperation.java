@@ -45,6 +45,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparsePostOperation;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
@@ -126,56 +127,72 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
     
     String tagContentPath = key.getString();
     
-    Node tagNode = null;
+    String tagName = "";
     try {
-      tagNode = FileUtils.resolveNode(tagContentPath, resourceResolver);
-        if (tagNode == null) {
-          LOGGER.info("Missing Tag Node {} ",key.getString());
-          response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Provided key not found. Key was "+key.getString());
-          return;
-        }
-        if (!"sakai/tag".equals(tagNode.getProperty("sling:resourceType").getString())) {
-          response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
-              "Provided key doesn't point to a tag.");
-          return;
+      Resource tagResource = resourceResolver.getResource(tagContentPath);
+      if (tagResource == null) {
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND, "No tag exists at path " + tagContentPath);
+        return;
+      }
+      if (tagResource instanceof SparseContentResource) {
+        Content contentTag = tagResource.adaptTo(Content.class);
+        tagName = tagContentWithContentTag(contentManager, content, contentTag);
+      } else {
+        Node nodeTag = tagResource.adaptTo(Node.class);
+        tagName = tagContentWithNodeTag(contentManager, content, nodeTag);
+      }
+    } catch (Exception e) {
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+      return;
+    }
+    
+    // Send an OSGi event.
+    try {
+      Dictionary<String, String> properties = new Hashtable<String, String>();
+      properties.put(UserConstants.EVENT_PROP_USERID, user);
+      properties.put("tag-name", tagName);
+      EventUtils.sendOsgiEvent(request.getResource(), properties, TOPIC_FILES_TAG,
+          eventAdmin);
+    } catch (Exception e) {
+      // We do NOT interrupt the normal workflow if sending an event fails.
+      // We just log it to the error log.
+      LOGGER.error("Could not send an OSGi event for tagging a file", e);
+    }
+
+  }
+
+  private String tagContentWithNodeTag(ContentManager contentManager, Content content, Node nodeTag) throws Exception {
+    String tagName = "";
+    try {
+        checkForTagResourceType(nodeTag.getProperty("sling:resourceType").getString());
+        FileUtils.addTag(contentManager, content, nodeTag);
+        if (nodeTag.hasProperty(SAKAI_TAG_NAME)) {
+          tagName = nodeTag.getProperty(SAKAI_TAG_NAME).getString();
         }
     } catch (RepositoryException re) {
-      LOGGER.error(re.getLocalizedMessage(), re);
+      throw new Exception(re.getLocalizedMessage(), re);
     }
-  
-      
-      try {
-        if ( FileUtils.addTag(contentManager, content, tagNode ) ) {
-          // Send an OSGi event.
-          try {
-            String tagName = "";
-            if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
-              tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
-            }
-            Dictionary<String, String> properties = new Hashtable<String, String>();
-            properties.put(UserConstants.EVENT_PROP_USERID, user);
-            properties.put("tag-name", tagName);
-            EventUtils.sendOsgiEvent(request.getResource(), properties, TOPIC_FILES_TAG,
-                eventAdmin);
-          } catch (Exception e) {
-            // We do NOT interrupt the normal workflow if sending an event fails.
-            // We just log it to the error log.
-            LOGGER.error("Could not send an OSGi event for tagging a file", e);
-          }
+    return tagName;
+  }
 
-        }
-  
-      } catch (RepositoryException e) {
-        LOGGER.error("Failed to Tag item ",e);
-        response.setStatus(500, e.getMessage());
-      } catch (AccessDeniedException e) {
-        LOGGER.error("Failed to Tag item ",e);
-        response.setStatus(500, e.getMessage());
-      } catch (StorageClientException e) {
-        LOGGER.error("Failed to Tag item ",e);
-        response.setStatus(500, e.getMessage());
+  private String tagContentWithContentTag(ContentManager contentManager, Content content, Content contentTag) throws Exception {
+    String tagName = "";
+    try {
+      checkForTagResourceType((String)contentTag.getProperty("sling:resourceType"));
+      FileUtils.addTag(contentManager, content, contentTag);
+      if (contentTag.hasProperty(SAKAI_TAG_NAME)) {
+        tagName = (String)contentTag.getProperty(SAKAI_TAG_NAME);
       }
-
+    } catch (Exception e) {
+      throw new Exception(e.getLocalizedMessage(), e);
+    }
+    return tagName;
+  }
+  
+  private void checkForTagResourceType(String type) throws Exception {
+    if (!"sakai/tag".equals(type)) {
+      throw new Exception("Provided key doesn't point to a tag.");
+    }
   }
 
   /**

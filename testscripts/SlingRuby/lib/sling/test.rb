@@ -63,7 +63,7 @@ module SlingTest
   end
   
   def wait_for_indexer()
-    sleep(20)
+    sleep(2)
   end
 
 end
