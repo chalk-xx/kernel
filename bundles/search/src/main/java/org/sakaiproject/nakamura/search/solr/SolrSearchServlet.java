@@ -43,8 +43,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.References;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -53,7 +51,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -68,7 +65,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
 import org.sakaiproject.nakamura.api.templates.TemplateService;
-import org.sakaiproject.nakamura.util.PersonalUtils;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +83,6 @@ import java.util.regex.Pattern;
 import javax.jcr.Node;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -314,9 +310,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     if (homePathMatcher.find()) {
       String username = homePathMatcher.group(3);
       String homePrefix = homePathMatcher.group(1);
-      UserManager um = AccessControlUtil.getUserManager(node.getSession());
-      Authorizable au = um.getAuthorizable(username);
-      String homePath = homePrefix + PersonalUtils.getHomePath(au).substring(1) + "/";
+      String homePath = homePrefix + LitePersonalUtils.getHomePath(username).substring(1) + "/";
       queryString = homePathMatcher.replaceAll(homePath);
     }
     return queryString;
@@ -360,16 +354,9 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
 
     // load authorizable (user) information
     String userId = request.getRemoteUser();
-    Session session = request.getResourceResolver().adaptTo(Session.class);
-    try {
-      UserManager um = AccessControlUtil.getUserManager(session);
-      Authorizable au = um.getAuthorizable(userId);
-      String userPrivatePath = ClientUtils.escapeQueryChars(PersonalUtils
-          .getPrivatePath(au));
-      propertiesMap.put("_userPrivatePath", userPrivatePath);
-    } catch (RepositoryException e) {
-      LOGGER.error("Unable to get the authorizable for this user.", e);
-    }
+    String userPrivatePath = ClientUtils.escapeQueryChars(LitePersonalUtils
+        .getPrivatePath(userId));
+    propertiesMap.put("_userPrivatePath", userPrivatePath);
     propertiesMap.put("_userId", ClientUtils.escapeQueryChars(userId));
 
     // load properties from a property provider

@@ -21,7 +21,6 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
@@ -33,7 +32,6 @@ import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.user.lite.servlet.LiteProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
@@ -67,7 +65,7 @@ public class Post {
     this.content = content;
     try {
       if (content.hasProperty(MessageConstants.PROP_SAKAI_ID)) {
-        setPostId(StorageClientUtils.toString(content.getProperty(MessageConstants.PROP_SAKAI_ID)));
+        setPostId((String) content.getProperty(MessageConstants.PROP_SAKAI_ID));
       }
     } catch (Exception e) {
       setPostId("");
@@ -141,8 +139,7 @@ public class Post {
     // we do however show the children of it.
     boolean isDeleted = false;
     if (content.hasProperty(DiscussionConstants.PROP_DELETED)) {
-      isDeleted = StorageClientUtils.toBoolean(content
-          .getProperty(DiscussionConstants.PROP_DELETED));
+      isDeleted = (Boolean) content.getProperty(DiscussionConstants.PROP_DELETED);
     }
 
     if (isDeleted && !canDelete) {
@@ -167,8 +164,8 @@ public class Post {
       // Show profile of editters.
       if (content.hasProperty(DiscussionConstants.PROP_EDITEDBY)) {
 
-        String editedByProp = StorageClientUtils.toString(getContent().getProperty(
-            DiscussionConstants.PROP_EDITEDBY));
+        String editedByProp = (String) content.getProperty(
+            DiscussionConstants.PROP_EDITEDBY);
         String[] edittedBy = StringUtils.split(editedByProp, ',');
 
         writer.key(DiscussionConstants.PROP_EDITEDBYPROFILES);
@@ -186,8 +183,7 @@ public class Post {
 
       // Show some profile info.
       writer.key("profile");
-      String fromVal = StorageClientUtils.toString(content
-          .getProperty(MessageConstants.PROP_SAKAI_FROM));
+      String fromVal = (String) content.getProperty(MessageConstants.PROP_SAKAI_FROM);
       String[] senders = StringUtils.split(fromVal, ',');
       writer.array();
       for (String sender : senders) {

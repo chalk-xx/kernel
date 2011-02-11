@@ -15,18 +15,22 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.personal;
+package org.sakaiproject.nakamura.util;
 
 import static org.easymock.EasyMock.expect;
 
 import junit.framework.Assert;
 
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.User;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.personal.PersonalConstants;
-import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
-import org.sakaiproject.nakamura.util.PersonalUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -37,7 +41,8 @@ import javax.jcr.nodetype.PropertyDefinition;
 /**
  *
  */
-public class PersonalUtilsTest extends AbstractEasyMockTest {
+@SuppressWarnings("deprecation")
+public class PersonalUtilsTest {
 
   private Authorizable adminUser;
   private Authorizable myGroup;
@@ -48,9 +53,12 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
   private String groupPrivatePath = "/_group/g/g-/g-mygroup/private";
   private String userPrivatePath = "/_user/a/ad/admin/private";
 
+  private List<Object> mocks;
+
+
   @Before
   public void setUp() throws Exception {
-    super.setUp();
+    mocks = new ArrayList<Object>();
 
     adminUser = createAuthorizable(userName, false, true);
     myGroup = createAuthorizable(groupName, true, true);
@@ -89,9 +97,9 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
     String pref = "internal";
     Node node = createMock(Node.class);
     Property prop = createMock(Property.class);
-    expect(node.hasProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)).andReturn(
+    expect(node.hasProperty(PersonalUtils.PROP_PREFERRED_MESSAGE_TRANSPORT)).andReturn(
         true);
-    expect(node.getProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)).andReturn(
+    expect(node.getProperty(PersonalUtils.PROP_PREFERRED_MESSAGE_TRANSPORT)).andReturn(
         prop);
     expect(prop.getString()).andReturn(pref);
     replay();
@@ -114,8 +122,8 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
 
     expect(propDef.isMultiple()).andReturn(true);
 
-    expect(node.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true).times(2);
-    expect(node.getProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(prop);
+    expect(node.hasProperty(PersonalUtils.PROP_EMAIL_ADDRESS)).andReturn(true).times(2);
+    expect(node.getProperty(PersonalUtils.PROP_EMAIL_ADDRESS)).andReturn(prop);
     expect(prop.getDefinition()).andReturn(propDef);
     expect(prop.getValues()).andReturn(vals);
 
@@ -141,8 +149,8 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
 
     expect(propDef.isMultiple()).andReturn(true);
 
-    expect(node.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true).times(2);
-    expect(node.getProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(prop);
+    expect(node.hasProperty(PersonalUtils.PROP_EMAIL_ADDRESS)).andReturn(true).times(2);
+    expect(node.getProperty(PersonalUtils.PROP_EMAIL_ADDRESS)).andReturn(prop);
     expect(prop.getDefinition()).andReturn(propDef);
     expect(prop.getValues()).andReturn(vals);
 
@@ -150,6 +158,45 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
 
     String result = PersonalUtils.getPrimaryEmailAddress(node);
     Assert.assertEquals(mails[0], result);
+  }
+
+  /**
+   * @param id
+   *          The id of the {@link User user} or {@link Group group}.
+   * @param isGroup
+   *          Whether or not this authorizable is a group.
+   * @param doReplay
+   *          Whether or not this mock should be replayed.
+   * @return A mocked {@link Authorizable Authorizable}.
+   * @throws RepositoryException
+   */
+  protected Authorizable createAuthorizable(String id, boolean isGroup, boolean doReplay)
+      throws RepositoryException {
+    Authorizable au = EasyMock.createMock(Authorizable.class);
+    expect(au.getID()).andReturn(id).anyTimes();
+    expect(au.isGroup()).andReturn(isGroup).anyTimes();
+    ItemBasedPrincipal p = EasyMock.createMock(ItemBasedPrincipal.class);
+    String hashedPath = "/"+id.substring(0,1)+"/"+id.substring(0,2)+"/"+id;
+    expect(p.getPath()).andReturn("rep:" + hashedPath).anyTimes();
+    expect(au.getPrincipal()).andReturn(p).anyTimes();
+    expect(au.hasProperty("path")).andReturn(true).anyTimes();
+    Value v = EasyMock.createNiceMock(Value.class);
+    expect(v.getString()).andReturn(hashedPath).anyTimes();
+    expect(au.getProperty("path")).andReturn(new Value[] { v }).anyTimes();
+    EasyMock.replay(p);
+    EasyMock.replay(v);
+    if (doReplay) {
+      EasyMock.replay(au);
+    }
+    return au;
+  }
+  protected <T> T createMock(Class<T> c) {
+    T result = org.easymock.EasyMock.createMock(c);
+    mocks.add(result);
+    return result;
+  }
+  protected void replay() {
+    org.easymock.EasyMock.replay(mocks.toArray());
   }
 
 }

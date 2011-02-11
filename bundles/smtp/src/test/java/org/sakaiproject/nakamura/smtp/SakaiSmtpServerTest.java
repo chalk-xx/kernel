@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
@@ -135,7 +134,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     EasyMock.expectLastCall();
 
     EasyMock.expect(myMessageNode.getPath()).andReturn("/messagestore/bob/messagenode");
-    EasyMock.expect(StorageClientUtils.toString(myMessageNode.getProperty("message-id"))).andReturn("messageid");
+    EasyMock.expect(myMessageNode.getProperty("message-id")).andReturn("messageid");
     EasyMock.expectLastCall();
 
     replay();
@@ -281,7 +280,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     EasyMock.expectLastCall();
 
     EasyMock.expect(myMessageNode.getPath()).andReturn("/messagestore/bob/messagenode");
-    EasyMock.expect(StorageClientUtils.toString(myMessageNode.getProperty("message-id"))).andReturn("messageid");
+    EasyMock.expect(myMessageNode.getProperty("message-id")).andReturn("messageid");
     EasyMock.expectLastCall();
 
     replay();
@@ -364,7 +363,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
 
 
     EasyMock.expect(myMessageNode.getPath()).andReturn("/messagestore/bob/messagenode");
-    EasyMock.expect(StorageClientUtils.toString(myMessageNode.getProperty("message-id"))).andReturn("messageid");
+    EasyMock.expect(myMessageNode.getProperty("message-id")).andReturn("messageid");
     EasyMock.expectLastCall().anyTimes();
 
     replay();
@@ -452,7 +451,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
 
 
     EasyMock.expect(myMessageNode.getPath()).andReturn("/messagestore/bob/messagenode");
-    EasyMock.expect(StorageClientUtils.toString(myMessageNode.getProperty("message-id"))).andReturn("messageid");
+    EasyMock.expect(myMessageNode.getProperty("message-id")).andReturn("messageid");
     EasyMock.expectLastCall().anyTimes();
 
     replay();

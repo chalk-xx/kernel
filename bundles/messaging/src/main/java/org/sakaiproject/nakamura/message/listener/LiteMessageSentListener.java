@@ -94,9 +94,9 @@ public class LiteMessageSentListener implements EventHandler {
       session = contentRepository.loginAdministrative();
       String path = (String) event.getProperty(MessageConstants.EVENT_LOCATION);
       Content message = session.getContentManager().get(path);
-      String resourceType = StorageClientUtils.toString(message.getProperty(
-          JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY));
-      if (resourceType.equals(MessageConstants.SAKAI_MESSAGE_RT)) {
+      String resourceType = (String) message.getProperty(
+          JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
+      if (MessageConstants.SAKAI_MESSAGE_RT.equals(resourceType)) {
 
         MessageRoutes routes = messageRouterManager.getMessageRouting(message);
 

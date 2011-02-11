@@ -29,7 +29,6 @@ import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.Post;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
@@ -95,13 +94,13 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       Content content = resolver.getResource(result.getPath()).adaptTo(Content.class);
 
       Post p = new Post(content, resolver.adaptTo(Session.class));
-      allPosts.put(StorageClientUtils.toString(content
-          .getProperty(MessageConstants.PROP_SAKAI_ID)), p);
+      allPosts.put((String) content
+          .getProperty(MessageConstants.PROP_SAKAI_ID), p);
 
       if (content.hasProperty(DiscussionConstants.PROP_REPLY_ON)) {
         // This post is a reply on another post.
-        String replyon = StorageClientUtils.toString(content
-            .getProperty(DiscussionConstants.PROP_REPLY_ON));
+        String replyon = (String) content
+            .getProperty(DiscussionConstants.PROP_REPLY_ON);
         if (!postChildren.containsKey(replyon)) {
           postChildren.put(replyon, new ArrayList<Post>());
         }

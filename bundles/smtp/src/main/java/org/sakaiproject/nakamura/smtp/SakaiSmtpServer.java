@@ -11,7 +11,6 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -161,7 +160,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
         Content createdMessage = writeMessage(session, mapProperties, data, paths.get(0));
         if (createdMessage != null) {
           String messagePath = createdMessage.getPath();
-          String messageId = StorageClientUtils.toString(createdMessage.getProperty("message-id"));
+          String messageId = (String) createdMessage.getProperty("message-id");
           LOGGER.info("Created message {} at: {} ", messageId, messagePath);
 
           // we might want alias expansion
@@ -214,7 +213,8 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     } else {
       Content node = messagingService.create(session, mapProperties);
       // set up to stream the body.
-      node.setProperty(MessageConstants.PROP_SAKAI_BODY, StorageClientUtils.toStore(data));
+      // TODO: Store the body as a conetnt stream ? on disk, not as a property ?
+      node.setProperty(MessageConstants.PROP_SAKAI_BODY, data);
       return node;
     }
   }
@@ -255,20 +255,22 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     contentManager.update(new Content(childPath, new HashMap<String, Object>()));
     Content childNode = contentManager.get(childPath);
     writePartPropertiesToNode(part, childNode);
-    childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, StorageClientUtils.toStore(part.getInputStream()));
+    // TODO: FIXME THIS WILL FAIL should store as a stream on the content 
+    childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, part.getInputStream());
   }
 
   private void writePartAsFile(Session session, BodyPart part, String nodeName,
       Content parentNode) throws AccessDeniedException, StorageClientException, MessagingException, IOException {
     String filePath = parentNode.getPath() + "/nt:file";
+    // TODO: FIXME, this is all wrong for sparse
     String fileContentPath = filePath + "/jcr:content";
     session.getContentManager().update(new Content(filePath, new HashMap<String, Object>()));
     session.getContentManager().update(new Content(fileContentPath, new HashMap<String, Object>()));
     Content resourceNode = session.getContentManager().get(fileContentPath);
-    resourceNode.setProperty("jcr:primaryType", StorageClientUtils.toStore("nt:resource"));
-    resourceNode.setProperty("jcr:mimeType", StorageClientUtils.toStore(part.getContentType()));
-    resourceNode.setProperty("jcr:data", StorageClientUtils.toStore(part.getInputStream()));
-    resourceNode.setProperty("jcr:lastModified", StorageClientUtils.toStore(Calendar.getInstance()));
+    resourceNode.setProperty("jcr:primaryType", "nt:resource");
+    resourceNode.setProperty("jcr:mimeType", part.getContentType());
+    resourceNode.setProperty("jcr:data", part.getInputStream());
+    resourceNode.setProperty("jcr:lastModified", Calendar.getInstance());
   }
 
   @SuppressWarnings("unchecked")
@@ -277,7 +279,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     Enumeration<Header> headers = part.getAllHeaders();
     while (headers.hasMoreElements()) {
       Header header = headers.nextElement();
-      childNode.setProperty(header.getName(), StorageClientUtils.toStore(header.getValue()));
+      childNode.setProperty(header.getName(), header.getValue());
     }
   }
 

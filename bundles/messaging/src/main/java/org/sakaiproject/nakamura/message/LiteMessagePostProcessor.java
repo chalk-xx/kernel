@@ -41,7 +41,6 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -116,11 +115,11 @@ public class LiteMessagePostProcessor implements SparsePostProcessor {
             if (contentManager.exists(contentPath)) {
               content = contentManager.get(contentPath);
               if (content.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && content.hasProperty(PROP_SAKAI_MESSAGEBOX)) {
-                if (SAKAI_MESSAGE_RT.equals(StorageClientUtils.toString(content.getProperty(SLING_RESOURCE_TYPE_PROPERTY))) &&
-                    BOX_OUTBOX.equals(StorageClientUtils.toString(content.getProperty(PROP_SAKAI_MESSAGEBOX)))) {
+                if (SAKAI_MESSAGE_RT.equals(content.getProperty(SLING_RESOURCE_TYPE_PROPERTY)) &&
+                    BOX_OUTBOX.equals(content.getProperty(PROP_SAKAI_MESSAGEBOX))) {
                   String sendstate;
                   if (content.hasProperty(PROP_SAKAI_SENDSTATE)) {
-                    sendstate = StorageClientUtils.toString(content.getProperty(PROP_SAKAI_SENDSTATE));
+                    sendstate = (String) content.getProperty(PROP_SAKAI_SENDSTATE);
                   } else {
                     sendstate = STATE_NONE;
                   }
@@ -147,7 +146,7 @@ public class LiteMessagePostProcessor implements SparsePostProcessor {
         if (!handledNodes.contains(path)) {
           if (STATE_NONE.equals(state) || STATE_PENDING.equals(state)) {
 
-            content.setProperty(PROP_SAKAI_SENDSTATE, StorageClientUtils.toStore(STATE_NOTIFIED));
+            content.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
             contentManager.update(content);
 
             Dictionary<String, Object> messageDict = new Hashtable<String, Object>();

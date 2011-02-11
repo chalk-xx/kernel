@@ -125,12 +125,14 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
 
           long time = StorageClientUtils.toLong(originalMessage.getProperty(MessageConstants.PROP_SAKAI_CREATED));
 
-          String from = StorageClientUtils.toString(originalMessage.getProperty(MessageConstants.PROP_SAKAI_FROM));
+          String from = (String) originalMessage.getProperty(MessageConstants.PROP_SAKAI_FROM);
 
-          // Set the rcpt in the cache.
-          chatManagerService.put(rcpt, time);
-          // Set the from in the cache
-          chatManagerService.put(from, time);
+          if ( from != null ) {
+            // Set the rcpt in the cache.
+            chatManagerService.put(rcpt, time);
+            // Set the from in the cache
+            chatManagerService.put(from, time);
+          }
 
         }
       }

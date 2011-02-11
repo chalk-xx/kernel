@@ -493,20 +493,25 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       for (String propName : authorizable.getSafeProperties().keySet()) {
         if (propName.startsWith("rep:"))
           continue;
-        String[] values = StorageClientUtils.toStringArray(authorizable.getProperty(propName));
-        switch (values.length) {
-        case 0:
-          continue;
-        case 1:
-          result.put(propName, values[0]);
-          break;
-        default: {
-          StringBuilder valueString = new StringBuilder("");
-          for (int i = 0; i < values.length; i++) {
-            valueString.append("," + values[i]);
+        Object o = authorizable.getProperty(propName);
+        if ( o instanceof Object[] ) {
+          Object[] values = (Object[]) o;
+          switch (values.length) {
+          case 0:
+            continue;
+          case 1:
+            result.put(propName, values[0]);
+            break;
+          default: {
+            StringBuilder valueString = new StringBuilder("");
+            for (int i = 0; i < values.length; i++) {
+              valueString.append("," + values[i]);
+            }
+            result.put(propName, valueString.toString().substring(1));
           }
-          result.put(propName, valueString.toString().substring(1));
-        }
+          }
+        } else {
+          result.put(propName, o);
         }
       }
     }

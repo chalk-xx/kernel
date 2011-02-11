@@ -32,9 +32,7 @@ import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_TYPE;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NOTIFIED;
 
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;

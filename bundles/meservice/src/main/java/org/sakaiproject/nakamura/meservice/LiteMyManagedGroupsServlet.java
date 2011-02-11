@@ -27,7 +27,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
@@ -128,9 +127,8 @@ public class LiteMyManagedGroupsServlet extends LiteAbstractMyGroupsServlet {
     while (allGroupsIter.hasNext()) {
       Group group = allGroupsIter.next();
       if (!group.getId().equals(Group.EVERYONE) && group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
-        String[] values = StorageClientUtils.toStringArray(group.getProperty(UserConstants.PROP_MANAGED_GROUP));
-        if ((values != null) && (values.length == 1)) {
-          String managedGroupId = values[0];
+        String managedGroupId = (String) group.getProperty(UserConstants.PROP_MANAGED_GROUP);
+        if (managedGroupId != null) {
           Group managedGroup = (Group) userManager.findAuthorizable(managedGroupId);
           managedGroups.put(managedGroupId, managedGroup);
         }
