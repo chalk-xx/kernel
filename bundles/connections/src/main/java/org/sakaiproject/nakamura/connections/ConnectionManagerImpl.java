@@ -255,15 +255,14 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
       sp.transition(thisNode, otherNode);
 
+      ContentManager contentManager = adminSession.getContentManager();
+      contentManager.update(thisNode);
+      contentManager.update(otherNode);
 
       if (operation == ConnectionOperation.invite) {
         throw new ConnectionException(200, "Invitation made between "
             + thisNode.getPath() + " and " + otherNode.getPath());
       }
-      
-      ContentManager contentManager = adminSession.getContentManager();
-      contentManager.update(thisNode);
-      contentManager.update(otherNode);
     } catch (StorageClientException e) {
       throw new ConnectionException(500, e.getMessage(), e);
     } catch (AccessDeniedException e) {

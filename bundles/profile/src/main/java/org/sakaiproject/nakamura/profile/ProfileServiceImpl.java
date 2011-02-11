@@ -17,9 +17,15 @@
  */
 package org.sakaiproject.nakamura.profile;
 
+import com.google.common.collect.ImmutableMap.Builder;
+import com.google.common.collect.ImmutableMap;
+
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_DESCRIPTION_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_TITLE_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_BASIC;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_FIRSTNAME_PROPERTY;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_LASTNAME_PROPERTY;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_EMAIL_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_PICTURE;
 
 import org.apache.felix.scr.annotations.Component;
@@ -35,6 +41,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileProvider;
@@ -69,6 +76,8 @@ public class ProfileServiceImpl implements ProfileService {
   private Map<String, ProfileProvider> providers = new ConcurrentHashMap<String, ProfileProvider>();
   private ProviderSettingsFactory providerSettingsFactory = new ProviderSettingsFactory();
   public static final Logger LOG = LoggerFactory.getLogger(ProfileServiceImpl.class);
+  
+  private final String[] basicProfileElements = new String[] {USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY, USER_EMAIL_PROPERTY, USER_PICTURE};
 
 
 
@@ -82,15 +91,23 @@ public class ProfileServiceImpl implements ProfileService {
    */
   public ValueMap getProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException, StorageClientException, AccessDeniedException {
+    if (User.ANON_USER.equals(authorizable.getId())) {
+      return anonymousProfile();
+    }
     String profilePath = LitePersonalUtils.getProfilePath(authorizable.getId());
     org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
     ContentManager contentManager = sparseSession.getContentManager();
-    ValueMap profileMap;
+    ValueMap profileMap = new ValueMapDecorator(new HashMap<String, Object>());
+    
     if (contentManager.exists(profilePath)) {
       Content profileContent = contentManager.get(profilePath);
-      profileMap = getProfileMap(profileContent, session);
+      profileMap.putAll(getProfileMap(profileContent, session));
+    }
+    profileMap.put(USER_BASIC, basicProfileMapForAuthorizable(authorizable));
+    if (authorizable.isGroup()) {
+      addGroupProperties(authorizable, profileMap);
     } else {
-      profileMap = null;
+      addUserProperties(authorizable, profileMap);
     }
     return profileMap;
   }
@@ -173,40 +190,46 @@ public class ProfileServiceImpl implements ProfileService {
    */
   public ValueMap getCompactProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException, StorageClientException, AccessDeniedException {
-    // The map were we will stick the compact information in.
-    ValueMap compactProfile;
+    if (User.ANON_USER.equals(authorizable.getId())) {
+      return anonymousProfile();
+    }
+    
+    ValueMap compactProfile = new ValueMapDecorator(new HashMap<String, Object>());
+    compactProfile.put(USER_BASIC, basicProfileMapForAuthorizable(authorizable));
 
-    // Get the entire profile.
-    ValueMap profile = getProfileMap(authorizable, session);
-    if (profile == null) {
-      compactProfile = null;
+    if (authorizable.isGroup()) {
+      addGroupProperties(authorizable, compactProfile);
     } else {
-      compactProfile = new ValueMapDecorator(new HashMap<String, Object>());
+      addUserProperties(authorizable, compactProfile);
+    }
+    return compactProfile;
+  }
 
-      if (authorizable.isGroup()) {
-        // For a group we just dump it's title and description.
-        compactProfile.put("groupid", authorizable.getId());
-        compactProfile.put(GROUP_TITLE_PROPERTY, profile.get(GROUP_TITLE_PROPERTY));
-        compactProfile.put(GROUP_DESCRIPTION_PROPERTY, profile
-            .get(GROUP_DESCRIPTION_PROPERTY));
-      } else {
-        compactProfile.put(USER_PICTURE, profile.get(USER_PICTURE));
+  private void addUserProperties(Authorizable user, ValueMap profileMap) {
+    // Backward compatible reasons.
+    profileMap.put("rep:userId", user.getId());
+    profileMap.put("userid", user.getId());
+    profileMap.put("hash", user.getId());
+  }
 
-        try{
-          ValueMap basicMap =(ValueMap) profile.get(USER_BASIC);
-          if ( basicMap != null ) {
-            compactProfile.put(USER_BASIC, basicMap);
-          } else {
-            LOG.warn("User {} has no basic profile (firstName, lastName and email not avaiable) ",authorizable.getId());
-          }
-        }catch(Exception e){
-          LOG.warn("Can't get authprofile basic information. ", e);
-        }
-        // Backward compatible reasons.
-        compactProfile.put("userid", authorizable.getId());
-        compactProfile.put("hash", authorizable.getId());
+  private void addGroupProperties(Authorizable group, ValueMap profileMap) {
+    // For a group we just dump it's title and description.
+    profileMap.put("groupid", group.getId());
+    profileMap.put("sakai:group-id", group.getId());
+    profileMap.put(GROUP_TITLE_PROPERTY, group.getProperty(GROUP_TITLE_PROPERTY));
+    profileMap.put(GROUP_DESCRIPTION_PROPERTY, group
+        .getProperty(GROUP_DESCRIPTION_PROPERTY));
+  }
+
+  private ValueMap basicProfileMapForAuthorizable(Authorizable authorizable) {
+    Builder<String, String> propertyBuilder = ImmutableMap.builder();
+    for (String profileElementName : basicProfileElements) {
+      if (authorizable.hasProperty(profileElementName)) {
+        propertyBuilder.put(profileElementName, (String)authorizable.getProperty(profileElementName));
       }
     }
+    // The map were we will stick the compact information in.
+    ValueMap compactProfile = basicProfile(propertyBuilder.build());
     return compactProfile;
   }
 
@@ -297,5 +320,23 @@ public class ProfileServiceImpl implements ProfileService {
     } catch (AccessDeniedException e) {
       throw new RepositoryException(e.getMessage(), e);
     }
+  }
+  
+  private ValueMap basicProfile(Map<String, String> elementsMap) {
+    ValueMap basic = new ValueMapDecorator(new HashMap<String, Object>());
+    ValueMap elements = new ValueMapDecorator(new HashMap<String, Object>());
+    for (String key : elementsMap.keySet()) {
+      elements.put(key, new ValueMapDecorator(ImmutableMap.of("value", (Object) elementsMap.get(key))));
+    }
+    basic.put("elements", elements);
+    return basic;
+  }
+  
+  private ValueMap anonymousProfile() {
+    ValueMap rv = new ValueMapDecorator(new HashMap<String, Object>());
+    rv.put("rep:userId", User.ANON_USER);
+    rv.put(USER_BASIC, basicProfile(
+        ImmutableMap.of(USER_FIRSTNAME_PROPERTY, "Anonymous", USER_LASTNAME_PROPERTY, "User", USER_EMAIL_PROPERTY, "anon@sakai.invalid")));
+    return rv;
   }
 }
