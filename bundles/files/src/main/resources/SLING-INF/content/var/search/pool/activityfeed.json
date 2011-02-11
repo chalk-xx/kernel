@@ -2,6 +2,7 @@
   "sakai:query-template": "path:${_pNodePath}/activity AND resourceType:sakai/activity;created desc",
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "PooledContentNode",
+  "sakai:resultprocessor": "ActivityFeed",
   "sakai:title": "Pooled Content - Activity Feed",
   "sakai:shortDescription": "Returns recent activity nodes under a Pooled Content node.",
   "sakai:parameters" : [
