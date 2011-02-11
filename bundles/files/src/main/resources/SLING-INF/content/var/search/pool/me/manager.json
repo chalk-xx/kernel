@@ -8,6 +8,7 @@
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",
   "sakai:title": "Pooled Content - Me - Manager",
+  "sakai:resultprocessor": "FullResource",
   "sakai:shortDescription": "Searches trough all the files where the current user is a manager.",
   "sakai:parameters" : [
   	  "{\"name\" : \"q\", \"description\" : \"The search term you wish to search on. This will search trough the actual content of the file and any properties on the node.\"}",

@@ -40,9 +40,13 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
+import org.sakaiproject.nakamura.api.solr.SafeSolrMap;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.Map;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -85,7 +89,9 @@ public class DefaultResourceSearchResultProcessor implements SolrSearchResultPro
     ResourceResolver resolver = request.getResourceResolver();
     write.object();
     write.key("searchdoc");
-    ExtendedJSONWriter.writeValueMap(write,result.getProperties());
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    Map<String, Collection<Object>> resultProps = new SafeSolrMap(result.getProperties());
+    ExtendedJSONWriter.writeValueMap(write, resultProps);
     String path = result.getPath();
     Resource resource = resolver.getResource(path);
     if (resource != null) {
