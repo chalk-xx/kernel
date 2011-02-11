@@ -1,5 +1,8 @@
 {
-  "sakai:query-template": "path:${_path} AND resourceType:sakai/message AND type:discussion AND sendstate:notified AND initialpost:true;${sortOn} ${sortOrder}",
+  "sakai:query-template": "path:${_path} AND resourceType:sakai/message AND type:discussion AND sendstate:notified AND initialpost:true",
+  "sakai:query-template-options": {
+      "sort": "${sortOn} ${sortOrder}"
+  },
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",

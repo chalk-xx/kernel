@@ -1,5 +1,8 @@
 {
-  "sakai:query-template": "path:${groupId} AND resourceType:sakai/joinrequest;${sortOn} ${sortOrder}",
+  "sakai:query-template": "path:${groupId} AND resourceType:sakai/joinrequest",
+  "sakai:query-template-options": {
+      "sort": "${sortOn} ${sortOrder}"
+  },
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",

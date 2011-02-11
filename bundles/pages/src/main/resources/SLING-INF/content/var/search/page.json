@@ -1,6 +1,9 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": "path:${_path} AND resourceType:sakai/page ${_filter};$sortOn $sortOrder",
+  "sakai:query-template": "path:${_path} AND resourceType:sakai/page ${_filter}",
+  "sakai:query-template-options": {
+      "sort": "${sortOn} ${sortOrder}"
+  },
   "sortOn": "score",
   "sortOrder": "desc",
   "_filter": "",
