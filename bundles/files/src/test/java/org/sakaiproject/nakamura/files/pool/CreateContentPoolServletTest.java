@@ -44,7 +44,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -107,8 +106,6 @@ public class CreateContentPoolServletTest {
   @Mock
   private ClusterTrackingService clusterTrackingService;
   @Mock
-  private ComponentContext componentContext;
-  @Mock
   private SlingHttpServletRequest request;
   @Mock
   private SlingHttpServletResponse response;
@@ -145,7 +142,6 @@ public class CreateContentPoolServletTest {
   public void testCreate() throws Exception {
 
     // activate
-    when(clusterTrackingService.getCurrentServerId()).thenReturn("serverID");
     when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
     
     when(request.getResourceResolver()).thenReturn(resourceResolver);
@@ -153,6 +149,7 @@ public class CreateContentPoolServletTest {
     Session session = repository.loginAdministrative("ieb");
     when(jcrSesson.getUserManager()).thenReturn(sparseMapUserManager);
     when(sparseMapUserManager.getSession()).thenReturn(session);
+    when(clusterTrackingService.getClusterUniqueId()).thenReturn(String.valueOf(System.currentTimeMillis()));
 
     when(request.getRequestPathInfo()).thenReturn(requestPathInfo);
     when(requestPathInfo.getExtension()).thenReturn(null);
@@ -248,7 +245,6 @@ public class CreateContentPoolServletTest {
     CreateContentPoolServlet cp = new CreateContentPoolServlet();
     cp.clusterTrackingService = clusterTrackingService;
     cp.sparseRepository = repository;
-    cp.activate(componentContext);
 
     cp.doPost(request, response);
 

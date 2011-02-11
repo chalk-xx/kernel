@@ -39,9 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
-import java.math.BigInteger;
 import java.util.Dictionary;
-import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -114,10 +112,8 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    */
   private boolean isReady = false;
   private int serverNumber;
-  private Object lockObject = new Object();
-  private long next = 0;
-  private long epoch;
   private String thisSecureUrl;
+  private UniqueIdGenerator uniqueIdGenerator;
 
   /**
    * Constructor for testing purposes only.
@@ -126,14 +122,9 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    */
   protected ClusterTrackingServiceImpl(CacheManagerService cacheManagerService) {
     this.cacheManagerService = cacheManagerService;
-    GregorianCalendar calendar = new GregorianCalendar(2010, 8, 6);
-    epoch = calendar.getTimeInMillis();
-
   }
 
   public ClusterTrackingServiceImpl() {
-    GregorianCalendar calendar = new GregorianCalendar(2010, 8, 6);
-    epoch = calendar.getTimeInMillis();
   }
 
   /**
@@ -154,6 +145,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
     serverId = ((String) mbeanServer.getAttribute(name, "Name")).replace("@", "-");
     isActive = true;
     pingInstance();
+    uniqueIdGenerator = new UniqueIdGenerator(serverNumber);
     isReady = true;
   }
 
@@ -467,20 +459,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    * @see org.sakaiproject.nakamura.api.cluster.ClusterTrackingService#getClusterUniqueId()
    */
   public String getClusterUniqueId() {
-    synchronized (lockObject) {
-      if ( next < 0 ) {
-        next = System.currentTimeMillis() - epoch;
-      } else {
-        next++;
-      }
-    }
-    // Collision analysis
-    // The server number is unique in the cluster so no 2 servers with the same number can exist at the same time
-    // The Id Num is of the form 1SSSNNNN where SS ranges from 0 to 999 servers in a cluster and NNNN is a real positive number.
-    // Even when NNNN rols over to 1NNNN and again to 2NNNN there is no collision since the server part of the number is prefixed
-    // by 1 as in 1SSSS therefore this ID can never collide in the cluster or by rollover provided we have < 9001 servers in the cluster.
-    BigInteger idNum = new BigInteger(String.valueOf(next)+ String.valueOf(serverNumber+1000));
-    return StringUtils.encode(idNum.toByteArray(),StringUtils.URL_SAFE_ENCODING);
+    return uniqueIdGenerator.nextId();
   }
 
 }

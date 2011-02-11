@@ -31,7 +31,6 @@ import org.apache.sling.commons.scheduler.Job;
 import org.apache.sling.commons.scheduler.JobContext;
 import org.apache.sling.commons.scheduler.Scheduler;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.resource.JcrPropertyMap;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
@@ -40,7 +39,6 @@ import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.sakaiproject.nakamura.api.templates.TemplateService;
-import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -281,7 +279,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
       LOGGER.debug("Checking for sakai:templatePath and sakai:templateParams properties on the outgoing message's node.");
       if (messageNode.hasProperty(MessageConstants.PROP_TEMPLATE_PATH)
           && messageNode.hasProperty(MessageConstants.PROP_TEMPLATE_PARAMS)) {
-        Map parameters = new JcrPropertyMap(messageNode.getProperty(MessageConstants.PROP_TEMPLATE_PARAMS).getNode());
+        Map<String, String> parameters = getTemplateProperties(messageNode.getProperty(MessageConstants.PROP_TEMPLATE_PARAMS).getString());
         String templatePath = messageNode.getProperty(MessageConstants.PROP_TEMPLATE_PATH).getString();
         LOGGER.debug("Got the path '{0}' to the template for this outgoing message.", templatePath);
         Node templateNode = session.getNode(templatePath);
@@ -326,6 +324,16 @@ public class OutgoingEmailMessageListener implements MessageListener {
     }
 
     return email;
+  }
+
+  private Map<String, String> getTemplateProperties(String templateParameter) throws ValueFormatException, IllegalStateException, RepositoryException {
+    Map<String,String> rv = new HashMap<String, String>();
+    String[] values = templateParameter.split("\\|");
+    for (String value : values) {
+      String[] keyValuePair = value.split("=");
+      rv.put(keyValuePair[0], keyValuePair[1]);
+    }
+    return rv;
   }
 
   private String convertToEmail(String address, javax.jcr.Session session) {

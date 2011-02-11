@@ -46,6 +46,7 @@ import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -210,41 +211,32 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
       String userPass = new String(sc.getPassword());
 
       LDAPConnection conn = null;
-      try {
-        // 0) Get a connection to the server
+      Exception ldapTrouble = null;
+      boolean didLdapSucceed = false;
+      for (int i = 0; i < 4; i++) {
         try {
+          if (i > 0) {
+            log.debug("LDAP error on ldap auth. Retrying. " + ldapTrouble.getMessage());
+          }
+          // 0) Get a connection to the server
           conn = connMgr.getConnection();
           log.debug("Connected to LDAP server");
-        } catch (LDAPException e) {
-          throw new IllegalStateException("Unable to connect to LDAP server ["
-              + connMgr.getConfig().getLdapHost() + "]");
-        }
+          bindAppUser(appUser, appPass, conn);
+          // 2) Search for username (not authz).
+          // If search fails, log/report invalid username or password.
+          LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_SUB,
+              userDn, null, true);
+          if (results.hasMore()) {
+            log.debug("Found user via search");
+          } else {
+            throw new IllegalArgumentException("Can't find user [" + userDn + "]");
+          }
 
-        // 1) Bind as app user
-        try {
-          conn.bind(LDAPConnection.LDAP_V3, appUser, appPass.getBytes(UTF8));
-          log.debug("Bound as application user");
-        } catch (LDAPException e) {
-          throw new IllegalArgumentException("Can't bind application user [" + appUser
-              + "]", e);
-        }
+          // 3) Bind as user.
+          // If bind fails, log/report invalid username or password.
 
-        // 2) Search for username (not authz).
-        // If search fails, log/report invalid username or password.
-        LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userDn,
-            null, true);
-        if (results.hasMore()) {
-          log.debug("Found user via search");
-        } else {
-          throw new IllegalArgumentException("Can't find user [" + userDn + "]");
-        }
-
-        // 3) Bind as user.
-        // If bind fails, log/report invalid username or password.
-
-        // value is set below. define here for use in authz check.
-        String userEntryDn = null;
-        try {
+          // value is set below. define here for use in authz check.
+          String userEntryDn = null;
           // KERN-776 Resolve the user DN from the search results and check for an aliased
           // entry
           LDAPEntry userEntry = results.next();
@@ -259,52 +251,61 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
           conn.bind(LDAPConnection.LDAP_V3, userEntryDn, userPass.getBytes(UTF8));
           log.debug("Bound as user");
-        } catch (LDAPException e) {
-          log.warn("Can't bind user [{}]", userDn);
-          throw e;
-        }
 
-        if (authzFilter.length() > 0) {
-          // 4) Return to app user
-          try {
+          if (authzFilter.length() > 0) {
+            // 4) Return to app user
             conn.bind(LDAPConnection.LDAP_V3, appUser, appPass.getBytes(UTF8));
             log.debug("Rebound as application user");
-          } catch (LDAPException e) {
-            throw new IllegalArgumentException("Can't bind application user [" + appUser
-                + "]");
+            // 5) Search user DN with authz filter
+            // If search fails, log/report that user is not authorized
+            String userAuthzFilter = "(&(" + userEntryDn + ")(" + authzFilter + "))";
+            results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userAuthzFilter,
+                null, true);
+            if (results.hasMore()) {
+              log.debug("Found user + authz filter via search");
+            } else {
+              throw new IllegalArgumentException("User not authorized [" + userDn + "]");
+            }
           }
 
-          // 5) Search user DN with authz filter
-          // If search fails, log/report that user is not authorized
-          String userAuthzFilter = "(&(" + userEntryDn + ")(" + authzFilter + "))";
-          results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userAuthzFilter, null,
-              true);
-          if (results.hasMore()) {
-            log.debug("Found user + authz filter via search");
-          } else {
-            throw new IllegalArgumentException("User not authorized [" + userDn + "]");
+          // FINALLY!
+          auth = true;
+          log.info("User [{}] authenticated with LDAP in {}ms", userDn,
+              System.currentTimeMillis() - timeStart);
+
+          // provision & decorate the user
+          Session session = slingRepository.loginAdministrative(null);
+          Authorizable authorizable = getJcrUser(session, sc.getUserID());
+
+          if (authorizable != null && attrsProps != null) {
+            log.debug("Decorating user [{}] with props from {}", userDn, USER_PROPS);
+            decorateUser(session, authorizable, conn);
           }
+          // if we made it this far, we can exit the retry loop
+          didLdapSucceed = true;
+          break;
+        } catch (Exception e) {
+          ldapTrouble = e;
+          log.warn(e.getMessage(), e);
+        } finally {
+          log.debug("Returning LDAP connection to pool.");
+          connMgr.returnConnection(conn);
         }
-
-        // FINALLY!
-        auth = true;
-        log.info("User [{}] authenticated with LDAP in {}ms", userDn,
-            System.currentTimeMillis() - timeStart);
-
-        // provision & decorate the user
-        Session session = slingRepository.loginAdministrative(null);
-        Authorizable authorizable = getJcrUser(session, sc.getUserID());
-
-        if (authorizable != null && attrsProps != null) {
-          decorateUser(session, authorizable, conn);
-        }
-      } catch (Exception e) {
-        log.warn(e.getMessage(), e);
-      } finally {
-        connMgr.returnConnection(conn);
+      }
+      
+      if (!didLdapSucceed) {
+        log.error("Could not negotiate with LDAP even after retrying. Giving up. {}:{}", 
+            ldapTrouble.getClass().getName(), ldapTrouble.getLocalizedMessage());
+        return false;
       }
     }
     return auth;
+  }
+
+  private void bindAppUser(String appUser, String appPass, LDAPConnection conn)
+      throws LDAPException, UnsupportedEncodingException {
+    conn.bind(LDAPConnection.LDAP_V3, appUser, appPass.getBytes(UTF8));
+    log.debug("Bound as application user");
   }
 
   private Authorizable getJcrUser(Session session, String userId) throws Exception {
@@ -320,7 +321,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
   /**
    * Decorate the user with extra information.
-   *
+   * 
    * @param session
    * @param user
    */

@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.proxy;
 
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -107,6 +109,23 @@ public class ResourceProxyServletTest {
     proxyPreProcessors.put("rss", proxyPreProcessor);
     proxyPostProcessors = new HashMap<String, ProxyPostProcessor>();
     proxyPostProcessors.put("rss", proxyPostProcessor);
+  }
+
+  @Test
+  public void acceptNonDeleteAndNonImportOperations() {
+    when(request.getParameter(":operation")).thenReturn("whatever").thenReturn("import")
+        .thenReturn("yay").thenReturn("delete");
+    boolean accepts = servlet.accepts(request);
+    assertTrue(accepts);
+
+    accepts = servlet.accepts(request);
+    assertFalse(accepts);
+
+    accepts = servlet.accepts(request);
+    assertTrue(accepts);
+
+    accepts = servlet.accepts(request);
+    assertFalse(accepts);
   }
 
   @Test
