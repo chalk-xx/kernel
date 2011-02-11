@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "+needsprocessing:true",
+  "sakai:query-template": "needsprocessing:true",
   "sling:resourceType": "sakai/solr-search",
   "sakai:title": "Thumbnail Processing",
   "sakai:shortDescription": "Gets all content items that need processing for thumbnails.",

@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": '+path:${_userMessagePath} +resourceType:sakai/message +messagebox:"{box}" +category:"{category}";${sortOn} ${sortOrder}',
+  "sakai:query-template": 'path:${_userMessagePath} AND resourceType:sakai/message AND messagebox:"{box}" AND category:"{category}";${sortOn} ${sortOrder}',
   "sortOn": "created",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",

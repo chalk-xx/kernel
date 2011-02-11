@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "+path:${_myFeed} +resourceType:sakai/activity;${sortOn} ${sortOrder}",
+  "sakai:query-template": "path:${_myFeed} AND resourceType:sakai/activity;${sortOn} ${sortOrder}",
   "sortOn": "created",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",

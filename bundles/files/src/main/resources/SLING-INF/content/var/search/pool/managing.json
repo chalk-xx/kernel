@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": '+resourceType:sakai/pooled-content +("${q}" content:"${q}") AND managers:"${au}";${sortOn} ${sortOrder}',
+  "sakai:query-template": 'resourceType:sakai/pooled-content AND ("${q}" OR content:"${q}") AND managers:"${au}";${sortOn} ${sortOrder}',
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
