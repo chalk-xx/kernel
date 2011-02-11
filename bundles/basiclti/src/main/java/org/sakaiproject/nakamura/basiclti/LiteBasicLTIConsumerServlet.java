@@ -304,7 +304,7 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
         if (content != null) { // sparse path
           try {
             response.setContentType("application/json");
-            final Map<String, Object> settings = readProperties(content);
+            final Map<String, Object> settings = new HashMap<String, Object>(readProperties(content));
             final Session session = StorageClientUtils.adaptToSession(request
                 .getResourceResolver().adaptTo(javax.jcr.Session.class));
             if (canManageSettings(content.getPath(), session)) {
@@ -566,7 +566,7 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
   private Map<String, Object> getLaunchSettings(final Content node)
       throws RepositoryException, ClientPoolException, StorageClientException,
       org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException {
-    final Map<String, Object> settings = readProperties(node);
+    final Map<String, Object> settings = new HashMap<String,Object>(readProperties(node));
     // sanity check for sensitive data in settings node
     final List<String> keysToRemove = new ArrayList<String>(sensitiveKeys.size());
     for (final Entry<String, Object> entry : settings.entrySet()) {

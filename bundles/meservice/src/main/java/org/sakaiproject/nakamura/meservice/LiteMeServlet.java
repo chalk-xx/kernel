@@ -46,7 +46,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessagingException;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
@@ -99,7 +99,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
   protected transient ConnectionManager connectionManager;
 
   @Reference
-  protected transient LiteProfileService profileService;
+  protected transient ProfileService profileService;
 
   /**
    * {@inheritDoc}
@@ -113,8 +113,9 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
     try {
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
+      javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
       Session session =
-        StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+        StorageClientUtils.adaptToSession(jcrSession);
       AuthorizableManager um = session.getAuthorizableManager();
       Authorizable au = um.findAuthorizable(session.getUserId());
       PrintWriter w = response.getWriter();
@@ -126,7 +127,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
 
       // Dump this user his info
       writer.key("profile");
-      ValueMap profile = profileService.getProfileMap(au, session);
+      ValueMap profile = profileService.getProfileMap(au,jcrSession);
       writer.valueMap(profile);
 
       // Dump this user his number of unread messages.
@@ -139,7 +140,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
 
       // Dump the groups for this user.
       writer.key("groups");
-      writeGroups(writer, session, au);
+      writeGroups(writer, session, au, jcrSession);
 
       writer.endObject();
     } catch (JSONException e) {
@@ -154,6 +155,10 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       LOG.error("Failed to get a user his profile node in /system/me", e);
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "Access denied error.");
+    } catch (RepositoryException e) {
+      LOG.error("Failed to get a user his profile node in /system/me", e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Sparse storage client error.");
     }
 
   }
@@ -165,9 +170,10 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
    * @throws JSONException
    * @throws StorageClientException 
    * @throws AccessDeniedException 
+   * @throws RepositoryException 
    */
-  protected void writeGroups(ExtendedJSONWriter writer, Session session, Authorizable au)
-      throws JSONException, StorageClientException, AccessDeniedException {
+  protected void writeGroups(ExtendedJSONWriter writer, Session session, Authorizable au, javax.jcr.Session jcrSession)
+      throws JSONException, StorageClientException, AccessDeniedException, RepositoryException {
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
     writer.array();
     if (!UserConstants.ANON_USERID.equals(au.getId())) {
@@ -183,12 +189,12 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
         }
         if (group.hasProperty("sakai:managed-group")) {
           // fetch the group that the manager group manages
-          group = authorizableManager.findAuthorizable(StorageClientUtils.toString(group.getProperty("sakai:managed-group")));
+          group = authorizableManager.findAuthorizable((String) group.getProperty("sakai:managed-group"));
           if (group == null || !(group instanceof Group)) {
             continue;
           }
         }
-        ValueMap groupProfile = profileService.getCompactProfileMap(group);
+        ValueMap groupProfile = profileService.getCompactProfileMap(group, jcrSession);
         if (groupProfile != null) {
           writer.valueMap(groupProfile);
         }

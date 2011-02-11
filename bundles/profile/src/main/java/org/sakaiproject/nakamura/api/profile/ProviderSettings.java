@@ -17,7 +17,8 @@
  */
 package org.sakaiproject.nakamura.api.profile;
 
-import javax.jcr.Node;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+
 import javax.jcr.RepositoryException;
 
 /**
@@ -65,6 +66,6 @@ public interface ProviderSettings {
   /**
    * @return the node that this setting relates to.
    */
-  Node getNode();
+  Content getNode();
 
 }

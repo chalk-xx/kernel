@@ -35,7 +35,7 @@ public interface LiteMessageProfileWriter {
    * @param write
    *          The {@link JSONWriter writer} to write to.
    */
-  void writeProfileInformation(Session session, String recipient, JSONWriter write);
+  void writeProfileInformation(Session session, String recipient, JSONWriter write, javax.jcr.Session jcrSession);
 
   /**
    * @return The type of recipients it handles.

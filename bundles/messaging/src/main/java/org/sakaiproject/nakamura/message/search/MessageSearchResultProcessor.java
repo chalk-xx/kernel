@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.spi.commons.query.sql.JCRSQLParser;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
@@ -105,8 +106,8 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
     String path = content.getPath();
     write.value(path.substring(path.lastIndexOf('/') + 1));
 
-    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
-        .adaptTo(javax.jcr.Session.class));
+    javax.jcr.Session jcrSession =request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+    Session session = StorageClientUtils.adaptToSession(jcrSession);
 
     // Write out all the recipients their information on this message.
     // We always return this as an array, even if it is only 1 recipient.
@@ -129,7 +130,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
         if (writer == null) {
           writer = defaultProfileWriter;
         }
-        writer.writeProfileInformation(session, user, write);
+        writer.writeProfileInformation(session, user, write, jcrSession);
       }
       write.endArray();
     }
@@ -143,7 +144,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
       write.key("userFrom");
       write.array();
       for (String sender : senders) {
-        defaultProfileWriter.writeProfileInformation(session, sender, write);
+        defaultProfileWriter.writeProfileInformation(session, sender, write, jcrSession);
       }
       write.endArray();
     }

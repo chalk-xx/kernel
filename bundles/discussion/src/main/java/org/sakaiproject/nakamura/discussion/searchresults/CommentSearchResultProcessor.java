@@ -32,13 +32,15 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+
+import javax.jcr.RepositoryException;
 
 /**
  * Formats comment nodes.
@@ -57,7 +59,7 @@ public class CommentSearchResultProcessor implements SolrSearchResultProcessor {
   private PresenceService presenceService;
 
   @Reference
-  private LiteProfileService profileService;
+  private ProfileService profileService;
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
@@ -71,15 +73,17 @@ public class CommentSearchResultProcessor implements SolrSearchResultProcessor {
    */
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
       throws JSONException {
-    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
-        .adaptTo(javax.jcr.Session.class));
+    javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+    Session session = StorageClientUtils.adaptToSession(jcrSession);
     try {
       Content content = session.getContentManager().get(result.getPath());
       Post p = new Post(content, session);
-      p.outputPostAsJSON((ExtendedJSONWriter) write, presenceService, profileService);
+      p.outputPostAsJSON((ExtendedJSONWriter) write, presenceService, profileService, jcrSession);
     } catch (StorageClientException e) {
       throw new RuntimeException(e.getMessage(), e);
     } catch (AccessDeniedException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    } catch (RepositoryException e) {
       throw new RuntimeException(e.getMessage(), e);
     }
   }

@@ -28,7 +28,6 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
@@ -169,8 +168,7 @@ public class GroupMembersSearchPropertyProvider implements SolrSearchPropertyPro
       AuthorizableManager am = adminSession.getAuthorizableManager();
 
       if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-        String managerGroupId = StorageClientUtils.toString(group
-            .getProperty(UserConstants.PROP_MANAGERS_GROUP));
+        String managerGroupId = (String) group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
         Group managerGroup = (Group) am.findAuthorizable(managerGroupId);
         if (managerGroup != null) {
           addDeclaredMembers(memberIds, managerGroup);

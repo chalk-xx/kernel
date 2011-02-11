@@ -5,7 +5,6 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -13,7 +12,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-import org.sakaiproject.nakamura.api.profile.LiteProfileService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -76,19 +74,20 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
 
 
 
-  protected transient LiteProfileService profileService;
+  protected transient ProfileService profileService;
 
-  protected void bindProfileService(LiteProfileService profileService) {
+  protected void bindProfileService(ProfileService profileService) {
     this.profileService = profileService;
   }
-  protected void unbindProfileService(LiteProfileService profileService) {
+  protected void unbindProfileService(ProfileService profileService) {
     this.profileService = null;
   }
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) throws ServletException, IOException {
+    javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
     Session session =
-      StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+      StorageClientUtils.adaptToSession(jcrSession);
     String userId = session.getUserId();
     try {
       // Find the Group entities associated with the user.
@@ -102,7 +101,7 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
       // Filter the Profiles so as to set up proper paging.
       List<ValueMap> filteredProfiles = new ArrayList<ValueMap>();
       for (Group group : groups.values()) {
-        ValueMap profile = profileService.getProfileMap(group, session);
+        ValueMap profile = profileService.getProfileMap(group, jcrSession);
         if (profile != null) {
           if ((filterPattern == null) || (isValueMapPattternMatch(profile, filterPattern))) {
             filteredProfiles.add(profile);
@@ -159,6 +158,10 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
       LOGGER.error("Failed to write out groups for user " + userId, e);
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "Access denied error.");
+    } catch (RepositoryException e) {
+      LOGGER.error("Failed to write out groups for user " + userId, e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+      "Storage error.");
     }
   }
 
