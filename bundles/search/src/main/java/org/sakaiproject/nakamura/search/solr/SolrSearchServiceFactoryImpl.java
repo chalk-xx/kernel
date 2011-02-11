@@ -86,7 +86,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
       }
       QueryResponse response = solrServer.query(solrQuery);
       SolrDocumentList resultList = response.getResults();
-      LOGGER.info("Got {} hitsin {} ", resultList.size() , response.getElapsedTime());
+      LOGGER.info("Got {} hits in {} ms", resultList.size() , response.getElapsedTime());
       return new SolrSearchResultSetImpl(response);
     } catch (SolrServerException e) {
       LOGGER.warn(e.getMessage(), e);
