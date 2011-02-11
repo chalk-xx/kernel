@@ -66,10 +66,6 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
   private static final Set<String> IGNORE_NAMESPACES = ImmutableSet.of("jcr", "rep");
   private static final Set<String> IGNORE_PROPERTIES = ImmutableSet.of();
   private static final Map<String, String> INDEX_FIELD_MAP = getFieldMap();
-  private static final Set<String> ARRAY_PROPERTIES = ImmutableSet.of(
-      FilesConstants.POOLED_CONTENT_USER_MANAGER,
-      FilesConstants.POOLED_CONTENT_USER_VIEWER, FilesConstants.SAKAI_TAGS,
-      FilesConstants.SAKAI_TAG_UUIDS);
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PoolContentResourceTypeHandler.class);

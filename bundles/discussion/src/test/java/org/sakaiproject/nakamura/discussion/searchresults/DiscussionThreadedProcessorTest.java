@@ -84,7 +84,9 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
 
     AccessControlManager accessControlManager = createNiceMock(AccessControlManager.class);
     expect(session.getAccessControlManager()).andReturn(accessControlManager).anyTimes();
+    @SuppressWarnings("unused")
     User adminUser = new User(ImmutableMap.of(User.ID_FIELD, (Object) "admin"));
+    @SuppressWarnings("unused")
     User anonUser = new User(ImmutableMap.of(User.ID_FIELD, (Object) "anonymous"));
     expect(profileService.getCompactProfileMap((Authorizable)EasyMock.anyObject(), (javax.jcr.Session)EasyMock.anyObject())).andReturn(
         ValueMap.EMPTY).anyTimes();

@@ -35,8 +35,6 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Formats user profile node search results
@@ -50,8 +48,6 @@ import org.slf4j.LoggerFactory;
 @Service
 public class DefaultSearchResultProcessor implements SolrSearchResultProcessor {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(DefaultSearchBatchResultProcessor.class);
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
 

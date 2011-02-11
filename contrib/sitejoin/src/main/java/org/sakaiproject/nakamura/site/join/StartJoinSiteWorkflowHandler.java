@@ -32,7 +32,6 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
@@ -85,7 +84,7 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
 
       // #2 send message to site owner
       Content message = sendMessage(userId, owner, session, sitePath);
-      message.setProperty(PROP_SAKAI_SENDSTATE, StorageClientUtils.toStore(STATE_NOTIFIED));
+      message.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
       Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
       // WARNING
       // We can't pass in the node, because the session might expire before the event gets handled

@@ -3,8 +3,6 @@ package org.sakaiproject.nakamura.user.lite.servlet;
 import static org.mockito.Mockito.when;
 
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
@@ -33,14 +31,6 @@ public class LiteDeleteSakaiAuthorizableServletTest  {
   
   @Mock
   private ResourceResolver resourceResolver;
-
-  @SuppressWarnings("unused")
-  @Mock
-  private SlingHttpServletResponse httpResponse;
-
-  @SuppressWarnings("unused")
-  @Mock
-  private Resource resource;
 
   private Repository repository;
   

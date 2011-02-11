@@ -26,7 +26,6 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.spi.commons.query.sql.JCRSQLParser;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
@@ -172,8 +171,8 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
     ResourceResolver resolver = request.getResourceResolver();
     Session s = resolver.adaptTo(Session.class);
     String userId = request.getRemoteUser();
-    String id = StorageClientUtils.toString(content
-        .getProperty(PROP_SAKAI_PREVIOUS_MESSAGE));
+    String id = (String) content
+        .getProperty(PROP_SAKAI_PREVIOUS_MESSAGE);
     String path = messagingService.getFullPathToMessage(userId, id, s);
     Content previousMessage = resolver.getResource(path).adaptTo(Content.class);
     writeContent(request, write, previousMessage);

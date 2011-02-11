@@ -17,24 +17,15 @@
  */
 package org.sakaiproject.nakamura.message;
 
-import com.google.common.collect.ImmutableMap;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
-import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
-import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.locking.LockManager;
@@ -53,7 +44,6 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
 
 /**
  * Service for doing operations with messages.
@@ -68,8 +58,6 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
 
   @Reference
   protected transient ProfileService profileService;
-
-  private Pattern homePathPattern = Pattern.compile("(~(.*?))/");
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteMessagingServiceImpl.class);
@@ -118,16 +106,16 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
       String val = e.getValue().toString();
       try {
         Long l = Long.valueOf(val);
-        msg.setProperty(e.getKey(), StorageClientUtils.toStore(l));
+        msg.setProperty(e.getKey(), l);
       } catch (NumberFormatException ex) {
-        msg.setProperty(e.getKey(), StorageClientUtils.toStore(val));
+        msg.setProperty(e.getKey(), val);
       }
     }
     // Add the id for this message.
-    msg.setProperty(MessageConstants.PROP_SAKAI_ID, StorageClientUtils.toStore(messageId));
+    msg.setProperty(MessageConstants.PROP_SAKAI_ID, messageId);
     Calendar cal = Calendar.getInstance();
-    msg.setProperty(MessageConstants.PROP_SAKAI_CREATED, StorageClientUtils.toStore(cal));
-    msg.setProperty("sling:resourceSuperType", StorageClientUtils.toStore("sparse/Content"));
+    msg.setProperty(MessageConstants.PROP_SAKAI_CREATED, cal);
+    msg.setProperty("sling:resourceSuperType", "sparse/Content");
 
     try {
       lockManager.waitForLock(messagePathBase);

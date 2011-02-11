@@ -19,13 +19,13 @@
 package org.sakaiproject.nakamura.message.internal;
 
 import com.google.common.collect.ImmutableMap;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
-import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.service.event.Event;
@@ -33,7 +33,6 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
@@ -117,8 +116,8 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
           LOG.info("Started handling a message.");
           String recipient = route.getRcpt();
           // the path were we want to save messages in.
-          String messageId = StorageClientUtils.toString(originalMessage
-              .getProperty(MessageConstants.PROP_SAKAI_ID));
+          String messageId = (String) originalMessage
+              .getProperty(MessageConstants.PROP_SAKAI_ID);
           sendHelper(recipients, recipient, originalMessage, session, messageId,
               authorizableManager);
         }
@@ -180,11 +179,9 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
           Content message = contentManager.get(toPath);
 
           // Add some extra properties on the just created node.
-          message.setProperty(MessageConstants.PROP_SAKAI_READ, StorageClientUtils.toStore(Boolean.FALSE.toString()));
-          message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
-              StorageClientUtils.toStore(MessageConstants.BOX_INBOX));
-          message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
-              StorageClientUtils.toStore(MessageConstants.STATE_NOTIFIED));
+          message.setProperty(MessageConstants.PROP_SAKAI_READ, false);
+          message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
+          message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE, MessageConstants.STATE_NOTIFIED);
           contentManager.update(message);
 
           recipients.add(recipient);

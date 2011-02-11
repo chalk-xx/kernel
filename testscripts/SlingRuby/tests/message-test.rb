@@ -91,7 +91,7 @@ class TC_MyMessageTest < Test::Unit::TestCase
 	assert_equal("notified",message['sakai:sendstate'],"Message State Incorrect")
 	assert_equal("aaron"+m,message['sakai:from'],"Message From Incorrect")
 	assert_equal("nico"+m,message['sakai:to'],"Message To Incorrect")
-	assert_equal("false",message['sakai:read'],"Message Sould be marked read")
+	assert_equal(false,message['sakai:read'],"Message Sould be marked read")
 	assert_equal("sakai/message",message['sling:resourceType'],"Resource Type not correct")
 
 	res = @mm.list_inbox()

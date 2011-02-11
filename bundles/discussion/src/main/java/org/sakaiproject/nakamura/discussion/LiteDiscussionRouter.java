@@ -25,15 +25,19 @@ import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
 import org.sakaiproject.nakamura.api.discussion.LiteDiscussionManager;
-import org.sakaiproject.nakamura.api.lite.*;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.sakaiproject.nakamura.api.message.*;
+import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
+import org.sakaiproject.nakamura.api.message.LiteMessageRouter;
+import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.jcr.RepositoryException;
 
 /**
  * This router will check for messages who have a transport of discussion or comment, then
@@ -76,7 +80,7 @@ public class LiteDiscussionRouter implements LiteMessageRouter {
       if (n.hasProperty(MessageConstants.PROP_SAKAI_TO)
           && n.hasProperty(DiscussionConstants.PROP_MARKER)) {
 
-        String to = StorageClientUtils.toString(n.getProperty(MessageConstants.PROP_SAKAI_TO));
+        String to = (String) n.getProperty(MessageConstants.PROP_SAKAI_TO);
         String type = StringUtils.split(to, ':')[0];
 
         if ("comment".equals(type) || "discussion".equals(type)) {
@@ -87,15 +91,15 @@ public class LiteDiscussionRouter implements LiteMessageRouter {
 
           // This is a discussion message, find the settings file for it.
 
-          String marker = StorageClientUtils.toString(n.getProperty(DiscussionConstants.PROP_MARKER));
+          String marker = (String) n.getProperty(DiscussionConstants.PROP_MARKER);
           session = contentRepository.loginAdministrative();
           Content settings = discussionManager.findSettings(marker, session, type);
           if (settings != null
               && settings.hasProperty(DiscussionConstants.PROP_NOTIFICATION)) {
             boolean sendMail = (Boolean)settings.getProperty(DiscussionConstants.PROP_NOTIFICATION);
             if (sendMail && settings.hasProperty(DiscussionConstants.PROP_NOTIFY_ADDRESS)) {
-              String address = StorageClientUtils.toString(settings.getProperty(
-                  DiscussionConstants.PROP_NOTIFY_ADDRESS));
+              String address = (String) settings.getProperty(
+                  DiscussionConstants.PROP_NOTIFY_ADDRESS);
               // TODO: make this smtp.
               routing.add(new AbstractMessageRoute("internal:" + address) {
               });

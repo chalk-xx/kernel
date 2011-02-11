@@ -110,7 +110,7 @@ public class MessageBoxServlet extends SlingSafeMethodsServlet {
           for (String messagePropKey : message.getProperties().keySet()) {
             writer.key(messagePropKey);
             writer
-                .value(StorageClientUtils.toString(message.getProperty(messagePropKey)));
+                .value(message.getProperty(messagePropKey));
           }
           writer.endObject();
           messageCount++;

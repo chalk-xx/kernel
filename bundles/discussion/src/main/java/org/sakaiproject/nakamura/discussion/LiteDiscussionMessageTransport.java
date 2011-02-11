@@ -18,6 +18,16 @@
 
 package org.sakaiproject.nakamura.discussion;
 
+import static org.sakaiproject.nakamura.api.discussion.DiscussionConstants.TOPIC_DISCUSSION_MESSAGE;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.BOX_INBOX;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_FROM;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_ID;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_MESSAGEBOX;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_SENDSTATE;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_TO;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_TYPE;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NOTIFIED;
+
 import com.google.common.collect.ImmutableMap;
 
 import org.apache.felix.scr.annotations.Component;
@@ -30,7 +40,6 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
@@ -54,9 +63,6 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-
-import static org.sakaiproject.nakamura.api.discussion.DiscussionConstants.TOPIC_DISCUSSION_MESSAGE;
-import static org.sakaiproject.nakamura.api.message.MessageConstants.*;
 
 /**
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
@@ -106,8 +112,8 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
         if (DiscussionConstants.TYPE_DISCUSSION.equals(route.getTransport())) {
           String recipient = route.getRcpt();
           // the path were we want to save messages in.
-          String messageId = StorageClientUtils.toString(originalMessage
-              .getProperty(PROP_SAKAI_ID));
+          String messageId = (String) originalMessage
+              .getProperty(PROP_SAKAI_ID);
           String toPath = messagingService.getFullPathToMessage(recipient, messageId,
               session);
 
@@ -123,19 +129,14 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
           Map<String, Object> messageProps = originalMessage.getProperties();
           for (String propertyKey : messageProps.keySet()) {
             if (!propertyKey.contains("jcr:"))
-              propertyBuilder.put(propertyKey,
-                  StorageClientUtils.toStore(messageProps.get(propertyKey)));
+              propertyBuilder.put(propertyKey,messageProps.get(propertyKey));
           }
 
           // Add some extra properties in preparation for creating the content
-          propertyBuilder.put(PROP_SAKAI_TYPE,
-              StorageClientUtils.toStore(route.getTransport()));
-          propertyBuilder.put(PROP_SAKAI_TO,
-              StorageClientUtils.toStore(route.getRcpt()));
-          propertyBuilder.put(PROP_SAKAI_MESSAGEBOX,
-              StorageClientUtils.toStore(BOX_INBOX));
-          propertyBuilder.put(PROP_SAKAI_SENDSTATE,
-              StorageClientUtils.toStore(STATE_NOTIFIED));
+          propertyBuilder.put(PROP_SAKAI_TYPE, route.getTransport());
+          propertyBuilder.put(PROP_SAKAI_TO, route.getRcpt());
+          propertyBuilder.put(PROP_SAKAI_MESSAGEBOX, BOX_INBOX);
+          propertyBuilder.put(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
           
           Content newMessageNode = new Content(toPath, propertyBuilder.build());
           
@@ -143,8 +144,7 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
             // This will probably be saved in a site store. Not all the users will have
             // access to their message. So we add an ACL that allows the user to edit and
             // delete it later on.
-            String from = StorageClientUtils.toString(originalMessage
-                .getProperty(PROP_SAKAI_FROM));
+            String from = (String) originalMessage.getProperty(PROP_SAKAI_FROM);
             Authorizable authorizable = session.getAuthorizableManager()
                 .findAuthorizable(from);
 
@@ -164,8 +164,7 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
             // topic.
             final Dictionary<String, String> properties = new Hashtable<String, String>();
             properties.put(UserConstants.EVENT_PROP_USERID, route.getRcpt());
-            properties.put("from",
-                StorageClientUtils.toString(newMessageNode.getProperty(PROP_SAKAI_FROM)));
+            properties.put("from",(String) newMessageNode.getProperty(PROP_SAKAI_FROM));
             EventUtils.sendOsgiEvent(properties, TOPIC_DISCUSSION_MESSAGE, eventAdmin);
           } catch (Exception e) {
             // Swallow all exceptions, but leave a note in the error log.

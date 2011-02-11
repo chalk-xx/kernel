@@ -17,18 +17,12 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
-import java.util.List;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.jackrabbit.usermanager.impl.post.AbstractUserPostServlet;
 import org.apache.sling.jackrabbit.usermanager.impl.post.ChangeUserPasswordServlet;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.component.ComponentContext;
@@ -39,6 +33,11 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+
+import java.util.List;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 /**
  * Sling Post Operation implementation for updating the password of a user in the 

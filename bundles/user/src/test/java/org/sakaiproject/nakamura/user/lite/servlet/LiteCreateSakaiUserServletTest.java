@@ -7,9 +7,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.Lists;
 
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameterMap;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
@@ -45,14 +43,6 @@ public class LiteCreateSakaiUserServletTest  {
   
   @Mock
   private ResourceResolver resourceResolver;
-
-  @SuppressWarnings("unused")
-  @Mock
-  private SlingHttpServletResponse httpResponse;
-
-  @SuppressWarnings("unused")
-  @Mock
-  private Resource resource;
 
   private Repository repository;
   
