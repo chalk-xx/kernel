@@ -66,6 +66,7 @@ class TC_Kern1372Test < Test::Unit::TestCase
     }
 
     @s.switch_user(user)
+    wait_for_indexer()
     res = @s.execute_get("#{fileurl}.related.json")
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
@@ -82,6 +83,7 @@ class TC_Kern1372Test < Test::Unit::TestCase
     })
 
     @s.switch_user(user)
+    wait_for_indexer()
     res = @s.execute_get("#{fileurl}.related.json")
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
@@ -96,6 +98,10 @@ class TC_Kern1372Test < Test::Unit::TestCase
     res = @s.execute_post(@s.url_for("/p/#{otherfileids[1]}"), {
       "sakai:permissions" => "public"
     })
+    res = @s.execute_post(@s.url_for("/p/#{otherfileids[1]}.modifyAce.html"), {
+      "principalId" => "anonymous",
+      "privilege@jcr:read" => "granted"
+    })
     res = @s.execute_post(@s.url_for("/p/#{otherfileids[1]}"), {
       ":operation" => "tag",
       "key" => "/tags/#{onetag}"
@@ -106,6 +112,7 @@ class TC_Kern1372Test < Test::Unit::TestCase
     })
 
     @s.switch_user(user)
+    wait_for_indexer()
     res = @s.execute_get("#{fileurl}.related.json")
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
@@ -154,6 +161,7 @@ class TC_Kern1372Test < Test::Unit::TestCase
     add_node_to_directory("/p/#{otherfileids[0]}", halfmatch)
 
     @s.switch_user(user)
+    wait_for_indexer()
     res = @s.execute_get("#{fileurl}.related.json")
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
@@ -190,6 +198,7 @@ class TC_Kern1372Test < Test::Unit::TestCase
     }
 
     @s.switch_user(user)
+    wait_for_indexer()
     res = @s.execute_get("#{fileurl}.related.json")
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)

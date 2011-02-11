@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.event.EventAdmin;
@@ -106,6 +107,7 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
 
     Resource resource = request.getResource();
     Content content = resource.adaptTo(Content.class);
+    ResourceResolver resourceResolver = request.getResourceResolver();
 
     if ( content == null) {
       LOGGER.info("Missing Resource  {} ", resource.getPath());
@@ -123,21 +125,23 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
     }
     
     String tagContentPath = key.getString();
-    if (tagContentPath.startsWith("/~")) {
-      tagContentPath = tagContentPath.replaceFirst("/~", "a:");
-    }
-    Content tagNode = null;
-        tagNode = contentManager.get(tagContentPath);
+    
+    Node tagNode = null;
+    try {
+      tagNode = FileUtils.resolveNode(tagContentPath, resourceResolver);
         if (tagNode == null) {
           LOGGER.info("Missing Tag Node {} ",key.getString());
           response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Provided key not found. Key was "+key.getString());
           return;
         }
-        if (!"sakai/tag".equals(tagNode.getProperty("sling:resourceType"))) {
+        if (!"sakai/tag".equals(tagNode.getProperty("sling:resourceType").getString())) {
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
               "Provided key doesn't point to a tag.");
           return;
         }
+    } catch (RepositoryException re) {
+      LOGGER.error(re.getLocalizedMessage(), re);
+    }
   
       
       try {
@@ -146,7 +150,7 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
           try {
             String tagName = "";
             if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
-              tagName = (String) tagNode.getProperty(SAKAI_TAG_NAME);
+              tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
             }
             Dictionary<String, String> properties = new Hashtable<String, String>();
             properties.put(UserConstants.EVENT_PROP_USERID, user);
