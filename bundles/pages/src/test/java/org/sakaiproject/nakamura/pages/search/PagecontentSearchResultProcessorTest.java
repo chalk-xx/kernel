@@ -40,6 +40,7 @@ import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
@@ -110,7 +111,7 @@ public class PagecontentSearchResultProcessorTest {
       }
 
       public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-          String query) throws SolrSearchException {
+          Query query) throws SolrSearchException {
         return null;
       }
     };

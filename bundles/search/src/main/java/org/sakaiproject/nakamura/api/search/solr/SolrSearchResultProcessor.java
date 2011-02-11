@@ -8,9 +8,10 @@ public interface SolrSearchResultProcessor {
 
   String DEFAULT_PROCESSOR_PROP = "sakai.solr.search.processor.default";
 
-  SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      String queryString) throws SolrSearchException;
+  SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
+      throws SolrSearchException;
 
-  void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result) throws JSONException;
+  void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
+      throws JSONException;
 
 }

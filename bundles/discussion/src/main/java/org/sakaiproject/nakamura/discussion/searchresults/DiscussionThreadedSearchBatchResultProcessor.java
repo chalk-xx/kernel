@@ -35,6 +35,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -144,7 +145,7 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
    * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      java.lang.String)
    */
-  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, String query)
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
       throws SolrSearchException {
       // Return the result set.
       return searchServiceFactory.getSearchResultSet(request, query);

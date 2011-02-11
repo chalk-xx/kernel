@@ -37,6 +37,7 @@ import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
@@ -53,7 +54,7 @@ import javax.jcr.RepositoryException;
  * (sakai/user-home). This result processor should live in the user bundle but at the time
  * of this writing, moving to that bundle creates a cyclical dependency of:<br/>
  * search -&gt; personal -&gt; user -&gt; search
- * 
+ *
  * TODO: Sort the above out and move this code to the correct bundle.
  */
 @Component
@@ -95,9 +96,9 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
    *      javax.jcr.query.Query)
    */
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      String queryString) throws SolrSearchException {
+      Query query) throws SolrSearchException {
     // return the result set
-    return searchServiceFactory.getSearchResultSet(request, queryString);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
   /**

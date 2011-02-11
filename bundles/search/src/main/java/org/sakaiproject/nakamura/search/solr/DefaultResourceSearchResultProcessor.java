@@ -25,14 +25,13 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.resource.lite.ResourceJsonWriter;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -53,7 +52,7 @@ import javax.jcr.RepositoryException;
 
 /**
  * Formats user profile node search results
- * 
+ *
  */
 
 @Component(immediate = true, metatype = true)
@@ -79,8 +78,8 @@ public class DefaultResourceSearchResultProcessor implements SolrSearchResultPro
   }
 
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      String queryString) throws SolrSearchException {
-    return searchServiceFactory.getSearchResultSet(request, queryString);
+      Query query) throws SolrSearchException {
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
@@ -124,7 +123,7 @@ public class DefaultResourceSearchResultProcessor implements SolrSearchResultPro
           write.endObject();
         }
       } catch ( Exception e ) {
-        LOGGER.warn(e.getMessage(), e);        
+        LOGGER.warn(e.getMessage(), e);
       }
     }
     write.endObject();

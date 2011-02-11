@@ -33,6 +33,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
@@ -94,7 +95,7 @@ public class CommentSearchResultProcessor implements SolrSearchResultProcessor {
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, String query)
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
       throws SolrSearchException {
     return searchServiceFactory.getSearchResultSet(request, query);
   }

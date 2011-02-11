@@ -26,7 +26,6 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.spi.commons.query.sql.JCRSQLParser;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
@@ -36,6 +35,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
@@ -186,7 +186,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
    *      java.lang.String)
    */
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      String query) throws SolrSearchException {
+      Query query) throws SolrSearchException {
     return searchServiceFactory.getSearchResultSet(request, query);
   }
 

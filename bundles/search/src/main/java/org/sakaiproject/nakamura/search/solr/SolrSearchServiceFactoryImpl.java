@@ -12,10 +12,13 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.params.CommonParams;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
@@ -27,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.jcr.RepositoryException;
@@ -39,23 +44,15 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SolrSearchServiceFactoryImpl.class);
   @Reference
-  private SolrServerService solrSearchSearvice;
+  private SolrServerService solrSearchService;
 
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      String query, boolean asAnon) throws SolrSearchException {
+      Query query, boolean asAnon) throws SolrSearchException {
     try {
-
-      // separate the query from the options
-      String options = "";
-      int semiPos = query.lastIndexOf(';');
-      if (semiPos >= 0) {
-        options = query.substring(semiPos);
-        query = query.substring(0, semiPos);
-      }
-
+      String queryString = query.getQueryString();
       // apply readers restrictions.
       if (asAnon) {
-        query = "+(" + query + ")  AND +readers:"
+        queryString = "(" + queryString + ")  AND readers:"
             + org.sakaiproject.nakamura.api.lite.authorizable.User.ANON_USER;
       } else {
         Session session = request.getResourceResolver().adaptTo(Session.class);
@@ -68,18 +65,13 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
             readers.add(gi.next().getID());
           }
           readers.add(session.getUserID());
-          query = " +(" + query + ") AND +readers:(" + StringUtils.join(readers," OR ") + " )";
+          queryString = "(" + queryString + ") AND readers:(" + StringUtils.join(readers," OR ") + ")";
         }
       }
-      // cat the query and options back together
-      query += options;
 
-      SolrQuery solrQuery = new SolrQuery(query);
-      long[] ranges = SolrSearchUtil.getOffsetAndSize(request);
-      solrQuery.setStart((int) ranges[0]);
-      solrQuery.setRows((int) ranges[1]);
+      SolrQuery solrQuery = buildQuery(request, query, queryString);
 
-      SolrServer solrServer = solrSearchSearvice.getServer();
+      SolrServer solrServer = solrSearchService.getServer();
       try {
         LOGGER.info("Performing Query {} ", URLDecoder.decode(solrQuery.toString(),"UTF-8"));
       } catch (UnsupportedEncodingException e) {
@@ -98,8 +90,56 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
   }
 
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      String query) throws SolrSearchException {
+      Query query) throws SolrSearchException {
     return getSearchResultSet(request, query, false);
   }
 
+  /**
+   * @param request
+   * @param query
+   * @param queryString
+   * @return
+   */
+  private SolrQuery buildQuery(SlingHttpServletRequest request, Query query,
+      String queryString) {
+    // build the query
+    SolrQuery solrQuery = new SolrQuery(queryString);
+    long[] ranges = SolrSearchUtil.getOffsetAndSize(request);
+    solrQuery.setStart((int) ranges[0]);
+    solrQuery.setRows((int) ranges[1]);
+
+    Map<String, String> options = query.getOptions();
+    // add in some options
+    if (options != null) {
+      for (Entry<String, String> option : options.entrySet()) {
+        String key = option.getKey();
+        String val = option.getValue();
+        if (CommonParams.SORT.equals(key)) {
+          parseSort(solrQuery, val);
+        } else {
+          solrQuery.set(key, val);
+        }
+      }
+    }
+    return solrQuery;
+  }
+
+  /**
+   * @param options
+   * @param solrQuery
+   * @param val
+   */
+  private void parseSort(SolrQuery solrQuery, String val) {
+    String[] sort = StringUtils.split(val);
+    switch (sort.length) {
+      case 1:
+      solrQuery.setSortField(sort[0], ORDER.asc);
+      break;
+    case 2:
+      solrQuery.setSortField(sort[0], ORDER.valueOf(sort[1]));
+      break;
+    default:
+      LOGGER.warn("Expected the sort option to be 1 or 2 terms. Found: {}", val);
+    }
+  }
 }
