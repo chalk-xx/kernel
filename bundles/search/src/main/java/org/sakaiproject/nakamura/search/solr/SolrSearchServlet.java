@@ -186,7 +186,9 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
             PropertyIterator props = optionsNode.getProperties();
             while (props.hasNext()) {
               javax.jcr.Property prop = props.nextProperty();
-              options.put(prop.getName(), prop.getString());
+              if (!prop.getName().startsWith("jcr:")) {
+                options.put(prop.getName(), prop.getString());
+              }
             }
           }
         }
