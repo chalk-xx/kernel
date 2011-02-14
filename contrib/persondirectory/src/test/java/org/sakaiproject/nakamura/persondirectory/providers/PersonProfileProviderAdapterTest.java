@@ -1,7 +1,6 @@
 package org.sakaiproject.nakamura.persondirectory.providers;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.Test;
@@ -9,6 +8,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProvider;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProviderException;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
@@ -18,8 +18,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import javax.jcr.Node;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PersonProfileProviderAdapterTest {
@@ -42,12 +40,12 @@ public class PersonProfileProviderAdapterTest {
     Map<String, Object> profileSection = new HashMap<String, Object>();
     profileSection.put("foo", "bar");
 
-    Node node = mock(Node.class);
-    when(ps1.getNode()).thenReturn(node);
-    when(personProvider.getProfileSection(node)).thenReturn(profileSection);
+    Content content = new Content(null, null);
+    when(ps1.getNode()).thenReturn(content);
+    when(personProvider.getProfileSection(content)).thenReturn(profileSection);
 
-    Map<Node, Future<Map<String, Object>>> result = (Map<Node, Future<Map<String, Object>>>) pppa.getProvidedMap(list);
-    Future<Map<String, Object>> fut = result.get(node);
+    Map<Content, Future<Map<String, Object>>> result = (Map<Content, Future<Map<String, Object>>>) pppa.getProvidedMap(list);
+    Future<Map<String, Object>> fut = result.get(content);
     assertEquals(profileSection, fut.get());
   }
 
@@ -59,16 +57,15 @@ public class PersonProfileProviderAdapterTest {
     ArrayList<ProviderSettings> list = new ArrayList<ProviderSettings>();
     list.add(ps1);
 
-    Node node = mock(Node.class);
-    when(ps1.getNode()).thenReturn(node);
+    Content content = new Content(null, null);
+    when(ps1.getNode()).thenReturn(content);
     String errorMessage = "Mocked error is a mock";
-    when(this.personProvider.getProfileSection(org.mockito.Mockito.any(Node.class)))
-        .thenThrow(
-new PersonProviderException(errorMessage));
+    when(this.personProvider.getProfileSection(org.mockito.Mockito.any(Content.class)))
+        .thenThrow(new PersonProviderException(errorMessage));
 
     @SuppressWarnings("unchecked")
-    Map<Node, Future<Map<String,Object>>> result = (Map<Node, Future<Map<String,Object>>>) pppa.getProvidedMap(list);
-    Future<Map<String, Object>> fut = result.get(node);
+    Map<Content, Future<Map<String,Object>>> result = (Map<Content, Future<Map<String,Object>>>) pppa.getProvidedMap(list);
+    Future<Map<String, Object>> fut = result.get(content);
     assertEquals(errorMessage, fut.get().get("error"));
   }
 }

@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.framework.Constants;
-import org.sakaiproject.nakamura.api.lite.ConnectionPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 
 import java.io.IOException;
@@ -65,13 +64,14 @@ public class SparseContentSessionFilter implements Filter {
       throws IOException, ServletException {
     chain.doFilter(request, response);
 
-    try {
+    // TODO is this still used? the code doesn't compile
+//    try {
       // logout of any sessions that were opened during this request.
       // sessions are stored as ThreadLocal references in the repository class.
-      repository.logout();
-    } catch(ConnectionPoolException e) {
-      throw new ServletException(e.getMessage(), e);
-    }
+//      repository.logout();
+//    } catch(ConnectionPoolException e) {
+//      throw new ServletException(e.getMessage(), e);
+//    }
   }
 
   /**

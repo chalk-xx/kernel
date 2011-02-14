@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProvider;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProviderException;
 import org.sakaiproject.nakamura.api.profile.ProfileProvider;
@@ -32,8 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
-
-import javax.jcr.Node;
 
 /**
  *
@@ -54,20 +53,20 @@ public class PersonProfileProviderAdapter implements ProfileProvider {
    *
    * @see org.sakaiproject.nakamura.api.profile.ProfileProvider#getProvidedMap(java.util.List)
    */
-  public Map<? extends Node, ? extends Future<Map<String, Object>>> getProvidedMap(
+  public Map<Content, ? extends Future<Map<String, Object>>> getProvidedMap(
       List<ProviderSettings> list) {
 
-    Map<Node, Future<Map<String, Object>>> resultMap = new HashMap<Node, Future<Map<String, Object>>>();
+    Map<Content, Future<Map<String, Object>>> resultMap = new HashMap<Content, Future<Map<String, Object>>>();
 
     for (ProviderSettings s : list) {
-      Node n = s.getNode();
+      Content c = s.getNode();
       try {
-        Map<String, Object> profile = personProvider.getProfileSection(n);
-        resultMap.put(n, new ImmediateFuture<Map<String, Object>>(profile));
+        Map<String, Object> profile = personProvider.getProfileSection(c);
+        resultMap.put(c, new ImmediateFuture<Map<String, Object>>(profile));
       } catch (PersonProviderException e) {
         Map<String, Object> profileError = new HashMap<String, Object>();
         profileError.put("error", e.getMessage());
-        resultMap.put(n, new ImmediateFuture<Map<String, Object>>(profileError));
+        resultMap.put(c, new ImmediateFuture<Map<String, Object>>(profileError));
       }
     }
 

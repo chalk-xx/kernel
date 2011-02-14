@@ -17,16 +17,16 @@
  */
 package org.sakaiproject.nakamura.profile;
 
-import com.google.common.collect.ImmutableMap.Builder;
-import com.google.common.collect.ImmutableMap;
-
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_DESCRIPTION_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_TITLE_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_BASIC;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_EMAIL_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_FIRSTNAME_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_LASTNAME_PROPERTY;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_EMAIL_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_PICTURE;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -61,7 +61,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
@@ -121,7 +120,7 @@ public class ProfileServiceImpl implements ProfileService {
   public ValueMap getProfileMap(Content profileContent, Session jcrSession) throws RepositoryException {
     // Get the data from our external providers.
     Map<String, List<ProviderSettings>> providersMap = scanForProviders(profileContent, jcrSession);
-    Map<Node, Future<Map<String, Object>>> providedNodeData = new HashMap<Node, Future<Map<String, Object>>>();
+    Map<Content, Future<Map<String, Object>>> providedNodeData = new HashMap<Content, Future<Map<String, Object>>>();
     for (Entry<String, List<ProviderSettings>> e : providersMap.entrySet()) {
       ProfileProvider pp = providers.get(e.getKey());
       if (pp != null) {
@@ -154,7 +153,7 @@ public class ProfileServiceImpl implements ProfileService {
    * @throws InterruptedException
    * @throws ExecutionException
    */
-  protected void handleNode(Content profileContent, Map<Node, Future<Map<String, Object>>> baseMap,
+  protected void handleNode(Content profileContent, Map<Content, Future<Map<String, Object>>> baseMap,
       Map<String, Object> map) throws RepositoryException, InterruptedException,
       ExecutionException {
     // If our map contains this node, that means one of the provides had some information

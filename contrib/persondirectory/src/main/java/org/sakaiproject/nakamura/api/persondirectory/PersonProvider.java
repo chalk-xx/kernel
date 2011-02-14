@@ -16,9 +16,9 @@
  */
 package org.sakaiproject.nakamura.api.persondirectory;
 
-import java.util.Map;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 
-import javax.jcr.Node;
+import java.util.Map;
 
 /**
  * Provider interface for looking up a person and attributes associated to them.
@@ -33,5 +33,5 @@ public interface PersonProvider {
    * @return A {@link Map} with all found associated attributes. null if the UID is not
    *         found.
    */
-  Map<String, Object> getProfileSection(Node parameters) throws PersonProviderException;
+  Map<String, Object> getProfileSection(Content parameters) throws PersonProviderException;
 }

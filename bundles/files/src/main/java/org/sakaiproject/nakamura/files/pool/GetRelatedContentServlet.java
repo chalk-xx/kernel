@@ -33,6 +33,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -41,7 +42,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -98,7 +98,7 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
     // or @sakai:tag-uuid='506edc80-ad50-4bb3-abe8-aa5c72e65888') and
     // (@sakai:permissions='public'
     // or @sakai:permissions='everyone')] order by @jcr:score descending
-    StringBuilder sb = new StringBuilder("+resourceType:sakai/pooled-content ");
+    StringBuilder sb = new StringBuilder("resourceType:sakai/pooled-content ");
     Set<String> selectors = ImmutableSet.of(request.getRequestPathInfo().getSelectors());
 
     boolean publicSearch = selectors.contains(POOLED_CONTENT_PUBLIC_RELATED_SELECTOR);
@@ -115,9 +115,13 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
       if (content.hasProperty(SAKAI_TAG_UUIDS)) {
         String nodePath = content.getPath();
         Map<String, Object> properties = content.getProperties();
-        Set<String> tagUuids = Sets.newHashSet(StorageClientUtils
-            .nonNullStringArray((String[]) properties
-                .get(SAKAI_TAG_UUIDS)));
+        Set<String> tagUuids = Sets.newHashSet();
+        if (properties.containsKey(SAKAI_TAG_UUIDS)) {
+          String[] uuids = (String[]) properties.get(SAKAI_TAG_UUIDS);
+          for (String uuid : uuids) {
+            tagUuids.add(ClientUtils.escapeQueryChars(uuid));
+          }
+        }
 
         if (tagUuids.size() > 0) {
           sb.append("(taguuid:").append(StringUtils.join(tagUuids, " OR "))
