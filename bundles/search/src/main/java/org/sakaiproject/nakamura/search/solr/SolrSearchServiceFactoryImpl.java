@@ -69,7 +69,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
         }
       }
 
-      SolrQuery solrQuery = buildQuery(request, query, queryString);
+      SolrQuery solrQuery = buildQuery(request, queryString, query.getOptions());
 
       SolrServer solrServer = solrSearchService.getServer();
       try {
@@ -100,15 +100,14 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
    * @param queryString
    * @return
    */
-  private SolrQuery buildQuery(SlingHttpServletRequest request, Query query,
-      String queryString) {
+  private SolrQuery buildQuery(SlingHttpServletRequest request, String queryString,
+      Map<String, String> options) {
     // build the query
     SolrQuery solrQuery = new SolrQuery(queryString);
     long[] ranges = SolrSearchUtil.getOffsetAndSize(request);
     solrQuery.setStart((int) ranges[0]);
     solrQuery.setRows((int) ranges[1]);
 
-    Map<String, String> options = query.getOptions();
     // add in some options
     if (options != null) {
       for (Entry<String, String> option : options.entrySet()) {
