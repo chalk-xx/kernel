@@ -17,11 +17,11 @@
  */
 package org.sakaiproject.nakamura.api.profile;
 
+import org.sakaiproject.nakamura.api.lite.content.Content;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
-
-import javax.jcr.Node;
 
 /**
  * Provide external Maps of profile.
@@ -43,7 +43,7 @@ public interface ProfileProvider {
    *          operation.
    * @return
    */
-  Map<? extends Node, ? extends Future<Map<String, Object>>> getProvidedMap(
+  Map<Content, ? extends Future<Map<String, Object>>> getProvidedMap(
       List<ProviderSettings> list);
 
 }

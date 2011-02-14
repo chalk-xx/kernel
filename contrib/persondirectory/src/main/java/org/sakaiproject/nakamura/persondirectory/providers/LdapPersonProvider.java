@@ -16,6 +16,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProvider;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProviderException;
 import org.slf4j.Logger;
@@ -26,7 +27,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 /**
@@ -115,7 +115,7 @@ public class LdapPersonProvider implements PersonProvider {
     return attrsMap;
   }
 
-  public Map<String, Object> getProfileSection(Node parameters)
+  public Map<String, Object> getProfileSection(Content parameters)
       throws PersonProviderException {
     try {
       HashMap<String, Object> person = new HashMap<String, Object>();
@@ -167,15 +167,17 @@ public class LdapPersonProvider implements PersonProvider {
     }
   }
 
-  private String findUserId(Node node) throws RepositoryException, PersonProviderException {
-    if (node.hasProperty(SLING_RESOURCE_TYPE)
-        && SAKAI_USER_PROFILE.equals(node.getProperty(SLING_RESOURCE_TYPE).getString())
-        && node.hasProperty(REP_USER_ID)) {
-      return node.getProperty(REP_USER_ID).getString();
+  private String findUserId(Content content) throws RepositoryException, PersonProviderException {
+    if (content.hasProperty(SLING_RESOURCE_TYPE)
+        && SAKAI_USER_PROFILE.equals((String) content.getProperty(SLING_RESOURCE_TYPE))
+        && content.hasProperty(REP_USER_ID)) {
+      return (String) content.getProperty(REP_USER_ID);
     } else {
-      if (!"/".equals(node.getPath())) {
-        return findUserId(node.getParent());
-      }
+      // TODO commented out since getParent is not possible in sparse
+      // this should probably be removed
+//      if (!"/".equals(content.getPath())) {
+//        return findUserId(content.getParent());
+//      }
       throw new PersonProviderException("Could not retrieve userid.");
     }
   }
