@@ -1,5 +1,8 @@
 {
-  "sakai:query-template": "path:${_userMessagePath} AND resourceType:sakai/message AND type:chat ${_from};{sortOn} ${sortOrder}",
+  "sakai:query-template": "path:${_userMessagePath} AND resourceType:sakai/message AND type:chat ${_from}",
+  "sakai:query-template-options": {
+      "sort": "${sortOn} ${sortOrder}"
+  },
   "_from": "",
   "sortOn": "created",
   "sortOrder": "desc",

@@ -36,6 +36,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
@@ -71,9 +72,9 @@ public class UserSearchResultProcessor implements SolrSearchResultProcessor {
    *      javax.jcr.query.Query)
    */
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      String queryString) throws SolrSearchException {
+      Query query) throws SolrSearchException {
     // return the result set
-    return searchServiceFactory.getSearchResultSet(request, queryString);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
   /**

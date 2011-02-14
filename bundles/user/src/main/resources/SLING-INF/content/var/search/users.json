@@ -1,6 +1,9 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": 'type:u AND (name:"${q}" firstName:"${q}" lastName:"${q}" email:"${q}");${sortOn} ${sortOrder}',
+  "sakai:query-template": 'type:u AND (name:"${q}" firstName:"${q}" lastName:"${q}" email:"${q}")',
+  "sakai:query-template-options": {
+      "sort": "${sortOn} ${sortOrder}"
+  },
   "sortOn": "score",
   "sortOrder": "desc",
   "sakai:resultprocessor": "Profile",

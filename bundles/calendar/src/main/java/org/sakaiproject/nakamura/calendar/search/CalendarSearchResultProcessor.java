@@ -31,6 +31,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -62,8 +63,8 @@ public class CalendarSearchResultProcessor implements SolrSearchResultProcessor 
    *      java.lang.String)
    */
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      String queryString) throws SolrSearchException {
-    return searchServiceFactory.getSearchResultSet(request, queryString);
+      Query query) throws SolrSearchException {
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
   /**

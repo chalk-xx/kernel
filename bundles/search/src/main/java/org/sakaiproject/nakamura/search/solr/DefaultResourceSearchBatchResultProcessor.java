@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
@@ -87,12 +88,12 @@ public class DefaultResourceSearchBatchResultProcessor implements
       Iterator<Result> iterator) throws JSONException {
     ResourceResolver resolver = request.getResourceResolver();
     int maxTraversalDepth = SolrSearchUtil.getTraversalDepth(request);
-    
-    
+
+
     long nitems = SolrSearchUtil.longRequestParameter(request,
         PARAMS_ITEMS_PER_PAGE, DEFAULT_PAGED_ITEMS);
-    
-    
+
+
 
     int maxDepth = SolrSearchUtil.getTraversalDepth(request);
     for (long i = 0; i < nitems && iterator.hasNext(); i++) {
@@ -132,7 +133,7 @@ public class DefaultResourceSearchBatchResultProcessor implements
             write.endObject();
           }
         } catch ( Exception e ) {
-          LOGGER.warn(e.getMessage(), e);        
+          LOGGER.warn(e.getMessage(), e);
         }
       }
       write.endObject();
@@ -140,7 +141,7 @@ public class DefaultResourceSearchBatchResultProcessor implements
   }
 
 
-  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, String query) throws SolrSearchException {
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query) throws SolrSearchException {
     return searchServiceFactory.getSearchResultSet(request, query);  }
 
 }

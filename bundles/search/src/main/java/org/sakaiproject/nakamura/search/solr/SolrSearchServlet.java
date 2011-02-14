@@ -27,6 +27,7 @@ import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKA
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_LIMIT_RESULTS;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_PROPERTY_PROVIDER;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_QUERY_TEMPLATE;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_QUERY_TEMPLATE_OPTIONS;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SAKAI_RESULTPROCESSOR;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SEARCH_BATCH_RESULT_PROCESSOR;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SEARCH_PATH_PREFIX;
@@ -34,6 +35,8 @@ import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SEAR
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.SEARCH_RESULT_PROCESSOR;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.TIDY;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.TOTAL;
+
+import com.google.common.collect.Maps;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Properties;
@@ -50,6 +53,7 @@ import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.framework.Constants;
@@ -57,6 +61,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.MissingParameterException;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -148,11 +153,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
   private Pattern homePathPattern = Pattern.compile("^(.*)(~([\\w-]*?))/");
 
   @Override
-  public void init() throws ServletException {
-    super.init();
-  }
-
-  @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     try {
@@ -172,6 +172,27 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           propertyProviderName = node.getProperty(SAKAI_PROPERTY_PROVIDER).getString();
         }
 
+        // collect query options
+        JSONObject options = null;
+        if (node.hasProperty(SAKAI_QUERY_TEMPLATE_OPTIONS)) {
+          // process the options as JSON string
+          String optionsProp = node.getProperty(SAKAI_QUERY_TEMPLATE_OPTIONS).getString();
+          options = new JSONObject(optionsProp);
+        } else if (node.hasNode(SAKAI_QUERY_TEMPLATE_OPTIONS)) {
+          // process the options as a sub-node
+          Node optionsNode = node.getNode(SAKAI_QUERY_TEMPLATE_OPTIONS);
+          if (optionsNode.hasProperties()) {
+            options = new JSONObject();
+            PropertyIterator props = optionsNode.getProperties();
+            while (props.hasNext()) {
+              javax.jcr.Property prop = props.nextProperty();
+              if (!prop.getName().startsWith("jcr:")) {
+                options.put(prop.getName(), prop.getString());
+              }
+            }
+          }
+        }
+
         // TODO: we might want to use this ?
         @SuppressWarnings("unused")
         boolean limitResults = true;
@@ -183,20 +204,15 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
             DEFAULT_PAGED_ITEMS);
 
 
-        // KERN-1147 Response better when all parameters haven't been provided for a query
-        String queryString = null;
+        // KERN-1147 Respond better when all parameters haven't been provided for a query
+        Query query = null;
         try {
-          queryString = processQueryTemplate(request, node, queryTemplate,
-              propertyProviderName);
+          query = processQuery(request, node, queryTemplate,
+              options, propertyProviderName);
         } catch (MissingParameterException e) {
           response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
           return;
         }
-
-        queryString = expandHomeDirectoryInQuery(node, queryString);
-
-        // append the user principals to the query string
-        queryString = addUserPrincipals(request, queryString);
 
         boolean useBatch = false;
         // Get the
@@ -224,7 +240,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           // Prepare the result set.
           // This allows a processor to do other queries and manipulate the results.
           if (useBatch) {
-            rs = searchBatchProcessor.getSearchResultSet(request, queryString);
+            rs = searchBatchProcessor.getSearchResultSet(request, query);
             if (!(rs instanceof SolrSearchResultSetImpl)) {
               SolrSearchException ex = new SolrSearchException(
                   500,
@@ -235,7 +251,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
               throw ex;
             }
           } else {
-            rs = searchProcessor.getSearchResultSet(request, queryString);
+            rs = searchProcessor.getSearchResultSet(request, query);
             if (!(rs instanceof SolrSearchResultSetImpl)) {
               SolrSearchException ex = new SolrSearchException(
                   500,
@@ -304,13 +320,14 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     return queryString;
   }
 
-  private String expandHomeDirectoryInQuery(Node node, String queryString)
+  private String expandHomeDirectoryInQuery(String queryString)
       throws RepositoryException {
     Matcher homePathMatcher = homePathPattern.matcher(queryString);
     if (homePathMatcher.find()) {
       String username = homePathMatcher.group(3);
       String homePrefix = homePathMatcher.group(1);
-      String homePath = homePrefix + LitePersonalUtils.getHomePath(username).substring(1) + "/";
+      String homePath = homePrefix + LitePersonalUtils.getHomePath(username).substring(1)
+          + "/";
       queryString = homePathMatcher.replaceAll(homePath);
     }
     return queryString;
@@ -328,18 +345,39 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    * @return A processed query template
    * @throws MissingParameterException
    */
-  protected String processQueryTemplate(SlingHttpServletRequest request,
-      Node queryTemplateNode, String queryTemplate, String propertyProviderName)
-      throws RepositoryException, MissingParameterException {
+  protected Query processQuery(SlingHttpServletRequest request,
+      Node queryTemplateNode, String queryTemplate, JSONObject queryOptions,
+      String propertyProviderName) throws RepositoryException, MissingParameterException,
+      JSONException {
     Map<String, String> propertiesMap = loadProperties(request, propertyProviderName,
         queryTemplateNode);
 
-    // check for any missing terms
+    // check for any missing terms & process the query template
     templateService.missingTerms(propertiesMap, queryTemplate);
+    String queryString = templateService.evaluateTemplate(propertiesMap, queryTemplate);
 
-    // process the template
-    String retval = templateService.evaluateTemplate(propertiesMap, queryTemplate);
-    return retval;
+    // expand home directory references to full path; eg. ~user => a:user
+    queryString = expandHomeDirectoryInQuery(queryString);
+
+    // append the user principals to the query string
+    queryString = addUserPrincipals(request, queryString);
+
+    // process the options as templates and check for missing params
+    Map<String, String> options = Maps.newHashMap();
+    if (queryOptions != null) {
+      Iterator<String> keys = queryOptions.keys();
+      while(keys.hasNext()) {
+        String key = keys.next();
+        String val = queryOptions.getString(key);
+        templateService.missingTerms(propertiesMap, val);
+
+        String processedVal = templateService.evaluateTemplate(propertiesMap, val);
+        options.put(key, processedVal);
+      }
+    }
+
+    Query query = new Query(queryString, options);
+    return query;
   }
 
   /**

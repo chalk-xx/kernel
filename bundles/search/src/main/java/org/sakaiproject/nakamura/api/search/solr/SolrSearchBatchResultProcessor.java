@@ -14,7 +14,7 @@ public interface SolrSearchBatchResultProcessor {
   void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> iterator) throws JSONException;
 
-  SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      String queryString) throws SolrSearchException;
+  SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
+      throws SolrSearchException;
 
 }

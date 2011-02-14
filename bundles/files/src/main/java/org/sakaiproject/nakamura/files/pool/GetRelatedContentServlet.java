@@ -45,6 +45,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
@@ -99,7 +100,7 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
     // or @sakai:permissions='everyone')] order by @jcr:score descending
     StringBuilder sb = new StringBuilder("+resourceType:sakai/pooled-content ");
     Set<String> selectors = ImmutableSet.of(request.getRequestPathInfo().getSelectors());
-    
+
     boolean publicSearch = selectors.contains(POOLED_CONTENT_PUBLIC_RELATED_SELECTOR);
 
     // Collect tags to search against.
@@ -119,13 +120,13 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
                 .get(SAKAI_TAG_UUIDS)));
 
         if (tagUuids.size() > 0) {
-          sb.append("+(taguuid:").append(StringUtils.join(tagUuids, " taguuid:"))
+          sb.append("(taguuid:").append(StringUtils.join(tagUuids, " OR "))
               .append(")");
         }
-        String queryString = sb.toString();
-        LOGGER.info("Submitting Query {} ",queryString);
+        Query query = new Query(sb.toString(), null);
+        LOGGER.info("Submitting Query {} ", query);
         SolrSearchResultSet resultSet = solrSearchServiceFactory.getSearchResultSet(
-            request, queryString, publicSearch);
+            request, query, publicSearch);
         Iterator<Result> iterator = resultSet.getResultSetIterator();
         int count = 0;
         while ((count < MAX_RESULTS) && iterator.hasNext()) {

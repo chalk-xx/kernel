@@ -1,5 +1,8 @@
 {
-  "sakai:query-template": "path:${path} ${_resourceTypes};${sortOn} ${sortOrder}",
+  "sakai:query-template": "path:${path} ${_resourceTypes}",
+  "sakai:query-template-options": {
+      "sort": "${sortOn} ${sortOrder}"
+  },
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",

@@ -35,6 +35,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
@@ -185,7 +186,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
    *      java.lang.String)
    */
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      String query) throws SolrSearchException {
+      Query query) throws SolrSearchException {
     return searchServiceFactory.getSearchResultSet(request, query);
   }
 

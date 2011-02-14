@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
@@ -65,9 +66,9 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
    *      javax.jcr.query.Query)
    */
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      String queryString) throws SolrSearchException {
+      Query query) throws SolrSearchException {
     // return the result set
-    return searchServiceFactory.getSearchResultSet(request, queryString);
+    return searchServiceFactory.getSearchResultSet(request, query);
   }
 
   /**

@@ -28,6 +28,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
@@ -74,12 +75,12 @@ public class DefaultSearchBatchResultProcessor implements
 
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> iterator) throws JSONException {
-    
-    
+
+
     long nitems = SolrSearchUtil.longRequestParameter(request,
         PARAMS_ITEMS_PER_PAGE, DEFAULT_PAGED_ITEMS);
-    
-    
+
+
 
     for (long i = 0; i < nitems && iterator.hasNext(); i++) {
       Result result = iterator.next();
@@ -88,7 +89,7 @@ public class DefaultSearchBatchResultProcessor implements
   }
 
 
-  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, String query) throws SolrSearchException {
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query) throws SolrSearchException {
     return searchServiceFactory.getSearchResultSet(request, query);  }
 
 }

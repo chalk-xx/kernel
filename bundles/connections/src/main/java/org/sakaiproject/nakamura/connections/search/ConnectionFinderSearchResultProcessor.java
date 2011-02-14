@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.connections.search;
 
-import static org.sakaiproject.nakamura.api.connections.ConnectionState.NONE;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -27,8 +25,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
-import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -39,6 +35,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
@@ -115,7 +112,7 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
    *      javax.jcr.query.Query)
    */
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      String query) throws SolrSearchException {
+      Query query) throws SolrSearchException {
     return searchServiceFactory.getSearchResultSet(request, query);
   }
 }
