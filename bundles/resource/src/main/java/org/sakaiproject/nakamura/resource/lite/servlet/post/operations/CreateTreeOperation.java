@@ -21,7 +21,6 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.servlets.post.Modification;
@@ -30,14 +29,11 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparsePostOperation;
+import org.sakaiproject.nakamura.api.resource.lite.SparseNonExistingResource;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.SparseCreateServlet;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 public class CreateTreeOperation extends AbstractSparsePostOperation {
 
@@ -69,16 +65,20 @@ public class CreateTreeOperation extends AbstractSparsePostOperation {
     Resource resource = request.getResource();
     String path = null;
     {
-      Content content = resource.adaptTo(Content.class);
-      if (content != null) {
-        path = content.getPath();
+      if ( resource instanceof SparseNonExistingResource ) {
+        path = ((SparseNonExistingResource) resource).getTargetContentPath();
       } else {
-        // for some reason, if the operation posts to a path that does not exist and the
-        // operation is create tree the SparseCreateServlet.doPost() operation is
-        // bypassed. This is an ugly fix that works wound that problem. I suspect
-        // somethings up in Sling.
-        path = (String) request
-            .getAttribute(SparseCreateServlet.CONTENT_TARGET_PATH_ATTRIBUTE);
+        Content content = resource.adaptTo(Content.class);
+        if (content != null) {
+          path = content.getPath();
+        } else {
+          // for some reason, if the operation posts to a path that does not exist and the
+          // operation is create tree the SparseCreateServlet.doPost() operation is
+          // bypassed. This is an ugly fix that works wound that problem. I suspect
+          // somethings up in Sling.
+          path = (String) request
+              .getAttribute(SparseCreateServlet.CONTENT_TARGET_PATH_ATTRIBUTE);
+        }
       }
     }
     if (path == null) {
@@ -92,48 +92,13 @@ public class CreateTreeOperation extends AbstractSparsePostOperation {
 
     // Start creating the tree.
     try {
-      createTree(contentManager, json, path);
+      SimpleJsonImporter simpleJSONImporter = new SimpleJsonImporter();
+      simpleJSONImporter.importContent(contentManager, json, path, null, null);
     } catch (JSONException e) {
       throw new StorageClientException(e.getMessage(), e);
     }
 
   }
 
-  private void createTree(ContentManager contentManager, JSONObject json, String path)
-      throws StorageClientException, AccessDeniedException, JSONException {
-    Iterator<String> keys = json.keys();
-    Map<String, Object> properties = new HashMap<String, Object>();
-    while (keys.hasNext()) {
-
-      String key = keys.next();
-      if (!key.startsWith("jcr:")) {
-        Object obj = json.get(key);
-
-        if (obj instanceof JSONObject) {
-          createTree(contentManager, (JSONObject) obj, path + "/" + key);
-        } else if (obj instanceof JSONArray) {
-          // This represents a multivalued property
-
-          JSONArray arr = (JSONArray) obj;
-          String[] values = new String[arr.length()];
-          for (int i = 0; i < arr.length(); i++) {
-            values[i] = arr.getString(i);
-          }
-          properties.put(key, values);
-        } else {
-          properties.put(key, obj);
-        }
-      }
-    }
-    Content content = contentManager.get(path);
-    if (content == null) {
-      contentManager.update(new Content(path, properties));
-    } else {
-      for (Entry<String, Object> e : properties.entrySet()) {
-        content.setProperty(e.getKey(), e.getValue());
-      }
-      contentManager.update(content);
-    }
-  }
 
 }

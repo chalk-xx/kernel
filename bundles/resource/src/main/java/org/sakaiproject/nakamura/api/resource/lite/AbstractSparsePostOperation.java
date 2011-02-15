@@ -180,11 +180,15 @@ public abstract class AbstractSparsePostOperation implements SparsePostOperation
      */
     protected String getItemPath(SlingHttpServletRequest request) {
         Resource resource = request.getResource();
-        Content content = resource.adaptTo(Content.class);
-        if (content != null) {
-            return content.getPath();
+        if ( resource instanceof SparseNonExistingResource ) {
+          return ((SparseNonExistingResource) resource).getTargetContentPath();
         } else {
-            return resource.getPath();
+          Content content = resource.adaptTo(Content.class);
+          if (content != null) {
+              return content.getPath();
+          } else {
+              return resource.getPath();
+          }
         }
     }
 
