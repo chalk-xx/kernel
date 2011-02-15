@@ -21,7 +21,6 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.REQUIRED_MIXIN;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_LINK;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_LINK;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
 import com.google.common.collect.ImmutableMap;
@@ -476,8 +475,8 @@ public class FileUtils {
   private static String[] getTags(Node tagNode) throws RepositoryException {
     String tagUuid = tagNode.getIdentifier();
     String tagName = tagNode.getName();
-    if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
-      tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
+    if (tagNode.hasProperty(SAKAI_TAGS)) {
+      tagName = tagNode.getProperty(SAKAI_TAGS).getString();
     }
     return new String[] { tagUuid, tagName };
   }
@@ -485,8 +484,8 @@ public class FileUtils {
   private static String[] getTags(Content tagNode) {
     String tagUuid = (String) tagNode.getProperty(Content.UUID_FIELD);
     String tagName = "";
-    if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
-      tagName = (String) tagNode.getProperty(SAKAI_TAG_NAME);
+    if (tagNode.hasProperty(SAKAI_TAGS)) {
+      tagName = (String) tagNode.getProperty(SAKAI_TAGS);
     }
     return new String[] { tagUuid, tagName };
   }
@@ -506,10 +505,10 @@ public class FileUtils {
       sendEvent = true;
     }
     Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[]) properties
-        .get(SAKAI_TAG_NAME)));
+        .get(SAKAI_TAGS)));
     if (!nameSet.contains(tags[1])) {
       nameSet.add(tags[1]);
-      content.setProperty(SAKAI_TAG_NAME,
+      content.setProperty(SAKAI_TAGS,
           nameSet.toArray(new String[nameSet.size()]));
       sendEvent = true;
     }
@@ -586,10 +585,10 @@ public class FileUtils {
       updated = true;
     }
     Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[]) properties
-        .get(SAKAI_TAG_NAME)));
+        .get(SAKAI_TAGS)));
     if (nameSet.contains(tags[1])) {
       nameSet.remove(tags[1]);
-      content.setProperty(SAKAI_TAG_NAME,
+      content.setProperty(SAKAI_TAGS,
           nameSet.toArray(new String[nameSet.size()]));
       updated = true;
     }
