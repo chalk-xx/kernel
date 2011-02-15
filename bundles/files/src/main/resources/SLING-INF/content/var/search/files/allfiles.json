@@ -1,5 +1,6 @@
 {
   "sakai:query-template": 'content:(${q}) ${_tags}${_usedin}',
+  "sakai:query-template-q=%2A": '${_tags}${_usedin}',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },

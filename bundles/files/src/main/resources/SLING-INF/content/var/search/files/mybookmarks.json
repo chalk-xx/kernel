@@ -1,5 +1,6 @@
 {
   "sakai:query-template": 'resourceType:sakai/file AND (${q})${_mybookmarks}${_tags}${_usedin}',
+  "sakai:query-template-q=%2A": 'resourceType:sakai/file ${_mybookmarks}${_tags}${_usedin}',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },

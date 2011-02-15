@@ -1,5 +1,6 @@
 {
   "sakai:query-template": 'path:${_userMessagePath} AND resourceType:sakai/message AND from:(${from}*)',
+  "sakai:query-template-from=%2A": 'path:${_userMessagePath} AND resourceType:sakai/message"',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },

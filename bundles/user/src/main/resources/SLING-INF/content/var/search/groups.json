@@ -1,6 +1,7 @@
 {
   "sling:resourceType": "sakai/solr-search",
   "sakai:query-template": 'type:g AND (name:(${q}) title:(${q}) description:(${q}))',
+  "sakai:query-template-q=%2A": 'type:g',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
