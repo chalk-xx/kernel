@@ -17,6 +17,8 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparseCreateOperation;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.SparseCreateServlet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +27,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
 public class ImportOperation extends AbstractSparseCreateOperation {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ImportOperation.class);
 
   public ImportOperation(NodeNameGenerator defaultNodeNameGenerator) {
     super(defaultNodeNameGenerator);
@@ -93,7 +97,9 @@ public class ImportOperation extends AbstractSparseCreateOperation {
             "Missing content for import");
         return;
       } else {
+        
         JSONObject json = new JSONObject(content);
+        LOGGER.info("to {} importing {} ",basePath,json.toString(3));
         SimpleJsonImporter simpleJsonImporter = new SimpleJsonImporter();
         simpleJsonImporter.importContent(contentManager, json, basePath,
             new SimpleImportOptions() {
