@@ -162,7 +162,7 @@ public class SparsePostServlet extends SlingAllMethodsServlet {
     postOperations.put(SlingPostConstants.OPERATION_CHECKIN, new CheckinOperation());
     postOperations.put(SlingPostConstants.OPERATION_CHECKOUT, new CheckoutOperation());
 
-    importOperation = new ImportOperation(defaultNodeNameGenerator, null);
+    importOperation = new ImportOperation(defaultNodeNameGenerator);
     importOperation.setExtraNodeNameGenerators(cachedNodeNameGenerators);
     postOperations.put(SlingPostConstants.OPERATION_IMPORT, importOperation);
     postOperations.put("createTree", new CreateTreeOperation());
