@@ -111,7 +111,7 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
       SlingHttpServletResponse response) throws ServletException, IOException {
     LOGGER.info("In count servlet" );
 
-    Session session = StorageClientUtils.adaptToSession(request.getResource().getResourceResolver().adaptTo(javax.jcr.Session.class));
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
 
     try {
       // Do the query

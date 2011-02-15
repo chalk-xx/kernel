@@ -29,9 +29,12 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
-import org.sakaiproject.nakamura.api.message.MessagingService;
-import org.sakaiproject.nakamura.message.MessagingServiceImpl;
+import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
+import org.sakaiproject.nakamura.message.LiteMessagingServiceImpl;
 import org.sakaiproject.nakamura.message.search.MessageSearchPropertyProvider;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
@@ -39,27 +42,26 @@ import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-
 /**
  *
  */
 public class MessageSearchPropertyProviderTest extends AbstractEasyMockTest {
 
   @Test
-  public void testProperties() throws RepositoryException {
+  public void testProperties() throws Exception {
+    BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
+    Repository repository = baseMemoryRepository.getRepository();
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
 
     ResourceResolver resolver = mock(ResourceResolver.class);
-    JackrabbitSession session = mock(JackrabbitSession.class);
-    when(resolver.adaptTo(Session.class)).thenReturn(session);
+    JackrabbitSession jackrabbitSession = mock(JackrabbitSession.class);
+    when(resolver.adaptTo(javax.jcr.Session.class)).thenReturn(jackrabbitSession);
     when(request.getResourceResolver()).thenReturn(resolver);
     when(request.getRemoteUser()).thenReturn("admin");
 
     Authorizable au = createAuthorizable("admin", false, true);
     UserManager um = createUserManager(null, true, au);
-    when(session.getUserManager()).thenReturn(um);
+    when(jackrabbitSession.getUserManager()).thenReturn(um);
 
     // Special requests
     RequestParameter fromParam = mock(RequestParameter.class);
@@ -69,14 +71,14 @@ public class MessageSearchPropertyProviderTest extends AbstractEasyMockTest {
     Map<String, String> pMap = new HashMap<String, String>();
 
     MessageSearchPropertyProvider provider = new MessageSearchPropertyProvider();
-    MessagingService messagingService = new MessagingServiceImpl();
+    LiteMessagingService messagingService = new LiteMessagingServiceImpl();
     provider.messagingService = messagingService;
     provider.loadUserProperties(request, pMap);
     provider.messagingService = null;
 
     assertEquals(
         ClientUtils.escapeQueryChars(LitePersonalUtils.PATH_AUTHORIZABLE
-            + "admin/message"), pMap.get(MessageConstants.SEARCH_PROP_MESSAGESTORE));
+            + "admin/message/"), pMap.get(MessageConstants.SEARCH_PROP_MESSAGESTORE));
 
     assertEquals("from:(\"usera\" OR \"userb\")", pMap.get("_from"));
   }
