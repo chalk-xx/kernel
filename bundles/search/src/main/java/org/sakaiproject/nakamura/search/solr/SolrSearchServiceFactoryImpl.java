@@ -135,7 +135,18 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
       solrQuery.setSortField(sort[0], ORDER.asc);
       break;
     case 2:
-      solrQuery.setSortField(sort[0], ORDER.valueOf(sort[1]));
+      String sortOrder = sort[1].toLowerCase();
+      ORDER o = ORDER.asc;
+      try {
+        o = ORDER.valueOf(sortOrder);
+      } catch ( IllegalArgumentException a) {
+        if ( sortOrder.startsWith("d") ) {
+          o = ORDER.desc;
+        } else {
+          o = ORDER.asc;
+        }
+      }
+      solrQuery.setSortField(sort[0], o);
       break;
     default:
       LOGGER.warn("Expected the sort option to be 1 or 2 terms. Found: {}", val);
