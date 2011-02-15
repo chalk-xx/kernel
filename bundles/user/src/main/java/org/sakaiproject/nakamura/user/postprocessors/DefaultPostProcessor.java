@@ -582,6 +582,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           break;
         }
       }
+    }
       Content content = contentManager.get(thisPath);
       if (content == null) {
         contentManager.update(new Content(thisPath, builder.build()));
@@ -619,7 +620,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         }
       }
     }
-  }
 
   @Deprecated
   private void deleteManagersGroup(Authorizable authorizable,
