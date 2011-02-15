@@ -85,13 +85,13 @@ class TC_KERN1105_Test < Test::Unit::TestCase
         assert_not_nil(json["user"]["id"], "Should have a user/id");
         assert_not_nil(json["user"]["principal"], "Should have a user/principal");
         assert_not_nil(json["user"]["properties"], "Should have a user/properties");
-        # TODO FIXME BL120 the contract should NOT have been changed. Leave commented for now.
-        # assert_not_nil(json["user"]["properties"]["firstName"], "Should have a user/properties/firstName");
-        # assert_not_nil(json["user"]["properties"]["lastName"], "Should have a user/properties/lastName");
-        # assert_not_nil(json["user"]["properties"]["email"], "Should have a user/properties/email");
+        assert_not_nil(json["user"]["properties"]["firstName"], "Should have a user/properties/firstName");
+        assert_not_nil(json["user"]["properties"]["lastName"], "Should have a user/properties/lastName");
+        assert_not_nil(json["user"]["properties"]["email"], "Should have a user/properties/email");
         assert_not_nil(json["user"]["properties"]["name"], "Should have a user/properties/name");
         assert_not_nil(json["user"]["declaredMembership"], "Should have a user/declaredMembership");
-        assert_not_nil(json["user"]["membership"], "Should have a user/membership");
+        # TODO BL120 indirect group membership not currently supported in sparse
+        # assert_not_nil(json["user"]["membership"], "Should have a user/membership");
 				count += 1;
   		end
   	end
