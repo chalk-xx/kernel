@@ -18,20 +18,19 @@
 
 package org.sakaiproject.nakamura.image;
 
+import com.google.common.collect.ImmutableMap;
+
 import org.apache.sanselan.ImageFormat;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.ImageWriteException;
 import org.apache.sanselan.Sanselan;
 import org.apache.sanselan.util.IOUtils;
-import org.sakaiproject.nakamura.api.jcr.JCRConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.util.JcrUtils;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,15 +42,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Calendar;
 import java.util.List;
 
 import javax.imageio.ImageIO;
-import javax.jcr.Binary;
-import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.RepositoryException;
-import javax.jcr.ValueFactory;
 
 public class CropItProcessor {
 
@@ -108,16 +101,10 @@ public class CropItProcessor {
         if (!imgNode.hasProperty("bodyLocation")) {
           throw new ImageException(500, "Invalid image");
         }
-
-
-
-        // Read the image
-//        Binary content = (Binary) imgNode.getProperty(JCRConstants.JCR_DATA);
-//        if ( content.getSize() > 100L*1024L*1024L ) {
-//          throw new ImageException(406, "Image "+imgPath+" too large to crop > 100MB Si "+content.getSize());
-//
-//        }
         in = contentManager.getInputStream(imgPath);
+        if ( in.available() > 100L*1024L*1024L ) {
+          throw new ImageException(406, "Image "+imgPath+" too large to crop > 100MB Si "+in.available());
+        }
         try {
 
           // NOTE: I'd prefer to use the InputStream, but I don't see a way to get the
@@ -162,7 +149,7 @@ public class CropItProcessor {
 
               String sPath = save + "/" + iWidth + "x" + iHeight + "_" + imgName;
               // Save new image to JCR.
-              saveImageToJCR(sPath, info.getMimeType(), image, imgNode, session);
+              saveImageToContentStore(sPath, info.getMimeType(), image, imgNode, session);
 
               arrFiles[i] = sPath;
             } else {
@@ -243,32 +230,22 @@ public class CropItProcessor {
    * @throws ImageException
    * @throws StorageClientException
    */
-  protected static void saveImageToJCR(String path, String mimetype,
+  protected static void saveImageToContentStore(String path, String mimetype,
       byte[] image, Content baseNode, Session session) throws ImageException, StorageClientException {
     ContentManager contentManager = session.getContentManager();
 
-    // Save image into the jcr
     ByteArrayInputStream bais = null;
     try {
-//      path = PathUtils.normalizePath(path);
-      contentManager.update(new Content(path, null));
-      Content node = contentManager.get(path);
-      node.setProperty("mimeType", mimetype);
-      contentManager.update(node);
+      if (contentManager.exists(path)) {
+        Content node = contentManager.get(path);
+        node.setProperty("mimeType", mimetype);
+        contentManager.update(node);
+      } else {
+        contentManager.update(new Content(path, ImmutableMap.of("mimeType", (Object)mimetype)));
+      }
       // convert stream to inputstream
       bais = new ByteArrayInputStream(image);
       contentManager.writeBody(path, bais);
-      Node contentNode = null;
-//      if (node.hasNode(JCRConstants.JCR_CONTENT)) {
-//        contentNode = node.getNode(JCRConstants.JCR_CONTENT);
-//      } else {
-//        contentNode = node.addNode(JCRConstants.JCR_CONTENT, JCRConstants.NT_RESOURCE);
-//      }
-//      ValueFactory vf = session.getValueFactory();
-//      contentNode.setProperty(JCRConstants.JCR_DATA, vf.createBinary(bais));
-//      contentNode.setProperty(JCRConstants.JCR_MIMETYPE, mimetype);
-//      contentNode.setProperty(JCRConstants.JCR_LASTMODIFIED, Calendar.getInstance());
-//      contentManager.update(contentNode);
 
     } catch (Exception e) {
       LOGGER.warn("Repository exception: " + e.getMessage());
