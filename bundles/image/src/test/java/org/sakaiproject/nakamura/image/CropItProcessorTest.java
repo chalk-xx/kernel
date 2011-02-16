@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.image;
 
-import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -28,8 +27,12 @@ import org.apache.sanselan.ImageWriteException;
 import org.apache.sanselan.Sanselan;
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.jcr.JCRConstants;
-import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
@@ -40,17 +43,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
-import javax.jcr.Binary;
-import javax.jcr.Node;
-import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.ValueFormatException;
 
 /**
  *
  */
-public class CropItProcessorTest extends AbstractEasyMockTest {
+public class CropItProcessorTest {
 
   private Session session;
   private String img = "/foo/people.png";
@@ -60,32 +58,19 @@ public class CropItProcessorTest extends AbstractEasyMockTest {
   private int height = 100;
   private List<Dimension> dimensions;
   private String save = "/save/in/here/";
-  private Node node;
+  private Content node;
 
   @Before
   public void setUp() throws Exception {
-    super.setUp();
-    session = createMock(Session.class);
-    node = createMock(Node.class);
+    BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
+    Repository repository = baseMemoryRepository.getRepository();
+    session = repository.loginAdministrative();
+    session.getContentManager().update(new Content(img, null));
+    node = session.getContentManager().get(img);
     dimensions = new ArrayList<Dimension>();
     Dimension d = new Dimension();
     d.setSize(50, 50);
     dimensions.add(d);
-    expect(session.getItem(img)).andReturn(node);
-  }
-
-  /**
-   * @param node
-   * @param string
-   * @throws RepositoryException
-   * @throws ValueFormatException
-   */
-  private void createMimeType(Node node, String mimeTypeValue)
-      throws ValueFormatException, RepositoryException {
-    Property mimeType = createMock(Property.class);
-    expect(mimeType.getString()).andReturn(mimeTypeValue);
-    expect(node.hasProperty(JCRConstants.JCR_MIMETYPE)).andReturn(true);
-    expect(node.getProperty(JCRConstants.JCR_MIMETYPE)).andReturn(mimeType);
   }
 
   @Test
@@ -98,14 +83,9 @@ public class CropItProcessorTest extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testInvalidImage() throws RepositoryException {
-    expect(node.getName()).andReturn("foo.bar").anyTimes();
-    expect(node.getPath()).andReturn("/path/to/the/file/foo.bar");
-    expect(node.isNodeType("nt:file")).andReturn(false);
-    expect(node.isNodeType("nt:resource")).andReturn(false);
-    expect(node.hasNode(JCRConstants.JCR_CONTENT)).andReturn(false);
-    expect(node.hasProperty(JCRConstants.JCR_DATA)).andReturn(false);
-    replay();
+  public void testInvalidImage() throws RepositoryException, StorageClientException, AccessDeniedException {
+    node.setProperty("path", "/path/to/the/file/foo.bar");
+    session.getContentManager().update(node);
     try {
       CropItProcessor.crop(session, x, y, width, height, dimensions, img, save);
       fail("The processor should not handle non-images.");
@@ -115,25 +95,11 @@ public class CropItProcessorTest extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testInvalidImageMimeType() throws RepositoryException {
-    expect(node.getName()).andReturn("foo.bar").anyTimes();
-    expect(node.getPath()).andReturn("/path/to/foo.bar");
-    expect(node.isNodeType("nt:file")).andReturn(true);
-    expect(node.hasNode(JCRConstants.JCR_CONTENT)).andReturn(true);
-
-    InputStream in = getClass().getResourceAsStream("not.an.image");
-    Node contentNode = createMock(Node.class);
-    expect(contentNode.isNodeType("nt:resource")).andReturn(true);
-    Property streamProp = createMock(Property.class);
-    Binary bin = createMock(Binary.class);
-    expect(streamProp.getBinary()).andReturn(bin);
-    expect(bin.getSize()).andReturn(100L); // this is not the correct length but here its ok.
-    expect(bin.getStream()).andReturn(in);
-    expect(contentNode.getProperty(JCRConstants.JCR_DATA)).andReturn(streamProp);
-    createMimeType(contentNode, "image/foo");
-    expect(node.getNode(JCRConstants.JCR_CONTENT)).andReturn(contentNode);
-
-    replay();
+  public void testInvalidImageMimeType() throws RepositoryException, StorageClientException, AccessDeniedException, IOException {
+    node.setProperty("path", "/path/to/foo.bar");
+    node.setProperty("bodyLocation", "2011/1/tz/fv/8x");
+    node.setProperty("mimeType", "image/foo");
+    session.getContentManager().update(node);
     try {
       CropItProcessor.crop(session, x, y, width, height, dimensions, img, save);
       fail("The processor should not handle non-images.");

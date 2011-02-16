@@ -20,9 +20,6 @@ package org.sakaiproject.nakamura.image;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -30,15 +27,18 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,8 +48,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -114,7 +112,7 @@ public class CropItServlet extends SlingAllMethodsServlet {
     try {
       // Grab the session
       ResourceResolver resourceResolver = request.getResourceResolver();
-      Session session = resourceResolver.adaptTo(Session.class);
+      Session session = StorageClientUtils.adaptToSession(resourceResolver.adaptTo(javax.jcr.Session.class));
 
       String requestImg =  imgParam.getString();
       String requestSave = saveParam.getString();
@@ -146,8 +144,8 @@ public class CropItServlet extends SlingAllMethodsServlet {
       height = checkIntBiggerThanZero(height, 0);
 
       // Make sure the save path is correct.
-      save = PathUtils.normalizePath(save) + "/";
-      requestSave = PathUtils.normalizePath(requestSave) + "/";
+//      save = PathUtils.normalizePath(save) + "/";
+//      requestSave = PathUtils.normalizePath(requestSave) + "/";
 
       String[] crop = CropItProcessor.crop(session, x, y, width, height, dimensions, img,
           save);
@@ -189,13 +187,16 @@ public class CropItServlet extends SlingAllMethodsServlet {
       response.sendError(e.getCode(), e.getMessage());
     } catch (JSONException e) {
       response.sendError(500, "Unable to output JSON.");
-    } catch (RepositoryException e) {
-      logger.warn(e.getMessage(),e);
-      response.sendError(500, "Unable to locate user.");
+    } catch (StorageClientException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (AccessDeniedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
     }
   }
 
-  private String expandAuthorizable(Session session, String path) throws  RepositoryException {
+  private String expandAuthorizable(Session session, String path) throws StorageClientException, AccessDeniedException {
     int start = 0;
     if ( path.startsWith("/~") ) {
       start = "/~".length();
@@ -208,16 +209,7 @@ public class CropItServlet extends SlingAllMethodsServlet {
       int nextSlash = path.indexOf("/",start);
       if ( nextSlash > 0 ) {
         String id = path.substring(start, nextSlash);
-        UserManager um = AccessControlUtil.getUserManager(session);
-        Authorizable a = um.getAuthorizable(id);
-        ItemBasedPrincipal p = (ItemBasedPrincipal) a.getPrincipal();
-        if ( a.isGroup() ) {
-          path = "/_group"+p.getPath().substring("/rep:security/rep:authorizables/rep:groups".length())+path.substring(nextSlash);
-        } else {
-          logger.debug("Processing Path as [{}][{}][{}] ", new Object[]{path, p.getPath(), path.substring(nextSlash)});
-          path = "/_user"+p.getPath().substring("/rep:security/rep:authorizables/rep:users".length())+path.substring(nextSlash);     
-          logger.debug("Done Processing Path as [{}]", path);
-        }
+        path = LitePersonalUtils.getHomePath(id)+path.substring(nextSlash);
       }
     }
     return path;
