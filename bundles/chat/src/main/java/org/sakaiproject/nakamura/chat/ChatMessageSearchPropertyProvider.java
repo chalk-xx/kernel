@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.chat;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -35,6 +36,8 @@ import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.ParseException;
+import java.util.Date;
 import java.util.Map;
 
 @Component(label = "MessageSearchPropertyProvider", description = "Provides properties to process the chat message searches.")
@@ -66,13 +69,14 @@ public class ChatMessageSearchPropertyProvider implements SolrSearchPropertyProv
           .getFullPathToStore(user, session));
       propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, fullPathToStore);
 
-      RequestParameter usersParam = request.getRequestParameter("_from");
+      final RequestParameter usersParam = request.getRequestParameter("_from");
       if (usersParam != null && !usersParam.getString().equals("")) {
         final StringBuilder solr = new StringBuilder(" AND (");
         final String[] users = StringUtils.split(usersParam.getString(), ',');
 
         solr.append("from:(");
         for (final String u : users) {
+          if("*".equals(u)) continue;
           solr.append(ClientUtils.escapeQueryChars(u)).append(" OR ");
           // sql.append("@sakai:from=\"").append(escapeString(u, Query.XPATH))
           // .append("\" or ");
@@ -84,6 +88,7 @@ public class ChatMessageSearchPropertyProvider implements SolrSearchPropertyProv
 
         solr.append(" AND to:(");
         for (final String u : users) {
+          if("*".equals(u)) continue;
           solr.append(ClientUtils.escapeQueryChars(u)).append(" OR ");
           // sql.append("@sakai:to=\"").append(escapeString(u, Query.XPATH))
           // .append("\" or ");
@@ -96,8 +101,18 @@ public class ChatMessageSearchPropertyProvider implements SolrSearchPropertyProv
         solr.append(")"); // close AND
         propertiesMap.put("_from", solr.toString());
       }
+      
+      // convert iso8601jcr to Long for solr query parser
+      final RequestParameter t = request.getRequestParameter("t");
+      if (t != null && !"".equals(t.getString())) {
+        final Date date = DateUtils.parseDate(t.getString(),
+            new String[] { "yyyy-MM-dd'T'HH:mm:ss.SSSZZ" });
+        propertiesMap.put("t", String.valueOf(date.getTime()));
+      }
     } catch (MessagingException e) {
-      LOG.error(e.getLocalizedMessage());
+      LOG.error(e.getLocalizedMessage(), e);
+    } catch (ParseException e) {
+      LOG.warn(e.getLocalizedMessage(), e);
     }
   }
 }
