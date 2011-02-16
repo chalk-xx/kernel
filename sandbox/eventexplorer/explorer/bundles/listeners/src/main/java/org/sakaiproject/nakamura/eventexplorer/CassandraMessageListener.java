@@ -26,7 +26,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.sakaiproject.nakamura.eventexplorer.api.cassandra.CassandraService;
+import org.sakaiproject.nakamura.api.eventexplorer.cassandra.CassandraService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -28,7 +28,7 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.sakaiproject.nakamura.eventexplorer.api.cassandra.CassandraService;
+import org.sakaiproject.nakamura.api.eventexplorer.cassandra.CassandraService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +62,7 @@ public class CassandraServiceImpl implements CassandraService {
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.nakamura.eventexplorer.api.cassandra.CassandraService#getClient()
+   * @see org.sakaiproject.nakamura.api.eventexplorer.cassandra.CassandraService#getClient()
    */
   public Client getClient() {
     if (tr == null || !tr.isOpen()) {
