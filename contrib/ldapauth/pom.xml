@@ -28,6 +28,7 @@
   <packaging>bundle</packaging>
   <version>0.10-SNAPSHOT</version>
   <name>Sakai Nakamura :: LDAP Authentication Bundle</name>
+  <description>Allows authentication with an LDAP directory</description>
   <build>
     <plugins>
       <plugin>
