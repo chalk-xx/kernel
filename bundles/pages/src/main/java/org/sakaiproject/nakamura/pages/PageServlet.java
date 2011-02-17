@@ -63,6 +63,7 @@ public class PageServlet extends SlingSafeMethodsServlet {
     try {
       Content pagesContent = null;
       RequestParameter rp = request.getRequestParameter("path");
+      ResourceResolver resourceResolver = request.getResourceResolver();
       if (rp != null) {
         String contentPath = rp.getString();
         if (contentPath.startsWith("/_groupa:")) {
@@ -71,7 +72,6 @@ public class PageServlet extends SlingSafeMethodsServlet {
         if (contentPath.endsWith("/")) {
           contentPath = contentPath.substring(0, contentPath.length() - 1);
         }
-        ResourceResolver resourceResolver = request.getResourceResolver();
         Resource pagesResource = resourceResolver.getResource(contentPath);
         if (pagesResource != null) {
           pagesContent = pagesResource.adaptTo(Content.class);
@@ -92,10 +92,11 @@ public class PageServlet extends SlingSafeMethodsServlet {
       if (pagesContent != null) {
         for (Content page : pagesContent.listChildren()) {
           writer.object();
+          writer.key("jcr:path");
+          writer.value(page.getPath().replaceFirst("a:", "~"));
           for (String messagePropKey : page.getProperties().keySet()) {
             writer.key(messagePropKey);
-            writer
-                .value(page.getProperty(messagePropKey));
+            writer.value(massageValue(messagePropKey, page.getProperty(messagePropKey)));
           }
           writer.endObject();
           messageCount++;
@@ -112,6 +113,17 @@ public class PageServlet extends SlingSafeMethodsServlet {
           "Failed to create proper JSON response.");
     }
 
+  }
+
+  private Object massageValue(String messagePropKey, Object property) {
+    Object rv = property;
+    if (property instanceof java.util.Calendar) {
+      rv = ((java.util.Calendar)property).getTimeInMillis();
+    }
+    if ("pagePosition".equals(messagePropKey) && property instanceof String) {
+      rv = Long.valueOf((String)property);
+    }
+    return rv;
   }
 
 
