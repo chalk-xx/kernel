@@ -204,7 +204,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       @PropertyOption(name = VISIBILITY_LOGGED_IN, value = "The home is blocked to anonymous users; all logged-in users can see it."),
       @PropertyOption(name = VISIBILITY_PUBLIC, value = "The home is completely public.") })
   static final String PROFILE_IMPORT_TEMPLATE = "sakai.user.profile.template.default";
-  static final String PROFILE_IMPORT_TEMPLATE_DEFAULT = "{'homePath':'default','basic':{'elements':{'firstName':{'value':'@@firstName@@'},'lastName':{'value':'@@lastName@@'},'email':{'value':'@@email@@'}},'access':'everybody'}}";
+  static final String PROFILE_IMPORT_TEMPLATE_DEFAULT = "{'basic':{'elements':{'firstName':{'value':'@@firstName@@'},'lastName':{'value':'@@lastName@@'},'email':{'value':'@@email@@'}},'access':'everybody'}}";
 
   @Property(value = "/var/templates/pages/systemuser")
   public static final String DEFAULT_USER_PAGES_TEMPLATE = "default.user.template";
@@ -434,25 +434,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         // Profile
         String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT
                                                             : SAKAI_USER_PROFILE_RT;
-        // FIXME BL120 this is a hackaround to KERN-1569; UI needs to change behavior
-        if (authorizable instanceof Group) {
-          final Map<String, Object> sakaiGroupProperties = new HashMap<String, Object>();
-          for (final Entry<String, Object> entry : authorizable.getSafeProperties()
-              .entrySet()) {
-            if (entry.getKey().startsWith("sakai:group")) {
-              sakaiGroupProperties.put(entry.getKey(), entry.getValue());
-            }
-          }
-          createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
-              profileType, false, contentManager, accessControlManager,
-              sakaiGroupProperties);
-        } else {
-          createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
-              profileType, false, contentManager, accessControlManager, null);
-        }
-        // end KERN-1569 hackaround
-        // createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
-        // profileType, false, contentManager, accessControlManager, null);
+        createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
+            profileType, false, contentManager, accessControlManager, ImmutableMap.of("homePath", (Object)("~"+authId)));
 
         Map<String, Object> profileProperties = processProfileParameters(
             defaultProfileTemplate, authorizable, parameters);
@@ -791,7 +774,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     Map<String, Object> retval = new HashMap<String, Object>();
     // default profile values
     // may be overwritten by the PROFILE_JSON_IMPORT_PARAMETER
-    retval.put("homePath", "~"+authorizable.getId());
     for (String param : profileParams) {
       Object val = "unknown";
       if (parameters.containsKey(param)) {
