@@ -181,7 +181,16 @@ public class SakaiSmtpServer implements SimpleMessageListener {
       LOGGER.error("Unable to write message", e);
     } catch (AccessDeniedException e) {
       LOGGER.error("Unable to write message", e);
-    } 
+    } finally {
+      if (session != null) {
+        try {
+          session.logout();
+        } catch (ClientPoolException e) {
+          LOGGER.error(e.getLocalizedMessage(), e);
+          throw new RuntimeException("Failed to logout session.", e);
+        }
+      }
+    }
   }
 
   @SuppressWarnings("unchecked")
