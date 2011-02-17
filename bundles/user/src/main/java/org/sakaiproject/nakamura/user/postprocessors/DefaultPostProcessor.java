@@ -204,7 +204,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       @PropertyOption(name = VISIBILITY_LOGGED_IN, value = "The home is blocked to anonymous users; all logged-in users can see it."),
       @PropertyOption(name = VISIBILITY_PUBLIC, value = "The home is completely public.") })
   static final String PROFILE_IMPORT_TEMPLATE = "sakai.user.profile.template.default";
-  static final String PROFILE_IMPORT_TEMPLATE_DEFAULT = "{'basic':{'elements':{'firstName':{'value':'@@firstName@@'},'lastName':{'value':'@@lastName@@'},'email':{'value':'@@email@@'}},'access':'everybody'}}";
+  static final String PROFILE_IMPORT_TEMPLATE_DEFAULT = "{'homePath':'default','basic':{'elements':{'firstName':{'value':'@@firstName@@'},'lastName':{'value':'@@lastName@@'},'email':{'value':'@@email@@'}},'access':'everybody'}}";
 
   @Property(value = "/var/templates/pages/systemuser")
   public static final String DEFAULT_USER_PAGES_TEMPLATE = "default.user.template";
@@ -422,6 +422,15 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
             contentManager, accessControlManager, null);
         authorizableManager.createGroup("g-contacts-" + authorizable.getId(), "g-contacts-"
             + authorizable.getId(), null);
+        // Pages
+        boolean createdPages = createPath(authId, homePath + PAGES_FOLDER, SAKAI_PAGES_RT,
+            false, contentManager, accessControlManager, null);
+        createPath(authId, homePath + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false,
+            contentManager, accessControlManager, null);
+        if (createdPages) {
+          intitializeContent(request, authorizable, session, homePath + PAGES_FOLDER,
+              parameters);
+        }
         // Profile
         String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT
                                                             : SAKAI_USER_PROFILE_RT;
@@ -450,20 +459,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         for (String propName : profileProperties.keySet()) {
           authorizable.setProperty(propName, profileProperties.get(propName));
         }
-
         authorizableManager.updateAuthorizable(authorizable);
         createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC,
             "nt:unstructured", false, contentManager, accessControlManager, profileProperties);
-
-        // Pages
-        boolean createdPages = createPath(authId, LitePersonalUtils.getProfilePath(authId) + PAGES_FOLDER, SAKAI_PAGES_RT,
-            false, contentManager, accessControlManager, null);
-        createPath(authId, LitePersonalUtils.getProfilePath(authId) + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false,
-            contentManager, accessControlManager, null);
-        if (createdPages) {
-          intitializeContent(request, authorizable, session, LitePersonalUtils.getProfilePath(authId) + PAGES_FOLDER,
-              parameters);
-        }
       }
     } else {
       // Attempt to sync the Acl on the home folder with whatever is present in the
@@ -793,6 +791,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     Map<String, Object> retval = new HashMap<String, Object>();
     // default profile values
     // may be overwritten by the PROFILE_JSON_IMPORT_PARAMETER
+    retval.put("homePath", "~"+authorizable.getId());
     for (String param : profileParams) {
       Object val = "unknown";
       if (parameters.containsKey(param)) {
