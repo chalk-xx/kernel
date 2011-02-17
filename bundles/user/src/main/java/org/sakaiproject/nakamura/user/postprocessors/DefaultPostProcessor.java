@@ -422,15 +422,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
             contentManager, accessControlManager, null);
         authorizableManager.createGroup("g-contacts-" + authorizable.getId(), "g-contacts-"
             + authorizable.getId(), null);
-        // Pages
-        boolean createdPages = createPath(authId, homePath + PAGES_FOLDER, SAKAI_PAGES_RT,
-            false, contentManager, accessControlManager, null);
-        createPath(authId, homePath + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false,
-            contentManager, accessControlManager, null);
-        if (createdPages) {
-          intitializeContent(request, authorizable, session, homePath + PAGES_FOLDER,
-              parameters);
-        }
         // Profile
         String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT
                                                             : SAKAI_USER_PROFILE_RT;
@@ -442,9 +433,20 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         for (String propName : profileProperties.keySet()) {
           authorizable.setProperty(propName, profileProperties.get(propName));
         }
+
         authorizableManager.updateAuthorizable(authorizable);
         createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC,
             "nt:unstructured", false, contentManager, accessControlManager, profileProperties);
+
+        // Pages
+        boolean createdPages = createPath(authId, LitePersonalUtils.getProfilePath(authId) + PAGES_FOLDER, SAKAI_PAGES_RT,
+            false, contentManager, accessControlManager, null);
+        createPath(authId, LitePersonalUtils.getProfilePath(authId) + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false,
+            contentManager, accessControlManager, null);
+        if (createdPages) {
+          intitializeContent(request, authorizable, session, LitePersonalUtils.getProfilePath(authId) + PAGES_FOLDER,
+              parameters);
+        }
       }
     } else {
       // Attempt to sync the Acl on the home folder with whatever is present in the
