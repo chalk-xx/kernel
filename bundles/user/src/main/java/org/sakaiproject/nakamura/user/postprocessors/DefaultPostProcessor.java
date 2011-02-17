@@ -582,41 +582,41 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           break;
         }
       }
-      Content content = contentManager.get(thisPath);
-      if (content == null) {
-        contentManager.update(new Content(thisPath, builder.build()));
-      } else {
-        Map<String, Object> props = builder.build();
-        for (Entry<String, Object> e : props.entrySet()) {
-          content.setProperty(e.getKey(), e.getValue());
-        }
+    }
+    Content content = contentManager.get(thisPath);
+    if (content == null) {
+      contentManager.update(new Content(thisPath, builder.build()));
+    } else {
+      Map<String, Object> props = builder.build();
+      for (Entry<String, Object> e : props.entrySet()) {
+        content.setProperty(e.getKey(), e.getValue());
       }
+    }
 
-      if (JcrConstants.NT_FILE.equals(node.getPrimaryNodeType().getName())) {
-        Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
-        javax.jcr.Property data = contentNode.getProperty(JcrConstants.JCR_DATA);
-        contentManager.writeBody(thisPath, data.getBinary().getStream());
-        if (content == null) {
-          content = contentManager.get(thisPath);
-          if (contentNode.hasProperty(JcrConstants.JCR_MIMETYPE)) {
-            content.setProperty(Content.MIMETYPE,
-                contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
-          }
-          if (contentNode.hasProperty(JcrConstants.JCR_LASTMODIFIED)) {
-            content.setProperty(Content.LASTMODIFIED,
-                contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getLong());
-          }
+    if (JcrConstants.NT_FILE.equals(node.getPrimaryNodeType().getName())) {
+      Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
+      javax.jcr.Property data = contentNode.getProperty(JcrConstants.JCR_DATA);
+      contentManager.writeBody(thisPath, data.getBinary().getStream());
+      if (content == null) {
+        content = contentManager.get(thisPath);
+        if (contentNode.hasProperty(JcrConstants.JCR_MIMETYPE)) {
+          content.setProperty(Content.MIMETYPE,
+              contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
+        }
+        if (contentNode.hasProperty(JcrConstants.JCR_LASTMODIFIED)) {
+          content.setProperty(Content.LASTMODIFIED,
+              contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getLong());
         }
       }
-      if (content != null) {
-        contentManager.update(content);
-      }
-      NodeIterator ni = node.getNodes();
-      while (ni.hasNext()) {
-        Node n = ni.nextNode();
-        if (!JcrConstants.NT_FILE.equals(n.getPrimaryNodeType().getName())) {
-          recursiveCopy(n, thisPath + "/" + n.getName(), contentManager);
-        }
+    }
+    if (content != null) {
+      contentManager.update(content);
+    }
+    NodeIterator ni = node.getNodes();
+    while (ni.hasNext()) {
+      Node n = ni.nextNode();
+      if (!JcrConstants.NT_FILE.equals(n.getPrimaryNodeType().getName())) {
+        recursiveCopy(n, thisPath + "/" + n.getName(), contentManager);
       }
     }
   }

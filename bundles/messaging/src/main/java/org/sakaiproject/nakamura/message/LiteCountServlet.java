@@ -21,13 +21,14 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -36,21 +37,20 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
-import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.search.solr.Query;
+import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
-import javax.jcr.query.QueryResult;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -103,23 +103,24 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
   @Reference
   protected transient LiteMessagingService messagingService;
   
+  @Reference
+  SolrSearchServiceFactory searchServiceFactory;
+
   @Override
   protected void doGet(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
     LOGGER.info("In count servlet" );
 
-    // Get this node so we can get the session off it.
-    Node node = (Node) request.getResource().adaptTo(Node.class);
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
 
     try {
       // Do the query
       // We do the query on the user his messageStore's path.
-      String messageStorePath = ISO9075.encodePath(messagingService.getFullPathToStore(request.getRemoteUser(), JackrabbitSparseUtils.getSparseSession(node.getSession())));
-      // String messageStorePath = node.getPath();
-      StringBuilder queryString = new StringBuilder("/jcr:root"
-          + messageStorePath + "//*[@sling:resourceType=\"sakai/message\" and @"
-          + MessageConstants.PROP_SAKAI_TYPE + "=\""
-          + MessageConstants.TYPE_INTERNAL + "\"");
+      String messageStorePath = ClientUtils.escapeQueryChars(messagingService.getFullPathToStore(request.getRemoteUser(), session));
+      //path:a\:zach/contacts AND resourceType:sakai/contact AND state:("ACCEPTED" -NONE) (name:"*" OR firstName:"*" OR lastName:"*" OR email:"*")) AND readers:(zach OR everyone)&start=0&rows=25&sort=score desc
+      StringBuilder queryString = new StringBuilder("(path:"
+          + messageStorePath + " AND resourceType:sakai/message"
+          + " AND type:internal");
 
       // Get the filters
       if (request.getRequestParameter("filters") != null
@@ -135,31 +136,30 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
         }
 
         for (int i = 0; i < filters.length; i++) {
-          queryString.append(" and @" + filters[i] + "=\"" + values[i] + "\"");
+          String filterName = filters[i].replaceFirst("sakai:", "");
+          queryString.append(" AND " + filterName + ":\"" + values[i] + "\"");
         }
       }
 
-      queryString.append("]");
+      queryString.append(")&start=0&sort=created desc");
 
-      LOGGER.info("Using QUery {} ",queryString.toString());
-      // Do the query and output how many results we have.
-      QueryManager queryManager = node.getSession().getWorkspace()
-          .getQueryManager();
-      Query query = queryManager.createQuery(queryString.toString(), "xpath");
-      QueryResult result = query.execute();
+      Query query = new Query(queryString.toString(), null);
+      LOGGER.info("Submitting Query {} ", query);
+      SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
+          request, query, false);
+      Iterator<Result> resultIterator = resultSet.getResultSetIterator();
 
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
 
       JSONWriter write = new JSONWriter(response.getWriter());
-      NodeIterator resultNodes = result.getNodes();
 
       if (request.getRequestParameter("groupedby") == null) {
         write.object();
         write.key("count");
         // TODO: getSize iterates over all the nodes, add a JackRabbit service
         // to fetch this number.
-        write.value(resultNodes.getSize());
+        write.value(resultSet.getSize());
         write.endObject();
       } else {
         // The user want to group the count by a specified set.
@@ -167,10 +167,11 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
         // value for it.
         String groupedby = request.getRequestParameter("groupedby").getString();
         Map<String, Integer> mapCount = new HashMap<String, Integer>();
-        while (resultNodes.hasNext()) {
-          Node n = resultNodes.nextNode();
-          if (n.hasProperty(groupedby)) {
-            String key = n.getProperty(groupedby).getString();
+        while (resultIterator.hasNext()) {
+          Result n = resultIterator.next();
+
+          if (n.getProperties().containsKey(groupedby)) {
+            String key = (String) n.getFirstValue(groupedby);
             int val = 1;
             if (mapCount.containsKey(key)) {
               val = mapCount.get(key) + 1;
@@ -197,12 +198,10 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
 
       }
 
-    } catch (RepositoryException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
     } catch (JSONException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+    } catch (Exception e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
     }
 
   }

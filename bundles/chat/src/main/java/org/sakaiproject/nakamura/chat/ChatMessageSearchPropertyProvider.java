@@ -17,15 +17,27 @@
  */
 package org.sakaiproject.nakamura.chat;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
+import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
+import org.sakaiproject.nakamura.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.text.ParseException;
+import java.util.Date;
 import java.util.Map;
 
 @Component(label = "MessageSearchPropertyProvider", description = "Provides properties to process the chat message searches.")
@@ -36,7 +48,7 @@ import java.util.Map;
     @Property(name = "service.description", value = "Provides properties to process the chat message searches.") })
 public class ChatMessageSearchPropertyProvider implements SolrSearchPropertyProvider {
 
-//  private static final Logger LOG = LoggerFactory.getLogger(ChatMessageSearchPropertyProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ChatMessageSearchPropertyProvider.class);
 
   @Reference
   protected transient LiteMessagingService messagingService;
@@ -49,33 +61,58 @@ public class ChatMessageSearchPropertyProvider implements SolrSearchPropertyProv
    */
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
-    // TODO BL120 figure out what search properties (if any) will be needed for the sparse version of this search
-    // in other words, no more JCR query stuff here.
-//    try {
-//      String user = request.getRemoteUser();
-//      Session session = request.getResourceResolver().adaptTo(Session.class);
-//      propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
-//          .encodePath(messagingService.getFullPathToStore(user, session)));
-//
-//      RequestParameter usersParam = request.getRequestParameter("_from");
-//      if (usersParam != null && !usersParam.getString().equals("")) {
-//        StringBuilder sql = new StringBuilder(" and ((");
-//        String[] users = StringUtils.split(usersParam.getString(), ',');
-//
-//        for (String u : users) {
-//          sql.append("@sakai:from=\"").append(escapeString(u, Query.XPATH)).append("\" or ");
-//        }
-//        sql.append("@sakai:from=\"").append(escapeString(user, Query.XPATH)).append("\") or (");
-//
-//        for (String u : users) {
-//          sql.append("@sakai:to=\"").append(escapeString(u, Query.XPATH)).append("\" or ");
-//        }
-//        sql.append("@sakai:to=\"").append(escapeString(user, Query.XPATH)).append("\"))");
-//
-//        propertiesMap.put("_from", sql.toString());
-//      }
-//    } catch (MessagingException e) {
-//      LOG.error(e.getLocalizedMessage());
-//    }
+    try {
+      final String user = request.getRemoteUser();
+      final Session session = StorageClientUtils.adaptToSession(request
+          .getResourceResolver().adaptTo(javax.jcr.Session.class));
+      final String fullPathToStore = ClientUtils.escapeQueryChars(messagingService
+          .getFullPathToStore(user, session));
+      propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, fullPathToStore);
+
+      final RequestParameter usersParam = request.getRequestParameter("_from");
+      if (usersParam != null && !usersParam.getString().equals("")) {
+        final StringBuilder solr = new StringBuilder(" AND (");
+        final String[] users = StringUtils.split(usersParam.getString(), ',');
+
+        solr.append("from:(");
+        for (final String u : users) {
+          if("*".equals(u)) continue;
+          solr.append(ClientUtils.escapeQueryChars(u)).append(" OR ");
+          // sql.append("@sakai:from=\"").append(escapeString(u, Query.XPATH))
+          // .append("\" or ");
+        }
+        solr.append(ClientUtils.escapeQueryChars(user));
+        // sql.append("@sakai:from=\"").append(escapeString(user, Query.XPATH))
+        // .append("\") or (");
+        solr.append(")"); // close from:
+
+        solr.append(" AND to:(");
+        for (final String u : users) {
+          if("*".equals(u)) continue;
+          solr.append(ClientUtils.escapeQueryChars(u)).append(" OR ");
+          // sql.append("@sakai:to=\"").append(escapeString(u, Query.XPATH))
+          // .append("\" or ");
+        }
+        solr.append(ClientUtils.escapeQueryChars(user));
+        // sql.append("@sakai:to=\"").append(escapeString(user,
+        // Query.XPATH)).append("\"))");
+        solr.append(")"); // close to:
+
+        solr.append(")"); // close AND
+        propertiesMap.put("_from", solr.toString());
+      }
+      
+      // convert iso8601jcr to Long for solr query parser
+      final RequestParameter t = request.getRequestParameter("t");
+      if (t != null && !"".equals(t.getString())) {
+        final Date date = DateUtils.parseDate(t.getString(),
+            new String[] { "yyyy-MM-dd'T'HH:mm:ss.SSSZZ" });
+        propertiesMap.put("t", String.valueOf(date.getTime()));
+      }
+    } catch (MessagingException e) {
+      LOG.error(e.getLocalizedMessage(), e);
+    } catch (ParseException e) {
+      LOG.warn(e.getLocalizedMessage(), e);
+    }
   }
 }

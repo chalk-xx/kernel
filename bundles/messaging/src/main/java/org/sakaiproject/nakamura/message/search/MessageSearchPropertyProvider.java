@@ -26,8 +26,10 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
-import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 
 import java.util.Map;
@@ -44,7 +46,7 @@ import java.util.Map;
 public class MessageSearchPropertyProvider implements SolrSearchPropertyProvider {
 
   @Reference
-  MessagingService messagingService;
+  LiteMessagingService messagingService;
 
   /**
    * {@inheritDoc}
@@ -55,14 +57,15 @@ public class MessageSearchPropertyProvider implements SolrSearchPropertyProvider
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
     String user = request.getRemoteUser();
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ClientUtils
-        .escapeQueryChars(messagingService.getFullPathToStore(user)));
+        .escapeQueryChars(messagingService.getFullPathToStore(user, session)));
 
     RequestParameter address = request.getRequestParameter("address");
     if (address != null && !address.getString().equals("")) {
       // resolve the address by finding the authorizables.
       String addressString = address.getString();
-      String storePath = messagingService.getFullPathToStore(addressString);
+      String storePath = messagingService.getFullPathToStore(addressString, session);
       propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE,
           ClientUtils.escapeQueryChars(storePath));
     }

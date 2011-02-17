@@ -18,15 +18,19 @@
 
 package org.sakaiproject.nakamura.image;
 
+import com.google.common.collect.ImmutableMap;
+
 import org.apache.sanselan.ImageFormat;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.ImageWriteException;
 import org.apache.sanselan.Sanselan;
 import org.apache.sanselan.util.IOUtils;
-import org.sakaiproject.nakamura.api.jcr.JCRConstants;
-import org.sakaiproject.nakamura.util.JcrUtils;
-import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,16 +42,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Calendar;
 import java.util.List;
 
 import javax.imageio.ImageIO;
-import javax.jcr.Binary;
-import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.ValueFactory;
 
 public class CropItProcessor {
 
@@ -76,9 +73,12 @@ public class CropItProcessor {
    *          The location where to save all the scaled instances.
    * @return returns an array with all the location of the scaled instances.
    * @throws ImageException
+   * @throws AccessDeniedException
+   * @throws StorageClientException
    */
   public static String[] crop(Session session, int x, int y, int width, int height,
-      List<Dimension> dimensions, String img, String save) throws ImageException {
+      List<Dimension> dimensions, String img, String save) throws ImageException, StorageClientException, AccessDeniedException {
+    ContentManager contentManager = session.getContentManager();
 
     InputStream in = null;
 
@@ -87,40 +87,24 @@ public class CropItProcessor {
 
     try {
 
-      Node imgNode = (Node) session.getItem(img);
+      Content imgNode = contentManager.get(img);
 
       if (imgNode != null) {
 
-        String imgName = imgNode.getName();
+        String mimeType = "unknown";
+        if (imgNode.hasProperty("mimeType") ) {
+          mimeType = (String) imgNode.getProperty("mimeType");
+        }
         String imgPath = imgNode.getPath();
+        String imgName = imgPath.substring(imgPath.lastIndexOf("/") + 1);
         // nt:file
-        if (imgNode.isNodeType(JCRConstants.NT_FILE)) {
-          imgNode = imgNode.getNode(JCRConstants.JCR_CONTENT);
-        } else if (imgNode.isNodeType(JCRConstants.NT_RESOURCE)) {
-          // This is an nt:resource file.
-          // We check if it has an nt:file to use the name from, otherwise we just use
-          // this name.
-          Node parentNode = imgNode.getParent();
-          if (parentNode.isNodeType(JCRConstants.NT_FILE)) {
-            imgName = parentNode.getName();
-            imgPath = parentNode.getPath();
-          }
-        } else {
+        if (!imgNode.hasProperty("bodyLocation")) {
           throw new ImageException(500, "Invalid image");
         }
-
-        String mimeType = "unknown";
-        if (imgNode.hasProperty(JCRConstants.JCR_MIMETYPE) ) {
-          mimeType = imgNode.getProperty(JCRConstants.JCR_MIMETYPE).getString();
+        in = contentManager.getInputStream(imgPath);
+        if ( in.available() > 100L*1024L*1024L ) {
+          throw new ImageException(406, "Image "+imgPath+" too large to crop > 100MB Si "+in.available());
         }
-
-        // Read the image
-        Binary content = imgNode.getProperty(JCRConstants.JCR_DATA).getBinary();
-        if ( content.getSize() > 100L*1024L*1024L ) {
-          throw new ImageException(406, "Image "+imgPath+" too large to crop > 100MB Si "+content.getSize());
-
-        }
-        in = content.getStream();
         try {
 
           // NOTE: I'd prefer to use the InputStream, but I don't see a way to get the
@@ -163,9 +147,9 @@ public class CropItProcessor {
 
             if ( image != null ) {
 
-              String sPath = save + iWidth + "x" + iHeight + "_" + imgName;
+              String sPath = save + "/" + iWidth + "x" + iHeight + "_" + imgName;
               // Save new image to JCR.
-              saveImageToJCR(sPath, info.getMimeType(), image, imgNode, session);
+              saveImageToContentStore(sPath, info.getMimeType(), image, imgNode, session);
 
               arrFiles[i] = sPath;
             } else {
@@ -187,11 +171,6 @@ public class CropItProcessor {
         throw new ImageException(400, "No image file found.");
       }
 
-    } catch (PathNotFoundException e) {
-      throw new ImageException(400, "Could not find image.");
-    } catch (RepositoryException e) {
-      LOGGER.error("Unable to crop image.", e);
-      throw new ImageException(500, "Unable to crop image.");
     } catch (IOException e) {
       LOGGER.error("Unable to read image in order to crop it.", e);
       throw new ImageException(500, "Unable to read image in order to crop it.");
@@ -249,33 +228,26 @@ public class CropItProcessor {
    * @param out
    *          The stream you wish to save.
    * @throws ImageException
+   * @throws StorageClientException
    */
-  protected static void saveImageToJCR(String path, String mimetype,
-      byte[] image, Node baseNode, Session session) throws ImageException {
+  protected static void saveImageToContentStore(String path, String mimetype,
+      byte[] image, Content baseNode, Session session) throws ImageException, StorageClientException {
+    ContentManager contentManager = session.getContentManager();
 
-    // Save image into the jcr
     ByteArrayInputStream bais = null;
     try {
-      path = PathUtils.normalizePath(path);
-      Node node = JcrUtils.deepGetOrCreateNode(session, path, "nt:file");
-
+      if (contentManager.exists(path)) {
+        Content node = contentManager.get(path);
+        node.setProperty("mimeType", mimetype);
+        contentManager.update(node);
+      } else {
+        contentManager.update(new Content(path, ImmutableMap.of("mimeType", (Object)mimetype)));
+      }
       // convert stream to inputstream
       bais = new ByteArrayInputStream(image);
-      Node contentNode = null;
-      if (node.hasNode(JCRConstants.JCR_CONTENT)) {
-        contentNode = node.getNode(JCRConstants.JCR_CONTENT);
-      } else {
-        contentNode = node.addNode(JCRConstants.JCR_CONTENT, JCRConstants.NT_RESOURCE);
-      }
-      ValueFactory vf = session.getValueFactory();
-      contentNode.setProperty(JCRConstants.JCR_DATA, vf.createBinary(bais));
-      contentNode.setProperty(JCRConstants.JCR_MIMETYPE, mimetype);
-      contentNode.setProperty(JCRConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+      contentManager.writeBody(path, bais);
 
-      if (session.hasPendingChanges()) {
-        session.save();
-      }
-    } catch (RepositoryException e) {
+    } catch (Exception e) {
       LOGGER.warn("Repository exception: " + e.getMessage());
       throw new ImageException(500, "Unable to save image to JCR.");
     } finally {

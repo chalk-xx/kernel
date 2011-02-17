@@ -98,7 +98,10 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
     // or @sakai:tag-uuid='506edc80-ad50-4bb3-abe8-aa5c72e65888') and
     // (@sakai:permissions='public'
     // or @sakai:permissions='everyone')] order by @jcr:score descending
-    StringBuilder sb = new StringBuilder("resourceType:sakai/pooled-content ");
+    final String sakaiPooledContent = ClientUtils.escapeQueryChars("sakai/pooled-content");
+    StringBuilder sb = new StringBuilder("resourceType:");
+    sb.append(sakaiPooledContent);
+    sb.append(" AND ");
     Set<String> selectors = ImmutableSet.of(request.getRequestPathInfo().getSelectors());
 
     boolean publicSearch = selectors.contains(POOLED_CONTENT_PUBLIC_RELATED_SELECTOR);
@@ -124,7 +127,7 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
         }
 
         if (tagUuids.size() > 0) {
-          sb.append("(taguuid:").append(StringUtils.join(tagUuids, " OR "))
+          sb.append("taguuid:(").append(StringUtils.join(tagUuids, " OR "))
               .append(")");
         }
         Query query = new Query(sb.toString(), null);

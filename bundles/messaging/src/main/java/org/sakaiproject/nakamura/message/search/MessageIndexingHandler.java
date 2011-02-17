@@ -18,7 +18,8 @@
 package org.sakaiproject.nakamura.message.search;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Lists;
 
 import org.apache.commons.lang.StringUtils;
@@ -44,18 +45,27 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *
  */
 @Component(immediate = true)
 public class MessageIndexingHandler implements IndexingHandler {
-  private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of(
-      // fields required by the messaging bundle
-      "messagebox", "type", "created", "category", "from", "to",
-      // extra fields required by the discussion bundle
-      "marker", "sendstate", "initialpost");
+  private static final Map<String, String> WHITELISTED_PROPS;
+  static {
+    Builder<String,String> propBuilder = ImmutableMap.builder();
+    propBuilder.put("sakai:messagebox", "messagebox");
+    propBuilder.put("sakai:type", "type");
+    propBuilder.put("created", "created");
+    propBuilder.put("sakai:category", "category");
+    propBuilder.put("sakai:from", "from");
+    propBuilder.put("sakai:to", "to");
+    propBuilder.put("sakai:read", "read");
+    propBuilder.put("sakai:marker", "marker");
+    propBuilder.put("sakai:sendstate", "sendstate");
+    propBuilder.put("sakai:initialpost", "initialpost");
+    WHITELISTED_PROPS = propBuilder.build();
+  }
 
   private static final Logger logger = LoggerFactory
       .getLogger(MessageIndexingHandler.class);
@@ -92,9 +102,9 @@ public class MessageIndexingHandler implements IndexingHandler {
 
         if (content != null) {
           SolrInputDocument doc = new SolrInputDocument();
-          for (String prop : WHITELISTED_PROPS) {
+          for (String prop : WHITELISTED_PROPS.keySet()) {
             Object value = content.getProperty(prop);
-            doc.addField(prop, value);
+            doc.addField(WHITELISTED_PROPS.get(prop), value);
           }
           doc.addField(_DOC_SOURCE_OBJECT, content);
           documents.add(doc);

@@ -15,11 +15,15 @@ class TC_Kern1372Test < Test::Unit::TestCase
     directorytag = "directory/#{directorystring}"
     directorytagnode = "/tags/#{directorytag}"
     res = @fm.createTag(directorytag, directorytagnode)
+    assert(200 == res.code.to_i || 201 == res.code.to_i, "@fm.createTag(#{directorytag}, #{directorytagnode})")
     res = @fm.tag(node, directorytagnode)
+    assert_equal("200", res.code, "@fm.tag(#{node}, #{directorytagnode})")
     for subpath in directorystring.split('/')
       tagnode = "/tags/#{subpath}"
       res = @fm.createTag(subpath, tagnode)
+      assert(200 == res.code.to_i || 201 == res.code.to_i, "@fm.createTag(#{subpath}, #{tagnode})")
       res = @fm.tag(node, tagnode)
+      assert_equal("200", res.code, "@fm.tag(#{node}, #{tagnode})")
     end
   end
 
@@ -31,14 +35,17 @@ class TC_Kern1372Test < Test::Unit::TestCase
       res = @s.execute_post(@s.url_for("/p/#{contentid}"), {
         "sakai:permissions" => "everyone"
       })
+      assert_equal("200", res.code, "sakai:permissions => everyone")
       res = @s.execute_post(@s.url_for("/p/#{contentid}.modifyAce.html"), {
         "principalId" => "everyone",
         "privilege@jcr:read" => "granted"
       })
+      assert_equal("200", res.code, "principalId => everyone; privilege@jcr:read => granted")
       contentid
   end
 
   def test_get_related_content
+    @log.level = Logger::INFO
     @fm = FileManager.new(@s)
     m = Time.now.to_f.to_s.gsub('.', '')
     user = create_user("user-#{m}")
@@ -46,24 +53,31 @@ class TC_Kern1372Test < Test::Unit::TestCase
 
     @s.switch_user(user)
     fileid = add_pooled("test#{m}.txt")
+    @log.debug("fileid=#{fileid}")
     fileurl = @s.url_for("/p/#{fileid}")
     onetag = "one#{m}"
     res = @fm.createTag(onetag, "/tags/#{onetag}")
+    assert_equal("201", res.code, "create tag one")
     twotag = "two#{m}"
     res = @fm.createTag(twotag, "/tags/#{twotag}")
+    assert_equal("201", res.code, "create tag two")
     res = @s.execute_post(fileurl, {
       ":operation" => "tag",
       "key" => "/tags/#{onetag}"
     })
+    assert_equal("200", res.code, "tag file with tag one")
     res = @s.execute_post(fileurl, {
       ":operation" => "tag",
       "key" => "/tags/#{twotag}"
     })
+    assert_equal("200", res.code, "tag file with tag two")
 
+    # create two files as other user; do not tag yet
     @s.switch_user(other)
     otherfileids = (0..2).collect {|i|
       add_pooled("test#{m}#{i}.txt")
     }
+    @log.debug(otherfileids)
 
     @s.switch_user(user)
     wait_for_indexer()
@@ -76,12 +90,15 @@ class TC_Kern1372Test < Test::Unit::TestCase
     relateds = JSON.parse(res.body)
     assert_equal(0, relateds.size)
 
+    @log.debug("tag first, other file with tag one; now should be related")
     @s.switch_user(other)
     res = @s.execute_post(@s.url_for("/p/#{otherfileids[0]}"), {
       ":operation" => "tag",
       "key" => "/tags/#{onetag}"
     })
+    assert_equal("200", res.code, "tag first, other file with tag one")
 
+    @log.debug("now should have one related content")
     @s.switch_user(user)
     wait_for_indexer()
     res = @s.execute_get("#{fileurl}.related.json")

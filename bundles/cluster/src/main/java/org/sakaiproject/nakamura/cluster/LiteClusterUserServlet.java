@@ -22,15 +22,11 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.User;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.cluster.ClusterServer;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
@@ -43,6 +39,14 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.proxy.ProxyClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,12 +56,9 @@ import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Value;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -80,7 +81,7 @@ import javax.servlet.http.HttpServletResponse;
  * <p>
  * The response is of the form:
  * </p>
- *
+ * 
  * <pre>
  * {
  *   &quot;server&quot;: &quot;16935@x43543-2.local&quot;,  // the server generating the response
@@ -115,7 +116,7 @@ import javax.servlet.http.HttpServletResponse;
  * }
  * </pre>
  */
-//@SlingServlet(generateComponent = true, generateService = true, selectors = { "cookie" }, extensions = { "json" }, resourceTypes = { "sakai/cluster-users" })
+@SlingServlet(generateComponent = true, generateService = true, selectors = { "cookie" }, extensions = { "json" }, resourceTypes = { "sakai/cluster-users" })
 @ServiceDocumentation(name = "ClusterUserServlet", shortDescription = "Translates the value of cookie SAKAI-TRACKING into a User object.", description = "Translates the value of cookie SAKAI-TRACKING into a User object. This REST end point is restricted to users that can read the resource and optionally to requests that have embeded a shared trusted token in their request. It is presented with a user cookie, and responds with the user object for that cookie. Trusted tokens are stored in the multi value property sakai:shared-token and, if this is present, requests must provide one of those tokens in the http header Sakai-Trust-Token.", bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/cluster-users", selectors = { @ServiceSelector(name = "cookie", description = "") }, extensions = { @ServiceExtension(name = "json", description = "") }) }, methods = { @ServiceMethod(name = "GET", description = "<p>Sample JSON response:</p><pre>"
     + "curl http://localhost:8080/var/cluster/user.cookie.json?c=8070-10-87-32-111.localhost.indiana.edu-c8029d4b68a88a0e3aa3d0f60ff7de5530295cf1"
     + "{\n"
@@ -149,10 +150,7 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceResponse(code = 400, description = "Cookie is not provided in the request."),
     @ServiceResponse(code = 404, description = "Cookie is not registered."),
     @ServiceResponse(code = 0, description = "Any other status codes returned have meanings as per the RFC") }) })
-public class ClusterUserServlet extends SlingSafeMethodsServlet {
-
-  // TODO: deny doesnt work on the /var/cluster/user node for some reason, check the acl
-  // etc.
+public class LiteClusterUserServlet extends SlingSafeMethodsServlet {
 
   /**
    *
@@ -161,7 +159,8 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
   /**
    * The logger for this class.
    */
-  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterUserServlet.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(LiteClusterUserServlet.class);
 
   @Reference
   private transient ClusterTrackingService clusterTrackingService;
@@ -169,22 +168,22 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
   @Reference
   private transient ProxyClientService proxyClientService;
 
-  private transient UserManager testingUserManager;
+  private transient AuthorizableManager testingUserManager;
   private Set<String> blacklist = new HashSet<String>();
   private HttpClient httpClient;
   protected boolean testing = false;
 
-  public ClusterUserServlet() {
+  public LiteClusterUserServlet() {
     initBlacklist();
   }
 
   /**
    * Constructor for testing purposes only.
-   *
+   * 
    * @param clusterTrackingService
    */
-  protected ClusterUserServlet(ClusterTrackingService clusterTrackingService,
-      UserManager userManager) {
+  protected LiteClusterUserServlet(ClusterTrackingService clusterTrackingService,
+      AuthorizableManager userManager) {
     this.clusterTrackingService = clusterTrackingService;
     this.testingUserManager = userManager;
     initBlacklist();
@@ -204,7 +203,7 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -213,7 +212,8 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     try {
-      Node node = request.getResource().adaptTo(Node.class);
+      final Session session = StorageClientUtils.adaptToSession(request
+          .getResourceResolver().adaptTo(javax.jcr.Session.class));
 
       String trackingCookie = request.getParameter("c");
 
@@ -230,13 +230,15 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
           // work out the remote server and try there.
           ClusterServer clusterServer = clusterTrackingService.getServer(trackingCookie);
           if (clusterServer == null
-              || clusterServer.getServerId() == clusterTrackingService.getCurrentServerId()) {
+              || clusterServer.getServerId() == clusterTrackingService
+                  .getCurrentServerId()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND,
                 "Cookie could not be found");
             return;
           }
-          GetMethod method = new GetMethod(clusterServer.getSecureUrl() + node.getPath()
-              + ".cookie.json?c=" + URLEncoder.encode(trackingCookie, "UTF-8"));
+          GetMethod method = new GetMethod(clusterServer.getSecureUrl()
+              + request.getResource().getPath() + ".cookie.json?c="
+              + URLEncoder.encode(trackingCookie, "UTF-8"));
           method.setFollowRedirects(true);
           method.setDoAuthentication(false);
           for (Enumeration<String> headerNames = request.getHeaderNames(); headerNames
@@ -264,13 +266,30 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
       }
 
       String serverId = clusterTrackingService.getCurrentServerId();
-      UserManager userManager = null;
+      AuthorizableManager userManager = null;
       if (this.testingUserManager != null) {
         userManager = testingUserManager;
       } else {
-        userManager = AccessControlUtil.getUserManager(node.getSession());
+        try {
+          userManager = session.getAuthorizableManager();
+        } catch (StorageClientException e) {
+          LOGGER.error(e.getLocalizedMessage(), e);
+          response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+              "Could not grab AuthorizableManager");
+        }
       }
-      User user = (User) userManager.getAuthorizable(clusterUser.getUser());
+      User user = null;
+      try {
+        user = (User) userManager.findAuthorizable(clusterUser.getUser());
+      } catch (AccessDeniedException e) {
+        LOGGER.error(e.getLocalizedMessage(), e);
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, "AccessDeniedException for "
+            + clusterUser.getUser());
+      } catch (StorageClientException e) {
+        LOGGER.error(e.getLocalizedMessage(), e);
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            "Could not findAuthorizable");
+      }
       JSONWriter jsonWriter = new JSONWriter(response.getWriter());
       jsonWriter.setTidy(true);
       jsonWriter.object();
@@ -279,57 +298,63 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
       jsonWriter.key("user").object();
       jsonWriter.key("lastUpdate").value(clusterUser.getLastModified());
       jsonWriter.key("homeServer").value(clusterUser.getServerId());
-      String userId = user.getID();
+      String userId = user.getId();
       jsonWriter.key("id").value(userId);
-      jsonWriter.key("principal").value(user.getPrincipal().getName());
+      jsonWriter.key("principal").value(user.getId());
       jsonWriter.key("properties").object();
       boolean noName = true;
-      for (Iterator<?> pi = user.getPropertyNames(); pi.hasNext();) {
-        String propertyName = (String) pi.next();
-        if (!blacklist.contains(propertyName)) {
-          Value[] propertyValues = user.getProperty(propertyName);
-          if ( propertyValues != null ) {
-            jsonWriter.key(propertyName);
-            if ( "name".equals(propertyName) ) {
+      for (Entry<String, Object> entry : user.getSafeProperties().entrySet()) {
+        if (!blacklist.contains(entry.getKey())) { // remove blacklisted keys
+          if (entry.getValue() != null) { // only output non-null values
+            jsonWriter.key(entry.getKey());
+            if ("name".equals(entry.getKey())) {
               noName = false;
             }
-            if (propertyValues.length == 1) {
-              jsonWriter.value(propertyValues[0].getString());
-            } else {
+            if (entry.getValue() instanceof Object[]) { // special array handling
               jsonWriter.array();
-              for (Value v : propertyValues) {
-                jsonWriter.value(v.getString());
+              Object[] values = (Object[]) entry.getValue();
+              for (Object object : values) {
+                jsonWriter.value(object);
               }
               jsonWriter.endArray();
+            } else { // just a plain old object (i.e. not an array)
+              jsonWriter.value(entry.getValue());
             }
           }
         }
       }
-      if ( noName ) {
+      if (noName) {
         jsonWriter.key("name");
         jsonWriter.value(userId);
       }
       jsonWriter.endObject(); // properties
 
-
-      jsonWriter.key("declaredMembership").array();
-      for (Iterator<?> gi = user.declaredMemberOf(); gi.hasNext();) {
-        jsonWriter.value(((Authorizable) gi.next()).getID());
+      final String[] principals = user.getPrincipals();
+      if (principals != null) {
+        jsonWriter.key("declaredMembership").array();
+        for (final String principal : principals) {
+          if (Group.EVERYONE.equals(principal)) { // skip everyone group
+            continue;
+          }
+          Authorizable group = null;
+          try {
+            group = userManager.findAuthorizable(principal);
+          } catch (AccessDeniedException e) {
+            LOGGER.error(e.getLocalizedMessage(), e);
+          } catch (StorageClientException e) {
+            LOGGER.error(e.getLocalizedMessage(), e);
+          }
+          if (group == null || !(group instanceof Group)) { // only groups
+            continue;
+          }
+          jsonWriter.value(group.getId());
+        }
+        jsonWriter.endArray();
       }
-      jsonWriter.endArray();
-
-      jsonWriter.key("membership").array();
-      for (Iterator<?> gi = user.memberOf(); gi.hasNext();) {
-        jsonWriter.value(((Authorizable) gi.next()).getID());
-      }
-      jsonWriter.endArray();
 
       jsonWriter.endObject(); // user
       jsonWriter.endObject();
 
-    } catch (RepositoryException e) {
-      LOGGER.error("Failed to get users " + e.getMessage(), e);
-      throw new ServletException(e.getMessage());
     } catch (JSONException e) {
       LOGGER.error("Failed to get users " + e.getMessage(), e);
       throw new ServletException(e.getMessage());
