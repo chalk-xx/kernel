@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,6 +47,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SakaiSmtpServer.class);
   private static final int MAX_PROPERTY_SIZE = 32 * 1024;
+  private static final Map<String, Object> EMPTY_MAP = Collections.emptyMap();
 
   private SMTPServer server;
 
@@ -246,40 +248,53 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     ContentManager contentManager = session.getContentManager();
     String childName = String.format("part%1$03d", index);
     String childPath = message.getPath() + "/" + childName;
+    // multipart message
     if (part.getContentType().toLowerCase().startsWith("multipart/")) {
-      contentManager.update(new Content(childPath, new HashMap<String, Object>()));
+      contentManager.update(new Content(childPath, EMPTY_MAP));
       Content childNode = contentManager.get(childPath);
       writePartPropertiesToNode(part, childNode);
+      contentManager.update(childNode);
       MimeMultipart multi = new MimeMultipart(new SMTPDataSource(part.getContentType(),
           part.getInputStream()));
       writeMultipartToNode(session, childNode, multi);
       return;
     }
 
+    // text
     if (!isTextType(part)) {
       writePartAsFile(session, part, childName, message);
       return;
     }
 
-    contentManager.update(new Content(childPath, new HashMap<String, Object>()));
+    // not multipart; not text
+    contentManager.update(new Content(childPath, EMPTY_MAP));
     Content childNode = contentManager.get(childPath);
     writePartPropertiesToNode(part, childNode);
-    // TODO: FIXME THIS WILL FAIL should store as a stream on the content 
-    childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, part.getInputStream());
+    contentManager.update(childNode);
+    // childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, part.getInputStream());
+    contentManager.writeBody(childNode.getPath(), part.getInputStream());
   }
 
   private void writePartAsFile(Session session, BodyPart part, String nodeName,
       Content parentNode) throws AccessDeniedException, StorageClientException, MessagingException, IOException {
-    String filePath = parentNode.getPath() + "/nt:file";
-    // TODO: FIXME, this is all wrong for sparse
-    String fileContentPath = filePath + "/jcr:content";
-    session.getContentManager().update(new Content(filePath, new HashMap<String, Object>()));
-    session.getContentManager().update(new Content(fileContentPath, new HashMap<String, Object>()));
-    Content resourceNode = session.getContentManager().get(fileContentPath);
-    resourceNode.setProperty("jcr:primaryType", "nt:resource");
-    resourceNode.setProperty("jcr:mimeType", part.getContentType());
-    resourceNode.setProperty("jcr:data", part.getInputStream());
-    resourceNode.setProperty("jcr:lastModified", Calendar.getInstance());
+    // String filePath = parentNode.getPath() + "/nt:file";
+    // String fileContentPath = filePath + "/jcr:content";
+    // session.getContentManager().update(
+    // new Content(filePath, new HashMap<String, Object>()));
+    // session.getContentManager().update(new Content(fileContentPath, new HashMap<String,
+    // Object>()));
+    // Content resourceNode = session.getContentManager().get(fileContentPath);
+    // resourceNode.setProperty("jcr:primaryType", "nt:resource");
+    
+    /*
+     * Instead of creating a child node, just write the body part to the parentNode. I
+     * think this will work, but may collide/override properties already set on the
+     * message content.
+     */
+    parentNode.setProperty(Content.MIMETYPE, part.getContentType());
+    parentNode.setProperty(Content.LASTMODIFIED, Calendar.getInstance());
+    // parentNode.setProperty("jcr:data", part.getInputStream());
+    session.getContentManager().writeBody(parentNode.getPath(), part.getInputStream());
   }
 
   @SuppressWarnings("unchecked")
