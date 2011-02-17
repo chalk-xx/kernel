@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": 'path:{_userMessagePath} AND resourceType:sakai/message AND ${prop}:"{val}"',
+  "sakai:query-template": 'path:{_userMessagePath} AND resourceType:sakai/message AND ${prop}:(${val})',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },

@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": 'resourceType:sakai/user-profile AND "${q}" ${_groupQuery}',
+  "sakai:query-template": 'resourceType:sakai/user-profile AND (${q}) ${_groupQuery}',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
