@@ -1,6 +1,5 @@
 {
   "sakai:query-template": 'resourceType:sakai/pooled-content AND content:(${q})) AND managers:(${au})',
-  "sakai:query-template-q=%2A": 'resourceType:sakai/pooled-content AND managers:"${au}"',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },

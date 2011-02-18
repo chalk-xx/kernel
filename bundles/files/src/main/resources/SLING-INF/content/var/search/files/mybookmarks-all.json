@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": 'resourceType:sakai/file AND (${q})${_mybookmarks}${_tags}${_usedin}',
+  "sakai:query-template": 'resourceType:sakai/file ${_mybookmarks}${_tags}${_usedin}',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
@@ -13,10 +13,9 @@
   "sakai:propertyprovider": "Files",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",
-  "sakai:title": "Files - My contacts.",
+  "sakai:title": "Files - My Contacts - All",
   "sakai:shortDescription": "Performs a search trough all the files you have bookmarked.",
   "sakai:parameters" : [
-      "{\"name\" : \"q\", \"description\" : \"The querystring to match the file against. This can either be the content of the file, or any property on the filenode.\"}",
       "{\"name\" : \"sakai:tags\", \"description\" : \"A comma seperated list of tags that the file(s) should match\"}",
       "{\"name\" : \"usedin\", \"description\" : \"Filter files based on where they are used (linked to.) This can be a multivalued parameter.\"}",
       "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. Default is sakai:filename\"}",

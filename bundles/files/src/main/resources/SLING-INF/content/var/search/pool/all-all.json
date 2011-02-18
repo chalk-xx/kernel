@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": 'resourceType:sakai/pooled-content AND content:(${q})',
+  "sakai:query-template": 'resourceType:sakai/pooled-content',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
@@ -11,7 +11,6 @@
   "sakai:title": "Pooled Content - All",
   "sakai:shortDescription": "Search trough all the pooled files.",
   "sakai:parameters" : [
-      "{\"name\" : \"q\", \"description\" : \"The search term you wish to search on. This will search trough the actual content of the file and any properties on the node.\"}",
       "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. Default is sakai:filename\"}",
       "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'ascending' or 'descending'.\"}"
   ],

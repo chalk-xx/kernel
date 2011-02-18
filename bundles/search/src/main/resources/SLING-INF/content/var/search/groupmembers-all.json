@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": 'resourceType:sakai/user-profile AND (${q}) ${_groupQuery}',
+  "sakai:query-template": 'resourceType:sakai/user-profile ${_groupQuery}',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
@@ -7,12 +7,11 @@
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
-  "sakai:title": "Group Members",
+  "sakai:title": "Group Members - All",
   "sakai:propertyprovider": "GroupMembers",
   "sakai:batchresultprocessor": "GroupMembers",
   "sakai:shortDescription": "Get the group profile nodes out of the repository.",
   "sakai:parameters" : [
-      "{\"name\" : \"q\", \"description\" : \"The term you want to match against. This will match any property on the group profile.\"}",
       "{\"name\" : \"group\", \"description\" : \"The group you want to limit your query to.\"}",
       "{\"name\" : \"includeSelf\", \"description\" : \"Whether to include the current user in the results.  Default to false.\"}",
       "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. The default is jcr:score\"}",
