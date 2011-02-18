@@ -331,9 +331,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     Map<String, String> propertiesMap = loadProperties(request, propertyProviderName,
         queryNode);
 
-    // TODO filter properties for anything = *
-    
-
     // check for any missing terms & process the query template
     Collection<String> missingTerms = templateService.missingTerms(propertiesMap,
         queryTemplate);
@@ -468,8 +465,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         if ("sortOn".equals(key)) {
           requestValue = requestValue.replaceFirst("sakai:", "");
         }
-        propertiesMap.put(entry.getKey(),
-            ClientUtils.escapeQueryChars(requestValue));
+        propertiesMap.put(entry.getKey(), requestValue);
       }
     }
 
