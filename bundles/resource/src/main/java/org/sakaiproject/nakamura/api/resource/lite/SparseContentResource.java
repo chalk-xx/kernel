@@ -84,8 +84,8 @@ public class SparseContentResource extends AbstractResource {
     metadata = new ResourceMetadata();
     metadata.setCharacterEncoding(UTF_8);
     metadata.setContentLength(StorageClientUtils.toLong(props.get(Content.LENGTH_FIELD)));
-    metadata.setCreationTime(StorageClientUtils.toLong(props.get(Content.CREATED)));
-    metadata.setModificationTime(StorageClientUtils.toLong(props.get(Content.LASTMODIFIED)));
+    metadata.setCreationTime(StorageClientUtils.toLong(props.get(Content.CREATED_FIELD)));
+    metadata.setModificationTime(StorageClientUtils.toLong(props.get(Content.LASTMODIFIED_FIELD)));
     metadata.setResolutionPath(content.getPath());
     metadata.setResolutionPathInfo(content.getPath());
   }

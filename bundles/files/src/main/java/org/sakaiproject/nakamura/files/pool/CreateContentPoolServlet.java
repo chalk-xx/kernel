@@ -240,7 +240,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       contentProperties.put(SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_RT);
       contentProperties.put(POOLED_CONTENT_CREATED_FOR, au.getId());
       contentProperties.put(POOLED_NEEDS_PROCESSING, "true");
-      contentProperties.put(Content.MIMETYPE, contentType);
+      contentProperties.put(Content.MIMETYPE_FIELD, contentType);
       contentProperties.put(POOLED_CONTENT_USER_MANAGER, new String[]{au.getId()});
       
       Content content = new Content(poolId,contentProperties);
@@ -263,7 +263,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
     } else {
       Content content = contentManager.get(poolId);
       contentManager.writeBody(poolId, value.getInputStream(),alternativeStream);
-      content.setProperty(StorageClientUtils.getAltField(Content.MIMETYPE, alternativeStream), contentType);
+      content.setProperty(StorageClientUtils.getAltField(Content.MIMETYPE_FIELD, alternativeStream), contentType);
       contentManager.update(content);
     }
   }

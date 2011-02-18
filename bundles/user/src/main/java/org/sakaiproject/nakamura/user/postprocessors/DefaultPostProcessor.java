@@ -618,11 +618,11 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       if (content == null) {
         content = contentManager.get(thisPath);
         if (contentNode.hasProperty(JcrConstants.JCR_MIMETYPE)) {
-          content.setProperty(Content.MIMETYPE,
+          content.setProperty(Content.MIMETYPE_FIELD,
               contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
         }
         if (contentNode.hasProperty(JcrConstants.JCR_LASTMODIFIED)) {
-          content.setProperty(Content.LASTMODIFIED,
+          content.setProperty(Content.LASTMODIFIED_FIELD,
               contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getLong());
         }
       }

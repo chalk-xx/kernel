@@ -149,9 +149,9 @@ public class SparseFileUploadHandler {
       String contentPath = StorageClientUtils.newPath(parent.getPath(), name);
       Content fileNode = contentManager.get(contentPath);
       if (fileNode == null) {
-        fileNode = new Content(contentPath, ImmutableMap.of(Content.MIMETYPE,(Object)contentType));
+        fileNode = new Content(contentPath, ImmutableMap.of(Content.MIMETYPE_FIELD,(Object)contentType));
       } else {
-        fileNode.setProperty(Content.MIMETYPE, contentType);
+        fileNode.setProperty(Content.MIMETYPE_FIELD, contentType);
       }
 
       contentManager.update(fileNode);
