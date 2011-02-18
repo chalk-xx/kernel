@@ -17,13 +17,9 @@
  */
 package org.sakaiproject.nakamura.auth.cas;
 
-import static org.apache.sling.jcr.resource.JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS;
-
 import com.ctc.wstx.stax.WstxInputFactory;
-
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -33,10 +29,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.User;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler;
 import org.apache.sling.auth.core.spi.AuthenticationHandler;
@@ -44,14 +36,21 @@ import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.apache.sling.auth.core.spi.DefaultAuthenticationFeedbackHandler;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.framework.Constants;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jcr.SimpleCredentials;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
@@ -63,19 +62,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
-import javax.jcr.ValueFactory;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.Characters;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
+import static org.apache.sling.jcr.resource.JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS;
 
 /**
  * This class integrates SSO with the Sling authentication framework.
@@ -92,7 +79,6 @@ import javax.xml.stream.events.XMLEvent;
     @Property(name = Constants.SERVICE_RANKING, intValue = -5),
     @Property(name = AuthenticationHandler.PATH_PROPERTY, value = "/"),
     @Property(name = AuthenticationHandler.TYPE_PROPERTY, value = CasAuthenticationHandler.AUTH_TYPE, propertyPrivate = true),
-    @Property(name = CasAuthenticationHandler.AUTOCREATE_USER, boolValue = CasAuthenticationHandler.DEFAULT_SSO_AUTOCREATE_USER),
     @Property(name = CasAuthenticationHandler.LOGIN_URL, value = CasAuthenticationHandler.DEFAULT_LOGIN_URL),
     @Property(name = CasAuthenticationHandler.LOGOUT_URL, value = CasAuthenticationHandler.DEFAULT_LOGOUT_URL),
     @Property(name = CasAuthenticationHandler.SERVER_URL, value = CasAuthenticationHandler.DEFAULT_SERVER_URL),
@@ -113,7 +99,6 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
   static final String DEFAULT_SERVER_URL = "http://localhost/cas";
   static final boolean DEFAULT_RENEW = false;
   static final boolean DEFAULT_GATEWAY = false;
-  static final boolean DEFAULT_SSO_AUTOCREATE_USER = false;
 
   /** Represents the constant for where the assertion will be located in memory. */
   static final String AUTHN_INFO = "org.sakaiproject.nakamura.auth.cas.SsoAuthnInfo";
@@ -121,9 +106,6 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
   // needed for the automatic user creation.
   @Reference
   protected SlingRepository repository;
-
-  @Reference
-  protected AuthorizablePostProcessService authzPostProcessService;
 
   static final String LOGIN_URL = "sakai.auth.cas.url.login";
   private String loginUrl;
@@ -140,9 +122,6 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
   static final String GATEWAY = "sakai.auth.cas.prop.gateway";
   private boolean gateway;
 
-  static final String AUTOCREATE_USER = "sakai.auth.cas.user.autocreate";
-  private boolean autoCreateUser;
-
   /**
    * Define the set of authentication-related query parameters which should
    * be removed from the "service" URL sent to the SSO server.
@@ -153,10 +132,8 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
   public CasAuthenticationHandler() {
   }
 
-  CasAuthenticationHandler(SlingRepository repository,
-      AuthorizablePostProcessService authzPostProcessService) {
+  CasAuthenticationHandler(SlingRepository repository) {
     this.repository = repository;
-    this.authzPostProcessService = authzPostProcessService;
   }
 
   //----------- OSGi integration ----------------------------
@@ -171,7 +148,6 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
     logoutUrl = OsgiUtil.toString(props.get(LOGOUT_URL), DEFAULT_LOGOUT_URL);
     serverUrl = OsgiUtil.toString(props.get(SERVER_URL), DEFAULT_SERVER_URL);
 
-    autoCreateUser = OsgiUtil.toBoolean(props.get(AUTOCREATE_USER), false);
     renew = OsgiUtil.toBoolean(props.get(RENEW), DEFAULT_RENEW);
     gateway = OsgiUtil.toBoolean(props.get(GATEWAY), DEFAULT_GATEWAY);
   }
@@ -216,7 +192,7 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
         if (returnCode >= 200 && returnCode < 300) {
           // successful call; test for valid response
           String body = get.getResponseBodyAsString();
-          String credentials = retrieveCredentials(artifact, body, request);
+          String credentials = retrieveCredentials(body);
           if (credentials != null) {
             // found some credentials; proceed
             authnInfo = createAuthnInfo(credentials);
@@ -244,7 +220,7 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
    *
    * {@inheritDoc}
    *
-   * @see org.apache.sling.auth.corei.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest,
+   * @see org.apache.sling.auth.core.spi.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
   public boolean requestCredentials(HttpServletRequest request,
@@ -281,8 +257,7 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
     }
 
     params.add("service=" + service);
-    String urlToRedirectTo = loginUrl + "?" + StringUtils.join(params, '&');
-    return urlToRedirectTo;
+    return loginUrl + "?" + StringUtils.join(params, '&');
   }
 
   //----------- AuthenticationFeedbackHandler interface ----------------------------
@@ -290,9 +265,9 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
   /**
    * {@inheritDoc}
    *
-   * @see orgorg.apache.sling.auth.coreuthenticationFeedbackHandler#authenticationFailed(javax.servlet.http.HttpServletRequest,
+   * @see org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler#authenticationFailed(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse,
-   *      org.aporg.apache.sling.auth.coreenticationInfo)
+   *      org.apache.sling.auth.core.spi.AuthenticationInfo)
    */
   public void authenticationFailed(HttpServletRequest request,
       HttpServletResponse response, AuthenticationInfo authInfo) {
@@ -325,29 +300,13 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
    * integrations, etc. See SLING-1563 for the related issue of user population via
    * OpenID.
    *
-   * @see org.apachorg.apache.sling.auth.coreicationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
+   * @see org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler#authenticationSucceeded(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse,
-   *      org.apache.sorg.apache.sling.auth.coretionInfo)
+   *      org.apache.sling.auth.core.spi.AuthenticationInfo)
    */
   public boolean authenticationSucceeded(HttpServletRequest request,
       HttpServletResponse response, AuthenticationInfo authInfo) {
     LOGGER.debug("authenticationSucceeded called");
-
-    // If the plug-in is intended to verify the existence of a matching Authorizable,
-    // check that now.
-    if (this.autoCreateUser) {
-      boolean isUserValid = findOrCreateUser(authInfo);
-      if (!isUserValid) {
-        LOGGER.warn("SSO authentication succeeded but corresponding user not found or created");
-        try {
-          dropCredentials(request, response);
-        } catch (IOException e) {
-          LOGGER.error("Failed to drop credentials after SSO authentication by invalid user", e);
-        }
-        return true;
-      }
-    }
-
     // Check for the default post-authentication redirect.
     return DefaultAuthenticationFeedbackHandler.handleRedirect(request, response);
   }
@@ -392,60 +351,14 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
       }
     }
 
-    String encodedUrl = URLEncoder.encode(url.toString(), "UTF-8");
-    return encodedUrl;
-  }
-
-  private boolean findOrCreateUser(AuthenticationInfo authInfo) {
-    boolean isUserValid = false;
-    final String username = authInfo.getUser();
-    // Check for a matching Authorizable. If one isn't found, create
-    // a new user.
-    Session session = null;
-    try {
-      session = repository.loginAdministrative(null); // usage checked and ok KERN-577
-      UserManager userManager = AccessControlUtil.getUserManager(session);
-      Authorizable authorizable = userManager.getAuthorizable(username);
-      if (authorizable == null) {
-        createUser(username, session);
-      }
-      isUserValid = true;
-    } catch (Exception e) {
-      LOGGER.error(e.getMessage(), e);
-    } finally {
-      if (session != null) {
-        session.logout();
-      }
-    }
-    return isUserValid;
-  }
-
-  /**
-   * TODO This logic should probably be supplied by a shared service rather
-   * than copied and pasted across components.
-   */
-  private User createUser(String principalName, Session session) throws Exception {
-    LOGGER.info("Creating user {}", principalName);
-    UserManager userManager = AccessControlUtil.getUserManager(session);
-    User user = userManager.createUser(principalName, RandomStringUtils.random(32));
-    ItemBasedPrincipal principal = (ItemBasedPrincipal) user.getPrincipal();
-    String path = principal.getPath();
-    path = path.substring(UserConstants.USER_REPO_LOCATION.length());
-    ValueFactory valueFactory = session.getValueFactory();
-    user.setProperty("path", valueFactory.createValue(path));
-
-    if (authzPostProcessService != null) {
-      authzPostProcessService.process(user, session, ModificationType.CREATE);
-    }
-    return user;
+    return URLEncoder.encode(url.toString(), "UTF-8");
   }
 
   private String extractArtifact(HttpServletRequest request) {
     return request.getParameter(DEFAULT_ARTIFACT_NAME);
   }
 
-  private String retrieveCredentials(String artifact, String responseBody,
-      HttpServletRequest request) {
+  private String retrieveCredentials(String responseBody) {
     String username = null;
     String failureCode = null;
     String failureMessage = null;
@@ -530,7 +443,6 @@ public class CasAuthenticationHandler implements AuthenticationHandler,
   }
 
   static final class SsoPrincipal implements Principal {
-    private static final long serialVersionUID = -6232157660434175773L;
     private String principalName;
 
     public SsoPrincipal(String principalName) {
