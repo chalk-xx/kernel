@@ -224,8 +224,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     } else {
       Content node = messagingService.create(session, mapProperties);
       // set up to stream the body.
-      // TODO: Store the body as a conetnt stream ? on disk, not as a property ?
-      node.setProperty(MessageConstants.PROP_SAKAI_BODY, data);
+      session.getContentManager().writeBody(node.getPath(), data);
       return node;
     }
   }
@@ -289,9 +288,23 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     /*
      * Instead of creating a child node, just write the body part to the parentNode. I
      * think this will work, but may collide/override properties already set on the
-     * message content.
+     * message content. Let's ensure there are no collisions.
      */
-    parentNode.setProperty(Content.MIMETYPE, part.getContentType());
+    if (!parentNode.hasProperty(Content.MIMETYPE)) {
+      parentNode.setProperty(Content.MIMETYPE, part.getContentType());
+    } else {
+      if (part.getContentType().equals(parentNode.getProperty(Content.MIMETYPE))) {
+        LOGGER.debug("Same mimeType; no worries");
+      } else {
+        throw new IllegalStateException(
+            "This sparse approach is bust; must create a subpath for file body");
+      }
+    }
+    if (parentNode.hasProperty(Content.LASTMODIFIED)) {
+      IllegalStateException e = new IllegalStateException(
+          "sparse - I am not sure we should be updating lastModified... but we will anyway...");
+      LOGGER.warn(e.getMessage(), e);
+    }
     parentNode.setProperty(Content.LASTMODIFIED, Calendar.getInstance());
     // parentNode.setProperty("jcr:data", part.getInputStream());
     session.getContentManager().writeBody(parentNode.getPath(), part.getInputStream());
