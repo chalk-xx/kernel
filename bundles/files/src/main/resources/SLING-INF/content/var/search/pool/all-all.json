@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": 'resourceType:sakai/pooled-content AND content:(${q}) AND managers:(${au})',
+  "sakai:query-template": 'resourceType:sakai/pooled-content',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
@@ -8,11 +8,9 @@
   "sling:resourceType": "sakai/solr-search",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",
-  "sakai:title": "Pooled Content - Managers",
-  "sakai:shortDescription": "Searches trough all the files filtered on a manager.",
+  "sakai:title": "Pooled Content - All",
+  "sakai:shortDescription": "Search trough all the pooled files.",
   "sakai:parameters" : [
-  	  "{\"name\" : \"q\", \"description\" : \"The search term you wish to search on. This will search trough the actual content of the file and any properties on the node.\"}",
-      "{\"name\" : \"au\", \"description\" : \"The id of the authorizable that is a manager.\"}",
       "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. Default is sakai:filename\"}",
       "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'ascending' or 'descending'.\"}"
   ],

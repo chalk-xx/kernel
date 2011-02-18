@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": 'path:${_userMessagePath} AND resourceType:sakai/message AND type:internal AND from:(${from}*)',
+  "sakai:query-template": 'path:${_userMessagePath} AND resourceType:sakai/message AND type:internal',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
@@ -8,11 +8,10 @@
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "Message",
   "sakai:resultprocessor": "Message",
-  "sakai:title": "Messaging - User - Internal - From.",
+  "sakai:title": "Messaging - User - Internal - From - All",
   "sakai:shortDescription": "Get all the internal messages in your message store with a certain sakai:from recipient.",
   "sakai:parameters" : [
-                        "{\"name\" : \"from\", \"description\" : \"The recipient you want to match against.\"}",
-                        "{\"name\" : \"sortOn\", \"description\" : \"Sort the results on this property.\"}",
+                      "{\"name\" : \"sortOn\", \"description\" : \"Sort the results on this property.\"}",
                       "{\"name\" : \"sortOrder\", \"description\" : \"Either 'asc' or 'desc'.\"}"
     ],
   "sakai:description": [

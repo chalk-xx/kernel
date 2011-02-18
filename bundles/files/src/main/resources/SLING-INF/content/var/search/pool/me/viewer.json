@@ -1,5 +1,6 @@
 {
   "sakai:query-template": 'resourceType:sakai/pooled-content AND content:(${q})${_meViewerGroups}',
+  "sakai:query-template": 'resourceType:sakai/pooled-content ${_meViewerGroups}',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
