@@ -32,6 +32,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +94,8 @@ public class PageServlet extends SlingSafeMethodsServlet {
         for (Content page : pagesContent.listChildren()) {
           writer.object();
           writer.key("jcr:path");
-          writer.value(page.getPath().replaceFirst("a:", "~"));
+          writer.value(page.getPath().replaceFirst(LitePersonalUtils.PATH_AUTHORIZABLE,
+              LitePersonalUtils.PATH_RESOURCE_AUTHORIZABLE));
           for (String messagePropKey : page.getProperties().keySet()) {
             writer.key(messagePropKey);
             writer.value(massageValue(messagePropKey, page.getProperty(messagePropKey)));

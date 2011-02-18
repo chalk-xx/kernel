@@ -31,10 +31,14 @@ public class LitePersonalUtils {
    */
   public static final String PROP_EMAIL_ADDRESS = "email";
   /**
-   * The base location of the group space.
+   * The base location of the user's or group's space in storage.
    */
   public static final String PATH_AUTHORIZABLE = "a:";
-  
+  /**
+   * The base location of the user's or group's space as a Sling Resource.
+   */
+  public static final String PATH_RESOURCE_AUTHORIZABLE = "/~";
+
   /**
    * The node name of the authentication profile in public space.
    */
@@ -79,7 +83,7 @@ public class LitePersonalUtils {
   /**
    * @param au
    *          The authorizable to get the authprofile path for.
-   * @return The absolute path in JCR to the authprofile node that contains all the
+   * @return The absolute path in Sparse storage to the authprofile node that contains all the
    *         profile information.
    */
   public static String getProfilePath(String id) {
@@ -89,7 +93,7 @@ public class LitePersonalUtils {
   /**
    * @param au
    *          The authorizable to get the private path for.
-   * @return The absolute path in JCR to the private folder in the user his home folder.
+   * @return The absolute path in Sparse storage to the private folder in the user his home folder.
    */
   public static String getPrivatePath(String id) {
     return getHomePath(id) + "/" + PATH_PRIVATE;
@@ -98,7 +102,7 @@ public class LitePersonalUtils {
   /**
    * @param au
    *          The authorizable to get the public path for.
-   * @return The absolute path in JCR to the public folder in the user his home folder.
+   * @return The absolute path in Sparse storage to the public folder in the user his home folder.
    */
   public static String getPublicPath(String id) {
     return getHomePath(id) + "/" + PATH_PUBLIC;
@@ -108,18 +112,27 @@ public class LitePersonalUtils {
 
   /**
    * Get the home folder for an authorizable. If the authorizable is a user, this might
-   * return: /_user/t/te/tes/test/testuser
-   * 
+   * return: a:testuser
+   *
    * @param au
    *          The authorizable to get the home folder for.
-   * @return The absolute path in JCR to the home folder for an authorizable.
+   * @return The absolute path in Sparse storage to the home folder for an authorizable.
    */
   public static String getHomePath(String id) {
     return PATH_AUTHORIZABLE+id;
   }
 
 
-
-
+  /**
+   * Get the Resource path of an Authorizable's. If the authorizable is a user, this might
+   * return: /~testuser
+   *
+   * @param au
+   *          The authorizable to get the home folder for.
+   * @return The absolute Resource path to the home folder for an authorizable.
+   */
+  public static String getHomeResourcePath(String id) {
+    return PATH_RESOURCE_AUTHORIZABLE+id;
+  }
 
 }

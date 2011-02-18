@@ -4,6 +4,7 @@ import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -18,12 +19,22 @@ import java.util.Map.Entry;
 public class SimpleJsonImporter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SimpleJsonImporter.class);
-
+  
   public void importContent(ContentManager contentManager, JSONObject json,
       String path, SimpleImportOptions simpleImportOptions,
-      SimpleContentImportListener simpleContentImportListener) throws JSONException, StorageClientException, AccessDeniedException {
+      SimpleContentImportListener simpleContentImportListener) throws JSONException, StorageClientException, AccessDeniedException  {
+      internalImportContent(contentManager, json, path, simpleImportOptions, simpleContentImportListener, true);
+  }
+  public void internalImportContent(ContentManager contentManager, JSONObject json,
+      String path, SimpleImportOptions simpleImportOptions,
+      SimpleContentImportListener simpleContentImportListener, boolean topOfTree) throws JSONException, StorageClientException, AccessDeniedException {
     Iterator<String> keys = json.keys();
     Map<String, Object> properties = new HashMap<String, Object>();
+    if ( topOfTree && simpleImportOptions.isOverwrite() ) {
+      LOGGER.info("Deleting {} ",path);
+      StorageClientUtils.deleteTree(contentManager, path);
+      LOGGER.info("Done Deleting {} ",path);
+    }
     while (keys.hasNext()) {
 
       String key = keys.next();
@@ -31,10 +42,9 @@ public class SimpleJsonImporter {
         Object obj = json.get(key);
 
         if (obj instanceof JSONObject) {
-          importContent(contentManager, (JSONObject) obj, path + "/" + key, simpleImportOptions, simpleContentImportListener);
+          internalImportContent(contentManager, (JSONObject) obj, path + "/" + key, simpleImportOptions, simpleContentImportListener, false);
         } else if (obj instanceof JSONArray) {
           // This represents a multivalued property
-
           JSONArray arr = (JSONArray) obj;
           String[] values = new String[arr.length()];
           for (int i = 0; i < arr.length(); i++) {
@@ -54,9 +64,12 @@ public class SimpleJsonImporter {
       }
       LOGGER.info("Created Node {} {}",path,properties);
     } else {
+      boolean replaceProperties = simpleImportOptions.isPropertyOverwrite();
       for (Entry<String, Object> e : properties.entrySet()) {
-        LOGGER.info("Updated Node {} {} {} ",new Object[]{path,e.getKey(), e.getValue()});
-        content.setProperty(e.getKey(), e.getValue());
+        if ( replaceProperties || !content.hasProperty(e.getKey())) {
+          LOGGER.info("Updated Node {} {} {} ",new Object[]{path,e.getKey(), e.getValue()});
+          content.setProperty(e.getKey(), e.getValue());
+        }
       }
       contentManager.update(content);
       if ( simpleContentImportListener != null) {
