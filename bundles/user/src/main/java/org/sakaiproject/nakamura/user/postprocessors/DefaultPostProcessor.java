@@ -436,7 +436,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
                                                             : SAKAI_USER_PROFILE_RT;
         // FIXME BL120 this is a hackaround to KERN-1569; UI needs to change behavior
         final Map<String, Object> sakaiAuthzProperties = new HashMap<String, Object>();
-        sakaiAuthzProperties.put("homePath", homePath);
+        sakaiAuthzProperties.put("homePath", LitePersonalUtils.getHomeResourcePath(authId));
         if (authorizable instanceof Group) {
           for (final Entry<String, Object> entry : authorizable.getSafeProperties()
               .entrySet()) {
