@@ -163,6 +163,12 @@
       <artifactId>google-collections</artifactId>
       <version>0.8</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.core</artifactId>
+      <version>0.10-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
 
     <!--  Tests -->
     <dependency>

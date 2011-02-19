@@ -28,15 +28,18 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
 import org.sakaiproject.nakamura.api.calendar.CalendarService;
+import org.sakaiproject.nakamura.api.calendar.LiteCalendarService;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 
 import java.io.IOException;
 
@@ -83,6 +86,9 @@ public class CalendarIcsServlet extends SlingSafeMethodsServlet {
   @Reference
   protected transient CalendarService calendarService;
 
+  @Reference
+  protected transient LiteCalendarService liteCalendarService;
+
   /**
    * {@inheritDoc}
    * 
@@ -96,12 +102,19 @@ public class CalendarIcsServlet extends SlingSafeMethodsServlet {
     response.setContentType("text/calendar");
     response.setCharacterEncoding("UTF-8");
 
-    Node node = request.getResource().adaptTo(Node.class);
+    String[] types = getSelectors(request);
+    Calendar iCal = null;
+    Resource resource = request.getResource();
     try {
-      String[] types = getSelectors(request);
-      // Construct the Calendar from the node structure.
-      Calendar iCal = calendarService.export(node, types);
-
+      Content content = resource.adaptTo(Content.class);
+      if (content != null) {
+        // Construct the Calendar from the content tree.
+        iCal = liteCalendarService.export(null, content, types);
+      } else {
+        Node node = resource.adaptTo(Node.class);
+        // Construct the Calendar from the node structure.
+        iCal = calendarService.export(node, types);
+      }
       // Output the calendar, we don't do any validation.
       CalendarOutputter outputter = new CalendarOutputter(false);
       outputter.output(iCal, response.getOutputStream());
