@@ -30,7 +30,7 @@ public class SimpleJsonImporter {
       SimpleContentImportListener simpleContentImportListener, boolean topOfTree) throws JSONException, StorageClientException, AccessDeniedException {
     Iterator<String> keys = json.keys();
     Map<String, Object> properties = new HashMap<String, Object>();
-    if ( topOfTree && simpleImportOptions.isOverwrite() ) {
+    if ( topOfTree && simpleImportOptions != null && simpleImportOptions.isOverwrite() ) {
       LOGGER.info("Deleting {} ",path);
       StorageClientUtils.deleteTree(contentManager, path);
       LOGGER.info("Done Deleting {} ",path);
@@ -64,7 +64,7 @@ public class SimpleJsonImporter {
       }
       LOGGER.info("Created Node {} {}",path,properties);
     } else {
-      boolean replaceProperties = simpleImportOptions.isPropertyOverwrite();
+      boolean replaceProperties = (simpleImportOptions == null ) || simpleImportOptions.isPropertyOverwrite();
       for (Entry<String, Object> e : properties.entrySet()) {
         if ( replaceProperties || !content.hasProperty(e.getKey())) {
           LOGGER.info("Updated Node {} {} {} ",new Object[]{path,e.getKey(), e.getValue()});
