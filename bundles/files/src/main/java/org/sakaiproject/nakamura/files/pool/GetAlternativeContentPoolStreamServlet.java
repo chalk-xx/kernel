@@ -81,7 +81,7 @@ public class GetAlternativeContentPoolStreamServlet extends SlingSafeMethodsServ
       }
       
       Map<String, Object> properties = node.getProperties();
-      long modifTime = StorageClientUtils.toLong(properties.get(StorageClientUtils.getAltField(Content.LASTMODIFIED, alternativeStream)));
+      long modifTime = StorageClientUtils.toLong(properties.get(StorageClientUtils.getAltField(Content.LASTMODIFIED_FIELD, alternativeStream)));
       if (unmodified(request, modifTime)) {
         response.setStatus(SC_NOT_MODIFIED);
         return;
@@ -164,12 +164,12 @@ public class GetAlternativeContentPoolStreamServlet extends SlingSafeMethodsServ
    */
   private void setHeaders(Map<String, Object> properties, Resource resource, SlingHttpServletResponse response, String alternativeStream) {
 
-    long modifTime = StorageClientUtils.toLong(properties.get(StorageClientUtils.getAltField(Content.LASTMODIFIED, alternativeStream)));
+    long modifTime = StorageClientUtils.toLong(properties.get(StorageClientUtils.getAltField(Content.LASTMODIFIED_FIELD, alternativeStream)));
     if (modifTime > 0) {
       response.setDateHeader(HEADER_LAST_MODIFIED, modifTime);
     }
 
-    String contentType = (String) properties.get(StorageClientUtils.getAltField(Content.MIMETYPE, alternativeStream));
+    String contentType = (String) properties.get(StorageClientUtils.getAltField(Content.MIMETYPE_FIELD, alternativeStream));
     if (contentType == null) {
       final String ct = getServletContext().getMimeType(resource.getPath());
       if (ct != null) {
@@ -180,7 +180,7 @@ public class GetAlternativeContentPoolStreamServlet extends SlingSafeMethodsServ
       response.setContentType(contentType);
     }
 
-    String encoding = (String) properties.get(StorageClientUtils.getAltField(Content.ENCODING, alternativeStream));
+    String encoding = (String) properties.get(StorageClientUtils.getAltField(Content.ENCODING_FIELD, alternativeStream));
     if (encoding != null) {
       response.setCharacterEncoding(encoding);
     }

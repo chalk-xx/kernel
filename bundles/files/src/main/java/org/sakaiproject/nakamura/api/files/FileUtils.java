@@ -240,10 +240,10 @@ public class FileUtils {
 
     write.key(JcrConstants.JCR_LASTMODIFIED);
     Calendar cal = new GregorianCalendar();
-    cal.setTimeInMillis(StorageClientUtils.toLong(content.getProperty(Content.LASTMODIFIED)));
+    cal.setTimeInMillis(StorageClientUtils.toLong(content.getProperty(Content.LASTMODIFIED_FIELD)));
     write.value(DateUtils.iso8601(cal));
     write.key(JcrConstants.JCR_MIMETYPE);
-    write.value(content.getProperty(Content.MIMETYPE));
+    write.value(content.getProperty(Content.MIMETYPE_FIELD));
     write.key(JcrConstants.JCR_DATA);
     write.value(StorageClientUtils.toLong(content.getProperty(Content.LENGTH_FIELD)));
     write.endObject();

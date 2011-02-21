@@ -183,4 +183,16 @@ public class DateUtils {
     return s;
   }
 
+  /**
+   * Returns an <a href="http://www.ietf.org/rfc/rfc2445.txt">RFC 2445</a> compliant time
+   * stamp.
+   *
+   * @return yyyy-MM-dd hh:mm:ssZ
+   * @see java.text.SimpleDateFormat
+   */
+  public static String rfc2445(Calendar c) {
+    String s = rfc2445.format(c);
+    return s;
+  }
+
 }

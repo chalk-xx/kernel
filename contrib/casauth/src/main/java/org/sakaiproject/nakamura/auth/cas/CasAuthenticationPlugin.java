@@ -44,10 +44,6 @@ public class CasAuthenticationPlugin implements AuthenticationPlugin {
    * @see org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin#authenticate(javax.jcr.Credentials)
    */
   public boolean authenticate(Credentials credentials) throws RepositoryException {
-    if (loginModulePlugin.canHandle(credentials)) {
-      return true;
-    } else {
-      return false;
-    }
+      return loginModulePlugin.canHandle(credentials);
   }
 }

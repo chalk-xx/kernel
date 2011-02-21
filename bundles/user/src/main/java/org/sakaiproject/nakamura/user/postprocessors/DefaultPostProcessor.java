@@ -422,24 +422,34 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
             contentManager, accessControlManager, null);
         authorizableManager.createGroup("g-contacts-" + authorizable.getId(), "g-contacts-"
             + authorizable.getId(), null);
+        // Pages
+        boolean createdPages = createPath(authId, homePath + PAGES_FOLDER, SAKAI_PAGES_RT,
+            false, contentManager, accessControlManager, null);
+        createPath(authId, homePath + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false,
+            contentManager, accessControlManager, null);
+        if (createdPages) {
+          intitializeContent(request, authorizable, session, homePath + PAGES_FOLDER,
+              parameters);
+        }
         // Profile
         String profileType = (authorizable instanceof Group) ? SAKAI_GROUP_PROFILE_RT
                                                             : SAKAI_USER_PROFILE_RT;
         // FIXME BL120 this is a hackaround to KERN-1569; UI needs to change behavior
+        final Map<String, Object> sakaiAuthzProperties = new HashMap<String, Object>();
+        sakaiAuthzProperties.put("homePath", LitePersonalUtils.getHomeResourcePath(authId));
         if (authorizable instanceof Group) {
-          final Map<String, Object> sakaiGroupProperties = new HashMap<String, Object>();
           for (final Entry<String, Object> entry : authorizable.getSafeProperties()
               .entrySet()) {
             if (entry.getKey().startsWith("sakai:group")) {
-              sakaiGroupProperties.put(entry.getKey(), entry.getValue());
+              sakaiAuthzProperties.put(entry.getKey(), entry.getValue());
             }
           }
           createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
               profileType, false, contentManager, accessControlManager,
-              sakaiGroupProperties);
+              sakaiAuthzProperties);
         } else {
           createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
-              profileType, false, contentManager, accessControlManager, null);
+              profileType, false, contentManager, accessControlManager, sakaiAuthzProperties);
         }
         // end KERN-1569 hackaround
         // createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
@@ -450,20 +460,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         for (String propName : profileProperties.keySet()) {
           authorizable.setProperty(propName, profileProperties.get(propName));
         }
-
         authorizableManager.updateAuthorizable(authorizable);
         createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC,
             "nt:unstructured", false, contentManager, accessControlManager, profileProperties);
-
-        // Pages
-        boolean createdPages = createPath(authId, LitePersonalUtils.getProfilePath(authId) + PAGES_FOLDER, SAKAI_PAGES_RT,
-            false, contentManager, accessControlManager, null);
-        createPath(authId, LitePersonalUtils.getProfilePath(authId) + PAGES_DEFAULT_FILE, SAKAI_PAGES_RT, false,
-            contentManager, accessControlManager, null);
-        if (createdPages) {
-          intitializeContent(request, authorizable, session, LitePersonalUtils.getProfilePath(authId) + PAGES_FOLDER,
-              parameters);
-        }
       }
     } else {
       // Attempt to sync the Acl on the home folder with whatever is present in the
@@ -619,11 +618,11 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       if (content == null) {
         content = contentManager.get(thisPath);
         if (contentNode.hasProperty(JcrConstants.JCR_MIMETYPE)) {
-          content.setProperty(Content.MIMETYPE,
+          content.setProperty(Content.MIMETYPE_FIELD,
               contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
         }
         if (contentNode.hasProperty(JcrConstants.JCR_LASTMODIFIED)) {
-          content.setProperty(Content.LASTMODIFIED,
+          content.setProperty(Content.LASTMODIFIED_FIELD,
               contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getLong());
         }
       }

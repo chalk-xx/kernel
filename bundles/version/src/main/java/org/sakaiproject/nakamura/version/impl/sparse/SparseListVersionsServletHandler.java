@@ -166,14 +166,14 @@ public class SparseListVersionsServletHandler extends AbstractSafeMethodsServlet
   private void writeEditorDetails(Content content, ExtendedJSONWriter write, AuthorizableManager authorizableManager)
       throws JSONException, AccessDeniedException, StorageClientException {
     String user = null;
-    if (content.hasProperty(Content.VERSION_SAVEDBY)) {
-      user = (String) content.getProperty(Content.VERSION_SAVEDBY);
+    if (content.hasProperty(Content.VERSION_SAVEDBY_FIELD)) {
+      user = (String) content.getProperty(Content.VERSION_SAVEDBY_FIELD);
     }
     
 
     if (user != null) {
       org.sakaiproject.nakamura.api.lite.authorizable.Authorizable authorizable = authorizableManager.findAuthorizable(user);
-      write.key(Content.VERSION_SAVEDBY);
+      write.key(Content.VERSION_SAVEDBY_FIELD);
       write.valueMap(authorizable.getSafeProperties());
     }
   }

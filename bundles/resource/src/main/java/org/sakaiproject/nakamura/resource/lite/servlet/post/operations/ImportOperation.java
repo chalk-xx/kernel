@@ -154,8 +154,10 @@ public class ImportOperation extends AbstractSparseCreateOperation {
         }
       }
     } catch (IOException e) {
+      LOGGER.error(e.getMessage(),e);
       throw new StorageClientException(e.getMessage(),e);
     } catch (JSONException e) {
+      LOGGER.error(e.getMessage(),e);
       throw new StorageClientException(e.getMessage(),e);
     }
   }

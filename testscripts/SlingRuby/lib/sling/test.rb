@@ -63,7 +63,7 @@ module SlingTest
   end
   
   def wait_for_indexer()
-    sleep(20)
+    sleep(10)  # the indexer has a TTL on 5s on each batch, so 10s should be plenty.
   end
 
 end
