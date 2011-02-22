@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.image;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+
 import com.google.common.collect.ImmutableMap;
 
 import static org.mockito.Mockito.when;
@@ -26,6 +29,7 @@ import static org.junit.Assert.assertEquals;
 
 import static org.mockito.Mockito.*;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -40,6 +44,8 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
+import org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.StringUtils;
 
@@ -100,7 +106,15 @@ public class CropItServletTest extends AbstractEasyMockTest {
     String imagePath = "a:johndoe/people.png";
     when(contentManager.getInputStream(imagePath)).thenReturn(getClass().getClassLoader().getResourceAsStream("people.png"));
     when(contentManager.get(anyString())).thenReturn(new Content("foo", null));
-    when(contentManager.get(imagePath)).thenReturn(new Content(imagePath, ImmutableMap.of("mimeType", (Object)"image/png", "bodyLocation", "2011/lt/zz/x8")));
+
+    SparseContentResource someResource = mock(SparseContentResource.class);
+    when(someResource.adaptTo(Content.class)).thenReturn(new Content(imagePath, ImmutableMap.of("mimeType", (Object)"image/png", "_bodyLocation", "2011/lt/zz/x8")));
+    JackrabbitSession jrSession = mock(JackrabbitSession.class);
+    SparseMapUserManager userManager = mock(SparseMapUserManager.class);
+    when(userManager.getSession()).thenReturn(mockSession);
+    when(jrSession.getUserManager()).thenReturn(userManager);
+    when(resourceResolver.adaptTo(javax.jcr.Session.class)).thenReturn(jrSession);
+    when(resourceResolver.getResource(anyString())).thenReturn(someResource);
 
     // Capture output.
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
