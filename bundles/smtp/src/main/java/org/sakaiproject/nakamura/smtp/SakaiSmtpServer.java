@@ -26,7 +26,6 @@ import org.subethamail.smtp.server.SMTPServer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -35,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.jcr.RepositoryException;
 import javax.mail.BodyPart;
 import javax.mail.Header;
 import javax.mail.MessagingException;
@@ -173,9 +171,6 @@ public class SakaiSmtpServer implements SimpleMessageListener {
         }
 
       }
-    } catch (RepositoryException e) {
-      LOGGER.error("Unable to write message", e);
-      throw new IOException("Message can not be written to repository");
     } catch (MessagingException e) {
       LOGGER.error("Unable to write message", e);
       throw new IOException("Message can not be written to repository");
@@ -197,7 +192,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
 
   @SuppressWarnings("unchecked")
   private Content writeMessage(Session session, Map<String, Object> mapProperties,
-      InputStream data, String storePath) throws MessagingException, AccessDeniedException, StorageClientException, RepositoryException, IOException {
+      InputStream data, String storePath) throws MessagingException, AccessDeniedException, StorageClientException, IOException {
     InternetHeaders internetHeaders = new InternetHeaders(data);
     // process the headers into a map.
     for ( Enumeration<Header> e = internetHeaders.getAllHeaders(); e.hasMoreElements(); ) {
@@ -229,7 +224,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     }
   }
 
-  private void writeMultipartToNode(Session session, Content message, MimeMultipart multipart) throws MessagingException, AccessDeniedException, StorageClientException, RepositoryException, IOException
+  private void writeMultipartToNode(Session session, Content message, MimeMultipart multipart) throws MessagingException, AccessDeniedException, StorageClientException, IOException
       {
     int count = multipart.getCount();
     for (int i = 0; i < count; i++) {
@@ -243,7 +238,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
   }
 
   private void createChildNodeForPart(Session session, int index, BodyPart part,
-      Content message) throws MessagingException, AccessDeniedException, StorageClientException, RepositoryException, IOException {
+      Content message) throws MessagingException, AccessDeniedException, StorageClientException, IOException {
     ContentManager contentManager = session.getContentManager();
     String childName = String.format("part%1$03d", index);
     String childPath = message.getPath() + "/" + childName;
@@ -290,29 +285,23 @@ public class SakaiSmtpServer implements SimpleMessageListener {
      * think this will work, but may collide/override properties already set on the
      * message content. Let's ensure there are no collisions.
      */
-    if (!parentNode.hasProperty(Content.MIMETYPE)) {
-      parentNode.setProperty(Content.MIMETYPE, part.getContentType());
+    if (!parentNode.hasProperty(Content.MIMETYPE_FIELD)) {
+      parentNode.setProperty(Content.MIMETYPE_FIELD, part.getContentType());
     } else {
-      if (part.getContentType().equals(parentNode.getProperty(Content.MIMETYPE))) {
+      if (part.getContentType().equals(parentNode.getProperty(Content.MIMETYPE_FIELD))) {
         LOGGER.debug("Same mimeType; no worries");
       } else {
         throw new IllegalStateException(
             "This sparse approach is bust; must create a subpath for file body");
       }
     }
-    if (parentNode.hasProperty(Content.LASTMODIFIED)) {
-      IllegalStateException e = new IllegalStateException(
-          "sparse - I am not sure we should be updating lastModified... but we will anyway...");
-      LOGGER.warn(e.getMessage(), e);
-    }
-    parentNode.setProperty(Content.LASTMODIFIED, Calendar.getInstance());
     // parentNode.setProperty("jcr:data", part.getInputStream());
     session.getContentManager().writeBody(parentNode.getPath(), part.getInputStream());
   }
 
   @SuppressWarnings("unchecked")
   private void writePartPropertiesToNode(BodyPart part, Content childNode)
-      throws MessagingException, RepositoryException {
+      throws MessagingException {
     Enumeration<Header> headers = part.getAllHeaders();
     while (headers.hasMoreElements()) {
       Header header = headers.nextElement();
