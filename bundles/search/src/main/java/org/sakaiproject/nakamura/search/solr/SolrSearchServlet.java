@@ -463,7 +463,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       if (StringUtils.isBlank(value)) {
         String requestValue = vals[0].getString();
         if ("sortOn".equals(key)) {
-          requestValue = requestValue.replaceFirst("sakai:", "");
+          requestValue = StringUtils.removeStart(requestValue, "sakai:");
         }
         propertiesMap.put(entry.getKey(), requestValue);
       }
