@@ -1,8 +1,9 @@
 {
-  "sakai:query-template": 'path:${_connectionstore} AND resourceType:sakai/contact',
+  "sakai:query-template": 'path:${_connectionstore} AND resourceType:sakai/contact AND state:(${state})',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
+  "state": "ACCEPTED",
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
