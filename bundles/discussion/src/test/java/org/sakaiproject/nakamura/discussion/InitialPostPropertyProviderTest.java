@@ -21,10 +21,14 @@ import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import static org.mockito.Mockito.*;
+
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.commons.testing.sling.MockResource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.discussion.searchresults.DiscussionInitialPostPropertyProvider;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
@@ -52,19 +56,23 @@ public class InitialPostPropertyProviderTest extends AbstractEasyMockTest {
 
     Map<String, String> propertiesMap = new HashMap<String, String>();
 
-    Resource resource = new MockResource(null, "/foo", null);
+    Resource resource = mock(Resource.class);
+    ResourceResolver resolver = mock(ResourceResolver.class);
+    Content messageContent = new Content("a:userIdHere", null);
+    RequestParameter pathParam = mock(RequestParameter.class);
+    when(pathParam.getString()).thenReturn("a:userIdHere");
 
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    expect(request.getResource()).andReturn(resource);
-    addStringRequestParameter(request, "path", "a:userIdHere");
+    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
+    when(request.getResourceResolver()).thenReturn(resolver);
+    when(resolver.getResource(anyString())).thenReturn(resource);
+    when(resource.adaptTo(Content.class)).thenReturn(messageContent);
+    when(request.getRequestParameter("path")).thenReturn(pathParam);
 
     replay();
     provider.loadUserProperties(request, propertiesMap);
 
-    // Remove normal path string from map.
-    assertNull(propertiesMap.get("path"));
     // Proper escaping.
-    assertEquals("a\\:userIdHere", propertiesMap.get("_path"));
+    assertEquals("a\\:userIdHere", propertiesMap.get("path"));
   }
 
 }

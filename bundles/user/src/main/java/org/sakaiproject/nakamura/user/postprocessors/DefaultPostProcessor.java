@@ -498,6 +498,30 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       accessControlManager.setAcl(Security.ZONE_AUTHORIZABLES, authorizable.getId(),
           aclModifications.toArray(new AclModification[aclModifications.size()]));
 
+      // FIXME BL120 this is another hackaround for KERN-1584.
+      // authprofile missing sakai:group-joinable and sakai:group-visible.
+      if (parameters != null) {
+        final Content authprofile = contentManager.get(LitePersonalUtils
+            .getPublicPath(authId) + PROFILE_FOLDER);
+        if (authprofile != null) {
+          boolean modified = false;
+          for (final Entry<String, Object[]> entry : parameters.entrySet()) {
+            final String key = entry.getKey();
+            if ("sakai:group-joinable".equals(key) || "sakai:group-visible".equals(key)) {
+              authprofile.setProperty(entry.getKey(), entry.getValue()[0]);
+              modified = true;
+            }
+          }
+          if (modified) {
+            contentManager.update(authprofile);
+          }
+        } else {
+          IllegalStateException e = new IllegalStateException(
+              "Could not locate group profile");
+          LOGGER.error(e.getLocalizedMessage(), e);
+        }
+      }
+      // end KERN-1584 hackaround
     }
 
   }
