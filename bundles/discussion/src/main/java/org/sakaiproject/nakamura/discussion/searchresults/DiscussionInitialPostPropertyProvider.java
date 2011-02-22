@@ -23,7 +23,10 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 
 import java.util.Map;
@@ -42,19 +45,19 @@ public class DiscussionInitialPostPropertyProvider implements SolrSearchProperty
   static final String SEARCH_PROVIDER = "sakai.search.provider";
 
   public void loadUserProperties(SlingHttpServletRequest request, Map<String, String> propertiesMap) {
-    // Make sure we don't go trough the entire repository..
-    String path = request.getResource().getPath();
 
     RequestParameter pathParam = request.getRequestParameter("path");
     if (pathParam != null) {
-      path = pathParam.getString();
+      String resourcePath = pathParam.getString();
+      ResourceResolver resourceResolver = request.getResourceResolver();
+      Resource messageResource = resourceResolver.getResource(resourcePath);
+      if (messageResource != null) {
+        Content messageContent = messageResource.adaptTo(Content.class);
+        String safePath = ClientUtils.escapeQueryChars(messageContent.getPath());
+        propertiesMap.put("path", safePath);
+      }
     }
 
-    if (path.endsWith("/")) {
-      path = path.substring(0, path.length() - 1);
-    }
-
-    propertiesMap.put("_path", ClientUtils.escapeQueryChars(path));
   }
 
 }
