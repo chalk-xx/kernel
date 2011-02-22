@@ -12,7 +12,6 @@
   "sakai:title": "Contacts - Search.",
   "sakai:shortDescription": "Search trough contacts based on firstName, lastName or email.  You can also specify contact state: ie ACCEPTED, BLOCKED, IGNORED, INVITED, PENDING, REJECTED, ect.  The default search value is ACCEPTED.  To search all contacts do: q=*&state=*",
   "sakai:parameters" : [
-                        "{\"name\" : \"q\", \"description\" : \"Filter for the firstName, lastName or email.\"}",
                         "{\"name\" : \"state\", \"description\" : \"Filter for the state of a contact: ie ACCEPTED, BLOCKED, IGNORED, INVITED, PENDING, REJECTED, ect.  The default state is ACCEPTED\"}"
                         ],
   "sakai:description": [

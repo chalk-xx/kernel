@@ -331,6 +331,16 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     Map<String, String> propertiesMap = loadProperties(request, propertyProviderName,
         queryNode);
 
+    // process the querystring before checking for missing terms to a) give processors a
+    // chance to set things and b) catch any missing terms added by the processors.
+    String queryString = templateService.evaluateTemplate(propertiesMap, queryTemplate);
+
+    // expand home directory references to full path; eg. ~user => a:user
+    queryString = expandHomeDirectoryInQuery(queryString);
+
+    // append the user principals to the query string
+    queryString = addUserPrincipals(request, queryString);
+
     // check for any missing terms & process the query template
     Collection<String> missingTerms = templateService.missingTerms(propertiesMap,
         queryTemplate);
@@ -339,14 +349,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           "Your request is missing parameters for the template: "
               + StringUtils.join(missingTerms, ", "));
     }
-
-    String queryString = templateService.evaluateTemplate(propertiesMap, queryTemplate);
-
-    // expand home directory references to full path; eg. ~user => a:user
-    queryString = expandHomeDirectoryInQuery(queryString);
-
-    // append the user principals to the query string
-    queryString = addUserPrincipals(request, queryString);
 
     // collect query options
     JSONObject queryOptions = accumulateQueryOptions(queryNode);
