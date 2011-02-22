@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.files.servlets;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -64,6 +65,8 @@ public class MyManagedContentServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = -3786472219389695181L;
   private static final Logger LOG = LoggerFactory.getLogger(MyManagedContentServlet.class);
 
+  private static final int searchLimit = 100;
+
   /**
    * {@inheritDoc}
    *
@@ -87,10 +90,10 @@ public class MyManagedContentServlet extends SlingSafeMethodsServlet {
       while(allGroupsIter.hasNext()) {
         Group group = allGroupsIter.next();
         if (!group.getId().equals(Group.EVERYONE) && group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
-          contentResults.addAll(findManagedContent(cm, (String)group.getProperty(UserConstants.PROP_MANAGED_GROUP)));
+          contentResults.addAll(findManagedContent(cm, (String)group.getProperty(UserConstants.PROP_MANAGED_GROUP), searchLimit));
         }
       }
-      contentResults.addAll(findManagedContent(cm, currentUser.getId()));
+      contentResults.addAll(findManagedContent(cm, currentUser.getId(), searchLimit));
       PrintWriter w = response.getWriter();
       ExtendedJSONWriter writer = new ExtendedJSONWriter(w);
       writer.object();
@@ -127,8 +130,16 @@ public class MyManagedContentServlet extends SlingSafeMethodsServlet {
 
   }
 
-  private Collection<? extends Content> findManagedContent(ContentManager cm, String id) throws StorageClientException, AccessDeniedException {
-    return cm.find(ImmutableMap.of("sling:resourceType", (Object)"sakai/pooled-content", "sakai:pooled-content-manager", id));
+  private Collection<? extends Content> findManagedContent(ContentManager cm, String id, int maxItems) throws StorageClientException, AccessDeniedException {
+    List<Content> contentSearchResults = Lists.newArrayList();
+    for (Content searchResult : cm.find(ImmutableMap.of("sling:resourceType", (Object)"sakai/pooled-content", "sakai:pooled-content-manager", id))) {
+      if (contentSearchResults.size() < maxItems) {
+        contentSearchResults.add(searchResult);
+      } else {
+        break;
+      }
+    }
+    return contentSearchResults;
   }
 
 }
