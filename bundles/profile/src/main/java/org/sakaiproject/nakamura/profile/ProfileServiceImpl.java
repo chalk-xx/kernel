@@ -37,16 +37,20 @@ import org.apache.felix.scr.annotations.References;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
+import org.sakaiproject.nakamura.api.resource.lite.LiteJsonImporter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -337,5 +341,37 @@ public class ProfileServiceImpl implements ProfileService {
     rv.put(USER_BASIC, basicProfile(
         ImmutableMap.of(USER_FIRSTNAME_PROPERTY, "Anonymous", USER_LASTNAME_PROPERTY, "User", USER_EMAIL_PROPERTY, "anon@sakai.invalid")));
     return rv;
+  }
+
+  public void update(org.sakaiproject.nakamura.api.lite.Session session,
+      String profilePath, JSONObject json) throws StorageClientException,
+      AccessDeniedException, JSONException {
+    String authorizableId = PathUtils.getAuthorizableId(profilePath);
+    // update the authorizable
+    if (authorizableId != null) {
+      AuthorizableManager authorizableManager = session.getAuthorizableManager();
+      Authorizable a = authorizableManager.findAuthorizable(authorizableId);
+      if (a != null) {
+        if (json.has("basic")) {
+          JSONObject basic = json.getJSONObject("basic");
+          if (basic.has("elements")) {
+            JSONObject elements = basic.getJSONObject("elements");
+            for (String element : basicProfileElements) {
+              if (elements.has(element)) {
+                JSONObject elementObject = elements.getJSONObject(element);
+                if (elementObject.has("value")) {
+                  a.setProperty(element, elementObject.get("value"));
+                }
+              }
+            }
+            authorizableManager.updateAuthorizable(a);
+          }
+        }
+      }
+    }
+    // update the profile content
+    ContentManager contentManager = session.getContentManager();
+    LiteJsonImporter importer = new LiteJsonImporter();
+    importer.importContent(contentManager, json, profilePath, true, true);
   }
 }

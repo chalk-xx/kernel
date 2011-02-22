@@ -18,6 +18,8 @@
 package org.sakaiproject.nakamura.api.profile;
 
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
@@ -71,6 +73,17 @@ public interface ProfileService {
 
   ValueMap getCompactProfileMap(org.apache.jackrabbit.api.security.user.Authorizable au,
       Session session) throws RepositoryException;
+
+  /**
+   * Update the profile using a json tree to replace the existing tree.
+   * @param session the current session
+   * @param profilePath the path to the profile
+   * @param json the json representing the new profile
+   * @throws StorageClientException
+   * @throws AccessDeniedException
+   * @throws JSONException
+   */
+  void update(org.sakaiproject.nakamura.api.lite.Session session, String profilePath, JSONObject json) throws StorageClientException, AccessDeniedException, JSONException;
 
 
 }

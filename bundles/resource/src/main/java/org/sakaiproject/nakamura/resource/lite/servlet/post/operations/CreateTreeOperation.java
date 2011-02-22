@@ -29,6 +29,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparsePostOperation;
+import org.sakaiproject.nakamura.api.resource.lite.LiteJsonImporter;
 import org.sakaiproject.nakamura.api.resource.lite.SparseNonExistingResource;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.SparseCreateServlet;
 
@@ -92,8 +93,8 @@ public class CreateTreeOperation extends AbstractSparsePostOperation {
 
     // Start creating the tree.
     try {
-      SimpleJsonImporter simpleJSONImporter = new SimpleJsonImporter();
-      simpleJSONImporter.importContent(contentManager, json, path, null, null);
+      LiteJsonImporter simpleJSONImporter = new LiteJsonImporter();
+      simpleJSONImporter.importContent(contentManager, json, path, false, false);
     } catch (JSONException e) {
       throw new StorageClientException(e.getMessage(), e);
     }
