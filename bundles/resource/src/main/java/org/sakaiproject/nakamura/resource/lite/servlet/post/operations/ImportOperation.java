@@ -8,7 +8,6 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.NodeNameGenerator;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -16,6 +15,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparseCreateOperation;
+import org.sakaiproject.nakamura.api.resource.lite.LiteJsonImporter;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.SparseCreateServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,59 +100,17 @@ public class ImportOperation extends AbstractSparseCreateOperation {
         
         JSONObject json = new JSONObject(content);
         LOGGER.info("to {} importing {} ",basePath,json.toString(3));
-        SimpleJsonImporter simpleJsonImporter = new SimpleJsonImporter();
-        simpleJsonImporter.importContent(contentManager, json, basePath,
-            new SimpleImportOptions() {
-
-              public boolean isOverwrite() {
-                return replace;
-              }
-
-              public boolean isPropertyOverwrite() {
-                return replaceProperties;
-              }
-            }, new SimpleContentImportListener() {
-
-              public void onReorder(String orderedPath, String beforeSibbling) {
-                changes.add(Modification.onOrder(orderedPath, beforeSibbling));
-              }
-
-              public void onMove(String srcPath, String destPath) {
-                changes.add(Modification.onMoved(srcPath, destPath));
-              }
-
-              public void onModify(String srcPath) {
-                changes.add(Modification.onModified(srcPath));
-              }
-
-              public void onDelete(String srcPath) {
-                changes.add(Modification.onDeleted(srcPath));
-              }
-
-              public void onCreate(String srcPath) {
-                changes.add(Modification.onCreated(srcPath));
-              }
-
-              public void onCopy(String srcPath, String destPath) {
-                changes.add(Modification.onMoved(srcPath, destPath));
-              }
-            });
-      }
-
-      if (!changes.isEmpty()) {
-        // fill in the data for the response report
-        Modification modification = changes.get(0);
-        if (modification.getType() == ModificationType.CREATE) {
-          String importedPath = modification.getSource();
-          response.setLocation(externalizePath(request, importedPath));
-          response.setPath(importedPath);
-          int lastSlashIndex = importedPath.lastIndexOf('/');
+        LiteJsonImporter simpleJsonImporter = new LiteJsonImporter();
+        simpleJsonImporter.importContent(contentManager, json, basePath, replace, replaceProperties);
+          response.setLocation(externalizePath(request, basePath));
+          response.setPath(basePath);
+          int lastSlashIndex = basePath.lastIndexOf('/');
           if (lastSlashIndex != -1) {
-            String parentPath = importedPath.substring(0, lastSlashIndex);
+            String parentPath = basePath.substring(0, lastSlashIndex);
             response.setParentLocation(externalizePath(request, parentPath));
           }
-        }
       }
+
     } catch (IOException e) {
       LOGGER.error(e.getMessage(),e);
       throw new StorageClientException(e.getMessage(),e);
