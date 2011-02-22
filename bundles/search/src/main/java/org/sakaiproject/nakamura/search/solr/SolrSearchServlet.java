@@ -76,6 +76,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -86,8 +87,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.ValueFormatException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -166,33 +169,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
 
       Node node = resource.adaptTo(Node.class);
       if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
-        String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE).getString();
-        String propertyProviderName = null;
-        if (node.hasProperty(SAKAI_PROPERTY_PROVIDER)) {
-          propertyProviderName = node.getProperty(SAKAI_PROPERTY_PROVIDER).getString();
-        }
-
-        // collect query options
-        JSONObject options = null;
-        if (node.hasProperty(SAKAI_QUERY_TEMPLATE_OPTIONS)) {
-          // process the options as JSON string
-          String optionsProp = node.getProperty(SAKAI_QUERY_TEMPLATE_OPTIONS).getString();
-          options = new JSONObject(optionsProp);
-        } else if (node.hasNode(SAKAI_QUERY_TEMPLATE_OPTIONS)) {
-          // process the options as a sub-node
-          Node optionsNode = node.getNode(SAKAI_QUERY_TEMPLATE_OPTIONS);
-          if (optionsNode.hasProperties()) {
-            options = new JSONObject();
-            PropertyIterator props = optionsNode.getProperties();
-            while (props.hasNext()) {
-              javax.jcr.Property prop = props.nextProperty();
-              if (!prop.getName().startsWith("jcr:")) {
-                options.put(prop.getName(), prop.getString());
-              }
-            }
-          }
-        }
-
         // TODO: we might want to use this ?
         @SuppressWarnings("unused")
         boolean limitResults = true;
@@ -207,8 +183,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         // KERN-1147 Respond better when all parameters haven't been provided for a query
         Query query = null;
         try {
-          query = processQuery(request, node, queryTemplate,
-              options, propertyProviderName);
+          query = processQuery(request, node);
         } catch (MissingParameterException e) {
           response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
           return;
@@ -345,15 +320,19 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    * @return A processed query template
    * @throws MissingParameterException
    */
-  protected Query processQuery(SlingHttpServletRequest request,
-      Node queryTemplateNode, String queryTemplate, JSONObject queryOptions,
-      String propertyProviderName) throws RepositoryException, MissingParameterException,
-      JSONException {
-    Map<String, String> propertiesMap = loadProperties(request, propertyProviderName,
-        queryTemplateNode);
+  protected Query processQuery(SlingHttpServletRequest request, Node queryNode)
+      throws RepositoryException, MissingParameterException, JSONException {
+    String queryTemplate = queryNode.getProperty(SAKAI_QUERY_TEMPLATE).getString();
+    String propertyProviderName = null;
+    if (queryNode.hasProperty(SAKAI_PROPERTY_PROVIDER)) {
+      propertyProviderName = queryNode.getProperty(SAKAI_PROPERTY_PROVIDER).getString();
+    }
 
-    // check for any missing terms & process the query template
-    templateService.missingTerms(propertiesMap, queryTemplate);
+    Map<String, String> propertiesMap = loadProperties(request, propertyProviderName,
+        queryNode);
+
+    // process the querystring before checking for missing terms to a) give processors a
+    // chance to set things and b) catch any missing terms added by the processors.
     String queryString = templateService.evaluateTemplate(propertiesMap, queryTemplate);
 
     // expand home directory references to full path; eg. ~user => a:user
@@ -362,22 +341,86 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     // append the user principals to the query string
     queryString = addUserPrincipals(request, queryString);
 
+    // check for any missing terms & process the query template
+    Collection<String> missingTerms = templateService.missingTerms(propertiesMap,
+        queryTemplate);
+    if (!missingTerms.isEmpty()) {
+      throw new MissingParameterException(
+          "Your request is missing parameters for the template: "
+              + StringUtils.join(missingTerms, ", "));
+    }
+
+    // collect query options
+    JSONObject queryOptions = accumulateQueryOptions(queryNode);
+
     // process the options as templates and check for missing params
+    Map<String, String> options = processOptions(propertiesMap, queryOptions);
+
+    Query query = new Query(queryString, options);
+    return query;
+  }
+
+  /**
+   * @param propertiesMap
+   * @param queryOptions
+   * @return
+   * @throws JSONException
+   * @throws MissingParameterException
+   */
+  private Map<String, String> processOptions(Map<String, String> propertiesMap,
+      JSONObject queryOptions) throws JSONException, MissingParameterException {
+    Collection<String> missingTerms;
     Map<String, String> options = Maps.newHashMap();
     if (queryOptions != null) {
       Iterator<String> keys = queryOptions.keys();
       while(keys.hasNext()) {
         String key = keys.next();
         String val = queryOptions.getString(key);
-        templateService.missingTerms(propertiesMap, val);
+        missingTerms = templateService.missingTerms(propertiesMap, val);
+        if (!missingTerms.isEmpty()) {
+          throw new MissingParameterException(
+              "Your request is missing parameters for the template: "
+                  + StringUtils.join(missingTerms, ", "));
+        }
 
         String processedVal = templateService.evaluateTemplate(propertiesMap, val);
         options.put(key, processedVal);
       }
     }
+    return options;
+  }
 
-    Query query = new Query(queryString, options);
-    return query;
+  /**
+   * @param queryNode
+   * @param queryOptions
+   * @return
+   * @throws RepositoryException
+   * @throws ValueFormatException
+   * @throws PathNotFoundException
+   * @throws JSONException
+   */
+  private JSONObject accumulateQueryOptions(Node queryNode) throws RepositoryException,
+      ValueFormatException, PathNotFoundException, JSONException {
+    JSONObject queryOptions = null;
+    if (queryNode.hasProperty(SAKAI_QUERY_TEMPLATE_OPTIONS)) {
+      // process the options as JSON string
+      String optionsProp = queryNode.getProperty(SAKAI_QUERY_TEMPLATE_OPTIONS).getString();
+      queryOptions = new JSONObject(optionsProp);
+    } else if (queryNode.hasNode(SAKAI_QUERY_TEMPLATE_OPTIONS)) {
+      // process the options as a sub-node
+      Node optionsNode = queryNode.getNode(SAKAI_QUERY_TEMPLATE_OPTIONS);
+      if (optionsNode.hasProperties()) {
+        queryOptions = new JSONObject();
+        PropertyIterator props = optionsNode.getProperties();
+        while (props.hasNext()) {
+          javax.jcr.Property prop = props.nextProperty();
+          if (!prop.getName().startsWith("jcr:")) {
+            queryOptions.put(prop.getName(), prop.getString());
+          }
+        }
+      }
+    }
+    return queryOptions;
   }
 
   /**
@@ -422,10 +465,9 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       if (StringUtils.isBlank(value)) {
         String requestValue = vals[0].getString();
         if ("sortOn".equals(key)) {
-          requestValue = requestValue.replaceFirst("sakai:", "");
+          requestValue = StringUtils.removeStart(requestValue, "sakai:");
         }
-        propertiesMap.put(entry.getKey(),
-            ClientUtils.escapeQueryChars(requestValue));
+        propertiesMap.put(entry.getKey(), requestValue);
       }
     }
 

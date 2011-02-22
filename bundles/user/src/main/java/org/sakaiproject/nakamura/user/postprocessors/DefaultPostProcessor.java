@@ -440,8 +440,10 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         if (authorizable instanceof Group) {
           for (final Entry<String, Object> entry : authorizable.getSafeProperties()
               .entrySet()) {
-            if (entry.getKey().startsWith("sakai:group")) {
-              sakaiAuthzProperties.put(entry.getKey(), entry.getValue());
+            final String key = entry.getKey();
+            if (key.startsWith("sakai:group") || "sakai:pages-visible".equals(key)
+                || "sakai:managers-group".equals(key)) {
+              sakaiAuthzProperties.put(key, entry.getValue());
             }
           }
           createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,

@@ -81,8 +81,8 @@ public class ContentPoolSearchPropertyProvider implements SolrSearchPropertyProv
 
       // create the manager and viewer query parameters
       String userId = ClientUtils.escapeQueryChars(sessionUserId);
-      StringBuilder managers = new StringBuilder("manager:(").append(userId);
-      StringBuilder viewers = new StringBuilder("viewer:(").append(userId);
+      StringBuilder managers = new StringBuilder("AND manager:(").append(userId);
+      StringBuilder viewers = new StringBuilder("AND viewer:(").append(userId);
 
       // add groups to the parameters
       String[] groups = auth.getPrincipals();
@@ -96,15 +96,9 @@ public class ContentPoolSearchPropertyProvider implements SolrSearchPropertyProv
       managers.append(")");
       viewers.append(")");
 
-      // convert to string for reuse
-      String managersParam = managers.toString();
-      String viewersParam = viewers.toString();
-
       // add properties for query templates
-      propertiesMap.put("_meManagerGroupsNoAnd", managersParam);
-      propertiesMap.put("_meViewerGroupsNoAnd", viewersParam);
-      propertiesMap.put("_meManagerGroups", " AND " + managersParam);
-      propertiesMap.put("_meViewerGroups", " AND " + viewersParam);
+      propertiesMap.put("_meManagerGroups", managers.toString());
+      propertiesMap.put("_meViewerGroups", viewers.toString());
     } catch (StorageClientException e) {
       LOGGER.error("Could not get the groups for user [{}].",sessionUserId , e);
     } catch (AccessDeniedException e) {

@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": 'path:${_userMessagePath} AND resourceType:sakai/message AND from:(${from}*)',
+  "sakai:query-template": 'path:${_userMessagePath} AND resourceType:sakai/message',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
@@ -8,10 +8,9 @@
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "Message",
   "sakai:resultprocessor": "Message",
-  "sakai:title": "Messaging - User - From.",
+  "sakai:title": "Messaging - User - From - All",
   "sakai:shortDescription": "Goes trough your entire messagestore matching messages against the sakai:from field.",
   "sakai:parameters" : [
-                      "{\"name\" : \"from\", \"description\" : \"The sender you want to match against.\"}",
                       "{\"name\" : \"sortOn\", \"description\" : \"Sort the results on this property.\"}",
                       "{\"name\" : \"sortOrder\", \"description\" : \"Either 'asc' or 'desc'.\"}"
     ],

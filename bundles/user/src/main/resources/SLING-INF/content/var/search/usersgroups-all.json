@@ -1,0 +1,22 @@
+{
+  "sling:resourceType": "sakai/solr-search",
+  "sakai:query-template": 'type:(u g)',
+  "sakai:query-template-options": {
+      "sort": "${sortOn} ${sortOrder}"
+  },
+  "sortOn": "score",
+  "sortOrder": "desc",
+  "sakai:resultprocessor": "Profile",
+  "sakai:title": "Users, Groups",
+  "sakai:shortDescription": "Get profile nodes of users or groups.",
+  "sakai:parameters" : [
+    "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. The default is score\"}",
+    "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'asc' or 'desc'.\"}"
+  ],
+  "sakai:description": [
+    "Get profile nodes out of the repository filtered by a query.",
+  ],
+  "sakai:response": [
+    "Doing a standard query searching for all profiles matching 'simong'.<br /> Example: Request to: /var/search/usersgroups.json?q=simong<br /><pre class=\"json\">{\n  \"query\": \"//*[@sling:resourceType=\"sakai/user-profile\" and jcr:contains(.,\"simong\")]\",\n  \"items\": 25,\n  \"total\": 1,\n  \"results\": [\n    {\n      \"picture\": \"{\"name\":\"256x256_profilepicture\",\"_name\":\"profilepicture\"}\",\n      \"email\": [\n        \"gaeremyncks@gmail.com\"\n      ],\n      \"firstName\": [\n        \"Simon\"\n      ],\n      \"sling:resourceType\": \"sakai/user-profile\",\n      \"jcr:created\": \"2009-11-30T16:23:18\",\n      \"rep:userId\": [\n        \"simong\"\n      ],\n      \"lastName\": [\n        \"Gaeremynck\"\n      ],\n      \"jcr:primaryType\": \"sling:Folder\",\n      \"jcr:uuid\": [\n        \"1295479e-c673-46cc-a63c-52c6d19f4b44\"\n      ]\n    }\n  ]\n}</pre>"
+  ]
+}
