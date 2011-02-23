@@ -72,6 +72,11 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.resource</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
       <version>0.10-SNAPSHOT</version>
     </dependency>
@@ -100,6 +105,11 @@
 		<version>0.10-SNAPSHOT</version>
 		<scope>test</scope>
 	</dependency>
+    <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-all</artifactId>
+        <scope>test</scope>
+    </dependency>
 	<dependency>
 	  <groupId>org.apache.sanselan</groupId>
 	  <artifactId>sanselan</artifactId>

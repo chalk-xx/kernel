@@ -21,6 +21,7 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.REQUIRED_MIXIN;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_LINK;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_LINK;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
 import com.google.common.collect.ImmutableMap;
@@ -475,8 +476,8 @@ public class FileUtils {
   private static String[] getTags(Node tagNode) throws RepositoryException {
     String tagUuid = tagNode.getIdentifier();
     String tagName = tagNode.getName();
-    if (tagNode.hasProperty(SAKAI_TAGS)) {
-      tagName = tagNode.getProperty(SAKAI_TAGS).getString();
+    if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
+      tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
     }
     return new String[] { tagUuid, tagName };
   }
@@ -484,8 +485,8 @@ public class FileUtils {
   private static String[] getTags(Content tagNode) {
     String tagUuid = (String) tagNode.getProperty(Content.UUID_FIELD);
     String tagName = "";
-    if (tagNode.hasProperty(SAKAI_TAGS)) {
-      tagName = (String) tagNode.getProperty(SAKAI_TAGS);
+    if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
+      tagName = (String) tagNode.getProperty(SAKAI_TAG_NAME);
     }
     return new String[] { tagUuid, tagName };
   }

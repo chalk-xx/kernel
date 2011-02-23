@@ -26,11 +26,16 @@ import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.ImageWriteException;
 import org.apache.sanselan.Sanselan;
 import org.apache.sanselan.util.IOUtils;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.sakaiproject.nakamura.api.jcr.JCRConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +50,11 @@ import java.io.InputStream;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+import javax.jcr.Binary;
+import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.RepositoryException;
+import javax.jcr.ValueFormatException;
 
 public class CropItProcessor {
 
@@ -76,8 +86,10 @@ public class CropItProcessor {
    * @throws AccessDeniedException
    * @throws StorageClientException
    */
-  public static String[] crop(Session session, int x, int y, int width, int height,
+  public static String[] crop(ResourceResolver resourceResolver, int x, int y, int width, int height,
       List<Dimension> dimensions, String img, String save) throws ImageException, StorageClientException, AccessDeniedException {
+
+    Session session = StorageClientUtils.adaptToSession(resourceResolver.adaptTo(javax.jcr.Session.class));
     ContentManager contentManager = session.getContentManager();
 
     InputStream in = null;
@@ -86,24 +98,36 @@ public class CropItProcessor {
     String[] arrFiles = new String[dimensions.size()];
 
     try {
+      String mimeType = "unknown";
+      String imgName = "";
+      Resource imgResource = resourceResolver.getResource(img);
+      if (imgResource instanceof SparseContentResource) {
+      Content imgContent = imgResource.adaptTo(Content.class);
 
-      Content imgNode = contentManager.get(img);
-
-      if (imgNode != null) {
-
-        String mimeType = "unknown";
-        if (imgNode.hasProperty("mimeType") ) {
-          mimeType = (String) imgNode.getProperty("mimeType");
+        if (imgContent.hasProperty("mimeType") ) {
+          mimeType = (String) imgContent.getProperty("mimeType");
         }
-        String imgPath = imgNode.getPath();
-        String imgName = imgPath.substring(imgPath.lastIndexOf("/") + 1);
+        String imgPath = imgContent.getPath();
+        imgName = imgPath.substring(imgPath.lastIndexOf("/") + 1);
         // nt:file
-        if (!imgNode.hasProperty("bodyLocation")) {
+        if (!imgContent.hasProperty("_bodyLocation")) {
           throw new ImageException(500, "Invalid image");
         }
         in = contentManager.getInputStream(imgPath);
+      } else {
+        Node imgNode = imgResource.adaptTo(Node.class);
+        if (imgNode.hasProperty("jcr:mimeType")) {
+          mimeType = imgNode.getProperty("jcr:mimeType").getString();
+        }
+        imgName = imgNode.getName();
+        Node imgDataNode = imgNode.getNode(JCRConstants.JCR_CONTENT);
+        Binary content = imgDataNode.getProperty(JCRConstants.JCR_DATA).getBinary();
+        in = content.getStream();
+
+      }
+
         if ( in.available() > 100L*1024L*1024L ) {
-          throw new ImageException(406, "Image "+imgPath+" too large to crop > 100MB Si "+in.available());
+          throw new ImageException(406, "Image "+img+" too large to crop > 100MB Si "+in.available());
         }
         try {
 
@@ -149,7 +173,7 @@ public class CropItProcessor {
 
               String sPath = save + "/" + iWidth + "x" + iHeight + "_" + imgName;
               // Save new image to JCR.
-              saveImageToContentStore(sPath, info.getMimeType(), image, imgNode, session);
+              saveImageToContentStore(sPath, info.getMimeType(), image, session);
 
               arrFiles[i] = sPath;
             } else {
@@ -159,19 +183,25 @@ public class CropItProcessor {
           }
         } catch (ImageReadException e) {
           // This is not a valid image.
-          LOGGER.error("Can't parse this format. Image {}, mime Type {} :{}", new Object[]{imgPath, mimeType, e.getMessage()});
+          LOGGER.error("Can't parse this format. Image {}, mime Type {} :{}", new Object[]{img, mimeType, e.getMessage()});
           LOGGER.debug("Cause: ", e);
-          throw new ImageException(406, "Can't parse this format.  Image "+imgPath+", mime Type "+mimeType);
+          throw new ImageException(406, "Can't parse this format.  Image "+img+", mime Type "+mimeType);
         } catch (ImageWriteException e) {
-          LOGGER.error("Can't crop this Image {}, mime Type {}  :{} ", new Object[]{imgPath, mimeType, e.getMessage()});
+          LOGGER.error("Can't crop this Image {}, mime Type {}  :{} ", new Object[]{img, mimeType, e.getMessage()});
           LOGGER.debug("Cause: ", e);
-          throw new ImageException(406, "Can't crop this Image "+imgPath+", mime Type "+mimeType);
+          throw new ImageException(406, "Can't crop this Image "+img+", mime Type "+mimeType);
         }
-      } else {
-        throw new ImageException(400, "No image file found.");
-      }
 
     } catch (IOException e) {
+      LOGGER.error("Unable to read image in order to crop it.", e);
+      throw new ImageException(500, "Unable to read image in order to crop it.");
+    } catch (ValueFormatException e) {
+      LOGGER.error("Unable to read image in order to crop it.", e);
+      throw new ImageException(500, "Unable to read image in order to crop it.");
+    } catch (PathNotFoundException e) {
+      LOGGER.error("Unable to read image in order to crop it.", e);
+      throw new ImageException(500, "Unable to read image in order to crop it.");
+    } catch (RepositoryException e) {
       LOGGER.error("Unable to read image in order to crop it.", e);
       throw new ImageException(500, "Unable to read image in order to crop it.");
     } finally {
@@ -231,7 +261,7 @@ public class CropItProcessor {
    * @throws StorageClientException
    */
   protected static void saveImageToContentStore(String path, String mimetype,
-      byte[] image, Content baseNode, Session session) throws ImageException, StorageClientException {
+      byte[] image, Session session) throws ImageException, StorageClientException {
     ContentManager contentManager = session.getContentManager();
 
     ByteArrayInputStream bais = null;
