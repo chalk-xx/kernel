@@ -401,4 +401,17 @@ public class PathUtils {
     }
     return value;
   }
+
+  public static String getAuthorizableId(String path) {
+    if ( path.startsWith("a:") || path.startsWith("/~") ) {
+      path = path.substring(2);
+      int i = path.indexOf('/');
+      if ( i > 0 ) {
+        path = path.substring(0,i);
+      }
+      return path;
+    }
+    return null;
+  }
+
 }

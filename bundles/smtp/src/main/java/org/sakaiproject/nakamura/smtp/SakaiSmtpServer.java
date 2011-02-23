@@ -26,7 +26,7 @@ import org.subethamail.smtp.server.SMTPServer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.jcr.RepositoryException;
 import javax.mail.BodyPart;
 import javax.mail.Header;
 import javax.mail.MessagingException;
@@ -46,6 +45,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SakaiSmtpServer.class);
   private static final int MAX_PROPERTY_SIZE = 32 * 1024;
+  private static final Map<String, Object> EMPTY_MAP = Collections.emptyMap();
 
   private SMTPServer server;
 
@@ -171,9 +171,6 @@ public class SakaiSmtpServer implements SimpleMessageListener {
         }
 
       }
-    } catch (RepositoryException e) {
-      LOGGER.error("Unable to write message", e);
-      throw new IOException("Message can not be written to repository");
     } catch (MessagingException e) {
       LOGGER.error("Unable to write message", e);
       throw new IOException("Message can not be written to repository");
@@ -195,7 +192,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
 
   @SuppressWarnings("unchecked")
   private Content writeMessage(Session session, Map<String, Object> mapProperties,
-      InputStream data, String storePath) throws MessagingException, AccessDeniedException, StorageClientException, RepositoryException, IOException {
+      InputStream data, String storePath) throws MessagingException, AccessDeniedException, StorageClientException, IOException {
     InternetHeaders internetHeaders = new InternetHeaders(data);
     // process the headers into a map.
     for ( Enumeration<Header> e = internetHeaders.getAllHeaders(); e.hasMoreElements(); ) {
@@ -222,13 +219,12 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     } else {
       Content node = messagingService.create(session, mapProperties);
       // set up to stream the body.
-      // TODO: Store the body as a conetnt stream ? on disk, not as a property ?
-      node.setProperty(MessageConstants.PROP_SAKAI_BODY, data);
+      session.getContentManager().writeBody(node.getPath(), data);
       return node;
     }
   }
 
-  private void writeMultipartToNode(Session session, Content message, MimeMultipart multipart) throws MessagingException, AccessDeniedException, StorageClientException, RepositoryException, IOException
+  private void writeMultipartToNode(Session session, Content message, MimeMultipart multipart) throws MessagingException, AccessDeniedException, StorageClientException, IOException
       {
     int count = multipart.getCount();
     for (int i = 0; i < count; i++) {
@@ -242,49 +238,70 @@ public class SakaiSmtpServer implements SimpleMessageListener {
   }
 
   private void createChildNodeForPart(Session session, int index, BodyPart part,
-      Content message) throws MessagingException, AccessDeniedException, StorageClientException, RepositoryException, IOException {
+      Content message) throws MessagingException, AccessDeniedException, StorageClientException, IOException {
     ContentManager contentManager = session.getContentManager();
     String childName = String.format("part%1$03d", index);
     String childPath = message.getPath() + "/" + childName;
+    // multipart message
     if (part.getContentType().toLowerCase().startsWith("multipart/")) {
-      contentManager.update(new Content(childPath, new HashMap<String, Object>()));
+      contentManager.update(new Content(childPath, EMPTY_MAP));
       Content childNode = contentManager.get(childPath);
       writePartPropertiesToNode(part, childNode);
+      contentManager.update(childNode);
       MimeMultipart multi = new MimeMultipart(new SMTPDataSource(part.getContentType(),
           part.getInputStream()));
       writeMultipartToNode(session, childNode, multi);
       return;
     }
 
+    // text
     if (!isTextType(part)) {
       writePartAsFile(session, part, childName, message);
       return;
     }
 
-    contentManager.update(new Content(childPath, new HashMap<String, Object>()));
+    // not multipart; not text
+    contentManager.update(new Content(childPath, EMPTY_MAP));
     Content childNode = contentManager.get(childPath);
     writePartPropertiesToNode(part, childNode);
-    // TODO: FIXME THIS WILL FAIL should store as a stream on the content 
-    childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, part.getInputStream());
+    contentManager.update(childNode);
+    // childNode.setProperty(MessageConstants.PROP_SAKAI_BODY, part.getInputStream());
+    contentManager.writeBody(childNode.getPath(), part.getInputStream());
   }
 
   private void writePartAsFile(Session session, BodyPart part, String nodeName,
       Content parentNode) throws AccessDeniedException, StorageClientException, MessagingException, IOException {
-    String filePath = parentNode.getPath() + "/nt:file";
-    // TODO: FIXME, this is all wrong for sparse
-    String fileContentPath = filePath + "/jcr:content";
-    session.getContentManager().update(new Content(filePath, new HashMap<String, Object>()));
-    session.getContentManager().update(new Content(fileContentPath, new HashMap<String, Object>()));
-    Content resourceNode = session.getContentManager().get(fileContentPath);
-    resourceNode.setProperty("jcr:primaryType", "nt:resource");
-    resourceNode.setProperty("jcr:mimeType", part.getContentType());
-    resourceNode.setProperty("jcr:data", part.getInputStream());
-    resourceNode.setProperty("jcr:lastModified", Calendar.getInstance());
+    // String filePath = parentNode.getPath() + "/nt:file";
+    // String fileContentPath = filePath + "/jcr:content";
+    // session.getContentManager().update(
+    // new Content(filePath, new HashMap<String, Object>()));
+    // session.getContentManager().update(new Content(fileContentPath, new HashMap<String,
+    // Object>()));
+    // Content resourceNode = session.getContentManager().get(fileContentPath);
+    // resourceNode.setProperty("jcr:primaryType", "nt:resource");
+    
+    /*
+     * Instead of creating a child node, just write the body part to the parentNode. I
+     * think this will work, but may collide/override properties already set on the
+     * message content. Let's ensure there are no collisions.
+     */
+    if (!parentNode.hasProperty(Content.MIMETYPE_FIELD)) {
+      parentNode.setProperty(Content.MIMETYPE_FIELD, part.getContentType());
+    } else {
+      if (part.getContentType().equals(parentNode.getProperty(Content.MIMETYPE_FIELD))) {
+        LOGGER.debug("Same mimeType; no worries");
+      } else {
+        throw new IllegalStateException(
+            "This sparse approach is bust; must create a subpath for file body");
+      }
+    }
+    // parentNode.setProperty("jcr:data", part.getInputStream());
+    session.getContentManager().writeBody(parentNode.getPath(), part.getInputStream());
   }
 
   @SuppressWarnings("unchecked")
   private void writePartPropertiesToNode(BodyPart part, Content childNode)
-      throws MessagingException, RepositoryException {
+      throws MessagingException {
     Enumeration<Header> headers = part.getAllHeaders();
     while (headers.hasMoreElements()) {
       Header header = headers.nextElement();

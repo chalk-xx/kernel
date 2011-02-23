@@ -19,12 +19,17 @@ package org.sakaiproject.nakamura.image;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.*;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sanselan.ImageFormat;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.ImageWriteException;
 import org.apache.sanselan.Sanselan;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.lite.Repository;
@@ -32,7 +37,9 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
+import org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
@@ -86,8 +93,17 @@ public class CropItProcessorTest {
   public void testInvalidImage() throws RepositoryException, StorageClientException, AccessDeniedException {
     node.setProperty("path", "/path/to/the/file/foo.bar");
     session.getContentManager().update(node);
+    ResourceResolver resourceResolver = mock(ResourceResolver.class);
+    SparseContentResource someResource = mock(SparseContentResource.class);
+    when(someResource.adaptTo(Content.class)).thenReturn(node);
+    JackrabbitSession jrSession = mock(JackrabbitSession.class);
+    SparseMapUserManager userManager = mock(SparseMapUserManager.class);
+    when(userManager.getSession()).thenReturn(session);
+    when(jrSession.getUserManager()).thenReturn(userManager);
+    when(resourceResolver.adaptTo(javax.jcr.Session.class)).thenReturn(jrSession);
+    when(resourceResolver.getResource(anyString())).thenReturn(someResource);
     try {
-      CropItProcessor.crop(session, x, y, width, height, dimensions, img, save);
+      CropItProcessor.crop(resourceResolver, x, y, width, height, dimensions, img, save);
       fail("The processor should not handle non-images.");
     } catch (ImageException e) {
       assertEquals(500, e.getCode());
@@ -96,12 +112,21 @@ public class CropItProcessorTest {
 
   @Test
   public void testInvalidImageMimeType() throws RepositoryException, StorageClientException, AccessDeniedException, IOException {
+    ResourceResolver resourceResolver = mock(ResourceResolver.class);
     node.setProperty("path", "/path/to/foo.bar");
-    node.setProperty("bodyLocation", "2011/1/tz/fv/8x");
+    node.setProperty("_bodyLocation", "2011/1/tz/fv/8x");
     node.setProperty("mimeType", "image/foo");
     session.getContentManager().update(node);
+    SparseContentResource someResource = mock(SparseContentResource.class);
+    when(someResource.adaptTo(Content.class)).thenReturn(node);
+    JackrabbitSession jrSession = mock(JackrabbitSession.class);
+    SparseMapUserManager userManager = mock(SparseMapUserManager.class);
+    when(userManager.getSession()).thenReturn(session);
+    when(jrSession.getUserManager()).thenReturn(userManager);
+    when(resourceResolver.adaptTo(javax.jcr.Session.class)).thenReturn(jrSession);
+    when(resourceResolver.getResource(anyString())).thenReturn(someResource);
     try {
-      CropItProcessor.crop(session, x, y, width, height, dimensions, img, save);
+      CropItProcessor.crop(resourceResolver, x, y, width, height, dimensions, img, save);
       fail("The processor should not handle non-images.");
     } catch (ImageException e) {
       assertEquals(406, e.getCode());
