@@ -151,27 +151,26 @@ public class SakaiSmtpServerTest {
     when(myMessageNode.getPath()).thenReturn("a:bob/message/messagenode");
     when(myMessageNode.getProperty("message-id")).thenReturn("messageid");
     
-    final Answer foo = new Answer() {
-      public Object answer(InvocationOnMock invocation) throws Throwable {
-        Object[] args = invocation.getArguments();
-        if (args != null && args.length > 0) {
-          Content arg = (Content) args[0];
-          System.out.println("LDS " + arg.getPath());
-          if("".equals(arg.getPath())) {
-            ;
-          }
-          if("".equals(arg.getPath())) {
-            ;
-          }
-        }
-        System.out.println("LDS " + Arrays.asList(args));
-        return null;
-      }
-    };
-    doAnswer(foo).when(contentManager).update(any(Content.class));
-    //    when(contentManager.update(any(Content.class))).then
+//    final Answer foo = new Answer() {
+//      public Object answer(InvocationOnMock invocation) throws Throwable {
+//        Object[] args = invocation.getArguments();
+//        if (args != null && args.length > 0) {
+//          Content arg = (Content) args[0];
+//          if ("a:bob/message/messagenode/part000".equals(arg.getPath())) {
+//            return part0node;
+//          }
+//          if ("a:bob/message/messagenode/part001".equals(arg.getPath())) {
+//            return part1node;
+//          }
+//        }
+//        return null;
+//      }
+//    };
+//    doAnswer(foo).when(contentManager).update(any(Content.class));
     when(part0node.getPath()).thenReturn("a:bob/message/messagenode/part000");
     when(part1node.getPath()).thenReturn("a:bob/message/messagenode/part001");
+    when(contentManager.get("a:bob/message/messagenode/part000")).thenReturn(part0node);
+    when(contentManager.get("a:bob/message/messagenode/part001")).thenReturn(part1node);
 }
 
   @Test
@@ -323,18 +322,12 @@ public class SakaiSmtpServerTest {
   @Test
   public void testGoodFormatMultipartMessage() throws Exception {
 
-    Content part0Node = mock(Content.class);
-    Content part1Node = mock(Content.class);
-
     InputStream dataStream = this.getClass().getResourceAsStream("testmultipartgood.txt");
     assertNotNull(dataStream);
 
     when(
         messagingService.create(any(Session.class), any(Map.class), any(String.class),
             any(String.class))).thenReturn(myMessageNode);
-
-//    when(myMessageNode.addNode("part000")).thenReturn(part0Node);
-//    when(myMessageNode.addNode("part001")).thenReturn(part0Node);
 
     SakaiSmtpServer sakaiSmtpServer = new SakaiSmtpServer();
     sakaiSmtpServer.contentRepository = slingRepository;
