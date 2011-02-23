@@ -17,11 +17,15 @@
  */
 package org.sakaiproject.nakamura.smtp;
 
-import junit.framework.Assert;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-import static org.mockito.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.apache.activemq.util.ByteArrayInputStream;
 import org.junit.Before;
@@ -30,9 +34,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
@@ -42,7 +44,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
-import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +51,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
@@ -94,8 +94,6 @@ public class SakaiSmtpServerTest {
       + "X-JIRA-FingerPrint: 43079b93228ea120d4bc89f05c6f1356\n\n"
       + "Here is a message body";
 
-
-
   private static final String SUBJECT_TEST = "[Sakai Jira] Commented: (KERN-631) Expose Sakai 2 tools in a Sakai\r\n"
   + " 3 environment detached from a Sakai 2 rendered site";
   private static final String MULTIPART_SUBJECT_TEST = "Breaking News Extra: Husband of Accused Huntsville Killer Says She Was Bitter Over Tenure";
@@ -103,8 +101,6 @@ public class SakaiSmtpServerTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(SakaiSmtpServerTest.class);
   @Captor
   ArgumentCaptor<Map<String, Object>> mapProperties;
-  @Captor
-  ArgumentCaptor<Map<String, Object>> mapProperties2;
   @Mock
   ContentManager contentManager;
   @Mock
@@ -127,8 +123,6 @@ public class SakaiSmtpServerTest {
   @Before
   public void setUp() throws ClientPoolException, StorageClientException,
       AccessDeniedException {
-    // final BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
-    // final Repository slingRepository = baseMemoryRepository.getRepository();
     when(slingRepository.loginAdministrative()).thenReturn(adminSession);
     when(adminSession.getContentManager()).thenReturn(contentManager);
 
@@ -150,33 +144,18 @@ public class SakaiSmtpServerTest {
 
     when(myMessageNode.getPath()).thenReturn("a:bob/message/messagenode");
     when(myMessageNode.getProperty("message-id")).thenReturn("messageid");
-    
-//    final Answer foo = new Answer() {
-//      public Object answer(InvocationOnMock invocation) throws Throwable {
-//        Object[] args = invocation.getArguments();
-//        if (args != null && args.length > 0) {
-//          Content arg = (Content) args[0];
-//          if ("a:bob/message/messagenode/part000".equals(arg.getPath())) {
-//            return part0node;
-//          }
-//          if ("a:bob/message/messagenode/part001".equals(arg.getPath())) {
-//            return part1node;
-//          }
-//        }
-//        return null;
-//      }
-//    };
-//    doAnswer(foo).when(contentManager).update(any(Content.class));
+
     when(part0node.getPath()).thenReturn("a:bob/message/messagenode/part000");
     when(part1node.getPath()).thenReturn("a:bob/message/messagenode/part001");
     when(contentManager.get("a:bob/message/messagenode/part000")).thenReturn(part0node);
     when(contentManager.get("a:bob/message/messagenode/part001")).thenReturn(part1node);
-}
+  }
 
   @Test
   public void testBadFormatMessage() throws Exception {
 
     InputStream dataStream = new ByteArrayInputStream(TESTMESSAGE.getBytes("UTF-8"));
+    assertNotNull(dataStream);
 
     when(
         messagingService.create(any(Session.class), any(Map.class))).thenReturn(myMessageNode);
@@ -191,12 +170,12 @@ public class SakaiSmtpServerTest {
     sakaiSmtpServer.deliver("bob@localhost", "alice@localhost", dataStream);
 
     // call to messageService.create
-    verify(messagingService).create(any(Session.class), mapProperties2.capture());
+    verify(messagingService).create(any(Session.class), mapProperties.capture());
     verify(contentManager).writeBody(eq("a:bob/message/messagenode"), eq(dataStream));
     verify(myMessageNode, times(2)).getPath();
     verify(myMessageNode).getProperty("message-id");
     
-    Map<String,Object> headers = mapProperties2.getValue();
+    Map<String,Object> headers = mapProperties.getValue();
     // check multi line parsing of headers
     assertEquals("testing", headers.get("sakai:subject"));
 
@@ -287,6 +266,7 @@ public class SakaiSmtpServerTest {
   public void testGoodFormatMessage() throws Exception {
     InputStream dataStream = new ByteArrayInputStream(
         TESTMESSAGE_GOOD.getBytes("UTF-8"));
+    assertNotNull(dataStream);
 
     when(messagingService.create(any(Session.class), any(Map.class))).thenReturn(
         myMessageNode);
@@ -301,12 +281,12 @@ public class SakaiSmtpServerTest {
     sakaiSmtpServer.deliver("bob@localhost", "alice@localhost", dataStream);
 
     // call to messageService.create
-    verify(messagingService).create(any(Session.class), mapProperties2.capture());
+    verify(messagingService).create(any(Session.class), mapProperties.capture());
     verify(contentManager).writeBody(eq("a:bob/message/messagenode"), eq(dataStream));
     verify(myMessageNode, times(2)).getPath();
     verify(myMessageNode).getProperty("message-id");
     
-    Map<String,Object> headers = mapProperties2.getValue();
+    Map<String,Object> headers = mapProperties.getValue();
     // check multi line parsing of headers
     assertEquals(SUBJECT_TEST, headers.get("sakai:subject"));
 
@@ -317,7 +297,6 @@ public class SakaiSmtpServerTest {
 
     sakaiSmtpServer.deactivate(componentContext);
   }
-
 
   @Test
   public void testGoodFormatMultipartMessage() throws Exception {
@@ -340,8 +319,8 @@ public class SakaiSmtpServerTest {
 
 
     // call to messageService.create
-    verify(messagingService).create(eq(adminSession), mapProperties.capture(), any(String.class),
-        eq("a:alice/message"));
+    verify(messagingService).create(eq(adminSession), mapProperties.capture(),
+        any(String.class), eq("a:alice/message"));
 
     Map<String,Object> headers = mapProperties.getValue();
     // check multi line parsing of headers
@@ -355,63 +334,19 @@ public class SakaiSmtpServerTest {
     sakaiSmtpServer.deactivate(componentContext);
   }
 
-
-//TODO BL120 restore this test @Test
+  @Test
   public void testGoodFormatMultipartBinaryMessage() throws Exception {
 
-    ComponentContext componentContext = mock(ComponentContext.class);
-    BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
-    Repository slingRepository = baseMemoryRepository.getRepository();
-    Session session = slingRepository.loginAdministrative();
-    LiteMessagingService messagingService = mock(LiteMessagingService.class);
-    Content part0Node = mock(Content.class);
-    Content myMessageNode = mock(Content.class);
-
-    Dictionary<String, Object> properties = new Hashtable<String, Object>();
-    int port = getSafePort(8025);
-    properties.put("smtp.port", Integer.valueOf(port));
-
-    session.logout();
-//    EasyMock.expectLastCall().anyTimes();
-
-    when(componentContext.getProperties()).thenReturn(properties);
-    when(slingRepository.loginAdministrative(null)).thenReturn(session)
-        ;
-    List<String> recipents = new ArrayList<String>();
-    recipents.add("alice");
-    when(messagingService.expandAliases("alice")).thenReturn(recipents);
-    when(messagingService.getFullPathToStore("alice", session)).thenReturn(
-        "/messagestore/alice");
-    List<String> senders = new ArrayList<String>();
-    senders.add("bob");
-    when(messagingService.expandAliases("bob")).thenReturn(senders);
-    when(messagingService.getFullPathToStore("bob", session)).thenReturn(
-        "/messagestore/bob");
     InputStream dataStream = this.getClass().getResourceAsStream("testmultipartbinarygood.txt");
+    assertNotNull(dataStream);
 
-
-//    Capture<Map<String, Object>> mapProperties = new Capture<Map<String, Object>>();
-//    Capture<Session> sessionCapture = new Capture<Session>();
-//    Capture<String> messageId = new Capture<String>();
-//    Capture<String> path = new Capture<String>();
     when(
         messagingService.create(any(Session.class), any(Map.class), any(String.class),
             any(String.class))).thenReturn(myMessageNode);
 
-//    when(myMessageNode.addNode("part000")).thenReturn(part0Node);
-//    when(myMessageNode.addNode("part001","nt:file")).thenReturn(part0Node);
-//    when(part0Node.addNode("jcr:content", "nt:resource")).thenReturn(part0Node);
-
-
-    when(myMessageNode.getPath()).thenReturn("/messagestore/bob/messagenode");
-    when(myMessageNode.getProperty("message-id")).thenReturn("messageid");
-//    EasyMock.expectLastCall().anyTimes();
-
-//    replay();
     SakaiSmtpServer sakaiSmtpServer = new SakaiSmtpServer();
     sakaiSmtpServer.contentRepository = slingRepository;
     sakaiSmtpServer.messagingService = messagingService;
-
 
     sakaiSmtpServer.activate(componentContext);
 
@@ -420,16 +355,8 @@ public class SakaiSmtpServerTest {
 
 
     // call to messageService.create
-//    assertTrue(mapProperties.hasCaptured());
-//    assertTrue(sessionCapture.hasCaptured());
-//    assertTrue(messageId.hasCaptured());
-//    assertTrue(path.hasCaptured());
-    
-    verify(messagingService).create(session, mapProperties.capture(), any(String.class),
-        eq("/messagestore/alice"));
-
-//    assertEquals(session, sessionCapture.getValue());
-//    assertEquals("/messagestore/alice", path.getValue());
+    verify(messagingService).create(eq(adminSession), mapProperties.capture(),
+        any(String.class), eq("a:alice/message"));
 
     Map<String,Object> headers = mapProperties.getValue();
     // check multi line parsing of headers
@@ -440,8 +367,6 @@ public class SakaiSmtpServerTest {
     assertNotNull(recieved);
 
     sakaiSmtpServer.deactivate(componentContext);
-
-//    verify();
   }
 
 }
