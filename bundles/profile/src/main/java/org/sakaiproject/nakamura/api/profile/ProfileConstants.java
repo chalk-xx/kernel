@@ -102,4 +102,10 @@ public interface ProfileConstants {
    * The property name that holds the access information for a user.
    */
   public static final String USER_BASIC_ACCESS = "access";
+
+  /**
+   * Default value for the access property.
+   */
+  public static final String EVERYBODY_ACCESS_VALUE = "everybody";
+
 }

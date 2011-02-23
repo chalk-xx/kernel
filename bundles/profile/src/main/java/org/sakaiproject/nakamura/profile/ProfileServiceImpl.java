@@ -47,6 +47,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
@@ -233,6 +234,11 @@ public class ProfileServiceImpl implements ProfileService {
     }
     // The map were we will stick the compact information in.
     ValueMap compactProfile = basicProfile(propertyBuilder.build());
+    if ( authorizable.hasProperty("access")) {
+      compactProfile.put("access", authorizable.getProperty("access"));
+    } else {
+      compactProfile.put(ProfileConstants.USER_BASIC_ACCESS, ProfileConstants.EVERYBODY_ACCESS_VALUE);
+    }
     return compactProfile;
   }
 
@@ -338,8 +344,10 @@ public class ProfileServiceImpl implements ProfileService {
   private ValueMap anonymousProfile() {
     ValueMap rv = new ValueMapDecorator(new HashMap<String, Object>());
     rv.put("rep:userId", User.ANON_USER);
-    rv.put(USER_BASIC, basicProfile(
-        ImmutableMap.of(USER_FIRSTNAME_PROPERTY, "Anonymous", USER_LASTNAME_PROPERTY, "User", USER_EMAIL_PROPERTY, "anon@sakai.invalid")));
+    ValueMap basicProfile =  basicProfile(
+        ImmutableMap.of(USER_FIRSTNAME_PROPERTY, "Anonymous", USER_LASTNAME_PROPERTY, "User", USER_EMAIL_PROPERTY, "anon@sakai.invalid"));
+    basicProfile.put(ProfileConstants.USER_BASIC_ACCESS, ProfileConstants.EVERYBODY_ACCESS_VALUE);
+    rv.put(USER_BASIC,basicProfile);
     return rv;
   }
 
@@ -363,6 +371,9 @@ public class ProfileServiceImpl implements ProfileService {
                   a.setProperty(element, elementObject.get("value"));
                 }
               }
+            }
+            if ( basic.has("access")) {
+              a.setProperty("access", basic.get("access"));
             }
             authorizableManager.updateAuthorizable(a);
           }
