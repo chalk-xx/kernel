@@ -19,6 +19,8 @@ package org.sakaiproject.nakamura.meservice;
 
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_STATE;
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.ACCEPTED;
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.INVITED;
@@ -35,6 +37,7 @@ import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.easymock.EasyMock;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
@@ -44,7 +47,7 @@ import org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager;
 import org.sakaiproject.nakamura.profile.ProfileServiceImpl;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.PersonalUtils;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -65,8 +68,6 @@ import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
-
-import static org.mockito.Mockito.*;
 
 /**
  *
@@ -167,18 +168,15 @@ public class MeServletTest extends AbstractEasyMockTest {
     assertEquals("America/Los_Angeles", timezone.getString("name"));
   }
 
-  @Test
+  @Ignore
   public void testAnon() throws RepositoryException, JSONException, ServletException,
       IOException {
-    if ( true ) {
-      return;
-    }
     // TODO: FIXME
     
     Authorizable au = createAuthorizable(UserConstants.ANON_USERID, false, true);
     UserManager um = createUserManager(null, true, au);
 
-    String profilePath = PersonalUtils.getProfilePath(au);
+    String profilePath = LitePersonalUtils.getProfilePath(UserConstants.ANON_USERID);
     Node profileNode = new MockNode(profilePath);
 
     Node rootNode = createMock(Node.class);
@@ -207,16 +205,13 @@ public class MeServletTest extends AbstractEasyMockTest {
     assertEquals(0, json.getJSONObject("messages").get("unread"));
   }
 
-  @Test
+  @Ignore
   public void testExceptions() throws IOException, ServletException,
       PathNotFoundException, RepositoryException {
-    if ( true ) {
-      return;
-    }
     // TODO: FIXME
 
     Authorizable au = createAuthorizable(UserConstants.ANON_USERID, false, true);
-    String profilePath = PersonalUtils.getProfilePath(au);
+    String profilePath = LitePersonalUtils.getProfilePath(UserConstants.ANON_USERID);
     when(jrSession.getUserID()).thenReturn(UserConstants.ANON_USERID);
     when(jrSession.getItem(profilePath)).thenThrow(new RepositoryException());
     Node rootNode = createMock(Node.class);

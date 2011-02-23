@@ -192,13 +192,15 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
   }
 
   private boolean isObjectPatternMatch(Object object, Pattern queryFilter) {
+    boolean match = false;
     if (object instanceof ValueMap) {
-      return isValueMapPattternMatch((ValueMap) object, queryFilter);
+      match =  isValueMapPattternMatch((ValueMap) object, queryFilter);
     } else if (object instanceof Object[]) {
-      return isArrayPatternMatch((Object[]) object, queryFilter);
-    } else {
-      return isStringPatternMatch(object.toString(), queryFilter);
+      match = isArrayPatternMatch((Object[]) object, queryFilter);
+    } else if (object != null) {
+      match = isStringPatternMatch(object.toString(), queryFilter);
     }
+    return match;
   }
 
   private boolean isArrayPatternMatch(Object[] array, Pattern queryFilter) {
