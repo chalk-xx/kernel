@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.search.solr;
 
+import static org.apache.sling.api.SlingConstants.PROPERTY_RESOURCE_TYPE;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.DEFAULT_PAGED_ITEMS;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.JSON_RESULTS;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_ITEMS_PER_PAGE;
@@ -62,6 +63,7 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.MissingParameterException;
 import org.sakaiproject.nakamura.api.search.solr.Query;
+import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -98,7 +100,7 @@ import javax.servlet.http.HttpServletResponse;
  * The <code>SearchServlet</code> uses nodes from the
  *
  */
-@SlingServlet(extensions = { "json" }, methods = { "GET" }, resourceTypes = { "sakai/solr-search" })
+@SlingServlet(extensions = { "json" }, methods = { "GET" }, resourceTypes = { "sakai/solr-search", "sakai/sparse-search" })
 @Properties(value = {
     @Property(name = "service.description", value = { "Perfoms searchs based on the associated node." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }),
@@ -295,7 +297,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     return queryString;
   }
 
-  private String expandHomeDirectoryInQuery(String queryString)
+  private String expandHomeDirectory(String queryString)
       throws RepositoryException {
     Matcher homePathMatcher = homePathPattern.matcher(queryString);
     if (homePathMatcher.find()) {
@@ -322,21 +324,21 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    */
   protected Query processQuery(SlingHttpServletRequest request, Node queryNode)
       throws RepositoryException, MissingParameterException, JSONException {
-    String queryTemplate = queryNode.getProperty(SAKAI_QUERY_TEMPLATE).getString();
     String propertyProviderName = null;
     if (queryNode.hasProperty(SAKAI_PROPERTY_PROVIDER)) {
       propertyProviderName = queryNode.getProperty(SAKAI_PROPERTY_PROVIDER).getString();
     }
-
     Map<String, String> propertiesMap = loadProperties(request, propertyProviderName,
         queryNode);
 
-    // process the querystring before checking for missing terms to a) give processors a
+    String queryTemplate = queryNode.getProperty(SAKAI_QUERY_TEMPLATE).getString();
+
+    // process the query string before checking for missing terms to a) give processors a
     // chance to set things and b) catch any missing terms added by the processors.
     String queryString = templateService.evaluateTemplate(propertiesMap, queryTemplate);
 
     // expand home directory references to full path; eg. ~user => a:user
-    queryString = expandHomeDirectoryInQuery(queryString);
+    queryString = expandHomeDirectory(queryString);
 
     // append the user principals to the query string
     queryString = addUserPrincipals(request, queryString);
@@ -356,7 +358,18 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     // process the options as templates and check for missing params
     Map<String, String> options = processOptions(propertiesMap, queryOptions);
 
-    Query query = new Query(queryString, options);
+    // check the resource type and set the query type appropriately
+    // default to using solr for queries
+    javax.jcr.Property resourceType = null;
+    if (queryNode.hasProperty(PROPERTY_RESOURCE_TYPE)) {
+      resourceType = queryNode.getProperty(PROPERTY_RESOURCE_TYPE);
+    }
+    Query query = null;
+    if (resourceType != null && "sakai/sparse-search".equals(resourceType.getString())) {
+      query = new Query(Type.SPARSE, queryString, options);
+    } else {
+      query = new Query(Type.SOLR, queryString, options);
+    }
     return query;
   }
 
