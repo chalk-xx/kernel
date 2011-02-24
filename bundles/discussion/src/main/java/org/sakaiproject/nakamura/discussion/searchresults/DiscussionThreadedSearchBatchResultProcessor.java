@@ -22,15 +22,16 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.Post;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
@@ -85,49 +86,51 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
   public void writeResults(SlingHttpServletRequest request, JSONWriter writer,
       Iterator<Result> iterator) throws JSONException {
 
-    ResourceResolver resolver = request.getResourceResolver();
-    javax.jcr.Session jcrSession = resolver.adaptTo(javax.jcr.Session.class);
-    List<String> basePosts = new ArrayList<String>();
-    Map<String,List<Post>> postChildren = new HashMap<String, List<Post>>();
-    Map<String,Post> allPosts = new HashMap<String, Post>();
-    while (iterator.hasNext()) {
-      Result result = iterator.next();
-      Content content = resolver.getResource(result.getPath()).adaptTo(Content.class);
-
-      Post p = new Post(content, resolver.adaptTo(Session.class));
-      allPosts.put((String) content
-          .getProperty(MessageConstants.PROP_SAKAI_ID), p);
-
-      if (content.hasProperty(DiscussionConstants.PROP_REPLY_ON)) {
-        // This post is a reply on another post.
-        String replyon = (String) content
-            .getProperty(DiscussionConstants.PROP_REPLY_ON);
-        if (!postChildren.containsKey(replyon)) {
-          postChildren.put(replyon, new ArrayList<Post>());
-        }
-
-        postChildren.get(replyon).add(p);
-
-      } else {
-        // This post is not a reply to another post, thus it is a basepost.
-        basePosts.add(p.getPostId());
-      }
-    }
-
-    // Now that we have all the base posts, we can sort the replies properly
-    for (String parentId : postChildren.keySet()) {
-      Post parentPost = allPosts.get(parentId);
-      if (parentPost != null) {
-        List<Post> childrenList = parentPost.getChildren();
-        List<Post> childrenActual = postChildren.get(parentId);
-        childrenList.addAll(childrenActual);
-      }
-    }
-
     try {
+      Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
+          .adaptTo(javax.jcr.Session.class));
+      ContentManager cm = session.getContentManager();
+      List<String> basePosts = new ArrayList<String>();
+      Map<String,List<Post>> postChildren = new HashMap<String, List<Post>>();
+      Map<String,Post> allPosts = new HashMap<String, Post>();
+      while (iterator.hasNext()) {
+        Result result = iterator.next();
+        Content content = cm.get(result.getPath());
+
+        Post p = new Post(content, session);
+        allPosts.put((String) content
+            .getProperty(MessageConstants.PROP_SAKAI_ID), p);
+
+        if (content.hasProperty(DiscussionConstants.PROP_REPLY_ON)) {
+          // This post is a reply on another post.
+          String replyon = (String) content
+              .getProperty(DiscussionConstants.PROP_REPLY_ON);
+          if (!postChildren.containsKey(replyon)) {
+            postChildren.put(replyon, new ArrayList<Post>());
+          }
+
+          postChildren.get(replyon).add(p);
+
+        } else {
+          // This post is not a reply to another post, thus it is a basepost.
+          basePosts.add(p.getPostId());
+        }
+      }
+
+      // Now that we have all the base posts, we can sort the replies properly
+      for (String parentId : postChildren.keySet()) {
+        Post parentPost = allPosts.get(parentId);
+        if (parentPost != null) {
+          List<Post> childrenList = parentPost.getChildren();
+          List<Post> childrenActual = postChildren.get(parentId);
+          childrenList.addAll(childrenActual);
+        }
+      }
+
       // The posts are sorted, now return them as json.
       for (String basePostId : basePosts) {
-        allPosts.get(basePostId).outputPostAsJSON((ExtendedJSONWriter) writer, presenceService, profileService, jcrSession);
+        allPosts.get(basePostId).outputPostAsJSON((ExtendedJSONWriter) writer,
+            presenceService, profileService, session);
       }
     } catch (StorageClientException e) {
       throw new RuntimeException(e.getMessage(), e);

@@ -305,9 +305,14 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       String userHome = LitePersonalUtils.getHomePath(username);
       // escape the home path twice so that the escaping will withstand the matcher
       // replacement
-      userHome = ClientUtils.escapeQueryChars(ClientUtils.escapeQueryChars(userHome));
+      userHome = ClientUtils.escapeQueryChars(userHome);
       String homePath = homePrefix + userHome + "/";
-      queryString = homePathMatcher.replaceAll(homePath);
+      String prefix = "";
+      if (homePathMatcher.start() > 0) {
+        prefix = queryString.substring(0, homePathMatcher.start());
+      }
+      String suffix = queryString.substring(homePathMatcher.end());
+      queryString = prefix + homePath + suffix;
     }
     return queryString;
   }

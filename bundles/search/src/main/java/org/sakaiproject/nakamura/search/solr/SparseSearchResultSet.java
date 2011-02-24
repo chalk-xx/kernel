@@ -71,7 +71,7 @@ public class SparseSearchResultSet implements SolrSearchResultSet {
    * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet#getSize()
    */
   public long getSize() {
-    return -1;
+    return 0;
   }
 
 }

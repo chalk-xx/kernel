@@ -7,7 +7,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
@@ -20,6 +19,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.schema.TextField;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -143,8 +143,8 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
       Query query, boolean asAnon) throws StorageClientException, AccessDeniedException,
       ParseException {
     // use solr parsing to get the terms from the query string
-    QueryParser parser = new QueryParser(Version.LUCENE_40, "id", new StandardAnalyzer(
-        Version.LUCENE_40));
+    QueryParser parser = new QueryParser(Version.LUCENE_40, "id",
+        new TextField().getQueryAnalyzer());
     org.apache.lucene.search.Query luceneQuery = parser.parse(query.getQueryString());
     Set<Term> terms = Sets.newHashSet();
     luceneQuery.extractTerms(terms);
@@ -153,7 +153,8 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
     for (Term term : terms) {
       props.put(term.field(), term.text());
     }
-    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
+        .adaptTo(javax.jcr.Session.class));
     ContentManager cm = session.getContentManager();
     Iterable<Content> items = cm.find(props);
     SolrSearchResultSet rs = new SparseSearchResultSet(items);

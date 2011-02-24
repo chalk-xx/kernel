@@ -17,32 +17,38 @@
  */
 package org.sakaiproject.nakamura.discussion.searchresults;
 
-import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONObject;
-import org.easymock.classextension.EasyMock;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.ByteArrayOutputStream;
@@ -53,7 +59,8 @@ import java.util.List;
 /**
  *
  */
-public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
+@RunWith(MockitoJUnitRunner.class)
+public class DiscussionThreadedProcessorTest {
 
   private DiscussionThreadedSearchBatchResultProcessor processor;
   private PresenceService presenceService;
@@ -63,38 +70,45 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
    *
    * @see org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest#setUp()
    */
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
-
     processor = new DiscussionThreadedSearchBatchResultProcessor();
-    processor.searchServiceFactory = createNiceMock(SolrSearchServiceFactory.class);
-    presenceService = createNiceMock(PresenceService.class);
+    processor.searchServiceFactory = mock(SolrSearchServiceFactory.class);
+    presenceService = mock(PresenceService.class);
     processor.presenceService = presenceService;
   }
 
   @Test
   public void testProcess() throws Exception {
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
 
-    Session session = createMock(Session.class);
+    Session session = mock(Session.class);
 
-    ProfileService profileService = createNiceMock(ProfileService.class);
+    ProfileService profileService = mock(ProfileService.class);
     processor.profileService = profileService;
 
-    AccessControlManager accessControlManager = createNiceMock(AccessControlManager.class);
-    expect(session.getAccessControlManager()).andReturn(accessControlManager).anyTimes();
+    AccessControlManager accessControlManager = mock(AccessControlManager.class);
+    when(session.getAccessControlManager()).thenReturn(accessControlManager);
     @SuppressWarnings("unused")
     User adminUser = new User(ImmutableMap.of(User.ID_FIELD, (Object) "admin"));
     @SuppressWarnings("unused")
     User anonUser = new User(ImmutableMap.of(User.ID_FIELD, (Object) "anonymous"));
-    expect(profileService.getCompactProfileMap((Authorizable)EasyMock.anyObject(), (javax.jcr.Session)EasyMock.anyObject())).andReturn(
-        ValueMap.EMPTY).anyTimes();
-    AuthorizableManager authMgr = createNiceMock(AuthorizableManager.class);
-    expect(session.getAuthorizableManager()).andReturn(authMgr).anyTimes();
-    ResourceResolver resolver = createNiceMock(ResourceResolver.class);
-    expect(resolver.adaptTo(Session.class)).andReturn(session).anyTimes();
-    expect(request.getResourceResolver()).andReturn(resolver).anyTimes();
+    when(profileService.getCompactProfileMap(isA(Authorizable.class),
+        isA(javax.jcr.Session.class))).thenReturn(ValueMap.EMPTY);
+    
+    AuthorizableManager authMgr = mock(AuthorizableManager.class);
+    when(session.getAuthorizableManager()).thenReturn(authMgr);
+
+    ResourceResolver resolver = mock(ResourceResolver.class);
+    when(request.getResourceResolver()).thenReturn(resolver);
+    Object hybridSession = mock(javax.jcr.Session.class,
+        withSettings().extraInterfaces(SessionAdaptable.class));
+    when(resolver.adaptTo(javax.jcr.Session.class)).thenReturn(
+        (javax.jcr.Session) hybridSession);
+    when(((SessionAdaptable) hybridSession).getSession()).thenReturn(session);
+    
+    ContentManager cm = mock(ContentManager.class);
+    when(session.getContentManager()).thenReturn(cm);
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Writer w = new PrintWriter(baos);
@@ -132,12 +146,11 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     results.add(mockResult(contentC));
     results.add(mockResult(contentD));
 
-    expect(resolver.getResource("/msg/a")).andReturn(mockResource(contentA));
-    expect(resolver.getResource("/msg/b")).andReturn(mockResource(contentB));
-    expect(resolver.getResource("/msg/c")).andReturn(mockResource(contentC));
-    expect(resolver.getResource("/msg/d")).andReturn(mockResource(contentD));
+    when(cm.get("/msg/a")).thenReturn(contentA);
+    when(cm.get("/msg/b")).thenReturn(contentB);
+    when(cm.get("/msg/c")).thenReturn(contentC);
+    when(cm.get("/msg/d")).thenReturn(contentD);
 
-    replay();
     processor.writeResults(request, writer, results.iterator());
     w.flush();
 
@@ -153,14 +166,14 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
   }
 
   private Result mockResult(Content content) {
-    Result r = createNiceMock(Result.class);
-    expect(r.getPath()).andReturn(content.getPath());
+    Result r = mock(Result.class);
+    when(r.getPath()).thenReturn(content.getPath());
     return r;
   }
 
   private Resource mockResource(Content content) {
-    Resource r = createNiceMock(Resource.class);
-    expect(r.adaptTo(Content.class)).andReturn(content);
+    Resource r = mock(Resource.class);
+    when(r.adaptTo(Content.class)).thenReturn(content);
     return r;
   }
 }
