@@ -91,6 +91,8 @@ public class ProfileServlet extends SlingSafeMethodsServlet {
     Content profileContent = resource.adaptTo(Content.class);
     try {
       ValueMap map = profileService.getProfileMap(profileContent, resource.getResourceResolver().adaptTo(Session.class));
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
       ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
       writer.valueMap(map);
     } catch (AccessDeniedException e) {
