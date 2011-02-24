@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -174,6 +175,9 @@ public class BatchServlet extends SlingAllMethodsServlet {
           batchedRequests.add(r);
         }
       }
+    } catch (MalformedURLException e) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,e.getMessage());
+      return;
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
           "Failed to parse the " + REQUESTS_PARAMETER + " parameter");

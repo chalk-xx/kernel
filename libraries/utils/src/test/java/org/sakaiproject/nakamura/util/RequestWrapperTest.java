@@ -26,6 +26,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.junit.Test;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -36,7 +37,7 @@ public class RequestWrapperTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void test() throws UnsupportedEncodingException {
+  public void test() throws UnsupportedEncodingException, MalformedURLException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     expect(request.getCharacterEncoding()).andReturn("UTF-8");
     replay(request);

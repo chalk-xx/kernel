@@ -22,6 +22,7 @@ import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 
+import java.net.MalformedURLException;
 import java.util.Hashtable;
 import java.util.Iterator;
 
@@ -30,11 +31,12 @@ import java.util.Iterator;
  */
 public class RequestInfo {
 
+  private static final String ALLOWED_URL_CHARS = "$-_.+!*'(),/?&:;=@% ~^";
   private String url;
   private String method;
   private Hashtable<String, String[]> parameters;
 
-  public RequestInfo(String url, Hashtable<String, String[]> parameters) {
+  public RequestInfo(String url, Hashtable<String, String[]> parameters) throws MalformedURLException {
     setUrl(url);
     setParameters(parameters);
   }
@@ -71,8 +73,9 @@ public class RequestInfo {
    *          The JSON object containing the information to base this RequestInfo on.
    * @throws JSONException
    *           The JSON object could not be interpreted correctly.
+   * @throws MalformedURLException
    */
-  public RequestInfo(JSONObject obj) throws JSONException {
+  public RequestInfo(JSONObject obj) throws JSONException, MalformedURLException {
     setUrl(obj.getString("url"));
     setMethod(obj.getString("method"));
     setParameters(new Hashtable<String, String[]>());
@@ -105,9 +108,21 @@ public class RequestInfo {
   /**
    * @param url
    *          The url where to fire a request on.
+   * @throws MalformedURLException
    */
-  public void setUrl(String url) {
+  public void setUrl(String url) throws MalformedURLException {
+    checkValidUrl(url);
     this.url = url;
+  }
+
+  private void checkValidUrl(String url) throws MalformedURLException {
+    for( char c : url.toCharArray()) {
+      if ( !Character.isLetterOrDigit(c)) {
+        if ( ALLOWED_URL_CHARS.indexOf(c) < 0 ) {
+          throw new MalformedURLException("Invalid Character in URL request "+url+" character was 0x"+Integer.toHexString(c));
+        }
+      }
+    }
   }
 
   /**

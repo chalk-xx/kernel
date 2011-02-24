@@ -23,8 +23,10 @@ import static org.junit.Assert.assertTrue;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Test;
 
+import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
@@ -35,7 +37,7 @@ import java.util.List;
 public class RequestInfoTest {
 
   @Test
-  public void testJSON() throws JSONException {
+  public void testJSON() throws JSONException, MalformedURLException {
     JSONObject o = new JSONObject();
     o.put("method", "POST");
     o.put("url", "/foo/bar");
@@ -54,6 +56,26 @@ public class RequestInfoTest {
     List<String> lst = Arrays.asList((String[]) table.get("multi"));
     assertTrue(lst.contains("v1"));
     assertTrue(lst.contains("v2"));
+  }
+
+  @Test
+  public void testBadJSON() throws JSONException {
+    JSONObject o = new JSONObject();
+    o.put("method", "POST");
+    o.put("url", "/foo/bar\nisbad");
+    JSONObject parameters = new JSONObject();
+    parameters.put("sling:resourceType", "bla");
+    JSONArray arr = new JSONArray();
+    arr.put("v1").put("v2");
+    parameters.put("multi", arr);
+    o.put("parameters", parameters);
+    try {
+      @SuppressWarnings("unused")
+      RequestInfo info = new RequestInfo(o);
+      Assert.fail();
+    } catch (MalformedURLException e) {
+      // ok
+    }
   }
 
 }
