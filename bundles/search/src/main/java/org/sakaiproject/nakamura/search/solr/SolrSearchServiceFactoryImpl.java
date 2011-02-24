@@ -22,10 +22,12 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.search.solr.Query;
@@ -99,12 +101,10 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
     String queryString = query.getQueryString();
     // apply readers restrictions.
     if (asAnon) {
-      queryString = "(" + queryString + ")  AND readers:"
-          + org.sakaiproject.nakamura.api.lite.authorizable.User.ANON_USER;
+      queryString = "(" + queryString + ")  AND readers:" + User.ANON_USER;
     } else {
-      Session session = request.getResourceResolver().adaptTo(Session.class);
-      if (!org.sakaiproject.nakamura.api.lite.authorizable.User.ADMIN_USER
-          .equals(session.getUserId())) {
+      Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+      if (!User.ADMIN_USER.equals(session.getUserId())) {
         AuthorizableManager am = session.getAuthorizableManager();
         Authorizable user = am.findAuthorizable(session.getUserId());
         Set<String> readers = Sets.newHashSet();
@@ -153,7 +153,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
     for (Term term : terms) {
       props.put(term.field(), term.text());
     }
-    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     ContentManager cm = session.getContentManager();
     Iterable<Content> items = cm.find(props);
     SolrSearchResultSet rs = new SparseSearchResultSet(items);

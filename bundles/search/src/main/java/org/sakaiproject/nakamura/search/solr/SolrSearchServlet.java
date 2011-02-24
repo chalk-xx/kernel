@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.search.solr;
 
-import static org.apache.sling.api.SlingConstants.PROPERTY_RESOURCE_TYPE;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.DEFAULT_PAGED_ITEMS;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.JSON_RESULTS;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_ITEMS_PER_PAGE;
@@ -218,26 +217,26 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           // This allows a processor to do other queries and manipulate the results.
           if (useBatch) {
             rs = searchBatchProcessor.getSearchResultSet(request, query);
-            if (!(rs instanceof SolrSearchResultSetImpl)) {
-              SolrSearchException ex = new SolrSearchException(
-                  500,
-                  "Invalid Implementation  "
-                      + searchBatchProcessor
-                      + " is not creating a SearchResultSet using the SearchServiceFactory ");
-              LOGGER.error(ex.getMessage(), ex);
-              throw ex;
-            }
+//            if (!(rs instanceof SolrSearchResultSetImpl)) {
+//              SolrSearchException ex = new SolrSearchException(
+//                  500,
+//                  "Invalid Implementation  "
+//                      + searchBatchProcessor
+//                      + " is not creating a SearchResultSet using the SearchServiceFactory ");
+//              LOGGER.error(ex.getMessage(), ex);
+//              throw ex;
+//            }
           } else {
             rs = searchProcessor.getSearchResultSet(request, query);
-            if (!(rs instanceof SolrSearchResultSetImpl)) {
-              SolrSearchException ex = new SolrSearchException(
-                  500,
-                  "Invalid Implementation  "
-                      + searchProcessor
-                      + " is not creating a SearchResultSet using the SearchServiceFactory ");
-              LOGGER.error(ex.getMessage(), ex);
-              throw ex;
-            }
+//            if (!(rs instanceof SolrSearchResultSetImpl)) {
+//              SolrSearchException ex = new SolrSearchException(
+//                  500,
+//                  "Invalid Implementation  "
+//                      + searchProcessor
+//                      + " is not creating a SearchResultSet using the SearchServiceFactory ");
+//              LOGGER.error(ex.getMessage(), ex);
+//              throw ex;
+//            }
           }
         } catch (SolrSearchException e) {
           response.sendError(e.getCode(), e.getMessage());
@@ -303,8 +302,11 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     if (homePathMatcher.find()) {
       String username = homePathMatcher.group(3);
       String homePrefix = homePathMatcher.group(1);
-      String homePath = homePrefix + LitePersonalUtils.getHomePath(username).substring(1)
-          + "/";
+      String userHome = LitePersonalUtils.getHomePath(username);
+      // escape the home path twice so that the escaping will withstand the matcher
+      // replacement
+      userHome = ClientUtils.escapeQueryChars(ClientUtils.escapeQueryChars(userHome));
+      String homePath = homePrefix + userHome + "/";
       queryString = homePathMatcher.replaceAll(homePath);
     }
     return queryString;
@@ -360,12 +362,9 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
 
     // check the resource type and set the query type appropriately
     // default to using solr for queries
-    javax.jcr.Property resourceType = null;
-    if (queryNode.hasProperty(PROPERTY_RESOURCE_TYPE)) {
-      resourceType = queryNode.getProperty(PROPERTY_RESOURCE_TYPE);
-    }
+    javax.jcr.Property resourceType = queryNode.getProperty("sling:resourceType");
     Query query = null;
-    if (resourceType != null && "sakai/sparse-search".equals(resourceType.getString())) {
+    if ("sakai/sparse-search".equals(resourceType.getString())) {
       query = new Query(Type.SPARSE, queryString, options);
     } else {
       query = new Query(Type.SOLR, queryString, options);
