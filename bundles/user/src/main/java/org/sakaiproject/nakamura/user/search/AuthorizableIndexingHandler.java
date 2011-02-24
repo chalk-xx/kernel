@@ -118,7 +118,8 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
         Session session = repositorySession.adaptTo(Session.class);
         AuthorizableManager authzMgr = session.getAuthorizableManager();
         Authorizable authorizable = authzMgr.findAuthorizable(name);
-        if (authorizable != null) {
+        if (authorizable != null
+            && !authorizable.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
           SolrInputDocument doc = new SolrInputDocument();
 
           Map<String, Object> properties = authorizable.getSafeProperties();
