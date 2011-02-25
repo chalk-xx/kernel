@@ -52,8 +52,10 @@ import org.sakaiproject.nakamura.api.message.CreateMessagePreProcessor;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.message.internal.InternalCreateMessagePreProcessor;
+import org.sakaiproject.nakamura.resource.lite.LiteResourceResolver;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -215,11 +217,18 @@ public class LiteCreateMessageServlet extends SlingAllMethodsServlet {
     baseResource.getResourceMetadata().setResolutionPath("/");
     baseResource.getResourceMetadata().setResolutionPathInfo(path);
 
-    final String finalPath = path;
+    // KERN-1573 We need a resource path here not a content path
+    final String finalPath = path.replace("a:", "/~");
     final ResourceMetadata rm = baseResource.getResourceMetadata();
 
     // Wrap the request so it points to the message we just created.
-    ResourceWrapper wrapper = new ResourceWrapper(request.getResource()) {
+    Resource msgResource = null;
+    try {
+      msgResource = new SparseContentResource(msg, session, request.getResourceResolver());
+    } catch (StorageClientException e) {
+      throw new ServletException(e);
+    }
+    ResourceWrapper wrapper = new ResourceWrapper(msgResource) {
       /**
        * {@inheritDoc}
        *

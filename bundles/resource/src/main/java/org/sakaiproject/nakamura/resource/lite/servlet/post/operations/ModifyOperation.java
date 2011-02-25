@@ -24,6 +24,7 @@ import org.apache.sling.api.SlingException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceUtil;
+import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.NodeNameGenerator;
@@ -34,6 +35,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.DateParser;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparseCreateOperation;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.resource.lite.SparseNonExistingResource;
 import org.sakaiproject.nakamura.api.resource.lite.SparseRequestProperty;
 import org.sakaiproject.nakamura.resource.lite.servlet.post.helper.SparseFileUploadHandler;
@@ -153,7 +155,7 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
 
     // calculate the paths
     StringBuffer rootPathBuf = new StringBuffer();
-    String suffix;
+    String suffix = null;
     Resource currentResource = request.getResource();
     if (currentResource instanceof SparseNonExistingResource) {
       // no resource, treat the target Content path as suffix
@@ -166,8 +168,12 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
 
     } else {
 
-      // resource for part of the path, use request suffix
-      suffix = request.getRequestPathInfo().getSuffix();
+      // BL120 KERN-1573 Cannot receive chat messages
+      if(!(currentResource instanceof ResourceWrapper
+        && ((ResourceWrapper) currentResource).getResource() instanceof SparseContentResource)) {
+        // resource for part of the path, use request suffix
+        suffix = request.getRequestPathInfo().getSuffix();
+      }
 
       // cut off any selectors/extension from the suffix
       if (suffix != null) {
