@@ -117,8 +117,6 @@ public class CacheControlFilter implements Filter {
       throws IOException, ServletException {
     HttpServletRequest srequest = (HttpServletRequest) request;
     HttpServletResponse sresponse = (HttpServletResponse) response;
-    Exception e = new Exception("TRaceback");
-    e.printStackTrace();
     String path = srequest.getPathInfo();
     int respCode = 0;
     Map<String, String> headers = null;
