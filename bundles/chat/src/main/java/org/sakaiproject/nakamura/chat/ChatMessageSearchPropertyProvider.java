@@ -67,7 +67,7 @@ public class ChatMessageSearchPropertyProvider implements SolrSearchPropertyProv
           .getResourceResolver().adaptTo(javax.jcr.Session.class));
       final String fullPathToStore = ClientUtils.escapeQueryChars(messagingService
           .getFullPathToStore(user, session));
-      propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, fullPathToStore);
+      propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, fullPathToStore + "*");
 
       final RequestParameter usersParam = request.getRequestParameter("_from");
       if (usersParam != null && !usersParam.getString().equals("")) {
