@@ -21,10 +21,9 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.ops4j.pax.web.service.WebContainer;
 import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.ComponentException;
 import org.osgi.service.http.HttpContext;
+import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.slf4j.Logger;
@@ -62,8 +61,6 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
    */
   private static final long serialVersionUID = 4265672306115024805L;
 
-  private static final Logger LOG = LoggerFactory
-      .getLogger(TrustedAuthenticationServlet.class);
   
   private static final String PARAM_DESTINATION = "d";
 
@@ -85,9 +82,8 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TrustedAuthenticationServlet.class);
 
-  /** Reference to web container to register this servlet. */
   @Reference
-  protected transient WebContainer webContainer;
+  protected transient HttpService httpService;
 
   @Reference
   protected transient TrustedTokenService trustedTokenService;
@@ -104,18 +100,19 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
     Dictionary props = context.getProperties();
     registrationPath = (String) props.get(REGISTRATION_PATH);
     defaultDestination = (String) props.get(DEFAULT_DESTINATION);
-
-    // we MUST register this servlet and not let it be picked up by Sling since we want to bypass
-    // the normal security and simply trust the remote user value in the request.
     try {
-      webContainer.registerServlet(registrationPath, this, null, this);
-    } catch (NamespaceException e) {
-      LOG.error(e.getMessage(), e);
-      throw new ComponentException(e.getMessage(), e);
+      httpService.registerServlet(registrationPath, this, null, null);
+      LOGGER.info("Registerd {} at {} ",this,registrationPath);
     } catch (ServletException e) {
-      LOG.error(e.getMessage(), e);
-      throw new ComponentException(e.getMessage(), e);
+      LOGGER.error(e.getMessage(),e);
+    } catch (NamespaceException e) {
+      LOGGER.error(e.getMessage(),e);
     }
+  }
+
+  protected void deactivate(ComponentContext context) {
+    httpService.unregister(registrationPath);
+    LOGGER.info("UnRegisterd {} from {} ",this,registrationPath);
   }
 
   /**
