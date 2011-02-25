@@ -46,19 +46,6 @@
       </plugin>
     </plugins>
   </build>
-  <repositories>
-    <repository>
-      <id>OPS4J</id>
-      <name>OPS4J Repository</name>
-      <url>http://repository.ops4j.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
   <dependencies>
     <!-- scr annotations -->
     <dependency>
@@ -133,11 +120,6 @@
       <artifactId>servlet-api</artifactId>
     </dependency>
 
-    <!-- Pax Web -->
-    <dependency>
-      <groupId>org.ops4j.pax.web</groupId>
-      <artifactId>pax-web-service</artifactId>
-    </dependency>
 
     <!-- logging -->
     <dependency>

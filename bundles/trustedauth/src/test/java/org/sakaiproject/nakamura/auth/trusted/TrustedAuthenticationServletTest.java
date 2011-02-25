@@ -20,8 +20,9 @@ package org.sakaiproject.nakamura.auth.trusted;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
-import org.ops4j.pax.web.service.WebContainer;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.http.HttpContext;
+import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.Cache;
@@ -33,9 +34,11 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -63,7 +66,7 @@ public class TrustedAuthenticationServletTest {
     trustedTokenService.cacheManager = cacheManagerService;
 
   }
-  public ComponentContext configureForSession() {
+  public ComponentContext configureForSession() throws ServletException, NamespaceException {
     ComponentContext context = createMock(ComponentContext.class);
     Hashtable<String, Object> dict = new Hashtable<String, Object>();
     dict.put(TrustedTokenServiceImpl.USE_SESSION, true);
@@ -86,11 +89,8 @@ public class TrustedAuthenticationServletTest {
     ComponentContext context = configureForSession();
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
-    WebContainer webContainer = createMock(WebContainer.class);
 
     TrustedAuthenticationServlet trustedAuthenticationServlet = new TrustedAuthenticationServlet();
-    webContainer.registerServlet(null, trustedAuthenticationServlet, null, trustedAuthenticationServlet);
-    EasyMock.expectLastCall();
 
     EasyMock.expect(request.getRemoteAddr()).andReturn("192.168.0.123");
     EasyMock.expect(request.getUserPrincipal()).andReturn(null);
@@ -98,10 +98,13 @@ public class TrustedAuthenticationServletTest {
     EasyMock.expect(request.getParameter("d")).andReturn("/test");
     response.sendRedirect("/test");
     EasyMock.expectLastCall();
+    HttpService httpService = createMock(HttpService.class);
+    httpService.registerServlet((String)EasyMock.anyObject(), (Servlet)EasyMock.anyObject(), (Dictionary)EasyMock.anyObject(), (HttpContext)EasyMock.anyObject());
+    EasyMock.expectLastCall().anyTimes();
 
     replay();
     trustedAuthenticationServlet.trustedTokenService = trustedTokenService;
-    trustedAuthenticationServlet.webContainer = webContainer;
+    trustedAuthenticationServlet.httpService = httpService;
     trustedTokenService.activate(context);
     trustedAuthenticationServlet.activate(context);
 
