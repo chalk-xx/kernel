@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.service.event.Event;
@@ -52,12 +53,16 @@ import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.jcr.RepositoryException;
 
 /**
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
@@ -83,8 +88,8 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
   @Reference
   protected transient PresenceService presenceService;
 
-//  @Reference
-//  protected transient LiteProfileService profileService;
+  @Reference
+  protected transient ProfileService profileService;
 
   @Reference
   protected transient LockManager lockManager;
@@ -220,9 +225,8 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
       Authorizable au = authorizableManager.findAuthorizable(recipient);
       if (au != null) {
         write.object();
-        //TODO BL120 we don't have an implementation of profileService for sparse yet
-//        ValueMap map = profileService.getCompactProfileMap(au, session);
-//        ((ExtendedJSONWriter) write).valueMapInternals(map);
+        ValueMap map = profileService.getCompactProfileMap(au, jcrSession);
+        ExtendedJSONWriter.writeValueMapInternals(write, map);
         if (au instanceof User) {
           // Pass in the presence.
           PresenceUtils.makePresenceJSON(write, au.getId(), presenceService, true);
@@ -238,6 +242,8 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
     } catch (AccessDeniedException e) {
       LOG.error(e.getMessage(), e);
     } catch (StorageClientException e) {
+      LOG.error(e.getMessage(), e);
+    } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
     }
   }
