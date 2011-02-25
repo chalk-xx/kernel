@@ -169,8 +169,13 @@ public class ProfileServiceImpl implements ProfileService {
     } else {
 
       // The node wasn't found in the baseMap.
-      // We just dump the JCR properties.
-      map.putAll(profileContent.getProperties());
+      // We just dump the Sparse properties excluding any system properties.
+      for ( Entry<String, Object> e : profileContent.getProperties().entrySet()) {
+        String k = e.getKey();
+        if ( !k.startsWith("_") &&  !k.startsWith(":") ) {
+          map.put(k,e.getValue());
+        }
+      }
       map.put("jcr:path", PathUtils.translateAuthorizablePath(profileContent.getPath()));
       map.put("jcr:name", StorageClientUtils.getObjectName(profileContent.getPath()));
 
