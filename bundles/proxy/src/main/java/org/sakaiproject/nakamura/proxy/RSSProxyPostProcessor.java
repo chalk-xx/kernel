@@ -228,7 +228,10 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
               if (attr != null) {
                 formatKey += "-" + attr.getValue();
               }
-              checkedElements = new HashSet<String>(formats.get(formatKey));
+              Set<String> format = formats.get(formatKey);
+              if (format != null) {
+                checkedElements = new HashSet<String>(format);
+              }
             } else {
               checkedElements.remove(name);
 
