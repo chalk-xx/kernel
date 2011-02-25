@@ -26,17 +26,56 @@ import java.util.Map;
  * greater ease when parsing as templates and for building the SolrQuery object.
  */
 public class Query {
+
+  public enum Type {
+    SOLR, SPARSE
+  }
+
+  private Type type;
+
   private String queryString;
 
   private Map<String, String> options;
 
+  /**
+   * Create a query with a query string and optional properties to use Solr for searching.
+   * 
+   * @param queryString
+   * @param options
+   */
   public Query(String queryString, Map<String, String> options) {
     if (StringUtils.isBlank(queryString)) {
       throw new IllegalArgumentException("'queryString' must be provided to query");
     }
 
+    this.type = Type.SOLR;
     this.queryString = queryString;
     this.options = options;
+  }
+
+  /**
+   * Create a query with properties to be used for directly searching sparse content.
+   *
+   * @param properties
+   */
+  public Query(Type type, String queryString, Map<String, String> properties) {
+    if (properties == null || properties.isEmpty()) {
+      throw new IllegalArgumentException("'properties' must be provided to query");
+    }
+
+    this.type = type;
+    this.queryString = queryString;
+    this.options = properties;
+  }
+
+  /**
+   * Get the type of query this is.
+   *
+   * @return SOLR, SPARSE
+   * @see Type
+   */
+  public Type getType() {
+    return type;
   }
 
   /**
@@ -59,9 +98,9 @@ public class Query {
 
   @Override
   public String toString() {
-    String retval = "query: " + queryString;
+    String retval = "query::" + queryString;
     if (options != null) {
-      retval += " options: " + options.toString();
+      retval += "; properties::" + options.toString();
     }
     return retval;
   }

@@ -31,7 +31,9 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
@@ -89,8 +91,18 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
   public void writeResult(SlingHttpServletRequest request, JSONWriter write,
       Result result) throws JSONException {
     ResourceResolver resolver = request.getResourceResolver();
-    Content content = resolver.getResource(result.getPath()).adaptTo(Content.class);
-    writeContent(request, write, content);
+    // KERN-1573 no chat messages delivered
+    // Content content = resolver.getResource(result.getPath()).adaptTo(Content.class);
+    final Session session = StorageClientUtils.adaptToSession(request
+        .getResourceResolver().adaptTo(javax.jcr.Session.class));
+    try {
+      final Content content = session.getContentManager().get(result.getPath());
+      writeContent(request, write, content);
+    } catch (StorageClientException e) {
+      throw new JSONException(e);
+    } catch (AccessDeniedException e) {
+      throw new JSONException(e);
+    }
   }
 
   public void writeContent(SlingHttpServletRequest request, JSONWriter write,

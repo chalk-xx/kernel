@@ -15,6 +15,7 @@ Build-Jdk: 1.6.0_13
 Bundle-Version: 2.2.0
 Bnd-LastModified: 1296053619491
 Bundle-Activator: org.apache.felix.http.jetty.internal.JettyActivator
+Service-Component: OSGI-INF/serviceComponents.xml
 Bundle-ManifestVersion: 2
 Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
 Bundle-Description: Apache Felix is an OSGi implementation.

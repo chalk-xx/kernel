@@ -1,11 +1,11 @@
 {
-  "sakai:query-template" : "path:${path} AND resourceType:sakai/message AND type:discussion AND marker:${marker}",
+  "sakai:query-template" : "path:${path} AND sling\:resourceType:sakai/message AND sakai\:type:discussion AND sakai\:marker:${marker}",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
   "sortOn": "created",
   "sortOrder": "desc",
-  "sling:resourceType": "sakai/solr-search",
+  "sling:resourceType": "sakai/sparse-search",
   "sakai:batchresultprocessor": "DiscussionThreaded",
   "sakai:title": "Discussion - Threaded view",
   "sakai:shortDescription": "Retrieves a threaded view for a conversation.",

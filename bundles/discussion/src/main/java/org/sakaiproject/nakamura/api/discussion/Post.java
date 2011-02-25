@@ -130,8 +130,9 @@ public class Post {
   }
 
   public void outputPostAsJSON(ExtendedJSONWriter writer,
-      PresenceService presenceService, ProfileService profileService, javax.jcr.Session jcrSession)
-      throws JSONException, StorageClientException, AccessDeniedException, RepositoryException {
+      PresenceService presenceService, ProfileService profileService, Session session)
+      throws JSONException, StorageClientException, AccessDeniedException,
+      RepositoryException {
     boolean canEdit = checkEdit();
     boolean canDelete = checkDelete();
 
@@ -145,7 +146,7 @@ public class Post {
     if (isDeleted && !canDelete) {
       // This post has been deleted and we dont have sufficient rights to edit, so we just
       // show the replies.
-      outputChildrenAsJSON(writer, presenceService, profileService, jcrSession);
+      outputChildrenAsJSON(writer, presenceService, profileService, session);
     } else {
       writer.object();
 
@@ -173,7 +174,7 @@ public class Post {
         for (int i = 0; i < edittedBy.length; i++) {
           writer.object();
           Authorizable au = authMgr.findAuthorizable(edittedBy[i]);
-          ValueMap profile = profileService.getCompactProfileMap(au, jcrSession);
+          ValueMap profile = profileService.getCompactProfileMap(au, null);
           writer.valueMapInternals(profile);
           PresenceUtils.makePresenceJSON(writer, edittedBy[i], presenceService, true);
           writer.endObject();
@@ -189,7 +190,7 @@ public class Post {
       for (String sender : senders) {
         writer.object();
         Authorizable au = authMgr.findAuthorizable(sender);
-        ValueMap profile = profileService.getCompactProfileMap(au, jcrSession);
+        ValueMap profile = profileService.getCompactProfileMap(au, null);
         writer.valueMapInternals(profile);
         PresenceUtils.makePresenceJSON(writer, sender, presenceService, true);
         writer.endObject();
@@ -200,7 +201,7 @@ public class Post {
       // All the replies on this post.
       writer.key("replies");
       writer.array();
-      outputChildrenAsJSON(writer, presenceService, profileService, jcrSession);
+      outputChildrenAsJSON(writer, presenceService, profileService, session);
       writer.endArray();
 
       writer.endObject();
@@ -208,11 +209,12 @@ public class Post {
   }
 
   public void outputChildrenAsJSON(ExtendedJSONWriter writer,
-      PresenceService presenceService, ProfileService profileService, javax.jcr.Session jcrSession)
-      throws JSONException, StorageClientException, AccessDeniedException, RepositoryException {
+      PresenceService presenceService, ProfileService profileService, Session session)
+      throws JSONException, StorageClientException, AccessDeniedException,
+      RepositoryException {
     LOG.info("this post {} has {} children", getPostId(), getChildren().size());
     for (Post p : children) {
-      p.outputPostAsJSON(writer, presenceService, profileService, jcrSession);
+      p.outputPostAsJSON(writer, presenceService, profileService, session);
     }
   }
 

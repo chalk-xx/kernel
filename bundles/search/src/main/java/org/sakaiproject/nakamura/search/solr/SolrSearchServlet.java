@@ -62,6 +62,7 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.MissingParameterException;
 import org.sakaiproject.nakamura.api.search.solr.Query;
+import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -98,7 +99,7 @@ import javax.servlet.http.HttpServletResponse;
  * The <code>SearchServlet</code> uses nodes from the
  *
  */
-@SlingServlet(extensions = { "json" }, methods = { "GET" }, resourceTypes = { "sakai/solr-search" })
+@SlingServlet(extensions = { "json" }, methods = { "GET" }, resourceTypes = { "sakai/solr-search", "sakai/sparse-search" })
 @Properties(value = {
     @Property(name = "service.description", value = { "Perfoms searchs based on the associated node." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }),
@@ -216,26 +217,8 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           // This allows a processor to do other queries and manipulate the results.
           if (useBatch) {
             rs = searchBatchProcessor.getSearchResultSet(request, query);
-            if (!(rs instanceof SolrSearchResultSetImpl)) {
-              SolrSearchException ex = new SolrSearchException(
-                  500,
-                  "Invalid Implementation  "
-                      + searchBatchProcessor
-                      + " is not creating a SearchResultSet using the SearchServiceFactory ");
-              LOGGER.error(ex.getMessage(), ex);
-              throw ex;
-            }
           } else {
             rs = searchProcessor.getSearchResultSet(request, query);
-            if (!(rs instanceof SolrSearchResultSetImpl)) {
-              SolrSearchException ex = new SolrSearchException(
-                  500,
-                  "Invalid Implementation  "
-                      + searchProcessor
-                      + " is not creating a SearchResultSet using the SearchServiceFactory ");
-              LOGGER.error(ex.getMessage(), ex);
-              throw ex;
-            }
           }
         } catch (SolrSearchException e) {
           response.sendError(e.getCode(), e.getMessage());
@@ -295,15 +278,23 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     return queryString;
   }
 
-  private String expandHomeDirectoryInQuery(String queryString)
+  private String expandHomeDirectory(String queryString)
       throws RepositoryException {
     Matcher homePathMatcher = homePathPattern.matcher(queryString);
     if (homePathMatcher.find()) {
       String username = homePathMatcher.group(3);
       String homePrefix = homePathMatcher.group(1);
-      String homePath = homePrefix + LitePersonalUtils.getHomePath(username).substring(1)
-          + "/";
-      queryString = homePathMatcher.replaceAll(homePath);
+      String userHome = LitePersonalUtils.getHomePath(username);
+      // escape the home path twice so that the escaping will withstand the matcher
+      // replacement
+      userHome = ClientUtils.escapeQueryChars(userHome);
+      String homePath = homePrefix + userHome + "/";
+      String prefix = "";
+      if (homePathMatcher.start() > 0) {
+        prefix = queryString.substring(0, homePathMatcher.start());
+      }
+      String suffix = queryString.substring(homePathMatcher.end());
+      queryString = prefix + homePath + suffix;
     }
     return queryString;
   }
@@ -322,21 +313,21 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    */
   protected Query processQuery(SlingHttpServletRequest request, Node queryNode)
       throws RepositoryException, MissingParameterException, JSONException {
-    String queryTemplate = queryNode.getProperty(SAKAI_QUERY_TEMPLATE).getString();
     String propertyProviderName = null;
     if (queryNode.hasProperty(SAKAI_PROPERTY_PROVIDER)) {
       propertyProviderName = queryNode.getProperty(SAKAI_PROPERTY_PROVIDER).getString();
     }
-
     Map<String, String> propertiesMap = loadProperties(request, propertyProviderName,
         queryNode);
 
-    // process the querystring before checking for missing terms to a) give processors a
+    String queryTemplate = queryNode.getProperty(SAKAI_QUERY_TEMPLATE).getString();
+
+    // process the query string before checking for missing terms to a) give processors a
     // chance to set things and b) catch any missing terms added by the processors.
     String queryString = templateService.evaluateTemplate(propertiesMap, queryTemplate);
 
     // expand home directory references to full path; eg. ~user => a:user
-    queryString = expandHomeDirectoryInQuery(queryString);
+    queryString = expandHomeDirectory(queryString);
 
     // append the user principals to the query string
     queryString = addUserPrincipals(request, queryString);
@@ -356,7 +347,15 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     // process the options as templates and check for missing params
     Map<String, String> options = processOptions(propertiesMap, queryOptions);
 
-    Query query = new Query(queryString, options);
+    // check the resource type and set the query type appropriately
+    // default to using solr for queries
+    javax.jcr.Property resourceType = queryNode.getProperty("sling:resourceType");
+    Query query = null;
+    if ("sakai/sparse-search".equals(resourceType.getString())) {
+      query = new Query(Type.SPARSE, queryString, options);
+    } else {
+      query = new Query(Type.SOLR, queryString, options);
+    }
     return query;
   }
 

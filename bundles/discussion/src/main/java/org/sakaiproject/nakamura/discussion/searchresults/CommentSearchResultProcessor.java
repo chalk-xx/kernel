@@ -74,12 +74,11 @@ public class CommentSearchResultProcessor implements SolrSearchResultProcessor {
    */
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
       throws JSONException {
-    javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
-    Session session = StorageClientUtils.adaptToSession(jcrSession);
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     try {
       Content content = session.getContentManager().get(result.getPath());
       Post p = new Post(content, session);
-      p.outputPostAsJSON((ExtendedJSONWriter) write, presenceService, profileService, jcrSession);
+      p.outputPostAsJSON((ExtendedJSONWriter) write, presenceService, profileService, session);
     } catch (StorageClientException e) {
       throw new RuntimeException(e.getMessage(), e);
     } catch (AccessDeniedException e) {

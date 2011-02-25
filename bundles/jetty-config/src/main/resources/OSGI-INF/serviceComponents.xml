@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
+    <scr:component enabled="true" immediate="true" name="org.sakaiproject.nakamura.jetty.OSGiGZipFilter" activate="activate" deactivate="deactivate">
+        <implementation class="org.sakaiproject.nakamura.jetty.OSGiGZipFilter"/>
+        <property name="service.description" type="String" value="Nakamura GZip Filter"/>
+        <property name="service.vendor" type="String" value="The Sakai Foundation"/>
+        <property name="service.pid" value="org.sakaiproject.nakamura.jetty.OSGiGZipFilter"/>
+        <property name="bufferSize" type="Integer" value="8192"/>
+        <property name="minGzipSize" type="Integer" value="0"/>
+        <property name="userAgent" type="String" value="(?:Mozilla[^\(]*\(compatible;\s*+([^;]*);.*)|(?:.*?([^\s]+/[^\s]+).*)"/>
+       <property name="mimeTypes" type="String" value=""/> 
+       <property name="excludedAgents" type="String" value=""/>         
+        <reference name="extHttpService" 
+            interface="org.apache.felix.http.api.ExtHttpService" 
+            cardinality="1..1" 
+            policy="static" 
+            bind="bind" 
+            unbind="unbind"/>
+    </scr:component>
+</components>
+
+

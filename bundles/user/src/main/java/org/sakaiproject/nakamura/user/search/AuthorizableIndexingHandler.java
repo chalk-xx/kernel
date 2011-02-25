@@ -118,18 +118,23 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
         Session session = repositorySession.adaptTo(Session.class);
         AuthorizableManager authzMgr = session.getAuthorizableManager();
         Authorizable authorizable = authzMgr.findAuthorizable(name);
-        if (authorizable != null) {
+        // KERN-1607 Don't index manager groups
+        if (authorizable != null
+            && !authorizable.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
           SolrInputDocument doc = new SolrInputDocument();
 
           Map<String, Object> properties = authorizable.getSafeProperties();
 
           if (authorizable.isGroup()) {
-            // add group properties
-            Map<String, String> fields = GROUP_WHITELISTED_PROPS;
+            // KERN-1600 Check for title so we don't index things like contact groups
+            if (authorizable.hasProperty("sakai:group-title")) {
+              // add group properties
+              Map<String, String> fields = GROUP_WHITELISTED_PROPS;
 
-            for (Entry<String, Object> p : properties.entrySet()) {
-              if (fields.containsKey(p.getKey())) {
-                doc.addField(fields.get(p.getKey()), p.getValue());
+              for (Entry<String, Object> p : properties.entrySet()) {
+                if (fields.containsKey(p.getKey())) {
+                  doc.addField(fields.get(p.getKey()), p.getValue());
+                }
               }
             }
           } else {
