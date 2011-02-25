@@ -217,26 +217,8 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           // This allows a processor to do other queries and manipulate the results.
           if (useBatch) {
             rs = searchBatchProcessor.getSearchResultSet(request, query);
-//            if (!(rs instanceof SolrSearchResultSetImpl)) {
-//              SolrSearchException ex = new SolrSearchException(
-//                  500,
-//                  "Invalid Implementation  "
-//                      + searchBatchProcessor
-//                      + " is not creating a SearchResultSet using the SearchServiceFactory ");
-//              LOGGER.error(ex.getMessage(), ex);
-//              throw ex;
-//            }
           } else {
             rs = searchProcessor.getSearchResultSet(request, query);
-//            if (!(rs instanceof SolrSearchResultSetImpl)) {
-//              SolrSearchException ex = new SolrSearchException(
-//                  500,
-//                  "Invalid Implementation  "
-//                      + searchProcessor
-//                      + " is not creating a SearchResultSet using the SearchServiceFactory ");
-//              LOGGER.error(ex.getMessage(), ex);
-//              throw ex;
-//            }
           }
         } catch (SolrSearchException e) {
           response.sendError(e.getCode(), e.getMessage());
