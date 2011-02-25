@@ -22,6 +22,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.apache.felix.http.api.ExtHttpService;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.junit.After;
@@ -77,6 +78,9 @@ public class CacheControlFilterTest {
   @Mock
   private Cache<Object> cache;
 
+  @Mock
+  private ExtHttpService extHttpService;
+
   @Before
   public void setup() throws Exception {
     cacheControlFilter = new CacheControlFilter();
@@ -92,6 +96,7 @@ public class CacheControlFilterTest {
         "cacheable;.expires:3456000;.requestCache:3600;Cache-Control:max-age=432000 public;Vary:Accept-Encoding",
         "p;Cache-Control:no-cache" });
     when(componentContext.getProperties()).thenReturn(properties);
+    cacheControlFilter.extHttpService = extHttpService;
     cacheControlFilter.activate(componentContext);
     cacheControlFilter.init(filterConfig);
   }
