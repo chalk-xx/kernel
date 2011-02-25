@@ -55,8 +55,8 @@ module SlingTest
     return u
   end
  
-  def create_group(groupname)
-    g = @um.create_group(groupname)
+  def create_group(groupname, title = nil)
+    g = @um.create_group(groupname, title)
     assert_not_nil(g, "Expected group to be created: #{groupname}")
     @created_groups << groupname
     return g
