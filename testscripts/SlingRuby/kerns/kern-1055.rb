@@ -31,7 +31,7 @@ class TC_Kern1055Test < Test::Unit::TestCase
   def test_group_search_after_deletion
     m = Time.now.to_f.to_s.gsub('.', '')
     @s.switch_user(User.admin_user())
-    group = create_group("testgroup-#{m}")
+    group = create_group("testgroup-#{m}", "Test Group #{m}")
     wait_for_indexer()
     res = @s.execute_get(@s.url_for("/var/search/groups.tidy.json?q=testgroup-#{m}"))
     assert_equal("200", res.code, "Should have found group profile")

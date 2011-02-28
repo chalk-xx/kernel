@@ -4,7 +4,8 @@ Export-Package: org.apache.felix.http.api;uses:="javax.servlet,org.osg
  rvlet.http,javax.servlet";version="1.2",javax.servlet.resources;versi
  on="2.5",javax.servlet;version="2.5",javax.servlet.jsp.resources;vers
  ion="2.5",javax.servlet.http;uses:="javax.servlet";version="2.5",org.
- sakaiproject.nakamura.api.servlet
+ sakaiproject.nakamura.api.servlet;version="0.10",org.mortbay.util.aja
+ x;version="6.1.22"
 Built-By: fmeschbe
 Tool: Bnd-0.0.357
 Bundle-Name: Apache Felix Http Jetty

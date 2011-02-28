@@ -27,6 +27,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,15 +98,14 @@ public class RestPrivacyFilter implements Filter {
     }
     String path = resource.getPath();
     if ("/".equals(path)) {
-      Session session = resource.getResourceResolver().adaptTo(Session.class);
-      String currentUser = session.getUserID();
-      if (ADMIN_USER.equals(currentUser)) {
+      if (!isNodeOrContent(resource)) {
         return false;
       }
-      Node node = resource.adaptTo(Node.class);
-      if ( node == null ) {
-        return false; // webdav
+
+      if (isAdmin(resource)) {
+        return false;
       }
+
       if (isRecursiveGet(srequest)) {
         LOGGER.info("Root Node is protected from recursive GET operations");
         return true;
@@ -125,19 +125,55 @@ public class RestPrivacyFilter implements Filter {
       if (resource.getResourceMetadata().get(HomeResourceProvider.HOME_RESOURCE_PROVIDER) instanceof HomeResourceProvider) {
         return false;
       }
-      Session session = resource.getResourceResolver().adaptTo(Session.class);
-      String currentUser = session.getUserID();
-      if (ADMIN_USER.equals(currentUser)) {
+      if (isAdmin(resource)) {
         return false;
       }
-      Node node = resource.adaptTo(Node.class);
-      if ( node == null ) {
-        return false; // webdav
+      if (!isNodeOrContent(resource)) {
+        return false;
       }
       LOGGER.info("/_user and /_group are protected ");
       return true;
     }
 
+    return false;
+  }
+
+  /**
+   * @param resource
+   */
+  private boolean isNodeOrContent(Resource resource) {
+    Node node = resource.adaptTo(Node.class);
+    if ( node == null ) {
+      Content content = resource.adaptTo(Content.class);
+      if (content == null) {
+        return false; // webdav
+      }
+    }
+    return true;
+  }
+
+  /**
+   * @param resource
+   */
+  private boolean isAdmin(Resource resource) {
+    Session jcrSession = resource.getResourceResolver().adaptTo(Session.class);
+    if (jcrSession != null) {
+      String currentUser = jcrSession.getUserID();
+      if (ADMIN_USER.equals(currentUser)) {
+        return true;
+      }
+    } else {
+      // try to get a sparse session
+      org.sakaiproject.nakamura.api.lite.Session session = resource
+          .getResourceResolver().adaptTo(
+              org.sakaiproject.nakamura.api.lite.Session.class);
+      if (session != null) {
+        String currentUser = session.getUserId();
+        if (ADMIN_USER.equals(currentUser)) {
+          return true;
+        }
+      }
+    }
     return false;
   }
 
