@@ -11,6 +11,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.easymock.classextension.EasyMock;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -41,6 +42,7 @@ import javax.mail.internet.MimeMultipart;
 
 public class OutgoingEmailMessageListenerTest {
   private static final String NODE_PATH_PROPERTY = "nodePath";
+  private static final String CONTENT_PATH_PROPERTY = "contentPath";
   private static final String PATH = "/foo";
 
   private ActiveMQConnectionFactoryService connFactoryService;
@@ -73,6 +75,8 @@ public class OutgoingEmailMessageListenerTest {
 
     SlingRepository repository = createMock(SlingRepository.class);
     expect(repository.loginAdministrative(null)).andReturn(adminSession);
+    adminSession.logout();
+    EasyMock.expectLastCall().atLeastOnce();
 
     Resource res = createMock(Resource.class);
     expect(res.adaptTo(Node.class)).andReturn(messageNode);
@@ -120,6 +124,7 @@ public class OutgoingEmailMessageListenerTest {
   public void testNoBoxParam() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+    expect(message.getStringProperty(CONTENT_PATH_PROPERTY)).andReturn(null);
     expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
         "xx@123.com,yyy@345.com");
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)).andReturn(
@@ -140,6 +145,7 @@ public class OutgoingEmailMessageListenerTest {
   public void testNotOutBox() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+    expect(message.getStringProperty(CONTENT_PATH_PROPERTY)).andReturn(null);
     expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
         "xx@123.com,yyy@345.com");
 
@@ -166,6 +172,7 @@ public class OutgoingEmailMessageListenerTest {
   public void testNoTo() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+    expect(message.getStringProperty(CONTENT_PATH_PROPERTY)).andReturn(null);
     expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
         "xx@123.com,yyy@345.com");
 
@@ -195,6 +202,7 @@ public class OutgoingEmailMessageListenerTest {
   public void testNoFrom() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+    expect(message.getStringProperty(CONTENT_PATH_PROPERTY)).andReturn(null);
     expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
         "xx@123.com,yyy@345.com");
 
@@ -225,6 +233,7 @@ public class OutgoingEmailMessageListenerTest {
   public void testSingleTo() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+    expect(message.getStringProperty(CONTENT_PATH_PROPERTY)).andReturn(null);
     expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
         "tonobody@example.com");
 
@@ -272,6 +281,7 @@ public class OutgoingEmailMessageListenerTest {
   public void testMultiTo() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+    expect(message.getStringProperty(CONTENT_PATH_PROPERTY)).andReturn(null);
     expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
         "tonobody0@example.com,tonobody1@example.com");
 
@@ -329,6 +339,7 @@ public class OutgoingEmailMessageListenerTest {
   public void testBody() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+    expect(message.getStringProperty(CONTENT_PATH_PROPERTY)).andReturn(null);
     expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
         "tonobody@example.com");
 
@@ -384,6 +395,7 @@ public class OutgoingEmailMessageListenerTest {
   public void testSubject() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+    expect(message.getStringProperty(CONTENT_PATH_PROPERTY)).andReturn(null);
     expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
         "tonobody@example.com");
 
@@ -448,6 +460,7 @@ public class OutgoingEmailMessageListenerTest {
   public void testRepoExceptionHandling() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+    expect(message.getStringProperty(CONTENT_PATH_PROPERTY)).andReturn(null);
     expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
         "xx@123.com,yyy@345.com");
 
@@ -462,6 +475,7 @@ public class OutgoingEmailMessageListenerTest {
   public void testAttachment() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+    expect(message.getStringProperty(CONTENT_PATH_PROPERTY)).andReturn(null);
     expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
         "tonobody@example.com");
 

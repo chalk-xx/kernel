@@ -86,7 +86,7 @@ public class LiteEmailMessageHandler implements LiteMessageTransport {
       // make the message persistent to survive restarts.
       props.put(EventDeliveryConstants.MESSAGE_MODE, EventMessageMode.PERSISTENT);
       props.put(OutgoingEmailMessageListener.RECIPIENTS, recipients);
-      props.put(OutgoingEmailMessageListener.NODE_PATH_PROPERTY, message.getPath());
+      props.put(OutgoingEmailMessageListener.CONTENT_PATH_PROPERTY, message.getPath());
       Event emailEvent = new Event(OutgoingEmailMessageListener.QUEUE_NAME, props);
 
       LOGGER.debug("Sending event [" + emailEvent + "]");

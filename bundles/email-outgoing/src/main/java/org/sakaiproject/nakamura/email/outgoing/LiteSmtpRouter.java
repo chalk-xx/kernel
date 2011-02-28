@@ -19,11 +19,18 @@ package org.sakaiproject.nakamura.email.outgoing;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.sakaiproject.nakamura.api.lite.*;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.sakaiproject.nakamura.api.message.*;
+import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
+import org.sakaiproject.nakamura.api.message.LiteMessageRouter;
+import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.message.MessageRoute;
+import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +124,7 @@ public class LiteSmtpRouter implements LiteMessageRouter {
     boolean isSmtp = false;
 
     if (message != null && message.hasProperty(MessageConstants.PROP_SAKAI_TYPE)) {
-      String prop = StorageClientUtils.toString(message.getProperty(MessageConstants.PROP_SAKAI_TYPE));
+      String prop = (String) message.getProperty(MessageConstants.PROP_SAKAI_TYPE);
       isSmtp = MessageConstants.TYPE_SMTP.equals(prop);
     }
 

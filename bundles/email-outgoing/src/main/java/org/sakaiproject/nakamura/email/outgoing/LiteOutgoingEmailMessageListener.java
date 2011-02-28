@@ -23,23 +23,24 @@ import org.apache.commons.mail.MultiPartEmail;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.sling.api.resource.LoginException;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.commons.scheduler.Job;
 import org.apache.sling.commons.scheduler.JobContext;
 import org.apache.sling.commons.scheduler.Scheduler;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.templates.TemplateService;
-import org.sakaiproject.nakamura.util.PersonalUtils;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,10 +56,8 @@ import java.util.Properties;
 import java.util.Set;
 
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
-import javax.jcr.ValueFormatException;
 import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -67,10 +66,10 @@ import javax.jms.MessageListener;
 import javax.jms.Queue;
 import javax.jms.Session;
 
-@Component(label = "%email.out.name", description = "%email.out.description", immediate = true, metatype = true)
-public class OutgoingEmailMessageListener implements MessageListener {
+@Component(immediate = true, metatype = true)
+public class LiteOutgoingEmailMessageListener implements MessageListener {
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(OutgoingEmailMessageListener.class);
+      .getLogger(LiteOutgoingEmailMessageListener.class);
 
   @Property(value = "localhost")
   private static final String SMTP_SERVER = "sakai.smtp.server";
@@ -85,8 +84,6 @@ public class OutgoingEmailMessageListener implements MessageListener {
 
   @Reference
   protected SlingRepository repository;
-  @Reference
-  protected ResourceResolverFactory resourceResolverFactory;
   @Reference
   protected Scheduler scheduler;
   @Reference
@@ -114,10 +111,10 @@ public class OutgoingEmailMessageListener implements MessageListener {
 
   private Integer retryInterval;
 
-  public OutgoingEmailMessageListener() {
+  public LiteOutgoingEmailMessageListener() {
   }
 
-  public OutgoingEmailMessageListener(ConnectionFactoryService connFactoryService) {
+  public LiteOutgoingEmailMessageListener(ConnectionFactoryService connFactoryService) {
     this.connFactoryService = connFactoryService;
   }
 
@@ -141,42 +138,33 @@ public class OutgoingEmailMessageListener implements MessageListener {
         }
       }
 
-      if (nodePath != null && nodePath.length() > 0) {
+      if (contentPath != null && contentPath.length() > 0) {
         javax.jcr.Session adminSession = repository.loginAdministrative(null);
+        org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils
+            .adaptToSession(adminSession);
 
         try {
-          Map<String, Object> authInfo = new HashMap<String, Object>();
-          authInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_SESSION, adminSession);
-          ResourceResolver resolver = resourceResolverFactory
-              .getResourceResolver(authInfo);
-          if (resolver == null) {
-            LOGGER.error("Resource Resolver could not be created");
-            throw new NullPointerException(
-                "Unable to create a resource resolver, Sling API has changed");
-          }
-
-          Resource resource = resolver.getResource(nodePath);
-          LOGGER.info("Resolving {} ", nodePath, resource);
-
-          Node messageNode = resource.adaptTo(Node.class);
+          ContentManager contentManager = sparseSession.getContentManager();
+          Content messageContent = contentManager.get(contentPath);
 
           if (objRcpt != null) {
             // validate the message
-            if (messageNode != null) {
-              if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)
-                  && MessageConstants.BOX_OUTBOX.equals(messageNode.getProperty(
-                      MessageConstants.PROP_SAKAI_MESSAGEBOX).getString())) {
-                if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)) {
+            if (messageContent != null) {
+              if (messageContent.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)
+                  && MessageConstants.BOX_OUTBOX.equals(messageContent
+                      .getProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX))) {
+                if (messageContent.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)) {
                   // We're retrying this message, so clear the errors
-                  messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR,
+                  messageContent.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR,
                       (String) null);
                 }
-                if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)
-                    && messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
+                if (messageContent.hasProperty(MessageConstants.PROP_SAKAI_TO)
+                    && messageContent.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
                   // make a commons-email message from the message
                   MultiPartEmail email = null;
                   try {
-                    email = constructMessage(messageNode, recipients);
+                    email = constructMessage(messageContent, recipients, adminSession,
+                        sparseSession);
 
                     email.setSmtpPort(smtpPort);
                     email.setHostName(smtpServer);
@@ -186,7 +174,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
                     String exMessage = e.getMessage();
                     Throwable cause = e.getCause();
 
-                    setError(messageNode, exMessage);
+                    setError(messageContent, exMessage);
                     LOGGER.warn("Unable to send email: " + exMessage);
 
                     // Get the SMTP error code
@@ -198,7 +186,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
                         int errorCode = Integer.parseInt(smtpError.substring(0, 3));
                         // All retry-able SMTP errors should have codes starting
                         // with 4
-                        scheduleRetry(errorCode, messageNode);
+                        scheduleRetry(errorCode, messageContent);
                         rescheduled = true;
                       } catch (NumberFormatException nfe) {
                         // smtpError didn't start with an error code, let's dig for
@@ -209,7 +197,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
                             && (rindex + searchFor.length()) < smtpError.length()) {
                           int errorCode = Integer.parseInt(smtpError.substring(
                               searchFor.length(), searchFor.length() + 3));
-                          scheduleRetry(errorCode, messageNode);
+                          scheduleRetry(errorCode, messageContent);
                           rescheduled = true;
                         }
                       }
@@ -224,19 +212,19 @@ public class OutgoingEmailMessageListener implements MessageListener {
                     }
                   }
                 } else {
-                  setError(messageNode, "Message must have a to and from set");
+                  setError(messageContent, "Message must have a to and from set");
                 }
               } else {
-                setError(messageNode, "Not an outbox");
+                setError(messageContent, "Not an outbox");
               }
-              if (!messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)) {
-                messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
+              if (!messageContent.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)) {
+                messageContent.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
                     MessageConstants.BOX_SENT);
               }
             }
           } else {
             String retval = "null";
-            setError(messageNode,
+            setError(messageContent,
                 "Expected recipients to be String or List<String>.  Found " + retval);
           }
         } finally {
@@ -245,36 +233,42 @@ public class OutgoingEmailMessageListener implements MessageListener {
           }
         }
       }
-    } catch (JMSException e) {
+    } catch (PathNotFoundException e) {
       LOGGER.error(e.getMessage(), e);
     } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);
-    } catch (LoginException e) {
+    } catch (JMSException e) {
       LOGGER.error(e.getMessage(), e);
     } catch (EmailDeliveryException e) {
       LOGGER.error(e.getMessage());
+    } catch (ClientPoolException e) {
+      LOGGER.error(e.getMessage(), e);
+    } catch (StorageClientException e) {
+      LOGGER.error(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      LOGGER.error(e.getMessage(), e);
     }
   }
 
-  private MultiPartEmail constructMessage(Node messageNode, List<String> recipients)
-      throws EmailDeliveryException, RepositoryException, PathNotFoundException,
-      ValueFormatException {
+  private MultiPartEmail constructMessage(Content contentNode, List<String> recipients,
+      javax.jcr.Session session, org.sakaiproject.nakamura.api.lite.Session sparseSession)
+      throws EmailDeliveryException, StorageClientException, AccessDeniedException,
+      PathNotFoundException, RepositoryException {
     MultiPartEmail email = new MultiPartEmail();
-    javax.jcr.Session session = messageNode.getSession();
     // TODO: the SAKAI_TO may make no sense in an email context
     // and there does not appear to be any distinction between Bcc and To in java mail.
 
     Set<String> toRecipients = new HashSet<String>();
     Set<String> bccRecipients = new HashSet<String>();
     for (String r : recipients) {
-      bccRecipients.add(convertToEmail(r.trim(), session));
+      bccRecipients.add(convertToEmail(r.trim(), sparseSession));
     }
 
-    if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)) {
+    if (contentNode.hasProperty(MessageConstants.PROP_SAKAI_TO)) {
       String[] tor = StringUtils.split(
-          messageNode.getProperty(MessageConstants.PROP_SAKAI_TO).getString(), ',');
+          (String) contentNode.getProperty(MessageConstants.PROP_SAKAI_TO), ',');
       for (String r : tor) {
-        r = convertToEmail(r.trim(), session);
+        r = convertToEmail(r.trim(), sparseSession);
         if (bccRecipients.contains(r)) {
           toRecipients.add(r);
           bccRecipients.remove(r);
@@ -283,7 +277,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
     }
     for (String r : toRecipients) {
       try {
-        email.addTo(convertToEmail(r, session));
+        email.addTo(convertToEmail(r, sparseSession));
       } catch (EmailException e) {
         throw new EmailDeliveryException("Invalid To Address [" + r
             + "], message is being dropped :" + e.getMessage(), e);
@@ -291,17 +285,17 @@ public class OutgoingEmailMessageListener implements MessageListener {
     }
     for (String r : bccRecipients) {
       try {
-        email.addBcc(convertToEmail(r, session));
+        email.addBcc(convertToEmail(r, sparseSession));
       } catch (EmailException e) {
         throw new EmailDeliveryException("Invalid Bcc Address [" + r
             + "], message is being dropped :" + e.getMessage(), e);
       }
     }
 
-    if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
-      String from = messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM).getString();
+    if (contentNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
+      String from = (String) contentNode.getProperty(MessageConstants.PROP_SAKAI_FROM);
       try {
-        email.setFrom(convertToEmail(from, session));
+        email.setFrom(convertToEmail(from, sparseSession));
       } catch (EmailException e) {
         throw new EmailDeliveryException("Invalid From Address [" + from
             + "], message is being dropped :" + e.getMessage(), e);
@@ -310,18 +304,18 @@ public class OutgoingEmailMessageListener implements MessageListener {
       throw new EmailDeliveryException("Must provide a 'from' address.");
     }
 
-    if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)) {
-      String messageBody = messageNode.getProperty(MessageConstants.PROP_SAKAI_BODY)
-          .getString();
+    if (contentNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)) {
+      String messageBody = (String) contentNode
+          .getProperty(MessageConstants.PROP_SAKAI_BODY);
       // if this message has a template, use it
       LOGGER
           .debug("Checking for sakai:templatePath and sakai:templateParams properties on the outgoing message's node.");
-      if (messageNode.hasProperty(MessageConstants.PROP_TEMPLATE_PATH)
-          && messageNode.hasProperty(MessageConstants.PROP_TEMPLATE_PARAMS)) {
-        Map<String, String> parameters = getTemplateProperties(messageNode.getProperty(
-            MessageConstants.PROP_TEMPLATE_PARAMS).getString());
-        String templatePath = messageNode
-            .getProperty(MessageConstants.PROP_TEMPLATE_PATH).getString();
+      if (contentNode.hasProperty(MessageConstants.PROP_TEMPLATE_PATH)
+          && contentNode.hasProperty(MessageConstants.PROP_TEMPLATE_PARAMS)) {
+        Map<String, String> parameters = getTemplateProperties((String) contentNode
+            .getProperty(MessageConstants.PROP_TEMPLATE_PARAMS));
+        String templatePath = (String) contentNode
+            .getProperty(MessageConstants.PROP_TEMPLATE_PATH);
         LOGGER.debug("Got the path '{0}' to the template for this outgoing message.",
             templatePath);
         Node templateNode = session.getNode(templatePath);
@@ -336,7 +330,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
         LOGGER
             .debug(
                 "Message node '{0}' does not have sakai:templatePath and sakai:templateParams properties",
-                messageNode.getPath());
+                contentNode.getPath());
       }
       try {
         email.setMsg(messageBody);
@@ -346,35 +340,33 @@ public class OutgoingEmailMessageListener implements MessageListener {
       }
     }
 
-    if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)) {
-      email.setSubject(messageNode.getProperty(MessageConstants.PROP_SAKAI_SUBJECT)
-          .getString());
+    if (contentNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)) {
+      email.setSubject((String) contentNode
+          .getProperty(MessageConstants.PROP_SAKAI_SUBJECT));
     }
 
-    if (messageNode.hasNodes()) {
-      NodeIterator ni = messageNode.getNodes();
-      while (ni.hasNext()) {
-        Node childNode = ni.nextNode();
-        String description = null;
-        if (childNode.hasProperty(MessageConstants.PROP_SAKAI_ATTACHMENT_DESCRIPTION)) {
-          description = childNode.getProperty(
-              MessageConstants.PROP_SAKAI_ATTACHMENT_DESCRIPTION).getString();
-        }
-        JcrEmailDataSource ds = new JcrEmailDataSource(childNode);
-        try {
-          email.attach(ds, childNode.getName(), description);
-        } catch (EmailException e) {
-          throw new EmailDeliveryException("Invalid Attachment [" + childNode.getName()
-              + "] message is being dropped :" + e.getMessage(), e);
-        }
+    ContentManager contentManager = sparseSession.getContentManager();
+    for (String streamId : contentNode.listStreams()) {
+      String description = null;
+      if (contentNode.hasProperty(StorageClientUtils.getAltField(
+          MessageConstants.PROP_SAKAI_ATTACHMENT_DESCRIPTION, streamId))) {
+        description = (String) contentNode.getProperty(StorageClientUtils.getAltField(
+            MessageConstants.PROP_SAKAI_ATTACHMENT_DESCRIPTION, streamId));
+      }
+      LiteEmailDataSource ds = new LiteEmailDataSource(contentManager, contentNode,
+          streamId);
+      try {
+        email.attach(ds, streamId, description);
+      } catch (EmailException e) {
+        throw new EmailDeliveryException("Invalid Attachment [" + streamId
+            + "] message is being dropped :" + e.getMessage(), e);
       }
     }
-
     return email;
   }
 
   private Map<String, String> getTemplateProperties(String templateParameter)
-      throws ValueFormatException, IllegalStateException, RepositoryException {
+      throws IllegalStateException {
     Map<String, String> rv = new HashMap<String, String>();
     String[] values = templateParameter.split("\\|");
     for (String value : values) {
@@ -384,22 +376,19 @@ public class OutgoingEmailMessageListener implements MessageListener {
     return rv;
   }
 
-  private String convertToEmail(String address, javax.jcr.Session session) {
+  private String convertToEmail(String address,
+      org.sakaiproject.nakamura.api.lite.Session session) throws StorageClientException,
+      AccessDeniedException {
     if (address.indexOf('@') < 0) {
       String emailAddress = null;
-      try {
-        Authorizable user = PersonalUtils.getAuthorizable(session, address);
-        if (user != null) {
-          // We only check the profile is the recipient is a user.
-          String profilePath = PersonalUtils.getProfilePath(user);
-          if (profilePath != null && session.itemExists(profilePath)) {
-            Node profileNode = session.getNode(profilePath);
-            emailAddress = PersonalUtils.getPrimaryEmailAddress(profileNode);
 
-          }
+      Authorizable user = session.getAuthorizableManager().findAuthorizable(address);
+      if (user != null) {
+        Content profile = session.getContentManager().get(
+            LitePersonalUtils.getProfilePath(user.getId()));
+        if (profile != null) {
+          emailAddress = LitePersonalUtils.getProfilePath(user.getId());
         }
-      } catch (RepositoryException e) {
-        LOGGER.warn("Failed to get address for user " + address + " " + e.getMessage());
       }
       if (emailAddress != null && emailAddress.trim().length() > 0) {
         address = emailAddress;
@@ -410,13 +399,13 @@ public class OutgoingEmailMessageListener implements MessageListener {
     return address;
   }
 
-  private void scheduleRetry(int errorCode, Node messageNode) throws RepositoryException {
+  private void scheduleRetry(int errorCode, Content contentNode) {
     // All retry-able SMTP errors should have codes starting with 4
     if ((errorCode / 100) == 4) {
       long retryCount = 0;
-      if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_RETRY_COUNT)) {
-        retryCount = messageNode.getProperty(MessageConstants.PROP_SAKAI_RETRY_COUNT)
-            .getLong();
+      if (contentNode.hasProperty(MessageConstants.PROP_SAKAI_RETRY_COUNT)) {
+        retryCount = StorageClientUtils.toLong(contentNode
+            .getProperty(MessageConstants.PROP_SAKAI_RETRY_COUNT));
       }
 
       if (retryCount < maxRetries) {
@@ -434,7 +423,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
         };
 
         HashMap<String, Serializable> jobConfig = new HashMap<String, Serializable>();
-        jobConfig.put(NODE_PATH_PROPERTY, messageNode.getPath());
+        jobConfig.put(NODE_PATH_PROPERTY, contentNode.getPath());
 
         int retryIntervalMillis = retryInterval * 60000;
         Date nextTry = new Date(System.currentTimeMillis() + (retryIntervalMillis));
@@ -445,7 +434,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
           LOGGER.error(e.getMessage(), e);
         }
       } else {
-        setError(messageNode, "Unable to send message, exhausted SMTP retries.");
+        setError(contentNode, "Unable to send message, exhausted SMTP retries.");
       }
     } else {
       LOGGER.warn("Not scheduling a retry for error code not of the form 4xx.");
@@ -525,7 +514,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
     }
   }
 
-  private void setError(Node node, String error) throws RepositoryException {
+  private void setError(Content node, String error) {
     node.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR, error);
   }
 
@@ -549,12 +538,4 @@ public class OutgoingEmailMessageListener implements MessageListener {
     return diff;
   }
 
-  protected void bindRepository(SlingRepository repository) {
-    this.repository = repository;
-  }
-
-  protected void bindResourceResolverFactory(
-      ResourceResolverFactory resourceResolverFactory) {
-    this.resourceResolverFactory = resourceResolverFactory;
-  }
 }
