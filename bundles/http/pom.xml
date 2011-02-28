@@ -39,6 +39,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Export-Package>org.sakaiproject.nakamura.api.http.*</Export-Package>
             <Private-Package>org.sakaiproject.nakamura.http.*</Private-Package>
           </instructions>
         </configuration>
@@ -49,6 +50,11 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
       <version>0.10-SNAPSHOT</version>
     </dependency>
     <dependency>
