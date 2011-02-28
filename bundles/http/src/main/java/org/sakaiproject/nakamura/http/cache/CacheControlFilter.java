@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
@@ -55,7 +56,6 @@ import javax.servlet.http.HttpServletResponse;
  * When more than one pattern matches, the filter sets the lowest maxage of the collection
  * of matching patterns.
  */
-//@Service(value = Filter.class)
 @Component(immediate = true, metatype = true)
 @Properties(value = {
     @Property(name = "service.description", value = "Nakamura Cache-Control Filter"),
@@ -91,6 +91,12 @@ public class CacheControlFilter implements Filter {
   static final String SAKAI_CACHE_PATTERNS = "sakai.cache.patterns";
 
   static final String SAKAI_CACHE_PATHS = "sakai.cache.paths";
+
+  /**
+   * Priority of this filter, higher number means sooner
+   */
+  @Property(intValue=5)
+  private static final String FILTER_PRIORITY_CONF = "filter.priority";
 
   
   @Reference 
@@ -254,7 +260,9 @@ public class CacheControlFilter implements Filter {
       rootPathPatterns = new HashMap<Pattern, Map<String, String>>();
     }
 
-    extHttpService.registerFilter(this, ".*", null, 0, null);
+    int filterPriority = OsgiUtil.toInteger(properties.get(FILTER_PRIORITY_CONF),0);
+
+    extHttpService.registerFilter(this, ".*", null, filterPriority, null);
 
 
   }
