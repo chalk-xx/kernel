@@ -66,7 +66,7 @@ import javax.jms.MessageListener;
 import javax.jms.Queue;
 import javax.jms.Session;
 
-@Component(label = "%email.out.name", description = "%email.out.description", immediate = true, metatype = true)
+@Component(immediate = true, metatype = true)
 public class LiteOutgoingEmailMessageListener implements MessageListener {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteOutgoingEmailMessageListener.class);
