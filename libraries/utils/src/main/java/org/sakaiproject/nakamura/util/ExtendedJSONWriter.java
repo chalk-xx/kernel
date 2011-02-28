@@ -180,6 +180,8 @@ public class ExtendedJSONWriter extends JSONWriter {
           }
         }
         write.endArray();
+      } else if (propValue instanceof java.util.Calendar){
+          write.value(DateUtils.iso8601((java.util.Calendar)propValue));
       } else {
         if (isUserPath(propName, propValue)) {
           write.value(PathUtils.translateAuthorizablePath(propValue));

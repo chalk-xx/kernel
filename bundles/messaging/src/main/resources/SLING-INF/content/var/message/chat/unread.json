@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "path:${_userMessagePath} AND resourceType:sakai/message AND type:chat AND created:[${t} TO *]${_from}",
+  "sakai:query-template": "path:${_userMessagePath} AND resourceType:sakai/message AND type:chat AND created:[${t} TO *]",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
@@ -13,7 +13,6 @@
   "sakai:shortDescription": "Get all the chat messages in your message store after a certain timestamp",
   "sakai:parameters" : [
                         "{\"name\" : \"t\", \"description\" : \"Timestamped value. Only messages who were sent after this timestamp will be retrieved. Timestamp should be of the following format: 2009-12-22T02:58:14.603Z - Required\"}",
-                        "{\"name\" : \"_from\", \"description\" : \"Comma seperated list of userid's of sender's - Optional.\"}",
                         "{\"name\" : \"sortOn\", \"description\" : \"Sort the results on this property - Optional.\"}",
                         "{\"name\" : \"sortOrder\", \"description\" : \"Either 'asc' or 'desc' - Optional.\"}"
     ],

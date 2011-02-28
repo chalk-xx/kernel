@@ -35,7 +35,6 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -123,7 +122,7 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
           message.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
               MessageConstants.SAKAI_MESSAGE_RT);
 
-          long time = StorageClientUtils.toLong(originalMessage.getProperty(MessageConstants.PROP_SAKAI_CREATED));
+          long time = ((java.util.Calendar)originalMessage.getProperty(MessageConstants.PROP_SAKAI_CREATED)).getTimeInMillis();
 
           String from = (String) originalMessage.getProperty(MessageConstants.PROP_SAKAI_FROM);
 
