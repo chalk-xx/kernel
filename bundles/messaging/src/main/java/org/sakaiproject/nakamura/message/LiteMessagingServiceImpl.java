@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,21 +175,16 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
    */
   public String getFullPathToStore(String rcpt, Session session) throws MessagingException {
     String path = "";
-    try {
-      if (rcpt.startsWith("w-")) {
-        // This is a widget
-        // TODO This is also a bug. KERN-1442
-        return expandHomeDirectoryInPath(session,rcpt.substring(2));
-      }
-      // TODO TEMPORARY HACK TO ENABLE SPARSE MIGRATION! Use a proper service once the Home Folder
-      // logic is properly set up.
-      path = MessageConstants.SAKAI_MESSAGE_PATH_PREFIX + rcpt + "/" + MessageConstants.FOLDER_MESSAGES + "/";
+    if (rcpt.startsWith("w-")) {
+      // This is a widget
+      // TODO This is also a bug. KERN-1442
+      return LitePersonalUtils.expandHomeDirectory(rcpt.substring(2)) + "/";
+    }
+    // TODO TEMPORARY HACK TO ENABLE SPARSE MIGRATION! Use a proper service once the Home Folder
+    // logic is properly set up.
+    path = MessageConstants.SAKAI_MESSAGE_PATH_PREFIX + rcpt + "/" + MessageConstants.FOLDER_MESSAGES + "/";
 //      Authorizable au = PersonalUtils.getAuthorizable(session, rcpt);
 //      path = PersonalUtils.getHomeFolder(au) + "/" + MessageConstants.FOLDER_MESSAGES;
-    } catch (AccessDeniedException e) {
-      LOGGER.warn("AccessDeniedException when trying to get the full path to {} store.", rcpt,e);
-      throw new MessagingException(500, e.getMessage());
-    }
 
     return path;
   }
@@ -202,20 +198,6 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
     // at the moment we dont do alias expansion
     expanded.add(localRecipient);
     return expanded;
-  }
-
-  private String expandHomeDirectoryInPath(Session session, String path)
-  throws AccessDeniedException {
-    // TODO Punt on this for the moment.
-//    Matcher homePathMatcher = homePathPattern.matcher(path);
-//    if (homePathMatcher.find()) {
-//      String username = homePathMatcher.group(2);
-//      UserManager um = AccessControlUtil.getUserManager(session);
-//      Authorizable au = um.getAuthorizable(username);
-//      String homePath = profileService.getHomePath(au).substring(1) + "/";
-//      path = homePathMatcher.replaceAll(homePath);
-//    }
-    return path;
   }
 
 }
