@@ -54,7 +54,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -71,6 +70,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
 import org.sakaiproject.nakamura.api.templates.TemplateService;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -228,7 +228,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        JSONWriter write = new JSONWriter(response.getWriter());
+        ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
         write.setTidy(isTidy(request));
 
         write.object();
@@ -278,15 +278,12 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     return queryString;
   }
 
-  private String expandHomeDirectory(String queryString)
-      throws RepositoryException {
+  private String expandHomeDirectory(String queryString) {
     Matcher homePathMatcher = homePathPattern.matcher(queryString);
     if (homePathMatcher.find()) {
       String username = homePathMatcher.group(3);
       String homePrefix = homePathMatcher.group(1);
       String userHome = LitePersonalUtils.getHomePath(username);
-      // escape the home path twice so that the escaping will withstand the matcher
-      // replacement
       userHome = ClientUtils.escapeQueryChars(userHome);
       String homePath = homePrefix + userHome + "/";
       String prefix = "";

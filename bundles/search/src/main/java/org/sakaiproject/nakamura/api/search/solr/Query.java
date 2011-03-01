@@ -58,14 +58,10 @@ public class Query {
    *
    * @param properties
    */
-  public Query(Type type, String queryString, Map<String, String> properties) {
-    if (properties == null || properties.isEmpty()) {
-      throw new IllegalArgumentException("'properties' must be provided to query");
-    }
+  public Query(Type type, String queryString, Map<String, String> options) {
+    this(queryString, options);
 
     this.type = type;
-    this.queryString = queryString;
-    this.options = properties;
   }
 
   /**
@@ -100,7 +96,7 @@ public class Query {
   public String toString() {
     String retval = "query::" + queryString;
     if (options != null) {
-      retval += "; properties::" + options.toString();
+      retval += "; options::" + options.toString();
     }
     return retval;
   }
