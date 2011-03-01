@@ -88,6 +88,7 @@ public interface ProfileConstants {
    */
   public static final String USER_PICTURE = "picture";
   
+  public static final String PREFERRED_NAME = "preferredName";
   /**
    * The property name that holds the basic nodes for a user.
    */
