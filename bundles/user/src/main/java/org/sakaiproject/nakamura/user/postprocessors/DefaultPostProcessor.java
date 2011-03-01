@@ -459,12 +459,14 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
         Map<String, Object> profileProperties = processProfileParameters(
             defaultProfileTemplate, authorizable, parameters);
+        createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC,
+            "nt:unstructured", false, contentManager, accessControlManager, null);
         for (String propName : profileProperties.keySet()) {
+          createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC + "/" + propName,
+              "nt:unstructured", false, contentManager, accessControlManager, ImmutableMap.of("value", profileProperties.get(propName)));
           authorizable.setProperty(propName, profileProperties.get(propName));
         }
         authorizableManager.updateAuthorizable(authorizable);
-        createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC,
-            "nt:unstructured", false, contentManager, accessControlManager, profileProperties);
       }
     } else {
       // Attempt to sync the Acl on the home folder with whatever is present in the
