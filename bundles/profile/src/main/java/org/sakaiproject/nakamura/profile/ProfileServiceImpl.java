@@ -24,11 +24,14 @@ import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_EMAIL_
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_FIRSTNAME_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_LASTNAME_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_PICTURE;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.PREFERRED_NAME;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
@@ -39,6 +42,7 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -72,7 +76,7 @@ import javax.jcr.Session;
 /**
  *
  */
-@Component(immediate = true, specVersion = "1.1")
+@Component(immediate = true, metatype=true, specVersion="1.1")
 @Service(value = ProfileService.class)
 @References(value = { @Reference(name = "ProfileProviders", referenceInterface = ProfileProvider.class, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, strategy = ReferenceStrategy.EVENT, bind = "bindProfileProvider", unbind = "unbindProfileProvider") })
 public class ProfileServiceImpl implements ProfileService {
@@ -81,9 +85,18 @@ public class ProfileServiceImpl implements ProfileService {
   private ProviderSettingsFactory providerSettingsFactory = new ProviderSettingsFactory();
   public static final Logger LOG = LoggerFactory.getLogger(ProfileServiceImpl.class);
   
-  private final String[] basicProfileElements = new String[] {USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY, USER_EMAIL_PROPERTY, USER_PICTURE};
+  private final static String[] DEFAULT_BASIC_PROFILE_ELEMENTS = new String[] {USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY, USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME};
 
 
+  @Property(value={"firstName", "lastName", "email", "picture", "preferredName"})
+  public final static String BASIC_PROFILE_ELEMENTS = "basicProfileElements";
+
+  private String[] basicProfileElements;
+
+  @Activate
+  protected void activate(Map<String, Object> properties ) {
+    basicProfileElements = OsgiUtil.toStringArray(properties.get(BASIC_PROFILE_ELEMENTS), DEFAULT_BASIC_PROFILE_ELEMENTS);
+  }
 
   /**
    * {@inheritDoc}
