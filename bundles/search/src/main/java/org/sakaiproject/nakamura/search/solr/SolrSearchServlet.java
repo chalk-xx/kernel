@@ -420,6 +420,13 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
   }
 
   /**
+   * Load properties from the query node, request and property provider.<br/>
+   *
+   * Overwrite order: query node &lt; request &lt; property provider<br/>
+   *
+   * This ordering allows the query node to set defaults, the request to override those
+   * defaults but the property provider to have the final say in what value is set.
+   * 
    * @param request
    * @param propertyProviderName
    * @return
@@ -429,14 +436,41 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       String propertyProviderName, Node node) throws RepositoryException {
     Map<String, String> propertiesMap = new HashMap<String, String>();
 
-    // load authorizable (user) information
+    // 0. load authorizable (user) information
     String userId = request.getRemoteUser();
     String userPrivatePath = ClientUtils.escapeQueryChars(LitePersonalUtils
         .getPrivatePath(userId));
     propertiesMap.put("_userPrivatePath", userPrivatePath);
     propertiesMap.put("_userId", ClientUtils.escapeQueryChars(userId));
 
-    // load properties from a property provider
+    // 1. load in properties from the query template node so defaults can be set
+    PropertyIterator props = node.getProperties();
+    while (props.hasNext()) {
+      javax.jcr.Property prop = props.nextProperty();
+      if (!propertiesMap.containsKey(prop.getName()) && !prop.isMultiple()) {
+        propertiesMap.put(prop.getName(), prop.getString());
+      }
+    }
+
+    // 2. load in properties from the request
+    RequestParameterMap params = request.getRequestParameterMap();
+    for (Entry<String, RequestParameter[]> entry : params.entrySet()) {
+      String key = entry.getKey();
+      RequestParameter[] vals = entry.getValue();
+      String requestValue = vals[0].getString();
+      if ("sortOn".equals(key)) {
+        requestValue = StringUtils.removeStart(requestValue, "sakai:");
+      }
+      // KERN-1601 Wildcard searches have to be manually lowercased for case insensitive
+      // matching as Solr bypassing the analyzer when dealing with a wildcard search.
+      if (StringUtils.contains(requestValue, '*')
+          || StringUtils.contains(requestValue, '~')) {
+        requestValue = requestValue.toLowerCase();
+      }
+      propertiesMap.put(entry.getKey(), requestValue);
+    }
+
+    // 3. load properties from a property provider
     if (propertyProviderName != null) {
       LOGGER.debug("Trying Provider Name {} ", propertyProviderName);
       SolrSearchPropertyProvider provider = propertyProvider.get(propertyProviderName);
@@ -448,32 +482,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       }
     } else {
       LOGGER.debug("No Provider ");
-    }
-
-    // load in properties from the request
-    RequestParameterMap params = request.getRequestParameterMap();
-    for (Entry<String, RequestParameter[]> entry : params.entrySet()) {
-      String key = entry.getKey();
-      RequestParameter[] vals = entry.getValue();
-      // don't allow the URL to replace parameters that have already been set.
-      // this keeps any _* variables from being replaced by request parameters.
-      String value = propertiesMap.get(key);
-      if (StringUtils.isBlank(value)) {
-        String requestValue = vals[0].getString();
-        if ("sortOn".equals(key)) {
-          requestValue = StringUtils.removeStart(requestValue, "sakai:");
-        }
-        propertiesMap.put(entry.getKey(), requestValue);
-      }
-    }
-
-    // load in properties from the query template node so defaults can be set
-    PropertyIterator props = node.getProperties();
-    while (props.hasNext()) {
-      javax.jcr.Property prop = props.nextProperty();
-      if (!propertiesMap.containsKey(prop.getName()) && !prop.isMultiple()) {
-        propertiesMap.put(prop.getName(), prop.getString());
-      }
     }
 
     return propertiesMap;
