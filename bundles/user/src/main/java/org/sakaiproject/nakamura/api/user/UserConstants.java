@@ -85,6 +85,31 @@ public interface UserConstants {
    */
   public static final String PROP_BARE_AUTHORIZABLE = "sakai:bare";
 
+  /**
+   * The name of the property that holds the value of identifier (authorizable ID) for
+   * this profile.
+   */
+  public static final String USER_IDENTIFIER_PROPERTY = "rep:userId";
+
+  /**
+   * The property name that holds the given name of a user.
+   */
+  public static final String USER_FIRSTNAME_PROPERTY = "firstName";
+
+  /**
+   * The property name that holds the family name of a user.
+   */
+  public static final String USER_LASTNAME_PROPERTY = "lastName";
+
+  /**
+   * The property name that holds the email of a user.
+   */
+  public static final String USER_EMAIL_PROPERTY = "email";
+  
+  /**
+   * The property name that holds the picture location for a user.
+   */
+  public static final String USER_PICTURE = "picture";
 
   /**
    * The joinable property
@@ -147,5 +172,7 @@ public interface UserConstants {
    * The name of the OSGi event topic for deleting a group.
    */
   public static final String TOPIC_GROUP_DELETED = "org/sakaiproject/nakamura/group/deleted";
+  
+  
 
 }
