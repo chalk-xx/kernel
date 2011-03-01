@@ -68,6 +68,9 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
     try {
       String operation = request.getParameter(":operation");
+      if (operation == null) {
+        operation = "";
+      }
       if ( "import".equals(operation)) {
       String content = request.getParameter(":content");
       if (content == null || content.length() == 0) {
