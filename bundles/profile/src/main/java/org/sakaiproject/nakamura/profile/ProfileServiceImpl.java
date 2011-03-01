@@ -25,6 +25,10 @@ import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_FIRSTN
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_LASTNAME_PROPERTY;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_PICTURE;
 import static org.sakaiproject.nakamura.api.profile.ProfileConstants.PREFERRED_NAME;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_ROLE;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_COLLEGE;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_DEPARTMENT;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_DATEOFBIRTH;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -85,10 +89,12 @@ public class ProfileServiceImpl implements ProfileService {
   private ProviderSettingsFactory providerSettingsFactory = new ProviderSettingsFactory();
   public static final Logger LOG = LoggerFactory.getLogger(ProfileServiceImpl.class);
   
-  private final static String[] DEFAULT_BASIC_PROFILE_ELEMENTS = new String[] {USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY, USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME};
+  private final static String[] DEFAULT_BASIC_PROFILE_ELEMENTS = new String[] {USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY,
+    USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME, USER_ROLE, USER_DEPARTMENT, USER_COLLEGE, USER_DATEOFBIRTH};
 
 
-  @Property(value={"firstName", "lastName", "email", "picture", "preferredName"})
+  @Property(value={USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY,
+      USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME, USER_ROLE, USER_DEPARTMENT, USER_COLLEGE, USER_DATEOFBIRTH})
   public final static String BASIC_PROFILE_ELEMENTS = "basicProfileElements";
 
   private String[] basicProfileElements;

@@ -86,9 +86,34 @@ public interface ProfileConstants {
   /**
    * The property name that holds the picture location for a user.
    */
+
   public static final String USER_PICTURE = "picture";
   
+  /**
+   * The name of the property which holds the user's institutional role (faculty, staff, etc.)
+   */
+  public static final String USER_ROLE = "role";
+
+  /**
+   * The name of the property which holds the user's department (Chemistry, English, etc.)
+   */
+  public static final String USER_DEPARTMENT = "department";
+
+  /**
+   * The name of the property which holds the user's college (Liberal Arts, Natural Sciences, etc.)
+   */
+  public static final String USER_COLLEGE = "college";
+
+  /**
+   * The name of the property which holds the user's date of birth.
+   */
+  public static final String USER_DATEOFBIRTH = "dateofbirth";
+
+  /**
+   * The name of the property which holds the name that this user prefers to go by.
+   */
   public static final String PREFERRED_NAME = "preferredName";
+
   /**
    * The property name that holds the basic nodes for a user.
    */
