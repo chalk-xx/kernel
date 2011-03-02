@@ -71,14 +71,9 @@ public class ExtendedJSONWriter extends JSONWriter {
   }
   public static void writeValueMapInternals(JSONWriter writer, Map<String, ?> valueMap) throws JSONException {
     if (valueMap != null) {
-      /*
-       * KERN-1598 UnsupportedOperationException at
-       * SolrDocument$1.entrySet(SolrDocument.java:218). Looks like SolrDocument does not
-       * support entrySet (i.e. valueMap.entrySet()). Switching to keySet semantics.
-       */
-      for (final String key : valueMap.keySet()) {
-        writer.key(key);
-        writeValueInternal(writer, valueMap.get(key));
+      for (Entry<String, ?> entry : valueMap.entrySet()) {
+        writer.key(entry.getKey());
+        writeValueInternal(writer, entry.getValue());
       }
     }
   }
