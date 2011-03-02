@@ -2,6 +2,7 @@ package org.sakaiproject.nakamura.search.solr;
 
 import org.apache.solr.common.SolrDocument;
 import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.solr.SafeSolrMap;
 
 import java.util.Collection;
 import java.util.Map;
@@ -19,7 +20,7 @@ public class ResultImpl implements Result {
   }
 
   public Map<String, Collection<Object>> getProperties() {
-    return solrDocument.getFieldValuesMap();
+    return new SafeSolrMap<String, Collection<Object>>(solrDocument.getFieldValuesMap());
   }
 
   public Object getFirstValue(String name) {
