@@ -106,6 +106,7 @@ public class MessageSearchResultProcessorTest {
     when(request.getRemoteUser()).thenReturn(userID);
     when(session.getUserId()).thenReturn(userID);
     when(session.getContentManager()).thenReturn(contentManager);
+    when(contentManager.exists(pathToPrevMsg)).thenReturn(Boolean.TRUE);
     when(contentManager.get(pathToPrevMsg)).thenReturn(previousMsg);
     when(messagingService.getFullPathToStore(userID, session)).thenReturn(
         pathToStore);

@@ -37,6 +37,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
@@ -189,16 +190,24 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
     String userId = request.getRemoteUser();
     String id = (String) content
         .getProperty(PROP_SAKAI_PREVIOUS_MESSAGE);
-    String messageStore = messagingService.getFullPathToStore(userId, session);
-    String path = messageStore + MessageConstants.BOX_OUTBOX + "/" + id;
     try {
-      Content previousMessage = session.getContentManager().get(path);
+      Content previousMessage = searchMailboxes(userId, session, id);
       writeContent(request, write, previousMessage);
     } catch (StorageClientException e) {
-      throw new JSONException("Couldn't write search results because couldn't get content at path " + path);
+      throw new JSONException("Couldn't write search results because couldn't get message with id " + id);
     } catch (AccessDeniedException e) {
-      throw new JSONException("Couldn't write search results because did not have permission to get content at path " + path);
+      throw new JSONException("Couldn't write search results because did not have permission to get message with id " + id);
     }
+  }
+
+  private Content searchMailboxes(String userId, Session session, String id) throws StorageClientException, AccessDeniedException {
+    ContentManager contentManager = session.getContentManager();
+    String messageStore = messagingService.getFullPathToStore(userId, session);
+    String path = messageStore + MessageConstants.BOX_OUTBOX + "/" + id;
+    if (!contentManager.exists(path)) {
+      path = messageStore + MessageConstants.BOX_INBOX + "/" + id;
+    }
+    return contentManager.get(path);
   }
 
   /**
