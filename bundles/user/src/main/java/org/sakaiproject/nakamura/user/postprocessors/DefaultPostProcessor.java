@@ -509,7 +509,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           boolean modified = false;
           for (final Entry<String, Object[]> entry : parameters.entrySet()) {
             final String key = entry.getKey();
-            if ("sakai:group-joinable".equals(key) || "sakai:group-visible".equals(key)) {
+            if ("sakai:group-joinable".equals(key) 
+                || "sakai:group-visible".equals(key)
+                || "sakai:pages-visible".equals(key)) {
               authprofile.setProperty(entry.getKey(), entry.getValue()[0]);
               modified = true;
             }

@@ -107,7 +107,8 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
         if (originalParameterName.startsWith(SlingPostConstants.RP_PREFIX)
             // FIXME BL120 this is another hackaround for KERN-1584
             || "sakai:group-joinable".equals(originalParameterName)
-            || "sakai:group-visible".equals(originalParameterName))
+            || "sakai:group-visible".equals(originalParameterName)
+            || "sakai:pages-visible".equals(originalParameterName))
         // end KERN-1584 hackaround
         {
           RequestParameter[] values = originalParameters.getValues(originalParameterName);
