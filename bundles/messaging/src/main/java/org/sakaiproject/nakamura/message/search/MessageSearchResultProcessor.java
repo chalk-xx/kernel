@@ -25,6 +25,8 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -70,7 +72,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
   @Reference
   SolrSearchServiceFactory searchServiceFactory;
 
-  @Reference(referenceInterface = LiteMessageProfileWriter.class)
+  @Reference(referenceInterface = LiteMessageProfileWriter.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
   Map<String, LiteMessageProfileWriter> writers = new ConcurrentHashMap<String, LiteMessageProfileWriter>();
 
   public void bindWriters(LiteMessageProfileWriter writer) {
