@@ -37,6 +37,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
+import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -93,8 +94,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
     ResourceResolver resolver = request.getResourceResolver();
     // KERN-1573 no chat messages delivered
     // Content content = resolver.getResource(result.getPath()).adaptTo(Content.class);
-    final Session session = StorageClientUtils.adaptToSession(request
-        .getResourceResolver().adaptTo(javax.jcr.Session.class));
+    final Session session = StorageClientUtils.adaptToSession(resolver.adaptTo(javax.jcr.Session.class));
     try {
       final Content content = session.getContentManager().get(result.getPath());
       writeContent(request, write, content);
@@ -182,13 +182,21 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
   private void parsePreviousMessages(SlingHttpServletRequest request, JSONWriter write,
       Content content) throws JSONException {
     ResourceResolver resolver = request.getResourceResolver();
-    Session s = resolver.adaptTo(Session.class);
+    javax.jcr.Session jcrSession = resolver.adaptTo(javax.jcr.Session.class);
+    Session session = StorageClientUtils.adaptToSession(jcrSession);
     String userId = request.getRemoteUser();
     String id = (String) content
         .getProperty(PROP_SAKAI_PREVIOUS_MESSAGE);
-    String path = messagingService.getFullPathToMessage(userId, id, s);
-    Content previousMessage = resolver.getResource(path).adaptTo(Content.class);
-    writeContent(request, write, previousMessage);
+    String messageStore = messagingService.getFullPathToStore(userId, session);
+    String path = messageStore + MessageConstants.BOX_OUTBOX + "/" + id;
+    try {
+      Content previousMessage = session.getContentManager().get(path);
+      writeContent(request, write, previousMessage);
+    } catch (StorageClientException e) {
+      throw new JSONException("Couldn't write search results because couldn't get content at path " + path);
+    } catch (AccessDeniedException e) {
+      throw new JSONException("Couldn't write search results because did not have permission to get content at path " + path);
+    }
   }
 
   /**
