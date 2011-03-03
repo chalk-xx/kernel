@@ -20,6 +20,9 @@ package org.sakaiproject.nakamura.util;
 
 import org.sakaiproject.nakamura.api.lite.content.Content;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 /**
  *
@@ -135,4 +138,30 @@ public class LitePersonalUtils {
     return PATH_RESOURCE_AUTHORIZABLE+id;
   }
 
+  private static Pattern homePathPattern = Pattern.compile("^(.*)(~([\\w-]*?))/");
+
+  /**
+   * Expand home directory resource path into a content path.
+   * ~user => a:user
+   *
+   * @param session
+   * @param path
+   * @return
+   */
+  public static String expandHomeDirectory(String path) {
+    Matcher homePathMatcher = homePathPattern.matcher(path);
+    if (homePathMatcher.find()) {
+      String username = homePathMatcher.group(3);
+      String homePrefix = homePathMatcher.group(1);
+      String userHome = LitePersonalUtils.getHomePath(username);
+      String homePath = homePrefix + userHome + "/";
+      String prefix = "";
+      if (homePathMatcher.start() > 0) {
+        prefix = path.substring(0, homePathMatcher.start());
+      }
+      String suffix = path.substring(homePathMatcher.end());
+      path = prefix + homePath + suffix;
+    }
+    return path;
+  }
 }

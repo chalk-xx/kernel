@@ -147,7 +147,7 @@ public class CropItServlet extends SlingAllMethodsServlet {
 //      save = PathUtils.normalizePath(save) + "/";
 //      requestSave = PathUtils.normalizePath(requestSave) + "/";
 
-      String[] crop = CropItProcessor.crop(resourceResolver, x, y, width, height, dimensions, img,
+      String[] crop = CropItProcessor.crop(resourceResolver, x, y, width, height, dimensions, requestImg,
           save);
 
       response.setContentType("application/json");

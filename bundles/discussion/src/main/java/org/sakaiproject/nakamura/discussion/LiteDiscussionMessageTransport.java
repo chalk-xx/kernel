@@ -23,12 +23,13 @@ import static org.sakaiproject.nakamura.api.message.MessageConstants.BOX_INBOX;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_FROM;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_ID;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_MESSAGEBOX;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_MESSAGE_STORE;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_SENDSTATE;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_TO;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_TYPE;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NOTIFIED;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -40,6 +41,7 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
@@ -124,7 +126,7 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
           }
           // Copy the node to the destination
 
-          ImmutableMap.Builder<String, Object> propertyBuilder = ImmutableMap.builder();
+          Map<String, Object> propertyBuilder = Maps.newHashMap();
 
           Map<String, Object> messageProps = originalMessage.getProperties();
           for (String propertyKey : messageProps.keySet()) {
@@ -137,8 +139,14 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
           propertyBuilder.put(PROP_SAKAI_TO, route.getRcpt());
           propertyBuilder.put(PROP_SAKAI_MESSAGEBOX, BOX_INBOX);
           propertyBuilder.put(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
-          
-          Content newMessageNode = new Content(toPath, propertyBuilder.build());
+          // store the path of the message store for searching
+          // hash the path to keep it from being too long
+          String messageStorePath = messagingService.getFullPathToStore(recipient,
+              session);
+          propertyBuilder.put(PROP_SAKAI_MESSAGE_STORE,
+              StorageClientUtils.insecureHash(messageStorePath));
+
+          Content newMessageNode = new Content(toPath, propertyBuilder);
           
           if (!testing) {
             // This will probably be saved in a site store. Not all the users will have
@@ -158,6 +166,7 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
             session.getAccessControlManager().setAcl(Security.ZONE_CONTENT, toPath,
                 arrayOfMods);
           }
+          session.getContentManager().update(newMessageNode);
 
           try {
             // Send an OSGi event. The value of the selector is the last part of the event

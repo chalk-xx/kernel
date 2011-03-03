@@ -146,6 +146,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
     QueryParser parser = new QueryParser(Version.LUCENE_40, "id",
         new TextField().getQueryAnalyzer());
     org.apache.lucene.search.Query luceneQuery = parser.parse(query.getQueryString());
+
     Set<Term> terms = Sets.newHashSet();
     luceneQuery.extractTerms(terms);
 

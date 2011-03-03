@@ -1,6 +1,9 @@
 package org.sakaiproject.nakamura.profile.servlet;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -11,6 +14,8 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.servlets.post.SlingPostConstants;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -19,11 +24,16 @@ import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.resource.JSONResponse;
 import org.sakaiproject.nakamura.api.resource.lite.ResourceModifyOperation;
+import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -37,9 +47,16 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ProfileUpdateServlet.class);
 
+  private final List<ServiceReference> delayedPostOperations = new ArrayList<ServiceReference>();
+
   @Reference
   private ProfileService profileService;
   private ResourceModifyOperation modifyOperation;
+
+  @Reference(name = "postOperation", referenceInterface = SparsePostOperation.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+  Map<String, SparsePostOperation> postOperations = new ConcurrentHashMap<String, SparsePostOperation>();
+
+  private ComponentContext componentContext;
 
   @Override
   public void init() {
@@ -51,6 +68,9 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
     try {
       String operation = request.getParameter(":operation");
+      if (operation == null) {
+        operation = "";
+      }
       if ( "import".equals(operation)) {
       String content = request.getParameter(":content");
       if (content == null || content.length() == 0) {
@@ -74,7 +94,11 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
         // prepare the response
         HtmlResponse htmlResponse = new JSONResponse();
         htmlResponse.setReferer(request.getHeader("referer"));
-        modifyOperation.run(request, htmlResponse, new SparsePostProcessor[]{});
+        if (postOperations.containsKey(operation)) {
+          postOperations.get(operation).run(request, htmlResponse, new SparsePostProcessor[]{});
+        } else {
+          modifyOperation.run(request, htmlResponse, new SparsePostProcessor[]{});
+        }
         // check for redirect URL if processing succeeded
         if (htmlResponse.isSuccessful()) {
           String redirect = getRedirectUrl(request, htmlResponse);
@@ -168,6 +192,47 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
         "getStatusMode: Parameter {} set to unknown value {}, assuming standard status code",
         SlingPostConstants.RP_STATUS);
     return true;
+  }
+
+  protected void bindPostOperation(ServiceReference ref) {
+    synchronized (this.delayedPostOperations) {
+      if (this.componentContext == null) {
+        this.delayedPostOperations.add(ref);
+      } else {
+        this.registerPostOperation(ref);
+      }
+    }
+  }
+
+  protected void registerPostOperation(ServiceReference ref) {
+    String operationName = (String) ref
+        .getProperty(SparsePostOperation.PROP_OPERATION_NAME);
+    SparsePostOperation operation = (SparsePostOperation) this.componentContext
+        .locateService("postOperation", ref);
+    if (operation != null) {
+      synchronized (this.postOperations) {
+        this.postOperations.put(operationName, operation);
+      }
+    }
+  }
+
+  protected void unbindPostOperation(ServiceReference ref) {
+      String operationName = (String) ref
+          .getProperty(SparsePostOperation.PROP_OPERATION_NAME);
+      synchronized (this.postOperations) {
+        this.postOperations.remove(operationName);
+      }
+  }
+
+  @Activate
+  protected void activate(ComponentContext context) {
+    this.componentContext = context;
+    synchronized (this.delayedPostOperations) {
+      for (final ServiceReference ref : this.delayedPostOperations) {
+        this.registerPostOperation(ref);
+      }
+      this.delayedPostOperations.clear();
+    }
   }
 
 }
