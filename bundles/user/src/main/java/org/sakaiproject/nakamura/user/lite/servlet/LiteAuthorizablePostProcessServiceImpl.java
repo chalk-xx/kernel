@@ -32,6 +32,7 @@ import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.user.lite.resource.LiteAuthorizableResourceProvider;
@@ -107,7 +108,8 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
         if (originalParameterName.startsWith(SlingPostConstants.RP_PREFIX)
             // FIXME BL120 this is another hackaround for KERN-1584
             || "sakai:group-joinable".equals(originalParameterName)
-            || "sakai:group-visible".equals(originalParameterName))
+            || "sakai:group-visible".equals(originalParameterName)
+            || "sakai:pages-visible".equals(originalParameterName))
         // end KERN-1584 hackaround
         {
           RequestParameter[] values = originalParameters.getValues(originalParameterName);

@@ -46,6 +46,8 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessagingException;
+import org.sakaiproject.nakamura.api.messagebucket.MessageBucketException;
+import org.sakaiproject.nakamura.api.messagebucket.MessageBucketService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -101,6 +103,9 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
   @Reference
   protected transient ProfileService profileService;
 
+  @Reference
+  private MessageBucketService messageBucketService;
+
   /**
    * {@inheritDoc}
    *
@@ -124,6 +129,18 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       // User info
       writer.key("user");
       writeUserJSON(writer, session, au, request);
+
+      try {
+        String messageBucketUrl = messageBucketService.getBucketUrl(request, "default");
+        if ( messageBucketUrl != null) {
+          writer.key("eventbus");
+          writer.value(messageBucketUrl);
+        }
+      } catch ( MessageBucketException e) {
+        LOG.warn("Failed to create message bucket URL {} "+e.getMessage());
+        LOG.debug("Failed to create message bucket URL {} "+e.getMessage(),e);
+
+      }
 
       // Dump this user his info
       writer.key("profile");

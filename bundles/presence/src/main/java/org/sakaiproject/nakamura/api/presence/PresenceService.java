@@ -97,4 +97,6 @@ public interface PresenceService {
    * @return a map of userid to online status.
    */
   Map<String, String> online(String location);
+
+  String[] getCurrentStatus(String uuid);
 }

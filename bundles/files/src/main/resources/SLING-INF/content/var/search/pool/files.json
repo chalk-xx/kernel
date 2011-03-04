@@ -6,7 +6,7 @@
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
-  "sakai:batchresultprocessor": "PooledContent",
+  "sakai:batchresultprocessor": "LiteFiles",
   "sakai:propertyprovider": "PooledContent",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",

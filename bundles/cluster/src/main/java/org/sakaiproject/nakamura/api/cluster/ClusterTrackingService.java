@@ -77,8 +77,14 @@ public interface ClusterTrackingService {
 
   /**
    * @param trackingCookie
-   * @return
+   * @return the ClusterServer originating this tracking Cookie.
    */
   ClusterServer getServer(String trackingCookie);
+
+  /**
+   * @param request
+   * @return an array of valid tracking cookies from the release. 
+   */
+  String[] getRequestTrackingCookie(HttpServletRequest request);
 
 }

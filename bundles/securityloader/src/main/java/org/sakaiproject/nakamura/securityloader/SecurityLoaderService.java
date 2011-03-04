@@ -102,8 +102,6 @@ public class SecurityLoaderService implements SynchronousBundleListener {
   @Reference(bind = "bindEventAdmin", unbind = "bindEventAdmin")
   protected EventAdmin eventAdmin;
 
-  @Reference
-  protected AuthorizablePostProcessService authorizablePostProcessService;;
 
   /**
    * List of currently updated bundles.
@@ -178,7 +176,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
 
 
     this.slingId = this.settingsService.getSlingId();
-    this.initialSecurityLoader = new Loader(this, authorizablePostProcessService);
+    this.initialSecurityLoader = new Loader(this);
 
     componentContext.getBundleContext().addBundleListener(this);
     Dictionary<?, ?> props = componentContext.getProperties();

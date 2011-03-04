@@ -48,7 +48,6 @@ public class LoaderTest extends SecurityLoaderServiceTest {
   @Mock private PrincipalManager principalManager;
   @Mock private Group group;
   @Mock private ValueFactory valueFactory;
-  @Mock private AuthorizablePostProcessService authorizablePostProcessService;;
 
   @Before
   public void before() throws RepositoryException {
@@ -86,7 +85,7 @@ public class LoaderTest extends SecurityLoaderServiceTest {
     Mockito.when(bundle2.getEntry("SLING-INF/acl2/personal-acl.json")).thenReturn(u);
     Mockito.when(bundle2.getEntry("SLING-INF/acl3/personal-acl.json")).thenReturn(u);
 
-    Loader loader = new Loader(securityLoaderService, authorizablePostProcessService);
+    Loader loader = new Loader(securityLoaderService);
     loader.registerBundle(session, bundle1, false);
     loader.registerBundle(session, bundle1, false);
     Mockito.when(b1node.isLocked()).thenReturn(true);
