@@ -29,7 +29,7 @@ import java.security.Principal;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFactory;
-
+@Deprecated
 public abstract class AbstractAuthorizableProcessor {
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractAuthorizableProcessor.class);
 
