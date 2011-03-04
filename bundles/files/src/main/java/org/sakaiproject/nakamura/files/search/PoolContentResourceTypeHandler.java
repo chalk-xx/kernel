@@ -91,6 +91,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     builder.put(FilesConstants.CREATED, FilesConstants.CREATED);
     builder.put(FilesConstants.CREATED_BY, FilesConstants.CREATED_BY);
     builder.put(FilesConstants.LINK_PATHS, FilesConstants.LINK_PATHS);
+    builder.put(FilesConstants.SAKAI_DESCRIPTION, "description");
     return builder.build();
   }
 

@@ -73,7 +73,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
   @Reference
   SolrSearchServiceFactory searchServiceFactory;
 
-  @Reference(referenceInterface = LiteMessageProfileWriter.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+  @Reference(referenceInterface = LiteMessageProfileWriter.class, cardinality = ReferenceCardinality.MANDATORY_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
   Map<String, LiteMessageProfileWriter> writers = new ConcurrentHashMap<String, LiteMessageProfileWriter>();
 
   public void bindWriters(LiteMessageProfileWriter writer) {
