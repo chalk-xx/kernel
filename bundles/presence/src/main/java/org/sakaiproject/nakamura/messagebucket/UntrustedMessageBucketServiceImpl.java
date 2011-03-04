@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 @Service(value=MessageBucketService.class)
 public class UntrustedMessageBucketServiceImpl implements MessageBucketService {
 
-  private static final String DEFAULT_URL_PATTERN = "{0}://{1}:{2}/system/uievent/default?token={3}&server={6}&user={7}";
+  private static final String DEFAULT_URL_PATTERN = "http://localhost:8080/system/uievent/default?token={3}&server={6}&user={7}";
   private static final String BUCKETURLPATTERN_CONFIG = "bucketurlpattern";
   private String sharedSecret;
   private Map<String, MessageBucket> messageBuckets = new ConcurrentHashMap<String, MessageBucket>();
