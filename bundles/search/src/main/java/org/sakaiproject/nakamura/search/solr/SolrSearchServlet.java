@@ -264,12 +264,11 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         write.endObject();
       }
     } catch (RepositoryException e) {
-      e.printStackTrace();
+      LOGGER.error(e.getMessage(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      LOGGER.info("Caught RepositoryException {}", e.getMessage());
     } catch (JSONException e) {
+      LOGGER.error(e.getMessage(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      LOGGER.info("Caught JSONException {}", e.getMessage());
     }
   }
 
