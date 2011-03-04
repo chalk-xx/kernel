@@ -88,6 +88,9 @@ public class SparseContentResource extends AbstractResource {
     metadata.setModificationTime(StorageClientUtils.toLong(props.get(Content.LASTMODIFIED_FIELD)));
     metadata.setResolutionPath(content.getPath());
     metadata.setResolutionPathInfo(content.getPath());
+    if (content.hasProperty(Content.MIMETYPE_FIELD)) {
+      metadata.setContentType((String) content.getProperty(Content.MIMETYPE_FIELD));
+    }
   }
 
   /**
