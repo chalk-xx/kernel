@@ -43,7 +43,10 @@ public interface FilesConstants {
    * sakai:tag-name - Intended to identify the name of a tag
    */
   public static final String SAKAI_TAG_NAME = "sakai:tag-name";
-
+  /**
+   * sakai:description - description of file as given by the user
+   */
+  public static final String SAKAI_DESCRIPTION = "sakai:description";
   /**
    * sakai:file
    */
