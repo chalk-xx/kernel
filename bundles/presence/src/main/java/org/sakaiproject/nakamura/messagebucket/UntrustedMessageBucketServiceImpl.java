@@ -103,7 +103,7 @@ public class UntrustedMessageBucketServiceImpl implements MessageBucketService {
             token.substring(0,1), 
             token.substring(0,2), 
             clusterUser.getServerId(),
-            clusterUser.getUser());
+            request.getRemoteUser());
       }
     }
     throw new MessageBucketException("No Cluster tracking is available");
