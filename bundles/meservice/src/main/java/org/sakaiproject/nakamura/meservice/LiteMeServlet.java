@@ -137,7 +137,9 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
           writer.value(messageBucketUrl);
         }
       } catch ( MessageBucketException e) {
-        LOG.warn("Failed to create message bucket URL {} "+e.getMessage(), e);
+        LOG.warn("Failed to create message bucket URL {} "+e.getMessage());
+        LOG.debug("Failed to create message bucket URL {} "+e.getMessage(),e);
+
       }
 
       // Dump this user his info
