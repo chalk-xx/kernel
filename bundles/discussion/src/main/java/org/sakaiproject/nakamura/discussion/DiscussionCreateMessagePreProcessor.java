@@ -25,19 +25,20 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.CreateMessagePreProcessor;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jcr.Node;
-import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * Checks if the message the user wants to create has all the right properties on it.
  */
-@Component(immediate = true, label = "%discussion.createMessagePreProcessor.label", description = "%discussion.createMessagePreProcessor.desc")
+@Component(label = "%discussion.createMessagePreProcessor.label", description = "%discussion.createMessagePreProcessor.desc")
 @Service
 public class DiscussionCreateMessagePreProcessor implements CreateMessagePreProcessor {
 
@@ -71,14 +72,16 @@ public class DiscussionCreateMessagePreProcessor implements CreateMessagePreProc
 
     String marker = request.getRequestParameter(DiscussionConstants.PROP_MARKER)
         .getString();
-    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
+        .adaptTo(javax.jcr.Session.class));
+//    Session session = request.getResourceResolver().adaptTo(Session.class);
     String path = request.getRequestPathInfo().getResourcePath();
 
     // If there is a replyon property set, we check if it points to a valid one.
     if (request.getRequestParameter(DiscussionConstants.PROP_REPLY_ON) != null) {
       String messageId = request.getRequestParameter(
           DiscussionConstants.PROP_REPLY_ON).getString();
-      Node msg = discussionManager.findMessage(messageId, marker, session, path);
+      Content msg = discussionManager.findMessage(messageId, marker, session, path);
       if (msg == null) {
         throw new MessagingException(HttpServletResponse.SC_BAD_REQUEST, "The "
             + DiscussionConstants.PROP_REPLY_ON

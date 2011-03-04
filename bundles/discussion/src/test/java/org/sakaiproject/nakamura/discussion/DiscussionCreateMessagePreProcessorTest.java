@@ -17,32 +17,38 @@
  */
 package org.sakaiproject.nakamura.discussion;
 
-import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.sakaiproject.nakamura.api.discussion.DiscussionConstants.PROP_MARKER;
 import static org.sakaiproject.nakamura.api.discussion.DiscussionConstants.PROP_REPLY_ON;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.commons.testing.jcr.MockNode;
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessagingException;
-import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
-
-import javax.jcr.Node;
-import javax.jcr.Session;
 
 /**
  *
  */
-public class DiscussionCreateMessagePreProcessorTest extends AbstractEasyMockTest {
+@RunWith(MockitoJUnitRunner.class)
+public class DiscussionCreateMessagePreProcessorTest {
 
   private DiscussionCreateMessagePreProcessor processor;
+  @Mock
   private DiscussionManager discussionManager;
+  @Mock
   private SlingHttpServletRequest request;
+  @Mock
   private Session session;
 
   /**
@@ -50,31 +56,21 @@ public class DiscussionCreateMessagePreProcessorTest extends AbstractEasyMockTes
    * 
    * @see org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest#setUp()
    */
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
-
-    discussionManager = createMock(DiscussionManager.class);
     processor = new DiscussionCreateMessagePreProcessor();
-    request = createMock(SlingHttpServletRequest.class);
-    session = createMock(Session.class);
-
     processor.bindDiscussionManager(discussionManager);
-  }
-
-  @After
-  public void tearDown() {
-    processor.unbindDiscussionManager(discussionManager);
   }
 
   @Test
   public void testMarker() {
     setupBaseRequest();
 
-    addStringRequestParameter(request, PROP_MARKER, "123");
-    expect(request.getRequestParameter(PROP_REPLY_ON)).andReturn(null);
+    RequestParameter paramMarker = mock(RequestParameter.class);
+    when(paramMarker.getString()).thenReturn("123");
+    when(request.getRequestParameter(PROP_MARKER)).thenReturn(paramMarker);
+    when(request.getRequestParameter(PROP_REPLY_ON)).thenReturn(null);
 
-    replay();
     processor.checkRequest(request);
   }
 
@@ -82,9 +78,8 @@ public class DiscussionCreateMessagePreProcessorTest extends AbstractEasyMockTes
   public void testNoMarker() {
     setupBaseRequest();
 
-    expect(request.getRequestParameter(PROP_MARKER)).andReturn(null);
+    when(request.getRequestParameter(PROP_MARKER)).thenReturn(null);
 
-    replay();
     try {
       processor.checkRequest(request);
     } catch (MessagingException e) {
@@ -98,15 +93,21 @@ public class DiscussionCreateMessagePreProcessorTest extends AbstractEasyMockTes
     String marker = "id123";
     String messageId = "messageId132";
 
-    addStringRequestParameter(request, PROP_MARKER, marker);
-    addStringRequestParameter(request, PROP_REPLY_ON, messageId);
+    RequestParameter paramMarker = mock(RequestParameter.class);
+    when(paramMarker.getString()).thenReturn(marker);
 
-    Node messageNode = new MockNode("/_user/message/bla");
+    RequestParameter paramReplyOn = mock(RequestParameter.class);
+    when(paramReplyOn.getString()).thenReturn(messageId);
 
-    expect(discussionManager.findMessage(messageId, marker, session, "/_user/message"))
-        .andReturn(messageNode);
+    when(request.getRequestParameter(PROP_MARKER)).thenReturn(paramMarker);
+    when(request.getRequestParameter(PROP_REPLY_ON)).thenReturn(paramReplyOn);
 
-    replay();
+    Content messageNode = new Content("/_user/message/bla", null);
+
+    // session is null because we don't mock the adaptTo call
+    when(discussionManager.findMessage(messageId, marker, null, "/_user/message"))
+        .thenReturn(messageNode);
+
     processor.checkRequest(request);
   }
 
@@ -116,12 +117,11 @@ public class DiscussionCreateMessagePreProcessorTest extends AbstractEasyMockTes
     String marker = "id123";
     String messageId = "messageId132";
 
-    addStringRequestParameter(request, PROP_MARKER, marker);
-    addStringRequestParameter(request, PROP_REPLY_ON, messageId);
-    expect(discussionManager.findMessage(messageId, marker, session, "/_user/message"))
-        .andReturn(null);
+    when(request.getParameter(PROP_MARKER)).thenReturn(marker);
+    when(request.getParameter(PROP_REPLY_ON)).thenReturn(messageId);
+    when(discussionManager.findMessage(messageId, marker, session, "/_user/message"))
+        .thenReturn(null);
 
-    replay();
     try {
       processor.checkRequest(request);
     } catch (MessagingException e) {
@@ -133,14 +133,14 @@ public class DiscussionCreateMessagePreProcessorTest extends AbstractEasyMockTes
    * 
    */
   private void setupBaseRequest() {
-    RequestPathInfo pathInfo = createMock(RequestPathInfo.class);
-    expect(pathInfo.getResourcePath()).andReturn("/_user/message");
+    RequestPathInfo pathInfo = mock(RequestPathInfo.class);
+    when(pathInfo.getResourcePath()).thenReturn("/_user/message");
 
-    ResourceResolver resolver = createMock(ResourceResolver.class);
-    expect(resolver.adaptTo(Session.class)).andReturn(session);
+    ResourceResolver resolver = mock(ResourceResolver.class);
+    when(resolver.adaptTo(Session.class)).thenReturn(session);
 
-    expect(request.getResourceResolver()).andReturn(resolver);
-    expect(request.getRequestPathInfo()).andReturn(pathInfo);
+    when(request.getResourceResolver()).thenReturn(resolver);
+    when(request.getRequestPathInfo()).thenReturn(pathInfo);
   }
 
 }
