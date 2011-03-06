@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.user.lite.servlet;
+package org.sakaiproject.nakamura.api.user;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.ModificationType;

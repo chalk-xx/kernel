@@ -35,8 +35,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.presence.PresenceServiceImplTest;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
@@ -95,7 +95,7 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    expect(request.getRemoteUser()).andReturn(PresenceUtils.ANON_USERID);
+    expect(request.getRemoteUser()).andReturn(User.ANON_USER);
     expect(request.getResourceResolver()).andReturn(resourceResolver);
     expect(resourceResolver.adaptTo(Session.class)).andReturn(null);
     response.sendError(401, "User must be logged in to check their status");

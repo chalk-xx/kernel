@@ -29,7 +29,6 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.framework.Bundle;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
@@ -63,6 +62,7 @@ import javax.jcr.security.AccessControlManager;
 import javax.jcr.security.AccessControlPolicy;
 import javax.jcr.security.AccessControlPolicyIterator;
 import javax.jcr.security.Privilege;
+import javax.servlet.ServletException;
 
 
 /**
@@ -74,7 +74,6 @@ public class Loader implements SecurityLoader {
   private static final Logger LOGGER = LoggerFactory.getLogger(Loader.class);
   private List<Bundle> delayedBundles;
   private SecurityLoaderService jcrContentHelper;
-  private AuthorizablePostProcessService authorizablePostProcessService;
 
   public static final String SYSTEM_USER_MANAGER_PATH = "/system/userManager";
 
@@ -102,10 +101,9 @@ public class Loader implements SecurityLoader {
   /**
    * @param securityLoaderService
    */
-  public Loader(SecurityLoaderService jcrContentHelper, AuthorizablePostProcessService authorizablePostProcessService) {
+  public Loader(SecurityLoaderService jcrContentHelper) {
     this.jcrContentHelper = jcrContentHelper;
     this.delayedBundles = new LinkedList<Bundle>();
-    this.authorizablePostProcessService = authorizablePostProcessService;
   }
 
   /**
@@ -626,13 +624,7 @@ LOGGER.info("Got Target Node as "+targetNode);
       writeContent(session, user, principal, changes);
 
       // Process new user record for general use in Sakai.
-      try {
-        // TODO The loader should pass non-persisted JSON parameters
-        // for further processing.
-        authorizablePostProcessService.process(user, session, ModificationType.CREATE);
-      } catch (Exception e) {
-        LOGGER.warn("Unable to postprocess new user " + user.getID(), e);
-      }
+      LOGGER.warn("Unable to postprocess new user " + user.getID());
 
       jcrContentHelper.fireEvent(Operation.create, session, user, changes);
     } else {

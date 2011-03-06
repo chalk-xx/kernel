@@ -32,6 +32,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.slf4j.Logger;
@@ -102,7 +103,7 @@ public class PresenceGetServlet extends SlingSafeMethodsServlet {
     if ( session != null ) {
       user = session.getUserID();
     }
-    if (user == null || PresenceUtils.ANON_USERID.equals(user) ) {
+    if (user == null || User.ANON_USER.equals(user) ) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "User must be logged in to check their status");
       return;

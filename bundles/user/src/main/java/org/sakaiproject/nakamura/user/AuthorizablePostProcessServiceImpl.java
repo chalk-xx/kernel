@@ -18,14 +18,8 @@
 package org.sakaiproject.nakamura.user;
 
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.ReferenceStrategy;
-import org.apache.felix.scr.annotations.References;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
@@ -50,52 +44,21 @@ import java.util.Map;
 
 import javax.jcr.Session;
 
-@Component(immediate=true)
-@Service(value=AuthorizablePostProcessService.class)
-@References({
-    /**
-     * Below is the list of required Authorizable post-processors.
-     * Expect redundant bind/unbind calls, since the same post-processors
-     * will be added via the dynamic multiple service reference defined below.
-     * TODO Configure the post-processor dependencies via a service property?
-     */
-    @Reference(name="Personal",
-       target="(&(service.pid=org.sakaiproject.nakamura.personal.PersonalAuthorizablePostProcessor))",
-       referenceInterface=AuthorizablePostProcessor.class,
-        bind="bindAuthorizablePostProcessor",
-        unbind="unbindAuthorizablePostProcessor"),
-    @Reference(name="Calendar",
-        target="(&(service.pid=org.sakaiproject.nakamura.calendar.CalendarAuthorizablePostProcessor))",
-        referenceInterface=AuthorizablePostProcessor.class,
-        bind="bindAuthorizablePostProcessor",
-        unbind="unbindAuthorizablePostProcessor"),
-    @Reference(name="Connections",
-        target="(&(service.pid=org.sakaiproject.nakamura.connections.ConnectionsUserPostProcessor))",
-        referenceInterface=AuthorizablePostProcessor.class,
-        bind="bindAuthorizablePostProcessor",
-        unbind="unbindAuthorizablePostProcessor"),
-    @Reference(name="Messages",
-        target="(&(service.pid=org.sakaiproject.nakamura.message.MessageAuthorizablePostProcessor))",
-        referenceInterface=AuthorizablePostProcessor.class,
-        bind="bindAuthorizablePostProcessor",
-        unbind="unbindAuthorizablePostProcessor"),
-    @Reference(name="Pages",
-        target="(&(service.pid=org.sakaiproject.nakamura.pages.PagesAuthorizablePostProcessor))",
-        referenceInterface=AuthorizablePostProcessor.class,
-        bind="bindAuthorizablePostProcessor",
-        unbind="unbindAuthorizablePostProcessor"),
-    @Reference(name="PostProcessors",cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
-        policy=ReferencePolicy.DYNAMIC,
-        referenceInterface=AuthorizablePostProcessor.class,
-        strategy=ReferenceStrategy.EVENT,
-        bind="bindAuthorizablePostProcessor",
-        unbind="unbindAuthorizablePostProcessor")})
+// @Component(immediate=true)
+// @Service(value=AuthorizablePostProcessService.class)
+// @References({
+//    @Reference(name="PostProcessors",cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
+//        policy=ReferencePolicy.DYNAMIC,
+//        referenceInterface=AuthorizablePostProcessor.class,
+//        strategy=ReferenceStrategy.EVENT,
+//        bind="bindAuthorizablePostProcessor",
+//        unbind="unbindAuthorizablePostProcessor")})
 public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<AuthorizablePostProcessor> implements AuthorizablePostProcessService {
   private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizablePostProcessServiceImpl.class);
 
   @Reference
   protected SlingRepository repository;
-
+  
   AuthorizablePostProcessor sakaiUserProcessor;
   AuthorizablePostProcessor sakaiGroupProcessor;
   private AuthorizablePostProcessor[] orderedServices = new AuthorizablePostProcessor[0];
@@ -189,6 +152,7 @@ public class AuthorizablePostProcessServiceImpl extends AbstractOrderedService<A
   protected void unbindAuthorizablePostProcessor(AuthorizablePostProcessor service, Map<String, Object> properties) {
     removeService(service, properties);
   }
+
 
   /**
    * {@inheritDoc}
