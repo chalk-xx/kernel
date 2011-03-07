@@ -262,9 +262,9 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
     } else {
       Content content = contentManager.get(poolId);
-      contentManager.writeBody(poolId, value.getInputStream(),alternativeStream);
       content.setProperty(StorageClientUtils.getAltField(Content.MIMETYPE_FIELD, alternativeStream), contentType);
       contentManager.update(content);
+      contentManager.writeBody(poolId, value.getInputStream(),alternativeStream);
     }
   }
 
