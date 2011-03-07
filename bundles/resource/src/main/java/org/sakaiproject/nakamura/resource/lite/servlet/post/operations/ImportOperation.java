@@ -99,7 +99,9 @@ public class ImportOperation extends AbstractSparseCreateOperation {
       } else {
         
         JSONObject json = new JSONObject(content);
-        LOGGER.info("to {} importing {} ",basePath,json.toString(3));
+        if ( LOGGER.isDebugEnabled() ) {
+          LOGGER.debug("to {} importing {} ",basePath,json.toString(3));
+        }
         LiteJsonImporter simpleJsonImporter = new LiteJsonImporter();
         simpleJsonImporter.importContent(contentManager, json, basePath, replace, replaceProperties);
           response.setLocation(externalizePath(request, basePath));

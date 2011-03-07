@@ -30,9 +30,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.SlingPostOperation;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -45,6 +43,8 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.resource.lite.AbstractSparsePostOperation;
+import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
@@ -67,12 +67,12 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Requested Node  for given key could not be found."),
     @ServiceResponse(code = 500, description = "Something went wrong, the error is in the HTML.") }) }, bindings = { @ServiceBinding(type = BindingType.OPERATION, bindings = { "tag" }) })
 @Component(immediate = true)
-@Service(value = SlingPostOperation.class)
+@Service(value = SparsePostOperation.class)
 @Properties(value = {
     @Property(name = "sling.post.operation", value = "deletetag"),
     @Property(name = "service.description", value = "Creates an internal link to a file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-public class DeleteTagOperation extends AbstractSlingPostOperation {
+public class DeleteTagOperation extends AbstractSparsePostOperation {
 
   @Reference
   protected transient SlingRepository slingRepository;
@@ -92,7 +92,7 @@ public class DeleteTagOperation extends AbstractSlingPostOperation {
    */
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
-      List<Modification> changes) throws RepositoryException {
+      ContentManager contentManager, List<Modification> changes, String contentPath) throws StorageClientException, AccessDeniedException {
 
     // Check if the user has the required minimum privilege.
     String user = request.getRemoteUser();
@@ -115,7 +115,6 @@ public class DeleteTagOperation extends AbstractSlingPostOperation {
     Resource resource = request.getResource();
     Node node = resource.adaptTo(Node.class);
     Content content = resource.adaptTo(Content.class);
-    ContentManager contentManager = resource.adaptTo(ContentManager.class);
 
     if (node == null && content == null) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
@@ -141,9 +140,8 @@ public class DeleteTagOperation extends AbstractSlingPostOperation {
       return;
     }
 
-    String uuid = tagNode.getIdentifier();
-
     try {
+      String uuid = tagNode.getIdentifier();
       // We check if the node already has this tag.
       // If it does, we ignore it..
       if (node != null && hasUuid(node, uuid)) {
