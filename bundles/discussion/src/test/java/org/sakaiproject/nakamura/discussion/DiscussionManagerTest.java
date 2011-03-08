@@ -20,56 +20,44 @@ package org.sakaiproject.nakamura.discussion;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.when;
+
+import com.google.common.collect.Lists;
 
 import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.RepositoryBase;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
-import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
+import org.sakaiproject.nakamura.api.discussion.LiteDiscussionManager;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 
 import java.io.IOException;
+import java.util.Map;
 
-import javax.jcr.LoginException;
-import javax.jcr.Node;
-import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
 
+@RunWith(MockitoJUnitRunner.class)
 public class DiscussionManagerTest {
 
   private static BundleContext bundleContext;
   private static RepositoryBase repositoryBase;
+  
+  @Mock
+  private Session session;
 
-  private static RepositoryBase getRepositoryBase() throws IOException,
-      RepositoryException {
-    if (repositoryBase == null) {
-      bundleContext = Mockito.mock(BundleContext.class);
-      repositoryBase = new RepositoryBase(bundleContext);
-      repositoryBase.start();
-      Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-        public void run() {
-          if (repositoryBase != null) {
-            repositoryBase.stop();
-            repositoryBase = null;
-          }
-        }
-      }));
-    }
-    return repositoryBase;
-  }
+  @Mock
+  private ContentManager cm;
 
   @Before
-  public void before() {
-    MockitoAnnotations.initMocks(this);
-  }
-
-  public Repository getRepository() throws IOException, RepositoryException {
-    return getRepositoryBase().getRepository();
+  public void setUp() throws Exception {
+    when(session.getContentManager()).thenReturn(cm);
   }
 
   /**
@@ -80,28 +68,21 @@ public class DiscussionManagerTest {
    * @throws RepositoryException
    * @throws IOException
    */
-  private Session loginAsAdmin() throws LoginException, RepositoryException, IOException {
-    return getRepository().login(new SimpleCredentials("admin", "admin".toCharArray()));
-  }
+//  private Session loginAsAdmin() throws LoginException, RepositoryException, IOException {
+//    return getRepository().login(new SimpleCredentials("admin", "admin".toCharArray()));
+//  }
 
   @Test
   public void testFindSettings() throws Exception {
-    Session adminSession = loginAsAdmin();
-
     // Add a couple of nodes
-    Node rootNode = adminSession.getRootNode();
-    Node settingsNode = rootNode.addNode("settingsNode");
+    Content settingsNode = new Content("/settingsNode", null);
     settingsNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, "sakai/settings");
     settingsNode.setProperty("sakai:marker", "foo");
     settingsNode.setProperty("sakai:type", "discussion");
+    when(cm.find(isA(Map.class))).thenReturn(Lists.immutableList(settingsNode));
 
-    Node randomNode = rootNode.addNode("foo");
-    randomNode.setProperty("foo", "bar");
-
-    adminSession.save();
-
-    DiscussionManager manager = new DiscussionManagerImpl();
-    Node result = manager.findSettings("foo", adminSession, "discussion");
+    LiteDiscussionManager manager = new DiscussionManagerImpl();
+    Content result = manager.findSettings("foo", session, "discussion");
 
     assertNotNull(result);
     assertEquals("/settingsNode", result.getPath());
@@ -109,30 +90,26 @@ public class DiscussionManagerTest {
 
   @Test
   public void testFindMessage() throws Exception {
-    Session adminSession = loginAsAdmin();
-
     // Add a couple of nodes
-    Node rootNode = adminSession.getRootNode();
-    Node messagesNode = rootNode.addNode("messages");
-    Node msgNode = messagesNode.addNode("msgNodeCorrect");
+    Content messagesNode = new Content("/messages", null);
+    Content msgNode = new Content("/messages/msgNodeCorrect", null);
     msgNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, MessageConstants.SAKAI_MESSAGE_RT);
     msgNode.setProperty("sakai:marker", "foo");
     msgNode.setProperty("sakai:type", "discussion");
     msgNode.setProperty("sakai:id", "10");
 
-    Node msgNode2 = messagesNode.addNode("msgNodeCorrect2");
+    Content msgNode2 = new Content("/messages/msgNodeCorrect2", null);
     msgNode2.setProperty(SLING_RESOURCE_TYPE_PROPERTY, MessageConstants.SAKAI_MESSAGE_RT);
     msgNode2.setProperty("sakai:marker", "foo");
     msgNode2.setProperty("sakai:type", "discussion");
     msgNode2.setProperty("sakai:id", "20");
 
-    Node randomNode = messagesNode.addNode("foo");
+    Content randomNode = new Content("/messages/foo", null);
     randomNode.setProperty("foo", "bar");
 
-    adminSession.save();
-
-    DiscussionManager manager = new DiscussionManagerImpl();
-    Node result = manager.findMessage("10", "foo", adminSession, "/messages");
+    when(cm.find(isA(Map.class))).thenReturn(Lists.immutableList(msgNode));
+    LiteDiscussionManager manager = new DiscussionManagerImpl();
+    Content result = manager.findMessage("10", "foo", session, "/messages");
 
     assertNotNull(result);
     assertEquals("/messages/msgNodeCorrect", result.getPath());

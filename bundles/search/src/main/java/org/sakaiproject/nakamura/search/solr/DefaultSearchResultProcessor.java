@@ -75,7 +75,11 @@ public class DefaultSearchResultProcessor implements SolrSearchResultProcessor {
       StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     try {
       Content contentResult = session.getContentManager().get(contentPath);
-      ExtendedJSONWriter.writeContentTreeToWriter(write, contentResult, -1);
+      if (contentResult != null) {
+        ExtendedJSONWriter.writeContentTreeToWriter(write, contentResult, -1);
+      } else {
+        write.object().endObject();
+      }
     } catch (Exception e) {
       throw new JSONException(e);
     }

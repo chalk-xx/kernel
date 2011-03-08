@@ -17,10 +17,9 @@
  */
 package org.sakaiproject.nakamura.api.discussion;
 
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessagingException;
-
-import javax.jcr.Node;
-import javax.jcr.Session;
 
 public interface DiscussionManager {
   /**
@@ -36,7 +35,7 @@ public interface DiscussionManager {
    * @return
    * @throws MessagingException
    */
-  public Node findMessage(String messageId, String marker, Session session, String path)
+  public Content findMessage(String messageId, String marker, Session session, String path)
       throws MessagingException;
 
   /**
@@ -48,5 +47,5 @@ public interface DiscussionManager {
    * @param type
    * @return
    */
-  public Node findSettings(String marker, Session session, String type);
+  public Content findSettings(String marker, Session session, String type);
 }

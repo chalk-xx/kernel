@@ -33,13 +33,15 @@
     </Set>
 
 
+
     <!-- =========================================================== -->
-    <!-- Add an AJP listener on port 8009                            -->
+    <!-- Add an Http listener on port 8080, trusted operations to the core server  -->
     <!-- =========================================================== -->
     <Call name="addConnector">
       <Arg>
-         <New class="org.mortbay.jetty.ajp.Ajp13SocketConnector">
-           <Set name="port"><SystemProperty name="org.mortbay.jetty.ajp.port" default="8009"/></Set>
+         <New class="org.mortbay.jetty.nio.SelectChannelConnector">
+           <Set name="host"><SystemProperty name="org.sakaiproject.nakamura.core.host" default="0.0.0.0" /></Set>
+           <Set name="port"><SystemProperty name="org.sakaiproject.nakamura.core.port" default="8080"/></Set>
          </New>
       </Arg>
     </Call>
@@ -52,6 +54,17 @@
          <New class="org.mortbay.jetty.nio.SelectChannelConnector">
            <Set name="host"><SystemProperty name="org.sakaiproject.nakamura.cluster.secure.host" default="localhost" /></Set>
            <Set name="port"><SystemProperty name="org.sakaiproject.nakamura.cluster.secure.port" default="8081"/></Set>
+         </New>
+      </Arg>
+    </Call>
+    <!-- =========================================================== -->
+    <!-- Add an Http listener on port 8082 for delivering User Content  -->
+    <!-- =========================================================== -->
+    <Call name="addConnector">
+      <Arg>
+         <New class="org.mortbay.jetty.nio.SelectChannelConnector">
+           <Set name="host"><SystemProperty name="org.sakaiproject.nakamura.content.host" default="0.0.0.0" /></Set>
+           <Set name="port"><SystemProperty name="org.sakaiproject.nakamura.content.port" default="8082"/></Set>
          </New>
       </Arg>
     </Call>

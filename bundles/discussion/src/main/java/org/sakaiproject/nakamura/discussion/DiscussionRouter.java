@@ -24,16 +24,18 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
+import org.sakaiproject.nakamura.api.message.LiteMessageRouter;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
-import org.sakaiproject.nakamura.api.message.MessageRouter;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
 
 /**
  * This router will check for messages who have a transport of discussion or comment, then
@@ -43,35 +45,38 @@ import javax.jcr.RepositoryException;
  */
 @Component(immediate = true, inherit = true, label = "%discussion.router.label", description = "%discussion.router.desc")
 @Service
-public class DiscussionRouter implements MessageRouter {
+public class DiscussionRouter implements LiteMessageRouter {
 
   @Reference
   private DiscussionManager discussionManager;
+
+  @Reference
+  private Repository repository;
 
   private static final Logger logger = LoggerFactory.getLogger(DiscussionRouter.class);
 
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
 
-  protected void bindDiscussionManager(DiscussionManager discussionManager) {
-    this.discussionManager = discussionManager;
+  public DiscussionRouter() {
   }
 
-  protected void unbindDiscussionManager(DiscussionManager discussionManager) {
-    this.discussionManager = null;
+  DiscussionRouter(DiscussionManager discussionManager, Repository repository) {
+    this.discussionManager = discussionManager;
+    this.repository = repository;
   }
 
   public int getPriority() {
     return 0;
   }
 
-  public void route(Node n, MessageRoutes routing) {
+  public void route(Content c, MessageRoutes routing) {
     // Check if this message is a discussion/comment transport.
     try {
-      if (n.hasProperty(MessageConstants.PROP_SAKAI_TO)
-          && n.hasProperty(DiscussionConstants.PROP_MARKER)) {
+      if (c.hasProperty(MessageConstants.PROP_SAKAI_TO)
+          && c.hasProperty(DiscussionConstants.PROP_MARKER)) {
 
-        String to = n.getProperty(MessageConstants.PROP_SAKAI_TO).getString();
+        String to = (String) c.getProperty(MessageConstants.PROP_SAKAI_TO);
         String type = StringUtils.split(to, ':')[0];
 
         if ("comment".equals(type) || "discussion".equals(type)) {
@@ -82,15 +87,16 @@ public class DiscussionRouter implements MessageRouter {
 
           // This is a discussion message, find the settings file for it.
 
-          String marker = n.getProperty(DiscussionConstants.PROP_MARKER).getString();
-          Node settings = discussionManager.findSettings(marker, n.getSession(), type);
+          String marker = (String) c.getProperty(DiscussionConstants.PROP_MARKER);
+          Session session = repository.loginAdministrative();
+          Content settings = discussionManager.findSettings(marker, session, type);
           if (settings != null
               && settings.hasProperty(DiscussionConstants.PROP_NOTIFICATION)) {
-            boolean sendMail = settings
-                .getProperty(DiscussionConstants.PROP_NOTIFICATION).getBoolean();
+            boolean sendMail = (Boolean) settings
+                .getProperty(DiscussionConstants.PROP_NOTIFICATION);
             if (sendMail && settings.hasProperty(DiscussionConstants.PROP_NOTIFY_ADDRESS)) {
-              String address = settings.getProperty(
-                  DiscussionConstants.PROP_NOTIFY_ADDRESS).getString();
+              String address = (String) settings.getProperty(
+                  DiscussionConstants.PROP_NOTIFY_ADDRESS);
               // TODO: make this smtp.
               routing.add(new AbstractMessageRoute("internal:" + address) {
               });
@@ -100,7 +106,10 @@ public class DiscussionRouter implements MessageRouter {
         }
 
       }
-    } catch (RepositoryException e) {
+    } catch (StorageClientException e) {
+      logger.warn("Catched an exception when trying to re-route discussion messages: {}",
+          e.getMessage());
+    } catch (AccessDeniedException e) {
       logger.warn("Catched an exception when trying to re-route discussion messages: {}",
           e.getMessage());
     }
