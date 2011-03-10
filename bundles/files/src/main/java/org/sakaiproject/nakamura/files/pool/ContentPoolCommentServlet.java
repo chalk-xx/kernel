@@ -20,12 +20,11 @@ package org.sakaiproject.nakamura.files.pool;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.api.security.user.User;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
@@ -34,12 +33,15 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
@@ -50,10 +52,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jcr.RepositoryException;
-import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -111,9 +114,10 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
 
     try {
       ContentManager contentManager = resource.adaptTo(ContentManager.class);
-      Content comments = contentManager.get(poolContent.getPath() + "/" + COMMENTS);
+      Session session = resource.adaptTo(Session.class);
       javax.jcr.Session jcrSession = resource.getResourceResolver().adaptTo(javax.jcr.Session.class);
-      UserManager userManager = AccessControlUtil.getUserManager(jcrSession);
+      AuthorizableManager authorizableManager = session.getAuthorizableManager();
+      Content comments = contentManager.get(poolContent.getPath() + "/" + COMMENTS);
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
 
@@ -130,10 +134,13 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
           w.object();
 
           try {
-            User author = (User) userManager.getAuthorizable(authorId);
+            Authorizable author = authorizableManager.findAuthorizable(authorId);
             ValueMap profile = profileService.getCompactProfileMap(author, jcrSession);
             w.valueMapInternals(profile);
-          } catch (RepositoryException e ) {
+          } catch (StorageClientException e ) {
+            w.key(AUTHOR);
+            w.value(authorId);
+          } catch (RepositoryException e) {
             w.key(AUTHOR);
             w.value(authorId);
           }
@@ -161,15 +168,6 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.error(e.getMessage(), e);
     } catch (AccessDeniedException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      LOGGER.error(e.getMessage(), e);
-    } catch (javax.jcr.AccessDeniedException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      LOGGER.error(e.getMessage(), e);
-    } catch (UnsupportedRepositoryOperationException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      LOGGER.error(e.getMessage(), e);
-    } catch (RepositoryException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.error(e.getMessage(), e);
     }
@@ -241,7 +239,6 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
   @Override
   protected void doDelete(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    String user = request.getRemoteUser();
     String commentId = request.getParameter("commentId");
 
     Session adminSession = null;
@@ -249,8 +246,12 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       // check that user is a manager of the content item
       Resource resource = request.getResource();
       Content poolItem = resource.adaptTo(Content.class);
+      Session session = resource.adaptTo(Session.class);
+      AuthorizableManager authorizableManager = session.getAuthorizableManager();
+      User user = (User) authorizableManager.findAuthorizable(session.getUserId());
+      
 
-      if (!isManager(poolItem, user)) {
+      if (!isManager(poolItem, user, authorizableManager)) {
         response.sendError(HttpServletResponse.SC_FORBIDDEN,
             "Must be a manager of the pooled content item to delete a comment.");
         return;
@@ -286,18 +287,37 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
 
   /**
    * Gets all the "members" for a file.
+   * @param authorizableManager 
    * 
    * @param node
    *          The node that represents the file.
-   * @return A map where each key is a userid, the value is a boolean that states if it is
-   *         a manager or not.
+   * @return true if the user is a manager of the pooled item.
    * @throws RepositoryException
    */
-  private boolean isManager(Content poolItem, String userId) {
+  private boolean isManager(Content poolItem, User user, AuthorizableManager authorizableManager) {
     Map<String, Object> properties = poolItem.getProperties();
-    String managers = (String) properties
+    String[] managers = (String[]) properties
         .get(POOLED_CONTENT_USER_MANAGER);
-    // assuming there is no , in the principals
-    return ( managers.indexOf(userId) > 0 );
+    Set<String> principals = Sets.newHashSet();
+    principals.add(user.getId());
+    if ( !User.ANON_USER.equals(user.getId())) {
+      principals.add(Group.EVERYONE);
+    }
+    // direct membership
+    for ( String p : user.getPrincipals()) {
+      principals.add(p);
+    }
+    // indirect
+    for ( Iterator<Group> gi = user.memberOf(authorizableManager); gi.hasNext(); ) {
+      principals.add(gi.next().getId());
+    }
+    if ( managers != null ) {
+      for (String m : managers ) {
+        if ( principals.contains(m) ) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
