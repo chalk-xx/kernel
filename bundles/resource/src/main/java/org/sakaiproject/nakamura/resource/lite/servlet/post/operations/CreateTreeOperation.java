@@ -94,7 +94,7 @@ public class CreateTreeOperation extends AbstractSparsePostOperation {
     // Start creating the tree.
     try {
       LiteJsonImporter simpleJSONImporter = new LiteJsonImporter();
-      simpleJSONImporter.importContent(contentManager, json, path, false, false);
+      simpleJSONImporter.importContent(contentManager, json, path, false, false, false);
     } catch (JSONException e) {
       throw new StorageClientException(e.getMessage(), e);
     }
