@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
-import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
 import org.sakaiproject.nakamura.api.discussion.LiteDiscussionManager;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
@@ -49,7 +48,6 @@ import org.slf4j.LoggerFactory;
 @Service
 public class LiteDiscussionRouter implements LiteMessageRouter {
 
-  // TODO BL120 we have no implementation of LiteDiscussionManager as yet
   @Reference
   private LiteDiscussionManager discussionManager;
 
@@ -61,12 +59,12 @@ public class LiteDiscussionRouter implements LiteMessageRouter {
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
 
-  protected void bindDiscussionManager(LiteDiscussionManager discussionManager) {
-    this.discussionManager = discussionManager;
+  public LiteDiscussionRouter() {
   }
 
-  protected void unbindDiscussionManager(DiscussionManager discussionManager) {
-    this.discussionManager = null;
+  LiteDiscussionRouter(LiteDiscussionManager discussionManager, Repository repository) {
+    this.discussionManager = discussionManager;
+    this.contentRepository = repository;
   }
 
   public int getPriority() {

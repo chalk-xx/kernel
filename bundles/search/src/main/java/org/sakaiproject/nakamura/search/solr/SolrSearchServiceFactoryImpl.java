@@ -1,17 +1,24 @@
 package org.sakaiproject.nakamura.search.solr;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.util.Version;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServer;
@@ -42,7 +49,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -55,6 +64,15 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
       .getLogger(SolrSearchServiceFactoryImpl.class);
   @Reference
   private SolrServerService solrSearchService;
+
+  @Property(name = "defaultMaxResults", intValue = 100)
+  private int defaultMaxResults = 100; // set to 100 to allow testing
+
+  @Activate
+  protected void activate(Map<?, ?> props) {
+    defaultMaxResults = OsgiUtil.toInteger(props.get("defaultMaxResults"),
+        defaultMaxResults);
+  }
 
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
       Query query, boolean asAnon) throws SolrSearchException {
@@ -147,21 +165,77 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
         new TextField().getQueryAnalyzer());
     org.apache.lucene.search.Query luceneQuery = parser.parse(query.getQueryString());
 
-    Set<Term> terms = Sets.newHashSet();
-    luceneQuery.extractTerms(terms);
-
     Map<String, Object> props = Maps.newHashMap();
-    for (Term term : terms) {
-      props.put(term.field(), term.text());
+    if (luceneQuery instanceof BooleanQuery) {
+      BooleanQuery boolLucQuery = (BooleanQuery) luceneQuery;
+
+      int orCount = 0;
+      List<BooleanClause> clauses = boolLucQuery.clauses();
+      for (BooleanClause clause : clauses) {
+        org.apache.lucene.search.Query clauseQuery = clause.getQuery();
+        Map<String, Object> subOrs = Maps.newHashMap();
+        // we support 1 level of nesting for OR clauses
+        if (clauseQuery instanceof BooleanQuery) {
+          for (BooleanClause subclause : ((BooleanQuery) clauseQuery).clauses()) {
+            org.apache.lucene.search.Query subclauseQuery = subclause.getQuery();
+            extractTerms(subclause, subclauseQuery, props, subOrs);
+          }
+          props.put("orset" + orCount, subOrs);
+          orCount++;
+        } else {
+          extractTerms(clause, clauseQuery, props, subOrs);
+          if (!subOrs.isEmpty()) {
+            props.put("orset" + orCount, subOrs);
+            orCount++;
+          }
+        }
+      }
+    } else {
+      extractTerms(null, luceneQuery, props, null);
     }
+
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
         .adaptTo(javax.jcr.Session.class));
     ContentManager cm = session.getContentManager();
     Iterable<Content> items = cm.find(props);
-    SolrSearchResultSet rs = new SparseSearchResultSet(items);
+    SolrSearchResultSet rs = new SparseSearchResultSet(items, defaultMaxResults);
     return rs;
   }
 
+  /**
+   * @param clause
+   * @param clauseQuery
+   * @param ands
+   * @param ors
+   */
+  private void extractTerms(BooleanClause clause,
+      org.apache.lucene.search.Query clauseQuery, Map<String, Object> ands,
+      Map<String, Object> ors) {
+    Set<Term> terms = Sets.newHashSet();
+    clauseQuery.extractTerms(terms);
+
+    for (Term term : terms) {
+      if (clause != null && clause.getOccur() == Occur.SHOULD) {
+        accumulateValue(ors, term.field(), term.text());
+      } else {
+        accumulateValue(ands, term.field(), term.text());
+      }
+    }
+  }
+
+  private void accumulateValue(Map<String, Object> map, String key, Object val) {
+    Object o = map.get(key);
+    if (o != null) {
+      if (o instanceof Collection) {
+        ((Collection) o).add(val);
+      } else {
+        List<Object> os = Lists.newArrayList(o, val);
+        map.put(key, os);
+      }
+    } else {
+      map.put(key, val);
+    }
+  }
   /**
    * @param request
    * @param query
