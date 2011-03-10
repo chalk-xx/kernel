@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.pages;
 
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -24,6 +25,11 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
@@ -36,11 +42,11 @@ import java.io.PrintWriter;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-//@ServiceDocumentation(name = "PageServlet", shortDescription = "Lists the messages of the current users mailboxes.", description = "Presents mailbox messages of current user in JSON format.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/messages"), methods = @ServiceMethod(name = "GET", description = "List current user's mailbox messages.", response = {
-//    @ServiceResponse(code = 200, description = "Request for information was successful. <br />"),
-//    @ServiceResponse(code = 401, description = "Unauthorized: credentials provided were not acceptable to return information for."),
-//    @ServiceResponse(code = 500, description = "Unable to return information about current user.") }))
-//@SlingServlet(paths = { "/var/search/page" }, generateComponent = true, generateService = true, methods = { "GET" })
+@ServiceDocumentation(name = "PageServlet", shortDescription = "Lists the messages of the current users mailboxes.", description = "Presents mailbox messages of current user in JSON format.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/messages"), methods = @ServiceMethod(name = "GET", description = "List current user's mailbox messages.", response = {
+    @ServiceResponse(code = 200, description = "Request for information was successful. <br />"),
+    @ServiceResponse(code = 401, description = "Unauthorized: credentials provided were not acceptable to return information for."),
+    @ServiceResponse(code = 500, description = "Unable to return information about current user.") }))
+@SlingServlet(paths = { "/var/search/page" }, generateComponent = true, generateService = true, methods = { "GET" })
 public class PageServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = -3786472219389695181L;
