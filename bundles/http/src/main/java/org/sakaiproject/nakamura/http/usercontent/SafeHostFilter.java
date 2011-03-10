@@ -10,6 +10,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Dictionary;
@@ -27,7 +29,7 @@ import javax.servlet.http.HttpServletResponse;
  * Protects the server against POSTs to non safe hosts,
  * 
  */
-@Component(immediate = true, metatype = true, enabled=false)
+@Component(immediate = true, metatype = true)
 @Properties(value = {
     @Property(name = "service.description", value = "Nakamura Quality of Service Filter"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
@@ -39,6 +41,8 @@ public class SafeHostFilter implements Filter {
    */
   @Property(intValue=8)
   private static final String FILTER_PRIORITY_CONF = "filter.priority";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(SafeHostFilter.class);
 
   @Reference
   protected ExtHttpService extHttpService;
@@ -64,7 +68,9 @@ public class SafeHostFilter implements Filter {
     HttpServletResponse hresponse = (HttpServletResponse) response;
     if (serverProtectionService.isMethodSafe(hrequest, hresponse)) {
       chain.doFilter(request, response);      
-    }    
+    } else {
+      LOGGER.debug("Method {} is not safe on {} {}?{}",new Object[]{hrequest.getMethod(),hrequest.getRequestURL(),hrequest.getQueryString()});
+    }
   }
   
   

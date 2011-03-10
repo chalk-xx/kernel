@@ -45,6 +45,7 @@ public class UserContentFilterTest {
   @Test
   public void testDoNoFilter() throws IOException, ServletException {
     Mockito.when(serverPotectionService.isRequestSafe(request, response)).thenReturn(false);
+    Mockito.when(request.getRequestURL()).thenReturn(new StringBuffer());
     userContentFilter.doFilter(request, response, chain);
     Mockito.verify(chain, Mockito.times(0)).doFilter(request, response);
   }

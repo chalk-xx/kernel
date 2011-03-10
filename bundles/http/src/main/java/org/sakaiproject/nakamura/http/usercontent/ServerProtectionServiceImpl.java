@@ -19,11 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletResponse;
  * <p>
  * This implementation of the ServerProtectionService allows GETs and POSTs to the host,
  * provided they don't request bodies from areas not consider part of the application, and
- * provided the posts come with a referrer header that is trusted.
+ * provided the posts come with a referer header that is trusted.
  * </p>
  * <p>
  * GETs to application content (file bodies and encapsulated feeds) are allowed.
@@ -55,35 +55,40 @@ import javax.servlet.http.HttpServletResponse;
  * </p>
  * <p>
  * The default setup is http://localhost:8080 is the trusted server. http://localhost:8082
- * is the content server, referrers of /* and http://localhost:8080* are trusted sources
+ * is the content server, referers of /* and http://localhost:8080* are trusted sources
  * of POST operations. Application data is any feed that does not stream a body, and
  * anything under /dev, /devwidgets, /index.html, all other GET operations are assumed to
  * be raw user content.
  * </p>
  */
-@Component(immediate = true, metatype = true, enabled = false)
+@Component(immediate = true, metatype = true)
 @Service(value = ServerProtectionService.class)
 public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String HMAC_SHA512 = "HmacSHA512";
   private static final String HMAC_PARAM = ":hmac";
   private static final String[] DEFAULT_TRUSTED_HOSTS = { "http://localhost:8080" };
-  private static final String[] DEFAULT_TRUSTED_REFERRERS = { "/",
+  private static final String[] DEFAULT_TRUSTED_REFERERS = { "/",
       "http://localhost:8080" };
-  private static final String[] DEFAULT_TRUSTED_PATHS = { "/dev", "/devwidgets",
-      "/index.html" };
+  private static final String[] DEFAULT_TRUSTED_PATHS = { "/dev", "/devwidgets", "/system" };
+  private static final String[] DEFAULT_TRUSTED_EXACT_PATHS = { "/", "/index.html" };
   private static final String DEFAULT_UNTRUSTED_CONTENT_URL = "http://localhost:8082";
   private static final String DEFAULT_TRUSTED_SECRET_VALUE = "This Must Be set in production";
+  private static final String[] DEFAULT_WHITELIST_POST_PATHS = {"/system/console"};
 
   @Property(value = { DEFAULT_UNTRUSTED_CONTENT_URL })
   private static final String UNTRUSTED_CONTENTURL_CONF = "untrusted.contenturl";
-  @Property(value = { "/dev", "/devwidgets", "/index.html" })
+  @Property(value = { "/dev", "/devwidgets", "/system" })
   private static final String TRUSTED_PATHS_CONF = "trusted.paths";
+  @Property(value = { "/", "/index.html" })
+  private static final String TRUSTED_EXACT_PATHS_CONF = "trusted.exact.paths";
   @Property(value = { "/", "http://localhost:8080" })
-  private static final String TRUSTED_REFERRER_CONF = "trusted.referrer";
+  private static final String TRUSTED_REFERER_CONF = "trusted.referer";
   @Property(value = { "http://localhost:8080" })
   private static final String TRUSTED_HOSTS_CONF = "trusted.hosts";
   @Property(value = { DEFAULT_TRUSTED_SECRET_VALUE })
   private static final String TRUSTED_SECRET_CONF = "trusted.secret";
+  @Property(value = {"/system/console"})
+  private static final String WHITELIST_POST_PATHS_CONF = "tusted.postwhitelist";
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ServerProtectionServiceImpl.class);
 
@@ -94,37 +99,61 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   /**
    * List of referer stems its safe to accept non GET operations from
    */
-  private String[] safeReferrers;
+  private String[] safeReferers;
   /**
    * List of path stems its safe to stream content bodies from using a trusted host
    */
   private String[] safeToStreamPaths;
   /**
+   * List of path stems its safe to stream content bodies from using a trusted host
+   */
+  private Set<String> safeToStreamExactPaths;
+  /**
    * The Stub of the URL used to deliver content bodies.
    */
   private String contentUrl;
+  /**
+   * Array of keys created from the secret, indexed by the second digit of the timestamp
+   */
   private Key[] transferKeys;
+  /**
+   * List of url stems that are always Ok to accept posts from on any URL (eg
+   * /system/console). You will want to add additional protection on these.
+   */
+  private String[] postWhiteList;
 
   @Activate
   public void activate(Map<String, Object> properties) throws NoSuchAlgorithmException,
       UnsupportedEncodingException {
     safeHosts = ImmutableSet.of(OsgiUtil.toStringArray(
         properties.get(TRUSTED_HOSTS_CONF), DEFAULT_TRUSTED_HOSTS));
-    safeReferrers = OsgiUtil.toStringArray(properties.get(TRUSTED_REFERRER_CONF),
-        DEFAULT_TRUSTED_REFERRERS);
+    safeReferers = OsgiUtil.toStringArray(properties.get(TRUSTED_REFERER_CONF),
+        DEFAULT_TRUSTED_REFERERS);
     safeToStreamPaths = OsgiUtil.toStringArray(properties.get(TRUSTED_PATHS_CONF),
         DEFAULT_TRUSTED_PATHS);
+    safeToStreamExactPaths = ImmutableSet.of(OsgiUtil.toStringArray(
+        properties.get(TRUSTED_EXACT_PATHS_CONF), DEFAULT_TRUSTED_EXACT_PATHS));
     contentUrl = OsgiUtil.toString(properties.get(UNTRUSTED_CONTENTURL_CONF),
         DEFAULT_UNTRUSTED_CONTENT_URL);
+    postWhiteList = OsgiUtil.toStringArray(
+        properties.get(WHITELIST_POST_PATHS_CONF), DEFAULT_WHITELIST_POST_PATHS);
     String transferSharedSecret = OsgiUtil.toString(properties.get(TRUSTED_SECRET_CONF),
         DEFAULT_TRUSTED_SECRET_VALUE);
     if (DEFAULT_TRUSTED_SECRET_VALUE.equals(transferSharedSecret)) {
       LOGGER.error("Configuration Error =============================");
       LOGGER
-          .error("Configuration Error: Please set {} to secure Content Server in procuction "
-              + TRUSTED_SECRET_CONF);
+          .error("Configuration Error: Please set {} to secure Content Server in procuction ",TRUSTED_SECRET_CONF);
       LOGGER.error("Configuration Error =============================");
     }
+
+    LOGGER.info("Trusted Hosts {}",safeHosts);
+    LOGGER.info("Trusted Referers {} ",Arrays.toString(safeReferers));
+    LOGGER.info("Trusted Stream Paths {} ",Arrays.toString(safeToStreamPaths));
+    LOGGER.info("Trusted Stream Resources {} ",safeToStreamExactPaths);
+    LOGGER.info("POST Whitelist {} ",postWhiteList);
+    LOGGER.info("Content Host {} ",contentUrl);
+    LOGGER.info("Content Shared Secret [{}] ",transferSharedSecret);
+
     transferKeys = new Key[10];
     MessageDigest md = MessageDigest.getInstance("SHA-512");
     Base64 encoder = new Base64(true);
@@ -152,21 +181,34 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       String ext = srequest.getRequestPathInfo().getExtension();
       if (ext == null || "res".equals(ext)) {
         // this is going to stream
-        Resource resource = srequest.adaptTo(Resource.class);
-        if ( resource == null ) {
-          redirectToContent(srequest, sresponse);
-          return false;
-        }
-        String path = resource.getPath();
-        boolean safeToStream = false;
-        for (String safePath : safeToStreamPaths) {
-          if (path.startsWith(safePath)) {
-            safeToStream = true;
-          }
-        }
+        String path = srequest.getRequestURI();
+        LOGGER.debug("Checking [{}] ", path);
+        boolean safeToStream = safeToStreamExactPaths.contains(path);
         if (!safeToStream) {
-          redirectToContent(srequest, sresponse);
-          return false;
+          for (String safePath : safeToStreamPaths) {
+            if (path.startsWith(safePath)) {
+              safeToStream = true;
+              break;
+            }
+          }
+          if (!safeToStream) {
+            Resource resource = srequest.getResource();
+            if ( resource != null ) {
+              String resourcePath = resource.getPath();
+              LOGGER.debug("Checking Resource Path [{}]",resourcePath);
+              safeToStream = safeToStreamExactPaths.contains(resourcePath);
+              for (String safePath : safeToStreamPaths) {
+                if (resourcePath.startsWith(safePath)) {
+                  safeToStream = true;
+                  break;
+                }
+              }
+            }
+            if ( !safeToStream) {
+              redirectToContent(srequest, sresponse);
+              return false;
+            }
+          }
         }
       }
     }
@@ -175,13 +217,17 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
 
   private void redirectToContent(HttpServletRequest request, HttpServletResponse response)
       throws UnsupportedEncodingException, IOException {
-    String requestURL = request.getRequestURL().toString();
+    StringBuffer requestURL = request.getRequestURL();
+    String queryString = request.getQueryString();
+    if (queryString != null) {
+      requestURL.append("?").append(queryString);
+    }
+    String url = requestURL.toString();
     // replace the protocol and host with the CDN host.
     int pathStart = requestURL.indexOf("/", requestURL.indexOf(":") + 3);
-    requestURL = contentUrl + requestURL.substring(pathStart);
+    url = contentUrl + url.substring(pathStart);
     // send via the session establisher
-    String finalUrl = requestURL + "?" + request.getQueryString();
-    response.sendRedirect(getTransferUrl(request, finalUrl));
+    response.sendRedirect(getTransferUrl(request, url));
   }
 
   /**
@@ -206,13 +252,14 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
 
           String message = finalUrl + ";" + userId + ";" + ts;
           m.update(message.getBytes("UTF-8"));
-          Base64 encoder = new Base64(true);
-          return finalUrl
-              + "&"
-              + HMAC_PARAM
-              + "="
-              + URLEncoder.encode(encoder.encodeToString(m.doFinal()) + ";" + userId
-                  + ";" + ts, "UTF-8");
+          String hmac = Base64.encodeBase64URLSafeString(m.doFinal());
+          hmac = Base64.encodeBase64URLSafeString((hmac + ";" + userId + ";" + ts)
+              .getBytes("UTF-8"));
+          String spacer = "?";
+          if ( finalUrl.indexOf('?') >  0) {
+            spacer = "&";
+          }
+          return finalUrl + spacer + HMAC_PARAM + "=" + hmac;
         } catch (Exception e) {
           LOGGER.warn(e.getMessage(), e);
         }
@@ -227,11 +274,15 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       String hmac = request.getParameter(HMAC_PARAM);
       if (hmac != null) {
         try {
+          hmac = new String(Base64.decodeBase64(hmac.getBytes("UTF-8")), "UTF-8");
           String[] parts = StringUtils.split(hmac, ';');
           String requestUrl = request.getRequestURL().append("?")
               .append(request.getQueryString()).toString();
-          System.err.println("Checking requestUrl "+requestUrl);
+          System.err.println("Checking requestUrl [" + requestUrl + "]");
           int i = requestUrl.indexOf("&" + HMAC_PARAM);
+          if ( i < 0 ) {
+            i = requestUrl.indexOf("?" + HMAC_PARAM);
+          }
           String finalUrl = requestUrl.substring(0, i);
           String requestHmac = parts[0];
           String requestUserId = parts[1];
@@ -243,15 +294,14 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
             Mac m = Mac.getInstance(HMAC_SHA512);
             m.init(transferKeys[keyIndex]);
             m.update(message.getBytes("UTF-8"));
-            Base64 encoder = new Base64(true);
-            String testHmac = encoder.encodeToString(m.doFinal());
+            String testHmac = Base64.encodeBase64URLSafeString(m.doFinal());
             if (testHmac.equals(requestHmac)) {
               return requestUserId;
             }
           }
         } catch (Exception e) {
           LOGGER.warn(e.getMessage());
-          LOGGER.info(e.getMessage(), e);
+          LOGGER.debug(e.getMessage(), e);
         }
       }
     }
@@ -267,33 +317,41 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     // browser bug in this area
     // and no flash bug.
     if (!("GET".equals(method) || "HEAD".equals(method))) {
-      // check the referrer
+      String path = hrequest.getRequestURI();
+      for (String okPostStem : postWhiteList) {
+        if (path.startsWith(okPostStem)) {
+          return true;
+        }
+      }
+      // check the Referer
       @SuppressWarnings("unchecked")
-      Enumeration<String> referrers = hrequest.getHeaders("referrer");
-      String referrer = null;
-      if (referrers == null || !referrers.hasMoreElements()) {
+      Enumeration<String> referers = hrequest.getHeaders("Referer");
+      String referer = null;
+      if (referers == null || !referers.hasMoreElements()) {
+        LOGGER.debug("No Referer header present ");
         hresponse.sendError(HttpServletResponse.SC_BAD_REQUEST,
-            "POST Requests with no referrer are not acceptable");
+            "POST Requests with no Referer are not acceptable");
         return false;
       }
-      referrer = referrers.nextElement();
-      if (referrer == null) {
+      referer = referers.nextElement();
+      if (referer == null) {
+        LOGGER.debug("No Referer header present, was null ");
         hresponse.sendError(HttpServletResponse.SC_BAD_REQUEST,
-            "POST Requests with no referrer are not acceptable");
+            "POST Requests with no Referer are not acceptable");
         return false;
       }
 
       // Do we allow non get operations to this host ?
       if (safeHost) {
-        // and if we do, do we accept them from the referrer mentioned ?
+        // and if we do, do we accept them from the Referer mentioned ?
         safeHost = false;
-        for (String safeReferrer : safeReferrers) {
-          if (referrer.startsWith(safeReferrer)) {
+        for (String safeReferer : safeReferers) {
+          if (referer.startsWith(safeReferer)) {
             safeHost = true;
-            LOGGER.info("Accepted referred {}  {}", safeReferrer, referrer);
+            LOGGER.debug("Accepted referred {}  {}", safeReferer, referer);
             break;
           } else {
-            LOGGER.info("Rejecting referred {}  {}", safeReferrer, referrer);
+            LOGGER.debug("Rejecting referred {}  {}", safeReferer, referer);
           }
         }
       }

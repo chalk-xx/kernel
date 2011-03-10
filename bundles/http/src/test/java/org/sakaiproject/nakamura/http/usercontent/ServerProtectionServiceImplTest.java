@@ -40,6 +40,7 @@ public class ServerProtectionServiceImplTest {
   
   @Test
   public void testMethodSafe() throws IOException {
+    Mockito.when(hrequest.getRequestURI()).thenReturn("/some/url");
     Mockito.when(hrequest.getMethod()).thenReturn("GET");
     Mockito.when(hrequest.getScheme()).thenReturn("http");
     Mockito.when(hrequest.getServerName()).thenReturn("localhost");
@@ -58,10 +59,10 @@ public class ServerProtectionServiceImplTest {
     Mockito.when(hrequest.getScheme()).thenReturn("http");
     Mockito.when(hrequest.getServerName()).thenReturn("localhost");
     Mockito.when(hrequest.getServerPort()).thenReturn(8080);
-    Vector<String> referrers = new Vector<String>();
-    referrers.add("a");
-    referrers.add("hacker");
-    Mockito.when(hrequest.getHeaders("referrer")).thenReturn(referrers.elements());
+    Vector<String> referers = new Vector<String>();
+    referers.add("a");
+    referers.add("hacker");
+    Mockito.when(hrequest.getHeaders("Referer")).thenReturn(referers.elements());
     Assert.assertFalse(serverProtectionService.isMethodSafe(hrequest, hresponse));
     Mockito.verify(hresponse, Mockito.times(n400++)).sendError(Mockito.eq(400), Mockito.anyString());
 
@@ -69,8 +70,8 @@ public class ServerProtectionServiceImplTest {
     Mockito.when(hrequest.getScheme()).thenReturn("http");
     Mockito.when(hrequest.getServerName()).thenReturn("localhost");
     Mockito.when(hrequest.getServerPort()).thenReturn(8080);
-    referrers.clear();
-    Mockito.when(hrequest.getHeaders("referrer")).thenReturn(referrers.elements());
+    referers.clear();
+    Mockito.when(hrequest.getHeaders("Referer")).thenReturn(referers.elements());
     Assert.assertFalse(serverProtectionService.isMethodSafe(hrequest, hresponse));
     Mockito.verify(hresponse, Mockito.times(n400++)).sendError(Mockito.eq(400), Mockito.anyString());
 
@@ -78,9 +79,9 @@ public class ServerProtectionServiceImplTest {
     Mockito.when(hrequest.getScheme()).thenReturn("http");
     Mockito.when(hrequest.getServerName()).thenReturn("localhost");
     Mockito.when(hrequest.getServerPort()).thenReturn(8080);
-    referrers.clear();
-    referrers.add("somewhereelse/index.html");
-    Mockito.when(hrequest.getHeaders("referrer")).thenReturn(referrers.elements());
+    referers.clear();
+    referers.add("somewhereelse/index.html");
+    Mockito.when(hrequest.getHeaders("Referer")).thenReturn(referers.elements());
     Assert.assertFalse(serverProtectionService.isMethodSafe(hrequest, hresponse));
     Mockito.verify(hresponse, Mockito.times(n400++)).sendError(Mockito.eq(400), Mockito.anyString());
 
@@ -88,9 +89,9 @@ public class ServerProtectionServiceImplTest {
     Mockito.when(hrequest.getScheme()).thenReturn("http");
     Mockito.when(hrequest.getServerName()).thenReturn("localhost");
     Mockito.when(hrequest.getServerPort()).thenReturn(8080);
-    referrers.clear();
-    referrers.add("http://localhost:8082/somewhereelse/index.html");
-    Mockito.when(hrequest.getHeaders("referrer")).thenReturn(referrers.elements());
+    referers.clear();
+    referers.add("http://localhost:8082/somewhereelse/index.html");
+    Mockito.when(hrequest.getHeaders("Referer")).thenReturn(referers.elements());
     Assert.assertFalse(serverProtectionService.isMethodSafe(hrequest, hresponse));
     Mockito.verify(hresponse, Mockito.times(n400++)).sendError(Mockito.eq(400), Mockito.anyString());
 
@@ -98,27 +99,27 @@ public class ServerProtectionServiceImplTest {
     Mockito.when(hrequest.getScheme()).thenReturn("http");
     Mockito.when(hrequest.getServerName()).thenReturn("localhost");
     Mockito.when(hrequest.getServerPort()).thenReturn(8080);
-    referrers.clear();
-    referrers.add("/somewhereelse/index.html");
-    Mockito.when(hrequest.getHeaders("referrer")).thenReturn(referrers.elements());
+    referers.clear();
+    referers.add("/somewhereelse/index.html");
+    Mockito.when(hrequest.getHeaders("Referer")).thenReturn(referers.elements());
     Assert.assertTrue(serverProtectionService.isMethodSafe(hrequest, hresponse));
     
     Mockito.when(hrequest.getMethod()).thenReturn("POST");
     Mockito.when(hrequest.getScheme()).thenReturn("http");
     Mockito.when(hrequest.getServerName()).thenReturn("localhost");
     Mockito.when(hrequest.getServerPort()).thenReturn(8080);
-    referrers.clear();
-    referrers.add("http://localhost:8080/somewhereelse/index.html");
-    Mockito.when(hrequest.getHeaders("referrer")).thenReturn(referrers.elements());
+    referers.clear();
+    referers.add("http://localhost:8080/somewhereelse/index.html");
+    Mockito.when(hrequest.getHeaders("Referer")).thenReturn(referers.elements());
     Assert.assertTrue(serverProtectionService.isMethodSafe(hrequest, hresponse));
 
     Mockito.when(hrequest.getMethod()).thenReturn("POST");
     Mockito.when(hrequest.getScheme()).thenReturn("http");
     Mockito.when(hrequest.getServerName()).thenReturn("localhost");
     Mockito.when(hrequest.getServerPort()).thenReturn(8082);
-    referrers.clear();
-    referrers.add("http://localhost:8080/somewhereelse/index.html");
-    Mockito.when(hrequest.getHeaders("referrer")).thenReturn(referrers.elements());
+    referers.clear();
+    referers.add("http://localhost:8080/somewhereelse/index.html");
+    Mockito.when(hrequest.getHeaders("Referer")).thenReturn(referers.elements());
     Assert.assertFalse(serverProtectionService.isMethodSafe(hrequest, hresponse));
     Mockito.verify(hresponse, Mockito.times(n400++)).sendError(Mockito.eq(400), Mockito.anyString());
 
@@ -126,9 +127,9 @@ public class ServerProtectionServiceImplTest {
     Mockito.when(hrequest.getScheme()).thenReturn("http");
     Mockito.when(hrequest.getServerName()).thenReturn("other");
     Mockito.when(hrequest.getServerPort()).thenReturn(8080);
-    referrers.clear();
-    referrers.add("http://localhost:8080/somewhereelse/index.html");
-    Mockito.when(hrequest.getHeaders("referrer")).thenReturn(referrers.elements());
+    referers.clear();
+    referers.add("http://localhost:8080/somewhereelse/index.html");
+    Mockito.when(hrequest.getHeaders("Referer")).thenReturn(referers.elements());
     Assert.assertFalse(serverProtectionService.isMethodSafe(hrequest, hresponse));
     Mockito.verify(hresponse, Mockito.times(n400++)).sendError(Mockito.eq(400), Mockito.anyString());
 
@@ -136,9 +137,9 @@ public class ServerProtectionServiceImplTest {
     Mockito.when(hrequest.getScheme()).thenReturn("https");
     Mockito.when(hrequest.getServerName()).thenReturn("localhost");
     Mockito.when(hrequest.getServerPort()).thenReturn(8080);
-    referrers.clear();
-    referrers.add("http://localhost:8080/somewhereelse/index.html");
-    Mockito.when(hrequest.getHeaders("referrer")).thenReturn(referrers.elements());
+    referers.clear();
+    referers.add("http://localhost:8080/somewhereelse/index.html");
+    Mockito.when(hrequest.getHeaders("Referer")).thenReturn(referers.elements());
     Assert.assertFalse(serverProtectionService.isMethodSafe(hrequest, hresponse));
     Mockito.verify(hresponse, Mockito.times(n400++)).sendError(Mockito.eq(400), Mockito.anyString());
 
@@ -151,6 +152,7 @@ public class ServerProtectionServiceImplTest {
     Mockito.when(hrequest.getScheme()).thenReturn("http");
     Mockito.when(hrequest.getServerName()).thenReturn("localhost");
     Mockito.when(hrequest.getServerPort()).thenReturn(8080);
+    Mockito.when(hrequest.getRequestURI()).thenReturn("/some/url");
     Assert.assertFalse(serverProtectionService.isRequestSafe(hrequest, hresponse));
     int n400 = 1;
     Mockito.verify(hresponse, Mockito.times(n400++)).sendError(Mockito.eq(400), Mockito.anyString());
@@ -164,6 +166,7 @@ public class ServerProtectionServiceImplTest {
     Mockito.when(hrequest.getScheme()).thenReturn("http");
     Mockito.when(hrequest.getServerName()).thenReturn("localhost");
     Mockito.when(hrequest.getServerPort()).thenReturn(8080);
+    Mockito.when(hrequest.getRequestURI()).thenReturn("/p/sdsdfsdfs");
     Mockito.when(hrequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080/p/sdsdfsdfs"));
     Mockito.when(hrequest.getQueryString()).thenReturn("x=1&y=2");
     Mockito.when(hrequest.getRemoteUser()).thenReturn(null);
@@ -185,6 +188,7 @@ public class ServerProtectionServiceImplTest {
       Mockito.when(trequest.getScheme()).thenReturn("http");
       Mockito.when(trequest.getServerName()).thenReturn("localhost");
       Mockito.when(trequest.getServerPort()).thenReturn(8080);
+      Mockito.when(trequest.getRequestURI()).thenReturn("/p/sdsdfsdfs");
       Mockito.when(trequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080/p/sdsdfsdfs"));
       Mockito.when(trequest.getQueryString()).thenReturn("x=1&y=2");
       Mockito.when(trequest.getRemoteUser()).thenReturn("ieb");

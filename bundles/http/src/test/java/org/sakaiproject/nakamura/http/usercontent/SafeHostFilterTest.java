@@ -59,6 +59,7 @@ public class SafeHostFilterTest {
   @Test
   public void testDoNoFilter() throws IOException, ServletException {
     Mockito.when(serverPotectionService.isMethodSafe(request, response)).thenReturn(false);
+    Mockito.when(request.getRequestURL()).thenReturn(new StringBuffer());
     safeHostFilter.doFilter(request, response, chain);
     Mockito.verify(chain, Mockito.times(0)).doFilter(request, response);
   }
