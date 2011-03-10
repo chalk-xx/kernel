@@ -4,7 +4,6 @@ import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -21,14 +20,10 @@ public class LiteJsonImporter {
   private static final Logger LOGGER = LoggerFactory.getLogger(LiteJsonImporter.class);
   
   public void importContent(ContentManager contentManager, JSONObject json,
-      String path, boolean removeTree, boolean replaceProperties) throws JSONException, StorageClientException, AccessDeniedException  {
-    if ( removeTree ) {
-      for ( Iterator<String> i = contentManager.listChildPaths(path); i.hasNext(); ) {
-        String childPath = i.next();
-        LOGGER.info("Deleting {} ",childPath);
-        StorageClientUtils.deleteTree(contentManager, childPath);
-        LOGGER.info("Done Deleting {} ",childPath);
-      }
+      String path, boolean continueIfExists, boolean replaceProperties) throws JSONException, StorageClientException, AccessDeniedException  {
+    if ( !continueIfExists && contentManager.exists(path)) {
+      LOGGER.debug("replace=false and path exists, so discontinuing JSON import: " + path);
+      return;
     }
     internalImportContent(contentManager, json, path, replaceProperties);
   }
