@@ -78,11 +78,8 @@
         <module>bundles/profile</module>
         <module>bundles/tika</module>
         <module>bundles/captcha</module>
-        <module>bundles/webdav</module>
-        <module>bundles/privacy</module>
         <module>bundles/pages</module>
         <module>bundles/http</module>
-        <module>bundles/robots.txt</module>
         <module>bundles/directory</module>
         <module>bundles/templates</module>
       </modules>
@@ -103,6 +100,7 @@
         <module>contrib/sitejoin</module>
         <module>contrib/foreignprincipal</module>
         <module>contrib/rootconfig</module>
+        <module>contrib/robots.txt</module>
        </modules>
     </profile>
     <profile>

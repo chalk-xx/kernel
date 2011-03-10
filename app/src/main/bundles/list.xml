@@ -534,11 +534,6 @@ KERN-1187
       <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
       <version>0.10-SNAPSHOT</version>
     </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.privacy</artifactId>
-      <version>0.10-SNAPSHOT</version>
-    </bundle>
    </startLevel>
    <startLevel level="20" >
     <bundle>
@@ -653,11 +648,6 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.http</artifactId>
-      <version>0.10-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.robots.txt</artifactId>
       <version>0.10-SNAPSHOT</version>
     </bundle>
     <bundle>
