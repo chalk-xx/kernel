@@ -17,9 +17,10 @@
  */
 package org.sakaiproject.nakamura.api.auth.trusted;
 
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
 import org.sakaiproject.nakamura.auth.trusted.TrustedTokenServiceImpl;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -49,15 +50,11 @@ public abstract class TrustedTokenServiceWrapper {
    * @param request
    * @param response
    */
-  protected void injectToken(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) {
+  protected void injectToken(HttpServletRequest request,
+      HttpServletResponse response) {
     delagate.injectToken(request, response);
   }
 
-  /**
-   * @param request
-   * @param response
-   */
-  public abstract void addToken(SlingHttpServletRequest request, SlingHttpServletResponse response);
+  
   
 }
