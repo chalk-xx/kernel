@@ -105,7 +105,6 @@ public class RepositoryBase {
    */
   private void setupSakaiActivator() throws ClientPoolException, StorageClientException,
       AccessDeniedException, ClassNotFoundException {
-    System.err.println("Bundle is " + bundleContext);
     DynamicPrincipalManagerFactoryImpl dynamicPrincipalManagerFactoryImpl = new DynamicPrincipalManagerFactoryImpl(
         bundleContext);
     RuleProcessorManagerImpl ruleProcessorManagerImpl = new RuleProcessorManagerImpl(
