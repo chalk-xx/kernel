@@ -98,8 +98,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   /** A list of all the known safe hosts to trust as servers */
   @Property(value ="localhost;127.0.0.1;0:0:0:0:0:0:0:1%0")
   public static final String SERVER_TOKEN_SAFE_HOSTS_ADDR = "sakai.auth.trusted.server.safe-hostsaddress";
-
-  private static final String DEFAULT_WRAPPERS = "org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.auth.cas.CasAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.http.usercontent.UserContentAuthenticationTokenServiceWrapper";
+                                                                                                                                                                                                                                                                                                                  
+  private static final String DEFAULT_WRAPPERS = "org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.auth.opensso.OpenSsoAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.auth.cas.CasAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.http.usercontent.UserContentAuthenticationTokenServiceWrapper";
   @Property(value = DEFAULT_WRAPPERS)
   public static final String SERVER_TOKEN_SAFE_WRAPPERS = "sakai.auth.trusted.wrapper.class.names";
 
