@@ -17,33 +17,36 @@
  */
 package org.sakaiproject.nakamura.discussion;
 
+import com.google.common.collect.Maps;
+
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
+import org.sakaiproject.nakamura.api.discussion.LiteDiscussionManager;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
-import javax.jcr.query.QueryResult;
 
 /**
  * Manager for the discussions.
  */
-//@Component(label = "%discussion.manager.label", description = "%discussion.manager.desc")
-//@Service
-public class DiscussionManagerImpl implements DiscussionManager {
+@Component(immediate = true, label = "%discussion.manager.label", description = "%discussion.manager.desc")
+@Service
+public class LiteDiscussionManagerImpl implements LiteDiscussionManager {
 
-  public static final Logger LOG = LoggerFactory.getLogger(DiscussionManagerImpl.class);
+  public static final Logger LOG = LoggerFactory.getLogger(LiteDiscussionManagerImpl.class);
 
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
@@ -57,7 +60,7 @@ public class DiscussionManagerImpl implements DiscussionManager {
    * @see org.sakaiproject.nakamura.api.discussion.DiscussionManager#findMessage(java.lang.String,
    *      java.lang.String, javax.jcr.Session, java.lang.String)
    */
-  public Node findMessage(String messageId, String marker, Session session, String path)
+  public Content findMessage(String messageId, String marker, Session session, String path)
       throws MessagingException {
 
     if (path == null) {
@@ -71,24 +74,27 @@ public class DiscussionManagerImpl implements DiscussionManager {
       path = path.substring(0, path.length());
     }
     try {
+      ContentManager cm = session.getContentManager();
+      Map<String, Object> props = Maps.newHashMap();
+      props.put("sling:resourceType", "sakai/message");
+      props.put("sakai:type", "discussion");
+      props.put("sakai:id", messageId);
+      props.put("sakai:marker", marker);
+
       path = expandHomeDirectory(path);
-      
-      String queryString = "/"
-        + path
-        + "//*[@sling:resourceType=\"sakai/message\" and @sakai:type='discussion' and @sakai:id='"
-        + messageId + "' and @sakai:marker='" + marker + "']";
-      LOG.debug("Trying to find message with query: {}", queryString);
 
-      QueryManager queryManager = session.getWorkspace().getQueryManager();
-      Query query = queryManager.createQuery(queryString, Query.XPATH);
-      QueryResult result = query.execute();
-      NodeIterator nodeIterator = result.getNodes();
+      Iterator<Content> foundContent = cm.find(props).iterator();
 
-      while (nodeIterator.hasNext()) {
-        Node n = nodeIterator.nextNode();
-        return n;
+      while (foundContent.hasNext()) {
+        Content c = foundContent.next();
+        if (c.getPath().startsWith(path)) {
+          return c;
+        }
       }
-    } catch (RepositoryException e) {
+    } catch (StorageClientException e) {
+      LOG.warn("Unable to check for message with ID '{}' and marker '{}'", messageId,
+          marker);
+    } catch (AccessDeniedException e) {
       LOG.warn("Unable to check for message with ID '{}' and marker '{}'", messageId,
           marker);
     }
@@ -102,24 +108,26 @@ public class DiscussionManagerImpl implements DiscussionManager {
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.discussion.DiscussionManager#findSettings(java.lang.String, javax.jcr.Session, java.lang.String)
    */
-  public Node findSettings(String marker, Session session, String type) {
+  public Content findSettings(String marker, Session session, String type) {
     if (type == null || "".equals(type)) {
       type = "discussion";
     }
-    String queryString = "//*[@sling:resourceType=\"sakai/settings\" and @sakai:type='"
-        + type + "' and @sakai:marker='" + marker + "']";
-    LOG.debug("Trying to find settings with query: {}", queryString);
     try {
-      QueryManager queryManager = session.getWorkspace().getQueryManager();
-      Query query = queryManager.createQuery(queryString, Query.XPATH);
-      QueryResult result = query.execute();
-      NodeIterator nodeIterator = result.getNodes();
+      ContentManager cm = session.getContentManager();
+      Map<String, Object> props = Maps.newHashMap();
+      props.put("sling:resourceType", "sakai/settings");
+      props.put("sakai:type", type);
+      props.put("sakai:marker", marker);
 
-      while (nodeIterator.hasNext()) {
-        Node n = nodeIterator.nextNode();
-        return n;
+      Iterator<Content> foundContent = cm.find(props).iterator();
+
+      if (foundContent.hasNext()) {
+        Content c = foundContent.next();
+        return c;
       }
-    } catch (RepositoryException e) {
+    } catch (StorageClientException e) {
+      LOG.warn("Unable to check for settings of type '{}' and marker '{}'", type, marker);
+    } catch (AccessDeniedException e) {
       LOG.warn("Unable to check for settings of type '{}' and marker '{}'", type, marker);
     }
 

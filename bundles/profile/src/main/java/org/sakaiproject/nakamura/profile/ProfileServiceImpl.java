@@ -407,6 +407,6 @@ public class ProfileServiceImpl implements ProfileService {
     // update the profile content
     ContentManager contentManager = session.getContentManager();
     LiteJsonImporter importer = new LiteJsonImporter();
-    importer.importContent(contentManager, json, profilePath, true, true);
+    importer.importContent(contentManager, json, profilePath, true, true,true);
   }
 }

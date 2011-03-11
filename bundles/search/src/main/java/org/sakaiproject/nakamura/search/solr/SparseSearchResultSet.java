@@ -34,23 +34,14 @@ import java.util.Map.Entry;
  *
  */
 public class SparseSearchResultSet implements SolrSearchResultSet {
-  private Iterable<Content> items;
-
-  public SparseSearchResultSet(Iterable<Content> items) {
-    this.items = items;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet#getResultSetIterator()
-   */
-  public Iterator<Result> getResultSetIterator() {
+  private CountingIterator<Result> iterator;
+  
+  public SparseSearchResultSet(Iterable<Content> items, int maxResults) {
     final Iterator<Content> itemsIter = items.iterator();
-    return new UnmodifiableIterator<Result>() {
+    iterator = new CountingIterator<Result>(new UnmodifiableIterator<Result>() {
 
       public boolean hasNext() {
-        return itemsIter.hasNext();
+        return itemsIter != null && itemsIter.hasNext();
       }
 
       public Result next() {
@@ -61,8 +52,17 @@ public class SparseSearchResultSet implements SolrSearchResultSet {
         }
         return new GenericResult(c.getPath(), props);
       }
-      
-    };
+
+    }, maxResults);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet#getResultSetIterator()
+   */
+  public Iterator<Result> getResultSetIterator() {
+    return iterator;
   }
 
   /**
@@ -71,7 +71,7 @@ public class SparseSearchResultSet implements SolrSearchResultSet {
    * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet#getSize()
    */
   public long getSize() {
-    return 0;
+    return iterator.getSize();
   }
 
 }

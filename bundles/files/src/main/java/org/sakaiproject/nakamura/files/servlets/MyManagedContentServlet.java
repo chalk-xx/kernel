@@ -20,16 +20,10 @@ package org.sakaiproject.nakamura.files.servlets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
-import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
-import org.sakaiproject.nakamura.api.doc.BindingType;
-import org.sakaiproject.nakamura.api.doc.ServiceBinding;
-import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
-import org.sakaiproject.nakamura.api.doc.ServiceMethod;
-import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -55,11 +49,11 @@ import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "MyManagedContentServlet", shortDescription = "Returns information about the current active user.", description = "Presents information about current user in JSON format.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/me"), methods = @ServiceMethod(name = "GET", description = "Get information about current user.", response = {
-    @ServiceResponse(code = 200, description = "Request for information was successful. <br />"),
-    @ServiceResponse(code = 401, description = "Unauthorized: credentials provided were not acceptable to return information for."),
-    @ServiceResponse(code = 500, description = "Unable to return list of user's managed content.") }))
-@SlingServlet(paths = { "/var/search/pool/me/manager" }, generateComponent = true, generateService = true, methods = { "GET" })
+//@ServiceDocumentation(name = "MyManagedContentServlet", shortDescription = "Returns information about the current active user.", description = "Presents information about current user in JSON format.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/me"), methods = @ServiceMethod(name = "GET", description = "Get information about current user.", response = {
+//    @ServiceResponse(code = 200, description = "Request for information was successful. <br />"),
+//    @ServiceResponse(code = 401, description = "Unauthorized: credentials provided were not acceptable to return information for."),
+//    @ServiceResponse(code = 500, description = "Unable to return list of user's managed content.") }))
+//@SlingServlet(paths = { "/var/search/pool/me/manager" }, generateComponent = true, generateService = true, methods = { "GET" })
 public class MyManagedContentServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = -3786472219389695181L;

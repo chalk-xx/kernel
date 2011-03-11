@@ -71,6 +71,8 @@ public class ImportOperation extends AbstractSparseCreateOperation {
         .getParameter(SlingPostConstants.RP_REPLACE));
     final boolean replaceProperties = "true".equalsIgnoreCase(request
         .getParameter(SlingPostConstants.RP_REPLACE_PROPERTIES));
+    final boolean removeTree = "true".equalsIgnoreCase(request
+        .getParameter(":removeTree"));
 
     String basePath = getItemPath(request);
     if (basePath.endsWith("/")) {
@@ -103,7 +105,7 @@ public class ImportOperation extends AbstractSparseCreateOperation {
           LOGGER.debug("to {} importing {} ",basePath,json.toString(3));
         }
         LiteJsonImporter simpleJsonImporter = new LiteJsonImporter();
-        simpleJsonImporter.importContent(contentManager, json, basePath, replace, replaceProperties);
+        simpleJsonImporter.importContent(contentManager, json, basePath, replace, replaceProperties, removeTree);
           response.setLocation(externalizePath(request, basePath));
           response.setPath(basePath);
           int lastSlashIndex = basePath.lastIndexOf('/');

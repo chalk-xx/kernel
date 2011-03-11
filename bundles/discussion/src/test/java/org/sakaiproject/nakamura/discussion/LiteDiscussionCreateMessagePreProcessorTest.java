@@ -27,26 +27,25 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
+import org.sakaiproject.nakamura.api.discussion.LiteDiscussionManager;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessagingException;
-
-import javax.jcr.Session;
 
 /**
  *
  */
 @RunWith(MockitoJUnitRunner.class)
-public class DiscussionCreateMessagePreProcessorTest {
+public class LiteDiscussionCreateMessagePreProcessorTest {
 
-  private DiscussionCreateMessagePreProcessor processor;
+  private LiteDiscussionCreateMessagePreProcessor processor;
   @Mock
-  private DiscussionManager discussionManager;
+  private LiteDiscussionManager discussionManager;
   @Mock
   private SlingHttpServletRequest request;
   @Mock
@@ -59,7 +58,7 @@ public class DiscussionCreateMessagePreProcessorTest {
    */
   @Before
   public void setUp() throws Exception {
-    processor = new DiscussionCreateMessagePreProcessor();
+    processor = new LiteDiscussionCreateMessagePreProcessor();
     processor.bindDiscussionManager(discussionManager);
   }
 
@@ -103,10 +102,10 @@ public class DiscussionCreateMessagePreProcessorTest {
     when(request.getRequestParameter(PROP_MARKER)).thenReturn(paramMarker);
     when(request.getRequestParameter(PROP_REPLY_ON)).thenReturn(paramReplyOn);
 
-    MockNode messageNode = new MockNode("/_user/message/bla");
+    Content messageNode = new Content("/_user/message/bla", null);
 
     // session is null because we don't mock the adaptTo call
-    when(discussionManager.findMessage(messageId, marker, session, "/_user/message"))
+    when(discussionManager.findMessage(messageId, marker, null, "/_user/message"))
         .thenReturn(messageNode);
 
     processor.checkRequest(request);

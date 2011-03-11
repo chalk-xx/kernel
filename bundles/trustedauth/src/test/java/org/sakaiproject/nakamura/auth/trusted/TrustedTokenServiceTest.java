@@ -236,7 +236,7 @@ public class TrustedTokenServiceTest {
     Thread.sleep(20L);
     String cookie2 = trustedTokenService.encodeCookie("ieb2");
     String user = trustedTokenService.decodeCookie(cookie);
-    Assert.assertNotNull(user);
+    Assert.assertNotNull("Cookie was "+cookie+" but did not decode ",user);
     Assert.assertEquals("ieb", user);
     user = trustedTokenService.decodeCookie(cookie2);
     Assert.assertNotNull(user);
