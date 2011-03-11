@@ -227,6 +227,10 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
    */
   private static final Set<String> NO_MANAGE = ImmutableSet.of(Group.EVERYONE, User.ANON_USER, User.ADMIN_USER);
 
+  private static final String JOINREQUESTS_FOLDER = "/joinrequests";
+
+  private static final String JOINREQUESTS_RT = "sparse/joinrequests";
+
   @Reference
   protected Repository repository;
 
@@ -449,6 +453,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
               profileType, false, contentManager, accessControlManager,
               sakaiAuthzProperties);
+          createPath(authId, homePath + JOINREQUESTS_FOLDER, JOINREQUESTS_RT, false,
+              contentManager, accessControlManager, null);
         } else {
           createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
               profileType, false, contentManager, accessControlManager, sakaiAuthzProperties);
