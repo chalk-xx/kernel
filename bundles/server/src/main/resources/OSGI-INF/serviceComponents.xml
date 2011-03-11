@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
+<!-- 
+Moved to activator
     <scr:component enabled="true" immediate="true" name="org.sakaiproject.nakamura.lite.jackrabbit.SparseRepositoryHolder" activate="activate" deactivate="deactivate">
         <implementation class="org.sakaiproject.nakamura.lite.jackrabbit.SparseRepositoryHolder"/>
         <service servicefactory="false">
@@ -9,6 +11,7 @@
         <property name="service.vendor" value="The Sakai Foundation"/>
         <property name="service.pid" value="org.sakaiproject.nakamura.lite.jackrabbit.SparseComponentHolder"/>
     </scr:component>
+ -->
     <!--
     Jndi and Rmi interfaces are disabled 
     <scr:component enabled="true" immediate="true" name="org.apache.sling.jcr.jackrabbit.server.JndiRegistrationSupport">
@@ -31,9 +34,9 @@
         <reference name="Repository" interface="javax.jcr.Repository" cardinality="0..n" policy="dynamic" bind="bindRepository" unbind="unbindRepository"/>
     </scr:component>
     -->
-    
+
     <scr:component enabled="true" name="org.apache.sling.jcr.jackrabbit.server.SlingServerRepository">
-        <implementation class="org.sakaiproject.nakamura.lite.jackrabbit.SparseSlingServerRepository"/>
+        <implementation class="org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiSlingServerRepository"/>
         <property name="service.vendor" value="The Apache Software Foundation"/>
         <property name="service.description" value="Factory for embedded Jackrabbit Repository Instances"/>
         <property name="config" value=""/>
@@ -52,7 +55,8 @@
         <property name="pool.maxIdle" type="Integer" value="0"/>
         <property name="service.pid" value="org.apache.sling.jcr.base.AbstractSlingRepository"/>
         <reference name="log" interface="org.osgi.service.log.LogService" cardinality="1..1" policy="static" bind="bindLog" unbind="unbindLog"/>
-        <reference name="JackrabbitRepositoryStartupService" interface="org.sakaiproject.nakamura.lite.jackrabbit.JackrabbitRepositoryStartupService" cardinality="1..1" policy="static" bind="bindJackrabbitRepositoryStartupService" unbind="unbindJackrabbitRepositoryStartupService"/>
+        <!--  this binds to the Lite Reposiotry to ensure its available before the Sling repo starts -->
+        <reference name="repository" interface="org.sakaiproject.nakamura.api.lite.Repository" cardinality="1..1" policy="static" bind="bindRepository" unbind="unbindRepository"/>
     </scr:component>
     <scr:component enabled="true" immediate="true" name="org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider">
         <implementation class="org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider"/>
