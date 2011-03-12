@@ -99,7 +99,13 @@ public class LiteFileSearchBatchResultProcessor implements SolrSearchBatchResult
       while (iterator.hasNext()) {
         final Result result = iterator.next();
         try {
-          final Content content = session.getContentManager().get(result.getPath());
+          String contentPath = "";
+          if ("authorizable".equals(result.getFirstValue("resourceType"))) {
+            contentPath = "a:" + result.getFirstValue("id") + "/public/authprofile";
+          } else {
+            contentPath = result.getPath();
+          }
+          final Content content = session.getContentManager().get(contentPath);
           handleContent(content, session, write, depth);
         } catch (AccessDeniedException e) {
           // do nothing
