@@ -33,16 +33,12 @@
         <module>bundles/formauth</module>
         <module>bundles/trustedauth</module>
         <module>bundles/securityloader</module>
-        <module>bundles/jpaprovider</module>
-        <module>bundles/persistence</module>
         <module>bundles/configuration</module>
         <module>bundles/connections</module>
         <module>bundles/version</module>
         <module>bundles/memory</module>
         <module>bundles/jaxp-api</module>
         <module>bundles/json-lib</module>
-        <module>bundles/jpa</module>
-        <module>bundles/jpacore</module>
         <module>bundles/jetty-config</module>
         <module>bundles/jcr</module>
         <module>bundles/locking</module>

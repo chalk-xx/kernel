@@ -74,6 +74,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String DEFAULT_UNTRUSTED_CONTENT_URL = "http://localhost:8082";
   private static final String DEFAULT_TRUSTED_SECRET_VALUE = "This Must Be set in production";
   private static final String[] DEFAULT_WHITELIST_POST_PATHS = {"/system/console"};
+  private static final String[] DEFAULT_ANON_WHITELIST_POST_PATHS = {"/system/userManager/user.create"};
 
   @Property(value = { DEFAULT_UNTRUSTED_CONTENT_URL })
   private static final String UNTRUSTED_CONTENTURL_CONF = "untrusted.contenturl";
@@ -89,6 +90,8 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String TRUSTED_SECRET_CONF = "trusted.secret";
   @Property(value = {"/system/console"})
   private static final String WHITELIST_POST_PATHS_CONF = "tusted.postwhitelist";
+  @Property(value = {"/system/userManager/user.create"})
+  private static final String ANON_WHITELIST_POST_PATHS_CONF = "tusted.anonpostwhitelist";
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ServerProtectionServiceImpl.class);
 
@@ -121,6 +124,10 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
    * /system/console). You will want to add additional protection on these.
    */
   private String[] postWhiteList;
+  /**
+   * list of paths where its safe for anon to post to.
+   */
+  private String[] safeForAnonToPostPaths;
 
   @Activate
   public void activate(Map<String, Object> properties) throws NoSuchAlgorithmException,
@@ -137,6 +144,8 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
         DEFAULT_UNTRUSTED_CONTENT_URL);
     postWhiteList = OsgiUtil.toStringArray(
         properties.get(WHITELIST_POST_PATHS_CONF), DEFAULT_WHITELIST_POST_PATHS);
+    safeForAnonToPostPaths = OsgiUtil.toStringArray(
+        properties.get(ANON_WHITELIST_POST_PATHS_CONF), DEFAULT_ANON_WHITELIST_POST_PATHS);
     String transferSharedSecret = OsgiUtil.toString(properties.get(TRUSTED_SECRET_CONF),
         DEFAULT_TRUSTED_SECRET_VALUE);
     if (DEFAULT_TRUSTED_SECRET_VALUE.equals(transferSharedSecret)) {
@@ -175,6 +184,24 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     // if the method is not safe, the request can't be safe.
     if (!isMethodSafe(srequest, sresponse)) {
       return false;
+    }
+    String method = srequest.getMethod();
+    if ( "GET|OPTIONS|HEAD".indexOf(method) < 0 ) {
+      String userId = srequest.getRemoteUser();
+      if ( User.ANON_USER.equals(userId) ) {
+        String path = srequest.getRequestURI();
+        boolean safeForAnonToPost = false;
+        for (String safePath : safeForAnonToPostPaths) {
+          if (path.startsWith(safePath)) {
+            safeForAnonToPost = true;
+            break;
+          }
+        }
+        if ( ! safeForAnonToPost ) {
+          sresponse.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Anon users may not perform POST operations");
+          return false;
+        }
+      }
     }
     boolean safeHost = isSafeHost(srequest);
     if (safeHost) {
