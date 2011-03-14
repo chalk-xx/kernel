@@ -64,11 +64,11 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.UPDATED_TOPIC };
 
   // list of properties to be indexed
-  private static final Set<String> USER_WHITELISTED_PROPS = ImmutableSet.of("name",
-      "firstName", "lastName", "email", "type");
+  private static final Map<String, String> USER_WHITELISTED_PROPS = ImmutableMap.of("firstName","firstName",
+      "lastName","lastName","email","email","type","type","sakai:tag-uuid","taguuid");
 
   private static final Map<String, String> GROUP_WHITELISTED_PROPS = ImmutableMap.of(
-      "name", "name", "type", "type", "sakai:group-title", "title", "sakai:group-description", "description");
+      "name", "name", "type", "type", "sakai:group-title", "title", "sakai:group-description", "description","sakai:tag-uuid","taguuid");
 
   // list of authorizables to not index
   private static final Set<String> BLACKLISTED_AUTHZ = ImmutableSet.of("admin",
@@ -118,16 +118,12 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
         Session session = repositorySession.adaptTo(Session.class);
         AuthorizableManager authzMgr = session.getAuthorizableManager();
         Authorizable authorizable = authzMgr.findAuthorizable(name);
-        // KERN-1607 Don't index manager groups
-        if (authorizable != null
-            && !authorizable.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
+        if (authorizable != null) {
           SolrInputDocument doc = new SolrInputDocument();
 
           Map<String, Object> properties = authorizable.getSafeProperties();
 
-          if (authorizable.isGroup()) {
-            // KERN-1600 Check for title so we don't index things like contact groups
-            if (authorizable.hasProperty("sakai:group-title")) {
+          if (authorizable.isGroup() && groupIsUserFacing(authorizable)) {
               // add group properties
               Map<String, String> fields = GROUP_WHITELISTED_PROPS;
 
@@ -136,14 +132,13 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
                   doc.addField(fields.get(p.getKey()), p.getValue());
                 }
               }
-            }
           } else {
             // add user properties
-            Set<String> fields = USER_WHITELISTED_PROPS;
+            Map<String, String> fields = USER_WHITELISTED_PROPS;
 
             for (Entry<String, Object> p : properties.entrySet()) {
-              if (fields.contains(p.getKey())) {
-                doc.addField(p.getKey(), p.getValue());
+              if (fields.containsKey(p.getKey())) {
+                doc.addField(fields.get(p.getKey()), p.getValue());
               }
             }
           }
@@ -172,6 +167,13 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     }
     logger.debug("Got documents {} ", documents);
     return documents;
+  }
+
+
+  // KERN-1607 don't include manager groups in the index
+  // KERN-1600 don't include contact groups in the index
+  private boolean groupIsUserFacing(Authorizable group) {
+    return !group.hasProperty(UserConstants.PROP_MANAGED_GROUP) && group.hasProperty("sakai:group-title");
   }
 
   /**

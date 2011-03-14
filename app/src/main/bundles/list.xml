@@ -2,16 +2,6 @@
 <bundles>
     <startLevel level="0">
         <bundle>
-            <groupId>org.sakaiproject.nakamura</groupId>
-            <artifactId>org.sakaiproject.nakamura.core</artifactId>
-            <version>0.10-SNAPSHOT</version>
-        </bundle>
-        <bundle>
-            <groupId>org.sakaiproject.nakamura</groupId>
-            <artifactId>org.sakaiproject.nakamura.solr</artifactId>
-            <version>0.10-SNAPSHOT</version>
-        </bundle>
-        <bundle>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>1.4</version>
@@ -479,6 +469,16 @@ KERN-1187
     </bundle>
    </startLevel>
    <startLevel level="15" >
+        <bundle>
+            <groupId>org.sakaiproject.nakamura</groupId>
+            <artifactId>org.sakaiproject.nakamura.core</artifactId>
+            <version>0.10-SNAPSHOT</version>
+        </bundle>
+        <bundle>
+            <groupId>org.sakaiproject.nakamura</groupId>
+            <artifactId>org.sakaiproject.nakamura.solr</artifactId>
+            <version>0.10-SNAPSHOT</version>
+        </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>

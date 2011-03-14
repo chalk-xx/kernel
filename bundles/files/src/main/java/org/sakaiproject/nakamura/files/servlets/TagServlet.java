@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import com.google.common.collect.ImmutableMap;
+
 import org.apache.commons.lang.CharEncoding;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -27,6 +29,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -38,8 +41,16 @@ import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.files.search.FileSearchBatchResultProcessor;
+import org.sakaiproject.nakamura.files.search.LiteFileSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -90,13 +101,14 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "service.vendor", value = "The Sakai Foundation")
 })
 public class TagServlet extends SlingSafeMethodsServlet {
-
+  private static final Logger LOG = LoggerFactory.getLogger(TagServlet.class);
   private static final long serialVersionUID = -8815248520601921760L;
 
   @Reference
   protected transient SearchServiceFactory searchServiceFactory;
 
-  
+  @Reference
+  protected transient SolrSearchServiceFactory solrSearchServiceFactory;
 
   /**
    * {@inheritDoc}
@@ -148,10 +160,16 @@ public class TagServlet extends SlingSafeMethodsServlet {
       response.setContentType("application/json");
       response.setCharacterEncoding(CharEncoding.UTF_8);
     } catch (JSONException e) {
+      LOG.error(e.getLocalizedMessage(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } catch (RepositoryException e) {
+      LOG.error(e.getLocalizedMessage(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } catch (SearchException e) {
+      LOG.error(e.getLocalizedMessage(), e);
+      response.sendError(e.getCode(), e.getMessage());
+    } catch (SolrSearchException e) {
+      LOG.error(e.getLocalizedMessage(), e);
       response.sendError(e.getCode(), e.getMessage());
     }
 
@@ -163,12 +181,10 @@ public class TagServlet extends SlingSafeMethodsServlet {
    * @throws RepositoryException
    * @throws JSONException
    * @throws SearchException
+   * @throws SolrSearchException
    */
   protected void sendFiles(Node tag, SlingHttpServletRequest request, JSONWriter write,
-      int depth) throws RepositoryException, JSONException, SearchException {
-    
-    // TODO this also needs to find content nodes.
-    // It can do that by using the content manager to do a query to match sakai:tag-uuid == uuid
+      int depth) throws RepositoryException, JSONException, SearchException, SolrSearchException {
     
     // We expect tags to be referencable, if this tag is not..
     // it will throw an exception.
@@ -189,6 +205,15 @@ public class TagServlet extends SlingSafeMethodsServlet {
     SearchResultSet rs = proc.getSearchResultSet(request, query);
     write.array();
     proc.writeNodes(request, write, null, rs.getRowIterator());
+
+    // BL120 KERN-1617 Need to include Content tagged with tag uuid
+    final String queryString = "taguuid:" + ClientUtils.escapeQueryChars(uuid);
+    org.sakaiproject.nakamura.api.search.solr.Query solrQuery = new org.sakaiproject.nakamura.api.search.solr.Query(
+        Type.SOLR, queryString, ImmutableMap.of("sort", "score desc"));
+    final SolrSearchBatchResultProcessor rp = new LiteFileSearchBatchResultProcessor(
+        solrSearchServiceFactory);
+    final SolrSearchResultSet srs = rp.getSearchResultSet(request, solrQuery);
+    rp.writeResults(request, write, srs.getResultSetIterator());
     write.endArray();
   }
 

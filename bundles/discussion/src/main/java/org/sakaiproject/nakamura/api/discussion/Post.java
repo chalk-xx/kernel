@@ -140,7 +140,8 @@ public class Post {
     // we do however show the children of it.
     boolean isDeleted = false;
     if (content.hasProperty(DiscussionConstants.PROP_DELETED)) {
-      isDeleted = (Boolean) content.getProperty(DiscussionConstants.PROP_DELETED);
+      isDeleted = Boolean.parseBoolean(content.getProperty(
+          DiscussionConstants.PROP_DELETED).toString());
     }
 
     if (isDeleted && !canDelete) {
