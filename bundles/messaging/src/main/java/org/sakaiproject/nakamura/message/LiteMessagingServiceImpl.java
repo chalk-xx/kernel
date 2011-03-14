@@ -165,7 +165,6 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
    */
   public String getFullPathToMessage(String rcpt, String messageId, Session session) throws MessagingException {
     String storePath = getFullPathToStore(rcpt, session);
-//    return PathUtils.toSimpleShardPath(storePath, messageId, "");
     return storePath + MessageConstants.BOX_INBOX +"/" + messageId;
   }
 
