@@ -207,9 +207,10 @@ public class TagServlet extends SlingSafeMethodsServlet {
     proc.writeNodes(request, write, null, rs.getRowIterator());
 
     // BL120 KERN-1617 Need to include Content tagged with tag uuid
-    final String queryString = "taguuid:" + ClientUtils.escapeQueryChars(uuid);
+    final String queryString = ClientUtils.escapeQueryChars("sakai:tag-uuid") + ":"
+        + ClientUtils.escapeQueryChars(uuid);
     org.sakaiproject.nakamura.api.search.solr.Query solrQuery = new org.sakaiproject.nakamura.api.search.solr.Query(
-        Type.SOLR, queryString, ImmutableMap.of("sort", "score desc"));
+        Type.SPARSE, queryString, ImmutableMap.of("sort", "score desc"));
     final SolrSearchBatchResultProcessor rp = new LiteFileSearchBatchResultProcessor(
         solrSearchServiceFactory);
     final SolrSearchResultSet srs = rp.getSearchResultSet(request, solrQuery);

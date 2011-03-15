@@ -154,8 +154,6 @@ public class Post {
       writer.key("post");
       writer.object();
       ExtendedJSONWriter.writeNodeContentsToWriter(writer, content);
-      writer.key(MessageConstants.PROP_SAKAI_ID);
-      writer.value(getPostId());
 
       writer.key("canEdit");
       writer.value(canEdit);

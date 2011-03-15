@@ -94,7 +94,7 @@ import javax.servlet.http.HttpServletResponse;
   }
 )
 @SlingServlet(resourceTypes = { "sparse/group" }, methods = { "GET" }, selectors = {
-    "members", "managers", "detailed" }, extensions = { "json" })
+    "members", "managers" }, extensions = { "json" })
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Renders the members or managers for a group") })
@@ -177,12 +177,7 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
       while (iterator.hasNext() && i < items) {
         Entry<String, Authorizable> entry = iterator.next();
         Authorizable au = entry.getValue();
-        ValueMap profile;
-        if(selectors.contains("detailed")){
-          profile = profileService.getProfileMap(au, session);
-        }else{
-          profile = profileService.getCompactProfileMap(au, session);
-        }
+        ValueMap profile = profileService.getCompactProfileMap(au, session);
         if (profile != null) {
           writer.valueMap(profile);
           i++;
