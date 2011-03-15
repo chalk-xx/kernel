@@ -89,9 +89,9 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   @Property(value = { DEFAULT_TRUSTED_SECRET_VALUE })
   private static final String TRUSTED_SECRET_CONF = "trusted.secret";
   @Property(value = {"/system/console"})
-  private static final String WHITELIST_POST_PATHS_CONF = "tusted.postwhitelist";
+  private static final String WHITELIST_POST_PATHS_CONF = "trusted.postwhitelist";
   @Property(value = {"/system/userManager/user.create"})
-  private static final String ANON_WHITELIST_POST_PATHS_CONF = "tusted.anonpostwhitelist";
+  private static final String ANON_WHITELIST_POST_PATHS_CONF = "trusted.anonpostwhitelist";
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ServerProtectionServiceImpl.class);
 
