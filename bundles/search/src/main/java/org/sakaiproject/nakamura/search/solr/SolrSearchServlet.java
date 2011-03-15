@@ -457,6 +457,12 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       String key = entry.getKey();
       RequestParameter[] vals = entry.getValue();
       String requestValue = vals[0].getString();
+
+      // blank values aren't cool
+      if (StringUtils.isBlank(requestValue)) {
+        continue;
+      }
+
       if ("sortOn".equals(key)) {
         requestValue = StringUtils.removeStart(requestValue, "sakai:");
       }
