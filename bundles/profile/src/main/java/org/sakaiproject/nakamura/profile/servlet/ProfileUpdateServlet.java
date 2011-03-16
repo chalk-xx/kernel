@@ -7,6 +7,7 @@ import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.HtmlResponse;
@@ -94,6 +95,20 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
         // prepare the response
         HtmlResponse htmlResponse = new JSONResponse();
         htmlResponse.setReferer(request.getHeader("referer"));
+        // KERN-1654 begin - authz is missing picture property
+        final RequestParameter picture = request.getRequestParameter("picture");
+        if (picture != null) {
+          final JSONObject pictureJson = new JSONObject(picture.getString("UTF-8"));
+          final JSONObject valueJson = new JSONObject().put("value",
+              pictureJson.toString());
+          final JSONObject elementsJson = new JSONObject().put("picture", valueJson);
+          final JSONObject basicJson = new JSONObject().put("elements", elementsJson);
+          final JSONObject json = new JSONObject().put("basic", basicJson);
+          final Resource resource = request.getResource();
+          final Content targetContent = resource.adaptTo(Content.class);
+          final Session session = resource.adaptTo(Session.class);
+          profileService.update(session, targetContent.getPath(), json);
+        } // KERN-1654 end
         if (postOperations.containsKey(operation)) {
           postOperations.get(operation).run(request, htmlResponse, new SparsePostProcessor[]{});
         } else {
