@@ -62,6 +62,12 @@ mvn -B -e clean install
 echo "Starting sakai3 instance..."
 cd app/target/
 K2_ARTIFACT=`find . -name "org.sakaiproject.nakamura.app*[^sources].jar"`
+# configure ServerProtectionServiceImpl via file install
+mkdir -p load
+echo 'trusted.secret=shhhhh' > load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
+echo 'trusted.hosts=http://sakai3-demo.uits.indiana.edu:8080' >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
+echo 'trusted.referer=http://sakai3-demo.uits.indiana.edu:8080' >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
+echo 'untrusted.contenturl=http://sakai3-demo.uits.indiana.edu:8082' >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
 java $K2_OPTS -jar $K2_ARTIFACT -p 8080 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # final cleanup
