@@ -270,7 +270,7 @@ public class TrustedTokenServiceTest {
     Assert.assertNotSame(cookie, cookie2.getValue());
     Assert.assertEquals("secure-cookie", cookie2.getName());
     String user = trustedTokenService.decodeCookie(cookie2.getValue());
-    Assert.assertEquals("ieb", user);
+    Assert.assertEquals("Cookie was "+cookie2.getValue(),"ieb", user);
     verify();
   }
 

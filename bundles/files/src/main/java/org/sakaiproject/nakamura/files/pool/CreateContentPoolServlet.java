@@ -194,7 +194,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
         response.setStatus(statusCode);
       } else {
         response.setStatus(statusCode);
-        response.setContentType("application/json");
+        response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
 
         // Output some JSON.
