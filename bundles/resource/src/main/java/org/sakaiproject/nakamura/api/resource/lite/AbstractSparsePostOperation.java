@@ -235,9 +235,17 @@ public abstract class AbstractSparsePostOperation implements SparsePostOperation
             String path) {
         StringBuffer ret = new StringBuffer();
         ret.append(SlingRequestPaths.getContextPath(request));
-        // TODO This is currently an expensive no-op, as JcrResourceResolver tries
-        // in vain to resolve the Content path as a Resource path.
-        ret.append(request.getResourceResolver().map(path));
+        ret.append(path);
+        if ( false ) {
+          // TODO This is currently an expensive no-op, as JcrResourceResolver tries
+          // in vain to resolve the Content path as a Resource path.
+          ResourceResolver resourceResolver = request.getResourceResolver();
+          try {
+            ret.append(resourceResolver.map(path));
+          } catch (java.lang.StringIndexOutOfBoundsException e) {
+            log.error("During POST operation, resource resolver failed to map this path: " + path);
+          }
+        }
 
         // append optional extension
         String ext = request.getParameter(SlingPostConstants.RP_DISPLAY_EXTENSION);

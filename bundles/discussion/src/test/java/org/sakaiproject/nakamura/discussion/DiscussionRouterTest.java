@@ -21,16 +21,17 @@ import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
+import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
-import org.sakaiproject.nakamura.api.lite.Repository;
-import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
+
+import javax.jcr.Repository;
+import javax.jcr.Session;
 
 /**
  *
@@ -40,7 +41,7 @@ public class DiscussionRouterTest {
 
   @Mock
   Repository repository;
-  
+
   @Mock
   DiscussionManager discussionManager;
 
@@ -49,10 +50,7 @@ public class DiscussionRouterTest {
 
   @Test
   public void testDelivery() throws Exception {
-
-    when(repository.loginAdministrative()).thenReturn(session);
-
-    Content settingsNode = new Content("/sites/bla/_widgets/12345/settings", null);
+    MockNode settingsNode = new MockNode("/sites/bla/_widgets/12345/settings");
     settingsNode.setProperty(DiscussionConstants.PROP_NOTIFICATION, true);
     settingsNode.setProperty(DiscussionConstants.PROP_NOTIFY_ADDRESS, "admin");
 
@@ -62,13 +60,14 @@ public class DiscussionRouterTest {
 
     MockMessageRoutes routing = new MockMessageRoutes();
 
-    Content c = new Content("/sites/bla/store/foomessage", null);
-    c.setProperty(SLING_RESOURCE_TYPE_PROPERTY, MessageConstants.SAKAI_MESSAGE_RT);
-    c.setProperty(MessageConstants.PROP_SAKAI_TO, "discussion:s-foo");
-    c.setProperty(DiscussionConstants.PROP_MARKER, "12345");
+    MockNode n = new MockNode("/sites/bla/store/foomessage");
+    n.setProperty(SLING_RESOURCE_TYPE_PROPERTY, MessageConstants.SAKAI_MESSAGE_RT);
+    n.setProperty(MessageConstants.PROP_SAKAI_TO, "discussion:s-foo");
+    n.setProperty(DiscussionConstants.PROP_MARKER, "12345");
+    n.setSession(session);
 
-    DiscussionRouter router = new DiscussionRouter(discussionManager, repository);
-    router.route(c, routing);
+    DiscussionRouter router = new DiscussionRouter(discussionManager);
+    router.route(n, routing);
 
     assertEquals(1, routing.size());
     assertEquals("internal:admin", routing.get(0).getTransport() + ":"

@@ -17,41 +17,15 @@
  */
 package org.sakaiproject.nakamura.lite.jackrabbit;
 
-import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivator;
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// @Component(immediate=true, metatype=true) manually configured in serviceComponents.xml
-// @Service
-public class SparseRepositoryHolder implements JackrabbitRepositoryStartupService {
+public class SparseRepositoryHolder {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SparseRepositoryHolder.class);
   private static Repository sparseRepositoryInstance;
-  private SakaiActivator sakaiActivator;
-
-  public void activate(ComponentContext componentContext) {
-    BundleContext bundleContext = componentContext.getBundleContext();
-    sakaiActivator = new SakaiActivator();
-    sakaiActivator.start(bundleContext);
-  }
-
-  public void deactivate(ComponentContext componentContext) {
-    BundleContext bundleContext = componentContext.getBundleContext();
-    sakaiActivator.stop(bundleContext);
-    sakaiActivator = null;
-  }
-
-  public void bindRepository(Repository repository) {
-    SparseRepositoryHolder.setSparseRespository(repository);
-  }
-
-  public void unbindRepository(Repository repository) {
-    SparseRepositoryHolder.setSparseRespository(null);
-  }
 
   public static void setSparseRespository(Repository repository) {
     sparseRepositoryInstance = repository;

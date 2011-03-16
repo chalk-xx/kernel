@@ -160,7 +160,6 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       
       
       Authorizable au = authorizableManager.findAuthorizable(userId);
-      System.err.println("User ID "+userId+" found as "+au);
 
       // Loop over all the parameters
       // All the ones that are files will be stored.

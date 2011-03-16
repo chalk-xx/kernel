@@ -27,15 +27,16 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
-import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessagingException;
+
+import javax.jcr.Session;
 
 /**
  *
@@ -102,10 +103,10 @@ public class DiscussionCreateMessagePreProcessorTest {
     when(request.getRequestParameter(PROP_MARKER)).thenReturn(paramMarker);
     when(request.getRequestParameter(PROP_REPLY_ON)).thenReturn(paramReplyOn);
 
-    Content messageNode = new Content("/_user/message/bla", null);
+    MockNode messageNode = new MockNode("/_user/message/bla");
 
     // session is null because we don't mock the adaptTo call
-    when(discussionManager.findMessage(messageId, marker, null, "/_user/message"))
+    when(discussionManager.findMessage(messageId, marker, session, "/_user/message"))
         .thenReturn(messageNode);
 
     processor.checkRequest(request);

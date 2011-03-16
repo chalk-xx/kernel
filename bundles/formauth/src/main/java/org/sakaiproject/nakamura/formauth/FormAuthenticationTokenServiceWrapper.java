@@ -25,7 +25,7 @@ import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenServiceWrapper;
 /**
  *
  */
-class FormAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrapper {
+final class FormAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrapper {
   /**
    * @param delegate
    */

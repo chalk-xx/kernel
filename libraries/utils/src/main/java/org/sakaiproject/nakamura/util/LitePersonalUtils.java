@@ -154,7 +154,10 @@ public class LitePersonalUtils {
       String username = homePathMatcher.group(3);
       String homePrefix = homePathMatcher.group(1);
       String userHome = LitePersonalUtils.getHomePath(username);
-      String homePath = homePrefix + userHome + "/";
+      String homePath = userHome + "/";
+      if (!"/".equals(homePrefix)) {
+        homePath += homePrefix + homePath;
+      }
       String prefix = "";
       if (homePathMatcher.start() > 0) {
         prefix = path.substring(0, homePathMatcher.start());

@@ -44,12 +44,16 @@ import org.mockito.Mockito;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.testutils.easymock.MockRowIterator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.jcr.Node;
@@ -140,8 +144,7 @@ public class TagServletTest {
 
   @SuppressWarnings(value={"NP_ALWAYS_NULL"}, justification="Wierd, incorrect report, on System.err.println(s);")
   @Test
-  public void testFiles() throws RepositoryException, IOException, ServletException,
-      JSONException {
+  public void testFiles() throws Exception {
     // We create a tree of nodes and take one out of the middle.
     Node tag = createTagTree();
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
@@ -184,6 +187,12 @@ public class TagServletTest {
     when(q.execute()).thenReturn(result);
 
     TagServlet servlet = new TagServlet();
+    SolrSearchServiceFactory solrSearch = mock(SolrSearchServiceFactory.class);
+    SolrSearchResultSet solrResult = mock(SolrSearchResultSet.class);
+    Iterator<Result> resultIterator = mock(Iterator.class);
+    when(solrResult.getResultSetIterator()).thenReturn(resultIterator);
+    when(solrSearch.getSearchResultSet(Mockito.any(SlingHttpServletRequest.class), Mockito.any(org.sakaiproject.nakamura.api.search.solr.Query.class))).thenReturn(solrResult);
+    servlet.solrSearchServiceFactory = solrSearch;
     SearchServiceFactory searchServiceFactory = mock(SearchServiceFactory.class);
     SearchResultSet searchResultSet = mock(SearchResultSet.class);
     when(searchServiceFactory.getSearchResultSet(Mockito.any(RowIterator.class))).thenReturn(searchResultSet);

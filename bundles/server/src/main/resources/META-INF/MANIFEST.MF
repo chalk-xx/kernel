@@ -10,8 +10,8 @@ Note: Built by bundle profile, edited by hand
 Built-By: hand edited
 Old-Bundle-Activator: org.apache.sling.jcr.jackrabbit.server.impl.Acti
  vator
-Using-SMC-Now-Bundle-Activator: org.apache.sling.jcr.jackrabbit.server
- .impl.security.dynamic.SakaiActivator
+Bundle-Activator: org.apache.sling.jcr.jackrabbit.server.impl.security
+ .dynamic.SakaiActivator
 Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
 Created-By: Apache Maven Bundle Plugin
 Import-Package: com.microsoft.sqlserver.jdbc;resolution:=optional,java

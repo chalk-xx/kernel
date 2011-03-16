@@ -102,7 +102,7 @@ public class LiteDiscussionMessageTransport implements LiteMessageTransport {
    * {@inheritDoc}
    * 
    * @see org.sakaiproject.nakamura.api.message.MessageTransport#send(org.sakaiproject.nakamura.api.message.MessageRoutes,
-   *      org.osgi.service.event.Event, javax.jcr.Node)
+   *      org.osgi.service.event.Event, Content)
    */
   public void send(MessageRoutes routes, Event event, Content originalMessage) {
     Session session = null;

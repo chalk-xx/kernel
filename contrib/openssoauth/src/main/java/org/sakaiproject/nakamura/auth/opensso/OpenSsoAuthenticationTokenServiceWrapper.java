@@ -46,7 +46,6 @@ class OpenSsoAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrappe
    * @param request
    * @param response
    */
-  @Override
   public final void addToken(SlingHttpServletRequest request,
       SlingHttpServletResponse response) {
     injectToken(request, response);

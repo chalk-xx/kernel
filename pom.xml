@@ -33,16 +33,12 @@
         <module>bundles/formauth</module>
         <module>bundles/trustedauth</module>
         <module>bundles/securityloader</module>
-        <module>bundles/jpaprovider</module>
-        <module>bundles/persistence</module>
         <module>bundles/configuration</module>
         <module>bundles/connections</module>
         <module>bundles/version</module>
         <module>bundles/memory</module>
         <module>bundles/jaxp-api</module>
         <module>bundles/json-lib</module>
-        <module>bundles/jpa</module>
-        <module>bundles/jpacore</module>
         <module>bundles/jetty-config</module>
         <module>bundles/jcr</module>
         <module>bundles/locking</module>
@@ -78,11 +74,8 @@
         <module>bundles/profile</module>
         <module>bundles/tika</module>
         <module>bundles/captcha</module>
-        <module>bundles/webdav</module>
-        <module>bundles/privacy</module>
         <module>bundles/pages</module>
         <module>bundles/http</module>
-        <module>bundles/robots.txt</module>
         <module>bundles/directory</module>
         <module>bundles/templates</module>
       </modules>
@@ -103,6 +96,7 @@
         <module>contrib/sitejoin</module>
         <module>contrib/foreignprincipal</module>
         <module>contrib/rootconfig</module>
+        <module>contrib/robots.txt</module>
        </modules>
     </profile>
     <profile>

@@ -169,6 +169,10 @@ public class ExtendedJSONWriter extends JSONWriter {
       String propName = prop.getKey();
       Object propValue = prop.getValue();
 
+      if ("_path".equals(propName)) {
+        continue;
+      }
+
       write.key(propName);
       if (propValue instanceof Object[]) {
         write.array();

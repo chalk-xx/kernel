@@ -15,21 +15,13 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.apache.sling.jcr.jackrabbit.server.index;
+package org.sakaiproject.nakamura.api.message;
 
-/**
- *
- */
-public interface CloudTerm {
+import org.apache.sling.api.SlingHttpServletRequest;
 
-    /**
-     * @return
-     */
-    String getName();
+public interface LiteCreateMessagePreProcessor {
+  
+  public String getType();
 
-    /**
-     * @return
-     */
-    int getCount();
-
+  public void checkRequest(SlingHttpServletRequest request) throws MessagingException;
 }

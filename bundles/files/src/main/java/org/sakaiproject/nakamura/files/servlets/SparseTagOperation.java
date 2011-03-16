@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
+
+import com.google.common.collect.Sets;
+
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.TOPIC_FILES_TAG;
@@ -40,8 +44,12 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
+import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparsePostOperation;
@@ -53,9 +61,12 @@ import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -98,6 +109,9 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
       ContentManager contentManager, List<Modification> changes, String contentPath) throws StorageClientException, AccessDeniedException {
 
+    Session session = StorageClientUtils.adaptToSession(request.getResource().getResourceResolver().adaptTo(javax.jcr.Session.class));
+    AuthorizableManager authManager = session.getAuthorizableManager();
+
     // Check if the user has the required minimum privilege.
     String user = request.getRemoteUser();
     if (UserConstants.ANON_USERID.equals(user)) {
@@ -117,6 +131,8 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
       return;
     }
 
+    String resourceType = (String) content.getProperty("sling:resourceType");
+    boolean isProfile = "sakai/user-profile".equals(resourceType) || "sakai/group-profile".equals(resourceType);
     // Check if the uuid is in the request.
     RequestParameter key = request.getRequestParameter("key");
     if (key == null || "".equals(key.getString())) {
@@ -128,6 +144,7 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
     String tagContentPath = key.getString();
     
     String tagName = "";
+    String tagUuid = "";
     try {
       Resource tagResource = resourceResolver.getResource(tagContentPath);
       if (tagResource == null) {
@@ -136,9 +153,11 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
       }
       if (tagResource instanceof SparseContentResource) {
         Content contentTag = tagResource.adaptTo(Content.class);
+        tagUuid = (String) contentTag.getProperty(Content.UUID_FIELD);
         tagName = tagContentWithContentTag(contentManager, content, contentTag);
       } else {
         Node nodeTag = tagResource.adaptTo(Node.class);
+        tagUuid = nodeTag.getIdentifier();
         tagName = tagContentWithNodeTag(contentManager, content, nodeTag);
       }
     } catch (Exception e) {
@@ -146,6 +165,14 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
       return;
     }
     
+    // If we're tagging an authorizable, add the property here
+    if (isProfile) {
+      Authorizable authorizable = authManager.findAuthorizable((String) content.getProperty("hash"));
+      Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[]) authorizable.getProperty(SAKAI_TAG_UUIDS)));
+      nameSet.add(tagUuid);
+      authorizable.setProperty(SAKAI_TAG_UUIDS,nameSet.toArray(new String[nameSet.size()]));
+      authManager.updateAuthorizable(authorizable);
+    }
     // Send an OSGi event.
     try {
       Dictionary<String, String> properties = new Hashtable<String, String>();

@@ -397,6 +397,8 @@ public class PathUtils {
         }
       } else if ( s.startsWith("a:")) {
         return "/~"+s.substring(2); // sparse
+      } else if ( s.startsWith("/a:")) {
+        return "/~"+s.substring(3); // sparse, odd tricky case
       }
     }
     return value;
