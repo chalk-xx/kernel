@@ -3,6 +3,8 @@ package org.sakaiproject.nakamura.http.usercontent;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingFilter;
+import org.apache.felix.scr.annotations.sling.SlingFilterScope;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionService;
@@ -22,7 +24,7 @@ import javax.servlet.ServletResponse;
     @Property(name = "service.description", value = "Nakamura Quality of Service Filter"),
     @Property(name = "service.vendor", value = "The Sakai Foundation")
 })
-//@SlingFilter(order=10, metatype=true, scope=SlingFilterScope.REQUEST)
+@SlingFilter(order=10, metatype=true, scope=SlingFilterScope.REQUEST)
 public class UserContentFilter implements Filter {
 
 
