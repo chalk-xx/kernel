@@ -91,8 +91,10 @@ module AuthZBase
 		end 
 		assert_equal("200",res.code,"Should have been able to write to the node as "+user.to_s()+because)
 	else
-		assert_equal("500",res.code," Expected to get write denied for "+user.to_s()+because)
-		assert_equal(true,res.body.include?("AccessDeniedException"), " Error was not an access denied exception for "+user.to_s()+because)
+                if ( res.code != "405" ) 
+		  assert_equal("500",res.code," Expected to get write denied for "+user.to_s()+because)
+		  assert_equal(true,res.body.include?("AccessDeniedException"), " Error was not an access denied exception for "+user.to_s()+because)
+                end
 	end
   end
 
