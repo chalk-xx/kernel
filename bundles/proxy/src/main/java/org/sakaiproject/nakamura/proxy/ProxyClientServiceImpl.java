@@ -344,6 +344,11 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
             populateMethod(method, node, headers);
             doAuthentication(method);
             int result = httpClient.executeMethod(method);
+            if (externalAuthenticatingProxy && result == 407) {
+              method.releaseConnection();
+              method.setDoAuthentication(true);
+              result = httpClient.executeMethod(method);
+            }
             if (result == 200) {
               // Check if the content-length is smaller than the maximum (if any).
               Header contentLengthHeader = method.getResponseHeader("Content-Length");
@@ -452,6 +457,11 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
 
         doAuthentication(method);
         int result = httpClient.executeMethod(method);
+        if (externalAuthenticatingProxy && result == 407) {
+          method.releaseConnection();
+          method.setDoAuthentication(true);
+          result = httpClient.executeMethod(method);
+        }
         if (result == 302 && method instanceof EntityEnclosingMethod) {
           // handle redirects on post and put
           String url = method.getResponseHeader("Location").getValue();
@@ -459,6 +469,11 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
           method.setFollowRedirects(true);
           doAuthentication(method);
           result = httpClient.executeMethod(method);
+          if (externalAuthenticatingProxy && result == 407) {
+            method.releaseConnection();
+            method.setDoAuthentication(true);
+            result = httpClient.executeMethod(method);
+          }
         }
 
         return new ProxyResponseImpl(result, method);
