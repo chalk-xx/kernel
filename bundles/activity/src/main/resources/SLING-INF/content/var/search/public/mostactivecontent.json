@@ -6,7 +6,7 @@
   "sortOn": "timestamp",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
-  "sakai:batchresultprocessor": "MostActiveContent",
+  "sakai:batchresultprocessor": "LiteMostActiveContent",
   "sakai:title": "Pooled Content - Most Active",
   "sakai:shortDescription": "Returns feed of most active content."
 }
