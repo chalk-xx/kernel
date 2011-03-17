@@ -7,6 +7,10 @@ export K2_TAG="HEAD"
 export S2_TAG="branches/sakai-2.8.x"
 export UX_TAG="HEAD"
 export HYBRID_TAG="branches/hybrid-1.1.x"
+export K2_HTTP_PORT="8080"
+export S2_HTTP_PORT="8880"
+export S2_AJP_PORT="8889"
+export HTTPD_PORT="8088"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -65,7 +69,7 @@ then
         rm -rf sakai2-demo
         rm -rf 3akai-ux
         rm -rf sakai3
-        rm -rf ~/.m2/repository/org/sakaiproject
+        # rm -rf ~/.m2/repository/org/sakaiproject
     else
         echo "Starting incremental build..."
     fi
@@ -87,7 +91,7 @@ else
     git checkout -b "build-$UX_TAG" $UX_TAG
     # enable My Sakai 2 Sites widget
     # "personalportal":false --> "personalportal":true
-    perl -pwi -e 's/"personalportal"\s*\:\s*false/"personalportal"\:true/gi' devwidgets/mysakai2/config.json
+    # perl -pwi -e 's/"personalportal"\s*\:\s*false/"personalportal"\:true/gi' devwidgets/mysakai2/config.json
     # "showSakai2" : false --> "showSakai2" : true
     perl -pwi -e 's/showSakai2\s*\:\s*false/showSakai2 \: true/gi' dev/configuration/config.js
     # "useLiveSakai2Feeds" : false --> "useLiveSakai2Feeds" : true
@@ -119,9 +123,14 @@ K2_ARTIFACT=`find . -name "org.sakaiproject.nakamura.app*[^sources].jar"`
 # configure TrustedLoginTokenProxyPreProcessor via file install
 mkdir -p load
 echo 'sharedSecret=e2KS54H35j6vS5Z38nK40' > load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
-echo 'port=8080' >> load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
+echo "port=$HTTPD_PORT" >> load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
 echo 'hostname=localhost' >> load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
-java $K2_OPTS -jar $K2_ARTIFACT -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
+# configure ServerProtectionServiceImpl via file install
+echo "trusted.secret=shhhhh" > load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
+echo "trusted.hosts=http://sakai3-nightly.uits.indiana.edu:$HTTPD_PORT" >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
+echo "trusted.referer=http://sakai3-nightly.uits.indiana.edu:$HTTPD_PORT" >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
+echo "untrusted.contenturl=http://sakai3-nightly.uits.indiana.edu:8082" >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
+java $K2_OPTS -jar $K2_ARTIFACT -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # build sakai 2
 cd $BUILD_DIR
@@ -148,15 +157,15 @@ else
     rm -f providers/component/src/webapp/WEB-INF/components-demo.xml
     mvn -B -e clean install sakai:deploy -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
     # add hybrid webapp module
-    echo "\nBuilding hybrid/$HYBRID_TAG"
+    echo "Building hybrid/$HYBRID_TAG"
     svn checkout -q https://source.sakaiproject.org/svn/hybrid/$HYBRID_TAG hybrid
     cd hybrid
     mvn -B -e clean install sakai:deploy -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
     # configure sakai 2 instance
     cd $BUILD_DIR
     # change default tomcat listener port numbers
-    perl -pwi -e 's/\<Connector\s+port\s*\=\s*"8080"/\<Connector port\="8880"/gi' sakai2-demo/conf/server.xml
-    perl -pwi -e 's/\<Connector\s+port\s*\=\s*"8009"/\<Connector port\="8809"/gi' sakai2-demo/conf/server.xml
+    perl -pwi -e "s/\<Connector\s+port\s*\=\s*\"8080\"/\<Connector port\=\"$S2_HTTP_PORT\"/gi" sakai2-demo/conf/server.xml
+    perl -pwi -e "s/\<Connector\s+port\s*\=\s*\"8009\"/\<Connector port\=\"$S2_AJP_PORT\"/gi" sakai2-demo/conf/server.xml
     # sakai.properties
     echo "ui.service = $S2_TAG + $HYBRID_TAG on HSQLDB" >> sakai2-demo/sakai/sakai.properties
     echo "version.sakai = $REPO_REV" >> sakai2-demo/sakai/sakai.properties
@@ -169,9 +178,9 @@ else
     echo "top.login=false" >> sakai2-demo/sakai/sakai.properties
     echo "container.login=true" >> sakai2-demo/sakai/sakai.properties
     echo "org.sakaiproject.login.filter.NakamuraAuthenticationFilter.enabled=true" >> sakai2-demo/sakai/sakai.properties
-    echo "org.sakaiproject.login.filter.NakamuraAuthenticationFilter.validateUrl=http://localhost:8008/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
+    echo "org.sakaiproject.login.filter.NakamuraAuthenticationFilter.validateUrl=http://localhost:$K2_HTTP_PORT/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
     # configure SAK-17222 NakamuraUserDirectoryProvider
-    echo "org.sakaiproject.provider.user.NakamuraUserDirectoryProvider.validateUrl=http://localhost:8008/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
+    echo "org.sakaiproject.provider.user.NakamuraUserDirectoryProvider.validateUrl=http://localhost:$K2_HTTP_PORT/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
     echo "x.sakai.token.localhost.sharedSecret=default-setting-change-before-use" >> sakai2-demo/sakai/sakai.properties
     # declare shared secret for trusted login from nakamura
     echo "org.sakaiproject.hybrid.util.TrustedLoginFilter.sharedSecret=e2KS54H35j6vS5Z38nK40" >> sakai2-demo/sakai/sakai.properties
