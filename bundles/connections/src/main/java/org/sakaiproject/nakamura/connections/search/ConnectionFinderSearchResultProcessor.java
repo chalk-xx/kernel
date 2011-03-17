@@ -69,7 +69,7 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
 
   public void writeResult(SlingHttpServletRequest request, JSONWriter writer, Result result)
       throws JSONException {
-    String contactUser = (String) result.getFirstValue(User.NAME_FIELD);
+    String contactUser = result.getPath().substring(result.getPath().lastIndexOf("/") + 1);
     if (contactUser == null) {
       throw new IllegalArgumentException("Missing " + User.NAME_FIELD);
     }
