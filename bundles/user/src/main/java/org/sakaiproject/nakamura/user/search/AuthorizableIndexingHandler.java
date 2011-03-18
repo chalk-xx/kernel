@@ -162,7 +162,13 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
           doc.setField(FIELD_ID, name);
 
           documents.add(doc);
-          logger.info("Added authorizable for searching: {}", name);
+          String topic = null;
+          if (event.getTopic().endsWith(StoreListener.ADDED_TOPIC)) {
+            topic = StoreListener.ADDED_TOPIC;
+          } else {
+            topic = StoreListener.UPDATED_TOPIC;
+          }
+          logger.info("{} authorizable for searching: {}", topic, name);
         }
       } catch (StorageClientException e) {
         logger.warn(e.getMessage(), e);
@@ -194,7 +200,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       Event event) {
     Collection<String> retval = Collections.emptyList();
     String topic = event.getTopic();
-    if (topic.endsWith(StoreListener.DELETE_TOPIC) || topic.endsWith(StoreListener.UPDATED_TOPIC)) {
+    if (topic.endsWith(StoreListener.DELETE_TOPIC)) {
       logger.debug("GetDelete for {} ", event);
       String groupName = (String) event.getProperty(UserConstants.EVENT_PROP_USERID);
       retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(groupName));

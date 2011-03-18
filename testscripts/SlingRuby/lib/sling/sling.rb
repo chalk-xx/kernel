@@ -32,6 +32,16 @@ module Net::HTTPHeader
     self.body = params.map {|k, v| encode_kvpair(k, v) }.flatten.join(sep)
     self.content_type = 'application/x-www-form-urlencoded'
   end
+
+
+  def initialize_http_header(initheader)
+      @header = { "Referer" => ["/dev/integrationtests"] }
+      return unless initheader
+      initheader.each do |key, value|
+        warn "net/http: warning: duplicated HTTP header: #{key}" if key?(key) and $VERBOSE
+        @header[key.downcase] = [value.strip]
+      end
+  end
   
   def encode_kvpair(k, vs)
     if vs.nil? or vs == '' then
@@ -246,8 +256,21 @@ module SlingInterface
         res = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req) }
         save_cookies(res)
       end
+      res = followRedirects(res)
       dump_response(res)
       return res
+    end
+
+    def followRedirects(res)
+        lastlocation = ''
+        while (res.header['location'] && res.header['location'] != lastlocation)
+            lastlocation = res.header['location']
+            url = URI.parse(res.header['location'])
+            host, port = url.host, url.port if url.host && url.port 
+            req = Net::HTTP::Get.new(url.path) 
+            res = Net::HTTP.new(host, port).start {|http|  http.request(req) } 
+        end
+        return res
     end
     
     def set_cookies(req)

@@ -30,10 +30,10 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.tika.Tika;
+import org.apache.tika.config.TikaConfig;
 import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.sax.BodyContentHandler;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
@@ -51,10 +51,10 @@ import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -81,6 +81,8 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
   @Reference(target="(type=sparse)")
   protected ResourceIndexingService resourceIndexingService;
 
+  private Tika tika = null;
+
   private static Map<String, String> getFieldMap() {
     Builder<String, String> builder = ImmutableMap.builder();
     builder.put(FilesConstants.POOLED_CONTENT_USER_MANAGER, "manager");
@@ -101,8 +103,13 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
   }
 
   // ---------- SCR integration-------------------------------------------------
+
   @Activate
-  public void activate(Map<String, Object> properties) {
+  public void activate(BundleContext bundleContext, Map<String, Object> properties) throws Exception {
+    URL configUrl = bundleContext.getBundle().getResource("/org/apache/tika/tika-config.xml");
+    LOGGER.info("Create Tika with config {} ", configUrl.toString());
+    tika = new Tika(new TikaConfig(configUrl));
+
     for (String type : CONTENT_TYPES) {
       resourceIndexingService.addHandler(type, this);
     }
@@ -110,6 +117,8 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
 
   @Deactivate
   public void deactivate(Map<String, Object> properties) {
+    tika = null;
+
     for (String type : CONTENT_TYPES) {
       resourceIndexingService.removeHandler(type, this);
     }
@@ -152,15 +161,9 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
           InputStream contentStream = contentManager.getInputStream(path);
           if (contentStream != null) {
             try {
-              AutoDetectParser parser = new AutoDetectParser();
-              BodyContentHandler handler = new BodyContentHandler();
-              Metadata metadata = new Metadata();
-              parser.parse(contentStream, handler, metadata);
-              String extracted = handler.toString();
+              String extracted = tika.parseToString(contentStream);
               doc.addField("content", extracted);
             } catch (TikaException e) {
-              LOGGER.warn(e.getMessage(), e);
-            } catch (SAXException e) {
               LOGGER.warn(e.getMessage(), e);
             }
           }

@@ -204,7 +204,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       }
     }
     boolean safeHost = isSafeHost(srequest);
-    if (safeHost) {
+    if (safeHost && "GET".equals(method)) {
       String ext = srequest.getRequestPathInfo().getExtension();
       if (ext == null || "res".equals(ext)) {
         // this is going to stream
@@ -254,6 +254,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     int pathStart = requestURL.indexOf("/", requestURL.indexOf(":") + 3);
     url = contentUrl + url.substring(pathStart);
     // send via the session establisher
+    LOGGER.debug("Sending redirect for {} {} ",request.getMethod(), url);
     response.sendRedirect(getTransferUrl(request, url));
   }
 

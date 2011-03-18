@@ -17,8 +17,11 @@
  */
 package org.sakaiproject.nakamura.captcha;
 
+import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.Activate;
@@ -73,6 +76,25 @@ public class ReCaptchaService implements CaptchaService {
 
     // Initialize the client on start up.
     client = new HttpClient();
+
+    // allow communications via a proxy server if command line
+    // java parameters http.proxyHost,http.proxyPort,http.proxyUser,
+    // http.proxyPassword have been provided.
+    String proxyHost = System.getProperty("http.proxyHost","");
+    int proxyPort = Integer.parseInt(System.getProperty("http.proxyPort","80"));
+    if (!proxyHost.equals("") ) {
+      // allow communications via a non-authenticating proxy
+      client.getHostConfiguration().setProxy(proxyHost, proxyPort);
+
+      String proxyUser = System.getProperty("http.proxyUser","");
+      String proxyPassword = System.getProperty("http.proxyPassword","");
+      if ( !proxyUser.equals("") ) {
+        // allow communications via an authenticating proxy
+        Credentials credentials = new UsernamePasswordCredentials(proxyUser, proxyPassword);
+        AuthScope authScope = new AuthScope(proxyHost, proxyPort);
+        client.getState().setProxyCredentials(authScope, credentials);
+      }
+    }
   }
 
   /**
