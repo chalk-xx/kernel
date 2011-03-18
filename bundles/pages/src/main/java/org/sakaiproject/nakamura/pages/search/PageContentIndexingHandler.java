@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.pages.search;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import org.apache.commons.lang.StringUtils;
@@ -24,6 +25,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.tika.exception.TikaException;
 import org.osgi.framework.BundleContext;
@@ -91,8 +93,11 @@ public class PageContentIndexingHandler implements IndexingHandler {
           try {
             SolrInputDocument doc = new SolrInputDocument();
 
+            // set the path of this chunk of content
+            doc.addField("path", path);
+
             // set the path of the parent that holds the content
-            doc.addField("path", PathUtils.removeLastElement(path));
+            doc.addField("pagepath", PathUtils.removeLastElement(path));
 
             // extract the content
             String pageContent = (String) content.getProperty("sakai:pagecontent");
@@ -127,7 +132,9 @@ public class PageContentIndexingHandler implements IndexingHandler {
    */
   public Collection<String> getDeleteQueries(RepositorySession respositorySession,
       Event event) {
-    return null;
+    LOGGER.debug("GetDelete for {} ", event);
+    String path = (String) event.getProperty(FIELD_PATH);
+    return ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
   }
 
 }
