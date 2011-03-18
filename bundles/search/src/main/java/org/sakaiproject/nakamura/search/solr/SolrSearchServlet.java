@@ -467,7 +467,8 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         requestValue = StringUtils.removeStart(requestValue, "sakai:");
       }
       // KERN-1601 Wildcard searches have to be manually lowercased for case insensitive
-      // matching as Solr bypassing the analyzer when dealing with a wildcard search.
+      // matching as Solr bypasses the analyzer when dealing with a wildcard or fuzzy
+      // search.
       if (StringUtils.contains(requestValue, '*')
           || StringUtils.contains(requestValue, '~')) {
         requestValue = requestValue.toLowerCase();
