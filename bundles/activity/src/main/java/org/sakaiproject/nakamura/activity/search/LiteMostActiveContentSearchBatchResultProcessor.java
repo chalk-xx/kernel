@@ -33,6 +33,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
@@ -122,6 +123,8 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
     // write the most-used content to the JSONWriter
     Collections.sort(resources, Collections.reverseOrder());
     write.object();
+    write.key(SolrSearchConstants.TOTAL);
+    write.value(resources.size());
     write.key("content");
     write.array();
     for (ResourceActivity resourceActivity : resources) {
