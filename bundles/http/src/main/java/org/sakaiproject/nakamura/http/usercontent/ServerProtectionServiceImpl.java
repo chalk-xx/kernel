@@ -1,18 +1,28 @@
 package org.sakaiproject.nakamura.http.usercontent;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.ReferenceStrategy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.osgi.OsgiUtil;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionService;
+import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionValidator;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +34,10 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.crypto.Mac;
@@ -129,9 +141,18 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
    */
   private String[] safeForAnonToPostPaths;
 
+  @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, strategy = ReferenceStrategy.EVENT, bind = "bindServerProtectionValidator", unbind = "unbindServerProtectionValidator")
+  private ServerProtectionValidator[] serverProtectionValidators;
+  private Map<ServiceReference, ServerProtectionValidator> serverProtectionValidatorsStore = Maps
+      .newConcurrentHashMap();
+  private BundleContext bundleContext;
+
   @Activate
-  public void activate(Map<String, Object> properties) throws NoSuchAlgorithmException,
-      UnsupportedEncodingException {
+  public void activate(ComponentContext componentContext)
+      throws NoSuchAlgorithmException, UnsupportedEncodingException,
+      InvalidSyntaxException {
+    @SuppressWarnings("unchecked")
+    Dictionary<String, Object> properties = componentContext.getProperties();
     safeHosts = ImmutableSet.of(OsgiUtil.toStringArray(
         properties.get(TRUSTED_HOSTS_CONF), DEFAULT_TRUSTED_HOSTS));
     safeReferers = OsgiUtil.toStringArray(properties.get(TRUSTED_REFERER_CONF),
@@ -176,6 +197,24 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       input = encoder.encode(data);
     }
 
+    bundleContext = componentContext.getBundleContext();
+    ServiceReference[] srs = bundleContext.getAllServiceReferences(
+        ServerProtectionValidator.class.getName(), null);
+    if ( srs != null ) {
+      for (ServiceReference sr : srs) {
+        bindServerProtectionValidator(sr);
+      }
+    }
+  }
+
+  public void destroy(ComponentContext c) {
+    BundleContext bc = c.getBundleContext();
+    for (Entry<ServiceReference, ServerProtectionValidator> e : serverProtectionValidatorsStore
+        .entrySet()) {
+      bc.ungetService(e.getKey());
+    }
+    serverProtectionValidatorsStore.clear();
+    serverProtectionValidators = null;
   }
 
   public boolean isRequestSafe(SlingHttpServletRequest srequest,
@@ -230,8 +269,16 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
                   break;
                 }
               }
+              if (!safeToStream) {
+                for (ServerProtectionValidator serverProtectionValidator : serverProtectionValidators) {
+                  if ( serverProtectionValidator.safeToStream(srequest, resource)) {
+                    safeToStream = true;
+                    break;
+                  }
+                }
+              }
             }
-            if ( !safeToStream) {
+            if (!safeToStream) {
               redirectToContent(srequest, sresponse);
               return false;
             }
@@ -399,6 +446,21 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
         + hrequest.getServerPort();
     // safe hosts are defiend as hosts from which we we can accept non get operations
     return safeHosts.contains(requestHost);
+  }
+
+  public void bindServerProtectionValidator(ServiceReference serviceReference) {
+    serverProtectionValidatorsStore.put(serviceReference,
+        (ServerProtectionValidator) bundleContext.getService(serviceReference));
+    serverProtectionValidators = serverProtectionValidatorsStore.values().toArray(
+        new ServerProtectionValidator[serverProtectionValidatorsStore.size()]);
+
+  }
+
+  public void unbindServerProtectionValidator(ServiceReference serviceReference) {
+    serverProtectionValidatorsStore.remove(serviceReference);
+    bundleContext.ungetService(serviceReference);
+    serverProtectionValidators = serverProtectionValidatorsStore.values().toArray(
+        new ServerProtectionValidator[serverProtectionValidatorsStore.size()]);
   }
 
 }

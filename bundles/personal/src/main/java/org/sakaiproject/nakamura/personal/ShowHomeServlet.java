@@ -19,6 +19,8 @@ package org.sakaiproject.nakamura.personal;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.Services;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -30,11 +32,13 @@ import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionValidator;
 import org.sakaiproject.nakamura.util.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -42,12 +46,16 @@ import javax.servlet.http.HttpServletResponse;
  * The <code>ShowHomeServlet</code>
  */
 @Component(immediate = true, label = "%home.showServlet.label", description = "%home.showServlet.desc")
-@SlingServlet(resourceTypes = { "sakai/user-home", "sakai/group-home" }, methods = { "GET" }, generateComponent = false)
+@Services(value={
+    @Service(value=Servlet.class),
+    @Service(value=ServerProtectionValidator.class)
+})
+@SlingServlet(resourceTypes = { "sakai/user-home", "sakai/group-home" }, methods = { "GET" }, generateComponent = false, generateService = false)
 @ServiceDocumentation(name = "Show Home", description = " Shows the content of /dev/show.html when requested ", shortDescription = "Shows html page for users", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = {
     "sakai/user-home", "sakai/group-home" }),
 
 methods = @ServiceMethod(name = "GET", description = { "Shows  a HTML page when the user or groups home is accessed" }, response = { @ServiceResponse(code = 200, description = "A HTML view of the User or Group entity's home space.") }))
-public class ShowHomeServlet extends SlingSafeMethodsServlet implements OptingServlet {
+public class ShowHomeServlet extends SlingSafeMethodsServlet implements OptingServlet, ServerProtectionValidator {
 
   private static final long serialVersionUID = 613629169503411716L;
 
@@ -79,6 +87,16 @@ public class ShowHomeServlet extends SlingSafeMethodsServlet implements OptingSe
     } else {
       return false;
     }
+  }
+
+  public boolean safeToStream(SlingHttpServletRequest request, Resource resource) {
+    if ( "GET".equals(request.getMethod()) && accepts(request) ) {
+      String resourceType = resource.getResourceType();
+      if ( "sakai/user-home".equals(resourceType) || "sakai/group-home".equals(resourceType) ) {
+        return true;
+      }
+    }
+    return false;
   }
 
 }
