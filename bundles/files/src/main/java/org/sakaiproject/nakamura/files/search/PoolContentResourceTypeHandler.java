@@ -106,6 +106,9 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
 
   @Activate
   public void activate(BundleContext bundleContext, Map<String, Object> properties) throws Exception {
+    // Getting the config file and creating a Tika instance can take a second so do it
+    // just once for the bundle. Tika doesn't carry state in this object except for the
+    // config which is fine for all clients to use.
     URL configUrl = bundleContext.getBundle().getResource("/org/apache/tika/tika-config.xml");
     LOGGER.info("Create Tika with config {} ", configUrl.toString());
     tika = new Tika(new TikaConfig(configUrl));
