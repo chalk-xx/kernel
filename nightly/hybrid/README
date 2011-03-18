@@ -1,12 +1,12 @@
 Files
 -----
-hybrid.conf: should be placed in your existing apache2.2 conf.d config directory.
+sakai23hybrid.conf: should be placed in your existing apache2.2 conf.d config directory.
 nightly.sh: shell script used to build and run the nightly instances of hybrid mode (i.e. Sakai 2+3).
 server.xml: The tomcat5.5.x config used to bind tomcat to non-default ports to avoid conflict with K2 ports.
 
 Notes
 -----
-1) For nightly.sh to work, you must have apache-tomcat-5.5.30.tar.gz in $BUILD_DIR.
+1) For nightly.sh to work, you must have apache-tomcat-5.5.31.tar.gz in $BUILD_DIR.
 
 2) To install apache2.2 on Mac OS X, I used MacPorts; see:
 http://confluence.sakaiproject.org/display/KERNDOC/Installing+git
@@ -19,6 +19,16 @@ alias apache2ctl='sudo /opt/local/apache2/bin/apachectl'
 
 For example: apache2ctl start; apache2ctl stop; apache2ctl restart
 
-3) To add the necessary proxy settings to your apache2.2 config: copy hybrid.conf to your local apache2 conf.d directory: e.g.: /opt/local/apache2/conf.d/hybrid.conf.
+3) To add the necessary proxy settings to your apache2.2 config: copy sakai23hybrid.conf to your local apache2 conf.d directory: e.g.: /opt/local/apache2/conf.d/sakai23hybrid.conf.
 
 4) The server.xml from ./server.xml also needs to replace the one in $TOMCAT_HOME/conf/server.xml (just to bind to different ports than k2). The ./nightly.sh performs this step for you, so this is just an FYI.
+
+5) You either need to disable the ServerProtectionService or configure it properly under configuration.
+   If you chose to disable it (just for development), that can be done under the Sling Components tab, by
+   disabling: org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl
+
+6) Go to the Sakai Nakamura :: Trusted Token Proxy Preprocessor in the Sling Configuration tab.
+   Set the following default values. (Note that the shared secret should be changed for production, this is
+   just a default for development).
+   Shared Secret: e2KS54H35j6vS5Z38nK40
+   Port: 8088

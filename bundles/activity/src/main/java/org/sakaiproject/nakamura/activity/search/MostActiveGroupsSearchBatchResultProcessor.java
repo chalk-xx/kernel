@@ -27,6 +27,8 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
@@ -65,6 +67,8 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
       Iterator<Result> results) throws JSONException {
       List<ResourceActivity> resources = new ArrayList<ResourceActivity>();
       ResourceResolver resolver = request.getResourceResolver();
+      final Session session = StorageClientUtils.adaptToSession(request
+          .getResourceResolver().adaptTo(javax.jcr.Session.class));
       while (results.hasNext()) {
         Result result = results.next();
         String path = result.getPath();
@@ -86,7 +90,7 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
               String resourcePath = LitePersonalUtils.getProfilePath(resourceId);
               Content resourceContent = null;
               try {
-                resourceContent = resolver.getResource(resourcePath).adaptTo(Content.class);
+                resourceContent = session.getContentManager().get(resourcePath);
               } catch (Exception e) {
                 // this happens if the group is not public
                 // or if the group path simply doesn't exist

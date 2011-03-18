@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "path:/activity/group AND resourceType:sakai/resource-update",
+  "sakai:query-template": "path:/activity/group AND resourceType:sakai/resource\\-update",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
