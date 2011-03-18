@@ -21,24 +21,31 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.jcr.api.SlingRepository;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.personal.PersonalTrackingStore;
-import org.sakaiproject.nakamura.util.JcrUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.UUID;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
+@Component(immediate = true)
+@Service(value = PersonalTrackingStore.class)
+public class LitePersonalTrackingStore implements PersonalTrackingStore {
 
-//@Component(immediate = true)
-//@Service(value = PersonalTrackingStore.class)
-public class JCRPersonalTrackingStore implements PersonalTrackingStore {
+  private static final Logger LOG = LoggerFactory
+      .getLogger(LitePersonalTrackingStore.class);
 
   @Reference
-  private transient SlingRepository slingRepository;
+  private transient Repository repository;
 
   /**
    * {@inheritDoc}
@@ -50,17 +57,31 @@ public class JCRPersonalTrackingStore implements PersonalTrackingStore {
       String userId, Calendar timestamp) {
     Session session = null;
     try {
-      session = slingRepository.loginAdministrative(null);
-      Node trackingNode = JcrUtils.deepGetOrCreateNode(session, "/activity/" + resourceType + "/" + resourceId);
+      session = repository.loginAdministrative();
+      final ContentManager cm = session.getContentManager();
+      final String trackingNodePath = "/activity/" + resourceType + "/" + resourceId;
+      Content trackingNode = null;
+      if (cm.exists(trackingNodePath)) {
+        trackingNode = cm.get(trackingNodePath);
+      } else {
+        trackingNode = new Content(trackingNodePath, new HashMap<String, Object>());
+      }
       if (!trackingNode.hasProperty("count")) {
-        trackingNode.setProperty("count", 0);
+        trackingNode.setProperty("count", BigDecimal.ZERO);
       }
       if (!trackingNode.hasProperty("sling:resourceType")) {
         trackingNode.setProperty("sling:resourceType", "sakai/resource-activity");
       }
-      String generatedNodeName = Base64.encodeBase64URLSafeString(asShorterByteArray(UUID.randomUUID()));
-      Node activityNode = trackingNode.addNode(generatedNodeName);
-      BigDecimal activityCount = trackingNode.getProperty("count").getDecimal();
+      final String generatedNodeName = Base64
+          .encodeBase64URLSafeString(asShorterByteArray(UUID.randomUUID()));
+      final String activityNodePath = trackingNodePath + "/" + generatedNodeName;
+      Content activityNode = null;
+      if (cm.exists(activityNodePath)) {
+        activityNode = cm.get(activityNodePath);
+      } else {
+        activityNode = new Content(activityNodePath, new HashMap<String, Object>());
+      }
+      BigDecimal activityCount = (BigDecimal) trackingNode.getProperty("count");
       activityNode.setProperty("sling:resourceType", "sakai/resource-update");
       trackingNode.setProperty("count", activityCount.add(BigDecimal.ONE));
       activityNode.setProperty("resourceId", resourceId);
@@ -68,20 +89,25 @@ public class JCRPersonalTrackingStore implements PersonalTrackingStore {
       activityNode.setProperty("activitytype", activityType);
       activityNode.setProperty("timestamp", timestamp);
       activityNode.setProperty("userid", userId);
-      if (session.hasPendingChanges()) {
-        session.save();
-      }
-    } catch (RepositoryException e) {
-      e.printStackTrace();
+      cm.update(activityNode);
+      cm.update(trackingNode);
+    } catch (AccessDeniedException e) {
+      LOG.error(e.getLocalizedMessage(), e);
+    } catch (StorageClientException e) {
+      LOG.error(e.getLocalizedMessage(), e);
     } finally {
       if (session != null) {
-        session.logout();
+        try {
+          session.logout();
+        } catch (ClientPoolException e) {
+          LOG.error(e.getLocalizedMessage(), e);
+          throw new IllegalStateException(e);
+        }
       }
     }
 
   }
 
-  
   private byte[] asShorterByteArray(UUID uuid) {
 
     long msb = uuid.getMostSignificantBits();
