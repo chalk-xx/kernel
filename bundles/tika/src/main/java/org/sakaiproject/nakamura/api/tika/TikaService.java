@@ -46,7 +46,7 @@ import java.net.URL;
  * </code>
  */
 @Component
-@Service
+@Service(value = TikaService.class)
 public class TikaService {
   private Tika tika;
 
