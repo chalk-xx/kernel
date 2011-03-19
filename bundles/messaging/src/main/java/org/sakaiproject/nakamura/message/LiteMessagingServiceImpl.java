@@ -117,6 +117,7 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
     Calendar cal = Calendar.getInstance();
     msg.setProperty(MessageConstants.PROP_SAKAI_CREATED, cal);
     msg.setProperty("sling:resourceSuperType", "sparse/Content");
+    msg.setProperty(MessageConstants.PROP_SAKAI_MESSAGE_STORE, messagePathBase);
 
     try {
       lockManager.waitForLock(messagePathBase);

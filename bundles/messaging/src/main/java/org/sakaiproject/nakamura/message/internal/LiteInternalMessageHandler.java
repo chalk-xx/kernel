@@ -187,6 +187,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
           message.setProperty(MessageConstants.PROP_SAKAI_READ, false);
           message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
           message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE, MessageConstants.STATE_NOTIFIED);
+          message.setProperty(MessageConstants.PROP_SAKAI_MESSAGE_STORE, messagingService.getFullPathToStore(recipient, session));
           contentManager.update(message);
 
           recipients.add(recipient);
