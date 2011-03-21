@@ -190,6 +190,11 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           return;
         }
 
+        // allow number of items to be specified in sakai:query-template-options
+        if (query.getOptions().containsKey(PARAMS_ITEMS_PER_PAGE)) {
+          nitems = Long.valueOf(query.getOptions().get(PARAMS_ITEMS_PER_PAGE));
+        }
+
         boolean useBatch = false;
         // Get the
         SolrSearchBatchResultProcessor searchBatchProcessor = defaultSearchBatchProcessor;

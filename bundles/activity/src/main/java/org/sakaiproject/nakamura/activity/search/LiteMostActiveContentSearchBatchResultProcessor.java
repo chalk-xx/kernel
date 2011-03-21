@@ -97,7 +97,6 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
             break;
           } else {
             String resourceId = (String) node.getProperty("resourceId");
-            LOG.info("LDS resourceId={}", resourceId);
             if (!resources.containsKey(resourceId)) {
               Content resourceNode = session.getContentManager().get(resourceId);
               if (resourceNode == null) {
