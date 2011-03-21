@@ -72,8 +72,14 @@ public class MessageSparseSearchPropertyProvider implements SolrSearchPropertyPr
     
     RequestParameter categoryParam = request.getRequestParameter("category");
     if (categoryParam != null && !categoryParam.getString().equals("") && !categoryParam.getString().equals("*")) {
-      String categoryString = categoryParam.getString();
-      propertiesMap.put("_categoryClause", " AND sakai\\:category:(" + categoryString + ")");
+      String[] categoryStrings = categoryParam.getString().split(",");
+      StringBuffer categoryClauseBuffer = new StringBuffer(" AND sakai\\:category:(");
+      categoryClauseBuffer.append(categoryStrings[0]);
+      for (int i = 1; i < categoryStrings.length; i++) {
+        categoryClauseBuffer.append(" OR " + categoryStrings[i]);
+      }
+      categoryClauseBuffer.append(")");
+      propertiesMap.put("_categoryClause", categoryClauseBuffer.toString());
     } else {
       propertiesMap.put("_categoryClause", "");
     }
