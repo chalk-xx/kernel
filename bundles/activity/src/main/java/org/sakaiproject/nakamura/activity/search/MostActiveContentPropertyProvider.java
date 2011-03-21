@@ -28,13 +28,11 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import java.util.Date;
 import java.util.Map;
 
-@Component(label = "MostActiveContentPropertyProvider")
-@Properties({
-    @Property(name = "sakai.search.provider", value = "MostActiveContent"),
-    @Property(name = "sakai.search.resourceType", value = "sakai/page"),
-    @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Provides properties to the activity search templates.") })
+@Component(label = "MostActiveContentPropertyProvider", description = "Property provider for most active content")
 @Service
+@Properties({
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "sakai.search.provider", value = "MostActiveContentPropertyProvider") })
 public class MostActiveContentPropertyProvider implements SolrSearchPropertyProvider {
 
   public static final int DEFAULT_DAYS = 30;
