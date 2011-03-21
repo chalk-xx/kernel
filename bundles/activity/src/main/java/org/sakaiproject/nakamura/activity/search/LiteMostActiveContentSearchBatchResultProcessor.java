@@ -42,9 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -63,8 +61,8 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
 
-  private static final int DEFAULT_DAYS = 30;
-  private static final int MAXIMUM_DAYS = 90;
+  // private static final int DEFAULT_DAYS = 30;
+  // private static final int MAXIMUM_DAYS = 90;
 
   /**
    * 
@@ -79,8 +77,6 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
     final Session session = StorageClientUtils.adaptToSession(request
         .getResourceResolver().adaptTo(javax.jcr.Session.class));
 
-    final int daysAgo = deriveDateWindow(request);
-
     // count all the activity
     LOG.debug("Computing the most active content feed.");
     while (iterator.hasNext()) {
@@ -88,29 +84,19 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
         final Result result = iterator.next();
         final String path = result.getPath();
         final Content node = session.getContentManager().get(path);
-        if (node.hasProperty("timestamp")) {
-          Calendar timestamp = (Calendar) node.getProperty("timestamp");
-          Calendar specifiedDaysAgo = new GregorianCalendar();
-          specifiedDaysAgo.add(Calendar.DAY_OF_MONTH, -daysAgo);
-          if (timestamp.before(specifiedDaysAgo)) {
-            // we stop counting once we get to the old stuff
-            break;
-          } else {
-            String resourceId = (String) node.getProperty("resourceId");
-            if (!resources.containsKey(resourceId)) {
-              Content resourceNode = session.getContentManager().get(resourceId);
-              if (resourceNode == null) {
-                // this can happen if this content is no longer public
-                continue;
-              }
-              String resourceName = (String) resourceNode
-                  .getProperty(FilesConstants.POOLED_CONTENT_FILENAME);
-              resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName));
-            }
-            // increment the count for this particular resource.
-            resources.get(resourceId).activityScore++;
+        String resourceId = (String) node.getProperty("resourceId");
+        if (!resources.containsKey(resourceId)) {
+          Content resourceNode = session.getContentManager().get(resourceId);
+          if (resourceNode == null) {
+            // this can happen if this content is no longer public
+            continue;
           }
+          String resourceName = (String) resourceNode
+              .getProperty(FilesConstants.POOLED_CONTENT_FILENAME);
+          resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName));
         }
+        // increment the count for this particular resource.
+        resources.get(resourceId).activityScore++;
       } catch (StorageClientException e) {
         // if something is wrong with this particular resourceNode,
         // we don't let it wreck the whole feed
@@ -145,21 +131,22 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
     write.endObject();
   }
 
-  private int deriveDateWindow(SlingHttpServletRequest request) {
-    int daysAgo = DEFAULT_DAYS;
-    String requestedDaysParam = request.getParameter("days");
-    if (requestedDaysParam != null) {
-      try {
-        int requestedDays = Integer.parseInt(requestedDaysParam);
-        if ((requestedDays > 0) && (requestedDays <= MAXIMUM_DAYS)) {
-          daysAgo = requestedDays;
-        }
-      } catch (NumberFormatException e) {
-        // malformed parameter, so we'll just stick with the default number of days
-      }
-    }
-    return daysAgo;
-  }
+  // KERN-1636 date range is now specified in the query not in PostProc.
+  // private int deriveDateWindow(SlingHttpServletRequest request) {
+  // int daysAgo = DEFAULT_DAYS;
+  // String requestedDaysParam = request.getParameter("days");
+  // if (requestedDaysParam != null) {
+  // try {
+  // int requestedDays = Integer.parseInt(requestedDaysParam);
+  // if ((requestedDays > 0) && (requestedDays <= MAXIMUM_DAYS)) {
+  // daysAgo = requestedDays;
+  // }
+  // } catch (NumberFormatException e) {
+  // // malformed parameter, so we'll just stick with the default number of days
+  // }
+  // }
+  // return daysAgo;
+  // }
 
   public class ResourceActivity implements Comparable<ResourceActivity> {
     public final String id;
