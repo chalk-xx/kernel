@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -44,8 +45,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 @Component(immediate = true, label = "MostActiveContentSearchBatchResultProcessor", description = "Formatter for most active content")
 @Service(value = SolrSearchBatchResultProcessor.class)
@@ -72,7 +75,7 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
    */
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> iterator) throws JSONException {
-    final List<ResourceActivity> resources = new ArrayList<ResourceActivity>();
+    final Map<String, ResourceActivity> resources = new HashMap<String, ResourceActivity>();
     final Session session = StorageClientUtils.adaptToSession(request
         .getResourceResolver().adaptTo(javax.jcr.Session.class));
 
@@ -94,19 +97,19 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
             break;
           } else {
             String resourceId = (String) node.getProperty("resourceId");
-            if (!resources.contains(new ResourceActivity(resourceId))) {
+            LOG.info("LDS resourceId={}", resourceId);
+            if (!resources.containsKey(resourceId)) {
               Content resourceNode = session.getContentManager().get(resourceId);
               if (resourceNode == null) {
                 // this can happen if this content is no longer public
                 continue;
               }
               String resourceName = (String) resourceNode
-                  .getProperty("sakai:pooled-content-file-name");
-              resources.add(new ResourceActivity(resourceId, 0, resourceName));
+                  .getProperty(FilesConstants.POOLED_CONTENT_FILENAME);
+              resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName));
             }
             // increment the count for this particular resource.
-            resources.get(resources.indexOf(new ResourceActivity(resourceId))).activityScore++;
-
+            resources.get(resourceId).activityScore++;
           }
         }
       } catch (StorageClientException e) {
@@ -121,13 +124,15 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
     }
 
     // write the most-used content to the JSONWriter
-    Collections.sort(resources, Collections.reverseOrder());
+    List<ResourceActivity> resourceActivities = new ArrayList<ResourceActivity>(
+        resources.values());
+    Collections.sort(resourceActivities, Collections.reverseOrder());
     write.object();
     write.key(SolrSearchConstants.TOTAL);
     write.value(resources.size());
     write.key("content");
     write.array();
-    for (ResourceActivity resourceActivity : resources) {
+    for (ResourceActivity resourceActivity : resourceActivities) {
       write.object();
       write.key("id");
       write.value(resourceActivity.id);
@@ -158,16 +163,19 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
   }
 
   public class ResourceActivity implements Comparable<ResourceActivity> {
-    public String id;
-
-    public ResourceActivity(String id) {
-      this.id = id;
-    }
+    public final String id;
+    public final String name;
+    public int activityScore;
 
     public ResourceActivity(String id, int activityScore, String name) {
       this.id = id;
       this.activityScore = activityScore;
       this.name = name;
+    }
+    
+    @Override
+    public String toString() {
+      return "ResourceActivity(" + id + ", " + activityScore + ", " + name + ")";
     }
 
     @Override
@@ -197,9 +205,6 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
         return false;
       return true;
     }
-
-    public String name;
-    public int activityScore;
 
     public int compareTo(ResourceActivity other) {
       return Integer.valueOf(this.activityScore).compareTo(
