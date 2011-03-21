@@ -251,7 +251,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
       Map<String, String> options) {
     // build the query
     SolrQuery solrQuery = new SolrQuery(queryString);
-    long[] ranges = SolrSearchUtil.getOffsetAndSize(request);
+    long[] ranges = SolrSearchUtil.getOffsetAndSize(request, options);
     solrQuery.setStart((int) ranges[0]);
     solrQuery.setRows((int) ranges[1]);
 

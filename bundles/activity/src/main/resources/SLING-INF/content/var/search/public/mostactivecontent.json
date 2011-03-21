@@ -1,11 +1,13 @@
 {
-  "sakai:query-template": "path:/activity/content AND resourceType:sakai/resource\\-update",  
+  "sakai:query-template": "path:/activity/content AND resourceType:sakai/resource\\-update AND timestamp:[${then} TO *]",  
   "sakai:query-template-options": {
-      "sort": "${sortOn} ${sortOrder}"
+      "sort": "${sortOn} ${sortOrder}",
+      "items": "10000"
   },
   "sortOn": "timestamp",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
+  "sakai:propertyprovider": "MostActiveContentPropertyProvider",
   "sakai:batchresultprocessor": "LiteMostActiveContent",
   "sakai:title": "Pooled Content - Most Active",
   "sakai:shortDescription": "Returns feed of most active content."
