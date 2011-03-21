@@ -17,15 +17,14 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_CREATED_FOR;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_FILENAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_RT;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_NEEDS_PROCESSING;
+
+import com.google.common.collect.Lists;
 
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -44,6 +43,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -73,7 +73,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
@@ -124,11 +123,6 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateContentPoolServlet.class);
-
-  private static final Set<String> RESERVED_POOL_KEYS = ImmutableSet.of(
-      SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_CREATED_FOR,
-      POOLED_CONTENT_USER_MANAGER, POOLED_CONTENT_FILENAME, POOLED_NEEDS_PROCESSING,
-      Content.MIMETYPE_FIELD);
 
 
   @Override
@@ -247,7 +241,6 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
   private void createContentItem(String poolId, Session session,
       SlingHttpServletRequest request, Authorizable au) throws StorageClientException, AccessDeniedException {
-    // TODO Auto-generated method stub
     ContentManager contentManager = session.getContentManager();
     AccessControlManager accessControlManager = session.getAccessControlManager();
     Map<String, Object> contentProperties = new HashMap<String, Object>();
@@ -256,7 +249,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
     contentProperties.put(POOLED_CONTENT_USER_MANAGER, new String[]{au.getId()});
     for ( Entry<String, RequestParameter[]>   e : request.getRequestParameterMap().entrySet() ) {
       String k = e.getKey();
-      if ( !(k.startsWith("_") || k.startsWith(":")) && !RESERVED_POOL_KEYS.contains(k) ) {
+      if ( !(k.startsWith("_") || k.startsWith(":")) && !FilesConstants.RESERVED_POOL_KEYS.contains(k) ) {
         RequestParameter[] rp = e.getValue();
         if ( rp != null && rp.length > 0 ) {
           if ( rp.length == 1) {
