@@ -69,14 +69,21 @@ public class MessageSparseSearchPropertyProvider implements SolrSearchPropertyPr
       propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE,
           ClientUtils.escapeQueryChars(storePath) + "*");
     }
-    
-    RequestParameter categoryParam = request.getRequestParameter("category");
-    if (categoryParam != null && !categoryParam.getString().equals("") && !categoryParam.getString().equals("*")) {
-      String[] categoryStrings = categoryParam.getString().split(",");
+
+    String[] categoryStrings = request.getParameterValues("category");
+    if (categoryStrings != null && !categoryStrings[0].equals("") && !categoryStrings[0].equals("*")) {
       StringBuffer categoryClauseBuffer = new StringBuffer(" AND sakai\\:category:(");
-      categoryClauseBuffer.append(categoryStrings[0]);
-      for (int i = 1; i < categoryStrings.length; i++) {
-        categoryClauseBuffer.append(" OR " + categoryStrings[i]);
+      String[] commaSeparatedTerms = categoryStrings[0].split(",");
+      categoryClauseBuffer.append(commaSeparatedTerms[0]);
+      for (int h = 0; h < categoryStrings.length; h++) {
+        commaSeparatedTerms = categoryStrings[h].split(",");
+        int starter = 0;
+        if (h == 0) {
+          starter++;
+        }
+        for (int i = starter; i < commaSeparatedTerms.length; i++) {
+          categoryClauseBuffer.append(" OR " + commaSeparatedTerms[i]);
+        }
       }
       categoryClauseBuffer.append(")");
       propertiesMap.put("_categoryClause", categoryClauseBuffer.toString());
