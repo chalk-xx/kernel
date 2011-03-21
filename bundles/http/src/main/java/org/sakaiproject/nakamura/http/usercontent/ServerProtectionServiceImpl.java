@@ -449,18 +449,21 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   }
 
   public void bindServerProtectionValidator(ServiceReference serviceReference) {
-    serverProtectionValidatorsStore.put(serviceReference,
-        (ServerProtectionValidator) bundleContext.getService(serviceReference));
-    serverProtectionValidators = serverProtectionValidatorsStore.values().toArray(
-        new ServerProtectionValidator[serverProtectionValidatorsStore.size()]);
-
+    if (bundleContext != null) {
+      serverProtectionValidatorsStore.put(serviceReference,
+          (ServerProtectionValidator) bundleContext.getService(serviceReference));
+      serverProtectionValidators = serverProtectionValidatorsStore.values().toArray(
+          new ServerProtectionValidator[serverProtectionValidatorsStore.size()]);
+    }
   }
 
   public void unbindServerProtectionValidator(ServiceReference serviceReference) {
-    serverProtectionValidatorsStore.remove(serviceReference);
-    bundleContext.ungetService(serviceReference);
-    serverProtectionValidators = serverProtectionValidatorsStore.values().toArray(
-        new ServerProtectionValidator[serverProtectionValidatorsStore.size()]);
+    if (bundleContext != null) {
+      serverProtectionValidatorsStore.remove(serviceReference);
+      bundleContext.ungetService(serviceReference);
+      serverProtectionValidators = serverProtectionValidatorsStore.values().toArray(
+          new ServerProtectionValidator[serverProtectionValidatorsStore.size()]);
+    }
   }
 
 }
