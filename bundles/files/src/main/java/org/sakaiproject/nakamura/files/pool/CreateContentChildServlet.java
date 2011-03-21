@@ -109,12 +109,15 @@ public class CreateContentChildServlet extends SlingAllMethodsServlet {
     }
     
     RequestPathInfo rpi = request.getRequestPathInfo();
-    String poolId = rpi.getExtension();
+    String resourceId = rpi.getExtension();
     String[] selectors = rpi.getSelectors();
     String alternativeStream = null;
-    if ( selectors != null && selectors.length > 0 ) {
-      alternativeStream = poolId;
-      poolId = selectors[0];
+    // TODO: check that we have the order of poolID and StreamID correct.
+    // I think its /p/<poolID>.resource.<resourceID>
+    // and /p/<poolID>.resource.<resourceID>.<StreamId>
+    if ( selectors != null && selectors.length > 1 ) {
+      alternativeStream = resourceId;
+      resourceId = selectors[selectors.length-1];
     }
     
     try {
@@ -134,16 +137,16 @@ public class CreateContentChildServlet extends SlingAllMethodsServlet {
         if (!p.isFormField()) {
           // This is a file upload.
           // Generate an ID and store it.
-          if (poolId == null) {
+          if (resourceId == null) {
             String createPoolId = generatePoolId();
             createFile(StorageClientUtils.newPath(parentPath, createPoolId), null, session, p, true);
             results.put(p.getFileName(), createPoolId);
             statusCode = HttpServletResponse.SC_CREATED;
             fileUpload = true;
           } else {
-            createFile(StorageClientUtils.newPath(parentPath, poolId), alternativeStream, session, p, false);
+            createFile(StorageClientUtils.newPath(parentPath, resourceId), alternativeStream, session, p, false);
             // Add it to the map so we can output something to the UI.
-            results.put(p.getFileName(), poolId);
+            results.put(p.getFileName(), resourceId);
             statusCode = HttpServletResponse.SC_OK;
             fileUpload = true;
             break;
@@ -155,7 +158,7 @@ public class CreateContentChildServlet extends SlingAllMethodsServlet {
     
     if (!fileUpload ) {
       // not a file upload, ok, create an item and use all the request paremeters, only if there was no poolId specified
-      if ( poolId == null ) {
+      if ( resourceId == null ) {
         String createPoolId = generatePoolId();
         createContentItem(createPoolId, session, request);
         results.put("_contentItem", createPoolId);
