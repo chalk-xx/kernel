@@ -19,14 +19,11 @@
 package org.sakaiproject.nakamura.proxy;
 
 import org.apache.commons.collections.ExtendedProperties;
-import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -141,12 +138,6 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
   private Set<String> safeOpenProcessors = new HashSet<String>();
 
   /**
-   * Set to true if HttpClient communicates via an authenticating proxy server to
-   * get to the internet. False otherwise.
-   */
-  private boolean externalAuthenticatingProxy;
-
-  /**
    * Create resources used by this component.
    *
    * @param ctx
@@ -192,27 +183,6 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
     httpClientConnectionManager.setParams(params);
 
     httpClient = new HttpClient(httpClientConnectionManager);
-
-    // allow communications via a proxy server if command line
-    // java parameters http.proxyHost,http.proxyPort,http.proxyUser,
-    // http.proxyPassword have been provided.
-    externalAuthenticatingProxy=false;
-    String proxyHost = System.getProperty("http.proxyHost","");
-    int proxyPort = Integer.parseInt(System.getProperty("http.proxyPort","80"));
-    if (!proxyHost.equals("") ) {
-      // allow communications via a non-authenticating proxy
-      httpClient.getHostConfiguration().setProxy(proxyHost, proxyPort);
-
-      String proxyUser = System.getProperty("http.proxyUser","");
-      String proxyPassword = System.getProperty("http.proxyPassword","");
-      if ( !proxyUser.equals("") ) {
-        // allow communications via an authenticating proxy
-        Credentials credentials = new UsernamePasswordCredentials(proxyUser, proxyPassword);
-        AuthScope authScope = new AuthScope(proxyHost, proxyPort);
-        httpClient.getState().setProxyCredentials(authScope, credentials);
-        externalAuthenticatingProxy=true;
-      }
-    }
   }
 
   /**
@@ -342,7 +312,6 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
             method.setParams(params);
             method.setFollowRedirects(true);
             populateMethod(method, node, headers);
-            doAuthentication(method);
             int result = httpClient.executeMethod(method);
             if (externalAuthenticatingProxy && result == 407) {
               method.releaseConnection();
@@ -455,7 +424,6 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
           }
         }
 
-        doAuthentication(method);
         int result = httpClient.executeMethod(method);
         if (externalAuthenticatingProxy && result == 407) {
           method.releaseConnection();
@@ -467,7 +435,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
           String url = method.getResponseHeader("Location").getValue();
           method = new GetMethod(url);
           method.setFollowRedirects(true);
-          doAuthentication(method);
+          method.setDoAuthentication(false);
           result = httpClient.executeMethod(method);
           if (externalAuthenticatingProxy && result == 407) {
             method.releaseConnection();
@@ -513,6 +481,10 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    */
   private void populateMethod(HttpMethod method, Node node, Map<String, String> headers)
       throws RepositoryException {
+    // follow redirects, but dont auto process 401's and the like.
+    // credentials should be provided
+    method.setDoAuthentication(false);
+
     for (Entry<String, String> header : headers.entrySet()) {
       method.addRequestHeader(header.getKey(), header.getValue());
     }
@@ -524,21 +496,6 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
       method.addRequestHeader(keyVal[0].trim(), keyVal[1].trim());
     }
 
-  }
-
-  /**
-   * Method enables automatically handling of HTTP authentication challenges
-   * from an external authenticating proxy server.
-   * @param method
-   */
-  private void doAuthentication(HttpMethod method) {
-    if (externalAuthenticatingProxy) {
-      method.setDoAuthentication(true);
-    } else {
-      // follow redirects, but dont auto process 401's and the like.
-      // credentials should be provided
-      method.setDoAuthentication(false);
-    }
   }
 
   public HttpConnectionManager getHttpConnectionManager() {
