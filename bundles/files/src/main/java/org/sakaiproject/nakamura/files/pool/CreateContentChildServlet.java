@@ -48,7 +48,7 @@ import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@SlingServlet(methods = "POST", selectors = {"resource"}, resourceTypes = { "sakai/pooled-content" })
+@SlingServlet(methods ={"POST"}, resourceTypes = { "sakai/pooled-content" }, selectors = { "resource" })
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Allows for uploading resource files into a pool content item.") })
@@ -109,21 +109,26 @@ public class CreateContentChildServlet extends SlingAllMethodsServlet {
     }
     
     RequestPathInfo rpi = request.getRequestPathInfo();
-    String resourceId = rpi.getExtension();
     String[] selectors = rpi.getSelectors();
+    String resourceId = null;
     String alternativeStream = null;
     // TODO: check that we have the order of poolID and StreamID correct.
     // I think its /p/<poolID>.resource.<resourceID>
     // and /p/<poolID>.resource.<resourceID>.<StreamId>
     if ( selectors != null && selectors.length > 1 ) {
-      alternativeStream = resourceId;
       resourceId = selectors[selectors.length-1];
+      if ( selectors.length > 2 ) {
+        alternativeStream = resourceId;
+        resourceId = selectors[selectors.length-2];
+      }
     }
+
     
     try {
 
     Content content = request.getResource().adaptTo(Content.class);
     String parentPath = content.getPath();
+    LOGGER.debug("Resource Pool {}, Resource ID is {}, alternativeStream is {} ", new Object[]{parentPath, resourceId, alternativeStream});
 
 
     // Loop over all the parameters
@@ -160,9 +165,22 @@ public class CreateContentChildServlet extends SlingAllMethodsServlet {
       // not a file upload, ok, create an item and use all the request paremeters, only if there was no poolId specified
       if ( resourceId == null ) {
         String createPoolId = generatePoolId();
-        createContentItem(createPoolId, session, request);
+        createContentItem(StorageClientUtils.newPath(parentPath,createPoolId), session, request);
         results.put("_contentItem", createPoolId);
         statusCode = HttpServletResponse.SC_CREATED;
+      } else {
+        String resourcePath = StorageClientUtils.newPath(parentPath,resourceId);
+        LOGGER.debug("Updating {} ", resourcePath);
+        ContentManager contentManager = session.getContentManager();
+        Content resourceContent = contentManager.get(resourcePath);
+        if ( resourceContent != null ) {
+          updateContentItem(resourceContent, request);
+          results.put("_contentItem", resourceId);
+          contentManager.update(content);
+          statusCode = HttpServletResponse.SC_OK;
+        } else {
+          statusCode = HttpServletResponse.SC_NOT_FOUND;
+        }
       }
     }
 
@@ -200,6 +218,34 @@ public class CreateContentChildServlet extends SlingAllMethodsServlet {
     return clusterTrackingService.getClusterUniqueId();
   }
   
+  private void updateContentItem(Content content,
+      SlingHttpServletRequest request) throws StorageClientException, AccessDeniedException {
+    for ( Entry<String, RequestParameter[]>   e : request.getRequestParameterMap().entrySet() ) {
+      String k = e.getKey();
+      if ( !(k.startsWith("_") || k.startsWith(":")) && !FilesConstants.RESERVED_POOL_KEYS.contains(k) ) {
+        RequestParameter[] rp = e.getValue();
+        if ( rp != null && rp.length > 0 ) {
+          if ( rp.length == 1) {
+              if ( rp[0].isFormField() ) {
+                content.setProperty(k, rp[0].getString());
+              }
+          } else {
+            List<String> values = Lists.newArrayList();
+            for ( RequestParameter rpp : rp) {
+              if ( rpp.isFormField() ) {
+                values.add(rpp.getString());
+              }
+            }
+            if ( values.size() > 0 ) {
+              content.setProperty(k,values.toArray(new String[values.size()]));
+            }
+          }
+        }
+      }
+    }
+
+  }
+
   
   private void createContentItem(String poolId, Session session,
       SlingHttpServletRequest request) throws StorageClientException, AccessDeniedException {
