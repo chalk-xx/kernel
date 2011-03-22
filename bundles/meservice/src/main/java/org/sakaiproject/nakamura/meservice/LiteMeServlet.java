@@ -30,6 +30,7 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -49,6 +50,11 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.search.solr.Query;
+import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
@@ -106,6 +112,9 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
   @Reference
   private MessageBucketService messageBucketService;
 
+  @Reference
+  SolrSearchServiceFactory searchServiceFactory;
+
   /**
    * {@inheritDoc}
    *
@@ -153,7 +162,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
 
       // Dump this user his number of contacts.
       writer.key("contacts");
-      writeContactCounts(writer, session, au);
+      writeContactCounts(writer, session, au, request);
 
       // Dump the groups for this user.
       writer.key("groups");
@@ -231,7 +240,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
    * @throws RepositoryException
    */
   protected void writeContactCounts(ExtendedJSONWriter writer, Session session,
-      Authorizable au) throws JSONException {
+      Authorizable au, SlingHttpServletRequest request) throws JSONException {
     writer.object();
 
     // We don't do queries for anonymous users. (Possible ddos hole).
@@ -252,35 +261,25 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       String store = LitePersonalUtils.getHomePath(userID) + "/"
           + ConnectionConstants.CONTACT_STORE_NAME;
       store = ISO9075.encodePath(store);
-
-      // TODO BL120 this search for contacts has to be ported to the "sparse way."
-//      StringBuilder statement = new StringBuilder("/jcr:root");
-//      statement.append(store);
-//      statement.append("//*[@sling:resourceType='sakai/contact' and (");
-//      statement.append("@").append(SAKAI_CONNECTION_STATE).append("='").append(ACCEPTED)
-//          .append("' or ");
-//      statement.append("@").append(SAKAI_CONNECTION_STATE).append("='").append(INVITED)
-//          .append("' or ");
-//      statement.append("@").append(SAKAI_CONNECTION_STATE).append("='").append(PENDING)
-//          .append("')]");
-
-      // Execute the query, loop over the results and count the items.
-//      QueryManager qm = session.getWorkspace().getQueryManager();
-//      Query q = qm.createQuery(statement.toString(), "xpath");
-//      QueryResult result = q.execute();
-//      NodeIterator iterator = result.getNodes();
-//      while (iterator.hasNext()) {
-//        Node contact = iterator.nextNode();
-//        if (contact.hasProperty(SAKAI_CONNECTION_STATE)) {
-//          String state = contact.getProperty(SAKAI_CONNECTION_STATE).getString()
-//              .toLowerCase();
-//          int count = 0;
-//          if (contacts.containsKey(state)) {
-//            count = contacts.get(state);
-//          }
-//          contacts.put(state, count + 1);
-//        }
-//      }
+      String queryString = "path:" + ClientUtils.escapeQueryChars(store) + " AND resourceType:sakai/contact AND state:(ACCEPTED OR INVITED OR PENDING)";
+      Query query = new Query(queryString, null);
+      LOG.debug("Submitting Query {} ", query);
+      SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
+          request, query, false);
+      Iterator<Result> resultIterator = resultSet.getResultSetIterator();
+      while (resultIterator.hasNext()) {
+        Result contact = resultIterator.next();
+        if (contact.getProperties().containsKey("state")) {
+          String state = (String) contact.getProperties().get("state").iterator().next();
+          int count = 0;
+          if (contacts.containsKey(state)) {
+            count = contacts.get(state);
+          }
+          contacts.put(state, count + 1);
+        }
+      }
+    } catch (SolrSearchException e) {
+      throw new JSONException(e);
     } finally {
       for (Entry<String, Integer> entry : contacts.entrySet()) {
         writer.key(entry.getKey());
