@@ -367,7 +367,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
     if (!contentManager.exists(nodePath)) {
       contentManager.update(new Content(nodePath, ImmutableMap.of("sling:resourceType",
           (Object)ConnectionConstants.SAKAI_CONTACT_RT,
-            "reference", LitePersonalUtils.getProfilePath(toUser.getId()))));
+            "reference", LitePersonalUtils.getProfilePath(toUser.getId()),
+            "sakai:contactstorepath", ConnectionUtils.getConnectionPathBase(fromUser))));
     }
     return contentManager.get(nodePath);
   }

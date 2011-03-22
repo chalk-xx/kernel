@@ -115,8 +115,8 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
     try {
       AuthorizableManager authMgr = session.getAuthorizableManager();
 
-      String name = (String) result.getFirstValue(Authorizable.NAME_FIELD);
-      Authorizable auth = authMgr.findAuthorizable(name);
+      String authorizableId = (String) result.getFirstValue(Authorizable.ID_FIELD);
+      Authorizable auth = authMgr.findAuthorizable(authorizableId);
 
       write.object();
       if (auth != null) {
@@ -125,7 +125,7 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
 
         // If this is a User Profile, then include Presence data.
         if (!auth.isGroup()) {
-          PresenceUtils.makePresenceJSON(write, name, presenceService, true);
+          PresenceUtils.makePresenceJSON(write, authorizableId, presenceService, true);
         }
       }
       write.endObject();

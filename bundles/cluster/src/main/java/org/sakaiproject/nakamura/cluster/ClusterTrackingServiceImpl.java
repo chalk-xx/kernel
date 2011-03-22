@@ -40,8 +40,10 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -223,6 +225,25 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
       // pingTracking(trackingCookie, remoteUser);
     }
 
+  }
+
+  public String[] getRequestTrackingCookie(HttpServletRequest request) {
+    Cookie[] cookies = request.getCookies();
+    Set<String> tracking = new HashSet<String>();
+    if (cookies != null) {
+      for (Cookie cookie : cookies) {
+        if (cookie != null) {
+          String cookieName = cookie.getName();
+          if (cookieName.equals(SAKAI_TRACKING)) {
+            String trackingCookie = cookie.getValue();
+            if (isServerAlive(trackingCookie)) {
+              tracking.add(trackingCookie);
+            }
+          }
+        }
+      }
+    }
+    return tracking.toArray(new String[tracking.size()]);
   }
 
   /**

@@ -21,7 +21,11 @@ public class LiteJsonImporter {
   private static final Logger LOGGER = LoggerFactory.getLogger(LiteJsonImporter.class);
   
   public void importContent(ContentManager contentManager, JSONObject json,
-      String path, boolean removeTree, boolean replaceProperties) throws JSONException, StorageClientException, AccessDeniedException  {
+      String path, boolean continueIfExists, boolean replaceProperties, boolean removeTree) throws JSONException, StorageClientException, AccessDeniedException  {
+    if ( !continueIfExists && contentManager.exists(path)) {
+      LOGGER.debug("replace=false and path exists, so discontinuing JSON import: " + path);
+      return;
+    }
     if ( removeTree ) {
       for ( Iterator<String> i = contentManager.listChildPaths(path); i.hasNext(); ) {
         String childPath = i.next();

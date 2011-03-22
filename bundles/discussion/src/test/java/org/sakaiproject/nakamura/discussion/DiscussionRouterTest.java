@@ -18,42 +18,44 @@
 package org.sakaiproject.nakamura.discussion;
 
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 
-import javax.jcr.RepositoryException;
+import javax.jcr.Repository;
 import javax.jcr.Session;
-import javax.jcr.ValueFormatException;
-import javax.jcr.lock.LockException;
-import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.version.VersionException;
 
 /**
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class DiscussionRouterTest {
 
-  @Test
-  public void testDelivery() throws ValueFormatException, VersionException,
-      LockException, ConstraintViolationException, RepositoryException {
+  @Mock
+  Repository repository;
 
+  @Mock
+  DiscussionManager discussionManager;
+
+  @Mock
+  Session session;
+
+  @Test
+  public void testDelivery() throws Exception {
     MockNode settingsNode = new MockNode("/sites/bla/_widgets/12345/settings");
     settingsNode.setProperty(DiscussionConstants.PROP_NOTIFICATION, true);
     settingsNode.setProperty(DiscussionConstants.PROP_NOTIFY_ADDRESS, "admin");
 
-    Session session = createMock(Session.class);
-
     // Mock the discussion manager
-    DiscussionManager discussionManager = createMock(DiscussionManager.class);
-    expect(discussionManager.findSettings("12345", session, "discussion")).andReturn(
+    when(discussionManager.findSettings("12345", session, "discussion")).thenReturn(
         settingsNode);
 
     MockMessageRoutes routing = new MockMessageRoutes();
@@ -64,17 +66,12 @@ public class DiscussionRouterTest {
     n.setProperty(DiscussionConstants.PROP_MARKER, "12345");
     n.setSession(session);
 
-    replay(session, discussionManager);
-
-    DiscussionRouter router = new DiscussionRouter();
-    router.bindDiscussionManager(discussionManager);
+    DiscussionRouter router = new DiscussionRouter(discussionManager);
     router.route(n, routing);
 
     assertEquals(1, routing.size());
     assertEquals("internal:admin", routing.get(0).getTransport() + ":"
         + routing.get(0).getRcpt());
-    
-    router.unbindDiscussionManager(discussionManager);
   }
 
 }

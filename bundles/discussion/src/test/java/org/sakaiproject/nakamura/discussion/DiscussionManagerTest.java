@@ -22,11 +22,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.RepositoryBase;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 
@@ -39,15 +40,20 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 
+@RunWith(MockitoJUnitRunner.class)
 public class DiscussionManagerTest {
 
+  @Mock
   private static BundleContext bundleContext;
+
+  @Mock
+  private EventAdmin eventAdmin;
+
   private static RepositoryBase repositoryBase;
 
   private static RepositoryBase getRepositoryBase() throws IOException,
       RepositoryException {
     if (repositoryBase == null) {
-      bundleContext = Mockito.mock(BundleContext.class);
       repositoryBase = new RepositoryBase(bundleContext);
       repositoryBase.start();
       Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -61,11 +67,6 @@ public class DiscussionManagerTest {
       }));
     }
     return repositoryBase;
-  }
-
-  @Before
-  public void before() {
-    MockitoAnnotations.initMocks(this);
   }
 
   public Repository getRepository() throws IOException, RepositoryException {

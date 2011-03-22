@@ -78,7 +78,8 @@ public class MessageSearchPropertyProviderTest extends AbstractEasyMockTest {
 
     assertEquals(
         ClientUtils.escapeQueryChars(LitePersonalUtils.PATH_AUTHORIZABLE
-            + "admin/message/"), pMap.get(MessageConstants.SEARCH_PROP_MESSAGESTORE));
+            + "admin/message/")
+            + "*", pMap.get(MessageConstants.SEARCH_PROP_MESSAGESTORE));
 
     assertEquals("from:(\"usera\" OR \"userb\")", pMap.get("_from"));
   }

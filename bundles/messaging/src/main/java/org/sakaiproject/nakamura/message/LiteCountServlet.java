@@ -119,7 +119,7 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
       String messageStorePath = ClientUtils.escapeQueryChars(messagingService.getFullPathToStore(request.getRemoteUser(), session));
       //path:a\:zach/contacts AND resourceType:sakai/contact AND state:("ACCEPTED" -NONE) (name:"*" OR firstName:"*" OR lastName:"*" OR email:"*")) AND readers:(zach OR everyone)&start=0&rows=25&sort=score desc
       StringBuilder queryString = new StringBuilder("(path:"
-          + messageStorePath + " AND resourceType:sakai/message"
+          + messageStorePath + "* AND resourceType:sakai/message"
           + " AND type:internal");
 
       // Get the filters
@@ -166,6 +166,9 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
         // We will have to traverse each node, get that property and count each
         // value for it.
         String groupedby = request.getRequestParameter("groupedby").getString();
+        if (groupedby.startsWith("sakai:")) {
+          groupedby = groupedby.substring(6);
+        }
         Map<String, Integer> mapCount = new HashMap<String, Integer>();
         while (resultIterator.hasNext()) {
           Result n = resultIterator.next();

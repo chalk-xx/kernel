@@ -41,6 +41,7 @@ import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -92,7 +93,12 @@ public class ResourceUpdateIndexingHandler implements IndexingHandler {
         if (content != null) {
           SolrInputDocument doc = new SolrInputDocument();
           for (String prop : WHITELISTED_PROPS) {
-            doc.addField(prop, content.getProperty(prop));
+            if ("timestamp".equals(prop)) {
+              final Calendar cal = (Calendar) content.getProperty(prop);
+              doc.addField(prop, cal.getTimeInMillis());
+            } else {
+              doc.addField(prop, content.getProperty(prop));
+            }
           }
           doc.addField(_DOC_SOURCE_OBJECT, content);
           documents.add(doc);

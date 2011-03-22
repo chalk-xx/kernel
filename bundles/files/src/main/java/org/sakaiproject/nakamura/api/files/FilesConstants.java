@@ -17,6 +17,18 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_CREATED_FOR;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_FILENAME;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_NEEDS_PROCESSING;
+
+import com.google.common.collect.ImmutableSet;
+
+import org.sakaiproject.nakamura.api.lite.content.Content;
+
+import java.util.Set;
+
 public interface FilesConstants {
   /**
    * The resource type for a sakai link. sakai/link
@@ -43,7 +55,10 @@ public interface FilesConstants {
    * sakai:tag-name - Intended to identify the name of a tag
    */
   public static final String SAKAI_TAG_NAME = "sakai:tag-name";
-
+  /**
+   * sakai:description - description of file as given by the user
+   */
+  public static final String SAKAI_DESCRIPTION = "sakai:description";
   /**
    * sakai:file
    */
@@ -146,4 +161,11 @@ public interface FilesConstants {
 
   /** Property of where this content is used*/
   String LINK_PATHS = "linkpaths";
+  
+  
+  public static final Set<String> RESERVED_POOL_KEYS = ImmutableSet.of(
+      SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_CREATED_FOR,
+      POOLED_CONTENT_USER_MANAGER, POOLED_CONTENT_FILENAME, POOLED_NEEDS_PROCESSING,
+      Content.MIMETYPE_FIELD);
+
 }

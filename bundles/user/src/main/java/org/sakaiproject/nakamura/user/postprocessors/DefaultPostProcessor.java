@@ -227,6 +227,10 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
    */
   private static final Set<String> NO_MANAGE = ImmutableSet.of(Group.EVERYONE, User.ANON_USER, User.ADMIN_USER);
 
+  private static final String JOINREQUESTS_FOLDER = "/joinrequests";
+
+  private static final String JOINREQUESTS_RT = "sparse/joinrequests";
+
   @Reference
   protected Repository repository;
 
@@ -449,6 +453,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
               profileType, false, contentManager, accessControlManager,
               sakaiAuthzProperties);
+          createPath(authId, homePath + JOINREQUESTS_FOLDER, JOINREQUESTS_RT, false,
+              contentManager, accessControlManager, null);
         } else {
           createPath(authId, LitePersonalUtils.getPublicPath(authId) + PROFILE_FOLDER,
               profileType, false, contentManager, accessControlManager, sakaiAuthzProperties);
@@ -459,12 +465,14 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
         Map<String, Object> profileProperties = processProfileParameters(
             defaultProfileTemplate, authorizable, parameters);
+        createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC,
+            "nt:unstructured", false, contentManager, accessControlManager, null);
         for (String propName : profileProperties.keySet()) {
+          createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC + "/" + propName,
+              "nt:unstructured", false, contentManager, accessControlManager, ImmutableMap.of("value", profileProperties.get(propName)));
           authorizable.setProperty(propName, profileProperties.get(propName));
         }
         authorizableManager.updateAuthorizable(authorizable);
-        createPath(authId, LitePersonalUtils.getProfilePath(authId) + PROFILE_BASIC,
-            "nt:unstructured", false, contentManager, accessControlManager, profileProperties);
       }
     } else {
       // Attempt to sync the Acl on the home folder with whatever is present in the
@@ -507,7 +515,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           boolean modified = false;
           for (final Entry<String, Object[]> entry : parameters.entrySet()) {
             final String key = entry.getKey();
-            if ("sakai:group-joinable".equals(key) || "sakai:group-visible".equals(key)) {
+            if ("sakai:group-joinable".equals(key) 
+                || "sakai:group-visible".equals(key)
+                || "sakai:pages-visible".equals(key)) {
               authprofile.setProperty(entry.getKey(), entry.getValue()[0]);
               modified = true;
             }

@@ -88,6 +88,9 @@ public class SparseContentResource extends AbstractResource {
     metadata.setModificationTime(StorageClientUtils.toLong(props.get(Content.LASTMODIFIED_FIELD)));
     metadata.setResolutionPath(content.getPath());
     metadata.setResolutionPathInfo(content.getPath());
+    if (content.hasProperty(Content.MIMETYPE_FIELD)) {
+      metadata.setContentType((String) content.getProperty(Content.MIMETYPE_FIELD));
+    }
   }
 
   /**
@@ -106,21 +109,27 @@ public class SparseContentResource extends AbstractResource {
       retval = (Type) session;
     } else if (type == InputStream.class) {
       try {
-        StringWriter sw = new StringWriter();
-        ExtendedJSONWriter writer = new ExtendedJSONWriter(sw);
-        writer.valueMap(content.getProperties());
-        String s = sw.toString();
-        ByteArrayInputStream bais = new ByteArrayInputStream(s.getBytes(UTF_8));
-        retval = (Type) bais;
         retval = (Type) contentManager.getInputStream(content.getPath());
-      } catch (JSONException e) {
-        logger.error(e.getMessage(), e);
       } catch (IOException e) {
         logger.error(e.getMessage(), e);
       } catch (AccessDeniedException e) {
         logger.error(e.getMessage(), e);
       } catch (StorageClientException e) {
         logger.error(e.getMessage(), e);
+      }
+      if ( retval == null ) {
+        try {
+          StringWriter sw = new StringWriter();
+          ExtendedJSONWriter writer = new ExtendedJSONWriter(sw);
+          writer.valueMap(content.getProperties());
+          String s = sw.toString();
+          ByteArrayInputStream bais = new ByteArrayInputStream(s.getBytes(UTF_8));
+          retval = (Type) bais;
+        } catch (JSONException e) {
+          logger.error(e.getMessage(), e);
+        } catch (IOException e) {
+          logger.error(e.getMessage(), e);
+        }
       }
     } else if (type == ValueMap.class) {
       // TODO BL120 logic in SparseValueMapDecorator may need another look

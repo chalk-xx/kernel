@@ -17,6 +17,7 @@
 package org.sakaiproject.nakamura.api.resource;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.sling.api.request.RequestParameter;
@@ -68,6 +69,11 @@ public class RequestProperty {
         this.path = ResourceUtil.normalize(path);
         this.parentPath = ResourceUtil.getParent(path);
         this.name = ResourceUtil.getName(path);
+    }
+
+    @Override
+    public String toString() {
+      return "RequestProperty [name=" + name + ", values=" + Arrays.toString(values) + "]";
     }
 
     public String getTypeHint() {

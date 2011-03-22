@@ -27,7 +27,6 @@ import java.io.Writer;
  * Utils to handle the repetetive bits of the presence services
  */
 public class PresenceUtils {
-  public static final String ANON_USERID = "anonymous";
 
   /**
    * Method to generate the JSON related to the presence of a single user (or at least the

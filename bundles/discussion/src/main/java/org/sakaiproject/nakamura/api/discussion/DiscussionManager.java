@@ -36,8 +36,7 @@ public interface DiscussionManager {
    * @return
    * @throws MessagingException
    */
-  public Node findMessage(String messageId, String marker, Session session, String path)
-      throws MessagingException;
+  public Node findMessage(String messageId, String marker, Session session, String path);
 
   /**
    * Looks in the entire repository to find a sakai/settings file of a certain type and

@@ -236,7 +236,7 @@ public class TrustedTokenServiceTest {
     Thread.sleep(20L);
     String cookie2 = trustedTokenService.encodeCookie("ieb2");
     String user = trustedTokenService.decodeCookie(cookie);
-    Assert.assertNotNull(user);
+    Assert.assertNotNull("Cookie was "+cookie+" but did not decode ",user);
     Assert.assertEquals("ieb", user);
     user = trustedTokenService.decodeCookie(cookie2);
     Assert.assertNotNull(user);
@@ -270,7 +270,7 @@ public class TrustedTokenServiceTest {
     Assert.assertNotSame(cookie, cookie2.getValue());
     Assert.assertEquals("secure-cookie", cookie2.getName());
     String user = trustedTokenService.decodeCookie(cookie2.getValue());
-    Assert.assertEquals("ieb", user);
+    Assert.assertEquals("Cookie was "+cookie2.getValue(),"ieb", user);
     verify();
   }
 

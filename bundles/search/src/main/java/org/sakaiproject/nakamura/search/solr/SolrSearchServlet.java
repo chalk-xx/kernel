@@ -54,7 +54,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -71,6 +70,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
 import org.sakaiproject.nakamura.api.templates.TemplateService;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,6 +190,11 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           return;
         }
 
+        // allow number of items to be specified in sakai:query-template-options
+        if (query.getOptions().containsKey(PARAMS_ITEMS_PER_PAGE)) {
+          nitems = Long.valueOf(query.getOptions().get(PARAMS_ITEMS_PER_PAGE));
+        }
+
         boolean useBatch = false;
         // Get the
         SolrSearchBatchResultProcessor searchBatchProcessor = defaultSearchBatchProcessor;
@@ -228,7 +233,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        JSONWriter write = new JSONWriter(response.getWriter());
+        ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
         write.setTidy(isTidy(request));
 
         write.object();
@@ -264,12 +269,11 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         write.endObject();
       }
     } catch (RepositoryException e) {
-      e.printStackTrace();
+      LOGGER.error(e.getMessage(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      LOGGER.info("Caught RepositoryException {}", e.getMessage());
     } catch (JSONException e) {
+      LOGGER.error(e.getMessage(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      LOGGER.info("Caught JSONException {}", e.getMessage());
     }
   }
 
@@ -278,15 +282,12 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     return queryString;
   }
 
-  private String expandHomeDirectory(String queryString)
-      throws RepositoryException {
+  private String expandHomeDirectory(String queryString) {
     Matcher homePathMatcher = homePathPattern.matcher(queryString);
     if (homePathMatcher.find()) {
       String username = homePathMatcher.group(3);
       String homePrefix = homePathMatcher.group(1);
       String userHome = LitePersonalUtils.getHomePath(username);
-      // escape the home path twice so that the escaping will withstand the matcher
-      // replacement
       userHome = ClientUtils.escapeQueryChars(userHome);
       String homePath = homePrefix + userHome + "/";
       String prefix = "";
@@ -423,6 +424,13 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
   }
 
   /**
+   * Load properties from the query node, request and property provider.<br/>
+   *
+   * Overwrite order: query node &lt; request &lt; property provider<br/>
+   *
+   * This ordering allows the query node to set defaults, the request to override those
+   * defaults but the property provider to have the final say in what value is set.
+   * 
    * @param request
    * @param propertyProviderName
    * @return
@@ -432,14 +440,48 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       String propertyProviderName, Node node) throws RepositoryException {
     Map<String, String> propertiesMap = new HashMap<String, String>();
 
-    // load authorizable (user) information
+    // 0. load authorizable (user) information
     String userId = request.getRemoteUser();
     String userPrivatePath = ClientUtils.escapeQueryChars(LitePersonalUtils
         .getPrivatePath(userId));
     propertiesMap.put("_userPrivatePath", userPrivatePath);
     propertiesMap.put("_userId", ClientUtils.escapeQueryChars(userId));
 
-    // load properties from a property provider
+    // 1. load in properties from the query template node so defaults can be set
+    PropertyIterator props = node.getProperties();
+    while (props.hasNext()) {
+      javax.jcr.Property prop = props.nextProperty();
+      if (!propertiesMap.containsKey(prop.getName()) && !prop.isMultiple()) {
+        propertiesMap.put(prop.getName(), prop.getString());
+      }
+    }
+
+    // 2. load in properties from the request
+    RequestParameterMap params = request.getRequestParameterMap();
+    for (Entry<String, RequestParameter[]> entry : params.entrySet()) {
+      String key = entry.getKey();
+      RequestParameter[] vals = entry.getValue();
+      String requestValue = vals[0].getString();
+
+      // blank values aren't cool
+      if (StringUtils.isBlank(requestValue)) {
+        continue;
+      }
+
+      if ("sortOn".equals(key)) {
+        requestValue = StringUtils.removeStart(requestValue, "sakai:");
+      }
+      // KERN-1601 Wildcard searches have to be manually lowercased for case insensitive
+      // matching as Solr bypasses the analyzer when dealing with a wildcard or fuzzy
+      // search.
+      if (StringUtils.contains(requestValue, '*')
+          || StringUtils.contains(requestValue, '~')) {
+        requestValue = requestValue.toLowerCase();
+      }
+      propertiesMap.put(entry.getKey(), requestValue);
+    }
+
+    // 3. load properties from a property provider
     if (propertyProviderName != null) {
       LOGGER.debug("Trying Provider Name {} ", propertyProviderName);
       SolrSearchPropertyProvider provider = propertyProvider.get(propertyProviderName);
@@ -451,32 +493,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       }
     } else {
       LOGGER.debug("No Provider ");
-    }
-
-    // load in properties from the request
-    RequestParameterMap params = request.getRequestParameterMap();
-    for (Entry<String, RequestParameter[]> entry : params.entrySet()) {
-      String key = entry.getKey();
-      RequestParameter[] vals = entry.getValue();
-      // don't allow the URL to replace parameters that have already been set.
-      // this keeps any _* variables from being replaced by request parameters.
-      String value = propertiesMap.get(key);
-      if (StringUtils.isBlank(value)) {
-        String requestValue = vals[0].getString();
-        if ("sortOn".equals(key)) {
-          requestValue = StringUtils.removeStart(requestValue, "sakai:");
-        }
-        propertiesMap.put(entry.getKey(), requestValue);
-      }
-    }
-
-    // load in properties from the query template node so defaults can be set
-    PropertyIterator props = node.getProperties();
-    while (props.hasNext()) {
-      javax.jcr.Property prop = props.nextProperty();
-      if (!propertiesMap.containsKey(prop.getName()) && !prop.isMultiple()) {
-        propertiesMap.put(prop.getName(), prop.getString());
-      }
     }
 
     return propertiesMap;

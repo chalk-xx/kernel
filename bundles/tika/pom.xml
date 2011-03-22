@@ -58,8 +58,11 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
-            <Export-Package>org.apache.tika*;-split-package:=merge-first</Export-Package>
-             <Embed-Dependency>
+            <Export-Package>
+              org.apache.tika*;-split-package:=merge-first,
+              org.sakaiproject.nakamura.api.*
+            </Export-Package>
+            <Embed-Dependency>
               commons-compress,
               pdfbox,fontbox,jempbox,
               poi,poi-scratchpad,poi-ooxml,poi-ooxml-schemas,
@@ -72,8 +75,8 @@
             <Embed-Transitive>true</Embed-Transitive>
             <Bundle-DocURL>${project.url}</Bundle-DocURL>
             <Import-Package>
-                org.w3c.dom,
-                *;resolution:=optional
+              org.w3c.dom,
+              *;resolution:=optional
             </Import-Package>
           </instructions>
         </configuration>
@@ -81,6 +84,14 @@
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.scr.annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.osgi.compendium</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-core</artifactId>

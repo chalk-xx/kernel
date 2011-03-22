@@ -25,6 +25,7 @@ import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Before;
 import org.junit.Test;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
@@ -51,7 +52,9 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
   private SlingRepository repository;
   private MessageRoutes routes;
   private JackrabbitSession adminSession;
+  private EventAdmin eventAdmin;
 
+  @Override
   @Before
   public void setUp() throws Exception {
     super.setUp();
@@ -69,9 +72,11 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
     repository = createMock(SlingRepository.class);
     expect(repository.loginAdministrative(null)).andReturn(adminSession);
 
+    eventAdmin = createNiceMock(EventAdmin.class);
     transport.messagingService = messagingService;
     transport.lockManager = lockManager;
     transport.slingRepository = repository;
+    transport.eventAdmin = eventAdmin;
   }
 
   // PowerMock should allow us to mock static methods.

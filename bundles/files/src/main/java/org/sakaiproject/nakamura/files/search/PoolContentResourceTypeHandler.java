@@ -30,6 +30,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.tika.exception.TikaException;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
@@ -45,6 +47,7 @@ import org.sakaiproject.nakamura.api.lite.util.Iterables;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
+import org.sakaiproject.nakamura.api.tika.TikaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,6 +79,9 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
   @Reference(target="(type=sparse)")
   protected ResourceIndexingService resourceIndexingService;
 
+  @Reference
+  private TikaService tika;
+
   private static Map<String, String> getFieldMap() {
     Builder<String, String> builder = ImmutableMap.builder();
     builder.put(FilesConstants.POOLED_CONTENT_USER_MANAGER, "manager");
@@ -91,12 +97,14 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     builder.put(FilesConstants.CREATED, FilesConstants.CREATED);
     builder.put(FilesConstants.CREATED_BY, FilesConstants.CREATED_BY);
     builder.put(FilesConstants.LINK_PATHS, FilesConstants.LINK_PATHS);
+    builder.put(FilesConstants.SAKAI_DESCRIPTION, "description");
     return builder.build();
   }
 
   // ---------- SCR integration-------------------------------------------------
+
   @Activate
-  public void activate(Map<String, Object> properties) {
+  public void activate(BundleContext bundleContext, Map<String, Object> properties) throws Exception {
     for (String type : CONTENT_TYPES) {
       resourceIndexingService.addHandler(type, this);
     }
@@ -145,9 +153,13 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
 
           InputStream contentStream = contentManager.getInputStream(path);
           if (contentStream != null) {
-            doc.addField("content", contentStream);
+            try {
+              String extracted = tika.parseToString(contentStream);
+              doc.addField("content", extracted);
+            } catch (TikaException e) {
+              LOGGER.warn(e.getMessage(), e);
+            }
           }
-
 
           doc.addField(_DOC_SOURCE_OBJECT, content);
           documents.add(doc);
@@ -195,7 +207,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     if ( ignore ) {
       return Collections.emptyList();
     } else {
-      return ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
+      return ImmutableList.of(FIELD_ID + ":" + ClientUtils.escapeQueryChars(path));
     }
   }
 

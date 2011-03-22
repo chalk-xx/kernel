@@ -83,7 +83,10 @@ public interface MessageConstants {
    * This property will hold the number of times message delivery has been retried
    */
   public static final String PROP_SAKAI_RETRY_COUNT = "sakai:retrycount";
-
+  /**
+   * Property of the message store container for a message. Used primarily in discussions.
+   */
+  public static final String PROP_SAKAI_MESSAGE_STORE = "sakai:messagestore";
 
   /**
    * Value for a date.

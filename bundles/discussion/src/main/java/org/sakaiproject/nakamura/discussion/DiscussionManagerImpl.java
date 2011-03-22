@@ -17,27 +17,21 @@
  */
 package org.sakaiproject.nakamura.discussion;
 
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
 import org.sakaiproject.nakamura.api.message.MessagingException;
-import org.sakaiproject.nakamura.util.PersonalUtils;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.jcr.AccessDeniedException;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
@@ -45,8 +39,8 @@ import javax.jcr.query.QueryResult;
 /**
  * Manager for the discussions.
  */
-@Component(immediate = true, label = "%discussion.manager.label", description = "%discussion.manager.desc")
-@Service
+//@Component(label = "%discussion.manager.label", description = "%discussion.manager.desc")
+//@Service
 public class DiscussionManagerImpl implements DiscussionManager {
 
   public static final Logger LOG = LoggerFactory.getLogger(DiscussionManagerImpl.class);
@@ -54,7 +48,7 @@ public class DiscussionManagerImpl implements DiscussionManager {
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
 
-  private Pattern homePathPattern = Pattern.compile("(~(.*?))/");
+  private Pattern homePathPattern = Pattern.compile("^(.*)(~([\\w-]*?))/");
 
   /**
    * 
@@ -77,8 +71,8 @@ public class DiscussionManagerImpl implements DiscussionManager {
       path = path.substring(0, path.length());
     }
     try {
-      path = expandHomeDirectoryInPath(session, path);
-
+      path = expandHomeDirectory(path);
+      
       String queryString = "/"
         + path
         + "//*[@sling:resourceType=\"sakai/message\" and @sakai:type='discussion' and @sakai:id='"
@@ -94,7 +88,6 @@ public class DiscussionManagerImpl implements DiscussionManager {
         Node n = nodeIterator.nextNode();
         return n;
       }
-
     } catch (RepositoryException e) {
       LOG.warn("Unable to check for message with ID '{}' and marker '{}'", messageId,
           marker);
@@ -126,26 +119,29 @@ public class DiscussionManagerImpl implements DiscussionManager {
         Node n = nodeIterator.nextNode();
         return n;
       }
-
     } catch (RepositoryException e) {
       LOG.warn("Unable to check for settings of type '{}' and marker '{}'", type, marker);
     }
 
     LOG.debug("No settings with type '{}' and marker '{}' found.", type, marker);
-
     return null;
   }
-  private String expandHomeDirectoryInPath(Session session, String path)
-  throws AccessDeniedException, UnsupportedRepositoryOperationException,
-  RepositoryException {
-    Matcher homePathMatcher = homePathPattern.matcher(path);
+
+  private String expandHomeDirectory(String queryString) {
+    Matcher homePathMatcher = homePathPattern.matcher(queryString);
     if (homePathMatcher.find()) {
-      String username = homePathMatcher.group(2);
-      UserManager um = AccessControlUtil.getUserManager(session);
-      Authorizable au = um.getAuthorizable(username);
-      String homePath = PersonalUtils.getHomePath(au).substring(1) + "/";
-      path = homePathMatcher.replaceAll(homePath);
+      String username = homePathMatcher.group(3);
+      String homePrefix = homePathMatcher.group(1);
+      String userHome = LitePersonalUtils.getHomePath(username);
+      userHome = ClientUtils.escapeQueryChars(userHome);
+      String homePath = homePrefix + userHome + "/";
+      String prefix = "";
+      if (homePathMatcher.start() > 0) {
+        prefix = queryString.substring(0, homePathMatcher.start());
+      }
+      String suffix = queryString.substring(homePathMatcher.end());
+      queryString = prefix + homePath + suffix;
     }
-    return path;
+    return queryString;
   }
 }

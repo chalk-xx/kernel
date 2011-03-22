@@ -18,10 +18,8 @@
 
 package org.sakaiproject.nakamura.discussion;
 
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
 import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
@@ -41,8 +39,8 @@ import javax.jcr.RepositoryException;
  * discussion messages should be re-routed to an email address, this router will take care
  * of it.
  */
-@Component(immediate = true, inherit = true, label = "%discussion.router.label", description = "%discussion.router.desc")
-@Service
+//@Component(inherit = true, label = "%discussion.router.label", description = "%discussion.router.desc")
+//@Service
 public class DiscussionRouter implements MessageRouter {
 
   @Reference
@@ -53,12 +51,11 @@ public class DiscussionRouter implements MessageRouter {
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
 
-  protected void bindDiscussionManager(DiscussionManager discussionManager) {
-    this.discussionManager = discussionManager;
+  public DiscussionRouter() {
   }
 
-  protected void unbindDiscussionManager(DiscussionManager discussionManager) {
-    this.discussionManager = null;
+  DiscussionRouter(DiscussionManager discussionManager) {
+    this.discussionManager = discussionManager;
   }
 
   public int getPriority() {

@@ -59,7 +59,7 @@ public class MessageSearchPropertyProvider implements SolrSearchPropertyProvider
     String user = request.getRemoteUser();
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ClientUtils
-        .escapeQueryChars(messagingService.getFullPathToStore(user, session)));
+        .escapeQueryChars(messagingService.getFullPathToStore(user, session)) + "*");
 
     RequestParameter address = request.getRequestParameter("address");
     if (address != null && !address.getString().equals("")) {
@@ -67,7 +67,7 @@ public class MessageSearchPropertyProvider implements SolrSearchPropertyProvider
       String addressString = address.getString();
       String storePath = messagingService.getFullPathToStore(addressString, session);
       propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE,
-          ClientUtils.escapeQueryChars(storePath));
+          ClientUtils.escapeQueryChars(storePath) + "*");
     }
 
     RequestParameter usersParam = request.getRequestParameter("_from");

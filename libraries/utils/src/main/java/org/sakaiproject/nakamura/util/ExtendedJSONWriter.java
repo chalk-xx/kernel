@@ -71,9 +71,9 @@ public class ExtendedJSONWriter extends JSONWriter {
   }
   public static void writeValueMapInternals(JSONWriter writer, Map<String, ?> valueMap) throws JSONException {
     if (valueMap != null) {
-      for (Entry<String, ?> e : valueMap.entrySet()) {
-        writer.key(e.getKey());
-        writeValueInternal(writer, e.getValue());
+      for (Entry<String, ?> entry : valueMap.entrySet()) {
+        writer.key(entry.getKey());
+        writeValueInternal(writer, entry.getValue());
       }
     }
   }
@@ -168,6 +168,10 @@ public class ExtendedJSONWriter extends JSONWriter {
     for (Entry<String, Object> prop : props.entrySet()) {
       String propName = prop.getKey();
       Object propValue = prop.getValue();
+
+      if ("_path".equals(propName)) {
+        continue;
+      }
 
       write.key(propName);
       if (propValue instanceof Object[]) {

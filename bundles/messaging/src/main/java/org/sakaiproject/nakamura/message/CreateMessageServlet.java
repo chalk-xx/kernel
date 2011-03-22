@@ -72,6 +72,7 @@ import javax.servlet.http.HttpServletResponse;
  * MessagePostProcessor who will then send an OSGi event that feeds it to the correct
  * MessageHandler.
  */
+/*
 @SlingServlet(resourceTypes = { "sakai/messagestore" }, selectors = { "create" }, methods = { "POST" }, generateComponent = true, generateService = true)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
@@ -102,6 +103,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceParameter(name = "sakai:to", description = "Comma seperated list of recipients. A messageroute should be specified for each recipient.eg: sakai:to=interal:admin,smtp:address@email.com. Note that each messageroute has it's own checks!"),
           @ServiceParameter(name = "sakai:messagebox", description = "This specifies in which box the message is located. Note: This is just a property on the message(=node). The message will not fysicly be saved on a different location. eg: sakai:messagebox=outbox"),
           @ServiceParameter(name = "sakai:sendstate", description = "The state this message is in. eg: sakai:sendsate=pending") }))
+*/
 public class CreateMessageServlet extends SlingAllMethodsServlet {
 
   /**

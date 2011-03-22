@@ -17,10 +17,8 @@
  */
 package org.sakaiproject.nakamura.presence;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
@@ -36,8 +34,10 @@ import org.sakaiproject.nakamura.api.presence.PresenceStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component(immediate = true,label = "Sakai Presence Service", description = "Service for getting info about the presence status and locations of current users", name = "org.sakaiproject.nakamura.api.presence.PresenceService")
 @Service(value = PresenceService.class)
@@ -154,8 +154,9 @@ public class PresenceServiceImpl implements PresenceService {
     }
     return location;
   }
+  
 
-  private String[] getCurrentStatus(String uuid) {
+  public String[] getCurrentStatus(String uuid) {
     String[] result = null;
     if (userStatusCache != null) {
       String currentStatus = userStatusCache.get(uuid);

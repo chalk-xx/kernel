@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": 'resourceType:sakai/pooled-content AND content:(${q}) AND managers:(${au})',
+  "sakai:query-template": "resourceType:sakai/pooled-content AND (content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q})) AND managers:(${au})",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },

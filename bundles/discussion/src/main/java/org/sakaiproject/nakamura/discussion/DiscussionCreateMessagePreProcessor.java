@@ -18,10 +18,8 @@
 
 package org.sakaiproject.nakamura.discussion;
 
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
@@ -37,8 +35,8 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Checks if the message the user wants to create has all the right properties on it.
  */
-@Component(immediate = true, label = "%discussion.createMessagePreProcessor.label", description = "%discussion.createMessagePreProcessor.desc")
-@Service
+//@Component(label = "%discussion.createMessagePreProcessor.label", description = "%discussion.createMessagePreProcessor.desc")
+//@Service
 public class DiscussionCreateMessagePreProcessor implements CreateMessagePreProcessor {
 
   public static final Logger LOG = LoggerFactory
@@ -68,9 +66,9 @@ public class DiscussionCreateMessagePreProcessor implements CreateMessagePreProc
       throw new MessagingException(HttpServletResponse.SC_BAD_REQUEST, "The "
           + DiscussionConstants.PROP_MARKER + " parameter has to be specified.");
     }
-
     String marker = request.getRequestParameter(DiscussionConstants.PROP_MARKER)
         .getString();
+
     Session session = request.getResourceResolver().adaptTo(Session.class);
     String path = request.getRequestPathInfo().getResourcePath();
 

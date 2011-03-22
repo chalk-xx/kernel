@@ -6,21 +6,23 @@ Export-Package: org.apache.felix.http.api;uses:="javax.servlet,org.osg
  ion="2.5",javax.servlet.http;uses:="javax.servlet";version="2.5",org.
  sakaiproject.nakamura.api.servlet;version="0.10",org.mortbay.util.aja
  x;version="6.1.22"
-Built-By: fmeschbe
+Built-By: ieb
 Tool: Bnd-0.0.357
-Bundle-Name: Apache Felix Http Jetty
-Created-By: Apache Maven Bundle Plugin
-Bundle-Vendor: The Apache Software Foundation
+Bundle-Name: Nakamura Http Jetty
+Created-By: Hand
+Bundle-Vendor: The Sakai Software Foundation
 DynamicImport-Package: org.osgi.service.cm;version=1.2
 Build-Jdk: 1.6.0_13
 Bundle-Version: 2.2.0
-Bnd-LastModified: 1296053619491
-Bundle-Activator: org.apache.felix.http.jetty.internal.JettyActivator
+Bundle-Activator: org.apache.felix.http.jetty.internal.NakamuraActivat
+ or
 Service-Component: OSGI-INF/serviceComponents.xml
 Bundle-ManifestVersion: 2
 Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
-Bundle-Description: Apache Felix is an OSGi implementation.
-Bundle-DocURL: http://www.apache.org/
+Bundle-Description: This bundle is based on the Apache Felix Http Jett
+ y bundle with some small modifications for Nakamura. Apache Felix is 
+ an OSGi implementation.
+Bundle-DocURL: http://www.sakaiproject.org/
 Bundle-SymbolicName: org.apache.felix.http.jetty
 Import-Package: javax.net.ssl;resolution:=optional,javax.security.cert
  ;resolution:=optional,javax.servlet;resolution:=optional;version="2.5

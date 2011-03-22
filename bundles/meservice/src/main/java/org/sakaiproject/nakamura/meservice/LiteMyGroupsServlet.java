@@ -130,14 +130,18 @@ public class LiteMyGroupsServlet extends LiteAbstractMyGroupsServlet {
         // we don't want the "everyone" group in this feed
         continue;
       }
-      if (group.hasProperty("sakai:managed-group")) {
+      if (group.getProperty("sakai:managed-group") != null) {
         // fetch the group that the manager group manages
         group = userManager.findAuthorizable((String) group.getProperty("sakai:managed-group"));
-        if (group == null || !(group instanceof Group)) {
+        if (group == null || !(group instanceof Group) || group.getProperty("sakai:group-title") == null) {
           continue;
         }
       }
-      groups.put(group.getId(), (Group) group);
+      if (group.getProperty("sakai:group-title") != null) {
+        // KERN-1600 Group's without a title should only be system groups for things like
+        // managing contacts. The UI requires a title.
+        groups.put(group.getId(), (Group) group);
+      }
     }
     return groups;
   }

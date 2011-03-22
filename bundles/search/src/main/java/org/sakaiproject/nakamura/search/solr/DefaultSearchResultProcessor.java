@@ -70,12 +70,14 @@ public class DefaultSearchResultProcessor implements SolrSearchResultProcessor {
 
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
       throws JSONException {
-    String contentPath = (String) result.getFirstValue("path");
+    String contentPath = result.getPath();
     Session session =
       StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     try {
       Content contentResult = session.getContentManager().get(contentPath);
-      ExtendedJSONWriter.writeContentTreeToWriter(write, contentResult, -1);
+      if (contentResult != null) {
+        ExtendedJSONWriter.writeContentTreeToWriter(write, contentResult, -1);
+      }
     } catch (Exception e) {
       throw new JSONException(e);
     }

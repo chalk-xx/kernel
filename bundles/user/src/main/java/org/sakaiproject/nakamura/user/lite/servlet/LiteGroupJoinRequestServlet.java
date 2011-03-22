@@ -116,7 +116,7 @@ public class LiteGroupJoinRequestServlet extends SlingAllMethodsServlet {
     try {
       
     String groupId = StorageClientUtils.getObjectName(group.getPath());
-    session = repository.loginAdministrative(null);
+    session = repository.loginAdministrative();
     ContentManager contentManager = session.getContentManager();
     Content profileContent = contentManager.get(group.getPath()+"/"+LitePersonalUtils.PATH_PUBLIC+"/"+LitePersonalUtils.PATH_AUTH_PROFILE);
     AuthorizableManager authorizableManager = session.getAuthorizableManager();

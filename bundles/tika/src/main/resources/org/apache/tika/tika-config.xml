@@ -127,20 +127,11 @@
                 <mime>image/jpeg</mime>
         </parser>
 
-        <parser name="parse-zip" class="org.apache.tika.parser.pkg.ZipParser">
+        <parser name="parse-pkg" class="org.apache.tika.parser.pkg.PackageParser">
                 <mime>application/zip</mime>
-        </parser>
-
-        <parser name="parse-tar" class="org.apache.tika.parser.pkg.TarParser">
                 <mime>application/x-tar</mime>
                 <mime>application/x-gtar</mime>
-        </parser>
-
-        <parser name="parse-gzip" class="org.apache.tika.parser.pkg.GzipParser">
                 <mime>application/x-gzip</mime>
-        </parser>
-
-        <parser name="parse-bzip2" class="org.apache.tika.parser.pkg.Bzip2Parser">
                 <mime>application/x-bzip</mime>
                 <mime>application/x-bzip2</mime>
         </parser>

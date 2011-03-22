@@ -34,8 +34,8 @@ import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,7 +138,7 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
     if ( session != null ) {
       user = session.getUserID();
     }
-    if (user == null || PresenceUtils.ANON_USERID.equals(user) ) {
+    if (user == null || User.ANON_USER.equals(user) ) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "User must be logged in to ping their status and set location");
       return;

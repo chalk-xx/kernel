@@ -31,6 +31,7 @@ import javax.jcr.Session;
  * as richer Sakai User and Group entities. Most of the additional functionality is
  * contributed by AuthorizablePostProcessor services.
  */
+@Deprecated
 public interface AuthorizablePostProcessService extends BoundService {
 
   /**
