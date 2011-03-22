@@ -266,8 +266,9 @@ module SlingInterface
         while (res.header['location'] && res.header['location'] != lastlocation)
             lastlocation = res.header['location']
             url = URI.parse(res.header['location'])
-            host, port = url.host, url.port if url.host && url.port 
-            req = Net::HTTP::Get.new(url.path) 
+            host, port = url.host, url.port if url.host && url.port
+			@log.info("Redirecting to #{url}")
+            req = Net::HTTP::Get.new(url.request_uri())
             res = Net::HTTP.new(host, port).start {|http|  http.request(req) } 
         end
         return res

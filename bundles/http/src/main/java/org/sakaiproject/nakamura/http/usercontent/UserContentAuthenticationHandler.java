@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Handles requests to transfer user authN from a trusted host to a non content host.
  */
-@Component(immediate = true, metatype = true, enabled=false)
+@Component(immediate = true, metatype = true, enabled=true)
 @Service(value=AuthenticationHandler.class)
 @Properties( value={
     @Property(name="service.description",value="User Content Authentication Handler"),
