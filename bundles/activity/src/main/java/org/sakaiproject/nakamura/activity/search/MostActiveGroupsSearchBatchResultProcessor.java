@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
@@ -112,6 +113,8 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
           resources.values());
       Collections.sort(resourceActivities, Collections.reverseOrder());
       write.object();
+      write.key(SolrSearchConstants.TOTAL);
+      write.value(resourceActivities.size());
       write.key("groups");
       write.array();
       for (ResourceActivity resourceActivity : resourceActivities) {
