@@ -93,7 +93,8 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
           }
           String resourceName = (String) resourceNode
               .getProperty(FilesConstants.POOLED_CONTENT_FILENAME);
-          resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName));
+          resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName,
+              (Long) resourceNode.getProperty(FilesConstants.LAST_MODIFIED)));
         }
         // increment the count for this particular resource.
         resources.get(resourceId).activityScore++;
@@ -151,17 +152,20 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
   public class ResourceActivity implements Comparable<ResourceActivity> {
     public final String id;
     public final String name;
-    public int activityScore;
+    public final Long lastModified;
+    public Integer activityScore;
 
-    public ResourceActivity(String id, int activityScore, String name) {
+    public ResourceActivity(String id, int activityScore, String name, long lastModified) {
       this.id = id;
       this.activityScore = activityScore;
       this.name = name;
+      this.lastModified = lastModified;
     }
     
     @Override
     public String toString() {
-      return "ResourceActivity(" + id + ", " + activityScore + ", " + name + ")";
+      return "ResourceActivity(" + id + ", " + activityScore + ", " + name + ", "
+          + lastModified + ")";
     }
 
     @Override
@@ -193,8 +197,11 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
     }
 
     public int compareTo(ResourceActivity other) {
-      return Integer.valueOf(this.activityScore).compareTo(
-          Integer.valueOf(other.activityScore));
+      if (this.activityScore.equals(other.activityScore)) {
+        return this.lastModified.compareTo(other.lastModified);
+      } else {
+        return this.activityScore.compareTo(other.activityScore);
+      }
     }
 
     private LiteMostActiveContentSearchBatchResultProcessor getOuterType() {
