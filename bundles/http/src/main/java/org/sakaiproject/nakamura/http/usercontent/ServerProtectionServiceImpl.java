@@ -353,7 +353,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
           String[] parts = StringUtils.split(hmac, ';');
           String requestUrl = request.getRequestURL().append("?")
               .append(request.getQueryString()).toString();
-          System.err.println("Checking requestUrl [" + requestUrl + "]");
+          LOGGER.debug("Checking requestUrl [{}", requestUrl);
           int i = requestUrl.indexOf("&" + HMAC_PARAM);
           if ( i < 0 ) {
             i = requestUrl.indexOf("?" + HMAC_PARAM);
@@ -379,6 +379,8 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
           LOGGER.debug(e.getMessage(), e);
         }
       }
+    } else {
+      LOGGER.debug("A safe host, wont look for Transfer {} ",request.getRequestURL().toString());
     }
     return null;
   }
