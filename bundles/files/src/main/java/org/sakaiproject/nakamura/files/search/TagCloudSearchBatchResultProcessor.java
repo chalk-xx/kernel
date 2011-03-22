@@ -47,10 +47,10 @@ import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
 
-@Component(immediate = true, label = "TagCloudResultProcessor", description = "Formatter for tag cloud")
-@Service(value = SearchBatchResultProcessor.class)
-@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "sakai.search.batchprocessor", value = "TagCloud") })
+//@Component(immediate = true, label = "TagCloudResultProcessor", description = "Formatter for tag cloud")
+//@Service(value = SearchBatchResultProcessor.class)
+//@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
+//    @Property(name = "sakai.search.batchprocessor", value = "TagCloud") })
 public class TagCloudSearchBatchResultProcessor implements SearchBatchResultProcessor {
 
   @Reference
@@ -126,16 +126,16 @@ public class TagCloudSearchBatchResultProcessor implements SearchBatchResultProc
 
 }
 
-class Tag implements Comparable<Tag> {
+class JcrTag implements Comparable<Tag> {
   public String id;
   public String name;
   public int frequency;
 
-  public Tag(String id) {
+  public JcrTag(String id) {
     this.id = id;
   }
 
-  public Tag(String id, int frequency) {
+  public JcrTag(String id, int frequency) {
     this.id = id;
     this.frequency = frequency;
   }
