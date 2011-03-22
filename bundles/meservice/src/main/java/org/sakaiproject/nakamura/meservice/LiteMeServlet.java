@@ -158,7 +158,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
 
       // Dump this user his number of unread messages.
       writer.key("messages");
-      writeMessageCounts(writer, session, au);
+      writeMessageCounts(writer, session, au, request);
 
       // Dump this user his number of contacts.
       writer.key("contacts");
@@ -185,6 +185,14 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       LOG.error("Failed to get a user his profile node in /system/me", e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Sparse storage client error.");
+    } catch (MessagingException e) {
+      LOG.error("Failed to get a user his message counts in /system/me", e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Messaging error.");
+    } catch (SolrSearchException e) {
+      LOG.error("Failed to execute a Solr search in /system/me", e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Solr search error.");
     }
 
   }
@@ -237,10 +245,11 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
    * @param session
    * @param au
    * @throws JSONException
+   * @throws SolrSearchException
    * @throws RepositoryException
    */
   protected void writeContactCounts(ExtendedJSONWriter writer, Session session,
-      Authorizable au, SlingHttpServletRequest request) throws JSONException {
+      Authorizable au, SlingHttpServletRequest request) throws JSONException, SolrSearchException {
     writer.object();
 
     // We don't do queries for anonymous users. (Possible ddos hole).
@@ -278,8 +287,6 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
           contacts.put(state, count + 1);
         }
       }
-    } catch (SolrSearchException e) {
-      throw new JSONException(e);
     } finally {
       for (Entry<String, Integer> entry : contacts.entrySet()) {
         writer.key(entry.getKey());
@@ -302,9 +309,10 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
    * @throws JSONException
    * @throws RepositoryException
    * @throws MessagingException
+   * @throws SolrSearchException
    */
   protected void writeMessageCounts(ExtendedJSONWriter writer, Session session,
-      Authorizable au) throws JSONException, MessagingException {
+      Authorizable au, SlingHttpServletRequest request) throws JSONException, MessagingException, SolrSearchException {
     writer.object();
     writer.key("unread");
 
@@ -316,27 +324,20 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       return;
     }
 
-    // Get the path to the store for this user.
     long count = 0;
     try {
       String store = messagingService.getFullPathToStore(au.getId(), session);
       store = ISO9075.encodePath(store);
-
-      //TODO BL120 do this messaging search the "sparse way"
-//      StringBuilder statement = new StringBuilder("/jcr:root");
-//      statement.append(store);
-//      statement
-//          .append("//*[@sling:resourceType='sakai/message' and @sakai:type='internal' and @sakai:messagebox='inbox' and @sakai:read = false()]");
-//
-//      // Execute the query, loop over the results and count the items.
-//      QueryManager qm = session.getWorkspace().getQueryManager();
-//      Query q = qm.createQuery(statement.toString(), "xpath");
-//      QueryResult result = q.execute();
-//      NodeIterator iterator = result.getNodes();
-//      while (iterator.hasNext()) {
-//        count++;
-//        iterator.next();
-//      }
+      String queryString = "path:" + ClientUtils.escapeQueryChars(store) + "* AND resourceType:sakai/message AND type:internal AND messagebox:inbox AND read:false";
+      Query query = new Query(queryString, null);
+      LOG.debug("Submitting Query {} ", query);
+      SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
+          request, query, false);
+      Iterator<Result> resultIterator = resultSet.getResultSetIterator();
+      while (resultIterator.hasNext()) {
+        count++;
+        resultIterator.next();
+      }
     } finally {
       writer.value(count);
     }
