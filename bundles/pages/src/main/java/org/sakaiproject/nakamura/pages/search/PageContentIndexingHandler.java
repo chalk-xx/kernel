@@ -101,9 +101,11 @@ public class PageContentIndexingHandler implements IndexingHandler {
 
             // extract the content
             String pageContent = (String) content.getProperty("sakai:pagecontent");
-            String extracted = tika.parseToString(new ByteArrayInputStream(pageContent
-                .getBytes("UTF-8")));
-            doc.addField("content", extracted);
+            if (pageContent != null) {
+              String extracted = tika.parseToString(new ByteArrayInputStream(pageContent
+                  .getBytes("UTF-8")));
+              doc.addField("content", extracted);
+            }
 
             // add the source for the indexing service
             doc.addField(_DOC_SOURCE_OBJECT, content);
