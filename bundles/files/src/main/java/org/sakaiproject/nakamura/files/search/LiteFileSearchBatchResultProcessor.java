@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.files.FileUtils;
@@ -33,7 +34,10 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
@@ -41,10 +45,13 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+
+import javax.jcr.RepositoryException;
 
 /**
  * Formats the files search results.
@@ -60,6 +67,9 @@ public class LiteFileSearchBatchResultProcessor implements SolrSearchBatchResult
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
+
+  @Reference
+  private ProfileService profileService;
 
   public LiteFileSearchBatchResultProcessor(SolrSearchServiceFactory searchServiceFactory) {
     this.searchServiceFactory = searchServiceFactory;
@@ -94,21 +104,27 @@ public class LiteFileSearchBatchResultProcessor implements SolrSearchBatchResult
       depth = iDepth.intValue();
     }
     try {
-      final Session session = StorageClientUtils.adaptToSession(request
-          .getResourceResolver().adaptTo(javax.jcr.Session.class));
+      javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+      final Session session = StorageClientUtils.adaptToSession(jcrSession);
       while (iterator.hasNext()) {
         final Result result = iterator.next();
         try {
-          String contentPath = "";
           if ("authorizable".equals(result.getFirstValue("resourceType"))) {
-            contentPath = "a:" + result.getFirstValue("id") + "/public/authprofile";
+            AuthorizableManager authManager = session.getAuthorizableManager();
+            Authorizable auth = authManager.findAuthorizable((String) result.getFirstValue("id"));
+            if (auth != null) {
+              ValueMap map = profileService.getProfileMap(auth, jcrSession);
+              ExtendedJSONWriter.writeValueMapInternals(write, map);
+            }
           } else {
-            contentPath = result.getPath();
+            String contentPath = result.getPath();
+            final Content content = session.getContentManager().get(contentPath);
+            handleContent(content, session, write, depth);
           }
-          final Content content = session.getContentManager().get(contentPath);
-          handleContent(content, session, write, depth);
         } catch (AccessDeniedException e) {
           // do nothing
+        } catch (RepositoryException e) {
+          throw new JSONException(e);
         }
       }
     } catch (StorageClientException e) {
