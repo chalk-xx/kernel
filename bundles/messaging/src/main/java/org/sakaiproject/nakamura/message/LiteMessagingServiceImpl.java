@@ -101,7 +101,11 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
 
   public Content create(Session session, Map<String, Object> mapProperties, String messageId, String messagePathBase)
     throws MessagingException {
-    String messagePath = messagePathBase + MessageConstants.BOX_OUTBOX + "/" + messageId;
+    String box = (String) mapProperties.get(MessageConstants.PROP_SAKAI_MESSAGEBOX);
+    if (box == null) {
+      box = MessageConstants.BOX_OUTBOX;
+    }
+    String messagePath = messagePathBase + box + "/" + messageId;
     Content msg = new Content(messagePath, null);
     for (Entry<String, Object> e : mapProperties.entrySet()) {
       String val = e.getValue().toString();
