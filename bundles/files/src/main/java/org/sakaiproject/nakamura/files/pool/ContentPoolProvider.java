@@ -25,6 +25,7 @@ import org.apache.sling.api.SlingException;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -98,45 +99,58 @@ public class ContentPoolProvider implements ResourceProvider {
   private Resource resolveMappedResource(ResourceResolver resourceResolver, String path)
       throws StorageClientException, AccessDeniedException, RepositoryException {
     String poolId = null;
+    Session session = JackrabbitSparseUtils.getSparseSession(resourceResolver
+        .adaptTo(javax.jcr.Session.class));
+    ContentManager contentManager = session.getContentManager();
 
     if (path.startsWith("/p/")) {
       poolId = path.substring("/p/".length());
     }
     if (poolId != null && poolId.length() > 0) {
-      int i = poolId.indexOf('/');
-      if (i > 0) {
-        poolId = poolId.substring(0, i);
-      }
-      i = poolId.indexOf('.');
-      String selectors = "";
-      if (i > 0) {
-        // This ResourceProvider should really only resolver things like
-        // /p/717AugiABkcKGOOYxGyzoEsa
-        // If extensions and selectors are added, this resolver should NOT resolve it.
-        // Sling wil keep slicing the extensions/selectors off untill it hits this url
-        // ie: /p/717AugiABkcKGOOYxGyzoEsa.modifyAce.html
-        // - /p/717AugiABkcKGOOYxGyzoEsa.modifyAce.html -> null
-        // - /p/717AugiABkcKGOOYxGyzoEsa.modifyAce -> null
-        // - /p/717AugiABkcKGOOYxGyzoEsa -> return JcrNodeResource
-        return null;
-      }
-      LOGGER.info("Pool ID is [{}]", poolId);
-      Session session = JackrabbitSparseUtils.getSparseSession(resourceResolver
-          .adaptTo(javax.jcr.Session.class));
-      ContentManager contentManager = session.getContentManager();
+      // Resolution Process.
+      // 1. Test the whole path
+      // 2. Locate the PoolID and get that content item out
+      // 3. See if it has a File name property that matches the remainder
+
+      // 1. Test the whole path.
       Content content = contentManager.get(poolId);
-      if (content != null) {
-        LOGGER.info("Content {} ", content);
+      if ( content != null ) {
         SparseContentResource cpr = new SparseContentResource(content, session,
             resourceResolver, path);
         cpr.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
-        cpr.getResourceMetadata().setResolutionPathInfo(selectors);
+        LOGGER.debug("Resolved {} as {} ",path,cpr);
         return cpr;
-      } else {
-        throw new SlingException("Creating a pool item is not allowed via this URL ",
+      }
+
+      // 2. get the PoolID
+      int i = poolId.indexOf('/');
+      String resourceId = null;
+      if (i > 0) {
+        resourceId = poolId.substring(i+1);
+        poolId = poolId.substring(0, i);
+      }
+      content = contentManager.get(poolId);
+      if ( content != null ) {
+        // 3. See if he resource is on the Content Pool node.
+        if (resourceId != null && resourceId.length() > 0 ) {
+          if ( resourceId.equals(content.getProperty(FilesConstants.POOLED_CONTENT_FILENAME))) {
+            SparseContentResource cpr = new SparseContentResource(content, session,
+                resourceResolver, path);
+            cpr.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
+            LOGGER.debug("Resolved {} as {} ",path,cpr);
+            return cpr;
+          }
+        } else {
+          SparseContentResource cpr = new SparseContentResource(content, session,
+              resourceResolver, path);
+          cpr.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
+          LOGGER.debug("Resolved {} as {} ",path,cpr);
+          return cpr;
+        }
+      }
+      throw new SlingException("Creating a pool item is not allowed via this URL ",
             new AccessDeniedException(Security.ZONE_CONTENT, poolId,
                 "Cant create Pool Item", ""));
-      }
     }
     return null;
   }

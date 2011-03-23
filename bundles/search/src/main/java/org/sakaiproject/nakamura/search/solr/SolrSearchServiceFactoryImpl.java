@@ -194,6 +194,11 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
       extractTerms(null, luceneQuery, props, null);
     }
 
+    // add the options to the parameters but prepend _ to avoid collision
+    for (Entry<String, String> option : query.getOptions().entrySet()) {
+      props.put("_" + option.getKey(), option.getValue());
+    }
+
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
         .adaptTo(javax.jcr.Session.class));
     ContentManager cm = session.getContentManager();
@@ -246,7 +251,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
       Map<String, String> options) {
     // build the query
     SolrQuery solrQuery = new SolrQuery(queryString);
-    long[] ranges = SolrSearchUtil.getOffsetAndSize(request);
+    long[] ranges = SolrSearchUtil.getOffsetAndSize(request, options);
     solrQuery.setStart((int) ranges[0]);
     solrQuery.setRows((int) ranges[1]);
 

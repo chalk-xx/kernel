@@ -46,11 +46,15 @@ public class SparseContentResourceIterator extends PreemptiveIterator<Resource> 
     nextResource = null;
     while (nextResource == null && contentIterator.hasNext()) {
       Content content = contentIterator.next();
-      try {
-        nextResource = new SparseContentResource(content, session, resourceResolver);
-      } catch (StorageClientException e) {
-        logger.debug("Unable to convert content {} to resource; cause {}", new Object[] {
-            content, e.getMessage() }, e);
+      if (content != null) {
+        try {
+          nextResource = new SparseContentResource(content, session, resourceResolver);
+        } catch (StorageClientException e) {
+          logger.debug("Unable to convert content {} to resource; cause {}", new Object[] {
+              content, e.getMessage() }, e);
+        }
+      } else {
+        logger.warn("Skipping null content in iterator");
       }
     }
     return (nextResource != null);

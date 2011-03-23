@@ -30,8 +30,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.tika.Tika;
-import org.apache.tika.config.TikaConfig;
 import org.apache.tika.exception.TikaException;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.event.Event;
@@ -49,12 +47,12 @@ import org.sakaiproject.nakamura.api.lite.util.Iterables;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
+import org.sakaiproject.nakamura.api.tika.TikaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -81,7 +79,8 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
   @Reference(target="(type=sparse)")
   protected ResourceIndexingService resourceIndexingService;
 
-  private Tika tika = null;
+  @Reference
+  private TikaService tika;
 
   private static Map<String, String> getFieldMap() {
     Builder<String, String> builder = ImmutableMap.builder();
@@ -106,10 +105,6 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
 
   @Activate
   public void activate(BundleContext bundleContext, Map<String, Object> properties) throws Exception {
-    URL configUrl = bundleContext.getBundle().getResource("/org/apache/tika/tika-config.xml");
-    LOGGER.info("Create Tika with config {} ", configUrl.toString());
-    tika = new Tika(new TikaConfig(configUrl));
-
     for (String type : CONTENT_TYPES) {
       resourceIndexingService.addHandler(type, this);
     }
@@ -117,8 +112,6 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
 
   @Deactivate
   public void deactivate(Map<String, Object> properties) {
-    tika = null;
-
     for (String type : CONTENT_TYPES) {
       resourceIndexingService.removeHandler(type, this);
     }

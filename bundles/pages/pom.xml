@@ -87,6 +87,18 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.solr</artifactId>
+      <version>0.10-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.tika</artifactId>
+      <version>0.7-0.10-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.solr</groupId>
       <artifactId>solr-solrj</artifactId>
     </dependency>
@@ -124,8 +136,6 @@
     <dependency>
       <groupId>com.google.collections</groupId>
       <artifactId>google-collections</artifactId>
-      <version>0.8</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

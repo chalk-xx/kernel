@@ -342,7 +342,6 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
             method.setParams(params);
             method.setFollowRedirects(true);
             populateMethod(method, node, headers);
-            doAuthentication(method);
             int result = httpClient.executeMethod(method);
             if (externalAuthenticatingProxy && result == 407) {
               method.releaseConnection();
@@ -455,7 +454,6 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
           }
         }
 
-        doAuthentication(method);
         int result = httpClient.executeMethod(method);
         if (externalAuthenticatingProxy && result == 407) {
           method.releaseConnection();
@@ -467,7 +465,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
           String url = method.getResponseHeader("Location").getValue();
           method = new GetMethod(url);
           method.setFollowRedirects(true);
-          doAuthentication(method);
+          method.setDoAuthentication(false);
           result = httpClient.executeMethod(method);
           if (externalAuthenticatingProxy && result == 407) {
             method.releaseConnection();
@@ -513,6 +511,10 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    */
   private void populateMethod(HttpMethod method, Node node, Map<String, String> headers)
       throws RepositoryException {
+    // follow redirects, but dont auto process 401's and the like.
+    // credentials should be provided
+    method.setDoAuthentication(false);
+
     for (Entry<String, String> header : headers.entrySet()) {
       method.addRequestHeader(header.getKey(), header.getValue());
     }
@@ -524,21 +526,6 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
       method.addRequestHeader(keyVal[0].trim(), keyVal[1].trim());
     }
 
-  }
-
-  /**
-   * Method enables automatically handling of HTTP authentication challenges
-   * from an external authenticating proxy server.
-   * @param method
-   */
-  private void doAuthentication(HttpMethod method) {
-    if (externalAuthenticatingProxy) {
-      method.setDoAuthentication(true);
-    } else {
-      // follow redirects, but dont auto process 401's and the like.
-      // credentials should be provided
-      method.setDoAuthentication(false);
-    }
   }
 
   public HttpConnectionManager getHttpConnectionManager() {

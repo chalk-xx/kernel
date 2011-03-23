@@ -100,6 +100,10 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
     final Session session = StorageClientUtils.adaptToSession(resolver.adaptTo(javax.jcr.Session.class));
     try {
       final Content content = session.getContentManager().get(result.getPath());
+      if (content == null) {
+        // there is nothing to write
+        return;
+      }
       writeContent(request, write, content);
     } catch (StorageClientException e) {
       throw new JSONException(e);

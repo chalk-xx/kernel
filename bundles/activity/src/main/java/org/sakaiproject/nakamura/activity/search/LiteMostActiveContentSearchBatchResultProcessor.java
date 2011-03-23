@@ -23,8 +23,10 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -33,6 +35,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
@@ -40,11 +43,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 @Component(immediate = true, label = "MostActiveContentSearchBatchResultProcessor", description = "Formatter for most active content")
 @Service(value = SolrSearchBatchResultProcessor.class)
@@ -53,14 +56,13 @@ import java.util.List;
 public class LiteMostActiveContentSearchBatchResultProcessor implements
     SolrSearchBatchResultProcessor {
 
+  public static final String SITEMS_PARAM = "sitems";
+
   private static final Logger LOG = LoggerFactory
       .getLogger(LiteMostActiveContentSearchBatchResultProcessor.class);
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
-
-  private static final int DEFAULT_DAYS = 30;
-  private static final int MAXIMUM_DAYS = 90;
 
   /**
    * 
@@ -71,11 +73,9 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
    */
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> iterator) throws JSONException {
-    final List<ResourceActivity> resources = new ArrayList<ResourceActivity>();
+    final Map<String, ResourceActivity> resources = new HashMap<String, ResourceActivity>();
     final Session session = StorageClientUtils.adaptToSession(request
         .getResourceResolver().adaptTo(javax.jcr.Session.class));
-
-    final int daysAgo = deriveDateWindow(request);
 
     // count all the activity
     LOG.debug("Computing the most active content feed.");
@@ -84,30 +84,20 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
         final Result result = iterator.next();
         final String path = result.getPath();
         final Content node = session.getContentManager().get(path);
-        if (node.hasProperty("timestamp")) {
-          Calendar timestamp = (Calendar) node.getProperty("timestamp");
-          Calendar specifiedDaysAgo = new GregorianCalendar();
-          specifiedDaysAgo.add(Calendar.DAY_OF_MONTH, -daysAgo);
-          if (timestamp.before(specifiedDaysAgo)) {
-            // we stop counting once we get to the old stuff
-            break;
-          } else {
-            String resourceId = (String) node.getProperty("resourceId");
-            if (!resources.contains(new ResourceActivity(resourceId))) {
-              Content resourceNode = session.getContentManager().get(resourceId);
-              if (resourceNode == null) {
-                // this can happen if this content is no longer public
-                continue;
-              }
-              String resourceName = (String) resourceNode
-                  .getProperty("sakai:pooled-content-file-name");
-              resources.add(new ResourceActivity(resourceId, 0, resourceName));
-            }
-            // increment the count for this particular resource.
-            resources.get(resources.indexOf(new ResourceActivity(resourceId))).activityScore++;
-
+        final String resourceId = (String) node.getProperty("resourceId");
+        if (!resources.containsKey(resourceId)) {
+          final Content resourceNode = session.getContentManager().get(resourceId);
+          if (resourceNode == null) {
+            // this can happen if this content is no longer public
+            continue;
           }
+          final String resourceName = (String) resourceNode
+              .getProperty(FilesConstants.POOLED_CONTENT_FILENAME);
+          resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName,
+              (Long) resourceNode.getProperty(FilesConstants.LAST_MODIFIED)));
         }
+        // increment the count for this particular resource.
+        resources.get(resourceId).activityScore++;
       } catch (StorageClientException e) {
         // if something is wrong with this particular resourceNode,
         // we don't let it wreck the whole feed
@@ -120,11 +110,25 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
     }
 
     // write the most-used content to the JSONWriter
-    Collections.sort(resources, Collections.reverseOrder());
+    final List<ResourceActivity> resourceActivities = new ArrayList<ResourceActivity>(
+        resources.values());
+    Collections.sort(resourceActivities, Collections.reverseOrder());
     write.object();
+    write.key(SolrSearchConstants.TOTAL);
+    write.value(resources.size());
+    final RequestParameter sitemsP = request.getRequestParameter(SITEMS_PARAM);
+    int sitems = (sitemsP != null) ? Integer.valueOf(sitemsP.getString()) : Integer
+        .valueOf(SolrSearchConstants.DEFAULT_PAGED_ITEMS);
+    write.key(SolrSearchConstants.PARAMS_ITEMS_PER_PAGE);
+    write.value(sitems);
+    sitems--; // zero based comparisons
     write.key("content");
     write.array();
-    for (ResourceActivity resourceActivity : resources) {
+    for (int i = 0; i < resourceActivities.size(); i++) {
+      if (i > sitems) {
+        break;
+      }
+      final ResourceActivity resourceActivity = resourceActivities.get(i);
       write.object();
       write.key("id");
       write.value(resourceActivity.id);
@@ -138,33 +142,23 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
     write.endObject();
   }
 
-  private int deriveDateWindow(SlingHttpServletRequest request) {
-    int daysAgo = DEFAULT_DAYS;
-    String requestedDaysParam = request.getParameter("days");
-    if (requestedDaysParam != null) {
-      try {
-        int requestedDays = Integer.parseInt(requestedDaysParam);
-        if ((requestedDays > 0) && (requestedDays <= MAXIMUM_DAYS)) {
-          daysAgo = requestedDays;
-        }
-      } catch (NumberFormatException e) {
-        // malformed parameter, so we'll just stick with the default number of days
-      }
-    }
-    return daysAgo;
-  }
-
   public class ResourceActivity implements Comparable<ResourceActivity> {
-    public String id;
+    public final String id;
+    public final String name;
+    public final Long lastModified;
+    public Integer activityScore;
 
-    public ResourceActivity(String id) {
-      this.id = id;
-    }
-
-    public ResourceActivity(String id, int activityScore, String name) {
+    public ResourceActivity(String id, int activityScore, String name, long lastModified) {
       this.id = id;
       this.activityScore = activityScore;
       this.name = name;
+      this.lastModified = lastModified;
+    }
+
+    @Override
+    public String toString() {
+      return "ResourceActivity(" + id + ", " + activityScore + ", " + name + ", "
+          + lastModified + ")";
     }
 
     @Override
@@ -195,12 +189,12 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
       return true;
     }
 
-    public String name;
-    public int activityScore;
-
     public int compareTo(ResourceActivity other) {
-      return Integer.valueOf(this.activityScore).compareTo(
-          Integer.valueOf(other.activityScore));
+      if (this.activityScore.equals(other.activityScore)) {
+        return this.lastModified.compareTo(other.lastModified);
+      } else {
+        return this.activityScore.compareTo(other.activityScore);
+      }
     }
 
     private LiteMostActiveContentSearchBatchResultProcessor getOuterType() {

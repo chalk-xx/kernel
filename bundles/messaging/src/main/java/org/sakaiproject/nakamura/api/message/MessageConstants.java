@@ -105,6 +105,11 @@ public interface MessageConstants {
    * The name for the sent box.
    */
   public static final String BOX_SENT = "sent";
+  
+  /**
+   * The name for the pending box.
+   */
+  public static final String BOX_PENDING = "pending";
   /**
   *
   */

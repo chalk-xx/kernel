@@ -1,5 +1,11 @@
 {
   "sakai:query-template": "taguuid:[* TO *]",
+  "sakai:query-template-options": {
+      "sort": "${sortOn} ${sortOrder}",
+      "items": "10000"
+  },
+  "sortOn": "lastModified",
+  "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
   "sakai:batchresultprocessor": "TagCloud",
   "sakai:title": "Tag Cloud",

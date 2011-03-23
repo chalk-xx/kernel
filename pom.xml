@@ -445,7 +445,7 @@
                 http://groups.google.com/group/sakai-nakamura
               </Bundle-DocURL>
               <Bundle-Vendor>The Sakai Foundation</Bundle-Vendor>
-              <Bundle-SymbolicName>${pom.artifactId}</Bundle-SymbolicName>
+              <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             </instructions>
           </configuration>
         </plugin>

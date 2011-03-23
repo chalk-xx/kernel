@@ -38,6 +38,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.files.FileUtils;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
@@ -109,6 +110,9 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
   @Reference
   protected transient SolrSearchServiceFactory solrSearchServiceFactory;
+  
+  @Reference
+  private ProfileService profileService;
 
   /**
    * {@inheritDoc}
@@ -207,12 +211,12 @@ public class TagServlet extends SlingSafeMethodsServlet {
     proc.writeNodes(request, write, null, rs.getRowIterator());
 
     // BL120 KERN-1617 Need to include Content tagged with tag uuid
-    final String queryString = ClientUtils.escapeQueryChars("sakai:tag-uuid") + ":"
+    final String queryString = "taguuid:"
         + ClientUtils.escapeQueryChars(uuid);
     org.sakaiproject.nakamura.api.search.solr.Query solrQuery = new org.sakaiproject.nakamura.api.search.solr.Query(
-        Type.SPARSE, queryString, ImmutableMap.of("sort", "score desc"));
+        Type.SOLR, queryString, ImmutableMap.of("sort", "score desc"));
     final SolrSearchBatchResultProcessor rp = new LiteFileSearchBatchResultProcessor(
-        solrSearchServiceFactory);
+        solrSearchServiceFactory, profileService);
     final SolrSearchResultSet srs = rp.getSearchResultSet(request, solrQuery);
     rp.writeResults(request, write, srs.getResultSetIterator());
     write.endArray();
