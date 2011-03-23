@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -58,6 +59,8 @@ import javax.jcr.ValueFormatException;
     @Property(name = "sakai.search.batchprocessor", value = "TagCloud") })
 public class LiteTagCloudSearchBatchResultProcessor implements
     SolrSearchBatchResultProcessor {
+
+  public static final String SITEMS_PARAM = "sitems";
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
@@ -112,11 +115,21 @@ public class LiteTagCloudSearchBatchResultProcessor implements
     write.object();
     write.key(SolrSearchConstants.TOTAL);
     write.value(foundTags.size());
+    final RequestParameter sitemsP = request.getRequestParameter(SITEMS_PARAM);
+    int sitems = (sitemsP != null) ? Integer.valueOf(sitemsP.getString()) : Integer
+        .valueOf(SolrSearchConstants.DEFAULT_PAGED_ITEMS);
+    write.key(SolrSearchConstants.PARAMS_ITEMS_PER_PAGE);
+    write.value(sitems);
+    sitems--; // zero based comparisons
     write.key("tags");
     write.array();
     try {
-      for (Tag tag : foundTags) {
-        Node tagNode = jcrSession.getNodeByIdentifier(tag.id);
+      for (int i = 0; i < foundTags.size(); i++) {
+        if (i > sitems) {
+          break;
+        }
+        final Tag tag = foundTags.get(i);
+        final Node tagNode = jcrSession.getNodeByIdentifier(tag.id);
         if (tagNode != null
             && tagNode
                 .hasProperty(org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME)) {
@@ -132,13 +145,17 @@ public class LiteTagCloudSearchBatchResultProcessor implements
         }
       }
     } catch (ItemNotFoundException e) {
-      // do nothing
+      // if something is wrong with this particular resourceNode,
+      // we don't let it wreck the whole feed
     } catch (ValueFormatException e) {
-      // do nothing
+      // if something is wrong with this particular resourceNode,
+      // we don't let it wreck the whole feed
     } catch (PathNotFoundException e) {
-      // do nothing
+      // if something is wrong with this particular resourceNode,
+      // we don't let it wreck the whole feed
     } catch (RepositoryException e) {
-      // do nothing
+      // if something is wrong with this particular resourceNode,
+      // we don't let it wreck the whole feed
     }
     write.endArray();
     write.endObject();
