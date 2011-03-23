@@ -57,25 +57,26 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
 
-
   // private final int DEFAULT_DAYS = 30;
   // private final int MAXIMUM_DAYS = 90;
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor#writeResults(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.commons.json.io.JSONWriter, java.util.Iterator)
+   * 
+   * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor#writeResults(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.commons.json.io.JSONWriter, java.util.Iterator)
    */
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> results) throws JSONException {
-      final Map<String, ResourceActivity> resources = new HashMap<String, ResourceActivity>();
-      ResourceResolver resolver = request.getResourceResolver();
-      final Session session = StorageClientUtils.adaptToSession(request
-          .getResourceResolver().adaptTo(javax.jcr.Session.class));
-      while (results.hasNext()) {
-        Result result = results.next();
-        String path = result.getPath();
-        Resource resource = resolver.getResource(path);
-        Content content = resource.adaptTo(Content.class);
+    final Map<String, ResourceActivity> resources = new HashMap<String, ResourceActivity>();
+    ResourceResolver resolver = request.getResourceResolver();
+    final Session session = StorageClientUtils.adaptToSession(request
+        .getResourceResolver().adaptTo(javax.jcr.Session.class));
+    while (results.hasNext()) {
+      Result result = results.next();
+      String path = result.getPath();
+      Resource resource = resolver.getResource(path);
+      Content content = resource.adaptTo(Content.class);
 
       // int daysAgo = deriveDateWindow(request);
 
@@ -108,27 +109,27 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
     // }
     // }
 
-      // write the most-used content to the JSONWriter
-      List<ResourceActivity> resourceActivities = new ArrayList<ResourceActivity>(
-          resources.values());
-      Collections.sort(resourceActivities, Collections.reverseOrder());
+    // write the most-used content to the JSONWriter
+    List<ResourceActivity> resourceActivities = new ArrayList<ResourceActivity>(
+        resources.values());
+    Collections.sort(resourceActivities, Collections.reverseOrder());
+    write.object();
+    write.key(SolrSearchConstants.TOTAL);
+    write.value(resourceActivities.size());
+    write.key("groups");
+    write.array();
+    for (ResourceActivity resourceActivity : resourceActivities) {
       write.object();
-      write.key(SolrSearchConstants.TOTAL);
-      write.value(resourceActivities.size());
-      write.key("groups");
-      write.array();
-      for (ResourceActivity resourceActivity : resourceActivities) {
-          write.object();
-          write.key("id");
-          write.value(resourceActivity.id);
-          write.key("name");
-          write.value(resourceActivity.name);
-          write.key("count");
-          write.value(Long.valueOf(resourceActivity.activityScore));
-          write.endObject();
-      }
-      write.endArray();
+      write.key("id");
+      write.value(resourceActivity.id);
+      write.key("name");
+      write.value(resourceActivity.name);
+      write.key("count");
+      write.value(Long.valueOf(resourceActivity.activityScore));
       write.endObject();
+    }
+    write.endArray();
+    write.endObject();
   }
 
   // private int deriveDateWindow(SlingHttpServletRequest request) {
@@ -149,12 +150,12 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
-      throws SolrSearchException {
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SolrSearchException {
     // Return the result set.
     return searchServiceFactory.getSearchResultSet(request, query);
   }
@@ -171,7 +172,7 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
       this.name = name;
       this.lastModified = lastModified;
     }
-    
+
     @Override
     public String toString() {
       return "ResourceActivity(" + id + ", " + activityScore + ", " + name + ", "
