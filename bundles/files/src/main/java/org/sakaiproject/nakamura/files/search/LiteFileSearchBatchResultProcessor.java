@@ -71,8 +71,9 @@ public class LiteFileSearchBatchResultProcessor implements SolrSearchBatchResult
   @Reference
   private ProfileService profileService;
 
-  public LiteFileSearchBatchResultProcessor(SolrSearchServiceFactory searchServiceFactory) {
+  public LiteFileSearchBatchResultProcessor(SolrSearchServiceFactory searchServiceFactory, ProfileService profileService) {
     this.searchServiceFactory = searchServiceFactory;
+    this.profileService = profileService;
   }
 
   public LiteFileSearchBatchResultProcessor() {
@@ -113,8 +114,10 @@ public class LiteFileSearchBatchResultProcessor implements SolrSearchBatchResult
             AuthorizableManager authManager = session.getAuthorizableManager();
             Authorizable auth = authManager.findAuthorizable((String) result.getFirstValue("id"));
             if (auth != null) {
+              write.object();
               ValueMap map = profileService.getProfileMap(auth, jcrSession);
               ExtendedJSONWriter.writeValueMapInternals(write, map);
+              write.endObject();
             }
           } else {
             String contentPath = result.getPath();
