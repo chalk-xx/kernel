@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
@@ -55,14 +56,13 @@ import java.util.Map;
 public class LiteMostActiveContentSearchBatchResultProcessor implements
     SolrSearchBatchResultProcessor {
 
+  public static final String SITEMS_PARAM = "sitems";
+
   private static final Logger LOG = LoggerFactory
       .getLogger(LiteMostActiveContentSearchBatchResultProcessor.class);
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
-
-  // private static final int DEFAULT_DAYS = 30;
-  // private static final int MAXIMUM_DAYS = 90;
 
   /**
    * 
@@ -84,14 +84,14 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
         final Result result = iterator.next();
         final String path = result.getPath();
         final Content node = session.getContentManager().get(path);
-        String resourceId = (String) node.getProperty("resourceId");
+        final String resourceId = (String) node.getProperty("resourceId");
         if (!resources.containsKey(resourceId)) {
-          Content resourceNode = session.getContentManager().get(resourceId);
+          final Content resourceNode = session.getContentManager().get(resourceId);
           if (resourceNode == null) {
             // this can happen if this content is no longer public
             continue;
           }
-          String resourceName = (String) resourceNode
+          final String resourceName = (String) resourceNode
               .getProperty(FilesConstants.POOLED_CONTENT_FILENAME);
           resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName,
               (Long) resourceNode.getProperty(FilesConstants.LAST_MODIFIED)));
@@ -110,15 +110,25 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
     }
 
     // write the most-used content to the JSONWriter
-    List<ResourceActivity> resourceActivities = new ArrayList<ResourceActivity>(
+    final List<ResourceActivity> resourceActivities = new ArrayList<ResourceActivity>(
         resources.values());
     Collections.sort(resourceActivities, Collections.reverseOrder());
     write.object();
     write.key(SolrSearchConstants.TOTAL);
     write.value(resources.size());
+    final RequestParameter sitemsP = request.getRequestParameter(SITEMS_PARAM);
+    int sitems = (sitemsP != null) ? Integer.valueOf(sitemsP.getString()) : Integer
+        .valueOf(SolrSearchConstants.DEFAULT_PAGED_ITEMS);
+    write.key(SolrSearchConstants.PARAMS_ITEMS_PER_PAGE);
+    write.value(sitems);
+    sitems--; // zero based comparisons
     write.key("content");
     write.array();
-    for (ResourceActivity resourceActivity : resourceActivities) {
+    for (int i = 0; i < resourceActivities.size(); i++) {
+      if (i > sitems) {
+        break;
+      }
+      final ResourceActivity resourceActivity = resourceActivities.get(i);
       write.object();
       write.key("id");
       write.value(resourceActivity.id);
@@ -132,23 +142,6 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
     write.endObject();
   }
 
-  // KERN-1636 date range is now specified in the query not in PostProc.
-  // private int deriveDateWindow(SlingHttpServletRequest request) {
-  // int daysAgo = DEFAULT_DAYS;
-  // String requestedDaysParam = request.getParameter("days");
-  // if (requestedDaysParam != null) {
-  // try {
-  // int requestedDays = Integer.parseInt(requestedDaysParam);
-  // if ((requestedDays > 0) && (requestedDays <= MAXIMUM_DAYS)) {
-  // daysAgo = requestedDays;
-  // }
-  // } catch (NumberFormatException e) {
-  // // malformed parameter, so we'll just stick with the default number of days
-  // }
-  // }
-  // return daysAgo;
-  // }
-
   public class ResourceActivity implements Comparable<ResourceActivity> {
     public final String id;
     public final String name;
@@ -161,7 +154,7 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
       this.name = name;
       this.lastModified = lastModified;
     }
-    
+
     @Override
     public String toString() {
       return "ResourceActivity(" + id + ", " + activityScore + ", " + name + ", "
