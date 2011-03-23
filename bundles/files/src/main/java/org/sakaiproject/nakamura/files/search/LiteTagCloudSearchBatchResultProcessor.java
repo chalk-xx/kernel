@@ -60,7 +60,8 @@ import javax.jcr.ValueFormatException;
 public class LiteTagCloudSearchBatchResultProcessor implements
     SolrSearchBatchResultProcessor {
 
-  public static final String SITEMS_PARAM = "sitems";
+  public static final String STARTPAGE_PARAM = "startpage";
+  public static final String NUMITEMS_PARAM = "numitems";
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
@@ -115,33 +116,40 @@ public class LiteTagCloudSearchBatchResultProcessor implements
     write.object();
     write.key(SolrSearchConstants.TOTAL);
     write.value(foundTags.size());
-    final RequestParameter sitemsP = request.getRequestParameter(SITEMS_PARAM);
-    int sitems = (sitemsP != null) ? Integer.valueOf(sitemsP.getString()) : Integer
-        .valueOf(SolrSearchConstants.DEFAULT_PAGED_ITEMS);
-    write.key(SolrSearchConstants.PARAMS_ITEMS_PER_PAGE);
-    write.value(sitems);
-    sitems--; // zero based comparisons
+    final RequestParameter startpageP = request.getRequestParameter(STARTPAGE_PARAM);
+    int startpage = (startpageP != null) ? Integer.valueOf(startpageP.getString()) : 1;
+    startpage = (startpage < 1) ? 1 : startpage;
+    write.key(STARTPAGE_PARAM);
+    write.value(startpage);
+    final RequestParameter numitemsP = request.getRequestParameter(NUMITEMS_PARAM);
+    int numitems = (numitemsP != null) ? Integer.valueOf(numitemsP.getString())
+                                      : SolrSearchConstants.DEFAULT_PAGED_ITEMS;
+    numitems = (numitems < 1) ? SolrSearchConstants.DEFAULT_PAGED_ITEMS : numitems;
+    write.key(NUMITEMS_PARAM);
+    write.value(numitems);
+    final int beginPosition = (startpage * numitems) - numitems;
     write.key("tags");
     write.array();
     try {
-      for (int i = 0; i < foundTags.size(); i++) {
-        if (i > sitems) {
-          break;
-        }
-        final Tag tag = foundTags.get(i);
-        final Node tagNode = jcrSession.getNodeByIdentifier(tag.id);
-        if (tagNode != null
-            && tagNode
-                .hasProperty(org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME)) {
-          tag.name = tagNode.getProperty(
-              org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME)
-              .getString();
-          write.object();
-          write.key("name");
-          write.value(tag.name);
-          write.key("count");
-          write.value(Long.valueOf(tag.frequency));
-          write.endObject();
+      if (beginPosition < foundTags.size()) {
+        int count = 0;
+        for (int i = beginPosition; i < foundTags.size() && count < numitems; i++) {
+          final Tag tag = foundTags.get(i);
+          final Node tagNode = jcrSession.getNodeByIdentifier(tag.id);
+          if (tagNode != null
+              && tagNode
+                  .hasProperty(org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME)) {
+            tag.name = tagNode.getProperty(
+                org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME)
+                .getString();
+            write.object();
+            write.key("name");
+            write.value(tag.name);
+            write.key("count");
+            write.value(Long.valueOf(tag.frequency));
+            write.endObject();
+            count++;
+          }
         }
       }
     } catch (ItemNotFoundException e) {

@@ -55,7 +55,8 @@ import java.util.Map;
 public class MostActiveGroupsSearchBatchResultProcessor implements
     SolrSearchBatchResultProcessor {
 
-  public static final String SITEMS_PARAM = "sitems";
+  public static final String STARTPAGE_PARAM = "startpage";
+  public static final String NUMITEMS_PARAM = "numitems";
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
@@ -105,27 +106,34 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
     write.object();
     write.key(SolrSearchConstants.TOTAL);
     write.value(resourceActivities.size());
-    final RequestParameter sitemsP = request.getRequestParameter(SITEMS_PARAM);
-    int sitems = (sitemsP != null) ? Integer.valueOf(sitemsP.getString()) : Integer
-        .valueOf(SolrSearchConstants.DEFAULT_PAGED_ITEMS);
-    write.key(SolrSearchConstants.PARAMS_ITEMS_PER_PAGE);
-    write.value(sitems);
-    sitems--; // zero based comparisons
+    final RequestParameter startpageP = request.getRequestParameter(STARTPAGE_PARAM);
+    int startpage = (startpageP != null) ? Integer.valueOf(startpageP.getString()) : 1;
+    startpage = (startpage < 1) ? 1 : startpage;
+    write.key(STARTPAGE_PARAM);
+    write.value(startpage);
+    final RequestParameter numitemsP = request.getRequestParameter(NUMITEMS_PARAM);
+    int numitems = (numitemsP != null) ? Integer.valueOf(numitemsP.getString())
+                                      : SolrSearchConstants.DEFAULT_PAGED_ITEMS;
+    numitems = (numitems < 1) ? SolrSearchConstants.DEFAULT_PAGED_ITEMS : numitems;
+    write.key(NUMITEMS_PARAM);
+    write.value(numitems);
+    final int beginPosition = (startpage * numitems) - numitems;
     write.key("groups");
     write.array();
-    for (int i = 0; i < resourceActivities.size(); i++) {
-      if (i > sitems) {
-        break;
+    if (beginPosition < resourceActivities.size()) {
+      int count = 0;
+      for (int i = beginPosition; i < resourceActivities.size() && count < numitems; i++) {
+        final ResourceActivity resourceActivity = resourceActivities.get(i);
+        write.object();
+        write.key("id");
+        write.value(resourceActivity.id);
+        write.key("name");
+        write.value(resourceActivity.name);
+        write.key("count");
+        write.value(Long.valueOf(resourceActivity.activityScore));
+        write.endObject();
+        count++;
       }
-      final ResourceActivity resourceActivity = resourceActivities.get(i);
-      write.object();
-      write.key("id");
-      write.value(resourceActivity.id);
-      write.key("name");
-      write.value(resourceActivity.name);
-      write.key("count");
-      write.value(Long.valueOf(resourceActivity.activityScore));
-      write.endObject();
     }
     write.endArray();
     write.endObject();
