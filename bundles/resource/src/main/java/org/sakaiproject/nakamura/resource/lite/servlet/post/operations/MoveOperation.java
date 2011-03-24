@@ -5,8 +5,8 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.ActionRecord;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.lite.content.ContentManager.ActionRecord;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparsePostOperation;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 
