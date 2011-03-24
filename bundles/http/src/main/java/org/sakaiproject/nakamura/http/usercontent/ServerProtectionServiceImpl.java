@@ -105,7 +105,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String TRUSTED_SECRET_CONF = "trusted.secret";
   @Property(value = {"/system/console"})
   private static final String WHITELIST_POST_PATHS_CONF = "trusted.postwhitelist";
-  @Property(value = {"/system/userManager/user.create"})
+  @Property(value = {"/system/userManager/user.create", "/system/batch"})
   private static final String ANON_WHITELIST_POST_PATHS_CONF = "trusted.anonpostwhitelist";
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ServerProtectionServiceImpl.class);
@@ -145,11 +145,11 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private String[] safeForAnonToPostPaths;
 
   @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, strategy = ReferenceStrategy.EVENT, bind = "bindServerProtectionValidator", unbind = "unbindServerProtectionValidator")
-  private ServerProtectionValidator[] serverProtectionValidators;
+  private ServerProtectionValidator[] serverProtectionValidators = new ServerProtectionValidator[0];
   private Map<ServiceReference, ServerProtectionValidator> serverProtectionValidatorsStore = Maps
       .newConcurrentHashMap();
   @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, strategy = ReferenceStrategy.EVENT, bind = "bindServerProtectionVeto", unbind = "unbindServerProtectionVeto")
-  private ServerProtectionVeto[] serverProtectionVetos;
+  private ServerProtectionVeto[] serverProtectionVetos = new ServerProtectionVeto[0];
   private Map<ServiceReference, ServerProtectionVeto> serverProtectionVetosStore = Maps
       .newConcurrentHashMap();
 
