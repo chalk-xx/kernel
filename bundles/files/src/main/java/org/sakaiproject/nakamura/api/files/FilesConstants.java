@@ -148,16 +148,16 @@ public interface FilesConstants {
   public static final String POOLED_NEEDS_PROCESSING = "sakai:needsprocessing";
 
   /** Property of when the content was last modified */
-  String LAST_MODIFIED = "lastModified";
+  String LAST_MODIFIED = Content.LASTMODIFIED_FIELD;
 
   /** Property of who modified the content last */
-  String LAST_MODIFIED_BY = "lastModifiedBy";
+  String LAST_MODIFIED_BY = Content.LASTMODIFIED_BY_FIELD;
 
   /** Property of when the content was created */
-  String CREATED = "created";
+  String CREATED = Content.CREATED_FIELD;
 
   /** Property of who created the content */
-  String CREATED_BY = "createdBy";
+  String CREATED_BY = Content.CREATED_BY_FIELD;
 
   /** Property of where this content is used*/
   String LINK_PATHS = "linkpaths";
