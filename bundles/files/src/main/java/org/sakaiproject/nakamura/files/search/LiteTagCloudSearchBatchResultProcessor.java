@@ -23,9 +23,11 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -59,6 +61,9 @@ import javax.jcr.ValueFormatException;
 public class LiteTagCloudSearchBatchResultProcessor implements
     SolrSearchBatchResultProcessor {
 
+  public static final String STARTPAGE_PARAM = "startpage";
+  public static final String NUMITEMS_PARAM = "numitems";
+
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
 
@@ -86,11 +91,10 @@ public class LiteTagCloudSearchBatchResultProcessor implements
         final Result result = iterator.next();
         final String path = result.getPath();
         final Content node = session.getContentManager().get(path);
-        if (node
-            .hasProperty(org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS)) {
+        if (node != null && node.hasProperty(FilesConstants.SAKAI_TAG_UUIDS)) {
           // each node that has been tagged has one or more tag UUIDs riding with it
           final String[] tagUuids = (String[]) node
-              .getProperty(org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS);
+              .getProperty(FilesConstants.SAKAI_TAG_UUIDS);
           for (final String uuid : tagUuids) {
             if (!tags.containsKey(uuid)) {
               tags.put(uuid, new Tag(uuid, 0));
@@ -100,9 +104,11 @@ public class LiteTagCloudSearchBatchResultProcessor implements
           }
         }
       } catch (StorageClientException e) {
-        // do nothing
+        // if something is wrong with this particular resourceNode,
+        // we don't let it wreck the whole feed
       } catch (AccessDeniedException e) {
-        // do nothing
+        // if something is wrong with this particular resourceNode,
+        // we don't let it wreck the whole feed
       }
     }
 
@@ -112,33 +118,54 @@ public class LiteTagCloudSearchBatchResultProcessor implements
     write.object();
     write.key(SolrSearchConstants.TOTAL);
     write.value(foundTags.size());
+    final RequestParameter startpageP = request.getRequestParameter(STARTPAGE_PARAM);
+    int startpage = (startpageP != null) ? Integer.valueOf(startpageP.getString()) : 1;
+    startpage = (startpage < 1) ? 1 : startpage;
+    write.key(STARTPAGE_PARAM);
+    write.value(startpage);
+    final RequestParameter numitemsP = request.getRequestParameter(NUMITEMS_PARAM);
+    int numitems = (numitemsP != null) ? Integer.valueOf(numitemsP.getString())
+                                      : SolrSearchConstants.DEFAULT_PAGED_ITEMS;
+    numitems = (numitems < 1) ? SolrSearchConstants.DEFAULT_PAGED_ITEMS : numitems;
+    write.key(NUMITEMS_PARAM);
+    write.value(numitems);
+    final int beginPosition = (startpage * numitems) - numitems;
     write.key("tags");
     write.array();
     try {
-      for (Tag tag : foundTags) {
-        Node tagNode = jcrSession.getNodeByIdentifier(tag.id);
-        if (tagNode != null
-            && tagNode
-                .hasProperty(org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME)) {
-          tag.name = tagNode.getProperty(
-              org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME)
-              .getString();
-          write.object();
-          write.key("name");
-          write.value(tag.name);
-          write.key("count");
-          write.value(Long.valueOf(tag.frequency));
-          write.endObject();
+      if (beginPosition < foundTags.size()) {
+        int count = 0;
+        for (int i = beginPosition; i < foundTags.size() && count < numitems; i++) {
+          final Tag tag = foundTags.get(i);
+          final Node tagNode = jcrSession.getNodeByIdentifier(tag.id);
+          if (tagNode != null
+              && tagNode
+                  .hasProperty(org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME)) {
+            tag.name = tagNode.getProperty(
+                org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME)
+                .getString();
+            write.object();
+            write.key("name");
+            write.value(tag.name);
+            write.key("count");
+            write.value(Long.valueOf(tag.frequency));
+            write.endObject();
+            count++;
+          }
         }
       }
     } catch (ItemNotFoundException e) {
-      // do nothing
+      // if something is wrong with this particular resourceNode,
+      // we don't let it wreck the whole feed
     } catch (ValueFormatException e) {
-      // do nothing
+      // if something is wrong with this particular resourceNode,
+      // we don't let it wreck the whole feed
     } catch (PathNotFoundException e) {
-      // do nothing
+      // if something is wrong with this particular resourceNode,
+      // we don't let it wreck the whole feed
     } catch (RepositoryException e) {
-      // do nothing
+      // if something is wrong with this particular resourceNode,
+      // we don't let it wreck the whole feed
     }
     write.endArray();
     write.endObject();
