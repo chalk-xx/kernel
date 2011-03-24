@@ -202,6 +202,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
     String statement = "//*[@sakai:tag-uuid='" + uuid + "']";
     Session session = tag.getSession();
     QueryManager qm = session.getWorkspace().getQueryManager();
+    @SuppressWarnings("deprecation")
     Query query = qm.createQuery(statement, Query.XPATH);
 
     FileSearchBatchResultProcessor proc = new FileSearchBatchResultProcessor(searchServiceFactory);

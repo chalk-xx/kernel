@@ -142,6 +142,7 @@ public class TagServletTest {
     assertEquals("/tags/tagA", parent.getString("jcr:path"));
   }
 
+  @java.lang.SuppressWarnings("deprecation")
   @SuppressWarnings(value={"NP_ALWAYS_NULL"}, justification="Wierd, incorrect report, on System.err.println(s);")
   @Test
   public void testFiles() throws Exception {
@@ -189,6 +190,7 @@ public class TagServletTest {
     TagServlet servlet = new TagServlet();
     SolrSearchServiceFactory solrSearch = mock(SolrSearchServiceFactory.class);
     SolrSearchResultSet solrResult = mock(SolrSearchResultSet.class);
+    @java.lang.SuppressWarnings("unchecked")
     Iterator<Result> resultIterator = mock(Iterator.class);
     when(solrResult.getResultSetIterator()).thenReturn(resultIterator);
     when(solrSearch.getSearchResultSet(Mockito.any(SlingHttpServletRequest.class), Mockito.any(org.sakaiproject.nakamura.api.search.solr.Query.class))).thenReturn(solrResult);
