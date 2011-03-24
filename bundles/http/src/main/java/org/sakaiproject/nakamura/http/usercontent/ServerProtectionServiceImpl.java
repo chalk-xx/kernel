@@ -88,6 +88,8 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String[] DEFAULT_WHITELIST_POST_PATHS = {"/system/console"};
   private static final String[] DEFAULT_ANON_WHITELIST_POST_PATHS = {"/system/userManager/user.create"};
 
+  @Property(boolValue=false)
+  private static final String DISABLE_XSS_PROTECTION_FOR_UI_DEV = "disable.protection.for.dev.mode";
   @Property(value = { DEFAULT_UNTRUSTED_CONTENT_URL })
   private static final String UNTRUSTED_CONTENTURL_CONF = "untrusted.contenturl";
   @Property(value = { "/dev", "/devwidgets", "/system" })
@@ -146,13 +148,20 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private Map<ServiceReference, ServerProtectionValidator> serverProtectionValidatorsStore = Maps
       .newConcurrentHashMap();
   private BundleContext bundleContext;
+  private boolean disalbleProcetionForDevMove;
 
   @Activate
   public void activate(ComponentContext componentContext)
       throws NoSuchAlgorithmException, UnsupportedEncodingException,
       InvalidSyntaxException {
     @SuppressWarnings("unchecked")
+
     Dictionary<String, Object> properties = componentContext.getProperties();
+    disalbleProcetionForDevMove = OsgiUtil.toBoolean(properties.get(DISABLE_XSS_PROTECTION_FOR_UI_DEV), false);
+    if ( disalbleProcetionForDevMove ) {
+      LOGGER.warn("XSS Protection is disabled");
+      return;
+    }
     safeHosts = ImmutableSet.of(OsgiUtil.toStringArray(
         properties.get(TRUSTED_HOSTS_CONF), DEFAULT_TRUSTED_HOSTS));
     safeReferers = OsgiUtil.toStringArray(properties.get(TRUSTED_REFERER_CONF),
@@ -208,6 +217,10 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   }
 
   public void destroy(ComponentContext c) {
+    if ( disalbleProcetionForDevMove ) {
+      LOGGER.warn("XSS Protection is disabled");
+      return;
+    }
     BundleContext bc = c.getBundleContext();
     for (Entry<ServiceReference, ServerProtectionValidator> e : serverProtectionValidatorsStore
         .entrySet()) {
@@ -220,6 +233,10 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   public boolean isRequestSafe(SlingHttpServletRequest srequest,
       SlingHttpServletResponse sresponse) throws UnsupportedEncodingException,
       IOException {
+    if ( disalbleProcetionForDevMove ) {
+      LOGGER.warn("XSS Protection is disabled");
+      return true;
+    }
     // if the method is not safe, the request can't be safe.
     if (!isMethodSafe(srequest, sresponse)) {
       return false;
@@ -345,6 +362,10 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
 
   public String getTransferUserId(HttpServletRequest request) {
     // only ever get a user ID in this way on a non trusted safe host.
+    if ( disalbleProcetionForDevMove ) {
+      LOGGER.warn("XSS Protection is disabled");
+      return null;
+    }
     if (!isSafeHost(request)) {
       String hmac = request.getParameter(HMAC_PARAM);
       if (hmac != null) {
@@ -387,6 +408,10 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
 
   public boolean isMethodSafe(HttpServletRequest hrequest, HttpServletResponse hresponse)
       throws IOException {
+    if ( disalbleProcetionForDevMove ) {
+      LOGGER.warn("XSS Protection is disabled");
+      return true;
+    }
     String method = hrequest.getMethod();
     boolean safeHost = isSafeHost(hrequest);
 
