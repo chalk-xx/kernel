@@ -78,25 +78,26 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
       final String path = result.getPath();
       final Resource resource = resolver.getResource(path);
       final Content content = resource.adaptTo(Content.class);
-
-      final String resourceId = (String) content.getProperty("resourceId");
-      if (!resources.containsKey(resourceId)) {
-        final String resourcePath = LitePersonalUtils.getProfilePath(resourceId);
-        Content resourceContent = null;
-        try {
-          resourceContent = session.getContentManager().get(resourcePath);
-        } catch (Exception e) {
-          // this happens if the group is not public
-          // or if the group path simply doesn't exist
-          continue;
+      if (content != null) {
+        final String resourceId = (String) content.getProperty("resourceId");
+        if (!resources.containsKey(resourceId)) {
+          final String resourcePath = LitePersonalUtils.getProfilePath(resourceId);
+          Content resourceContent = null;
+          try {
+            resourceContent = session.getContentManager().get(resourcePath);
+          } catch (Exception e) {
+            // this happens if the group is not public
+            // or if the group path simply doesn't exist
+            continue;
+          }
+          final String resourceName = (String) resourceContent
+              .getProperty("sakai:group-title");
+          resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName,
+              (Long) resourceContent.getProperty(FilesConstants.LAST_MODIFIED)));
         }
-        final String resourceName = (String) resourceContent
-            .getProperty("sakai:group-title");
-        resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName,
-            (Long) resourceContent.getProperty(FilesConstants.LAST_MODIFIED)));
+        // increment the count for this particular resource.
+        resources.get(resourceId).activityScore++;
       }
-      // increment the count for this particular resource.
-      resources.get(resourceId).activityScore++;
     }
 
     // write the most-used content to the JSONWriter

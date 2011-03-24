@@ -85,20 +85,22 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
         final Result result = iterator.next();
         final String path = result.getPath();
         final Content node = session.getContentManager().get(path);
-        final String resourceId = (String) node.getProperty("resourceId");
-        if (!resources.containsKey(resourceId)) {
-          final Content resourceNode = session.getContentManager().get(resourceId);
-          if (resourceNode == null) {
-            // this can happen if this content is no longer public
-            continue;
+        if (node != null) {
+          final String resourceId = (String) node.getProperty("resourceId");
+          if (!resources.containsKey(resourceId)) {
+            final Content resourceNode = session.getContentManager().get(resourceId);
+            if (resourceNode == null) {
+              // this can happen if this content is no longer public
+              continue;
+            }
+            final String resourceName = (String) resourceNode
+                .getProperty(FilesConstants.POOLED_CONTENT_FILENAME);
+            resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName,
+                (Long) resourceNode.getProperty(FilesConstants.LAST_MODIFIED)));
           }
-          final String resourceName = (String) resourceNode
-              .getProperty(FilesConstants.POOLED_CONTENT_FILENAME);
-          resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName,
-              (Long) resourceNode.getProperty(FilesConstants.LAST_MODIFIED)));
+          // increment the count for this particular resource.
+          resources.get(resourceId).activityScore++;
         }
-        // increment the count for this particular resource.
-        resources.get(resourceId).activityScore++;
       } catch (StorageClientException e) {
         // if something is wrong with this particular resourceNode,
         // we don't let it wreck the whole feed
