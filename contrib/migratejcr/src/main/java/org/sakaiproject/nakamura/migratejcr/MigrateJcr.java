@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
@@ -42,6 +41,7 @@ import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
+import javax.jcr.query.InvalidQueryException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
@@ -78,57 +78,100 @@ public class MigrateJcr {
     
   }
 
-  private void migrateContentPool() {
+  @SuppressWarnings("deprecation")
+  private void migrateContentPool() throws InvalidQueryException, RepositoryException {
+    LOGGER.info("beginning users and groups migration.");
+    String contentPoolQuery = "//element(*, sakai:pooled-content) order by @jcr:score descending";
+    javax.jcr.Session jcrSession = null;
+    try {
+      jcrSession = slingRepository.loginAdministrative(null);
+      QueryManager qm = jcrSession.getWorkspace().getQueryManager();
+      Query q = qm.createQuery(contentPoolQuery, Query.XPATH);
+      QueryResult result = q.execute();
+      NodeIterator resultNodes = result.getNodes();
+      String nodeWord = resultNodes.getSize() == 1 ? "node" : "nodes";
+      LOGGER.info("Found {} pooled content {} in Jackrabbit.", resultNodes.getSize(), nodeWord);
+      while(resultNodes.hasNext()) {
+        Node contentNode = resultNodes.nextNode();
+        LOGGER.info(contentNode.getPath());
+        movePooledContentToSparse(contentNode);
+      }
+    } finally {
+      if (jcrSession != null) {
+        jcrSession.logout();
+      }
+    }
+    
+  }
+
+  private void movePooledContentToSparse(Node contentNode) {
     // TODO Auto-generated method stub
     
   }
 
+  @SuppressWarnings("deprecation")
   private void migrateAuthorizables() throws RepositoryException, ClientPoolException, StorageClientException, AccessDeniedException {
     LOGGER.info("beginning users and groups migration.");
-    javax.jcr.Session jcrSession = slingRepository.loginAdministrative(null);
-    String usersQuery = "//*[@sling:resourceType='sakai/user-home'] order by @jcr:score descending";
-    QueryManager qm = jcrSession.getWorkspace().getQueryManager();
-    Query q = qm.createQuery(usersQuery, Query.XPATH);
-    QueryResult result = q.execute();
-    NodeIterator resultNodes = result.getNodes();
-    String folderWord = resultNodes.getSize() == 1 ? "folder" : "folders";
-    LOGGER.info("found {} user home {} in Jackrabbit.", resultNodes.getSize(), folderWord);
-    while(resultNodes.hasNext()) {
-      Node authHomeNode = resultNodes.nextNode();
-      LOGGER.info(authHomeNode.getPath());
-      moveAuthorizableToSparse(authHomeNode);
+    javax.jcr.Session jcrSession = null;
+    try {
+      jcrSession = slingRepository.loginAdministrative(null);
+      String usersQuery = "//*[@sling:resourceType='sakai/user-home'] order by @jcr:score descending";
+      QueryManager qm = jcrSession.getWorkspace().getQueryManager();
+      Query q = qm.createQuery(usersQuery, Query.XPATH);
+      QueryResult result = q.execute();
+      NodeIterator resultNodes = result.getNodes();
+      String folderWord = resultNodes.getSize() == 1 ? "folder" : "folders";
+      LOGGER.info("found {} user home {} in Jackrabbit.", resultNodes.getSize(), folderWord);
+      while(resultNodes.hasNext()) {
+        Node authHomeNode = resultNodes.nextNode();
+        LOGGER.info(authHomeNode.getPath());
+        moveAuthorizableToSparse(authHomeNode, AccessControlUtil.getUserManager(jcrSession));
+      }
+      
+      String groupsQuery = "//*[@sling:resourceType='sakai/group-home'] order by @jcr:score descending";
+      q = qm.createQuery(groupsQuery, Query.XPATH);
+      result = q.execute();
+      resultNodes = result.getNodes();
+      folderWord = resultNodes.getSize() == 1 ? "folder" : "folders";
+      LOGGER.info("found {} group home {} in Jackrabbit.", resultNodes.getSize(), folderWord);
+      while(resultNodes.hasNext()) {
+        Node groupHomeNode = resultNodes.nextNode();
+        LOGGER.info(groupHomeNode.getPath());
+        moveAuthorizableToSparse(groupHomeNode, AccessControlUtil.getUserManager(jcrSession));
+      }
+    } finally {
+      if (jcrSession != null) {
+        jcrSession.logout();
+      }
     }
     
-    String groupsQuery = "//*[@sling:resourceType='sakai/group-home'] order by @jcr:score descending";
-    q = qm.createQuery(groupsQuery, Query.XPATH);
-    result = q.execute();
-    resultNodes = result.getNodes();
-    folderWord = resultNodes.getSize() == 1 ? "folder" : "folders";
-    LOGGER.info("found {} group home {} in Jackrabbit.", resultNodes.getSize(), folderWord);
-    while(resultNodes.hasNext()) {
-      Node groupHomeNode = resultNodes.nextNode();
-      LOGGER.info(groupHomeNode.getPath());
-      moveAuthorizableToSparse(groupHomeNode);
-    }
-    UserManager userManager = AccessControlUtil.getUserManager(jcrSession);
     
   }
 
-  private void moveAuthorizableToSparse(Node authHomeNode) throws ClientPoolException, StorageClientException, AccessDeniedException, PathNotFoundException, RepositoryException {
-    Session sparseSession = sparseRepository.loginAdministrative();
-    AuthorizableManager authManager = sparseSession.getAuthorizableManager();
-    boolean isUser = "sakai/user-home".equals(authHomeNode.getProperty("sling:resourceType").getString());
-    Node profileNode = authHomeNode.getNode("public/authprofile");
-    if (isUser) {
-      String id = profileNode.getProperty("rep:userId").getString();
-      String firstName = profileNode.getProperty("firstName").getString();
-      String lastName = profileNode.getProperty("lastName").getString();
-      String email = profileNode.getProperty("email").getString();
-      authManager.createUser(id, id, null, ImmutableMap.of(
-          "firstName", (Object)firstName,
-          "lastName", (Object)lastName,
-          "email", (Object)email));
+  private void moveAuthorizableToSparse(Node authHomeNode, UserManager userManager) throws ClientPoolException, StorageClientException, AccessDeniedException, PathNotFoundException, RepositoryException {
+    Session sparseSession = null;
+    try {
+      sparseSession = sparseRepository.loginAdministrative();
+      AuthorizableManager authManager = sparseSession.getAuthorizableManager();
+      boolean isUser = "sakai/user-home".equals(authHomeNode.getProperty("sling:resourceType").getString());
+      Node profileNode = authHomeNode.getNode("public/authprofile");
+      if (isUser) {
+        String id = profileNode.getProperty("rep:userId").getString();
+        String firstName = profileNode.getProperty("firstName").getString();
+        String lastName = profileNode.getProperty("lastName").getString();
+        String email = profileNode.getProperty("email").getString();
+        authManager.createUser(id, id, null, ImmutableMap.of(
+            "firstName", (Object)firstName,
+            "lastName", (Object)lastName,
+            "email", (Object)email));
+        userManager.getAuthorizable(id).remove();
+      }
+    } finally {
+      if (sparseSession != null) {
+        sparseSession.logout();
+      }
     }
+    
     
     
   }
