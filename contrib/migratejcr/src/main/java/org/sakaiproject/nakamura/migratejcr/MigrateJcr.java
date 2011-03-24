@@ -91,7 +91,8 @@ public class MigrateJcr {
     Query q = qm.createQuery(usersQuery, Query.XPATH);
     QueryResult result = q.execute();
     NodeIterator resultNodes = result.getNodes();
-    LOGGER.info("found {} user home folders in Jackrabbit.", resultNodes.getSize());
+    String folderWord = resultNodes.getSize() == 1 ? "folder" : "folders";
+    LOGGER.info("found {} user home {} in Jackrabbit.", resultNodes.getSize(), folderWord);
     while(resultNodes.hasNext()) {
       Node authHomeNode = resultNodes.nextNode();
       LOGGER.info(authHomeNode.getPath());
@@ -102,7 +103,8 @@ public class MigrateJcr {
     q = qm.createQuery(groupsQuery, Query.XPATH);
     result = q.execute();
     resultNodes = result.getNodes();
-    LOGGER.info("found {} group home folders in Jackrabbit.", resultNodes.getSize());
+    folderWord = resultNodes.getSize() == 1 ? "folder" : "folders";
+    LOGGER.info("found {} group home {} in Jackrabbit.", resultNodes.getSize(), folderWord);
     while(resultNodes.hasNext()) {
       Node groupHomeNode = resultNodes.nextNode();
       LOGGER.info(groupHomeNode.getPath());
