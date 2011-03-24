@@ -15,22 +15,22 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.search;
+package org.sakaiproject.nakamura.search.solr;
 
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
-import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.Query;
+import org.sakaiproject.nakamura.api.search.solr.SolrQueryResponseWrapper;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.Query.Type;
-import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -38,13 +38,17 @@ import java.io.PrintWriter;
 import javax.servlet.ServletException;
 
 /**
+ * A servlet for making solr queries. This is intended for development and troubleshooting only
+ * Since you wouldn't want open access to everything in solr.
  *
+ * It is disabled by default, so you have to turn it on in the felix web console.
  */
-@SlingServlet(methods={"GET"}, paths = { "/system/query" }, generateComponent = true)
+@Component(enabled=false)
+@SlingServlet(methods={"GET"}, paths = { "/system/query" }, generateComponent = false)
 public class QueryServlet extends SlingSafeMethodsServlet {
-  
+
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 15682213804941716L;
   /**
@@ -55,11 +59,11 @@ public class QueryServlet extends SlingSafeMethodsServlet {
     + SolrSearchBatchResultProcessor.DEFAULT_BATCH_PROCESSOR_PROP + "=true))";
 @Reference(target = DEFAULT_BATCH_SEARCH_PROC_TARGET)
 protected transient SolrSearchBatchResultProcessor defaultSearchBatchProcessor;
-  
+
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    response.setContentType("application/json");
+    response.setContentType("text/plain");
     response.setCharacterEncoding("UTF-8");
     RequestParameter queryParameter = request.getRequestParameter("q");
     if (queryParameter == null) {
@@ -67,7 +71,7 @@ protected transient SolrSearchBatchResultProcessor defaultSearchBatchProcessor;
       return;
     }
     Query query = new Query(Type.SOLR, queryParameter.getString(), null);
-    
+
     SolrSearchResultSet rs = null;
     try {
       rs = defaultSearchBatchProcessor.getSearchResultSet(request, query);
@@ -75,14 +79,9 @@ protected transient SolrSearchBatchResultProcessor defaultSearchBatchProcessor;
       response.sendError(e.getCode(), e.getMessage());
       return;
     }
-    
+
     PrintWriter w = response.getWriter();
-    ExtendedJSONWriter writer = new ExtendedJSONWriter(w);
-    try {
-      defaultSearchBatchProcessor.writeResults(request, writer, rs.getResultSetIterator());
-    } catch (JSONException e) {
-      response.sendError(500, e.getLocalizedMessage());
-    }
+    w.write(((SolrQueryResponseWrapper)rs).getQueryResponse().toString());
   }
 
 }
