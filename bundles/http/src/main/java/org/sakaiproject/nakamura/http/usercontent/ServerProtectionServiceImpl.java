@@ -23,6 +23,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionService;
 import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionValidator;
+import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionVeto;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,6 +148,11 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private ServerProtectionValidator[] serverProtectionValidators;
   private Map<ServiceReference, ServerProtectionValidator> serverProtectionValidatorsStore = Maps
       .newConcurrentHashMap();
+  @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, strategy = ReferenceStrategy.EVENT, bind = "bindServerProtectionVeto", unbind = "unbindServerProtectionVeto")
+  private ServerProtectionVeto[] serverProtectionVetos;
+  private Map<ServiceReference, ServerProtectionVeto> serverProtectionVetosStore = Maps
+      .newConcurrentHashMap();
+
   private BundleContext bundleContext;
   private boolean disalbleProcetionForDevMove;
 
@@ -214,6 +220,13 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
         bindServerProtectionValidator(sr);
       }
     }
+    ServiceReference[] srsVeto = bundleContext.getAllServiceReferences(
+        ServerProtectionVeto.class.getName(), null);
+    if ( srsVeto != null ) {
+      for (ServiceReference sr : srsVeto) {
+        bindServerProtectionVeto(sr);
+      }
+    }
   }
 
   public void destroy(ComponentContext c) {
@@ -261,12 +274,13 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     }
     boolean safeHost = isSafeHost(srequest);
     if (safeHost && "GET".equals(method)) {
+      boolean safeToStream = false;
       String ext = srequest.getRequestPathInfo().getExtension();
       if (ext == null || "res".equals(ext)) {
         // this is going to stream
         String path = srequest.getRequestURI();
         LOGGER.debug("Checking [{}] ", path);
-        boolean safeToStream = safeToStreamExactPaths.contains(path);
+        safeToStream = safeToStreamExactPaths.contains(path);
         if (!safeToStream) {
           for (String safePath : safeToStreamPaths) {
             if (path.startsWith(safePath)) {
@@ -295,12 +309,18 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
                 }
               }
             }
-            if (!safeToStream) {
-              redirectToContent(srequest, sresponse);
-              return false;
-            }
           }
         }
+      }
+      for (ServerProtectionVeto serverProtectionVeto : serverProtectionVetos) {
+        if ( serverProtectionVeto.willVeto(srequest)) {
+          safeToStream = serverProtectionVeto.veto(srequest);
+          break;
+        }
+      }
+      if (!safeToStream) {
+        redirectToContent(srequest, sresponse);
+        return false;
       }
     }
     return true;
@@ -490,6 +510,24 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       bundleContext.ungetService(serviceReference);
       serverProtectionValidators = serverProtectionValidatorsStore.values().toArray(
           new ServerProtectionValidator[serverProtectionValidatorsStore.size()]);
+    }
+  }
+
+  public void bindServerProtectionVeto(ServiceReference serviceReference) {
+    if (bundleContext != null) {
+      serverProtectionVetosStore.put(serviceReference,
+          (ServerProtectionVeto) bundleContext.getService(serviceReference));
+      serverProtectionVetos = serverProtectionVetosStore.values().toArray(
+          new ServerProtectionVeto[serverProtectionVetosStore.size()]);
+    }
+  }
+
+  public void unbindServerProtectionVeto(ServiceReference serviceReference) {
+    if (bundleContext != null) {
+      serverProtectionVetosStore.remove(serviceReference);
+      bundleContext.ungetService(serviceReference);
+      serverProtectionVetos = serverProtectionVetosStore.values().toArray(
+          new ServerProtectionVeto[serverProtectionVetosStore.size()]);
     }
   }
 
