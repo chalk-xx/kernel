@@ -104,9 +104,11 @@ public class LiteTagCloudSearchBatchResultProcessor implements
           }
         }
       } catch (StorageClientException e) {
-        // do nothing
+        // if something is wrong with this particular resourceNode,
+        // we don't let it wreck the whole feed
       } catch (AccessDeniedException e) {
-        // do nothing
+        // if something is wrong with this particular resourceNode,
+        // we don't let it wreck the whole feed
       }
     }
 
