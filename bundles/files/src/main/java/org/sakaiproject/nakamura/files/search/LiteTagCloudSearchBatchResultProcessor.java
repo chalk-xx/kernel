@@ -27,6 +27,7 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -90,11 +91,10 @@ public class LiteTagCloudSearchBatchResultProcessor implements
         final Result result = iterator.next();
         final String path = result.getPath();
         final Content node = session.getContentManager().get(path);
-        if (node
-            .hasProperty(org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS)) {
+        if (node != null && node.hasProperty(FilesConstants.SAKAI_TAG_UUIDS)) {
           // each node that has been tagged has one or more tag UUIDs riding with it
           final String[] tagUuids = (String[]) node
-              .getProperty(org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS);
+              .getProperty(FilesConstants.SAKAI_TAG_UUIDS);
           for (final String uuid : tagUuids) {
             if (!tags.containsKey(uuid)) {
               tags.put(uuid, new Tag(uuid, 0));
