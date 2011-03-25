@@ -35,6 +35,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.util.RequestInfo;
 import org.sakaiproject.nakamura.util.RequestWrapper;
 import org.sakaiproject.nakamura.util.ResponseWrapper;
@@ -151,9 +152,10 @@ public class BatchServlet extends SlingAllMethodsServlet {
    * @param request
    * @param response
    * @throws IOException
+   * @throws ServletException 
    */
   protected void batchRequest(SlingHttpServletRequest request,
-      SlingHttpServletResponse response, boolean allowModify) throws IOException {
+      SlingHttpServletResponse response, boolean allowModify) throws IOException, ServletException {
     // Grab the JSON block out of it and convert it to RequestData objects we can use.
     String json = request.getParameter(REQUESTS_PARAMETER);
 
@@ -210,9 +212,18 @@ public class BatchServlet extends SlingAllMethodsServlet {
 
   private void doRequest(SlingHttpServletRequest request,
       SlingHttpServletResponse response, RequestInfo requestInfo,
-      JSONWriter write) throws JSONException {
+      JSONWriter write) throws JSONException, ServletException {
     // Look for a matching resource in the usual way. If one is found,
     // the resource will also be embedded with any necessary RequestPathInfo.
+    // TODO: This is a nasty hack to work around white listing of /system/batch POST
+    // requests. This should be removed when the UI has refactored itself not to use batch
+    // POSTs in place of GETs (see http spec for reasons by thats bad)
+    if (User.ANON_USER.equals(request.getRemoteUser())) {
+      if (!"GET".equals(requestInfo.getMethod())) {
+        response.reset();
+        throw new ServletException("Anon Users may only perform GET operations");
+      }
+    }
     String requestPath = requestInfo.getUrl();
     ResourceResolver resourceResolver = request.getResourceResolver();
     Resource resource = resourceResolver.resolve(request, requestPath);

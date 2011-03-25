@@ -44,7 +44,7 @@ class TC_Kern1045 < Test::Unit::TestCase
     assert_equal("200",res.code,res.body)
     json = JSON.parse(res.body)
     assert_equal(1, json["results"].length)
-    assert_equal(fileBody.length ,json["results"][0]["length"])
+    assert_equal(fileBody.length ,json["results"][0]["_length"])
 
   end
 

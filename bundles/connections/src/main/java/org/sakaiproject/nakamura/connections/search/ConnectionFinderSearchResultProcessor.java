@@ -41,7 +41,6 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.connections.ConnectionUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,15 +73,13 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
       throw new IllegalArgumentException("Missing " + User.NAME_FIELD);
     }
 
-    String user = request.getRemoteUser();
-
     javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
     Session session = StorageClientUtils.adaptToSession(jcrSession);
     try {
       AuthorizableManager authMgr = session.getAuthorizableManager();
       Authorizable auth = authMgr.findAuthorizable(contactUser);
 
-      String contactContentPath = ConnectionUtils.getConnectionPath(user, contactUser);
+      String contactContentPath = result.getPath();
       logger.debug("getting " + contactContentPath);
       Content contactContent = session.getContentManager().get(contactContentPath);
       if (contactContent != null) {
