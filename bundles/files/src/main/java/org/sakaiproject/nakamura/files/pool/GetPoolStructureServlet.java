@@ -120,10 +120,13 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
   }
 
   public boolean willVeto(SlingHttpServletRequest srequest) {
-    Resource resource = srequest.adaptTo(Resource.class);
-    if (FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceType())
-        || FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceSuperType())) {
-      return true;
+    if (srequest != null) {
+      Resource resource = srequest.adaptTo(Resource.class);
+      if (resource != null
+          && (FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceType()) || FilesConstants.POOLED_CONTENT_RT
+              .equals(resource.getResourceSuperType()))) {
+        return true;
+      }
     }
     return false;
   }
