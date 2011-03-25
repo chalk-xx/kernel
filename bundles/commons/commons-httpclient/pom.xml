@@ -23,6 +23,7 @@
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
       <version>0.10-SNAPSHOT</version>
+      <relativePath>../../../pom.xml</relativePath>
     </parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>org.sakaiproject.nakamura.commons.commons-httpclient</artifactId>

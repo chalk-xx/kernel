@@ -6,6 +6,7 @@
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
     <version>0.10-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.profile</artifactId>
