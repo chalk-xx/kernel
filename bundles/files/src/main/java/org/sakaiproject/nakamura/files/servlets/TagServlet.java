@@ -87,7 +87,7 @@ import javax.servlet.http.HttpServletResponse;
       )
     },
     methods = {
-      @ServiceMethod(name = "GET",  parameters = {@ServiceParameter(name = "type", description = "u for user, g for group, or c for content; with tagged selector") },
+      @ServiceMethod(name = "GET",  parameters = {@ServiceParameter(name = "type", description = "For use with tagged selector. Valid values are: user, group, or content") },
           description = { "This servlet only responds to GET requests." },
           response = {
             @ServiceResponse(code = 200, description = "Succesful request, json can be found in the body"),
@@ -222,11 +222,12 @@ public class TagServlet extends SlingSafeMethodsServlet {
     if (typeP != null) {
       final String type = typeP.getString();
       sb.append(" AND ");
-      if ("u".equals(type) || "g".equals(type)) {
-        sb.append("type:");
-        sb.append(ClientUtils.escapeQueryChars(type));
+      if ("user".equals(type)) {
+        sb.append("type:u");
+      } else if ("group".equals(type)) {
+        sb.append("type:g");
       } else {
-        if ("c".equals(type)) {
+        if ("content".equals(type)) {
           sb.append("resourceType:");
           sb.append(ClientUtils.escapeQueryChars(FilesConstants.POOLED_CONTENT_RT));
         } else {
