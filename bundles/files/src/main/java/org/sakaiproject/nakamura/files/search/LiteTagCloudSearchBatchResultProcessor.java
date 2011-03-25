@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.files.search;
 
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -27,11 +29,11 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
@@ -89,12 +91,24 @@ public class LiteTagCloudSearchBatchResultProcessor implements
     while (iterator.hasNext()) {
       try {
         final Result result = iterator.next();
-        final String path = result.getPath();
-        final Content node = session.getContentManager().get(path);
-        if (node != null && node.hasProperty(FilesConstants.SAKAI_TAG_UUIDS)) {
-          // each node that has been tagged has one or more tag UUIDs riding with it
-          final String[] tagUuids = (String[]) node
-              .getProperty(FilesConstants.SAKAI_TAG_UUIDS);
+        final String resourceType = String.valueOf(result.getFirstValue("resourceType"));
+        String[] tagUuids = null;
+        if ("authorizable".equals(resourceType)) {
+          final String id = (String) result.getFirstValue("id");
+          final Authorizable az = session.getAuthorizableManager().findAuthorizable(id);
+          if (az != null && az.hasProperty(SAKAI_TAG_UUIDS)) {
+            // each node that has been tagged has one or more tag UUIDs riding with it
+            tagUuids = (String[]) az.getProperty(SAKAI_TAG_UUIDS);
+          }
+        } else {
+          final String path = result.getPath();
+          final Content content = session.getContentManager().get(path);
+          if (content != null && content.hasProperty(SAKAI_TAG_UUIDS)) {
+            // each node that has been tagged has one or more tag UUIDs riding with it
+            tagUuids = (String[]) content.getProperty(SAKAI_TAG_UUIDS);
+          }
+        }
+        if (tagUuids != null) {
           for (final String uuid : tagUuids) {
             if (!tags.containsKey(uuid)) {
               tags.put(uuid, new Tag(uuid, 0));
