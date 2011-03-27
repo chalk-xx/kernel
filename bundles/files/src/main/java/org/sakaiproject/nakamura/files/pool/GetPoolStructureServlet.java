@@ -82,12 +82,18 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
   }
 
   public boolean accepts(SlingHttpServletRequest request) {
-    Resource resource = request.getResource();
-    Content content = resource.adaptTo(Content.class);
-    String suffix = request.getRequestPathInfo().getSuffix();
-    String structureId = "structure" + StringUtils.split(suffix, "/", 1)[0];
-    if (content.hasProperty(structureId)) {
-      return content.getProperty(structureId) != null;
+    if (request != null) {
+      Resource resource = request.getResource();
+      if (resource != null) {
+        Content content = resource.adaptTo(Content.class);
+        if (content != null) {
+          String suffix = request.getRequestPathInfo().getSuffix();
+          String structureId = "structure" + StringUtils.split(suffix, "/", 2)[0];
+          if (content.hasProperty(structureId)) {
+            return content.getProperty(structureId) != null;
+          }
+        }
+      }
     }
     return false;
   }
@@ -121,40 +127,55 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
 
   public boolean willVeto(SlingHttpServletRequest srequest) {
     if (srequest != null) {
-      Resource resource = srequest.adaptTo(Resource.class);
-      if (resource != null
-          && (FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceType()) || FilesConstants.POOLED_CONTENT_RT
-              .equals(resource.getResourceSuperType()))) {
-        return true;
+      Resource resource = srequest.getResource();
+      if (resource != null) {
+        if (FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceType())
+            || FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceSuperType())) {
+          return true;
+        }
+
       }
     }
     return false;
   }
 
-  public boolean veto(SlingHttpServletRequest srequest) {
-    Resource resource = srequest.adaptTo(Resource.class);
-    if (FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceType())
-        || FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceSuperType())) {
-      try {
+  public boolean safeToStream(SlingHttpServletRequest srequest) {
+    if (srequest != null) {
+      Resource resource = srequest.getResource();
+      if (resource != null) {
         if (FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceType())
             || FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceSuperType())) {
-
-          ContentManager contentManager = resource.adaptTo(ContentManager.class);
-          Content content = resource.adaptTo(Content.class);
-          String resourceId = getResourceId(srequest, content);
-          if (resourceId != null) {
-            return !contentManager.hasBody(
-                StorageClientUtils.newPath(content.getPath(), resourceId), null);
+          try {
+            if ( accepts(srequest)) {
+              Content content = resource.adaptTo(Content.class);
+              LOGGER.info("Content  is {} ",content);
+              if ( content != null ) {
+                ContentManager contentManager = resource.adaptTo(ContentManager.class);
+                String resourceId = getResourceId(srequest, content);
+                LOGGER.info("Resource ID is {} ",resourceId);
+                if (resourceId != null) {
+                  return !contentManager.hasBody(
+                      StorageClientUtils.newPath(content.getPath(), resourceId), null);
+                }
+              }
+            } else {
+              LOGGER.info("Doesnt accept, so safe to stream");
+              return true;
+            }
+          } catch (JSONException e) {
+            LOGGER.warn(e.getMessage(), e);
+          } catch (StorageClientException e) {
+            LOGGER.warn(e.getMessage(), e);
+          } catch (AccessDeniedException e) {
+            LOGGER.warn(e.getMessage(), e);
           }
+          return false;
+        } else {
+          LOGGER.info("Resource is not of correct type {} ", resource.getResourceType());
         }
-      } catch (JSONException e) {
-        LOGGER.warn(e.getMessage(), e);
-      } catch (StorageClientException e) {
-        LOGGER.warn(e.getMessage(), e);
-      } catch (AccessDeniedException e) {
-        LOGGER.warn(e.getMessage(), e);
+      } else {
+        LOGGER.info("Resource is null");
       }
-      return false;
     }
     return true;
   }
