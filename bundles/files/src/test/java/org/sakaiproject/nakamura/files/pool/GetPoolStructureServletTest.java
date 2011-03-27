@@ -38,7 +38,7 @@ public class GetPoolStructureServletTest {
   		"     \"under\" : {" +
   		"         \"the\" : {" +
   		"             \"item.jpg\" : {" +
-  		"                   \"_ref\" : \"123456\" }}}}" +
+  		"                   \"_res\" : \"123456\" }}}}" +
   		"}}";
   private GetPoolStructureServlet getPoolStructureServlet;
 
@@ -64,9 +64,9 @@ public class GetPoolStructureServletTest {
     Mockito.when(resource.adaptTo(Content.class)).thenReturn(content);
     RequestPathInfo requestPathInfo = Mockito.mock(RequestPathInfo.class);
     Mockito.when(request.getRequestPathInfo()).thenReturn(requestPathInfo);
-    Mockito.when(requestPathInfo.getSuffix()).thenReturn("/0/a/page/under/the/item.jpg");
+    Mockito.when(requestPathInfo.getResourcePath()).thenReturn("/p/23423423423/0/a/page/under/the/item.jpg");
     Assert.assertTrue(getPoolStructureServlet.accepts(request));
-    Mockito.when(requestPathInfo.getSuffix()).thenReturn("/1/a/page/under/the/item.jpg");
+    Mockito.when(requestPathInfo.getResourcePath()).thenReturn("/p/23423423423/1/a/page/under/the/item.jpg");
     Assert.assertFalse(getPoolStructureServlet.accepts(request));
   }
   
@@ -98,9 +98,9 @@ public class GetPoolStructureServletTest {
     Mockito.when(resource.adaptTo(Content.class)).thenReturn(content);
     RequestPathInfo requestPathInfo = Mockito.mock(RequestPathInfo.class);
     Mockito.when(request.getRequestPathInfo()).thenReturn(requestPathInfo);
-    Mockito.when(requestPathInfo.getSuffix()).thenReturn("/1/a/page/under/the/item.jpg");
+    Mockito.when(requestPathInfo.getResourcePath()).thenReturn("/p/23423423423/1/a/page/under/the/item.jpg");
     Assert.assertTrue(getPoolStructureServlet.safeToStream(request)); // safe because this is not a structure path
-    Mockito.when(requestPathInfo.getSuffix()).thenReturn("/0/a/page/under/the/item.jpg");
+    Mockito.when(requestPathInfo.getResourcePath()).thenReturn("/p/23423423423/0/a/page/under/the/item.jpg");
 
     ContentManager contentManager = Mockito.mock(ContentManager.class);
     Mockito.when(resource.adaptTo(ContentManager.class)).thenReturn(contentManager);
@@ -128,7 +128,7 @@ public class GetPoolStructureServletTest {
     Mockito.when(resource.adaptTo(Content.class)).thenReturn(content);
     Mockito.when(resource.adaptTo(ContentManager.class)).thenReturn(contentManager);
     Mockito.when(request.getRequestPathInfo()).thenReturn(requestPathInfo);
-    Mockito.when(requestPathInfo.getSuffix()).thenReturn("/0/a/page/under/the/item.jpg");
+    Mockito.when(requestPathInfo.getResourcePath()).thenReturn("/p/23423423423/0/a/page/under/the/item.jpg");
     Mockito.when(contentManager.hasBody("23423423423/123456", null)).thenReturn(true);
     Mockito.when(contentManager.get("23423423423/123456")).thenReturn(bodyContent);
     InputStream body = new ByteArrayInputStream(TESTING_STREAM_DATA.getBytes("UTF-8"));
@@ -176,7 +176,7 @@ public class GetPoolStructureServletTest {
     Mockito.when(resource.adaptTo(Content.class)).thenReturn(content);
     Mockito.when(resource.adaptTo(ContentManager.class)).thenReturn(contentManager);
     Mockito.when(request.getRequestPathInfo()).thenReturn(requestPathInfo);
-    Mockito.when(requestPathInfo.getSuffix()).thenReturn("/0/a/page/under/the/item.jpg");
+    Mockito.when(requestPathInfo.getResourcePath()).thenReturn("/p/23423423423/0/a/page/under/the/item.jpg");
     Mockito.when(contentManager.hasBody("23423423423/123456", null)).thenReturn(false);
     Mockito.when(contentManager.get("23423423423/123456")).thenReturn(bodyContent);
     

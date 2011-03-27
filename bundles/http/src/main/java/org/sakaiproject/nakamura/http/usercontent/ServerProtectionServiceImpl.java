@@ -15,6 +15,7 @@ import org.apache.felix.scr.annotations.ReferenceStrategy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.BundleContext;
@@ -191,13 +192,13 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       LOGGER.error("Configuration Error =============================");
     }
 
-    LOGGER.info("Trusted Hosts {}",safeHosts);
-    LOGGER.info("Trusted Referers {} ",Arrays.toString(safeReferers));
-    LOGGER.info("Trusted Stream Paths {} ",Arrays.toString(safeToStreamPaths));
-    LOGGER.info("Trusted Stream Resources {} ",safeToStreamExactPaths);
-    LOGGER.info("POST Whitelist {} ",postWhiteList);
-    LOGGER.info("Content Host {} ",contentUrl);
-    LOGGER.info("Content Shared Secret [{}] ",transferSharedSecret);
+    LOGGER.debug("Trusted Hosts {}",safeHosts);
+    LOGGER.debug("Trusted Referers {} ",Arrays.toString(safeReferers));
+    LOGGER.debug("Trusted Stream Paths {} ",Arrays.toString(safeToStreamPaths));
+    LOGGER.debug("Trusted Stream Resources {} ",safeToStreamExactPaths);
+    LOGGER.debug("POST Whitelist {} ",postWhiteList);
+    LOGGER.debug("Content Host {} ",contentUrl);
+    LOGGER.debug("Content Shared Secret [{}] ",transferSharedSecret);
 
     transferKeys = new Key[10];
     MessageDigest md = MessageDigest.getInstance("SHA-512");
@@ -275,13 +276,15 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     boolean safeHost = isSafeHost(srequest);
     if (safeHost && "GET".equals(method)) {
       boolean safeToStream = false;
-      String ext = srequest.getRequestPathInfo().getExtension();
+      RequestPathInfo requestPathInfo = srequest.getRequestPathInfo();
+      String ext = requestPathInfo.getExtension();
       if (ext == null || "res".equals(ext)) {
         // this is going to stream
         String path = srequest.getRequestURI();
-        LOGGER.debug("Checking [{}] ", path);
+        LOGGER.debug("Checking [{}] RequestPathInfo {}", path, requestPathInfo);
         safeToStream = safeToStreamExactPaths.contains(path);
         if (!safeToStream) {
+          LOGGER.debug("Checking [{}] looks like not safe to stream ", path );
           for (String safePath : safeToStreamPaths) {
             if (path.startsWith(safePath)) {
               safeToStream = true;
@@ -311,8 +314,13 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
             }
           }
         }
+      } else {
+        safeToStream = true;
+        LOGGER.debug("doesnt look like a body, checking with vetos" );
       }
+      LOGGER.debug("Checking server vetos, safe to stream ? {} ", safeToStream);
       for (ServerProtectionVeto serverProtectionVeto : serverProtectionVetos) {
+        LOGGER.debug("Checking for Veto on {} ",serverProtectionVeto);
         if ( serverProtectionVeto.willVeto(srequest)) {
           safeToStream = serverProtectionVeto.safeToStream(srequest);
           break;

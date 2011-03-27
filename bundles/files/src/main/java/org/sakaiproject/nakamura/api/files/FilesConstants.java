@@ -144,19 +144,23 @@ public interface FilesConstants {
   public static final String POOLED_NEEDS_PROCESSING = "sakai:needsprocessing";
 
   /** Property of when the content was last modified */
-  String LAST_MODIFIED = Content.LASTMODIFIED_FIELD;
+  public static final String LAST_MODIFIED = Content.LASTMODIFIED_FIELD;
 
   /** Property of who modified the content last */
-  String LAST_MODIFIED_BY = Content.LASTMODIFIED_BY_FIELD;
+  public static final String LAST_MODIFIED_BY = Content.LASTMODIFIED_BY_FIELD;
 
   /** Property of when the content was created */
-  String CREATED = Content.CREATED_FIELD;
+  public static final String CREATED = Content.CREATED_FIELD;
 
   /** Property of who created the content */
-  String CREATED_BY = Content.CREATED_BY_FIELD;
+  public static final String CREATED_BY = Content.CREATED_BY_FIELD;
 
   /** Property of where this content is used*/
-  String LINK_PATHS = "linkpaths";
+  public static final String LINK_PATHS = "linkpaths";
+
+  /** Property stem for structure properties in content pool items */
+  public static final String STRUCTURE_FIELD_STEM = "structure";
+
   
   
   public static final Set<String> RESERVED_POOL_KEYS = ImmutableSet.of(
