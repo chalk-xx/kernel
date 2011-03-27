@@ -314,7 +314,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       }
       for (ServerProtectionVeto serverProtectionVeto : serverProtectionVetos) {
         if ( serverProtectionVeto.willVeto(srequest)) {
-          safeToStream = serverProtectionVeto.veto(srequest);
+          safeToStream = serverProtectionVeto.safeToStream(srequest);
           break;
         }
       }

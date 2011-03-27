@@ -20,6 +20,6 @@ public interface ServerProtectionVeto {
    * @param srequest
    * @return the vetoed decision on the request, true will stream, false will not.
    */
-  boolean veto(SlingHttpServletRequest srequest);
+  boolean safeToStream(SlingHttpServletRequest srequest);
 
 }
