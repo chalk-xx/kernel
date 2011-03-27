@@ -4,12 +4,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
-import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -26,18 +24,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @Services(value={
-    @Service(value=Servlet.class),
-    @Service(value=ServerProtectionVeto.class)
+    @Service(value=ServerProtectionVeto.class),
+    @Service(value=DefaultServletDelegate.class)
 })
 @Component(immediate=true, enabled=true, metatype=true)
-@SlingServlet(resourceTypes = { "sakai/pooled-content" }, methods = { "GET" }, generateService=false, generateComponent=false)
 public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
-    OptingServlet, ServerProtectionVeto {
+    DefaultServletDelegate, ServerProtectionVeto {
 
   /**
    * 
@@ -45,6 +41,12 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
   private static final long serialVersionUID = 6091033560662167157L;
   private static final Logger LOGGER = LoggerFactory
       .getLogger(GetPoolStructureServlet.class);
+
+
+  public void doDelegateGet(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
+    doGet(request, response);
+  }
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)

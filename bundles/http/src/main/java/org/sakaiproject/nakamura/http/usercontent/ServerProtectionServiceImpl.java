@@ -192,13 +192,13 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       LOGGER.error("Configuration Error =============================");
     }
 
-    LOGGER.debug("Trusted Hosts {}",safeHosts);
-    LOGGER.debug("Trusted Referers {} ",Arrays.toString(safeReferers));
-    LOGGER.debug("Trusted Stream Paths {} ",Arrays.toString(safeToStreamPaths));
-    LOGGER.debug("Trusted Stream Resources {} ",safeToStreamExactPaths);
-    LOGGER.debug("POST Whitelist {} ",postWhiteList);
-    LOGGER.debug("Content Host {} ",contentUrl);
-    LOGGER.debug("Content Shared Secret [{}] ",transferSharedSecret);
+    LOGGER.info("Trusted Hosts {}",safeHosts);
+    LOGGER.info("Trusted Referers {} ",Arrays.toString(safeReferers));
+    LOGGER.info("Trusted Stream Paths {} ",Arrays.toString(safeToStreamPaths));
+    LOGGER.info("Trusted Stream Resources {} ",safeToStreamExactPaths);
+    LOGGER.info("POST Whitelist {} ",postWhiteList);
+    LOGGER.info("Content Host {} ",contentUrl);
+    LOGGER.info("Content Shared Secret [{}] ",transferSharedSecret);
 
     transferKeys = new Key[10];
     MessageDigest md = MessageDigest.getInstance("SHA-512");

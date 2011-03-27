@@ -17,12 +17,12 @@
  */
 package org.sakaiproject.nakamura.files.pool;
 
-import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -41,9 +41,10 @@ import javax.servlet.ServletException;
 /**
  *
  */
-@SlingServlet(methods = { "GET" }, extensions={"*"}, resourceTypes = { "sakai/pooled-content" })
+@Service(value=DefaultServletDelegate.class)
+@Component(immediate=true, enabled=true, metatype=true)
 public class GetAlternativeContentPoolStreamServlet extends SlingSafeMethodsServlet
-    implements OptingServlet {
+    implements DefaultServletDelegate {
   /**
    *
    */
@@ -52,6 +53,11 @@ public class GetAlternativeContentPoolStreamServlet extends SlingSafeMethodsServ
   private static final Set<String> RESERVED_SELECTORS = new HashSet<String>();
   static {
     RESERVED_SELECTORS.add("selector-used-elsewhere");
+  }
+
+  public void doDelegateGet(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
+   doGet(request, response);
   }
 
   @Override
@@ -105,5 +111,6 @@ public class GetAlternativeContentPoolStreamServlet extends SlingSafeMethodsServ
     }
     return false;
   }
+
 
 }
