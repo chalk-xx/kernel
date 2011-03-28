@@ -161,6 +161,10 @@ public interface FilesConstants {
   /** Property stem for structure properties in content pool items */
   public static final String STRUCTURE_FIELD_STEM = "structure";
 
+  /**
+   * Resource ID referneces in structures.
+   */
+  public static final String RESOURCE_REFERENCE_FIELD = "_res";
   
   
   public static final Set<String> RESERVED_POOL_KEYS = ImmutableSet.of(
