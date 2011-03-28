@@ -18,40 +18,18 @@
 package org.sakaiproject.nakamura.batch;
 
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.sling.api.SlingException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceNotFoundException;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.apache.sling.commons.json.JSONArray;
-import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.lite.authorizable.User;
-import org.sakaiproject.nakamura.util.RequestInfo;
-import org.sakaiproject.nakamura.util.RequestWrapper;
-import org.sakaiproject.nakamura.util.ResponseWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.List;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -93,8 +71,6 @@ import javax.servlet.http.HttpServletResponse;
 public class BatchServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 419598445499567027L;
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(BatchServlet.class);
 
   protected static final String REQUESTS_PARAMETER = "requests";
   

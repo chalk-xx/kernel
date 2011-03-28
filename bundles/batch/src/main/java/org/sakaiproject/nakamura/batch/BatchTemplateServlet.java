@@ -18,46 +18,23 @@
 package org.sakaiproject.nakamura.batch;
 
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.sling.api.SlingException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceNotFoundException;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
-import org.apache.sling.commons.json.JSONArray;
-import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
-import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.templates.TemplateService;
-import org.sakaiproject.nakamura.util.RequestInfo;
-import org.sakaiproject.nakamura.util.RequestWrapper;
-import org.sakaiproject.nakamura.util.ResponseWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -140,6 +117,7 @@ public class BatchTemplateServlet extends SlingSafeMethodsServlet {
     }
     String template = node.getProperty("sakai:template").getString();
     request.getParameterMap();
+    @SuppressWarnings("unchecked")
     String json = templateService.evaluateTemplate(request.getParameterMap(), template);
     helper.batchRequest(request, response, json, allowModify);
   }
