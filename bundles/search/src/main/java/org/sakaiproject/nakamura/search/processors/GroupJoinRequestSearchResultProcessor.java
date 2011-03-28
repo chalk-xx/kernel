@@ -40,7 +40,10 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+
+import java.util.Date;
 
 import javax.jcr.RepositoryException;
 
@@ -82,7 +85,6 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
       throws JSONException {
     javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
     Session session = StorageClientUtils.adaptToSession(jcrSession);
-    String path = result.getPath();
     String userId = (String) result.getFirstValue(User.NAME_FIELD);
     if (userId != null) {
       try {
@@ -93,6 +95,8 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
           write.object();
           ValueMap map = profileService.getCompactProfileMap(auth, jcrSession);
           ((ExtendedJSONWriter)write).valueMapInternals(map);
+          write.key("_created");
+          write.value(DateUtils.iso8601(new Date((Long) result.getFirstValue("created"))));
           write.endObject();
         }
       } catch (StorageClientException e) {
