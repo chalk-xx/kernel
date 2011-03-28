@@ -96,7 +96,14 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
           ValueMap map = profileService.getCompactProfileMap(auth, jcrSession);
           ((ExtendedJSONWriter)write).valueMapInternals(map);
           write.key("_created");
-          write.value(DateUtils.iso8601(new Date((Long) result.getFirstValue("created"))));
+          Long created = (Long) result.getFirstValue("created");
+          Date createdDate = null;
+          if ( created != null) {
+            createdDate = new Date(created);
+          } else {
+            createdDate = new Date();
+          }
+          write.value(DateUtils.iso8601(createdDate));
           write.endObject();
         }
       } catch (StorageClientException e) {
