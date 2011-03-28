@@ -164,7 +164,7 @@ public interface FilesConstants {
   /**
    * Resource ID referneces in structures.
    */
-  public static final String RESOURCE_REFERENCE_FIELD = "_res";
+  public static final String RESOURCE_REFERENCE_FIELD = "_ref";
   
   
   public static final Set<String> RESERVED_POOL_KEYS = ImmutableSet.of(

@@ -38,7 +38,7 @@ public class GetPoolStructureServletTest {
   		"     \"under\" : {" +
   		"         \"the\" : {" +
   		"             \"item.jpg\" : {" +
-  		"                   \"_res\" : \"123456\" }}}}" +
+  		"                   \"_ref\" : \"123456\" }}}}" +
   		"}}";
   private GetPoolStructureServlet getPoolStructureServlet;
 
