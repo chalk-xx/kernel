@@ -87,12 +87,14 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
     if (userId != null) {
       try {
         AuthorizableManager authMgr = session.getAuthorizableManager();
-        Authorizable auth = authMgr.findAuthorizable(path);
+        Authorizable auth = authMgr.findAuthorizable(userId);
 
-        write.object();
-        ValueMap map = profileService.getCompactProfileMap(auth, jcrSession);
-        ((ExtendedJSONWriter)write).valueMapInternals(map);
-        write.endObject();
+        if (auth != null) {
+          write.object();
+          ValueMap map = profileService.getCompactProfileMap(auth, jcrSession);
+          ((ExtendedJSONWriter)write).valueMapInternals(map);
+          write.endObject();
+        }
       } catch (StorageClientException e) {
         throw new RuntimeException(e.getMessage(), e);
       } catch (AccessDeniedException e) {

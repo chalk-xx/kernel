@@ -5,6 +5,7 @@
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.10-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.email.outgoing</artifactId>
   <packaging>bundle</packaging>

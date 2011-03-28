@@ -4,11 +4,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
-import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -25,18 +24,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @Services(value={
-    @Service(value=Servlet.class),
-    @Service(value=ServerProtectionVeto.class)
+    @Service(value=ServerProtectionVeto.class),
+    @Service(value=DefaultServletDelegate.class)
 })
 @Component(immediate=true, enabled=true, metatype=true)
-@SlingServlet(resourceTypes = { "sakai/pooled-content" }, methods = { "GET" }, generateService=false, generateComponent=false)
 public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
-    OptingServlet, ServerProtectionVeto {
+    DefaultServletDelegate, ServerProtectionVeto {
 
   /**
    * 
@@ -44,6 +41,12 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
   private static final long serialVersionUID = 6091033560662167157L;
   private static final Logger LOGGER = LoggerFactory
       .getLogger(GetPoolStructureServlet.class);
+
+
+  public void doDelegateGet(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
+    doGet(request, response);
+  }
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -53,14 +56,16 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
       Content content = resource.adaptTo(Content.class);
       ContentManager contentManager = resource.adaptTo(ContentManager.class);
       String resourceId = getResourceId(request, content);
-      String resourcePath = StorageClientUtils.newPath(content.getPath(), resourceId);
       if (resourceId != null) {
+        String resourcePath = StorageClientUtils.newPath(content.getPath(), resourceId);
         Content resourceContent = contentManager.get(resourcePath);
         if (resourceContent != null) {
           if (contentManager.hasBody(resourcePath, null)) {
+            LOGGER.debug("Getting Resource Path {} Has Body", resourcePath);
              StreamHelper streamHelper = new StreamHelper();
              streamHelper.stream(request, contentManager, resourceContent, null, response, resource, getServletContext());
           } else {
+            LOGGER.debug("Getting Resource Path {} No Body", resourcePath);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
@@ -82,17 +87,40 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
   }
 
   public boolean accepts(SlingHttpServletRequest request) {
-    Resource resource = request.getResource();
-    Content content = resource.adaptTo(Content.class);
-    String suffix = request.getRequestPathInfo().getSuffix();
-    String structureId = "structure" + StringUtils.split(suffix, "/", 1)[0];
-    if (content.hasProperty(structureId)) {
-      return content.getProperty(structureId) != null;
+    if (request != null) {
+      Resource resource = request.getResource();
+      if (resource != null) {
+        Content content = resource.adaptTo(Content.class);
+        if (content != null) {
+          String contentPathInfo = getContentPathInfo(request, content);
+          LOGGER.debug("Content Path Info is {} ", contentPathInfo);
+          if ( contentPathInfo != null && contentPathInfo.length() > 0 ) {
+            String structureId = FilesConstants.STRUCTURE_FIELD_STEM + StringUtils.split(contentPathInfo, "/", 2)[0];
+            if (content.hasProperty(structureId)) {
+                return content.getProperty(structureId) != null;
+            }
+          }
+        }
+      }
     }
     return false;
   }
 
  
+  private String getContentPathInfo(SlingHttpServletRequest request, Content content) {
+    RequestPathInfo requestPathInfo = request.getRequestPathInfo();
+    LOGGER.debug("RequestPath Info is {} {}", requestPathInfo);
+    String requestPath = requestPathInfo.getResourcePath();
+    String contentPath  = content.getPath();
+    LOGGER.debug("RequestPath {}  Content Path is {}", requestPath, contentPath);
+    int i = requestPath.indexOf(contentPath);
+    String contentPathInfo = "";
+    if ( i > 0  ) {
+      contentPathInfo = requestPath.substring(i+contentPath.length());
+    }
+    return contentPathInfo;
+  }
+
   /**
    * Get the resource ID from the request
    * @param srequest
@@ -102,56 +130,91 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
    */
   private String getResourceId(SlingHttpServletRequest srequest, Content content)
       throws JSONException {
-    String suffix = srequest.getRequestPathInfo().getSuffix();
-    String[] path = StringUtils.split(suffix, "/");
-    if (!content.hasProperty("structure" + path[0])) {
+    String contentPathInfo = getContentPathInfo(srequest, content);
+    if ( contentPathInfo == null || contentPathInfo.length() == 0 ) {
+      return null;
+    }
+    String[] path = StringUtils.split(contentPathInfo, "/");
+    if (!content.hasProperty(FilesConstants.STRUCTURE_FIELD_STEM + path[0])) {
       return null;
     }
 
-    JSONObject structure = new JSONObject((String) content.getProperty("structure"
+    JSONObject structure = new JSONObject((String) content.getProperty(FilesConstants.STRUCTURE_FIELD_STEM
         + path[0]));
     for (int i = 1; i < path.length; i++) {
       structure = structure.getJSONObject(path[i]);
+      LOGGER.debug("Got {} at {} ",structure,path[i]);
       if (structure == null) {
         return null;
       }
     }
-    return structure.getString("_ref");
+    if ( structure.has("_res")) {
+      return structure.getString("_res");
+    } else {
+      return null;
+    }
   }
 
   public boolean willVeto(SlingHttpServletRequest srequest) {
-    Resource resource = srequest.adaptTo(Resource.class);
-    if (FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceType())
-        || FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceSuperType())) {
-      return true;
+    if (srequest != null) {
+      Resource resource = srequest.getResource();
+      if (resource != null) {
+        if (FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceType())
+            || FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceSuperType())) {
+          LOGGER.debug("Will Veto this request");
+          return true;
+        } else {
+          LOGGER.debug("No Veto, No the right resource type {}", resource.getResourceType());
+        }
+      } else {
+        LOGGER.debug("No Veto, No resource");
+      }
+    } else {
+      LOGGER.debug("No Veto, No request");
     }
     return false;
   }
 
-  public boolean veto(SlingHttpServletRequest srequest) {
-    Resource resource = srequest.adaptTo(Resource.class);
-    if (FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceType())
-        || FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceSuperType())) {
-      try {
+  public boolean safeToStream(SlingHttpServletRequest srequest) {
+    if (srequest != null) {
+      Resource resource = srequest.getResource();
+      if (resource != null) {
         if (FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceType())
             || FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceSuperType())) {
-
-          ContentManager contentManager = resource.adaptTo(ContentManager.class);
-          Content content = resource.adaptTo(Content.class);
-          String resourceId = getResourceId(srequest, content);
-          if (resourceId != null) {
-            return !contentManager.hasBody(
-                StorageClientUtils.newPath(content.getPath(), resourceId), null);
+          try {
+            if ( accepts(srequest)) {
+              Content content = resource.adaptTo(Content.class);
+              LOGGER.debug("Content  is {} ",content);
+              if ( content != null ) {
+                ContentManager contentManager = resource.adaptTo(ContentManager.class);
+                String resourceId = getResourceId(srequest, content);
+                LOGGER.debug("Resource ID is {} ",resourceId);
+                if (resourceId != null) {
+                  return !contentManager.hasBody(
+                      StorageClientUtils.newPath(content.getPath(), resourceId), null);
+                } else {
+                  LOGGER.debug("No Resource ID found");
+                }
+              }
+            } else {
+              LOGGER.debug("Doesnt accept, so safe to stream");
+              return true;
+            }
+          } catch (JSONException e) {
+            LOGGER.warn(e.getMessage(), e);
+          } catch (StorageClientException e) {
+            LOGGER.warn(e.getMessage(), e);
+          } catch (AccessDeniedException e) {
+            LOGGER.warn(e.getMessage(), e);
           }
+          LOGGER.debug("Not Safe to stream for some reason");
+          return false;
+        } else {
+          LOGGER.debug("Resource is not of correct type {} ", resource.getResourceType());
         }
-      } catch (JSONException e) {
-        LOGGER.warn(e.getMessage(), e);
-      } catch (StorageClientException e) {
-        LOGGER.warn(e.getMessage(), e);
-      } catch (AccessDeniedException e) {
-        LOGGER.warn(e.getMessage(), e);
+      } else {
+        LOGGER.debug("Resource is null");
       }
-      return false;
     }
     return true;
   }

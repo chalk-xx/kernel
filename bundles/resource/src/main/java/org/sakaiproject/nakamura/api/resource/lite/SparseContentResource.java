@@ -199,4 +199,9 @@ public class SparseContentResource extends AbstractResource {
   public Iterator<Resource> listChildren() {
     return new SparseContentResourceIterator(content.listChildren().iterator(), session, resourceResolver);
   }
+
+  @Override
+  public String toString() {
+    return "{ path=\""+getPath()+"\", resourceType=\""+getResourceType()+"\", resourceSuperType=\""+getResourceSuperType()+"\" metadata=\""+getResourceMetadata()+"\" }";
+  }
 }
