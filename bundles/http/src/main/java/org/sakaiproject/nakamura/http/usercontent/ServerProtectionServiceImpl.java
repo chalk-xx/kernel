@@ -15,6 +15,7 @@ import org.apache.felix.scr.annotations.ReferenceStrategy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.BundleContext;
@@ -23,6 +24,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionService;
 import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionValidator;
+import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionVeto;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +90,8 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String[] DEFAULT_WHITELIST_POST_PATHS = {"/system/console"};
   private static final String[] DEFAULT_ANON_WHITELIST_POST_PATHS = {"/system/userManager/user.create"};
 
+  @Property(boolValue=false)
+  private static final String DISABLE_XSS_PROTECTION_FOR_UI_DEV = "disable.protection.for.dev.mode";
   @Property(value = { DEFAULT_UNTRUSTED_CONTENT_URL })
   private static final String UNTRUSTED_CONTENTURL_CONF = "untrusted.contenturl";
   @Property(value = { "/dev", "/devwidgets", "/system" })
@@ -102,7 +106,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String TRUSTED_SECRET_CONF = "trusted.secret";
   @Property(value = {"/system/console"})
   private static final String WHITELIST_POST_PATHS_CONF = "trusted.postwhitelist";
-  @Property(value = {"/system/userManager/user.create"})
+  @Property(value = {"/system/userManager/user.create", "/system/batch"})
   private static final String ANON_WHITELIST_POST_PATHS_CONF = "trusted.anonpostwhitelist";
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ServerProtectionServiceImpl.class);
@@ -142,17 +146,29 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private String[] safeForAnonToPostPaths;
 
   @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, strategy = ReferenceStrategy.EVENT, bind = "bindServerProtectionValidator", unbind = "unbindServerProtectionValidator")
-  private ServerProtectionValidator[] serverProtectionValidators;
+  private ServerProtectionValidator[] serverProtectionValidators = new ServerProtectionValidator[0];
   private Map<ServiceReference, ServerProtectionValidator> serverProtectionValidatorsStore = Maps
       .newConcurrentHashMap();
+  @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, strategy = ReferenceStrategy.EVENT, bind = "bindServerProtectionVeto", unbind = "unbindServerProtectionVeto")
+  private ServerProtectionVeto[] serverProtectionVetos = new ServerProtectionVeto[0];
+  private Map<ServiceReference, ServerProtectionVeto> serverProtectionVetosStore = Maps
+      .newConcurrentHashMap();
+
   private BundleContext bundleContext;
+  private boolean disalbleProcetionForDevMove;
 
   @Activate
   public void activate(ComponentContext componentContext)
       throws NoSuchAlgorithmException, UnsupportedEncodingException,
       InvalidSyntaxException {
     @SuppressWarnings("unchecked")
+
     Dictionary<String, Object> properties = componentContext.getProperties();
+    disalbleProcetionForDevMove = OsgiUtil.toBoolean(properties.get(DISABLE_XSS_PROTECTION_FOR_UI_DEV), false);
+    if ( disalbleProcetionForDevMove ) {
+      LOGGER.warn("XSS Protection is disabled");
+      return;
+    }
     safeHosts = ImmutableSet.of(OsgiUtil.toStringArray(
         properties.get(TRUSTED_HOSTS_CONF), DEFAULT_TRUSTED_HOSTS));
     safeReferers = OsgiUtil.toStringArray(properties.get(TRUSTED_REFERER_CONF),
@@ -205,9 +221,20 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
         bindServerProtectionValidator(sr);
       }
     }
+    ServiceReference[] srsVeto = bundleContext.getAllServiceReferences(
+        ServerProtectionVeto.class.getName(), null);
+    if ( srsVeto != null ) {
+      for (ServiceReference sr : srsVeto) {
+        bindServerProtectionVeto(sr);
+      }
+    }
   }
 
   public void destroy(ComponentContext c) {
+    if ( disalbleProcetionForDevMove ) {
+      LOGGER.warn("XSS Protection is disabled");
+      return;
+    }
     BundleContext bc = c.getBundleContext();
     for (Entry<ServiceReference, ServerProtectionValidator> e : serverProtectionValidatorsStore
         .entrySet()) {
@@ -220,6 +247,10 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   public boolean isRequestSafe(SlingHttpServletRequest srequest,
       SlingHttpServletResponse sresponse) throws UnsupportedEncodingException,
       IOException {
+    if ( disalbleProcetionForDevMove ) {
+      LOGGER.warn("XSS Protection is disabled");
+      return true;
+    }
     // if the method is not safe, the request can't be safe.
     if (!isMethodSafe(srequest, sresponse)) {
       return false;
@@ -244,13 +275,16 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     }
     boolean safeHost = isSafeHost(srequest);
     if (safeHost && "GET".equals(method)) {
-      String ext = srequest.getRequestPathInfo().getExtension();
+      boolean safeToStream = false;
+      RequestPathInfo requestPathInfo = srequest.getRequestPathInfo();
+      String ext = requestPathInfo.getExtension();
       if (ext == null || "res".equals(ext)) {
         // this is going to stream
         String path = srequest.getRequestURI();
-        LOGGER.debug("Checking [{}] ", path);
-        boolean safeToStream = safeToStreamExactPaths.contains(path);
+        LOGGER.debug("Checking [{}] RequestPathInfo {}", path, requestPathInfo);
+        safeToStream = safeToStreamExactPaths.contains(path);
         if (!safeToStream) {
+          LOGGER.debug("Checking [{}] looks like not safe to stream ", path );
           for (String safePath : safeToStreamPaths) {
             if (path.startsWith(safePath)) {
               safeToStream = true;
@@ -278,12 +312,23 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
                 }
               }
             }
-            if (!safeToStream) {
-              redirectToContent(srequest, sresponse);
-              return false;
-            }
           }
         }
+      } else {
+        safeToStream = true;
+        LOGGER.debug("doesnt look like a body, checking with vetos" );
+      }
+      LOGGER.debug("Checking server vetos, safe to stream ? {} ", safeToStream);
+      for (ServerProtectionVeto serverProtectionVeto : serverProtectionVetos) {
+        LOGGER.debug("Checking for Veto on {} ",serverProtectionVeto);
+        if ( serverProtectionVeto.willVeto(srequest)) {
+          safeToStream = serverProtectionVeto.safeToStream(srequest);
+          break;
+        }
+      }
+      if (!safeToStream) {
+        redirectToContent(srequest, sresponse);
+        return false;
       }
     }
     return true;
@@ -345,6 +390,10 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
 
   public String getTransferUserId(HttpServletRequest request) {
     // only ever get a user ID in this way on a non trusted safe host.
+    if ( disalbleProcetionForDevMove ) {
+      LOGGER.warn("XSS Protection is disabled");
+      return null;
+    }
     if (!isSafeHost(request)) {
       String hmac = request.getParameter(HMAC_PARAM);
       if (hmac != null) {
@@ -387,6 +436,10 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
 
   public boolean isMethodSafe(HttpServletRequest hrequest, HttpServletResponse hresponse)
       throws IOException {
+    if ( disalbleProcetionForDevMove ) {
+      LOGGER.warn("XSS Protection is disabled");
+      return true;
+    }
     String method = hrequest.getMethod();
     boolean safeHost = isSafeHost(hrequest);
 
@@ -465,6 +518,24 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       bundleContext.ungetService(serviceReference);
       serverProtectionValidators = serverProtectionValidatorsStore.values().toArray(
           new ServerProtectionValidator[serverProtectionValidatorsStore.size()]);
+    }
+  }
+
+  public void bindServerProtectionVeto(ServiceReference serviceReference) {
+    if (bundleContext != null) {
+      serverProtectionVetosStore.put(serviceReference,
+          (ServerProtectionVeto) bundleContext.getService(serviceReference));
+      serverProtectionVetos = serverProtectionVetosStore.values().toArray(
+          new ServerProtectionVeto[serverProtectionVetosStore.size()]);
+    }
+  }
+
+  public void unbindServerProtectionVeto(ServiceReference serviceReference) {
+    if (bundleContext != null) {
+      serverProtectionVetosStore.remove(serviceReference);
+      bundleContext.ungetService(serviceReference);
+      serverProtectionVetos = serverProtectionVetosStore.values().toArray(
+          new ServerProtectionVeto[serverProtectionVetosStore.size()]);
     }
   }
 

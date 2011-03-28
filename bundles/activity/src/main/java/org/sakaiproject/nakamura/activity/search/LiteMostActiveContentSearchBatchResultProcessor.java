@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
@@ -55,14 +56,14 @@ import java.util.Map;
 public class LiteMostActiveContentSearchBatchResultProcessor implements
     SolrSearchBatchResultProcessor {
 
+  public static final String STARTPAGE_PARAM = "startpage";
+  public static final String NUMITEMS_PARAM = "numitems";
+
   private static final Logger LOG = LoggerFactory
       .getLogger(LiteMostActiveContentSearchBatchResultProcessor.class);
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
-
-  // private static final int DEFAULT_DAYS = 30;
-  // private static final int MAXIMUM_DAYS = 90;
 
   /**
    * 
@@ -84,20 +85,22 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
         final Result result = iterator.next();
         final String path = result.getPath();
         final Content node = session.getContentManager().get(path);
-        String resourceId = (String) node.getProperty("resourceId");
-        if (!resources.containsKey(resourceId)) {
-          Content resourceNode = session.getContentManager().get(resourceId);
-          if (resourceNode == null) {
-            // this can happen if this content is no longer public
-            continue;
+        if (node != null) {
+          final String resourceId = (String) node.getProperty("resourceId");
+          if (!resources.containsKey(resourceId)) {
+            final Content resourceNode = session.getContentManager().get(resourceId);
+            if (resourceNode == null) {
+              // this can happen if this content is no longer public
+              continue;
+            }
+            final String resourceName = (String) resourceNode
+                .getProperty(FilesConstants.POOLED_CONTENT_FILENAME);
+            resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName,
+                (Long) resourceNode.getProperty(FilesConstants.LAST_MODIFIED)));
           }
-          String resourceName = (String) resourceNode
-              .getProperty(FilesConstants.POOLED_CONTENT_FILENAME);
-          resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName,
-              (Long) resourceNode.getProperty(FilesConstants.LAST_MODIFIED)));
+          // increment the count for this particular resource.
+          resources.get(resourceId).activityScore++;
         }
-        // increment the count for this particular resource.
-        resources.get(resourceId).activityScore++;
       } catch (StorageClientException e) {
         // if something is wrong with this particular resourceNode,
         // we don't let it wreck the whole feed
@@ -110,44 +113,44 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
     }
 
     // write the most-used content to the JSONWriter
-    List<ResourceActivity> resourceActivities = new ArrayList<ResourceActivity>(
+    final List<ResourceActivity> resourceActivities = new ArrayList<ResourceActivity>(
         resources.values());
     Collections.sort(resourceActivities, Collections.reverseOrder());
     write.object();
     write.key(SolrSearchConstants.TOTAL);
     write.value(resources.size());
+    final RequestParameter startpageP = request.getRequestParameter(STARTPAGE_PARAM);
+    int startpage = (startpageP != null) ? Integer.valueOf(startpageP.getString()) : 1;
+    startpage = (startpage < 1) ? 1 : startpage;
+    write.key(STARTPAGE_PARAM);
+    write.value(startpage);
+    final RequestParameter numitemsP = request.getRequestParameter(NUMITEMS_PARAM);
+    int numitems = (numitemsP != null) ? Integer.valueOf(numitemsP.getString())
+                                      : SolrSearchConstants.DEFAULT_PAGED_ITEMS;
+    numitems = (numitems < 1) ? SolrSearchConstants.DEFAULT_PAGED_ITEMS : numitems;
+    write.key(NUMITEMS_PARAM);
+    write.value(numitems);
+    final int beginPosition = (startpage * numitems) - numitems;
     write.key("content");
     write.array();
-    for (ResourceActivity resourceActivity : resourceActivities) {
-      write.object();
-      write.key("id");
-      write.value(resourceActivity.id);
-      write.key("name");
-      write.value(resourceActivity.name);
-      write.key("count");
-      write.value(Long.valueOf(resourceActivity.activityScore));
-      write.endObject();
+    if (beginPosition < resourceActivities.size()) {
+      int count = 0;
+      for (int i = beginPosition; i < resourceActivities.size() && count < numitems; i++) {
+        final ResourceActivity resourceActivity = resourceActivities.get(i);
+        write.object();
+        write.key("id");
+        write.value(resourceActivity.id);
+        write.key("name");
+        write.value(resourceActivity.name);
+        write.key("count");
+        write.value(Long.valueOf(resourceActivity.activityScore));
+        write.endObject();
+        count++;
+      }
     }
     write.endArray();
     write.endObject();
   }
-
-  // KERN-1636 date range is now specified in the query not in PostProc.
-  // private int deriveDateWindow(SlingHttpServletRequest request) {
-  // int daysAgo = DEFAULT_DAYS;
-  // String requestedDaysParam = request.getParameter("days");
-  // if (requestedDaysParam != null) {
-  // try {
-  // int requestedDays = Integer.parseInt(requestedDaysParam);
-  // if ((requestedDays > 0) && (requestedDays <= MAXIMUM_DAYS)) {
-  // daysAgo = requestedDays;
-  // }
-  // } catch (NumberFormatException e) {
-  // // malformed parameter, so we'll just stick with the default number of days
-  // }
-  // }
-  // return daysAgo;
-  // }
 
   public class ResourceActivity implements Comparable<ResourceActivity> {
     public final String id;
@@ -161,7 +164,7 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
       this.name = name;
       this.lastModified = lastModified;
     }
-    
+
     @Override
     public String toString() {
       return "ResourceActivity(" + id + ", " + activityScore + ", " + name + ", "

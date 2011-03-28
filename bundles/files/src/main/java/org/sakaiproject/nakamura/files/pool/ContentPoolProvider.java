@@ -18,6 +18,7 @@
 
 package org.sakaiproject.nakamura.files.pool;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
@@ -130,10 +131,18 @@ public class ContentPoolProvider implements ResourceProvider {
         poolId = poolId.substring(0, i);
       }
       content = contentManager.get(poolId);
+      LOGGER.debug("Got PooID {} as {} ", poolId, content);
       if ( content != null ) {
         // 3. See if he resource is on the Content Pool node.
         if (resourceId != null && resourceId.length() > 0 ) {
+          String[] possibleStructure = StringUtils.split(resourceId, "/", 2);
           if ( resourceId.equals(content.getProperty(FilesConstants.POOLED_CONTENT_FILENAME))) {
+            SparseContentResource cpr = new SparseContentResource(content, session,
+                resourceResolver, path);
+            cpr.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
+            LOGGER.debug("Resolved {} as {} ",path,cpr);
+            return cpr;
+          } else if ( possibleStructure != null && possibleStructure.length > 0 && content.hasProperty(FilesConstants.STRUCTURE_FIELD_STEM+possibleStructure[0]) ) {
             SparseContentResource cpr = new SparseContentResource(content, session,
                 resourceResolver, path);
             cpr.getResourceMetadata().put(CONTENT_RESOURCE_PROVIDER, this);
@@ -148,10 +157,12 @@ public class ContentPoolProvider implements ResourceProvider {
           return cpr;
         }
       }
+      LOGGER.debug("THrowing Exception on {} as {} ",path);
       throw new SlingException("Creating a pool item is not allowed via this URL ",
             new AccessDeniedException(Security.ZONE_CONTENT, poolId,
                 "Cant create Pool Item", ""));
     }
+    LOGGER.debug("Returning null; ",path);
     return null;
   }
 

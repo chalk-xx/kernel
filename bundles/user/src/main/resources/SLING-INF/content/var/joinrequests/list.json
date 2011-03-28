@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "path:${groupId} AND resourceType:sakai/joinrequest",
+  "sakai:query-template": "path:a\\:${groupId}/joinrequests AND resourceType:sakai/joinrequest",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },

@@ -16,6 +16,7 @@
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.10-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
   <packaging>jar</packaging>
@@ -49,7 +50,7 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>Expand Server</id>
+            <id>Expand Jackrabbit Core Server</id>
             <goals>
               <goal>unpack-dependencies</goal>
             </goals>
@@ -65,6 +66,19 @@
                  org.apache.jackrabbit.core.security.authorization.acl.ACLProvider,
                  org.apache.jackrabbit.core.security.principal.DefaultPrincipalProvider,
                  org.apache.jackrabbit.core.SessionImpl
+              </excludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>Expand Server</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server</includeArtifactIds>
+              <excludeTransitive>true</excludeTransitive>
+              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
+              <excludes>META-INF/MANIFEST.MF,repository.xml,OSGI-INF/serviceComponents.xml
               </excludes>
             </configuration>
           </execution>
@@ -85,25 +99,6 @@
             <goals>
               <goal>test-jar</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>Expand Server</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server</includeArtifactIds>
-              <excludeTransitive>true</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-              <excludes>META-INF/MANIFEST.MF,repository.xml,OSGI-INF/serviceComponents.xml
-              </excludes>
-            </configuration>
           </execution>
         </executions>
       </plugin>

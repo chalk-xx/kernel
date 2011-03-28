@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -35,9 +36,12 @@ import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.files.FileUtils;
+import org.sakaiproject.nakamura.api.files.FilesConstants;
+import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
@@ -83,7 +87,7 @@ import javax.servlet.http.HttpServletResponse;
       )
     },
     methods = {
-      @ServiceMethod(name = "GET",  parameters = {},
+      @ServiceMethod(name = "GET",  parameters = {@ServiceParameter(name = "type", description = "For use with tagged selector. Valid values are: user, group, or content") },
           description = { "This servlet only responds to GET requests." },
           response = {
             @ServiceResponse(code = 200, description = "Succesful request, json can be found in the body"),
@@ -109,6 +113,9 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
   @Reference
   protected transient SolrSearchServiceFactory solrSearchServiceFactory;
+  
+  @Reference
+  private ProfileService profileService;
 
   /**
    * {@inheritDoc}
@@ -198,6 +205,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
     String statement = "//*[@sakai:tag-uuid='" + uuid + "']";
     Session session = tag.getSession();
     QueryManager qm = session.getWorkspace().getQueryManager();
+    @SuppressWarnings("deprecation")
     Query query = qm.createQuery(statement, Query.XPATH);
 
     FileSearchBatchResultProcessor proc = new FileSearchBatchResultProcessor(searchServiceFactory);
@@ -207,12 +215,33 @@ public class TagServlet extends SlingSafeMethodsServlet {
     proc.writeNodes(request, write, null, rs.getRowIterator());
 
     // BL120 KERN-1617 Need to include Content tagged with tag uuid
-    final String queryString = ClientUtils.escapeQueryChars("sakai:tag-uuid") + ":"
-        + ClientUtils.escapeQueryChars(uuid);
+    final StringBuilder sb = new StringBuilder();
+    sb.append("taguuid:");
+    sb.append(ClientUtils.escapeQueryChars(uuid));
+    final RequestParameter typeP = request.getRequestParameter("type");
+    if (typeP != null) {
+      final String type = typeP.getString();
+      sb.append(" AND ");
+      if ("user".equals(type)) {
+        sb.append("type:u");
+      } else if ("group".equals(type)) {
+        sb.append("type:g");
+      } else {
+        if ("content".equals(type)) {
+          sb.append("resourceType:");
+          sb.append(ClientUtils.escapeQueryChars(FilesConstants.POOLED_CONTENT_RT));
+        } else {
+          LOG.info("Unknown type parameter specified: type={}", type);
+          write.endArray();
+          return;
+        }
+      }
+    }
+    final String queryString = sb.toString();
     org.sakaiproject.nakamura.api.search.solr.Query solrQuery = new org.sakaiproject.nakamura.api.search.solr.Query(
-        Type.SPARSE, queryString, ImmutableMap.of("sort", "score desc"));
+        Type.SOLR, queryString, ImmutableMap.of("sort", "score desc"));
     final SolrSearchBatchResultProcessor rp = new LiteFileSearchBatchResultProcessor(
-        solrSearchServiceFactory);
+        solrSearchServiceFactory, profileService);
     final SolrSearchResultSet srs = rp.getSearchResultSet(request, solrQuery);
     rp.writeResults(request, write, srs.getResultSetIterator());
     write.endArray();
