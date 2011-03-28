@@ -86,6 +86,7 @@ public class JoinRequestIndexingHandler implements IndexingHandler {
         if (content != null) {
           SolrInputDocument doc = new SolrInputDocument();
           doc.addField(User.NAME_FIELD, content.getProperty(User.NAME_FIELD));
+          doc.addField("created", content.getProperty("_created"));
           doc.addField(_DOC_SOURCE_OBJECT, content);
           documents.add(doc);
         }
