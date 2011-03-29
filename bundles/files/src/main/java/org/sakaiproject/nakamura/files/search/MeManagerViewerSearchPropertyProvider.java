@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -55,8 +56,12 @@ public class MeManagerViewerSearchPropertyProvider implements SolrSearchProperty
 
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
-
+    
     String user = request.getRemoteUser();
+    RequestParameter useridParam = request.getRequestParameter("userid");
+    if (useridParam != null) {
+      user = useridParam.getString();
+    }
     
     javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
     Session session =
