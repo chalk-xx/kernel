@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.apache.sling.jcr.jackrabbit.server.security.dynamic;
+package org.sakaiproject.nakamura.util;
 
 import java.util.Formatter;
 import java.util.GregorianCalendar;
