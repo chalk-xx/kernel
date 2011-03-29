@@ -1,11 +1,13 @@
 {
-  "sakai:query-template": 'resourceType:sakai/pooled-content',
+  "sakai:query-template": 'resourceType:sakai/pooled-content AND (manager:(${au}) OR viewer:(${au}))',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
+  "sakai:propertyprovider" : "MeManagerViewer",
+  "sakai:resultprocessor": "AllFiles",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",
   "sakai:title": "Pooled Content - All",
