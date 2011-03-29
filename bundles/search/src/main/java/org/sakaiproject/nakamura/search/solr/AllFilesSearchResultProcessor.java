@@ -31,7 +31,6 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
-import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
@@ -41,7 +40,6 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * Formats user profile node search results
@@ -82,7 +80,7 @@ public class AllFilesSearchResultProcessor implements SolrSearchResultProcessor 
       Content contentResult = session.getContentManager().get(contentPath);
       if (contentResult != null) {
         write.object();
-        write.key("canManage");
+        write.key("sakai:canmanage");
         Authorizable thisUser = session.getAuthorizableManager().findAuthorizable(request.getRemoteUser());
         Collection<String> principals = new ArrayList<String>();
         principals.addAll(Arrays.asList(thisUser.getPrincipals()));
