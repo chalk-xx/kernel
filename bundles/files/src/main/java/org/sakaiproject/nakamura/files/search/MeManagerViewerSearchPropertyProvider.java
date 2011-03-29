@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 
 import java.util.ArrayList;
@@ -63,26 +64,30 @@ public class MeManagerViewerSearchPropertyProvider implements SolrSearchProperty
       user = useridParam.getString();
     }
     
+    if (User.ANON_USER.equals(user)) {
+      // stop here, anonymous is not a manager or a viewer of anything
+      return;
+    }
     javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
     Session session =
       StorageClientUtils.adaptToSession(jcrSession);
     try {
       AuthorizableManager authManager = session.getAuthorizableManager();
-      Authorizable me = authManager.findAuthorizable(user);
-      List<String> viewerAndManagerPrincipals = new ArrayList<String>();
-      for (String principal : me.getPrincipals()) {
-        viewerAndManagerPrincipals.add(ClientUtils.escapeQueryChars(principal));
+      Authorizable userAuthorizable = authManager.findAuthorizable(user);
+      if (userAuthorizable != null) {
+        List<String> viewerAndManagerPrincipals = new ArrayList<String>();
+        for (String principal : userAuthorizable.getPrincipals()) {
+          viewerAndManagerPrincipals.add(ClientUtils.escapeQueryChars(principal));
+        }
+        viewerAndManagerPrincipals.remove("everyone");
+        viewerAndManagerPrincipals.add(ClientUtils.escapeQueryChars(user));
+
+        propertiesMap.put("au", Join.join(" OR ", viewerAndManagerPrincipals));
       }
-      viewerAndManagerPrincipals.remove("everyone");
-      viewerAndManagerPrincipals.add(ClientUtils.escapeQueryChars(user));
-      
-      propertiesMap.put("au", Join.join(" OR ", viewerAndManagerPrincipals));
     } catch (StorageClientException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      throw new RuntimeException(e);
     } catch (AccessDeniedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
 
 
