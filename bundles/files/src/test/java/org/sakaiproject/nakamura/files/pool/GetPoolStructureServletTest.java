@@ -38,7 +38,7 @@ public class GetPoolStructureServletTest {
   		"     \"under\" : {" +
   		"         \"the\" : {" +
   		"             \"item.jpg\" : {" +
-  		"                   \"_res\" : \"123456\" }}}}" +
+  		"                   \"_ref\" : \"123456\" }}}}" +
   		"}}";
   private GetPoolStructureServlet getPoolStructureServlet;
 
@@ -145,6 +145,7 @@ public class GetPoolStructureServletTest {
       }
     };
     Mockito.when(response.getOutputStream()).thenReturn(servletOutputStream);
+    Mockito.when(response.getWriter()).thenReturn(new PrintWriter(outputStream));
     
     
     getPoolStructureServlet.init(servletConfig);

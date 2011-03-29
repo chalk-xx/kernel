@@ -148,8 +148,8 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
         return null;
       }
     }
-    if ( structure.has("_res")) {
-      return structure.getString("_res");
+    if ( structure.has(FilesConstants.RESOURCE_REFERENCE_FIELD)) {
+      return structure.getString(FilesConstants.RESOURCE_REFERENCE_FIELD);
     } else {
       return null;
     }

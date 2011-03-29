@@ -29,7 +29,7 @@ import org.json.JSONWriter;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
-import org.sakaiproject.nakamura.eventexplorer.api.cassandra.CassandraService;
+import org.sakaiproject.nakamura.api.eventexplorer.cassandra.CassandraService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

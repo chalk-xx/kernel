@@ -20,36 +20,38 @@ package org.sakaiproject.nakamura.batch;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
-import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.templates.TemplateService;
 
 import java.io.IOException;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@SlingServlet(methods = { "POST" }, generateService = true, paths = { "/system/batch" })
+@SlingServlet(methods = { "GET" }, resourceTypes={"sakai/batch-template"},  selectors={"batch"}, extensions={"json"})
 @ServiceDocumentation(
-    name = "BatchServlet",
-    shortDescription = "Bundles multiple requests into a single response.",
+    name = "BatchTemplateServlet",
+    shortDescription = "Bundles multiple requests into a single response, using a template",
     description = "Allows multiple requests to be executed in a single request.",
     bindings = @ServiceBinding(
-        type = BindingType.PATH,
-        bindings = "/system/batch"
+        type = BindingType.TYPE,
+        selectors= {@ServiceSelector(name="batch")},
+        extensions= {@ServiceExtension(name="json")},
+        bindings = "sakai/batch-template"
     ),
     methods = @ServiceMethod(
-        name = "POST",
-        description = "Get multiple request responses into a single response. It can do GET, POST and DELETE everything is defined in the json block.",
-        parameters = @ServiceParameter(
-            name = "requests",
-            description = "A JSON string representing a request. <br />Example:" +
-                "<pre>[{  \"url\" : \"/foo/bar\",  \"method\" : \"POST\",  \"parameters\" : {    \"val\" : 123,    \"val@TypeHint\" : \"Long\"  }},{  \"url\" : \"/_user/a/ad/admin/public/authprofile.json\",  \"method\" : \"GET\"}]</pre>"
-        ),
+        name = "GET",
+        description = "Get multiple request responses into a single response, only GET operations.",
         response = {@ServiceResponse(
             code = 200,
             description = "All requests are successful. <br />" +
@@ -68,10 +70,12 @@ import javax.servlet.http.HttpServletResponse;
         }
     )
 )
-public class BatchServlet extends SlingAllMethodsServlet {
+public class BatchTemplateServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = 419598445499567027L;
 
+  protected TemplateService templateService;
+  
   protected static final String REQUESTS_PARAMETER = "requests";
   
   private BatchHelper helper = new BatchHelper();
@@ -85,44 +89,13 @@ public class BatchServlet extends SlingAllMethodsServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    batchRequest(request, response, false);
+    try {
+      batchRequest(request, response, false);
+    } catch (RepositoryException e) {
+      throw new ServletException(e.getMessage(),e);
+    }
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.api.SlingHttpServletResponse)
-   */
-  @Override
-  protected void doPost(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException {
-    batchRequest(request, response, true);
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doDelete(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.api.SlingHttpServletResponse)
-   */
-  @Override
-  protected void doDelete(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException {
-    response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPut(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.api.SlingHttpServletResponse)
-   */
-  @Override
-  protected void doPut(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException {
-    response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-  }
 
   /**
    * Takes the original request and starts the batching.
@@ -131,11 +104,21 @@ public class BatchServlet extends SlingAllMethodsServlet {
    * @param response
    * @throws IOException
    * @throws ServletException 
+   * @throws RepositoryException 
    */
   protected void batchRequest(SlingHttpServletRequest request,
-      SlingHttpServletResponse response, boolean allowModify) throws IOException, ServletException {
+      SlingHttpServletResponse response, boolean allowModify) throws IOException, ServletException, RepositoryException {
     // Grab the JSON block out of it and convert it to RequestData objects we can use.
-    String json = request.getParameter(REQUESTS_PARAMETER);    
+    Resource resource = request.getResource();
+    Node node = resource.adaptTo(Node.class);
+    if ( node == null || !node.hasProperty("sakai:template") ) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Not a batch template");
+      return;
+    }
+    String template = node.getProperty("sakai:template").getString();
+    request.getParameterMap();
+    @SuppressWarnings("unchecked")
+    String json = templateService.evaluateTemplate(request.getParameterMap(), template);
     helper.batchRequest(request, response, json, allowModify);
   }
 

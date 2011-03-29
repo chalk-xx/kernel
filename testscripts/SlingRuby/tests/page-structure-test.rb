@@ -37,8 +37,8 @@ class TC_NodeCreateTest < Test::Unit::TestCase
 	assert_equal(fBody,res.body)
 
 	res = @s.execute_post(@s.url_for("/p/#{poolId}"), 
-	    "structure0" => " { \"a\" : {\"file.txt\" : { \"_res\" : #{resourceId} }}}",
-		"structure1" => " { \"b\" : {\"fileZ.txt\" : { \"_res\" : #{resourceId} }}}" )
+	    "structure0" => " { \"a\" : {\"file.txt\" : { \"_ref\" : #{resourceId} }}}",
+		"structure1" => " { \"b\" : {\"fileZ.txt\" : { \"_ref\" : #{resourceId} }}}" )
 	assert_equal("200",res.code)
 	
     res = @s.execute_get(@s.url_for("/p/#{poolId}/0/a/file.txt"))
