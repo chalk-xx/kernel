@@ -34,6 +34,8 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -85,7 +87,9 @@ public class ContentPoolSearchPropertyProvider implements SolrSearchPropertyProv
       StringBuilder viewers = new StringBuilder("AND viewer:(").append(userId);
 
       // add groups to the parameters
-      String[] groups = auth.getPrincipals();
+      List<String> groups = Arrays.asList(auth.getPrincipals());
+      // KERN-1634 'everyone' should not be considered a group
+      groups.remove("everyone");
       for (String group : groups) {
         String groupId = ClientUtils.escapeQueryChars(group);
         managers.append(" OR ").append(groupId);

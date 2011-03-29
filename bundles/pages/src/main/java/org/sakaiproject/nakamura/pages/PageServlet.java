@@ -38,6 +38,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -62,7 +64,7 @@ public class PageServlet extends SlingSafeMethodsServlet {
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     try {
-      Content pagesContent = null;
+      List<Content> contentList = null;
       RequestParameter rp = request.getRequestParameter("path");
       ResourceResolver resourceResolver = request.getResourceResolver();
       if (rp != null) {
@@ -73,11 +75,15 @@ public class PageServlet extends SlingSafeMethodsServlet {
         if (contentPath.endsWith("/")) {
           contentPath = contentPath.substring(0, contentPath.length() - 1);
         }
+
         Resource pagesResource = resourceResolver.getResource(contentPath);
         if (pagesResource != null) {
-          pagesContent = pagesResource.adaptTo(Content.class);
+          contentList = getPageTree(pagesResource.adaptTo(Content.class));
+          ;
         }
+
       }
+
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
       PrintWriter w = response.getWriter();
@@ -90,8 +96,10 @@ public class PageServlet extends SlingSafeMethodsServlet {
 
       writer.key("results");
       writer.array();
-      if (pagesContent != null) {
-        for (Content page : pagesContent.listChildren()) {
+      if (contentList != null) {
+        for (int i = 0; i < contentList.size(); i++) {
+          Content page = contentList.get(i);
+
           writer.object();
           writer.key("jcr:path");
           writer.value(page.getPath().replaceFirst(LitePersonalUtils.PATH_AUTHORIZABLE,
@@ -126,6 +134,27 @@ public class PageServlet extends SlingSafeMethodsServlet {
       rv = Long.valueOf((String)property);
     }
     return rv;
+  }
+
+  /*
+   * getPageTree: returns List of all pages under the passed path
+   */
+  private List<Content> getPageTree(Content pageContent) {
+    List<Content> contentList = new ArrayList();
+
+    // Add to list only if content is a page
+    String resourceType = (String) pageContent.getProperty("sling:resourceType");
+    if (resourceType != null && resourceType.equals("sakai/page")) {
+      contentList.add(pageContent);
+    }
+
+    if (pageContent != null) {
+      for (Content page : pageContent.listChildren()) {
+        contentList.addAll(getPageTree(page));
+      }
+    }
+
+    return contentList;
   }
 
 

@@ -26,6 +26,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -33,6 +34,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
+import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
@@ -111,12 +113,29 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
         continue;
       }
     }
+    
+    // KERN-1724 determine how many content items the current user can read
+    long totalCanRead = 0L;
+    try {
+      final String queryString = "resourceType:"
+          + ClientUtils.escapeQueryChars(FilesConstants.POOLED_CONTENT_RT);
+      final Query query = new Query(Type.SOLR, queryString, null);
+      final SolrSearchResultSet rs = searchServiceFactory.getSearchResultSet(request,
+          query);
+      if (rs != null) {
+        totalCanRead = rs.getSize();
+      }
+    } catch (SolrSearchException e) {
+      LOG.error(e.getLocalizedMessage(), e);
+    }
 
     // write the most-used content to the JSONWriter
     final List<ResourceActivity> resourceActivities = new ArrayList<ResourceActivity>(
         resources.values());
     Collections.sort(resourceActivities, Collections.reverseOrder());
     write.object();
+    write.key("totalCanRead");
+    write.value(totalCanRead);
     write.key(SolrSearchConstants.TOTAL);
     write.value(resources.size());
     final RequestParameter startpageP = request.getRequestParameter(STARTPAGE_PARAM);
