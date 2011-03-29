@@ -33,6 +33,7 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
+import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
@@ -40,6 +41,8 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,6 +60,9 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
 
   public static final String STARTPAGE_PARAM = "startpage";
   public static final String NUMITEMS_PARAM = "numitems";
+
+  private static final Logger LOG = LoggerFactory
+      .getLogger(MostActiveGroupsSearchBatchResultProcessor.class);
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
@@ -100,11 +106,27 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
       }
     }
 
+    // KERN-1724 determine how many content items the current user can read
+    long totalCanRead = 0L;
+    try {
+      final String queryString = "resourceType:authorizable AND type:g";
+      final Query query = new Query(Type.SOLR, queryString, null);
+      final SolrSearchResultSet rs = searchServiceFactory.getSearchResultSet(request,
+          query);
+      if (rs != null) {
+        totalCanRead = rs.getSize();
+      }
+    } catch (SolrSearchException e) {
+      LOG.error(e.getLocalizedMessage(), e);
+    }
+
     // write the most-used content to the JSONWriter
     final List<ResourceActivity> resourceActivities = new ArrayList<ResourceActivity>(
         resources.values());
     Collections.sort(resourceActivities, Collections.reverseOrder());
     write.object();
+    write.key("totalCanRead");
+    write.value(totalCanRead);
     write.key(SolrSearchConstants.TOTAL);
     write.value(resourceActivities.size());
     final RequestParameter startpageP = request.getRequestParameter(STARTPAGE_PARAM);
