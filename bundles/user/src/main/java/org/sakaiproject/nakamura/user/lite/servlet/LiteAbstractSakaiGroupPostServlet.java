@@ -97,6 +97,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
       boolean changed = false;
 
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
+      Joinable groupJoin = getJoinable(group);
 
       // first remove any members posted as ":member@Delete"
       String[] membersToDelete = request.getParameterValues(paramName + SlingPostConstants.SUFFIX_DELETE);
@@ -106,11 +107,20 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
         for (String member : membersToDelete) {
           String memberId = getAuthIdFromParameter(member);
           group.removeMember(memberId);
+          if(!User.ADMIN_USER.equals(session.getUserId()) && !User.ANON_USER.equals(session.getUserId())
+              && Joinable.yes.equals(groupJoin)
+              && memberId.equals(session.getUserId())) {
+            Session adminSession = getSession();
+            try{
+              AuthorizableManager adminAuthorizableManager = adminSession.getAuthorizableManager();
+              adminAuthorizableManager.updateAuthorizable(group);
+            }finally{
+                ungetSession(adminSession);
+            }
+          }
           changed = true;
         }
       }
-
-      Joinable groupJoin = getJoinable(group);
 
       // second add any members posted as ":member"
       String[] membersToAdd = request.getParameterValues(paramName);
@@ -136,7 +146,7 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
                 Group adminAuthGroup = (Group) adminAuthorizableManager.findAuthorizable(group.getId());
                 if(adminAuthGroup != null){
                   adminAuthGroup.addMember(memberAuthorizable.getId());
-                    adminAuthorizableManager.updateAuthorizable(adminAuthGroup);
+                  adminAuthorizableManager.updateAuthorizable(adminAuthGroup);
                   changed = true;
                 }
               }finally{
