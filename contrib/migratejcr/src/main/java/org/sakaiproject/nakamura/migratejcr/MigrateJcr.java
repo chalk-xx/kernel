@@ -77,6 +77,15 @@ public class MigrateJcr {
     // TODO Auto-generated method stub
     
   }
+  
+  private void logNode(Node node) throws RepositoryException {
+    LOGGER.info(node.getPath() + ":" + node.getIdentifier());
+    NodeIterator nodeItr = node.getNodes();
+    while(nodeItr.hasNext()) {
+      Node childNode = nodeItr.nextNode();
+      logNode(childNode);
+    }
+  }
 
   @SuppressWarnings("deprecation")
   private void migrateContentPool() throws InvalidQueryException, RepositoryException {
@@ -84,7 +93,7 @@ public class MigrateJcr {
     String contentPoolQuery = "//element(*, sakai:pooled-content) order by @jcr:score descending";
     javax.jcr.Session jcrSession = null;
     try {
-      jcrSession = slingRepository.loginAdministrative(null);
+      jcrSession = slingRepository.loginAdministrative("default");
       QueryManager qm = jcrSession.getWorkspace().getQueryManager();
       Query q = qm.createQuery(contentPoolQuery, Query.XPATH);
       QueryResult result = q.execute();
@@ -114,7 +123,7 @@ public class MigrateJcr {
     LOGGER.info("beginning users and groups migration.");
     javax.jcr.Session jcrSession = null;
     try {
-      jcrSession = slingRepository.loginAdministrative(null);
+      jcrSession = slingRepository.loginAdministrative("default");
       String usersQuery = "//*[@sling:resourceType='sakai/user-home'] order by @jcr:score descending";
       QueryManager qm = jcrSession.getWorkspace().getQueryManager();
       Query q = qm.createQuery(usersQuery, Query.XPATH);
@@ -157,14 +166,23 @@ public class MigrateJcr {
       Node profileNode = authHomeNode.getNode("public/authprofile");
       if (isUser) {
         String id = profileNode.getProperty("rep:userId").getString();
-        String firstName = profileNode.getProperty("firstName").getString();
-        String lastName = profileNode.getProperty("lastName").getString();
-        String email = profileNode.getProperty("email").getString();
-        authManager.createUser(id, id, null, ImmutableMap.of(
+        Node propNode = profileNode.getNode("basic/elements/firstName");
+        String firstName = propNode.getProperty("value").getString();
+        propNode = profileNode.getNode("basic/elements/lastName");
+        String lastName = propNode.getProperty("value").getString();
+        propNode = profileNode.getNode("basic/elements/email");
+        String email = propNode.getProperty("value").getString();
+        if (authManager.createUser(id, id, null, ImmutableMap.of(
             "firstName", (Object)firstName,
             "lastName", (Object)lastName,
-            "email", (Object)email));
-        userManager.getAuthorizable(id).remove();
+            "email", (Object)email))){
+          //TODO copy the user home to sparse
+          //TODO do we care about the password?
+          LOGGER.info(id + " " + firstName + " " + lastName + " " + email);
+        } else {
+          LOGGER.info("User {} exists in sparse. Skipping it.", id);
+        }
+        //userManager.getAuthorizable(id).remove();
       }
     } finally {
       if (sparseSession != null) {
