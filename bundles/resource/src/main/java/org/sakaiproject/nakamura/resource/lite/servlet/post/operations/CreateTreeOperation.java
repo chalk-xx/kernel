@@ -24,7 +24,10 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.servlets.post.Modification;
+import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -94,7 +97,9 @@ public class CreateTreeOperation extends AbstractSparsePostOperation {
     // Start creating the tree.
     try {
       LiteJsonImporter simpleJSONImporter = new LiteJsonImporter();
-      simpleJSONImporter.importContent(contentManager, json, path, false, false, false);
+      Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+      AccessControlManager accessControlManager = session.getAccessControlManager();
+      simpleJSONImporter.importContent(contentManager, json, path, false, false, false, accessControlManager);
     } catch (JSONException e) {
       throw new StorageClientException(e.getMessage(), e);
     }

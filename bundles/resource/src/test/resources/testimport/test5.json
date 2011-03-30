@@ -1,0 +1,29 @@
+{
+    "testdelete" : {
+        "Property" : "ValueA",
+        "ieb@grant" : {
+            "operation": "replace",
+            "permission" : [
+                "read" 
+            ] 
+        },
+        "nested@Delete": {
+            "userX@deny" : {
+                "operation": "replace",
+                "permission" : [
+                    "all" 
+                ] 
+            } 
+        },
+        "PropertyB@Delete" : "ValueB",
+        "anonoymous@deny" : {
+            "operation": "replace",
+            "permission" : [
+                "all" 
+            ] 
+        },
+        "PropertyC@Delete" : [
+            "ValueC"
+        ] 
+    }
+}
