@@ -36,6 +36,7 @@ import org.mockito.MockitoAnnotations;
 import org.osgi.framework.BundleContext;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.util.ISO8601Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
