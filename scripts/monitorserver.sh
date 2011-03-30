@@ -5,4 +5,3 @@ do
    ./generate_preview.rb $1
    sleep 15
 done
-
