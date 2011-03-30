@@ -58,7 +58,8 @@ Import-Package: com.microsoft.sqlserver.jdbc;resolution:=optional,java
  ",org.osgi.service.cm;version="1.2",org.osgi.service.component;versio
  n="1.0",org.osgi.service.log;version="1.3",org.osgi.util.tracker;vers
  ion="1.3",org.postgresql;resolution:=optional,org.slf4j;version="1.5"
- ,org.w3c.dom,org.xml.sax,org.xml.sax.helpers
+ ,org.w3c.dom,org.xml.sax,org.xml.sax.helpers,org.sakaiproject.nakamur
+ a.util
 Bnd-LastModified: 1282504205185
 Export-Package: org.apache.sling.jcr.jackrabbit.server;uses:="javax.jc
  r";version="2.1.0",org.apache.sling.jcr.jackrabbit.server.security.ac
