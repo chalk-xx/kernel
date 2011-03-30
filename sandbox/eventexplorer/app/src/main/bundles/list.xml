@@ -33,7 +33,11 @@
     </bundle>
   </startLevel>
   <startLevel level="1">
-
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.google-collections</artifactId>
+      <version>0.8-0.10-SNAPSHOT</version>
+    </bundle>
     <!--
       We probably shouldn't be binding to Sling releases, but the
       logging is too nice not to have.
@@ -52,28 +56,38 @@
     </bundle>
     <bundle>
       <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
+      <version>1.0.1</version>
+    </bundle>
+    <bundle>
+      <groupId>org.apache.geronimo.specs</groupId>
       <artifactId>geronimo-j2ee-connector_1.5_spec</artifactId>
       <version>2.0.0</version>
     </bundle>
     <!--  To bring in JMX we need the ejb specs -->
     <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.specs.ejb</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-ejb_3.0_spec</artifactId>
+      <version>1.0.1</version>
     </bundle>
   </startLevel>
   <startLevel level="5">
 
     <!-- Bring in the JMS and JMX bundles for all of our activemq stuff -->
     <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.specs.jms</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jms_1.1_spec</artifactId>
+      <version>1.1.1</version>
     </bundle>
     <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.specs.jmx</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <groupId>org.apache.aries.jmx</groupId>
+      <artifactId>org.apache.aries.jmx.api</artifactId>
+      <version>0.1-incubating</version>
+    </bundle>
+    <bundle>
+      <groupId>org.apache.aries.jmx</groupId>
+      <artifactId>org.apache.aries.jmx.core</artifactId>
+      <version>0.1-incubating</version>
     </bundle>
 
     <bundle>
@@ -127,10 +141,9 @@
   </startLevel>
   <startLevel level="11">
     <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.commons.commons-pool
-      </artifactId>
-      <version>1.5.2-0.10-SNAPSHOT</version>
+      <groupId>commons-pool</groupId>
+      <artifactId>commons-pool</artifactId>
+      <version>1.5.5</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -139,10 +152,9 @@
       <version>3.1-0.10-SNAPSHOT</version>
     </bundle>
     <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.commons.commons-codec
-      </artifactId>
-      <version>1.4-0.10-SNAPSHOT</version>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.4</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -166,6 +178,14 @@
       <artifactId>org.sakaiproject.nakamura.eventexplorer.listeners</artifactId>
       <version>0.10-SNAPSHOT</version>
     </bundle>
+    <!-- include this listener if you want to store to jdbc instead of cassandra -->
+    <!--
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.eventexplorer.listeners.jdbc</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </bundle>
+    -->
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.eventexplorer.ui</artifactId>

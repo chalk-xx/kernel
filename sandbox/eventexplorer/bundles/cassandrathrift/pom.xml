@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <artifactId>org.sakaiproject.nakamura.eventexplorer</artifactId>
+    <artifactId>eventexplorer</artifactId>
     <version>0.10-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
@@ -27,14 +27,34 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category>sakai-nakamura</Bundle-Category>
+            <Bundle-Category>
+                sakai-nakamura
+            </Bundle-Category>
             <Export-Package>
-              org.apache.cassandra.thrift.*,
-              org.apache.thrift.*,
-              org.sakaiproject.nakamura.eventexplorer.api.cassandra
+              org.sakaiproject.nakamura.api.eventexplorer.cassandra
 			</Export-Package>
-            <Private-Package>org.sakaiproject.nakamura.eventexplorer.cassandra.*</Private-Package>
-            <Embed-Dependency>libthrift,apache-cassandra</Embed-Dependency>
+            <_exportcontents>
+                org.apache.cassandra.thrift.*,
+                org.apache.thrift.*
+            </_exportcontents>
+            <Private-Package>
+                org.sakaiproject.nakamura.eventexplorer.cassandra.*
+            </Private-Package>
+            <Import-Package>
+                !com.sun.jna,
+                !com.reardencommerce.kernel.collections.shared.evictable,
+                !jline,
+                !org.antlr.runtime.*,
+                !org.apache.commons.cli,
+                !org.apache.hadoop.*,
+                !org.cliffc.high_scale_lib,
+                !org.json.simple.*,
+                *
+            </Import-Package>
+            <Embed-Dependency>
+                libthrift,
+                apache-cassandra
+            </Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
