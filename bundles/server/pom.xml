@@ -202,7 +202,7 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.util</artifactId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.10-SNAPSHOT</version>
     </dependency>
 
