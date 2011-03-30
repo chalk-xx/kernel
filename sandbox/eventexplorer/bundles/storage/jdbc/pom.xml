@@ -27,7 +27,7 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
-            <Private-Package>org.sakaiproject.nakamura.eventexplorer.oracle</Private-Package>
+            <Private-Package>org.sakaiproject.nakamura.eventexplorer.jdbc</Private-Package>
           </instructions>
         </configuration>
       </plugin>

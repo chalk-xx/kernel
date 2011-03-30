@@ -27,7 +27,8 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
-            <Private-Package>org.sakaiproject.nakamura.eventexplorer.*</Private-Package>
+            <Export-Package>org.sakaiproject.nakamura.api.eventexplorer</Export-Package>
+            <Private-Package>org.sakaiproject.nakamura.eventexplorer</Private-Package>
           </instructions>
         </configuration>
       </plugin>
