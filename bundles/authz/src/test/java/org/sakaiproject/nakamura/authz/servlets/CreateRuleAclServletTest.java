@@ -25,13 +25,13 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.jcr.jackrabbit.server.security.dynamic.ISO8601Date;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.sakaiproject.nakamura.util.ISO8601Date;
 
 import java.io.IOException;
 import java.io.PrintWriter;
