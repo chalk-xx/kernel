@@ -147,11 +147,9 @@ public class WidgetDataIndexingHandler implements IndexingHandler {
   private String[] getAuthHomePath(Content content, ContentManager cm)
       throws AccessDeniedException, StorageClientException {
     if (content.hasProperty(UserConstants.GROUP_HOME_RESOURCE_TYPE)) {
-      return new String[] { "g",
-          (String) PathUtils.translateAuthorizablePath(content.getPath()) };
+      return new String[] { "g", content.getPath().substring(2) };
     } else if (content.hasProperty(UserConstants.USER_HOME_RESOURCE_TYPE)) {
-      return new String[] { "u",
-          (String) PathUtils.translateAuthorizablePath(content.getPath()) };
+      return new String[] { "u", content.getPath().substring(2) };
     } else if ("/".equals(content.getPath())) {
       return null;
     } else {
