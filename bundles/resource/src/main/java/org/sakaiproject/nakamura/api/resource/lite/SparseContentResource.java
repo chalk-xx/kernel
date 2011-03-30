@@ -80,16 +80,25 @@ public class SparseContentResource extends AbstractResource {
     this.resourceResolver = resourceResolver;
     this.resourcePath = resourcePath;
 
-    Map<String, Object> props = content.getProperties();
-    metadata = new ResourceMetadata();
-    metadata.setCharacterEncoding(UTF_8);
-    metadata.setContentLength(StorageClientUtils.toLong(props.get(Content.LENGTH_FIELD)));
-    metadata.setCreationTime(StorageClientUtils.toLong(props.get(Content.CREATED_FIELD)));
-    metadata.setModificationTime(StorageClientUtils.toLong(props.get(Content.LASTMODIFIED_FIELD)));
-    metadata.setResolutionPath(content.getPath());
-    metadata.setResolutionPathInfo(content.getPath());
-    if (content.hasProperty(Content.MIMETYPE_FIELD)) {
-      metadata.setContentType((String) content.getProperty(Content.MIMETYPE_FIELD));
+    if (content != null) {
+      Map<String, Object> props = content.getProperties();
+      metadata = new ResourceMetadata();
+      metadata.setCharacterEncoding(UTF_8);
+      metadata
+          .setContentLength(StorageClientUtils.toLong(props.get(Content.LENGTH_FIELD)));
+      metadata
+          .setCreationTime(StorageClientUtils.toLong(props.get(Content.CREATED_FIELD)));
+      metadata.setModificationTime(StorageClientUtils.toLong(props
+          .get(Content.LASTMODIFIED_FIELD)));
+      metadata.setResolutionPath(content.getPath());
+      metadata.setResolutionPathInfo(content.getPath());
+      if (content.hasProperty(Content.MIMETYPE_FIELD)) {
+        metadata.setContentType((String) content.getProperty(Content.MIMETYPE_FIELD));
+      }
+    } else {
+      // TODO Better argument checking? Throw IAE?
+      IllegalArgumentException iae = new IllegalArgumentException("content is null");
+      logger.warn(iae.getLocalizedMessage(), iae);
     }
   }
 
