@@ -41,7 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 public class CreateWorldServlet extends SlingAllMethodsServlet {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 529333168619884684L;
   private static final Logger LOGGER = LoggerFactory.getLogger(CreateWorldServlet.class);
@@ -85,7 +85,10 @@ public class CreateWorldServlet extends SlingAllMethodsServlet {
       LiteJsonImporter importer = new LiteJsonImporter();
       importer.importContent(contentManager, toLoadJson, at, false, false, false,
           accessControlManager);
+
       response.sendError(HttpServletResponse.SC_CREATED);
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
       Map<String, Object> responseMap = ImmutableMap.of("newworld", (Object) at);
       JSONWriter jsonWriter = new JSONWriter(response.getWriter());
       ExtendedJSONWriter.writeValueMap(jsonWriter, responseMap);
@@ -139,7 +142,7 @@ public class CreateWorldServlet extends SlingAllMethodsServlet {
     } else if (n.hasProperty("template")) {
       templateContent = n.getProperty("template").getString();
     }
-    
+
     if (templateContent == null || templateContent.length() == 0) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, "template is empty");
       return null;
