@@ -249,13 +249,6 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       Session session = resource.adaptTo(Session.class);
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       User user = (User) authorizableManager.findAuthorizable(session.getUserId());
-      
-
-      if (!isManager(poolItem, user, authorizableManager)) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN,
-            "Must be a manager of the pooled content item to delete a comment.");
-        return;
-      }
 
       // stop now if no comment ID is provided
       if (StringUtils.isBlank(commentId)) {
@@ -266,6 +259,13 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
 
       String path = poolItem.getPath() + "/" + COMMENTS + "/" + commentId;
       ContentManager contentManager = resource.adaptTo(ContentManager.class);
+      Content comment = contentManager.get(path);
+      if (!isManager(poolItem, user, authorizableManager)
+          && !user.getId().equals(comment.getProperty("author"))) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN,
+            "Must be a manager of the pooled content item or author of the comment to delete a comment.");
+        return;
+      }
       contentManager.delete(path);
       response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     } catch (AccessDeniedException e) {
