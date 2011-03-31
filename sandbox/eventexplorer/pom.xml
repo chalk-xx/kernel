@@ -12,8 +12,11 @@
   <artifactId>eventexplorer</artifactId>
   <version>0.10-SNAPSHOT</version>
   <modules>
-    <module>ui</module>
-    <module>explorer</module>
+    <module>bundles/cassandrathrift</module>
+    <module>bundles/storage/jdbc</module>
+    <module>bundles/listeners</module>
+    <module>bundles/ui</module>
+    <module>app</module>
   </modules>
   <dependencyManagement>
     <dependencies>

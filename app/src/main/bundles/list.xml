@@ -655,5 +655,10 @@ KERN-1187
       <artifactId>org.sakaiproject.nakamura.directory</artifactId>
       <version>0.10-SNAPSHOT</version>
     </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.world</artifactId>
+      <version>0.10-SNAPSHOT</version>
+    </bundle>
    </startLevel>
 </bundles>

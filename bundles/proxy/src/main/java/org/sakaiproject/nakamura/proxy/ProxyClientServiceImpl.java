@@ -305,7 +305,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
               inputContext.put(key, requestParameters[0].getString());
             } else {
               // KERN-1346 regression; see KERN-1409
-              inputContext.put(key, value.toString());
+              inputContext.put(key, String.valueOf(value));
             }
             // look for the next velocity replacement variable
             startPosition = endpointURL.indexOf("${", endPosition);

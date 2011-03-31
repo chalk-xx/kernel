@@ -8,11 +8,11 @@
     <version>0.10-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
-  <artifactId>org.sakaiproject.nakamura.eventexplorer.listeners</artifactId>
+  <artifactId>org.sakaiproject.nakamura.eventexplorer.listeners.jdbc</artifactId>
   <packaging>bundle</packaging>
   <version>0.10-SNAPSHOT</version>
-  <name>Sakai Nakamura :: Sakai JMS Listeners</name>
-  <description>Listeners for Nakamura messages</description>
+  <name>Sakai Nakamura :: Sakai JDBC JMS Listener</name>
+  <description>Listeners for Nakamura messages that get stored using JDBC</description>
 
   <build>
     <plugins>
@@ -27,23 +27,13 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
-            <Private-Package>org.sakaiproject.nakamura.eventexplorer.*</Private-Package>
-            <Import-Package>*</Import-Package>
+            <Private-Package>org.sakaiproject.nakamura.eventexplorer.jdbc</Private-Package>
           </instructions>
         </configuration>
       </plugin>
     </plugins>
   </build>
   <dependencies>
-    <dependency>
-      <groupId>org.apache.cassandra.thrift</groupId>
-      <artifactId>apache-cassandra</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.cassandra.deps</groupId>
-      <artifactId>libthrift</artifactId>
-    </dependency>
-
     <!--  We're running in Felix's OSGi container -->
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -63,13 +53,6 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-    </dependency>
-
-
-
 
     <!-- activemq -->
     <dependency>
@@ -78,21 +61,21 @@
       <version>1.1</version>
     </dependency>
 
-    <!--  the connection factory -->
     <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
-      <version>5.3.0-0.10-SNAPSHOT</version>
-      <scope>provided</scope>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-all</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
     </dependency>
 
-
-    <!--  Dependencies for talking to cassandra. -->
     <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.eventexplorer.cassandra-thrift</artifactId>
-      <version>0.10-SNAPSHOT</version>
-      <scope>provided</scope>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derby</artifactId>
+      <version>10.7.1.1</version>
+      <!-- used in testing but can change scope to use outside of testing -->
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

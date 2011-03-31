@@ -1,0 +1,27 @@
+{
+    "testpermissions" : {
+        "PropertyA" : "ValueA",
+        "ieb@grant" : {
+            "operation": "replace",
+            "permission" : [
+                "read" 
+            ] 
+        },
+        "nested": {
+            "userX@deny" : {
+                "operation": "replace",
+                "permission" : [
+                    "all" 
+                ] 
+            } 
+        },
+        "PropertyB" : "ValueB",
+        "anonoymous@deny" : {
+            "operation": "replace",
+            "permission" : [
+                "all" 
+            ] 
+        },
+        "PropertyC" : "ValueC" 
+    }
+}

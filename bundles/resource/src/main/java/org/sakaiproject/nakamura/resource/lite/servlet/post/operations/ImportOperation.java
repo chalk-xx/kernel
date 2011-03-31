@@ -10,7 +10,10 @@ import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.NodeNameGenerator;
 import org.apache.sling.servlets.post.SlingPostConstants;
+import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -105,7 +108,9 @@ public class ImportOperation extends AbstractSparseCreateOperation {
           LOGGER.debug("to {} importing {} ",basePath,json.toString(3));
         }
         LiteJsonImporter simpleJsonImporter = new LiteJsonImporter();
-        simpleJsonImporter.importContent(contentManager, json, basePath, replace, replaceProperties, removeTree);
+        Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+        AccessControlManager accessControlManager = session.getAccessControlManager();
+        simpleJsonImporter.importContent(contentManager, json, basePath, replace, replaceProperties, removeTree, accessControlManager);
           response.setLocation(externalizePath(request, basePath));
           response.setPath(basePath);
           int lastSlashIndex = basePath.lastIndexOf('/');

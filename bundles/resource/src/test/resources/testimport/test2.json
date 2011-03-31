@@ -1,0 +1,55 @@
+{
+    "testarrayproperties" : {
+        "propertyA" : [
+            "ValueA0",
+            "ValueA1",
+            "ValueA2",
+            "ValueA3"
+        ],
+        "propertyB@TypeString" : [
+            "ValueB0",
+            "ValueB1",
+            "ValueB2",
+            "ValueB3"
+        ],
+        "propertyC@TypeInteger" : [
+            10,
+            11,
+            12,
+            13
+        ],
+        "propertyD@TypeInteger" : [
+            "20",
+            "21",
+            "22"
+        ],
+        "propertyE@TypeLong" : [
+            30,
+            31,
+            32
+        ],
+        "propertyF@TypeLong" : [
+            "40",
+            "41",
+            "42",
+            "43"
+        ],
+        "propertyG@TypeDouble" : [
+            "4.1",
+            "4.2",
+            "4.3",
+            "4.4"
+        ],
+        "propertyH@TypeBigDecimal" : [
+            "4.01",
+            "4.02",
+            "4.03",
+            "4.04"
+        ],
+        "propertyF@TypeDate" : [
+            "20110235T112456Z",
+            "20110235T112456+0100",
+            "20110235T112456-0100"
+        ] 
+    }
+}
