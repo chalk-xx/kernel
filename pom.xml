@@ -78,6 +78,7 @@
         <module>bundles/http</module>
         <module>bundles/directory</module>
         <module>bundles/templates</module>
+        <module>bundles/world</module>
       </modules>
     </profile>
     <profile>
