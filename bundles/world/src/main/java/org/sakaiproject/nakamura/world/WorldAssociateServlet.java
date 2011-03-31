@@ -12,6 +12,7 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -22,6 +23,8 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.LiteJsonImporter;
+import org.sakaiproject.nakamura.api.templates.IDGenerator;
+import org.sakaiproject.nakamura.api.templates.TemplateIDGenerator;
 import org.sakaiproject.nakamura.api.templates.TemplateService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -47,6 +50,9 @@ public class WorldAssociateServlet extends SlingAllMethodsServlet {
 
   @Reference
   private TemplateService templateService;
+
+  @Reference
+  protected ClusterTrackingService clusterTrackingService;
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -102,6 +108,14 @@ public class WorldAssociateServlet extends SlingAllMethodsServlet {
             "Role association/disassociation template is invalid");
         return;
       }
+
+      // process the template
+      params.put(TemplateService.ID_GENERATOR, new TemplateIDGenerator(new IDGenerator() {
+
+        public String nextId() {
+          return clusterTrackingService.getClusterUniqueId();
+        }
+      }));
       String associatedJson = templateService.evaluateTemplate(params, template);
       JSONObject jsonAssociate = new JSONObject(associatedJson);
 
