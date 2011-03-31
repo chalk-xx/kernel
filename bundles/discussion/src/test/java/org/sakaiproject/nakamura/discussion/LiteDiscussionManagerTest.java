@@ -25,13 +25,11 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
 
-import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.RepositoryBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.osgi.framework.BundleContext;
 import org.sakaiproject.nakamura.api.discussion.LiteDiscussionManager;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -46,9 +44,6 @@ import javax.jcr.RepositoryException;
 @RunWith(MockitoJUnitRunner.class)
 public class LiteDiscussionManagerTest {
 
-  private static BundleContext bundleContext;
-  private static RepositoryBase repositoryBase;
-  
   @Mock
   private Session session;
 
