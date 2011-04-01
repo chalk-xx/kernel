@@ -30,12 +30,13 @@ import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,8 +85,8 @@ public class WidgetDataIndexingHandler implements IndexingHandler {
         ContentManager cm = session.getContentManager();
         Content content = cm.get(path);
 
-        String[] authPath = getAuthHomePath(content, cm);
-        if (authPath == null) {
+        String authId = PathUtils.getAuthorizableId(content.getPath());
+        if (authId == null) {
           logger.warn("Unable to find auth (user,group) container for widget data [{}]; not indexing widget data", path);
           return docs;
         }
@@ -108,9 +109,22 @@ public class WidgetDataIndexingHandler implements IndexingHandler {
         }
 
         SolrInputDocument doc = new SolrInputDocument();
-        doc.setField("type", authPath[0]);
-        doc.setField("path", authPath[1]);
+        AuthorizableManager am = session.getAuthorizableManager();
+        Authorizable auth = am.findAuthorizable(authId);
+        if (auth.isGroup()) {
+          doc.setField("type", "g");
+        } else {
+          doc.setField("type", "u");
+        }
+        // set the path here so that it's the first path found when rendering to the
+        // client. the resource indexing service will all nodes of the path and we want
+        // this one first.
+        doc.setField(FIELD_PATH, authId);
+
+        // set the return to a single value field so we can group it
+        doc.setField("returnpath", authId);
         doc.setField("widgetdata", sb.toString());
+        doc.addField(_DOC_SOURCE_OBJECT, content);
         docs.add(doc);
       } catch (StorageClientException e) {
         logger.warn(e.getMessage(), e);
@@ -132,28 +146,5 @@ public class WidgetDataIndexingHandler implements IndexingHandler {
     logger.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty(FIELD_PATH);
     return ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
-  }
-
-  /**
-   * Starting at {@link content}, go up the content tree to find a "home" node and return
-   * the resource path to that node with a marker of user or group.
-   * 
-   * @param content
-   * @param cm
-   * @return String[] 0:(u|g); 1:path to auth home
-   * @throws AccessDeniedException
-   * @throws StorageClientException
-   */
-  private String[] getAuthHomePath(Content content, ContentManager cm)
-      throws AccessDeniedException, StorageClientException {
-    if (content.hasProperty(UserConstants.GROUP_HOME_RESOURCE_TYPE)) {
-      return new String[] { "g", content.getPath().substring(2) };
-    } else if (content.hasProperty(UserConstants.USER_HOME_RESOURCE_TYPE)) {
-      return new String[] { "u", content.getPath().substring(2) };
-    } else if ("/".equals(content.getPath())) {
-      return null;
-    } else {
-      return getAuthHomePath(cm.get(PathUtils.getParentReference(content.getPath())), cm);
-    }
   }
 }
