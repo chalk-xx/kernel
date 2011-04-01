@@ -1,13 +1,10 @@
 {
   "sling:resourceType": "sakai/solr-search",
-<<<<<<< HEAD
-  "sakai:query-template": 'type:u AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR widgetdata:(${q}))',
-=======
-  "sakai:query-template": 'type:u AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q})${_taguuids})',
->>>>>>> sakaiproject@github/master
+  "sakai:query-template": 'type:u AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR content:(${q}) OR widgetdata:(${q})${_taguuids})',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}",
-      "group.field": "path"
+      "group": true,
+      "group.field": "returnpath"
   },
   "sortOn": "score",
   "sortOrder": "desc",
