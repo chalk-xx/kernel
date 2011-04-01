@@ -1,5 +1,4 @@
 /*
- * Licensed to the Sakai Foundation (SF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership. The SF licenses this file
@@ -49,6 +48,7 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
@@ -211,7 +211,9 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
             continue;
           }
         }
-        ValueMap groupProfile = profileService.getCompactProfileMap(group, jcrSession);
+        //ValueMap groupProfile = profileService.getCompactProfileMap(group, jcrSession);
+        BasicUserInfo basicUserInfo = new BasicUserInfo();
+        ValueMap groupProfile = new ValueMapDecorator(basicUserInfo.getProperties(group));
         if (groupProfile != null) {
           writer.valueMap(groupProfile);
         }

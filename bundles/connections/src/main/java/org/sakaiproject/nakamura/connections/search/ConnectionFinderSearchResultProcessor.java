@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -41,6 +42,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.connections.ConnectionUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -91,7 +93,9 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
         writer.key("target");
         writer.value(contactUser);
         writer.key("profile");
-        ExtendedJSONWriter.writeValueMap(writer, profileService.getCompactProfileMap(auth,jcrSession));
+//        ExtendedJSONWriter.writeValueMap(writer, profileService.getCompactProfileMap(auth,jcrSession));
+        BasicUserInfo basicUserInfo = new BasicUserInfo();
+        ExtendedJSONWriter.writeValueMap(writer, new ValueMapDecorator(basicUserInfo.getProperties(auth)));
         writer.key("details");
         ExtendedJSONWriter.writeContentTreeToWriter(writer, contactContent,
             maxTraversalDepth);
@@ -101,9 +105,9 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
       throw new RuntimeException(e.getMessage(), e);
     } catch (AccessDeniedException e) {
       throw new RuntimeException(e.getMessage(), e);
-    } catch (RepositoryException e) {
+    } /*catch (RepositoryException e) {
       throw new RuntimeException(e.getMessage(), e);
-    }
+    }*/
   }
   /**
    * {@inheritDoc}

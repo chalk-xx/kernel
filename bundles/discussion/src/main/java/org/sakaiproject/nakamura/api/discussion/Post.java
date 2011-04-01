@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.api.discussion;
 
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -32,6 +33,7 @@ import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
@@ -173,7 +175,9 @@ public class Post {
         for (int i = 0; i < edittedBy.length; i++) {
           writer.object();
           Authorizable au = authMgr.findAuthorizable(edittedBy[i]);
-          ValueMap profile = profileService.getCompactProfileMap(au, null);
+          //ValueMap profile = profileService.getCompactProfileMap(au, null);
+          BasicUserInfo basicUserInfo = new BasicUserInfo();
+          ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(au));
           writer.valueMapInternals(profile);
           PresenceUtils.makePresenceJSON(writer, edittedBy[i], presenceService, true);
           writer.endObject();
@@ -189,7 +193,9 @@ public class Post {
       for (String sender : senders) {
         writer.object();
         Authorizable au = authMgr.findAuthorizable(sender);
-        ValueMap profile = profileService.getCompactProfileMap(au, null);
+        //ValueMap profile = profileService.getCompactProfileMap(au, null);
+        BasicUserInfo basicUserInfo = new BasicUserInfo();
+        ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(au));
         writer.valueMapInternals(profile);
         PresenceUtils.makePresenceJSON(writer, sender, presenceService, true);
         writer.endObject();

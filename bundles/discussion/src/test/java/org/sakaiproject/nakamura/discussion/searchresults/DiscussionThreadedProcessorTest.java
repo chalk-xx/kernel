@@ -49,6 +49,7 @@ import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.ByteArrayOutputStream;
@@ -93,8 +94,6 @@ public class DiscussionThreadedProcessorTest {
     User adminUser = new User(ImmutableMap.of(User.ID_FIELD, (Object) "admin"));
     @SuppressWarnings("unused")
     User anonUser = new User(ImmutableMap.of(User.ID_FIELD, (Object) "anonymous"));
-    when(profileService.getCompactProfileMap(isA(Authorizable.class),
-        isA(javax.jcr.Session.class))).thenReturn(ValueMap.EMPTY);
     
     AuthorizableManager authMgr = mock(AuthorizableManager.class);
     when(session.getAuthorizableManager()).thenReturn(authMgr);

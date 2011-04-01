@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.service.event.Event;
@@ -54,6 +55,7 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -225,7 +227,9 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
       Authorizable au = authorizableManager.findAuthorizable(recipient);
       if (au != null) {
         write.object();
-        ValueMap map = profileService.getCompactProfileMap(au, jcrSession);
+        //ValueMap map = profileService.getCompactProfileMap(au, jcrSession);
+        BasicUserInfo basicUserInfo = new BasicUserInfo();
+        ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(au));
         ExtendedJSONWriter.writeValueMapInternals(write, map);
         if (au instanceof User) {
           // Pass in the presence.
@@ -243,9 +247,9 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
       LOG.error(e.getMessage(), e);
     } catch (StorageClientException e) {
       LOG.error(e.getMessage(), e);
-    } catch (RepositoryException e) {
+    } /*catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
-    }
+    }*/
   }
 
 }

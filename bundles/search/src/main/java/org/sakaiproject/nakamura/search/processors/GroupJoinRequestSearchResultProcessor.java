@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -40,6 +41,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import javax.jcr.RepositoryException;
@@ -90,15 +92,17 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
         Authorizable auth = authMgr.findAuthorizable(path);
 
         write.object();
-        ValueMap map = profileService.getCompactProfileMap(auth, jcrSession);
+        //ValueMap map = profileService.getCompactProfileMap(auth, jcrSession);
+        BasicUserInfo basicUserInfo = new BasicUserInfo();
+        ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(auth));
         ((ExtendedJSONWriter)write).valueMapInternals(map);
         write.endObject();
       } catch (StorageClientException e) {
         throw new RuntimeException(e.getMessage(), e);
       } catch (AccessDeniedException e) {
-      } catch (RepositoryException e) {
+      } /*catch (RepositoryException e) {
         throw new RuntimeException(e.getMessage(), e);
-      }
+      }*/
     }
   }
 

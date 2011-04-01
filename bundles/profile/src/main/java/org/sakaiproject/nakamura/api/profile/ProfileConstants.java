@@ -62,76 +62,77 @@ public interface ProfileConstants {
    * The prefix for the user storage (without hashing.)
    */
   public static final String USER_JCR_PATH_PREFIX = "/_user";
-  /**
-   * The name of the property that holds the value of identifier (authorizable ID) for
-   * this profile.
-   */
-  public static final String USER_IDENTIFIER_PROPERTY = "rep:userId";
-
-  /**
-   * The property name that holds the given name of a user.
-   */
-  public static final String USER_FIRSTNAME_PROPERTY = "firstName";
-
-  /**
-   * The property name that holds the family name of a user.
-   */
-  public static final String USER_LASTNAME_PROPERTY = "lastName";
-
-  /**
-   * The property name that holds the email of a user.
-   */
-  public static final String USER_EMAIL_PROPERTY = "email";
   
-  /**
-   * The property name that holds the picture location for a user.
-   */
-
-  public static final String USER_PICTURE = "picture";
-  
-  /**
-   * The name of the property which holds the user's institutional role (faculty, staff, etc.)
-   */
-  public static final String USER_ROLE = "role";
-
-  /**
-   * The name of the property which holds the user's department (Chemistry, English, etc.)
-   */
-  public static final String USER_DEPARTMENT = "department";
-
-  /**
-   * The name of the property which holds the user's college (Liberal Arts, Natural Sciences, etc.)
-   */
-  public static final String USER_COLLEGE = "college";
-
-  /**
-   * The name of the property which holds the user's date of birth.
-   */
-  public static final String USER_DATEOFBIRTH = "dateofbirth";
-
-  /**
-   * The name of the property which holds the name that this user prefers to go by.
-   */
-  public static final String PREFERRED_NAME = "preferredName";
-
-  /**
-   * The property name that holds the basic nodes for a user.
-   */
-  public static final String USER_BASIC = "basic";
-  
-  /**
-   * The property name that holds the basic nodes for a user.
-   */
-  public static final String USER_BASIC_ELEMENTS = "elements";
-  
-  /**
-   * The property name that holds the access information for a user.
-   */
-  public static final String USER_BASIC_ACCESS = "access";
-
-  /**
-   * Default value for the access property.
-   */
-  public static final String EVERYBODY_ACCESS_VALUE = "everybody";
+//  /**
+//   * The name of the property that holds the value of identifier (authorizable ID) for
+//   * this profile.
+//   */
+//  public static final String USER_IDENTIFIER_PROPERTY = "rep:userId";
+//
+//  /**
+//   * The property name that holds the given name of a user.
+//   */
+//  public static final String USER_FIRSTNAME_PROPERTY = "firstName";
+//
+//  /**
+//   * The property name that holds the family name of a user.
+//   */
+//  public static final String USER_LASTNAME_PROPERTY = "lastName";
+//
+//  /**
+//   * The property name that holds the email of a user.
+//   */
+//  public static final String USER_EMAIL_PROPERTY = "email";
+//  
+//  /**
+//   * The property name that holds the picture location for a user.
+//   */
+//
+//  public static final String USER_PICTURE = "picture";
+//  
+//  /**
+//   * The name of the property which holds the user's institutional role (faculty, staff, etc.)
+//   */
+//  public static final String USER_ROLE = "role";
+//
+//  /**
+//   * The name of the property which holds the user's department (Chemistry, English, etc.)
+//   */
+//  public static final String USER_DEPARTMENT = "department";
+//
+//  /**
+//   * The name of the property which holds the user's college (Liberal Arts, Natural Sciences, etc.)
+//   */
+//  public static final String USER_COLLEGE = "college";
+//
+//  /**
+//   * The name of the property which holds the user's date of birth.
+//   */
+//  public static final String USER_DATEOFBIRTH = "dateofbirth";
+//
+//  /**
+//   * The name of the property which holds the name that this user prefers to go by.
+//   */
+//  public static final String PREFERRED_NAME = "preferredName";
+//
+//  /**
+//   * The property name that holds the basic nodes for a user.
+//   */
+//  public static final String USER_BASIC = "basic";
+//  
+//  /**
+//   * The property name that holds the basic nodes for a user.
+//   */
+//  public static final String USER_BASIC_ELEMENTS = "elements";
+//  
+//  /**
+//   * The property name that holds the access information for a user.
+//   */
+//  public static final String USER_BASIC_ACCESS = "access";
+//
+//  /**
+//   * Default value for the access property.
+//   */
+//  public static final String EVERYBODY_ACCESS_VALUE = "everybody";
 
 }
