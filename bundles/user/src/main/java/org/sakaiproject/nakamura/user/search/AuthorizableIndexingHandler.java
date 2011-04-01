@@ -123,7 +123,8 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
 
           Map<String, Object> properties = authorizable.getSafeProperties();
 
-          if (authorizable.isGroup() && groupIsUserFacing(authorizable)) {
+          if (authorizable.isGroup()) {
+            if (groupIsUserFacing(authorizable)) {
               // add group properties
               Map<String, String> fields = GROUP_WHITELISTED_PROPS;
 
@@ -132,6 +133,10 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
                   doc.addField(fields.get(p.getKey()), p.getValue());
                 }
               }
+            } else {
+              // manager or contact group. no indexing to be done so exit the method
+              return documents;
+            }
           } else {
             // add user properties
             Map<String, String> fields = USER_WHITELISTED_PROPS;
@@ -157,7 +162,13 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
           doc.setField(FIELD_ID, name);
 
           documents.add(doc);
-          logger.info("Added authorizable for searching: {}", name);
+          String topic = null;
+          if (event.getTopic().endsWith(StoreListener.ADDED_TOPIC)) {
+            topic = StoreListener.ADDED_TOPIC;
+          } else {
+            topic = StoreListener.UPDATED_TOPIC;
+          }
+          logger.info("{} authorizable for searching: {}", topic, name);
         }
       } catch (StorageClientException e) {
         logger.warn(e.getMessage(), e);
@@ -169,11 +180,14 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     return documents;
   }
 
-
   // KERN-1607 don't include manager groups in the index
   // KERN-1600 don't include contact groups in the index
   private boolean groupIsUserFacing(Authorizable group) {
-    return !group.hasProperty(UserConstants.PROP_MANAGED_GROUP) && group.hasProperty("sakai:group-title");
+    boolean isNotManagingGroup = !group.hasProperty(UserConstants.PROP_MANAGED_GROUP);
+    boolean hasTitleAndNotBlank = group.hasProperty("sakai:group-title")
+        && !StringUtils.isBlank((String) group.getProperty("sakai:group-title"));
+
+    return isNotManagingGroup && hasTitleAndNotBlank;
   }
 
   /**
@@ -186,7 +200,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       Event event) {
     Collection<String> retval = Collections.emptyList();
     String topic = event.getTopic();
-    if (topic.endsWith(StoreListener.DELETE_TOPIC) || topic.endsWith(StoreListener.UPDATED_TOPIC)) {
+    if (topic.endsWith(StoreListener.DELETE_TOPIC)) {
       logger.debug("GetDelete for {} ", event);
       String groupName = (String) event.getProperty(UserConstants.EVENT_PROP_USERID);
       retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(groupName));

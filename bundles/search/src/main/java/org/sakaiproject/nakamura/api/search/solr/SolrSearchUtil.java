@@ -28,6 +28,8 @@ import org.apache.sling.api.request.RequestParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 import javax.jcr.query.Query;
 
 /**
@@ -38,9 +40,15 @@ public class SolrSearchUtil {
   public static final Logger LOGGER = LoggerFactory.getLogger(SolrSearchUtil.class);
 
 
-  public static long[] getOffsetAndSize(SlingHttpServletRequest request) {
-    long nitems = SolrSearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
-        DEFAULT_PAGED_ITEMS);
+  public static long[] getOffsetAndSize(SlingHttpServletRequest request,
+      final Map<String, String> options) {
+    long nitems;
+    if (options != null && options.containsKey(PARAMS_ITEMS_PER_PAGE)) {
+      nitems = Long.valueOf(options.get(PARAMS_ITEMS_PER_PAGE));
+    } else {
+      nitems = SolrSearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+          DEFAULT_PAGED_ITEMS);
+    }
     long page = SolrSearchUtil.longRequestParameter(request, PARAMS_PAGE, 0);
     long offset = page * nitems;
     long resultSize = Math.max(nitems, offset);

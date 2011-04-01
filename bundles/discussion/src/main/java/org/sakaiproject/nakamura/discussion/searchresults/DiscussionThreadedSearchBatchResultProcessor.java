@@ -96,7 +96,9 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       while (iterator.hasNext()) {
         Result result = iterator.next();
         Content content = cm.get(result.getPath());
-
+        if (content == null) {
+          continue;
+        }
         Post p = new Post(content, session);
         allPosts.put((String) content
             .getProperty(MessageConstants.PROP_SAKAI_ID), p);

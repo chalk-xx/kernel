@@ -6,6 +6,7 @@
   "sortOn": "created",
   "sortOrder": "asc",
   "sling:resourceType": "sakai/solr-search",
+  "sakai:propertyprovider": "Comment",
   "sakai:resultprocessor": "Comment",
   "sakai:title": "Comments",
   "sakai:shortDescription": "Find all comments identified by a unique marker stored under a certain path.",

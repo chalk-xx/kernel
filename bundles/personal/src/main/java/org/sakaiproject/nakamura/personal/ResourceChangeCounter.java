@@ -22,10 +22,21 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.personal.PersonalTrackingStore;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
 
@@ -33,56 +44,89 @@ import java.util.Calendar;
 @Service
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Event Handler counting Resource CHANGED Events."),
-    @Property(name = "event.topics", value = "org/apache/sling/api/resource/Resource/CHANGED")})
+    @Property(name = "service.description", value = "Event Handler counting Resource ADDED and UPDATED Events."),
+    @Property(name = "event.topics", value = {
+        "org/sakaiproject/nakamura/lite/content/ADDED",
+        "org/sakaiproject/nakamura/lite/content/UPDATED" }) })
 public class ResourceChangeCounter implements EventHandler {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ResourceChangeCounter.class);
+  protected static final String SAKAI_POOLED_CONTENT = "sakai/pooled-content";
   
   @Reference
   protected PersonalTrackingStore store;
+  
+  @Reference
+  protected Repository repository;
 
   /**
    * {@inheritDoc}
    * @see org.osgi.service.event.EventHandler#handleEvent(org.osgi.service.event.Event)
    */
-  public void handleEvent(Event e) {
+  public void handleEvent(Event event) {
     // be fast
-    String resourceType = (String)e.getProperty("resourceType");
-    
-    if (resourceIsOfInterest(resourceType)) {
-      countThisEvent(e);
+    final String path = (String) event.getProperty("path");
+    if (path != null) {
+      Session adminSession = null;
+      try {
+        adminSession = repository.loginAdministrative();
+        final Content content = adminSession.getContentManager().get(path);
+        if (content.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
+          final String resourceType = (String) content
+              .getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
+          if (resourceIsOfInterest(resourceType)) {
+            countThisEvent(event, resourceType, adminSession);
+          }
+        }
+      } catch (ClientPoolException e) {
+        LOG.error(e.getLocalizedMessage(), e);
+      } catch (StorageClientException e) {
+        LOG.error(e.getLocalizedMessage(), e);
+      } catch (AccessDeniedException e) {
+        LOG.error(e.getLocalizedMessage(), e);
+      } finally {
+        if (adminSession != null) {
+          try {
+            adminSession.logout();
+          } catch (ClientPoolException e) {
+            LOG.error(e.getLocalizedMessage(), e);
+            throw new IllegalStateException(e);
+          }
+        }
+      }
     }
   }
 
-  private void countThisEvent(Event e) {
-    String eventResourceType = (String)e.getProperty("resourceType");
+  private void countThisEvent(final Event e, final String eventResourceType,
+      final Session session) throws AccessDeniedException, StorageClientException {
+
     String userId = (String)e.getProperty("userid");
     String path = (String)e.getProperty("path");
     String activityType = "CHANGE";
     String resourceId = null;
     String resourceType = null;
     if (path != null) {
-      if (path.startsWith("/_group") || path.startsWith("/_user")) {
-        resourceType = path.substring(2); // trims off /_
-        resourceType = resourceType.substring(0, resourceType.indexOf("/"));
-        resourceId = (String)PathUtils.translateAuthorizablePath(path);
-        resourceId = resourceId.substring(2); // trims off /~
-        resourceId = resourceId.substring(0,resourceId.indexOf("/"));
-    } else {
-      if ("sakai/pooled-content".equals(eventResourceType)) {
-        resourceType = "content";
-        resourceId = path.substring(path.lastIndexOf("/") + 1);
+      if (path.startsWith("a:")) {
+        resourceId = PathUtils.getAuthorizableId(path);
+        final Authorizable az = session.getAuthorizableManager().findAuthorizable(
+            resourceId);
+        if (az != null) {
+          resourceType = (az instanceof Group) ? "group" : "user";
+        }
+      } else {
+        if (SAKAI_POOLED_CONTENT.equals(eventResourceType)) {
+          resourceType = "content";
+          resourceId = path.substring(path.lastIndexOf("/") + 1);
+        }
       }
     }
-      
-    }
     store.recordActivity(resourceId, resourceType, activityType, userId, Calendar.getInstance());
-    
   }
 
   private boolean resourceIsOfInterest(String resourceType) {
     return ("sakai/group-profile".equals(resourceType)
         || "sakai/page".equals(resourceType)
-        || "sakai/pooled-content".equals(resourceType));
+        || SAKAI_POOLED_CONTENT.equals(resourceType));
   }
 
 }

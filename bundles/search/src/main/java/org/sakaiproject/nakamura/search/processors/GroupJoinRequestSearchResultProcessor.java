@@ -34,7 +34,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -42,9 +41,10 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
-import javax.jcr.RepositoryException;
+import java.util.Date;
 
 
 @Component(label = "GroupJoinRequestSearchResultProcessor", description = "Formatter for group join request search results.")
@@ -53,10 +53,6 @@ import javax.jcr.RepositoryException;
     @Property(name = "sakai.search.processor", value = "GroupJoinRequest") })
 @Service
 public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultProcessor {
-
-  @Reference
-  private ProfileService profileService;
-
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
@@ -84,19 +80,28 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
       throws JSONException {
     javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
     Session session = StorageClientUtils.adaptToSession(jcrSession);
-    String path = result.getPath();
     String userId = (String) result.getFirstValue(User.NAME_FIELD);
     if (userId != null) {
       try {
         AuthorizableManager authMgr = session.getAuthorizableManager();
-        Authorizable auth = authMgr.findAuthorizable(path);
+        Authorizable auth = authMgr.findAuthorizable(userId);
 
-        write.object();
-        //ValueMap map = profileService.getCompactProfileMap(auth, jcrSession);
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(auth));
-        ((ExtendedJSONWriter)write).valueMapInternals(map);
-        write.endObject();
+        if (auth != null) {
+          write.object();
+          BasicUserInfo basicUserInfo = new BasicUserInfo();
+          ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(auth));
+          ((ExtendedJSONWriter)write).valueMapInternals(map);
+          write.key("_created");
+          Long created = (Long) result.getFirstValue("created");
+          Date createdDate = null;
+          if ( created != null) {
+            createdDate = new Date(created);
+          } else {
+            createdDate = new Date();
+          }
+          write.value(DateUtils.iso8601(createdDate));
+          write.endObject();
+        }
       } catch (StorageClientException e) {
         throw new RuntimeException(e.getMessage(), e);
       } catch (AccessDeniedException e) {

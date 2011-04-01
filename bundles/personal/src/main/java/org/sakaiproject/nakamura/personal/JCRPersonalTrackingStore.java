@@ -33,8 +33,8 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-@Component(immediate = true)
-@Service(value = PersonalTrackingStore.class)
+//@Component(immediate = true)
+//@Service(value = PersonalTrackingStore.class)
 public class JCRPersonalTrackingStore implements PersonalTrackingStore {
 
   @Reference

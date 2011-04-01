@@ -151,8 +151,9 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
             // validate the message
             if (messageContent != null) {
               if (messageContent.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)
-                  && MessageConstants.BOX_OUTBOX.equals(messageContent
-                      .getProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX))) {
+                  && (MessageConstants.BOX_OUTBOX.equals(messageContent
+                      .getProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)) 
+                      || MessageConstants.BOX_PENDING.equals(messageContent.getProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)))) {
                 if (messageContent.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)) {
                   // We're retrying this message, so clear the errors
                   messageContent.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR,

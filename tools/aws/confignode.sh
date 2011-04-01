@@ -4,22 +4,22 @@
 
 
 NAK_VERSION=$1
-if [[ ! -d jdk1.5.0_22 ]]
+if [[ ! -d jdk-6u24-linux-x64 ]]
 then
-  sh jdk-1_5_0_22-linux-i586.bin
+  sh jdk-6u24-linux-x64.bin
 fi
 rm java
-ln -s jdk1.5.0_22 java
+ln -s jdk-6u24-linux-x64 java
 
 cat << EOF > start.sh
 #!/bin/sh
 export JAVA_HOME=$HOME/java
 export PATH=$PATH:$HOME/java/bin
 
-running=\`ps aux | grep org.sakaiproject.nakamura.app-0.5 | grep -v grep | cut -c5-15\`
+running=\`ps aux | grep org.sakaiproject.nakamura.app-${NAK_VERSION} | grep -v grep | cut -c5-15\`
 if [[ a\$running != a ]]
 then 
-  ps aux | grep org.sakaiproject.nakamura.app-0.5 | grep -v grep
+  ps aux | grep org.sakaiproject.nakamura.app-${NAK_VERSION} | grep -v grep
   echo Instance already running
 else
   echo Starting new instance....
@@ -33,15 +33,15 @@ EOF
 
 cat << EOF > stop.sh
 #!/bin/sh
-running=\`ps aux | grep org.sakaiproject.nakamura.app-0.5 | grep -v grep | cut -c5-15\`
+running=\`ps aux | grep org.sakaiproject.nakamura.app--${NAK_VERSION} | grep -v grep | cut -c5-15\`
 if [[ a\$running != a ]]
 then
-    ps aux | grep org.sakaiproject.nakamura.app-0.5 | grep -v grep
+    ps aux | grep org.sakaiproject.nakamura.app--${NAK_VERSION} | grep -v grep
     echo Killing Process $running 
     kill \$running
     echo Waiting for 10...  
     sleep 10
-    ps aux | grep org.sakaiproject.nakamura.app-0.5 | grep -v grep
+    ps aux | grep org.sakaiproject.nakamura.app--${NAK_VERSION} | grep -v grep
 else
     echo Not running
 fi

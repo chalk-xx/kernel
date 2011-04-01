@@ -24,6 +24,8 @@ import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_USER_MANAGER;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_NEEDS_PROCESSING;
 
+import com.google.common.collect.Lists;
+
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -41,6 +43,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -122,7 +125,6 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       .getLogger(CreateContentPoolServlet.class);
 
 
-
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
@@ -164,6 +166,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       // Loop over all the parameters
       // All the ones that are files will be stored.
       int statusCode = HttpServletResponse.SC_BAD_REQUEST;
+      boolean fileUpload = false;
       Map<String, String> results = new HashMap<String, String>();
       for (Entry<String, RequestParameter[]> e : request.getRequestParameterMap()
           .entrySet()) {
@@ -176,15 +179,26 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
               createFile(createPoolId, null, adminSession, p, au, true);
               results.put(p.getFileName(), createPoolId);
               statusCode = HttpServletResponse.SC_CREATED;
+              fileUpload = true;
             } else {
               createFile(poolId, alternativeStream, session, p, au, false);
               // Add it to the map so we can output something to the UI.
               results.put(p.getFileName(), poolId);
               statusCode = HttpServletResponse.SC_OK;
+              fileUpload = true;
               break;
             }
 
           }
+        }
+      }
+      if (!fileUpload ) {
+        // not a file upload, ok, create an item and use all the request paremeters, only if there was no poolId specified
+        if ( poolId == null ) {
+          String createPoolId = generatePoolId();
+          createContentItem(createPoolId, adminSession, request, au);
+          results.put("_contentItem", createPoolId);
+          statusCode = HttpServletResponse.SC_CREATED;
         }
       }
 
@@ -223,6 +237,52 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
         LOGGER.warn(e.getMessage(), e);
       }
     }
+  }
+
+  private void createContentItem(String poolId, Session session,
+      SlingHttpServletRequest request, Authorizable au) throws StorageClientException, AccessDeniedException {
+    ContentManager contentManager = session.getContentManager();
+    AccessControlManager accessControlManager = session.getAccessControlManager();
+    Map<String, Object> contentProperties = new HashMap<String, Object>();
+    contentProperties.put(SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_RT);
+    contentProperties.put(POOLED_CONTENT_CREATED_FOR, au.getId());
+    contentProperties.put(POOLED_CONTENT_USER_MANAGER, new String[]{au.getId()});
+    for ( Entry<String, RequestParameter[]>   e : request.getRequestParameterMap().entrySet() ) {
+      String k = e.getKey();
+      if ( !(k.startsWith("_") || k.startsWith(":")) && !FilesConstants.RESERVED_POOL_KEYS.contains(k) ) {
+        RequestParameter[] rp = e.getValue();
+        if ( rp != null && rp.length > 0 ) {
+          if ( rp.length == 1) {
+              if ( rp[0].isFormField() ) {
+                contentProperties.put(k, rp[0].getString());
+              }
+          } else {
+            List<String> values = Lists.newArrayList();
+            for ( RequestParameter rpp : rp) {
+              if ( rpp.isFormField() ) {
+                values.add(rpp.getString());
+              }
+            }
+            if ( values.size() > 0 ) {
+              contentProperties.put(k,values.toArray(new String[values.size()]));
+            }
+          }
+        }
+      }
+    }
+    Content content = new Content(poolId,contentProperties);
+
+    contentManager.update(content);
+
+    // deny anon everyting
+    // deny everyone everything
+    // grant the user everything.
+    List<AclModification> modifications = new ArrayList<AclModification>();
+    AclModification.addAcl(false, Permissions.ALL, User.ANON_USER, modifications);
+    AclModification.addAcl(false, Permissions.ALL, Group.EVERYONE, modifications);
+    AclModification.addAcl(true, Permissions.CAN_MANAGE, au.getId(), modifications);
+    accessControlManager.setAcl(Security.ZONE_CONTENT, poolId, modifications.toArray(new AclModification[modifications.size()]));
+
   }
 
   private void createFile(String poolId, String alternativeStream, Session session, RequestParameter value,

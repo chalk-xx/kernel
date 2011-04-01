@@ -1,0 +1,12 @@
+{
+    "sling:resourceType": "sakai/proxy",
+    "sakai:request-proxy-endpoint": "https://picasaweb.google.com/data/feed/base/user/${userId}/album/${albumName}/photoid/${photoId}?alt=json",
+    "sakai:request-proxy-method": "GET",
+    "sakai:title": "Get a Picasa image",
+    "sakai:shortDescription": "Get an image from Picasa.",
+    "sakai:parameters" : [],
+    "sakai:description" : ["Get an image from Picasa."],
+    "sakai:response": [
+        "Gives back data about the Picasa image."
+    ]
+}

@@ -87,8 +87,7 @@ class Kern356Test < Test::Unit::TestCase
 		end 
 		assert_equal("200",res.code,"Should have been able to write to the node as "+user.to_s()+because)
 	else
-		assert_equal("500",res.code," Expected to get write denied for "+user.to_s()+because)
-		assert_equal(true,res.body.include?("AccessDeniedException"), " Error was not an access denied exception for "+user.to_s()+because)
+		assert_equal("405",res.code," Expected to get write denied for "+user.to_s()+because)
 	end
   end
 
@@ -125,18 +124,6 @@ class Kern356Test < Test::Unit::TestCase
   	@s.switch_user(u1)
 	res = @s.execute_post(@s.url_for("#{u1.private_path_for(@s)}/GetAllProfilesTest"+m+".html"),"testprop" => "testset")
 	assert_equal("201",res.code,"Expected to be able to Create a private node "+res.body)
-	res = @s.execute_get(@s.url_for("_user.tidy.infinity.json"))
-	assert_equal("403",res.code,"Should not be able to list users"+res.body)
-	
-	
-	
-  	@s.switch_user(SlingUsers::AnonymousUser.new)
-	res = @s.execute_get(@s.url_for("_user.infinity.json"))
-	assert_equal("403",res.code,"Should not be able to list users"+res.body)
-
-  	@s.switch_user(u2)
-	res = @s.execute_get(@s.url_for("_user.infinity.json"))
-	assert_equal("403",res.code,"Should not be able to list users"+res.body)
   end
 
 

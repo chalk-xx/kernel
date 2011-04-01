@@ -1,12 +1,11 @@
-{
-  "sakai:query-template": 'path:${_userMessagePath} AND resourceType:sakai/message AND messagebox:(${box}) AND category:(${category})',
+{ "sakai:query-template": "sakai\\:messagestore:${_userMessagePath} AND sling\\:resourceType:sakai/message AND sakai\\:messagebox:(${box})${_categoryClause}",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
   "sortOn": "created",
   "sortOrder": "desc",
-  "sling:resourceType": "sakai/solr-search",
-  "sakai:propertyprovider" : "Message",
+  "sling:resourceType": "sakai/sparse-search",
+  "sakai:propertyprovider" : "MessageSparse",
   "sakai:resultprocessor": "Message",
   "sakai:title": "Messaging - User - Box and category.",
   "sakai:shortDescription": "Get all the messages for a specified box and category.",

@@ -49,13 +49,13 @@ import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-//import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
@@ -411,7 +411,8 @@ public class ProfileServiceImpl implements ProfileService {
     }
     // update the profile content
     ContentManager contentManager = session.getContentManager();
+    AccessControlManager accessControlManger = session.getAccessControlManager();
     LiteJsonImporter importer = new LiteJsonImporter();
-    importer.importContent(contentManager, json, profilePath, true, true,true);
+    importer.importContent(contentManager, json, profilePath, true, true,true, accessControlManger);
   }
 }

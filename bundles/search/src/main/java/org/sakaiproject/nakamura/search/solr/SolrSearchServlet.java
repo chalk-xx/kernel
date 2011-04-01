@@ -190,6 +190,11 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           return;
         }
 
+        // allow number of items to be specified in sakai:query-template-options
+        if (query.getOptions().containsKey(PARAMS_ITEMS_PER_PAGE)) {
+          nitems = Long.valueOf(query.getOptions().get(PARAMS_ITEMS_PER_PAGE));
+        }
+
         boolean useBatch = false;
         // Get the
         SolrSearchBatchResultProcessor searchBatchProcessor = defaultSearchBatchProcessor;
@@ -457,15 +462,24 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       String key = entry.getKey();
       RequestParameter[] vals = entry.getValue();
       String requestValue = vals[0].getString();
+
+      // blank values aren't cool
+      if (StringUtils.isBlank(requestValue)) {
+        continue;
+      }
+
       if ("sortOn".equals(key)) {
         requestValue = StringUtils.removeStart(requestValue, "sakai:");
       }
       // KERN-1601 Wildcard searches have to be manually lowercased for case insensitive
-      // matching as Solr bypassing the analyzer when dealing with a wildcard search.
+      // matching as Solr bypasses the analyzer when dealing with a wildcard or fuzzy
+      // search.
       if (StringUtils.contains(requestValue, '*')
           || StringUtils.contains(requestValue, '~')) {
         requestValue = requestValue.toLowerCase();
       }
+      // KERN-1703 Escape just :
+      requestValue = StringUtils.replace(requestValue, ":", "\\:");
       propertiesMap.put(entry.getKey(), requestValue);
     }
 

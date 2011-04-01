@@ -23,25 +23,33 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.files.FilesConstants;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
+import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 @Component(immediate = true, label = "MostActiveGroupSearchBatchResultProcessor", description = "Formatter for most active groups")
 @Service
@@ -50,114 +58,141 @@ import java.util.List;
 public class MostActiveGroupsSearchBatchResultProcessor implements
     SolrSearchBatchResultProcessor {
 
+  public static final String STARTPAGE_PARAM = "startpage";
+  public static final String NUMITEMS_PARAM = "numitems";
+
+  private static final Logger LOG = LoggerFactory
+      .getLogger(MostActiveGroupsSearchBatchResultProcessor.class);
+
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
 
-
-  private final int DEFAULT_DAYS = 30;
-  private final int MAXIMUM_DAYS = 90;
-
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor#writeResults(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.commons.json.io.JSONWriter, java.util.Iterator)
+   * 
+   * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor#writeResults(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.commons.json.io.JSONWriter, java.util.Iterator)
    */
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> results) throws JSONException {
-      List<ResourceActivity> resources = new ArrayList<ResourceActivity>();
-      ResourceResolver resolver = request.getResourceResolver();
-      while (results.hasNext()) {
-        Result result = results.next();
-        String path = result.getPath();
-        Resource resource = resolver.getResource(path);
-        Content content = resource.adaptTo(Content.class);
-
-        int daysAgo = deriveDateWindow(request);
-
-        if (content.hasProperty("timestamp")) {
-          Calendar timestamp = (Calendar) content.getProperty("timestamp");
-          Calendar specifiedDaysAgo = new GregorianCalendar();
-          specifiedDaysAgo.add(Calendar.DAY_OF_MONTH, -daysAgo);
-          if (timestamp.before(specifiedDaysAgo)) {
-            // we stop counting once we get to the old stuff
-            break;
-          } else {
-            String resourceId = (String) content.getProperty("resourceId");
-            if (!resources.contains(new ResourceActivity(resourceId))) {
-              String resourcePath = LitePersonalUtils.getProfilePath(resourceId);
-              Content resourceContent = null;
-              try {
-                resourceContent = resolver.getResource(resourcePath).adaptTo(Content.class);
-              } catch (Exception e) {
-                // this happens if the group is not public
-                // or if the group path simply doesn't exist
-                continue;
-              }
-              String resourceName = (String) resourceContent.getProperty("sakai:group-title");
-              resources.add(new ResourceActivity(resourceId, 0, resourceName));
-            }
-            // increment the count for this particular resource.
-            resources.get(resources.indexOf(new ResourceActivity(resourceId))).activityScore++;
+    final Map<String, ResourceActivity> resources = new HashMap<String, ResourceActivity>();
+    final ResourceResolver resolver = request.getResourceResolver();
+    final Session session = StorageClientUtils.adaptToSession(request
+        .getResourceResolver().adaptTo(javax.jcr.Session.class));
+    while (results.hasNext()) {
+      final Result result = results.next();
+      final String path = result.getPath();
+      final Resource resource = resolver.getResource(path);
+      final Content content = resource.adaptTo(Content.class);
+      if (content != null) {
+        final String resourceId = (String) content.getProperty("resourceId");
+        if (!resources.containsKey(resourceId)) {
+          final String resourcePath = LitePersonalUtils.getProfilePath(resourceId);
+          Content resourceContent = null;
+          try {
+            resourceContent = session.getContentManager().get(resourcePath);
+          } catch (Exception e) {
+            // this happens if the group is not public
+            // or if the group path simply doesn't exist
+            continue;
           }
+          final String resourceName = (String) resourceContent
+              .getProperty("sakai:group-title");
+          resources.put(resourceId, new ResourceActivity(resourceId, 0, resourceName,
+              (Long) resourceContent.getProperty(FilesConstants.LAST_MODIFIED)));
         }
+        // increment the count for this particular resource.
+        resources.get(resourceId).activityScore++;
       }
-
-      // write the most-used content to the JSONWriter
-      Collections.sort(resources, Collections.reverseOrder());
-      write.object();
-      write.key("groups");
-      write.array();
-      for (ResourceActivity resourceActivity : resources) {
-          write.object();
-          write.key("id");
-          write.value(resourceActivity.id);
-          write.key("name");
-          write.value(resourceActivity.name);
-          write.key("count");
-          write.value(Long.valueOf(resourceActivity.activityScore));
-          write.endObject();
-      }
-      write.endArray();
-      write.endObject();
-  }
-
-  private int deriveDateWindow(SlingHttpServletRequest request) {
-    int daysAgo = DEFAULT_DAYS;
-    String requestedDaysParam = request.getParameter("days");
-    if (requestedDaysParam != null) {
-        try {
-          int requestedDays = Integer.parseInt(requestedDaysParam);
-          if ((requestedDays > 0) && (requestedDays <= MAXIMUM_DAYS)) {
-            daysAgo = requestedDays;
-          }
-        } catch (NumberFormatException e) {
-          // malformed parameter, so we'll just stick with the default number of days
-        }
     }
-    return daysAgo;
+
+    // KERN-1724 determine how many content items the current user can read
+    long totalCanRead = 0L;
+    try {
+      final String queryString = "resourceType:authorizable AND type:g";
+      final Query query = new Query(Type.SOLR, queryString, null);
+      final SolrSearchResultSet rs = searchServiceFactory.getSearchResultSet(request,
+          query);
+      if (rs != null) {
+        totalCanRead = rs.getSize();
+      }
+    } catch (SolrSearchException e) {
+      LOG.error(e.getLocalizedMessage(), e);
+    }
+
+    // write the most-used content to the JSONWriter
+    final List<ResourceActivity> resourceActivities = new ArrayList<ResourceActivity>(
+        resources.values());
+    Collections.sort(resourceActivities, Collections.reverseOrder());
+    write.object();
+    write.key("totalCanRead");
+    write.value(totalCanRead);
+    write.key(SolrSearchConstants.TOTAL);
+    write.value(resourceActivities.size());
+    final RequestParameter startpageP = request.getRequestParameter(STARTPAGE_PARAM);
+    int startpage = (startpageP != null) ? Integer.valueOf(startpageP.getString()) : 1;
+    startpage = (startpage < 1) ? 1 : startpage;
+    write.key(STARTPAGE_PARAM);
+    write.value(startpage);
+    final RequestParameter numitemsP = request.getRequestParameter(NUMITEMS_PARAM);
+    int numitems = (numitemsP != null) ? Integer.valueOf(numitemsP.getString())
+                                      : SolrSearchConstants.DEFAULT_PAGED_ITEMS;
+    numitems = (numitems < 1) ? SolrSearchConstants.DEFAULT_PAGED_ITEMS : numitems;
+    write.key(NUMITEMS_PARAM);
+    write.value(numitems);
+    final int beginPosition = (startpage * numitems) - numitems;
+    write.key("groups");
+    write.array();
+    if (beginPosition < resourceActivities.size()) {
+      int count = 0;
+      for (int i = beginPosition; i < resourceActivities.size() && count < numitems; i++) {
+        final ResourceActivity resourceActivity = resourceActivities.get(i);
+        write.object();
+        write.key("id");
+        write.value(resourceActivity.id);
+        write.key("name");
+        write.value(resourceActivity.name);
+        write.key("count");
+        write.value(Long.valueOf(resourceActivity.activityScore));
+        write.endObject();
+        count++;
+      }
+    }
+    write.endArray();
+    write.endObject();
   }
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
-      throws SolrSearchException {
+  public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SolrSearchException {
     // Return the result set.
     return searchServiceFactory.getSearchResultSet(request, query);
   }
 
-  public class ResourceActivity implements Comparable<ResourceActivity>{
-    public String id;
-    public ResourceActivity(String id) {
-      this.id = id;
-    }
-    public ResourceActivity(String id, int activityScore, String name) {
+  public class ResourceActivity implements Comparable<ResourceActivity> {
+    public final String id;
+    public final String name;
+    public final Long lastModified;
+    public Integer activityScore;
+
+    public ResourceActivity(String id, int activityScore, String name, long lastModified) {
       this.id = id;
       this.activityScore = activityScore;
       this.name = name;
+      this.lastModified = lastModified;
     }
+
+    @Override
+    public String toString() {
+      return "ResourceActivity(" + id + ", " + activityScore + ", " + name + ", "
+          + lastModified + ")";
+    }
+
     @Override
     public int hashCode() {
       final int prime = 31;
@@ -166,6 +201,7 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
       result = prime * result + ((id == null) ? 0 : id.hashCode());
       return result;
     }
+
     @Override
     public boolean equals(Object obj) {
       if (this == obj)
@@ -184,11 +220,15 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
         return false;
       return true;
     }
-    public String name;
-    public int activityScore;
+
     public int compareTo(ResourceActivity other) {
-      return Integer.valueOf(this.activityScore).compareTo(Integer.valueOf(other.activityScore));
+      if (this.activityScore.equals(other.activityScore)) {
+        return this.lastModified.compareTo(other.lastModified);
+      } else {
+        return this.activityScore.compareTo(other.activityScore);
+      }
     }
+
     private MostActiveGroupsSearchBatchResultProcessor getOuterType() {
       return MostActiveGroupsSearchBatchResultProcessor.this;
     }

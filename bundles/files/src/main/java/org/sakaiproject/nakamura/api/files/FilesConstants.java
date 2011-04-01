@@ -17,6 +17,14 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+
+import com.google.common.collect.ImmutableSet;
+
+import org.sakaiproject.nakamura.api.lite.content.Content;
+
+import java.util.Set;
+
 public interface FilesConstants {
   /**
    * The resource type for a sakai link. sakai/link
@@ -136,17 +144,32 @@ public interface FilesConstants {
   public static final String POOLED_NEEDS_PROCESSING = "sakai:needsprocessing";
 
   /** Property of when the content was last modified */
-  String LAST_MODIFIED = "lastModified";
+  public static final String LAST_MODIFIED = Content.LASTMODIFIED_FIELD;
 
   /** Property of who modified the content last */
-  String LAST_MODIFIED_BY = "lastModifiedBy";
+  public static final String LAST_MODIFIED_BY = Content.LASTMODIFIED_BY_FIELD;
 
   /** Property of when the content was created */
-  String CREATED = "created";
+  public static final String CREATED = Content.CREATED_FIELD;
 
   /** Property of who created the content */
-  String CREATED_BY = "createdBy";
+  public static final String CREATED_BY = Content.CREATED_BY_FIELD;
 
   /** Property of where this content is used*/
-  String LINK_PATHS = "linkpaths";
+  public static final String LINK_PATHS = "linkpaths";
+
+  /** Property stem for structure properties in content pool items */
+  public static final String STRUCTURE_FIELD_STEM = "structure";
+
+  /**
+   * Resource ID referneces in structures.
+   */
+  public static final String RESOURCE_REFERENCE_FIELD = "_ref";
+  
+  
+  public static final Set<String> RESERVED_POOL_KEYS = ImmutableSet.of(
+      SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_CREATED_FOR,
+      POOLED_CONTENT_USER_MANAGER, POOLED_CONTENT_FILENAME, POOLED_NEEDS_PROCESSING,
+      Content.MIMETYPE_FIELD);
+
 }

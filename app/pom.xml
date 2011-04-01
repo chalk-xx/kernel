@@ -113,11 +113,11 @@
                      </manifest>
                      <manifestEntries>
                          <Specification-Title>Nakamura Server</Specification-Title>
-                         <Specification-Version>${pom.version}</Specification-Version>
+                         <Specification-Version>${project.version}</Specification-Version>
                          <Specification-Vendor>The Sakai Foundation</Specification-Vendor>
                          <Implementation-Title>Nakamura Server</Implementation-Title>
-                         <Implementation-Version>${pom.version}</Implementation-Version>
-                         <Implementation-Vendor-Id>${pom.groupId}</Implementation-Vendor-Id>
+                         <Implementation-Version>${project.version}</Implementation-Version>
+                         <Implementation-Vendor-Id>${project.groupId}</Implementation-Vendor-Id>
                          <Implementation-Vendor>The Sakai Foundation</Implementation-Vendor>
                          <Main-Class>org.sakaiproject.nakamura.app.NakamuraMain</Main-Class>
                      </manifestEntries>

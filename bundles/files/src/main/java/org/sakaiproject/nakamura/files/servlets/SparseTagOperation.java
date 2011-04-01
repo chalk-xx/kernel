@@ -17,13 +17,11 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
-import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
-
-import com.google.common.collect.Sets;
-
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.TOPIC_FILES_TAG;
+
+import com.google.common.collect.Sets;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -57,13 +55,12 @@ import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.Dictionary;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
@@ -167,11 +164,16 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
     
     // If we're tagging an authorizable, add the property here
     if (isProfile) {
-      Authorizable authorizable = authManager.findAuthorizable((String) content.getProperty("hash"));
-      Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[]) authorizable.getProperty(SAKAI_TAG_UUIDS)));
-      nameSet.add(tagUuid);
-      authorizable.setProperty(SAKAI_TAG_UUIDS,nameSet.toArray(new String[nameSet.size()]));
-      authManager.updateAuthorizable(authorizable);
+      final String azId = PathUtils.getAuthorizableId(content.getPath());
+      Authorizable authorizable = authManager.findAuthorizable(azId);
+      if (authorizable != null) {
+        Set<String> nameSet = Sets.newHashSet(StorageClientUtils
+            .nonNullStringArray((String[]) authorizable.getProperty(SAKAI_TAG_UUIDS)));
+        nameSet.add(tagUuid);
+        authorizable.setProperty(SAKAI_TAG_UUIDS,
+            nameSet.toArray(new String[nameSet.size()]));
+        authManager.updateAuthorizable(authorizable);
+      }
     }
     // Send an OSGi event.
     try {

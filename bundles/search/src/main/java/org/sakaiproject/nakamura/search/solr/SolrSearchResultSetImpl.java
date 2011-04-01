@@ -6,11 +6,12 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrQueryResponseWrapper;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 
 import java.util.Iterator;
 
-public class SolrSearchResultSetImpl implements SolrSearchResultSet {
+public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryResponseWrapper {
 
   private QueryResponse response;
   private SolrDocumentList responseList;
@@ -44,6 +45,10 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet {
     if ( responseList == null ) {
       responseList = response.getResults();
     }
+  }
+
+  public QueryResponse getQueryResponse() {
+    return this.response;
   }
 
 

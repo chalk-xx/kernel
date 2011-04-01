@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.user.lite.servlet;
 
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -42,7 +41,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-//import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -78,7 +76,7 @@ import javax.servlet.http.HttpServletResponse;
       selectors = {
         @ServiceSelector(name = "members", description = "Binds to the members selector."),
         @ServiceSelector(name = "managers", description = "Binds to the managers selector."),
-        @ServiceSelector(name = "details", description = "Binds to the details selector.")
+        @ServiceSelector(name = "detailed", description = "Binds to the details selector.")
       },
       extensions = @ServiceExtension(name = "json", description = "javascript object notation")
     )
@@ -173,13 +171,11 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
           items, page);
 
       // Write the whole lot out.
-      javax.jcr.Session session = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
       writer.array();
       int i = 0;
       while (iterator.hasNext() && i < items) {
         Entry<String, Authorizable> entry = iterator.next();
         Authorizable au = entry.getValue();
-        //ValueMap profile = profileService.getCompactProfileMap(au, session);
         BasicUserInfo basicUserInfo = new BasicUserInfo();
         ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(au));
         if (profile != null) {

@@ -2,7 +2,6 @@
 
 while [[ 1 -eq 1 ]]
 do
-   ./generate_preview.rb $1
+   ./preview_processor.rb $1
    sleep 15
 done
-

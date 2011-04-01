@@ -31,9 +31,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.sax.BodyContentHandler;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
@@ -46,12 +44,13 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.lite.util.Iterables;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
+import org.sakaiproject.nakamura.api.tika.TikaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,6 +80,9 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
   @Reference(target="(type=sparse)")
   protected ResourceIndexingService resourceIndexingService;
 
+  @Reference
+  private TikaService tika;
+
   private static Map<String, String> getFieldMap() {
     Builder<String, String> builder = ImmutableMap.builder();
     builder.put(FilesConstants.POOLED_CONTENT_USER_MANAGER, "manager");
@@ -91,18 +93,19 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     builder.put(FilesConstants.SAKAI_TAG_NAME, "tagname");
     builder.put(FilesConstants.SAKAI_TAG_UUIDS, "taguuid");
     builder.put(FilesConstants.SAKAI_TAGS, "tag");
-    builder.put(FilesConstants.LAST_MODIFIED, FilesConstants.LAST_MODIFIED);
-    builder.put(FilesConstants.LAST_MODIFIED_BY, FilesConstants.LAST_MODIFIED_BY);
-    builder.put(FilesConstants.CREATED, FilesConstants.CREATED);
-    builder.put(FilesConstants.CREATED_BY, FilesConstants.CREATED_BY);
+    builder.put(FilesConstants.LAST_MODIFIED, "lastModified");
+    builder.put(FilesConstants.LAST_MODIFIED_BY, "lastModifiedBy");
+    builder.put(FilesConstants.CREATED, "created");
+    builder.put(FilesConstants.CREATED_BY, "createdBy");
     builder.put(FilesConstants.LINK_PATHS, FilesConstants.LINK_PATHS);
     builder.put(FilesConstants.SAKAI_DESCRIPTION, "description");
     return builder.build();
   }
 
   // ---------- SCR integration-------------------------------------------------
+
   @Activate
-  public void activate(Map<String, Object> properties) {
+  public void activate(BundleContext bundleContext, Map<String, Object> properties) throws Exception {
     for (String type : CONTENT_TYPES) {
       resourceIndexingService.addHandler(type, this);
     }
@@ -152,15 +155,9 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
           InputStream contentStream = contentManager.getInputStream(path);
           if (contentStream != null) {
             try {
-              AutoDetectParser parser = new AutoDetectParser();
-              BodyContentHandler handler = new BodyContentHandler();
-              Metadata metadata = new Metadata();
-              parser.parse(contentStream, handler, metadata);
-              String extracted = handler.toString();
+              String extracted = tika.parseToString(contentStream);
               doc.addField("content", extracted);
             } catch (TikaException e) {
-              LOGGER.warn(e.getMessage(), e);
-            } catch (SAXException e) {
               LOGGER.warn(e.getMessage(), e);
             }
           }

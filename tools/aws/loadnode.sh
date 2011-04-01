@@ -11,7 +11,7 @@ PEM_NAME=$1
 AWSNAME=$2
 NAK_VERSION=$3
 
-scp -i ${PEM_NAME} jdk-1_5_0_22-linux-i586.bin  root@$AWSNAME:
+scp -i ${PEM_NAME} jdk-6u24-linux-x64.bin  root@$AWSNAME:
 scp -i ${PEM_NAME} confignode.sh  root@$AWSNAME:
 scp -i ${PEM_NAME} ~/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.nakamura.app/${NAK_VERSION}/org.sakaiproject.nakamura.app-${NAK_VERSION}.jar root@$AWSNAME:
 ssh -i ${PEM_NAME} root@$AWSNAME -C sh confignode.sh ${NAK_VERSION}

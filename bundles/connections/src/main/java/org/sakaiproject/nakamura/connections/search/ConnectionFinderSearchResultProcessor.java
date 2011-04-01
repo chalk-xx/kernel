@@ -43,12 +43,10 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.api.user.BasicUserInfo;
-import org.sakaiproject.nakamura.connections.ConnectionUtils;
+
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.jcr.RepositoryException;
 
 /**
  * Formats connection search results. We get profile nodes from the query and make a
@@ -71,12 +69,10 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
 
   public void writeResult(SlingHttpServletRequest request, JSONWriter writer, Result result)
       throws JSONException {
-    String contactUser = (String) result.getFirstValue(User.NAME_FIELD);
+    String contactUser = result.getPath().substring(result.getPath().lastIndexOf("/") + 1);
     if (contactUser == null) {
       throw new IllegalArgumentException("Missing " + User.NAME_FIELD);
     }
-
-    String user = request.getRemoteUser();
 
     javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
     Session session = StorageClientUtils.adaptToSession(jcrSession);
@@ -84,7 +80,7 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
       AuthorizableManager authMgr = session.getAuthorizableManager();
       Authorizable auth = authMgr.findAuthorizable(contactUser);
 
-      String contactContentPath = ConnectionUtils.getConnectionPath(user, contactUser);
+      String contactContentPath = result.getPath();
       logger.debug("getting " + contactContentPath);
       Content contactContent = session.getContentManager().get(contactContentPath);
       if (contactContent != null) {
@@ -93,7 +89,6 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
         writer.key("target");
         writer.value(contactUser);
         writer.key("profile");
-//        ExtendedJSONWriter.writeValueMap(writer, profileService.getCompactProfileMap(auth,jcrSession));
         BasicUserInfo basicUserInfo = new BasicUserInfo();
         ExtendedJSONWriter.writeValueMap(writer, new ValueMapDecorator(basicUserInfo.getProperties(auth)));
         writer.key("details");
@@ -105,9 +100,7 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
       throw new RuntimeException(e.getMessage(), e);
     } catch (AccessDeniedException e) {
       throw new RuntimeException(e.getMessage(), e);
-    } /*catch (RepositoryException e) {
-      throw new RuntimeException(e.getMessage(), e);
-    }*/
+    } 
   }
   /**
    * {@inheritDoc}

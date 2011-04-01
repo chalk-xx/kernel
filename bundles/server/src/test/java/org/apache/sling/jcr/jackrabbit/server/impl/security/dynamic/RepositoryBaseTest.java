@@ -26,7 +26,6 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.core.security.AnonymousPrincipal;
 import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipal;
 import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
-import org.apache.sling.jcr.jackrabbit.server.security.dynamic.ISO8601Date;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleACLModifier;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RulesBasedAce;
 import org.junit.Assert;
@@ -37,6 +36,7 @@ import org.mockito.MockitoAnnotations;
 import org.osgi.framework.BundleContext;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.util.ISO8601Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

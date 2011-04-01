@@ -1,0 +1,13 @@
+{
+    "testsimpleproperties" : {
+        "propertyA" : "ValueA",
+        "propertyB@TypeString" : "ValueB",
+        "propertyC@TypeInteger" : 1,
+        "propertyD@TypeInteger" : "2",
+        "propertyE@TypeLong" : 3,
+        "propertyF@TypeLong" : "4",
+        "propertyG@TypeDouble" : "4.0",
+        "propertyH@TypeBigDecimal" : "4.0",
+        "propertyF@Calendar" : "20110235T112456Z" 
+    }
+}

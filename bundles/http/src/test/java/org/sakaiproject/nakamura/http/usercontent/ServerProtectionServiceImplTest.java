@@ -10,13 +10,16 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.service.component.ComponentContext;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Vector;
 
 public class ServerProtectionServiceImplTest {
@@ -26,16 +29,22 @@ public class ServerProtectionServiceImplTest {
   private SlingHttpServletRequest hrequest;
   @Mock
   private SlingHttpServletResponse hresponse;
+  @Mock
+  private ComponentContext componentContext;
+  @Mock
+  private BundleContext bundleContext;
   
   public ServerProtectionServiceImplTest() {
     MockitoAnnotations.initMocks(this);
   }
 
   @Before
-  public void setup() throws NoSuchAlgorithmException, UnsupportedEncodingException {
+  public void setup() throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidSyntaxException {
     serverProtectionService = new ServerProtectionServiceImpl();
-    Map<String, Object> properties  = new HashMap<String, Object>();
-    serverProtectionService.activate(properties);
+    Dictionary<String, Object> properties = new Hashtable<String, Object>();
+    Mockito.when(componentContext.getProperties()).thenReturn(properties);
+    Mockito.when(componentContext.getBundleContext()).thenReturn(bundleContext);
+    serverProtectionService.activate(componentContext);
   }
   
   @Test
