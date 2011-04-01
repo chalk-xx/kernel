@@ -65,6 +65,10 @@ public class ContentPoolSearchPropertyProvider implements SolrSearchPropertyProv
     if (!UserConstants.ANON_USERID.equals(userID)) {
       addMyGroups(session, propertiesMap);
     }
+    
+    if (request.getParameter("group") != null) {
+      propertiesMap.put("group", ClientUtils.escapeQueryChars(request.getParameter("group")));
+    }
 
   }
 

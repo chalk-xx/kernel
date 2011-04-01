@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.message;
 
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.BOX_OUTBOX;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.BOX_PENDING;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.EVENT_LOCATION;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PENDINGMESSAGE_EVENT;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_MESSAGEBOX;
@@ -116,7 +117,8 @@ public class LiteMessagePostProcessor implements SparsePostProcessor {
               content = contentManager.get(contentPath);
               if (content.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && content.hasProperty(PROP_SAKAI_MESSAGEBOX)) {
                 if (SAKAI_MESSAGE_RT.equals(content.getProperty(SLING_RESOURCE_TYPE_PROPERTY)) &&
-                    BOX_OUTBOX.equals(content.getProperty(PROP_SAKAI_MESSAGEBOX))) {
+                    (BOX_OUTBOX.equals(content.getProperty(PROP_SAKAI_MESSAGEBOX))
+                        || BOX_PENDING.equals(content.getProperty(PROP_SAKAI_MESSAGEBOX)))) {
                   String sendstate;
                   if (content.hasProperty(PROP_SAKAI_SENDSTATE)) {
                     sendstate = (String) content.getProperty(PROP_SAKAI_SENDSTATE);

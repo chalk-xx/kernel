@@ -57,7 +57,8 @@ public class MessageListenerConfigurator {
   @SuppressWarnings({ "rawtypes", "unchecked" })
   @Activate
   protected void activate(Map<?, ?> props) throws IOException {
-    Configuration config = configAdmin.getConfiguration(ROUTE_BUILDER_PID);
+    Configuration config = configAdmin.getConfiguration(ROUTE_BUILDER_PID, null);
+    config.setBundleLocation(null);
     Dictionary listenerProps = config.getProperties();
     if (listenerProps == null) {
       listenerProps = new Hashtable();
@@ -71,7 +72,7 @@ public class MessageListenerConfigurator {
   @SuppressWarnings({ "rawtypes", "unchecked" })
   @Deactivate
   protected void deactivate(Map<?, ?> props) throws IOException {
-    Configuration config = configAdmin.getConfiguration(ROUTE_BUILDER_PID);
+    Configuration config = configAdmin.getConfiguration(ROUTE_BUILDER_PID, null);
     Dictionary listenerProps = config.getProperties();
     if (listenerProps != null) {
       listenerProps.put(MESSAGE_LISTENER_TARGET, oldMessageListenerTarget);
