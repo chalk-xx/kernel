@@ -151,28 +151,7 @@ public class LiteJsonImporter {
   protected int getPermissionBitMap(JSONArray jsonArray) throws JSONException {
     int bitmap = 0;
     for ( int i = 0; i < jsonArray.length(); i++ ) {
-      String permission = jsonArray.getString(i).toLowerCase();
-      if ( permission.equals("read")) {
-        bitmap = bitmap | Permissions.CAN_READ.getPermission();
-      } else if ( permission.equals("write")) {
-        bitmap = bitmap | Permissions.CAN_WRITE.getPermission();
-      } else if ( permission.equals("delete")) {
-        bitmap = bitmap | Permissions.CAN_DELETE.getPermission();
-      } else if ( permission.equals("read-acl")) {
-        bitmap = bitmap | Permissions.CAN_READ_ACL.getPermission();
-      } else if ( permission.equals("write-acl")) {
-        bitmap = bitmap | Permissions.CAN_WRITE_ACL.getPermission();
-      } else if ( permission.equals("delete-acl")) {
-        bitmap = bitmap | Permissions.CAN_DELETE_ACL.getPermission();
-      } else if ( permission.equals("anything")) {
-        bitmap = bitmap | Permissions.CAN_ANYTHING.getPermission();
-      } else if ( permission.equals("anything-acl")) {
-        bitmap = bitmap | Permissions.CAN_ANYTHING_ACL.getPermission();
-      } else if ( permission.equals("manage")) {
-        bitmap = bitmap | Permissions.CAN_MANAGE.getPermission();
-      } else if ( permission.equals("all")) {
-        bitmap = bitmap | Permissions.CAN_MANAGE.getPermission();
-      }
+      bitmap = bitmap | Permissions.parse(jsonArray.getString(i).toLowerCase()).getPermission();
     }
     return bitmap;
   }
