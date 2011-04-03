@@ -84,9 +84,9 @@ public class WidgetDataIndexingHandler implements IndexingHandler {
         ContentManager cm = session.getContentManager();
         Content content = cm.get(path);
 
-        String groupPath = getGroupPath(content, cm);
-        if (groupPath == null) {
-          logger.warn("Unable to find group container for widget data [{}]; not indexing widget data", path);
+        String[] authPath = getAuthHomePath(content, cm);
+        if (authPath == null) {
+          logger.warn("Unable to find auth (user,group) container for widget data [{}]; not indexing widget data", path);
           return docs;
         }
 
@@ -108,7 +108,8 @@ public class WidgetDataIndexingHandler implements IndexingHandler {
         }
 
         SolrInputDocument doc = new SolrInputDocument();
-        doc.setField("pagepath", groupPath);
+        doc.setField("type", authPath[0]);
+        doc.setField("path", authPath[1]);
         doc.setField("widgetdata", sb.toString());
         docs.add(doc);
       } catch (StorageClientException e) {
@@ -134,21 +135,25 @@ public class WidgetDataIndexingHandler implements IndexingHandler {
   }
 
   /**
-   * Starting at {@link content}, go up the content tree to find a node with
-   * sling:resourceType = sakai/group-home and return the resource path to that node.
+   * Starting at {@link content}, go up the content tree to find a "home" node and return
+   * the resource path to that node with a marker of user or group.
    * 
    * @param content
    * @param cm
-   * @return
+   * @return String[] 0:(u|g); 1:path to auth home
    * @throws AccessDeniedException
    * @throws StorageClientException
    */
-  private String getGroupPath(Content content, ContentManager cm)
+  private String[] getAuthHomePath(Content content, ContentManager cm)
       throws AccessDeniedException, StorageClientException {
     if (content.hasProperty(UserConstants.GROUP_HOME_RESOURCE_TYPE)) {
-      return (String) PathUtils.translateAuthorizablePath(content.getPath());
+      return new String[] { "g", content.getPath().substring(2) };
+    } else if (content.hasProperty(UserConstants.USER_HOME_RESOURCE_TYPE)) {
+      return new String[] { "u", content.getPath().substring(2) };
+    } else if ("/".equals(content.getPath())) {
+      return null;
     } else {
-      return getGroupPath(cm.get(PathUtils.getParentReference(content.getPath())), cm);
+      return getAuthHomePath(cm.get(PathUtils.getParentReference(content.getPath())), cm);
     }
   }
 }

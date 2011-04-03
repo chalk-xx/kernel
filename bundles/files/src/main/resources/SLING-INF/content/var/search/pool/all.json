@@ -1,10 +1,11 @@
 {
-  "sakai:query-template": "resourceType:sakai/pooled-content AND (content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q}))",
+  "sakai:query-template": "resourceType:sakai/pooled-content AND (content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q})${_taguuids})",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
   "sortOn": "score",
   "sortOrder": "desc",
+  "sakai:propertyprovider" : "TagMatch",
   "sling:resourceType": "sakai/solr-search",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",

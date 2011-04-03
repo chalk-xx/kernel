@@ -24,6 +24,7 @@ import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.schema.TextField;
@@ -127,7 +128,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
         Authorizable user = am.findAuthorizable(session.getUserId());
         Set<String> readers = Sets.newHashSet();
         for (Iterator<Group> gi = user.memberOf(am); gi.hasNext();) {
-          readers.add(gi.next().getId());
+          readers.add(ClientUtils.escapeQueryChars(gi.next().getId()));
         }
         readers.add(session.getUserId());
         queryString = "(" + queryString + ") AND readers:(" + StringUtils.join(readers," OR ") + ")";
