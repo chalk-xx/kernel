@@ -31,9 +31,6 @@ public class StringUtils {
   
   public static final char[] URL_SAFE_ENCODING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
     .toCharArray();
-  private static final byte[] HEX_CHAR_TABLE = { (byte) '0', (byte) '1', (byte) '2',
-      (byte) '3', (byte) '4', (byte) '5', (byte) '6', (byte) '7', (byte) '8', (byte) '9',
-      (byte) 'a', (byte) 'b', (byte) 'c', (byte) 'd', (byte) 'e', (byte) 'f' };
 
   /**
    * @param st
@@ -133,15 +130,15 @@ public class StringUtils {
   }
 
   public static String byteToHex(byte[] base) throws UnsupportedEncodingException {
-    byte[] hex = new byte[2 * base.length];
+    char[] hex = new char[2 * base.length];
     int index = 0;
 
     for (byte b : base) {
       int v = b & 0xFF;
-      hex[index++] = HEX_CHAR_TABLE[v >>> 4];
-      hex[index++] = HEX_CHAR_TABLE[v & 0xF];
+      hex[index++] = TOHEX[v >>> 4];
+      hex[index++] = TOHEX[v & 0xF];
     }
-    return new String(hex, "ASCII");
+    return new String(hex);
   }
 
   /**
