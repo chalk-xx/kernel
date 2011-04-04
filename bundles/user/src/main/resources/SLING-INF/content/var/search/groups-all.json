@@ -1,6 +1,6 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": 'type:g',
+  "sakai:query-template": "type:g",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
@@ -14,7 +14,7 @@
     "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'asc' or 'desc'.\"}"
   ],
   "sakai:description": [
-    "Get group profile nodes out of the repository filtered by any value on the profile node..",
+    "Get group profile nodes out of the repository filtered by any value on the profile node.."
   ],
   "sakai:response": [
      "Doing a standard query searching for all profiles matching 'foo'.<br /> Example: Request to: /var/search/groups.json?q=foo<br /><pre class=\"json\">{\n\"items\":25,\n\"total\":1,\n\"results\":[\n{\n\"jcr:path\":\"/~g-foo-testing/public/authprofile\",\n\"jcr:name\":\"authprofile\",\n\"sling:resourceType\":\"sakai/group-profile\",\n\"specialProp\":\"foo\",\n\"jcr:uuid\":\"16f6de02-a85c-46da-842f-59dc66b554d7\",\n\"jcr:mixinTypes\":[\"mix:referenceable\",\"rep:AccessControllable\"],\n\"path\":\"/g-foo-testing\",\n\"jcr:primaryType\":\"nt:unstructured\"\n}\n]\n}</pre>"

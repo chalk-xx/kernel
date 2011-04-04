@@ -1,0 +1,17 @@
+{
+    "sling:resourceType": "sakai/proxy",
+    "sakai:request-proxy-endpoint": "http://www.slideshare.net/api/2/get_slideshow?${keyHash}&slideshow_url=${slideshow_url}",
+    "sakai:preprocessor": "slideshare",
+    "sakai:request-proxy-method": "GET",
+    "sakai:title": "Get a slideshow",
+    "sakai:shortDescription": "Get a slide show from Slideshare.",
+    "sakai:parameters" : [
+        {"name": "slideshow_url", "description": "The url of the slideshow"}
+    ],
+    "sakai:description" : ["Get a slide show from Slideshare.",
+    "This template requires an API key. It can be defined at ./load/org.sakaiproject.nakamura.proxy.SlideshareProxyPreProcessor.cfg<br /><code>slideshare.apiKey=0XXXyyy\nslideshare.sharedSecret=XXXXyyyX</code>"
+    ],
+    "sakai:response": [
+        "Gives back data about the Slideshow."
+    ]
+}
