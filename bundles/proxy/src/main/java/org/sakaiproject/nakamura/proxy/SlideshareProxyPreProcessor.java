@@ -41,7 +41,6 @@ public class SlideshareProxyPreProcessor implements ProxyPreProcessor {
     Long ts = System.currentTimeMillis() / 1000;
     try {
       String hash = StringUtils.sha1Hash(SHAREDSECRET + ts);
-      hash = kern1742(hash);
       String keyHash = "api_key=" + APIKEY + "&ts=" + ts + "&hash=" + hash;
       templateParams.put("keyHash", keyHash);
     } catch (UnsupportedEncodingException e) {
@@ -49,20 +48,6 @@ public class SlideshareProxyPreProcessor implements ProxyPreProcessor {
     } catch (NoSuchAlgorithmException e) {
       LOGGER.error("Hashing error", e);
     }
-  }
-
-  private String kern1742(String brokeHash) {
-    char[] kern1742 = "89abcdef01234567".toCharArray();
-    String hex = "0123456789abcdef";
-    StringBuffer hash = new StringBuffer();
-    for (int i = 0; i < brokeHash.length(); i++) {
-      if (i % 2 == 0) {
-        hash.append(kern1742[hex.indexOf(brokeHash.charAt(i))]);
-      } else {
-        hash.append(brokeHash.charAt(i));
-      }
-    }
-    return hash.toString();
   }
 
   public String getName() {
