@@ -10,7 +10,7 @@
   "sakai:title": "Group Join Requests - List.",
   "sakai:shortDescription": "List all of the pending join requests for the group specified by the groupId parameter",
   "sakai:parameters" : [
-    "{\"name\" : \"groupId\", \"description\" : \"Specify the group for which you want join requests.\"}",
+    "{\"name\" : \"groupId\", \"description\" : \"Specify the group for which you want join requests.\"}"
   ],
   "sakai:description": [
     "This search will get all the pending join requests for the group specified by the groupId parameter."
