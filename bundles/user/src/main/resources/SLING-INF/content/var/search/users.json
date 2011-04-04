@@ -1,8 +1,9 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": "type:u AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR widgetdata:(${q}))",
+  "sakai:query-template": "type:u AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR content:(${q}) OR widgetdata:(${q})${_taguuids})",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}",
+      "group": true,
       "group.field": "path"
   },
   "sortOn": "score",
