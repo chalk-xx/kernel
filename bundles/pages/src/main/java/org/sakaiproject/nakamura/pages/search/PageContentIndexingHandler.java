@@ -33,6 +33,8 @@ import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
@@ -82,7 +84,7 @@ public class PageContentIndexingHandler implements IndexingHandler {
       Event event) {
     String path = (String) event.getProperty(FIELD_PATH);
 
-    List<SolrInputDocument> documents = Lists.newArrayList();
+    List<SolrInputDocument> docs = Lists.newArrayList();
     if (!StringUtils.isBlank(path)) {
       try {
         Session session = repositorySession.adaptTo(Session.class);
@@ -91,22 +93,41 @@ public class PageContentIndexingHandler implements IndexingHandler {
 
         if (content != null) {
           try {
-            SolrInputDocument doc = new SolrInputDocument();
-
-            // set the path of the parent that holds the content
-            doc.addField("path", PathUtils.removeLastElement(path));
-
-            // extract the content
             String pageContent = (String) content.getProperty("sakai:pagecontent");
             if (pageContent != null) {
+              // set the path of the parent that holds the content
+              String authId = PathUtils.getAuthorizableId(content.getPath());
+              if (authId == null) {
+                LOGGER.warn("Unable to find auth (user,group) container for widget data [{}]; not indexing widget data", path);
+                return docs;
+              }
+
+              SolrInputDocument doc = new SolrInputDocument();
+
+              // extract the content
               String extracted = tika.parseToString(new ByteArrayInputStream(pageContent
                   .getBytes("UTF-8")));
               doc.addField("content", extracted);
-            }
 
-            // add the source for the indexing service
-            doc.addField(_DOC_SOURCE_OBJECT, content);
-            documents.add(doc);
+              AuthorizableManager am = session.getAuthorizableManager();
+              Authorizable auth = am.findAuthorizable(authId);
+              if (auth.isGroup()) {
+                doc.setField("type", "g");
+              } else {
+                doc.setField("type", "u");
+              }
+              // set the path here so that it's the first path found when rendering to the
+              // client. the resource indexing service will all nodes of the path and we want
+              // this one first.
+              doc.setField(FIELD_PATH, authId);
+
+              // set the return to a single value field so we can group it
+              doc.setField("returnpath", authId);
+
+              // add the source for the indexing service
+              doc.addField(_DOC_SOURCE_OBJECT, content);
+              docs.add(doc);
+            }
           } catch (TikaException e) {
             LOGGER.warn(e.getMessage(), e);
           } catch (IOException e) {
@@ -119,8 +140,8 @@ public class PageContentIndexingHandler implements IndexingHandler {
         LOGGER.warn(e.getMessage(), e);
       }
     }
-    LOGGER.debug("Got documents {}", documents);
-    return documents;
+    LOGGER.debug("Got documents {}", docs);
+    return docs;
   }
 
   /**

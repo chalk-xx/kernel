@@ -1,11 +1,12 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": "((type:g AND (name:(${q}) OR title:(${q}) OR description:(${q}))) OR (type:u AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}))))",
+  "sakai:query-template": "((type:g AND (name:(${q}) OR title:(${q}) OR description:(${q}) OR content:(${q}) OR widgetdata:(${q})${_taguuids})) OR (type:u AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR content:(${q}) OR widgetdata:(${q})${_taguuids})))",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
   "sortOn": "score",
   "sortOrder": "desc",
+  "sakai:propertyprovider" : "TagMatch",
   "sakai:resultprocessor": "Profile",
   "sakai:title": "Users, Groups",
   "sakai:shortDescription": "Get profile nodes of users or groups.",

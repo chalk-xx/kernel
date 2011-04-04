@@ -51,7 +51,7 @@ public class JmsBrokerDisabler {
     } else {
       wasEnabled = (Boolean) brokerProps.get("broker.enabled");
     }
-    brokerProps.put(BROKER_ENABLED, "false");
+    brokerProps.put(BROKER_ENABLED, false);
     config.update(brokerProps);
   }
 

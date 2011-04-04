@@ -1,6 +1,6 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": "type:(u g)",
+  "sakai:query-template": "type:(u OR g) AND resourceType:authorizable",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
