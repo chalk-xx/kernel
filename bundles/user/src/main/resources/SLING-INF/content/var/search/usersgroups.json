@@ -6,6 +6,7 @@
   },
   "sortOn": "score",
   "sortOrder": "desc",
+  "sakai:propertyprovider" : "TagMatch",
   "sakai:resultprocessor": "Profile",
   "sakai:title": "Users, Groups",
   "sakai:shortDescription": "Get profile nodes of users or groups.",
