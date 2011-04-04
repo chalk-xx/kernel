@@ -244,11 +244,11 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
     Session adminSession = null;
     try {
       // check that user is a manager of the content item
+      adminSession = repository.loginAdministrative();
       Resource resource = request.getResource();
       Content poolItem = resource.adaptTo(Content.class);
-      Session session = resource.adaptTo(Session.class);
-      AuthorizableManager authorizableManager = session.getAuthorizableManager();
-      User user = (User) authorizableManager.findAuthorizable(session.getUserId());
+      AuthorizableManager authorizableManager = adminSession.getAuthorizableManager();
+      User user = (User) authorizableManager.findAuthorizable(adminSession.getUserId());
 
       // stop now if no comment ID is provided
       if (StringUtils.isBlank(commentId)) {
@@ -258,7 +258,7 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       }
 
       String path = poolItem.getPath() + "/" + COMMENTS + "/" + commentId;
-      ContentManager contentManager = resource.adaptTo(ContentManager.class);
+      ContentManager contentManager = adminSession.getContentManager();
       Content comment = contentManager.get(path);
       if (!isManager(poolItem, user, authorizableManager)
           && !user.getId().equals(comment.getProperty("author"))) {
