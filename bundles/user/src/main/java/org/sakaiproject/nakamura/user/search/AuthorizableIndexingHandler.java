@@ -157,6 +157,9 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
             doc.addField(FIELD_READERS, principal);
           }
 
+          // add the name as the path so we can group on it later when we search for
+          // widgetdata
+          doc.setField(FIELD_PATH, name);
           // set the resource type and ID
           doc.setField(FIELD_RESOURCE_TYPE, "authorizable");
           doc.setField(FIELD_ID, name);

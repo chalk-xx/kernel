@@ -93,11 +93,8 @@ public class PageContentIndexingHandler implements IndexingHandler {
           try {
             SolrInputDocument doc = new SolrInputDocument();
 
-            // set the path of this chunk of content
-            doc.addField("path", path);
-
             // set the path of the parent that holds the content
-            doc.addField("pagepath", PathUtils.removeLastElement(path));
+            doc.addField("path", PathUtils.removeLastElement(path));
 
             // extract the content
             String pageContent = (String) content.getProperty("sakai:pagecontent");

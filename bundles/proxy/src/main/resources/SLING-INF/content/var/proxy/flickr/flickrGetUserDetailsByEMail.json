@@ -6,7 +6,7 @@
     "sakai:shortDescription": "Get the user details based on the name",
     "sakai:description": [
         "This proxy will get the user details based on the given e-mail",
-        "This template requires an API key. It can be defined at ./load/org.sakaiproject.nakamura.proxy.ProxyClientServiceImpl-config.cfg<br /><code>flickr_api_key=93a86c06dc382a19bff0d4d24872ecab</code>"
+        "This template requires an API key. It can be defined at ./load/org.sakaiproject.nakamura.proxy.ProxyClientServiceImpl.cfg<br /><code>flickr_api_key=93a86c06dc382a19bff0d4d24872ecab</code>"
     ],
      "sakai:parameters" : [
         "{\"name\" : \"e-mail\", \"description\" : \"(Required)The e-mail address key\"}"
