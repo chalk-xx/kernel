@@ -260,6 +260,7 @@ module SlingUsers
       }
       if (!firstname.nil? and !lastname.nil?)
         data[":sakai:profile-import"] = "{'basic': {'access': 'everybody', 'elements': {'email': {'value': '#{username}@sakai.invalid'}, 'firstName': {'value': '#{firstname}'}, 'lastName': {'value': '#{lastname}'}}}}"
+        data[":sakai:pages-template"] = "/var/templates/site/defaultuser"
       end
       result = @sling.execute_post(@sling.url_for("#{$USER_URI}"), data)
       if (result.code.to_i > 299)
@@ -282,7 +283,26 @@ module SlingUsers
       end
       return group
     end
-
+    
+    def create_group_complete(groupname, title = nil)
+        @log.info "Creating group: #{groupname}"
+              group = Group.new(groupname)
+      params = { ":name" => group.name }
+      if (title)
+        params['sakai:group-title'] = title
+      end
+      params['sakai:group-description'] = ''
+      params['sakai:group-id'] = groupname
+      params[':sakai:pages-template'] = '/var/templates/site/defaultgroup'
+      params['sakai:pages-visible'] = 'public'
+      params['sakai:group-joinable'] = 'yes'
+      result = @sling.execute_post(@sling.url_for($GROUP_URI), params)
+      if (result.code.to_i > 299)
+        return nil
+      end
+      return group
+    end
+    
     def get_user_props(name)
       return @sling.get_node_props(User.url_for(name))
     end
