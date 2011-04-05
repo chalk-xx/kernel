@@ -26,14 +26,16 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.Query;
+import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.SolrQueryResponseWrapper;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
-import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Enumeration;
+import java.util.HashMap;
 
 import javax.servlet.ServletException;
 
@@ -70,7 +72,16 @@ protected transient SolrSearchBatchResultProcessor defaultSearchBatchProcessor;
       response.sendError(400, "A query parameter 'q' is required to service this request.");
       return;
     }
-    Query query = new Query(Type.SOLR, queryParameter.getString(), null);
+
+    HashMap<String, String> options = new HashMap<String, String>();
+    Enumeration<String> names = request.getParameterNames();
+    while (names.hasMoreElements()) {
+      String name = names.nextElement();
+      if (!"q".equals(name)) {
+        options.put(name, request.getParameter(name));
+      }
+    }
+    Query query = new Query(Type.SOLR, queryParameter.getString(), options);
 
     SolrSearchResultSet rs = null;
     try {

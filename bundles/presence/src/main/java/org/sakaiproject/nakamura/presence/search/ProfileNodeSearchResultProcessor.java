@@ -115,7 +115,7 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
     try {
       AuthorizableManager authMgr = session.getAuthorizableManager();
 
-      String authorizableId = (String) result.getFirstValue(Authorizable.ID_FIELD);
+      String authorizableId = (String) result.getFirstValue("path");
       Authorizable auth = authMgr.findAuthorizable(authorizableId);
 
       write.object();

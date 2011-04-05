@@ -143,9 +143,9 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
     } catch (UnsupportedEncodingException e) {
     }
     QueryResponse response = solrServer.query(solrQuery);
-    SolrDocumentList resultList = response.getResults();
-    LOGGER.info("Got {} hits in {} ms", resultList.size() , response.getElapsedTime());
-    return new SolrSearchResultSetImpl(response);
+    SolrSearchResultSetImpl rs = new SolrSearchResultSetImpl(response);
+    LOGGER.info("Got {} hits in {} ms", rs.getSize(), response.getElapsedTime());
+    return rs;
   }
 
   /**
