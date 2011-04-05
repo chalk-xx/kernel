@@ -1,5 +1,7 @@
 README for running a sling data loading script - sling_data_loader.rb
 
+see KERN-1730
+
 all scripts have to be run from this directory as working directory
 
 Dependencies and Requirements
@@ -38,7 +40,7 @@ ruby sling_data_loader.rb -s http://localhost:8080/ -a admin -u someusers.csv -g
 
 Command notes:
 1) admin user does all the data loading
-2) the trailing slash on --server is required
+2) the trailing slash on --server value is required
 3) --load-content-files refers to the 600 MBytes of NYU content, simple text file content "Lorem Ipsum" files will be generated in any case
    --load-content-files has 2 values, 0 for do not load or 1 for do load the files.
 4) after loading users, you can login as any user by picking one of the id's someusers.csv with the default password
