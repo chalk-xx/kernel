@@ -38,7 +38,9 @@
         <module>bundles/version</module>
         <module>bundles/memory</module>
         <module>bundles/jaxp-api</module>
+		<!--
         <module>bundles/json-lib</module>
+		-->
         <module>bundles/jetty-config</module>
         <module>bundles/jcr</module>
         <module>bundles/locking</module>
