@@ -248,7 +248,7 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       Resource resource = request.getResource();
       Content poolItem = resource.adaptTo(Content.class);
       AuthorizableManager authorizableManager = adminSession.getAuthorizableManager();
-      User user = (User) authorizableManager.findAuthorizable(adminSession.getUserId());
+      User user = (User) authorizableManager.findAuthorizable(request.getRemoteUser());
 
       // stop now if no comment ID is provided
       if (StringUtils.isBlank(commentId)) {
