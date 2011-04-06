@@ -294,7 +294,13 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
           o = ORDER.asc;
         }
       }
-      solrQuery.setSortField(sort[0], o);
+      // KERN-1752 solr is not using the field names with underscores
+      // so we must trim the underscores to match
+      String sortOn = sort[0];
+      if (sortOn.startsWith("_")) {
+        sortOn = sortOn.substring(1);
+      }
+      solrQuery.setSortField(sortOn, o);
       break;
     default:
       LOGGER.warn("Expected the sort option to be 1 or 2 terms. Found: {}", val);
