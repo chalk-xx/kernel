@@ -71,11 +71,15 @@ public class ResourceChangeCounter implements EventHandler {
       try {
         adminSession = repository.loginAdministrative();
         final Content content = adminSession.getContentManager().get(path);
-        if (content.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
-          final String resourceType = (String) content
-              .getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
-          if (resourceIsOfInterest(resourceType)) {
-            countThisEvent(event, resourceType, adminSession);
+        if (content == null) {
+          LOG.warn("Unable to record change for nonexistent content: " + path);
+        } else {
+          if (content.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
+            final String resourceType = (String) content
+            .getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
+            if (resourceIsOfInterest(resourceType)) {
+              countThisEvent(event, resourceType, adminSession);
+            }
           }
         }
       } catch (ClientPoolException e) {
