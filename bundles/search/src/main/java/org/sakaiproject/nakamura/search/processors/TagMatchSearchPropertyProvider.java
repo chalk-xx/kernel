@@ -26,8 +26,6 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
-import org.sakaiproject.nakamura.api.search.SearchException;
-import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import org.slf4j.Logger;
@@ -39,6 +37,7 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
 
@@ -83,18 +82,16 @@ public class TagMatchSearchPropertyProvider implements SolrSearchPropertyProvide
       QueryManager qm = session.getWorkspace().getQueryManager();
       @SuppressWarnings("deprecation")
       Query query = qm.createQuery(statement, Query.XPATH);
+      QueryResult qr = query.execute();
+      RowIterator rows = qr.getRows();
 
-      NodeSearchBatchResultProcessor proc = new NodeSearchBatchResultProcessor(searchServiceFactory);
-
-      SearchResultSet rs = proc.getSearchResultSet(request, query);
       StringBuffer tagClause = new StringBuffer();
-      if (rs.getSize() > 0) {
+      if (rows.getSize() > 0) {
         tagClause.append(" OR taguuid:(");
         String sep = "";
-        RowIterator rowIter = rs.getRowIterator();
-        while(rowIter.hasNext()) {
+        while(rows.hasNext()) {
           tagClause.append(sep);
-          Row row = rowIter.nextRow();
+          Row row = rows.nextRow();
           Node tagNode = row.getNode();
           tagClause.append(ClientUtils.escapeQueryChars(tagNode.getIdentifier()));
           sep = " OR ";
@@ -105,8 +102,6 @@ public class TagMatchSearchPropertyProvider implements SolrSearchPropertyProvide
       propertiesMap.put("_taguuids", tagClause.toString());
     } catch (RepositoryException e) {
       logger.error("failed to add search properties for tags", e);
-    } catch (SearchException e) {
-      logger.error("failed to perform JCR search for tags matching query", e);
     }
   }
 }
