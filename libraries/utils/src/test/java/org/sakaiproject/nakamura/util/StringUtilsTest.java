@@ -79,7 +79,7 @@ public class StringUtilsTest {
   @Test
   public void testSha1Hash() throws Exception {
     String hash = StringUtils.sha1Hash("Lorem");
-    assertEquals("a246fbb4b1fb7f249c1c5496f46d3b54103ad85d", hash);
+    assertEquals("22c67b34317bffa41c9cd41674edbbd490ba58dd", hash);
   }
 
   @Test
