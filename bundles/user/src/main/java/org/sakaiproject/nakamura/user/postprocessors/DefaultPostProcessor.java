@@ -11,8 +11,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import net.sf.json.JSONObject;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
@@ -24,6 +22,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -824,7 +825,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   }
 
   private Map<String, Object> processProfileParameters(String profileTemplate,
-      Authorizable authorizable, Map<String, Object[]> parameters) {
+      Authorizable authorizable, Map<String, Object[]> parameters) throws JSONException {
     Map<String, Object> retval = new HashMap<String, Object>();
     // default profile values
     // may be overwritten by the PROFILE_JSON_IMPORT_PARAMETER
@@ -839,20 +840,19 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     }
     if (parameters.containsKey(PROFILE_JSON_IMPORT_PARAMETER)) {
       String profileJson = (String) parameters.get(PROFILE_JSON_IMPORT_PARAMETER)[0];
-      JSONObject jsonObject = JSONObject.fromObject(profileJson);
+      JSONObject jsonObject = new JSONObject(profileJson);
       JSONObject basic = jsonObject.getJSONObject("basic");
       if (basic != null) {
         JSONObject elements = basic.getJSONObject("elements");
         if (elements != null) {
-          for (Object o : elements.entrySet()) {
-            @SuppressWarnings("unchecked")
-            Entry<String, Object> e = (Entry<String, Object>) o;
-            Object object = elements.get(e.getKey());
+          for (Iterator<String> keys = elements.keys(); keys.hasNext(); ) {
+            String key = keys.next();
+            Object object = elements.get(key);
             if (object instanceof JSONObject) {
               JSONObject element = (JSONObject) object;
-              retval.put(e.getKey(), element.get("value"));
+              retval.put(key, element.get("value"));
             } else {
-              retval.put(e.getKey(), object);
+              retval.put(key, object);
             }
           }
         }

@@ -7,7 +7,6 @@ import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.HtmlResponse;
@@ -20,6 +19,8 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
@@ -27,6 +28,7 @@ import org.sakaiproject.nakamura.api.resource.JSONResponse;
 import org.sakaiproject.nakamura.api.resource.lite.ResourceModifyOperation;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePostProcessor;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,20 +97,17 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
         // prepare the response
         HtmlResponse htmlResponse = new JSONResponse();
         htmlResponse.setReferer(request.getHeader("referer"));
-        // KERN-1654 begin - authz is missing picture property
-        final RequestParameter picture = request.getRequestParameter("picture");
+        String picture = request.getParameter("picture");
         if (picture != null) {
-          final JSONObject pictureJson = new JSONObject(picture.getString("UTF-8"));
-          final JSONObject valueJson = new JSONObject().put("value",
-              pictureJson.toString());
-          final JSONObject elementsJson = new JSONObject().put("picture", valueJson);
-          final JSONObject basicJson = new JSONObject().put("elements", elementsJson);
-          final JSONObject json = new JSONObject().put("basic", basicJson);
           final Resource resource = request.getResource();
           final Content targetContent = resource.adaptTo(Content.class);
           final Session session = resource.adaptTo(Session.class);
-          profileService.update(session, targetContent.getPath(), json);
-        } // KERN-1654 end
+          String authId = PathUtils.getAuthorizableId(targetContent.getPath());
+          AuthorizableManager am = session.getAuthorizableManager();
+          Authorizable au = am.findAuthorizable(authId);
+          au.setProperty("picture", picture);
+          am.updateAuthorizable(au);
+        }
         if (postOperations.containsKey(operation)) {
           postOperations.get(operation).run(request, htmlResponse, new SparsePostProcessor[]{});
         } else {

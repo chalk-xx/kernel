@@ -38,7 +38,9 @@
         <module>bundles/version</module>
         <module>bundles/memory</module>
         <module>bundles/jaxp-api</module>
+		<!--
         <module>bundles/json-lib</module>
+		-->
         <module>bundles/jetty-config</module>
         <module>bundles/jcr</module>
         <module>bundles/locking</module>
@@ -78,6 +80,7 @@
         <module>bundles/http</module>
         <module>bundles/directory</module>
         <module>bundles/templates</module>
+        <module>bundles/world</module>
       </modules>
     </profile>
     <profile>
@@ -136,6 +139,7 @@
          <plugin>
           <groupId>org.apache.sling</groupId>
           <artifactId>maven-sling-plugin</artifactId>
+          <version>2.0.5-SNAPSHOT</version>
           <executions>
             <execution>
               <id>install-bundle</id>
@@ -212,6 +216,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.6.1</version>
             <configuration>
               <encoding>${project.build.sourceEncoding}</encoding>
             </configuration>
@@ -255,6 +260,7 @@
        <plugin>
          <groupId>org.codehaus.mojo</groupId>
          <artifactId>ianal-maven-plugin</artifactId>
+         <version>1.0-alpha-1</version>
          <executions>
             <execution>
                <goals>
@@ -400,6 +406,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-remote-resources-plugin</artifactId>
+          <version>1.0-alpha-6</version>
           <executions>
             <execution>
               <goals>
@@ -496,11 +503,6 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-remote-resources-plugin</artifactId>
-          <version>1.0-alpha-6</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
           <version>2.0.1</version>
         </plugin>
@@ -540,6 +542,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.2</version>
         <configuration>
           <configLocation>site/checkstyle.xml</configLocation>
         </configuration>
@@ -547,10 +550,12 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>cobertura-maven-plugin</artifactId>
+        <version>2.2</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.6.1</version>
         <configuration>
           <aggregate>true</aggregate>
           <links>
@@ -564,14 +569,17 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>jxr-maven-plugin</artifactId>
+        <version>2.2</version>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>jdepend-maven-plugin</artifactId>
+        <version>2.0-beta-2</version>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>taglist-maven-plugin</artifactId>
+        <version>2.3</version>
         <configuration>
           <tags>
             <tag>TODO</tag>
@@ -584,6 +592,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>2.7.1</version>
       </plugin>
 <!--
         <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>rat-maven-plugin</artifactId>

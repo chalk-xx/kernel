@@ -19,6 +19,8 @@ package org.sakaiproject.nakamura.files.servlets;
 
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
+import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -39,22 +41,27 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
+import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparsePostOperation;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.servlet.http.HttpServletResponse;
 
@@ -145,7 +152,7 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
       // We check if the node already has this tag.
       // If it does, we ignore it..
       if (node != null && hasUuid(node, uuid)) {
-        Session adminSession = null;
+        javax.jcr.Session adminSession = null;
         try {
           adminSession = slingRepository.loginAdministrative(null);
 
@@ -163,6 +170,27 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
         }
       } else if ( content != null ) {
         FileUtils.deleteTag(contentManager, content, tagNode);
+        // keep authz in sync with authprofile
+        final Session session = StorageClientUtils.adaptToSession(request.getResource()
+            .getResourceResolver().adaptTo(javax.jcr.Session.class));
+        final AuthorizableManager authManager = session.getAuthorizableManager();
+        final String resourceType = (String) content.getProperty("sling:resourceType");
+        final boolean isProfile = "sakai/user-profile".equals(resourceType)
+            || "sakai/group-profile".equals(resourceType);
+        // If we're remove a tag on an authprofile, remove the property here
+        if (isProfile) {
+          final String azId = PathUtils.getAuthorizableId(content.getPath());
+          final Authorizable authorizable = authManager.findAuthorizable(azId);
+          if (authorizable != null) {
+            final Set<String> nameSet = Sets
+                .newHashSet(StorageClientUtils.nonNullStringArray((String[]) authorizable
+                    .getProperty(SAKAI_TAG_UUIDS)));
+            nameSet.remove(uuid);
+            authorizable.setProperty(SAKAI_TAG_UUIDS,
+                nameSet.toArray(new String[nameSet.size()]));
+            authManager.updateAuthorizable(authorizable);
+          }
+        }
       }
 
     } catch (RepositoryException e) {

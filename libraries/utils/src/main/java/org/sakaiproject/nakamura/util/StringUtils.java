@@ -129,17 +129,16 @@ public class StringUtils {
     return byteToHex(b);
   }
 
-  public static String byteToHex(byte[] base) {
-    char[] c = new char[base.length * 2];
-    int i = 0;
+  public static String byteToHex(byte[] base) throws UnsupportedEncodingException {
+    char[] hex = new char[2 * base.length];
+    int index = 0;
 
     for (byte b : base) {
-      int j = b;
-      j = j + 128;
-      c[i++] = TOHEX[j / 0x10];
-      c[i++] = TOHEX[j % 0x10];
+      int v = b & 0xFF;
+      hex[index++] = TOHEX[v >>> 4];
+      hex[index++] = TOHEX[v & 0xF];
     }
-    return new String(c);
+    return new String(hex);
   }
 
   /**

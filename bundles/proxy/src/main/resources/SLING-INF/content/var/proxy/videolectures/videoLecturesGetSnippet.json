@@ -1,0 +1,14 @@
+{
+    "sling:resourceType": "sakai/proxy",
+    "sakai:request-proxy-endpoint": "http://videolectures.net/${lectureId}/snippet/",
+    "sakai:request-proxy-method": "GET",
+    "sakai:title": "Get the snippet page for a lecture",
+    "sakai:shortDescription": "Get the snippet page for a lecture",
+    "sakai:parameters" : [
+        {"name": "lectureId", "description": "The Id of the lecture"}
+    ],
+    "sakai:description" : ["Get the snippet page for a lecture"],
+    "sakai:response": [
+        "Gives back data about the snippet page for a lecture"
+    ]
+}

@@ -42,6 +42,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -115,7 +116,7 @@ public class LiteGroupJoinRequestServlet extends SlingAllMethodsServlet {
     Session session = null;
     try {
       
-    String groupId = StorageClientUtils.getObjectName(group.getPath());
+    String groupId = PathUtils.getAuthorizableId(group.getPath());
     session = repository.loginAdministrative();
     ContentManager contentManager = session.getContentManager();
     Content profileContent = contentManager.get(group.getPath()+"/"+LitePersonalUtils.PATH_PUBLIC+"/"+LitePersonalUtils.PATH_AUTH_PROFILE);
@@ -146,7 +147,8 @@ public class LiteGroupJoinRequestServlet extends SlingAllMethodsServlet {
         } else {
           contentManager.update(new Content(group.getPath() + "/joinrequests/"+userId, ImmutableMap.of(
               "requested", (Object)Calendar.getInstance(),
-              "profile", LitePersonalUtils.getProfilePath(userId),
+              "profile", LitePersonalUtils.getHomeResourcePath(userId) + "/public/authprofile",
+              "name", userId,
               "sling:resourceType", "sakai/joinrequest"
           )));
         }

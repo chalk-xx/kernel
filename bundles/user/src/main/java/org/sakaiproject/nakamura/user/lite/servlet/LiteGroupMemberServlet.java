@@ -76,7 +76,7 @@ import javax.servlet.http.HttpServletResponse;
       selectors = {
         @ServiceSelector(name = "members", description = "Binds to the members selector."),
         @ServiceSelector(name = "managers", description = "Binds to the managers selector."),
-        @ServiceSelector(name = "details", description = "Binds to the details selector.")
+        @ServiceSelector(name = "detailed", description = "Binds to the details selector.")
       },
       extensions = @ServiceExtension(name = "json", description = "javascript object notation")
     )
@@ -177,7 +177,12 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
       while (iterator.hasNext() && i < items) {
         Entry<String, Authorizable> entry = iterator.next();
         Authorizable au = entry.getValue();
-        ValueMap profile = profileService.getCompactProfileMap(au, session);
+        ValueMap profile = null;
+        if (selectors.contains("detailed")) {
+          profile = profileService.getProfileMap(au, session);
+        }else {
+          profile = profileService.getCompactProfileMap(au, session);
+        }
         if (profile != null) {
           writer.valueMap(profile);
           i++;

@@ -52,7 +52,12 @@ import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
@@ -247,6 +252,15 @@ public class ConnectionManagerImpl implements ConnectionManager {
       if (sp.equals(spAccepted)) {
         addUserToGroup(thisAu, otherAu, adminSession);
         addUserToGroup(otherAu, thisAu, adminSession);
+        // KERN-1696 make it so that everyone can read someone's list of contacts
+        // TODO Should the rule be that reading a contact list is limited to people who are in that contact list?
+        AccessControlManager accessControlManager = adminSession.getAccessControlManager();
+        AclModification[] aclMods = new AclModification[] { new AclModification(AclModification.grantKey(Group.EVERYONE),
+            Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE),
+            new AclModification(AclModification.grantKey(User.ANON_USER),
+                Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE) };
+        accessControlManager.setAcl(Security.ZONE_CONTENT, ConnectionUtils.getConnectionPathBase(thisAu.getId()), aclMods);
+        accessControlManager.setAcl(Security.ZONE_CONTENT, ConnectionUtils.getConnectionPathBase(otherAu.getId()), aclMods);
       } else {
         // This might be an existing connection that needs to be removed
         removeUserFromGroup(thisAu, otherAu, adminSession);

@@ -33,12 +33,15 @@ import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,16 +50,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * Indexes messages for searching as autonomous items or as part of the user,group
+ * searching.
  */
 @Component(immediate = true)
 public class MessageIndexingHandler implements IndexingHandler {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MessageIndexingHandler.class);
+
   private static final Map<String, String> WHITELISTED_PROPS;
   static {
     Builder<String,String> propBuilder = ImmutableMap.builder();
     propBuilder.put("sakai:messagebox", "messagebox");
     propBuilder.put("sakai:type", "type");
-    propBuilder.put("created", "created");
+    propBuilder.put("_created", "created");
     propBuilder.put("sakai:category", "category");
     propBuilder.put("sakai:from", "from");
     propBuilder.put("sakai:to", "to");
@@ -101,6 +107,7 @@ public class MessageIndexingHandler implements IndexingHandler {
         Content content = cm.get(path);
 
         if (content != null) {
+          // index as autonomous message
           SolrInputDocument doc = new SolrInputDocument();
           for (String prop : WHITELISTED_PROPS.keySet()) {
             Object value = content.getProperty(prop);
@@ -108,6 +115,34 @@ public class MessageIndexingHandler implements IndexingHandler {
           }
           doc.addField(_DOC_SOURCE_OBJECT, content);
           documents.add(doc);
+
+          // index for user,group searching
+          String authId = PathUtils.getAuthorizableId(content.getPath());
+          if (authId == null) {
+            LOGGER.warn("Unable to find auth (user,group) container for message [{}]; not indexing message for user,group searching", path);
+          } else {
+            doc = new SolrInputDocument();
+            doc.addField("title", content.getProperty("sakai:subject"));
+            doc.addField("content", content.getProperty("sakai:body"));
+
+            AuthorizableManager am = session.getAuthorizableManager();
+            Authorizable auth = am.findAuthorizable(authId);
+            if (auth.isGroup()) {
+              doc.setField("type", "g");
+            } else {
+              doc.setField("type", "u");
+            }
+            doc.addField(_DOC_SOURCE_OBJECT, content);
+
+            // set the path here so that it's the first path found when rendering to the
+            // client. the resource indexing service will add all nodes of the path and
+            // we want this one to return first in the result processor.
+            doc.setField(FIELD_PATH, authId);
+
+            // set the return to a single value field so we can group it
+            doc.setField("returnpath", authId);
+            documents.add(doc);
+          }
         }
       } catch (StorageClientException e) {
         logger.warn(e.getMessage(), e);

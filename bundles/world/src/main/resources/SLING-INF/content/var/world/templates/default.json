@@ -1,0 +1,14 @@
+{
+    "_meta" : {
+        "_role_templates" : {
+            "access" : {
+                "_associate" : "{\"_meta\" : {\"roles\" : {\"access\": {\"$authorizable\" : {\"active\" : true}}}}",
+                "_dissasociate" : "{\"_meta\" : {\"roles\" : {\"access\": {\"$authorizable@Delete\" : {}}}}"
+            },
+            "manager" : {
+                "_associate" : "{\"_meta\" : {\"roles\" : {\"manager\": {\"$authorizable\" : {\"active\" : true}}}}",
+                "_dissasociate" : "{\"_meta\" : {\"roles\" : {\"manager\": {\"$authorizable@Delete\" : {}}}}"
+            }
+        }
+    }
+}
