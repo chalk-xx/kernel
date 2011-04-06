@@ -94,7 +94,7 @@ public class WidgetDataIndexingHandler implements IndexingHandler {
         Object fields = content.getProperty(INDEXED_FIELDS);
         String[] indexedFields = null;
         if (fields instanceof String) {
-          indexedFields = new String[] { (String) fields };
+          indexedFields = StringUtils.split(String.valueOf(fields), ",");
         } else if (fields instanceof String[]) {
           indexedFields = (String[]) fields;
         }
