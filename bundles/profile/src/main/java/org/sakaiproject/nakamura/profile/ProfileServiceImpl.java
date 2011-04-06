@@ -217,7 +217,7 @@ public class ProfileServiceImpl implements ProfileService {
    *
    * @see org.sakaiproject.nakamura.api.profile.ProfileService#getCompactProfileMap(org.apache.jackrabbit.api.security.user.Authorizable,
    *      javax.jcr.Session)
-   * @deprecated Replaced with BasicUserInfo.getProperties()
+   * @deprecated Replaced with {@link BasicUserInfo#getProperties(Authorizable)} in user bundle
    */
   public ValueMap getCompactProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException, StorageClientException, AccessDeniedException {
@@ -346,6 +346,12 @@ public class ProfileServiceImpl implements ProfileService {
     }
   }
 
+  
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.api.profile.ProfileService#getCompactProfileMap(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable, javax.jcr.Session)
+   * @deprecated Replaced with {@link BasicUserInfo#getProperties(org.apache.jackrabbit.api.security.user.Authorizable, Session)} in user bundle
+   */
   public ValueMap getCompactProfileMap(
       org.apache.jackrabbit.api.security.user.Authorizable authorizable, Session session) throws RepositoryException {
     org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);

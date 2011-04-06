@@ -181,7 +181,8 @@ public class MeServlet extends SlingSafeMethodsServlet {
       Iterator<Group> groups = au.memberOf();
       while (groups.hasNext()) {
         Group group = groups.next();
-        ValueMap groupProfile = profileService.getCompactProfileMap(group, session);
+        BasicUserInfo basicUserInfo = new BasicUserInfo();
+        ValueMap groupProfile = new ValueMapDecorator(basicUserInfo.getProperties(group, session));
         if (groupProfile != null) {
           writer.valueMap(groupProfile);
         }

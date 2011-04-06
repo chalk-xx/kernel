@@ -24,6 +24,7 @@ import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -40,7 +41,7 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
@@ -78,9 +79,6 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
 
   @Reference
   protected transient PresenceService presenceService;
-
-  @Reference
-  protected transient ProfileService profileService;
 
   @Reference
   protected transient LockManager lockManager;
@@ -203,7 +201,8 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
       Authorizable au = um.getAuthorizable(recipient);
       if (au != null) {
         write.object();
-        ValueMap map = profileService.getCompactProfileMap(au, session);
+        BasicUserInfo basicUserInfo = new BasicUserInfo();
+        ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(au, session));
         ((ExtendedJSONWriter)write).valueMapInternals(map);
         if (au instanceof User) {
           // Pass in the presence.

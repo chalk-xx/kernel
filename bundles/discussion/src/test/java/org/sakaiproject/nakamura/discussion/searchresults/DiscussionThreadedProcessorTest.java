@@ -46,7 +46,6 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.api.user.BasicUserInfo;
@@ -84,9 +83,6 @@ public class DiscussionThreadedProcessorTest {
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
 
     Session session = mock(Session.class);
-
-    ProfileService profileService = mock(ProfileService.class);
-    processor.profileService = profileService;
 
     AccessControlManager accessControlManager = mock(AccessControlManager.class);
     when(session.getAccessControlManager()).thenReturn(accessControlManager);

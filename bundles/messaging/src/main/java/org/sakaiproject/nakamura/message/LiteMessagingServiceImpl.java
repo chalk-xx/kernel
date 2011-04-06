@@ -33,7 +33,6 @@ import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -58,7 +57,6 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   protected transient LockManager lockManager;
 
   @Reference
-  protected transient ProfileService profileService;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteMessagingServiceImpl.class);

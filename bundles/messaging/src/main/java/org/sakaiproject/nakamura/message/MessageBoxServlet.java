@@ -37,7 +37,6 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,9 +62,6 @@ public class MessageBoxServlet extends SlingSafeMethodsServlet {
 
   @Reference
   protected transient LiteMessagingService messagingService;
-
-  @Reference
-  protected transient ProfileService profileService;
 
   /**
    * {@inheritDoc}

@@ -46,7 +46,6 @@ import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -77,9 +76,6 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
 
   @Reference
   protected transient LiteMessagingService messagingService;
-
-  @Reference
-  protected transient ProfileService profileService;
 
   /**
    * Default constructor
@@ -167,7 +163,6 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
   public void writeProfileInformation(Session session, String recipient, JSONWriter write, javax.jcr.Session jcrSession) {
     try {
       Authorizable au = session.getAuthorizableManager().findAuthorizable(recipient);
-      //ValueMap map = profileService.getCompactProfileMap(au, jcrSession);
       BasicUserInfo basicUserInfo = new BasicUserInfo();
       ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(au));
       ((ExtendedJSONWriter) write).valueMap(map);

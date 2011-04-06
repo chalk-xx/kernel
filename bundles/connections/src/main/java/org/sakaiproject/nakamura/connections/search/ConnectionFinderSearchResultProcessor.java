@@ -34,7 +34,6 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
@@ -60,9 +59,6 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
 
   private static final Logger logger = LoggerFactory
       .getLogger(ConnectionFinderSearchResultProcessor.class);
-
-  @Reference
-  ProfileService profileService;
 
   @Reference
   SolrSearchServiceFactory searchServiceFactory;

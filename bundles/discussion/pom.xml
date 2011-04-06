@@ -77,12 +77,6 @@
       <version>0.10-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.profile</artifactId>
-      <version>0.10-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
     <!--  sling and JCR -->
     <dependency>
       <groupId>org.apache.jackrabbit</groupId>

@@ -34,6 +34,10 @@ import static org.sakaiproject.nakamura.api.user.UserConstants.USER_BASIC;
 
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.slf4j.Logger;
@@ -41,7 +45,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
+
+import javax.jcr.RepositoryException;
 
 /**
  * The Class BasicUserInfo provides basic user information to alleviate load from the
@@ -57,6 +62,17 @@ public class BasicUserInfo {
 
   public BasicUserInfo() {
   }
+  
+  public Map<String, Object> getProperties(org.apache.jackrabbit.api.security.user.Authorizable authorizable, javax.jcr.Session jcrSession) throws RepositoryException {
+    try {
+      Session sparseSession = StorageClientUtils.adaptToSession(jcrSession);
+      return getProperties(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID()));
+    } catch (StorageClientException e) {
+      throw new RepositoryException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      throw new RepositoryException(e.getMessage(), e);
+    }
+  }
 
   /**
    * Generates a map of basic user properties.
@@ -71,35 +87,29 @@ public class BasicUserInfo {
     }
 
     Map<String, Object> basicInfoMap = new HashMap<String, Object>();
-    
-    /* --- DEBUG --- */
-    Map<String, Object> allProperties = authorizable.getSafeProperties();
-    Set<String> keys = allProperties.keySet();
-    for (String key : keys) {
-      LOG.info("Key: [" + key + "] Value: [" + allProperties.get(key) + "]");
-    }
-    /* --- DEBUG --- */
-    
+
     Map<String, String> basicInfoProps = new HashMap<String, String>();
     for (String basicInfoElementName : basicUserInfoElements) {
       /* --- DEBUG --- */
-      LOG.info("Looking for key: [" + basicInfoElementName + "]");
+      LOG.debug("Looking for key: [" + basicInfoElementName + "]");
       /* --- DEBUG --- */
-      
+
       if (authorizable.hasProperty(basicInfoElementName)) {
-        basicInfoProps.put(basicInfoElementName, String.valueOf(authorizable.getProperty(basicInfoElementName)));
-        LOG.info("Found [" + basicInfoElementName + "], value: [" + authorizable.getProperty(basicInfoElementName) + "]");
+        basicInfoProps.put(basicInfoElementName,
+            String.valueOf(authorizable.getProperty(basicInfoElementName)));
+        LOG.debug("Found [" + basicInfoElementName + "], value: ["
+            + authorizable.getProperty(basicInfoElementName) + "]");
       }
     }
-    //basicInfoMap.put(USER_BASIC, basicProfile(basicInfoProps));
     ValueMap basicProfile = basicProfile(basicInfoProps);
-    
+
     if (authorizable.hasProperty("access")) {
       basicProfile.put("access", authorizable.getProperty("access"));
     } else {
-      basicProfile.put(UserConstants.USER_BASIC_ACCESS, UserConstants.EVERYBODY_ACCESS_VALUE);
+      basicProfile.put(UserConstants.USER_BASIC_ACCESS,
+          UserConstants.EVERYBODY_ACCESS_VALUE);
     }
-    
+
     basicInfoMap.put(USER_BASIC, basicProfile);
 
     if (authorizable.isGroup()) {
@@ -109,7 +119,7 @@ public class BasicUserInfo {
     }
     return basicInfoMap;
   }
-  
+
   /**
    * @param elementsMap
    * @return
@@ -118,7 +128,8 @@ public class BasicUserInfo {
     ValueMap basic = new ValueMapDecorator(new HashMap<String, Object>());
     ValueMap elements = new ValueMapDecorator(new HashMap<String, Object>());
     for (String key : elementsMap.keySet()) {
-      elements.put(key, new ValueMapDecorator(ImmutableMap.of("value", (Object) elementsMap.get(key))));
+      elements.put(key,
+          new ValueMapDecorator(ImmutableMap.of("value", (Object) elementsMap.get(key))));
     }
     basic.put("elements", elements);
     return basic;

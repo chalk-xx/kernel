@@ -186,7 +186,6 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       if (detailed) {
         profileMap = profileService.getProfileMap(au, jcrSession);
       } else {
-        //profileMap = profileService.getCompactProfileMap(au, jcrSession);
         BasicUserInfo basicUserInfo = new BasicUserInfo();
         profileMap = new ValueMapDecorator(basicUserInfo.getProperties(au));
       }

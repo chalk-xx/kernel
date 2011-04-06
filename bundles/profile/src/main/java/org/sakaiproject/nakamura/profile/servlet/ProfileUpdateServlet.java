@@ -13,6 +13,7 @@ import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -29,6 +30,7 @@ import org.sakaiproject.nakamura.api.resource.JSONResponse;
 import org.sakaiproject.nakamura.api.resource.lite.ResourceModifyOperation;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePostProcessor;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -41,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -110,12 +111,12 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
           final Resource resource = request.getResource();
           final Content targetContent = resource.adaptTo(Content.class);
           final Session session = resource.adaptTo(Session.class);
-          javax.jcr.Session jcrSession = resource.adaptTo(javax.jcr.Session.class);
           String authId = PathUtils.getAuthorizableId(targetContent.getPath());
           Authorizable au = session.getAuthorizableManager().findAuthorizable(authId);
           StringWriter w = new StringWriter();
           ExtendedJSONWriter writer = new ExtendedJSONWriter(w);
-          ValueMap profileMap = profileService.getCompactProfileMap(au, jcrSession);
+          BasicUserInfo basicUserInfo = new BasicUserInfo();
+          ValueMap profileMap = new ValueMapDecorator(basicUserInfo.getProperties(au));
           writer.valueMap(profileMap);
           JSONObject profileJson = new JSONObject(w.toString());
           profileJson.getJSONObject("basic").getJSONObject("elements").put("picture", pictureJson);
@@ -145,8 +146,6 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
     } catch (AccessDeniedException e) {
       response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
       return;
-    } catch (RepositoryException e) {
-      throw new ServletException(e.getMessage(), e);
     }
 
   }

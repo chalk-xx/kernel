@@ -9,6 +9,14 @@ public interface LiteProfileService {
 
   ValueMap getProfileMap(Authorizable au, Session session);
 
+  /**
+   * Gets the compact profile map.
+   *
+   * @param au the authorizable
+   * @param session the session
+   * @return the compact profile map
+   * @deprecated use BasicUserInfo#getProperties() instead
+   */
   ValueMap getCompactProfileMap(Authorizable au, Session session);
 
 }

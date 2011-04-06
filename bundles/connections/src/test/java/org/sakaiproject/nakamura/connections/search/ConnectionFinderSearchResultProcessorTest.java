@@ -25,7 +25,6 @@ import static org.mockito.Mockito.withSettings;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.junit.Test;
@@ -41,10 +40,8 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
 import java.io.ByteArrayOutputStream;
@@ -56,9 +53,6 @@ import java.util.HashMap;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ConnectionFinderSearchResultProcessorTest {
-
-  @Mock
-  ProfileService profileService;
 
   @Mock
   SolrSearchServiceFactory searchServiceFactory;
@@ -73,7 +67,6 @@ public class ConnectionFinderSearchResultProcessorTest {
   public void test() throws Exception {
     ConnectionFinderSearchResultProcessor processor = new ConnectionFinderSearchResultProcessor();
     processor.searchServiceFactory = searchServiceFactory;
-    processor.profileService = profileService;
 
     Object hybridSession = mock(javax.jcr.Session.class, withSettings()
         .extraInterfaces(SessionAdaptable.class));
@@ -99,7 +92,6 @@ public class ConnectionFinderSearchResultProcessorTest {
     when(auBob.hasProperty("lastName")).thenReturn(true);
     when(auBob.getProperty("lastName")).thenReturn("The Builder");
     when(auBob.getSafeProperties()).thenReturn(auProps);
-//    when(profileService.getCompactProfileMap(auBob, (javax.jcr.Session) hybridSession)).thenReturn(new ValueMapDecorator(auProps));
     
     when(am.findAuthorizable("alice")).thenReturn(auAlice);
     when(am.findAuthorizable("bob")).thenReturn(auBob);
@@ -129,7 +121,6 @@ public class ConnectionFinderSearchResultProcessorTest {
     System.out.println(o.toString(2));
     assertEquals("bob", o.getString("target"));
     
-    //assertEquals("The Builder", o.getJSONObject("profile").getString("lastName"));
     assertEquals("The Builder", o.getJSONObject("profile").getJSONObject(UserConstants.USER_BASIC).getJSONObject("elements").getJSONObject("lastName").getString("value"));
     assertEquals("sakai/contact", o.getJSONObject("details").getString(
         "sling:resourceType"));

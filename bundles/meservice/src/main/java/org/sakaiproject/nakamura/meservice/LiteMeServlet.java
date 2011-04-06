@@ -228,7 +228,6 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
             continue;
           }
         }
-        //ValueMap groupProfile = profileService.getCompactProfileMap(group, jcrSession);
         BasicUserInfo basicUserInfo = new BasicUserInfo();
         ValueMap groupProfile = new ValueMapDecorator(basicUserInfo.getProperties(group));
         if (groupProfile != null) {

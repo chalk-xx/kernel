@@ -54,7 +54,6 @@ import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -63,8 +62,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.jcr.RepositoryException;
 
 /**
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
@@ -89,9 +86,6 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
 
   @Reference
   protected transient PresenceService presenceService;
-
-  @Reference
-  protected transient ProfileService profileService;
 
   @Reference
   protected transient LockManager lockManager;
@@ -228,7 +222,6 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
       Authorizable au = authorizableManager.findAuthorizable(recipient);
       if (au != null) {
         write.object();
-        //ValueMap map = profileService.getCompactProfileMap(au, jcrSession);
         BasicUserInfo basicUserInfo = new BasicUserInfo();
         ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(au));
         ExtendedJSONWriter.writeValueMapInternals(write, map);
