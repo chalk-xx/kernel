@@ -176,7 +176,7 @@ public class MigrateJcr {
     }
     Content sparseContent = new Content(path, propBuilder.build());
     contentManager.update(sparseContent);
-    if (contentNode.hasProperty("jcr:content")) {
+    if (contentNode.hasNode("jcr:content")) {
       Node fileContentNode = contentNode.getNode("jcr:content");
       Binary binaryData = fileContentNode.getProperty("jcr:data").getBinary();
       contentManager.writeBody(sparseContent.getPath(), binaryData.getStream());
