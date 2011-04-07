@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'rubygems'
+require 'optparse'
 require 'json'
 require 'digest/sha1'
 require 'net/http/post/multipart'

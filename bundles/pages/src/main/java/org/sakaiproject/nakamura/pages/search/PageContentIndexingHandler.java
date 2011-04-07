@@ -117,8 +117,8 @@ public class PageContentIndexingHandler implements IndexingHandler {
                 doc.setField("type", "u");
               }
               // set the path here so that it's the first path found when rendering to the
-              // client. the resource indexing service will all nodes of the path and we want
-              // this one first.
+              // client. the resource indexing service will add all nodes of the path and
+              // we want this one to return first in the result processor.
               doc.setField(FIELD_PATH, authId);
 
               // set the return to a single value field so we can group it
