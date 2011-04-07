@@ -18,6 +18,8 @@
 package org.sakaiproject.nakamura.migratejcr;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap.Builder;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -31,16 +33,28 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.osgi.service.component.ComponentContext;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.Dictionary;
+import java.util.Set;
 
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
+import javax.jcr.Property;
+import javax.jcr.PropertyIterator;
+import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 import javax.jcr.query.InvalidQueryException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
@@ -52,15 +66,17 @@ import javax.jcr.query.QueryResult;
 public class MigrateJcr {
   private Logger LOGGER = LoggerFactory.getLogger(MigrateJcr.class);
   
-  @Reference
+  @Reference(target = "(name=presparse)")
   private SlingRepository slingRepository;
   
   @Reference
   private Repository sparseRepository;
+
+  private Set<String> ignoreProps = ImmutableSet.of("jcr:content","jcr:data", "jcr:mixinTypes","rep:policy");
   
-  @SuppressWarnings("unchecked")
   @Activate
   protected void activate(ComponentContext componentContext) {
+    @SuppressWarnings("rawtypes")
     Dictionary componentProps = componentContext.getProperties();
     if (shouldMigrate(componentProps)) {
       try {
@@ -88,12 +104,14 @@ public class MigrateJcr {
   }
 
   @SuppressWarnings("deprecation")
-  private void migrateContentPool() throws InvalidQueryException, RepositoryException {
+  private void migrateContentPool() throws InvalidQueryException, RepositoryException, ClassCastException, NotBoundException, StorageClientException, AccessDeniedException, IOException {
     LOGGER.info("beginning users and groups migration.");
     String contentPoolQuery = "//element(*, sakai:pooled-content) order by @jcr:score descending";
     javax.jcr.Session jcrSession = null;
+    Session sparseSession = null;
     try {
       jcrSession = slingRepository.loginAdministrative("default");
+      sparseSession = sparseRepository.loginAdministrative();
       QueryManager qm = jcrSession.getWorkspace().getQueryManager();
       Query q = qm.createQuery(contentPoolQuery, Query.XPATH);
       QueryResult result = q.execute();
@@ -103,23 +121,81 @@ public class MigrateJcr {
       while(resultNodes.hasNext()) {
         Node contentNode = resultNodes.nextNode();
         LOGGER.info(contentNode.getPath());
-        movePooledContentToSparse(contentNode);
+        copyNodeToSparse(contentNode, contentNode.getName(), sparseSession);
       }
     } finally {
       if (jcrSession != null) {
         jcrSession.logout();
       }
+      if (sparseSession != null) {
+        sparseSession.logout();
+      }
     }
     
   }
 
-  private void movePooledContentToSparse(Node contentNode) {
-    // TODO Auto-generated method stub
-    
+  private void copyNodeToSparse(Node contentNode, String path, Session session) throws StorageClientException, AccessDeniedException, RepositoryException, IOException {
+    ContentManager contentManager = session.getContentManager();
+    if (contentManager.exists(path)) {
+      LOGGER.warn("Ignoring migration of content at path which alread exists in sparsemap: " + path);
+      return;
+    }
+    PropertyIterator propIter = contentNode.getProperties();
+    Builder<String,Object> propBuilder = ImmutableMap.builder();
+    while(propIter.hasNext()) {
+      Property prop = propIter.nextProperty();
+      if (ignoreProps .contains(prop.getName())) {
+        continue;
+      }
+      Object value;
+      if (prop.isMultiple()) {
+        Value[] values = prop.getValues();
+        if(values[0].getType() == PropertyType.STRING) {
+          String[] valueStrings = new String[values.length];
+          for(int i = 0;i < values.length;i++) {
+            valueStrings[i] = values[i].getString();
+          }
+          value = valueStrings;
+        } else {
+          // TODO handle multi-value properties of other types
+          continue;
+        }
+      } else {
+        switch(prop.getType()) {
+        case PropertyType.BINARY: value = prop.getBinary(); break;
+        case PropertyType.BOOLEAN: value = prop.getBoolean(); break;
+        case PropertyType.DATE: value = prop.getDate(); break;
+        case PropertyType.DECIMAL: value = prop.getDecimal(); break;
+        case PropertyType.DOUBLE: value = prop.getDouble(); break;
+        case PropertyType.LONG: value = prop.getLong(); break;
+        case PropertyType.STRING: value = prop.getString(); break;
+        default: value = ""; break;
+        }
+      }
+      propBuilder.put(prop.getName(), value);
+    }
+    Content sparseContent = new Content(path, propBuilder.build());
+    contentManager.update(sparseContent);
+    if (contentNode.hasProperty("jcr:content")) {
+      Node fileContentNode = contentNode.getNode("jcr:content");
+      Binary binaryData = fileContentNode.getProperty("jcr:data").getBinary();
+      contentManager.writeBody(sparseContent.getPath(), binaryData.getStream());
+    }
+    // make recursive call for child nodes
+    // depth-first traversal
+    NodeIterator nodeIter = contentNode.getNodes();
+    while(nodeIter.hasNext()) {
+      Node childNode = nodeIter.nextNode();
+      if (ignoreProps.contains(childNode.getName())) {
+        continue;
+      }
+      copyNodeToSparse(childNode, path + "/" + childNode.getName(), session);
+    }
+
   }
 
   @SuppressWarnings("deprecation")
-  private void migrateAuthorizables() throws RepositoryException, ClientPoolException, StorageClientException, AccessDeniedException {
+  private void migrateAuthorizables() throws RepositoryException, ClientPoolException, StorageClientException, AccessDeniedException, ClassCastException, NotBoundException, IOException {
     LOGGER.info("beginning users and groups migration.");
     javax.jcr.Session jcrSession = null;
     try {
@@ -157,7 +233,7 @@ public class MigrateJcr {
     
   }
 
-  private void moveAuthorizableToSparse(Node authHomeNode, UserManager userManager) throws ClientPoolException, StorageClientException, AccessDeniedException, PathNotFoundException, RepositoryException {
+  private void moveAuthorizableToSparse(Node authHomeNode, UserManager userManager) throws ClientPoolException, StorageClientException, AccessDeniedException, PathNotFoundException, RepositoryException, IOException {
     Session sparseSession = null;
     try {
       sparseSession = sparseRepository.loginAdministrative();
@@ -165,24 +241,30 @@ public class MigrateJcr {
       boolean isUser = "sakai/user-home".equals(authHomeNode.getProperty("sling:resourceType").getString());
       Node profileNode = authHomeNode.getNode("public/authprofile");
       if (isUser) {
-        String id = profileNode.getProperty("rep:userId").getString();
+        String userId = profileNode.getProperty("rep:userId").getString();
         Node propNode = profileNode.getNode("basic/elements/firstName");
         String firstName = propNode.getProperty("value").getString();
         propNode = profileNode.getNode("basic/elements/lastName");
         String lastName = propNode.getProperty("value").getString();
         propNode = profileNode.getNode("basic/elements/email");
         String email = propNode.getProperty("value").getString();
-        if (authManager.createUser(id, id, null, ImmutableMap.of(
+        if (authManager.createUser(userId, userId, "testuser", ImmutableMap.of(
             "firstName", (Object)firstName,
             "lastName", (Object)lastName,
             "email", (Object)email))){
-          //TODO copy the user home to sparse
+          LOGGER.info("Adding user home folder for " + userId);
+          copyNodeToSparse(authHomeNode, "a:"+userId, sparseSession);
           //TODO do we care about the password?
-          LOGGER.info(id + " " + firstName + " " + lastName + " " + email);
+          LOGGER.info(userId + " " + firstName + " " + lastName + " " + email);
         } else {
-          LOGGER.info("User {} exists in sparse. Skipping it.", id);
+          LOGGER.info("User {} exists in sparse. Skipping it.", userId);
         }
         //userManager.getAuthorizable(id).remove();
+      } else {
+        //handling a group home
+        String groupId = profileNode.getProperty("sakai:group-title").getString();
+        LOGGER.info("Adding group home folder for " + groupId);
+        copyNodeToSparse(authHomeNode, "a:"+groupId, sparseSession);
       }
     } finally {
       if (sparseSession != null) {
