@@ -43,6 +43,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -224,79 +225,70 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       Authorizable thisUser = authorizableManager.findAuthorizable(session.getUserId());
       Content node = resource.adaptTo(Content.class);
-      if (! accessControlManager.can(thisUser, Security.ZONE_CONTENT, node.getPath(), Permissions.CAN_WRITE)) {
+      if (! accessControlManager.can(thisUser, Security.ZONE_CONTENT, node.getPath(), Permissions.CAN_WRITE)
+          && isRequestingNonPublicOperations(request)) {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
         return;
       }
-      ContentManager contentManager = resource.adaptTo(ContentManager.class);
 
-      Map<String, Object> properties = node.getProperties();
-      String[] managers = (String[]) properties
-          .get(POOLED_CONTENT_USER_MANAGER);
-      String[] viewers = (String[]) properties
-          .get(POOLED_CONTENT_USER_VIEWER);
+      Set<String> viewersSet =
+        addViewersAdministratively(resource, StorageClientUtils.nonNullStringArray(request.getParameterValues(":viewer")));
+
+      if(isRequestingNonPublicOperations(request)) {
+
+        ContentManager contentManager = resource.adaptTo(ContentManager.class);
+
+        Map<String, Object> properties = node.getProperties();
+        String[] managers = (String[]) properties
+        .get(POOLED_CONTENT_USER_MANAGER);
 
 
-      Set<String> managerSet = null;
-      if ( managers == null ) {
-        managerSet = Sets.newHashSet();
-      } else {
-        managerSet = Sets.newHashSet(managers);
-      }
-
-      Set<String> viewersSet = null;
-      if ( viewers == null ) {
-        viewersSet = Sets.newHashSet();
-      } else {
-        viewersSet = Sets.newHashSet(viewers);
-      }
-
-      List<AclModification> aclModifications = Lists.newArrayList();
-
-      for (String addManager : StorageClientUtils.nonNullStringArray(request.getParameterValues(":manager"))) {
-        if ((addManager.length() > 0) && !managerSet.contains(addManager)) {
-          managerSet.add(addManager);
-          AclModification.addAcl(true, Permissions.CAN_MANAGE, addManager,
-              aclModifications);
+        Set<String> managerSet = null;
+        if ( managers == null ) {
+          managerSet = Sets.newHashSet();
+        } else {
+          managerSet = Sets.newHashSet(managers);
         }
-      }
 
-      for (String removeManager : StorageClientUtils.nonNullStringArray(request.getParameterValues(":manager@Delete"))) {
-        if ((removeManager.length() > 0) && managerSet.contains(removeManager)) {
-          managerSet.remove(removeManager);
-          AclModification.removeAcl(true, Permissions.CAN_MANAGE, removeManager,
-              aclModifications);
-        }
-      }
+        List<AclModification> aclModifications = Lists.newArrayList();
 
-      for (String addViewer : StorageClientUtils.nonNullStringArray(request.getParameterValues(":viewer"))) {
-        if ((addViewer.length() > 0) && !viewersSet.contains(addViewer)) {
-          viewersSet.add(addViewer);
-          AclModification.addAcl(true, Permissions.CAN_READ, addViewer, aclModifications);
-        }
-      }
-      for (String removeViewer : StorageClientUtils.nonNullStringArray(request.getParameterValues(":viewer@Delete"))) {
-        if ((removeViewer.length() > 0) && viewersSet.contains(removeViewer)) {
-          viewersSet.remove(removeViewer);
-          if (!managerSet.contains(removeViewer)) {
-            AclModification.removeAcl(true, Permissions.CAN_READ, removeViewer,
+        for (String addManager : StorageClientUtils.nonNullStringArray(request.getParameterValues(":manager"))) {
+          if ((addManager.length() > 0) && !managerSet.contains(addManager)) {
+            managerSet.add(addManager);
+            AclModification.addAcl(true, Permissions.CAN_MANAGE, addManager,
                 aclModifications);
           }
         }
+
+        for (String removeManager : StorageClientUtils.nonNullStringArray(request.getParameterValues(":manager@Delete"))) {
+          if ((removeManager.length() > 0) && managerSet.contains(removeManager)) {
+            managerSet.remove(removeManager);
+            AclModification.removeAcl(true, Permissions.CAN_MANAGE, removeManager,
+                aclModifications);
+          }
+        }
+
+        for (String removeViewer : StorageClientUtils.nonNullStringArray(request.getParameterValues(":viewer@Delete"))) {
+          if ((removeViewer.length() > 0) && viewersSet.contains(removeViewer)) {
+            viewersSet.remove(removeViewer);
+            if (!managerSet.contains(removeViewer)) {
+              AclModification.removeAcl(true, Permissions.CAN_READ, removeViewer,
+                  aclModifications);
+            }
+          }
+        }
+
+        node.setProperty(POOLED_CONTENT_USER_MANAGER,
+            managerSet.toArray(new String[managerSet.size()]));
+        node.setProperty(POOLED_CONTENT_USER_VIEWER,
+            viewersSet.toArray(new String[viewersSet.size()]));
+        LOGGER.debug("Set Managers to {}",Arrays.toString(managerSet.toArray(new String[managerSet.size()])));
+        LOGGER.debug("ACL Modifications {}",Arrays.toString(aclModifications.toArray(new AclModification[aclModifications.size()])));
+
+        contentManager.update(node);
+        accessControlManager.setAcl(Security.ZONE_CONTENT, node.getPath(),
+            aclModifications.toArray(new AclModification[aclModifications.size()]));
       }
-
-      node.setProperty(POOLED_CONTENT_USER_VIEWER,
-          viewersSet.toArray(new String[viewersSet.size()]));
-      node.setProperty(POOLED_CONTENT_USER_MANAGER,
-          managerSet.toArray(new String[managerSet.size()]));
-      LOGGER.debug("Set Managers to {}",Arrays.toString(managerSet.toArray(new String[managerSet.size()])));
-      LOGGER.debug("Set Viewsers to {}",Arrays.toString(viewersSet.toArray(new String[managerSet.size()])));
-      LOGGER.debug("ACL Modifications {}",Arrays.toString(aclModifications.toArray(new AclModification[aclModifications.size()])));
-
-      contentManager.update(node);
-      accessControlManager.setAcl(Security.ZONE_CONTENT, node.getPath(),
-          aclModifications.toArray(new AclModification[aclModifications.size()]));
-
       response.setStatus(SC_OK);
     } catch (AccessDeniedException e) {
       LOGGER.error("Insufficient permissions to modify [{}] Cause:{}",
@@ -309,6 +301,51 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       LOGGER.debug("Cause: ", e);
       response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not save content node.");
     }
+  }
+
+  @SuppressWarnings("rawtypes")
+  private boolean isRequestingNonPublicOperations(SlingHttpServletRequest request) {
+    Map parameterMap = request.getParameterMap();
+    return (parameterMap.containsKey(":manager")
+        || parameterMap.containsKey(":manager@Delete")
+        || parameterMap.containsKey(":viewer@Delete"));
+  }
+
+  private Set<String> addViewersAdministratively(Resource contentResource, String[] viewers) throws ClientPoolException, StorageClientException, AccessDeniedException {
+    Session adminSession = null;
+    Set<String> viewersSet = null;
+    try {
+      adminSession = contentResource.adaptTo(Session.class).getRepository().loginAdministrative();
+      ContentManager adminContentManager = adminSession.getContentManager();
+      AccessControlManager adminAccessControl = adminSession.getAccessControlManager();
+      Content resourceContent = contentResource.adaptTo(Content.class);
+      List<AclModification> aclModifications = Lists.newArrayList();
+      Map<String, Object> contentProps = resourceContent.getProperties();
+      String[] contentViewers = (String[]) contentProps.get(POOLED_CONTENT_USER_VIEWER);
+      if ( contentViewers == null ) {
+        viewersSet = Sets.newHashSet();
+      } else {
+        viewersSet = Sets.newHashSet(contentViewers);
+      }
+      for (String addViewer : viewers) {
+        if ((addViewer.length() > 0) && !viewersSet.contains(addViewer)) {
+          viewersSet.add(addViewer);
+          AclModification.addAcl(true, Permissions.CAN_READ, addViewer, aclModifications);
+        }
+      }
+      resourceContent.setProperty(POOLED_CONTENT_USER_VIEWER,
+          viewersSet.toArray(new String[viewersSet.size()]));
+
+      adminContentManager.update(resourceContent);
+      adminAccessControl.setAcl(Security.ZONE_CONTENT, resourceContent.getPath(),
+          aclModifications.toArray(new AclModification[aclModifications.size()]));
+
+    } finally {
+      if (adminSession != null) {
+        adminSession.logout();
+      }
+    }
+    return viewersSet;
   }
 
 
