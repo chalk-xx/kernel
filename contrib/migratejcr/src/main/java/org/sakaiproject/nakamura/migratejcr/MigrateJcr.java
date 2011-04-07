@@ -27,11 +27,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -39,23 +36,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.osgi.service.component.ComponentContext;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 import java.util.Dictionary;
 import java.util.Set;
 
 import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.PropertyType;
-import javax.jcr.RepositoryException;
 import javax.jcr.Value;
-import javax.jcr.query.InvalidQueryException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
@@ -94,17 +84,9 @@ public class MigrateJcr {
     
   }
   
-  private void logNode(Node node) throws RepositoryException {
-    LOGGER.info(node.getPath() + ":" + node.getIdentifier());
-    NodeIterator nodeItr = node.getNodes();
-    while(nodeItr.hasNext()) {
-      Node childNode = nodeItr.nextNode();
-      logNode(childNode);
-    }
-  }
 
   @SuppressWarnings("deprecation")
-  private void migrateContentPool() throws InvalidQueryException, RepositoryException, ClassCastException, NotBoundException, StorageClientException, AccessDeniedException, IOException {
+  private void migrateContentPool() throws Exception {
     LOGGER.info("beginning users and groups migration.");
     String contentPoolQuery = "//element(*, sakai:pooled-content) order by @jcr:score descending";
     javax.jcr.Session jcrSession = null;
@@ -134,7 +116,7 @@ public class MigrateJcr {
     
   }
 
-  private void copyNodeToSparse(Node contentNode, String path, Session session) throws StorageClientException, AccessDeniedException, RepositoryException, IOException {
+  private void copyNodeToSparse(Node contentNode, String path, Session session) throws Exception {
     ContentManager contentManager = session.getContentManager();
     if (contentManager.exists(path)) {
       LOGGER.warn("Ignoring migration of content at path which alread exists in sparsemap: " + path);
@@ -195,7 +177,7 @@ public class MigrateJcr {
   }
 
   @SuppressWarnings("deprecation")
-  private void migrateAuthorizables() throws RepositoryException, ClientPoolException, StorageClientException, AccessDeniedException, ClassCastException, NotBoundException, IOException {
+  private void migrateAuthorizables() throws Exception {
     LOGGER.info("beginning users and groups migration.");
     javax.jcr.Session jcrSession = null;
     try {
@@ -233,7 +215,7 @@ public class MigrateJcr {
     
   }
 
-  private void moveAuthorizableToSparse(Node authHomeNode, UserManager userManager) throws ClientPoolException, StorageClientException, AccessDeniedException, PathNotFoundException, RepositoryException, IOException {
+  private void moveAuthorizableToSparse(Node authHomeNode, UserManager userManager) throws Exception {
     Session sparseSession = null;
     try {
       sparseSession = sparseRepository.loginAdministrative();
