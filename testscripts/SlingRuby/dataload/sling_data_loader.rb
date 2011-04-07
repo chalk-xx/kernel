@@ -89,7 +89,7 @@ module NakamuraData
       while count < @num_groups
 	group_name = "#{TEST_GROUP_PREFIX}-#{count.to_s}"
 	#def create_group_complete(groupname, manager, title = nil)
-	group = @user_manager.create_group_complete group_name, "Test Group #{count.to_s}"
+	group = @user_manager.create_group group_name, "Test Group #{count.to_s}"
 	if(group)
 	  @log.info "created group: #{group.inspect}"
 	else
