@@ -5,6 +5,8 @@ see KERN-1730
 all scripts have to be run from this directory as working directory
 
 Dependencies and Requirements
+0) set the working directory - cd nakamura/testscripts/SlingRuby/dataload
+
 1) ruby installed with the gems described in 
 nakamura/testscripts/SlingRuby/README.txt
 
