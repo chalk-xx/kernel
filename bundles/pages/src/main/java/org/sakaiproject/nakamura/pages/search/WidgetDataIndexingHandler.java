@@ -102,9 +102,9 @@ public class WidgetDataIndexingHandler implements IndexingHandler {
         // concatenate the fields requested to be indexed.
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < indexedFields.length; i++) {
-          sb.append(indexedFields[i]);
-          if (i < indexedFields.length - 1) {
-            sb.append(' ');
+          Object propVal = content.getProperty(indexedFields[i]);
+          if (propVal == null) {
+            sb.append(propVal).append(' ');
           }
         }
 
