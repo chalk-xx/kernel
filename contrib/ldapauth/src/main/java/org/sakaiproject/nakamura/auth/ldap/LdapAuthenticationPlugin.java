@@ -17,11 +17,14 @@
  */
 package org.sakaiproject.nakamura.auth.ldap;
 
-import com.novell.ldap.LDAPAttribute;
-import com.novell.ldap.LDAPConnection;
-import com.novell.ldap.LDAPEntry;
-import com.novell.ldap.LDAPException;
-import com.novell.ldap.LDAPSearchResults;
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.jcr.Credentials;
+import javax.jcr.SimpleCredentials;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
@@ -31,32 +34,26 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapUtil;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.jcr.Credentials;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
-import javax.jcr.ValueFactory;
+import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPConnection;
+import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPSearchResults;
 
 /**
  * Authentication plugin for verifying a user against an LDAP instance.
@@ -98,20 +95,20 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   private LdapConnectionManager connMgr;
 
   @Reference
-  private AuthorizablePostProcessService authorizablePostProcessService;
+  private LiteAuthorizablePostProcessService authorizablePostProcessService;
 
   @Reference
-  private SlingRepository slingRepository;
+  private Repository repository;
 
   public LdapAuthenticationPlugin() {
   }
 
   LdapAuthenticationPlugin(LdapConnectionManager connMgr,
-      AuthorizablePostProcessService authorizablePostProcessService,
-      SlingRepository slingRepository) {
+		  LiteAuthorizablePostProcessService authorizablePostProcessService,
+      Repository repository) {
     this.connMgr = connMgr;
     this.authorizablePostProcessService = authorizablePostProcessService;
-    this.slingRepository = slingRepository;
+    this.repository = repository;
   }
 
   @Activate
@@ -194,7 +191,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   }
 
   // ---------- AuthenticationPlugin ----------
-  public boolean authenticate(Credentials credentials) throws RepositoryException {
+  public boolean authenticate(Credentials credentials) {
     boolean auth = false;
     if (credentials instanceof SimpleCredentials) {
       // get application user credentials
@@ -274,7 +271,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
               System.currentTimeMillis() - timeStart);
 
           // provision & decorate the user
-          Session session = slingRepository.loginAdministrative(null);
+          Session session = repository.loginAdministrative();
           Authorizable authorizable = getJcrUser(session, sc.getUserID());
 
           if (authorizable != null && attrsProps != null) {
@@ -309,12 +306,18 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   }
 
   private Authorizable getJcrUser(Session session, String userId) throws Exception {
-    UserManager um = AccessControlUtil.getUserManager(session);
-    Authorizable auth = um.getAuthorizable(userId);
+	AuthorizableManager am = session.getAuthorizableManager(); 
+    Authorizable auth = am.findAuthorizable(userId);
     if (auth == null && createAccount) {
       String password = RandomStringUtils.random(8);
-      auth = um.createUser(userId, password);
-      authorizablePostProcessService.process(auth, session, ModificationType.CREATE);
+      boolean created = am.createUser(userId, userId, password, null);
+      if (created) {
+    	  auth = am.findAuthorizable(userId);
+    	  authorizablePostProcessService.process(auth, session, ModificationType.CREATE, null);
+      }
+      else {
+    	  throw new Exception("Unable to create User for " + userId);
+      }
     }
     return auth;
   }
@@ -326,10 +329,10 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
    * @param user
    */
   private void decorateUser(Session session, Authorizable user, LDAPConnection conn)
-      throws RepositoryException, LDAPException {
+      throws LDAPException {
     // fix up the user dn to search
     String userDn = LdapUtil
-        .escapeLDAPSearchFilter(userFilter.replace("{}", user.getID()));
+        .escapeLDAPSearchFilter(userFilter.replace("{}", user.getId()));
 
     // get a connection to LDAP
     String[] ldapAttrNames = attrsProps.keySet().toArray(new String[attrsProps.size()]);
@@ -337,14 +340,13 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         ldapAttrNames, false);
     if (results.hasMore()) {
       LDAPEntry entry = results.next();
-      ValueFactory vf = session.getValueFactory();
 
       for (String ldapAttrName : ldapAttrNames) {
         String jcrPropName = attrsProps.get(ldapAttrName);
 
         LDAPAttribute attr = entry.getAttribute(ldapAttrName);
         if (attr != null) {
-          user.setProperty(jcrPropName, vf.createValue(attr.getStringValue()));
+          user.setProperty(jcrPropName, attr.getStringValue());
         }
       }
     } else {

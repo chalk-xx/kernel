@@ -25,6 +25,7 @@ import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -38,23 +39,24 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 
-import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.user.User;
-import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessService;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
-import javax.jcr.Value;
 
 @RunWith(MockitoJUnitRunner.class)
 public class LdapAuthenticationPluginTest {
@@ -79,28 +81,28 @@ public class LdapAuthenticationPluginTest {
   private LDAPSearchResults results;
 
   @Mock
-  private AuthorizablePostProcessService authorizablePostProcessService;
+  private LiteAuthorizablePostProcessService LiteAuthorizablePostProcessService;
 
   @Mock
-  private SlingRepository slingRepository;
+  private Repository repository;
 
   @Mock(answer = RETURNS_DEEP_STUBS)
-  private JackrabbitSession session;
+  private Session session;
 
   @Mock
-  private UserManager userManager;
+  private AuthorizableManager authorizableManager;
 
   @Before
   public void setup() throws Exception {
     when(connMgr.getConfig().getLdapUser()).thenReturn(LDAP_USER);
     when(connMgr.getConfig().getLdapPassword()).thenReturn(LDAP_PASS);
 
-    when(slingRepository.loginAdministrative(null)).thenReturn(session);
+    when(repository.loginAdministrative()).thenReturn(session);
 
-    when(session.getUserManager()).thenReturn(userManager);
+    when(session.getAuthorizableManager()).thenReturn(authorizableManager);
 
     ldapAuthenticationPlugin = new LdapAuthenticationPlugin(connMgr,
-        authorizablePostProcessService, slingRepository);
+        LiteAuthorizablePostProcessService, repository);
   }
 
   @Test
@@ -361,6 +363,7 @@ public class LdapAuthenticationPluginTest {
         .toCharArray())));
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void createAccountAfterAuth() throws Exception {
     // given
@@ -386,16 +389,19 @@ public class LdapAuthenticationPluginTest {
     when(entry.getDN()).thenReturn(userEntryDn);
 
     LDAPAttribute attr = mock(LDAPAttribute.class);
+    when(attr.getStringValue()).thenReturn("standard");
     when(entry.getAttribute(isA(String.class))).thenReturn(attr);
 
+    when(authorizableManager.createUser(isA(String.class), isA(String.class), isA(String.class), (Map<String, Object>) isNull())).thenReturn(true);
+    
     User user = mock(User.class);
-    when(userManager.createUser(isA(String.class), isA(String.class))).thenReturn(user);
+    when(user.getId()).thenReturn(USER);
+    when(authorizableManager.findAuthorizable(isA(String.class))).thenReturn(null);
 
     // then
-    assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
-        .toCharArray())));
+    assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS.toCharArray())));
 
-    verify(userManager).createUser(eq(USER), isA(String.class));
+    verify(authorizableManager).createUser(isA(String.class), isA(String.class), isA(String.class), (Map<String, Object>) isNull());
   }
 
   @Test
@@ -425,11 +431,12 @@ public class LdapAuthenticationPluginTest {
     when(entry.getDN()).thenReturn(userEntryDn);
 
     LDAPAttribute attr = mock(LDAPAttribute.class);
+    when(attr.getStringValue()).thenReturn("standard");
     when(entry.getAttribute(isA(String.class))).thenReturn(attr);
 
-    User user = mock(User.class);
-    when(user.getID()).thenReturn("testuser");
-    when(userManager.getAuthorizable(isA(String.class))).thenReturn(user);
+    Authorizable user = mock(Authorizable.class);
+    when(user.getId()).thenReturn("testuser");
+    when(authorizableManager.findAuthorizable(isA(String.class))).thenReturn(user);
 
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
@@ -437,13 +444,13 @@ public class LdapAuthenticationPluginTest {
     assertTrue(ldapAuthenticationPlugin.canDecorateUser());
 
     verify(entry).getAttribute("givenName");
-    verify(user).setProperty(eq("firstName"), isA(Value.class));
+    verify(user).setProperty(eq("firstName"), isA(String.class));
 
     verify(entry).getAttribute("sn");
-    verify(user).setProperty(eq("lastName"), isA(Value.class));
+    verify(user).setProperty(eq("lastName"), isA(String.class));
 
     verify(entry).getAttribute("mail");
-    verify(user).setProperty(eq("email"), isA(Value.class));
+    verify(user).setProperty(eq("email"), isA(String.class));
   }
 
   @Test
@@ -473,11 +480,12 @@ public class LdapAuthenticationPluginTest {
     when(entry.getDN()).thenReturn(userEntryDn);
 
     LDAPAttribute attr = mock(LDAPAttribute.class);
+    when(attr.getStringValue()).thenReturn("standard");
     when(entry.getAttribute(isA(String.class))).thenReturn(attr);
 
-    User user = mock(User.class);
-    when(user.getID()).thenReturn("testuser");
-    when(userManager.getAuthorizable(isA(String.class))).thenReturn(user);
+    Authorizable user = mock(User.class);
+    when(user.getId()).thenReturn("testuser");
+    when(authorizableManager.findAuthorizable(isA(String.class))).thenReturn(user);
 
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
@@ -485,13 +493,13 @@ public class LdapAuthenticationPluginTest {
     assertTrue(ldapAuthenticationPlugin.canDecorateUser());
 
     verify(entry).getAttribute("givenName");
-    verify(user).setProperty(eq("firstName"), isA(Value.class));
+    verify(user).setProperty(eq("firstName"), isA(String.class));
 
     verify(entry).getAttribute("sn");
-    verify(user).setProperty(eq("lastName"), isA(Value.class));
+    verify(user).setProperty(eq("lastName"), isA(String.class));
 
     verify(entry).getAttribute("mail");
-    verify(user).setProperty(eq("email"), isA(Value.class));
+    verify(user).setProperty(eq("email"), isA(String.class));
   }
 
   @Test
@@ -522,11 +530,12 @@ public class LdapAuthenticationPluginTest {
     when(entry.getDN()).thenReturn(userEntryDn);
 
     LDAPAttribute attr = mock(LDAPAttribute.class);
+    when(attr.getStringValue()).thenReturn("standard");
     when(entry.getAttribute(isA(String.class))).thenReturn(attr);
 
     User user = mock(User.class);
-    when(user.getID()).thenReturn("testuser");
-    when(userManager.getAuthorizable(isA(String.class))).thenReturn(user);
+    when(user.getId()).thenReturn("testuser");
+    when(authorizableManager.findAuthorizable(isA(String.class))).thenReturn(user);
 
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
@@ -534,13 +543,13 @@ public class LdapAuthenticationPluginTest {
     assertTrue(ldapAuthenticationPlugin.canDecorateUser());
 
     verify(entry).getAttribute("givenName");
-    verify(user).setProperty(eq("firstName"), isA(Value.class));
+    verify(user).setProperty(eq("firstName"), isA(String.class));
 
     verify(entry).getAttribute("sn");
-    verify(user).setProperty(eq("lastName"), isA(Value.class));
+    verify(user).setProperty(eq("lastName"), isA(String.class));
 
     verify(entry).getAttribute("mail");
-    verify(user).setProperty(eq("email"), isA(Value.class));
+    verify(user).setProperty(eq("email"), isA(String.class));
   }
 
   @Test
@@ -572,8 +581,8 @@ public class LdapAuthenticationPluginTest {
     when(entry.getAttribute(isA(String.class))).thenReturn(attr);
 
     User user = mock(User.class);
-    when(user.getID()).thenReturn("testuser");
-    when(userManager.getAuthorizable(isA(String.class))).thenReturn(user);
+    when(user.getId()).thenReturn("testuser");
+    when(authorizableManager.findAuthorizable(isA(String.class))).thenReturn(user);
 
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
@@ -611,8 +620,8 @@ public class LdapAuthenticationPluginTest {
     when(entry.getAttribute(isA(String.class))).thenReturn(attr);
 
     User user = mock(User.class);
-    when(user.getID()).thenReturn("testuser");
-    when(userManager.getAuthorizable(isA(String.class))).thenReturn(user);
+    when(user.getId()).thenReturn("testuser");
+    when(authorizableManager.findAuthorizable(isA(String.class))).thenReturn(user);
 
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(new SimpleCredentials(USER, PASS
