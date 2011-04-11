@@ -73,7 +73,7 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
   private static final String COMMENTS = "comments";
   private static final String COMMENT_ID = "commentId";
   private static final String AUTHOR = "author";
-  private static final String CREATED = "created";
+  private static final String CREATED = "_created";
 
   @Reference
   private ProfileService profileService;
@@ -213,7 +213,7 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       String newNodeName = Long.toString(cal.getTimeInMillis());
       Content newComment = new Content(path + "/" + newNodeName, ImmutableMap.of(AUTHOR,
           (Object)request.getRemoteUser(), COMMENT,
-          body, CREATED, cal.getTimeInMillis()));
+          body));
 
       contentManager.update(newComment);
 
