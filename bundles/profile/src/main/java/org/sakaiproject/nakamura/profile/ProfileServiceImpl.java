@@ -400,9 +400,15 @@ public class ProfileServiceImpl implements ProfileService {
             if ( basic.has("access")) {
               a.setProperty("access", basic.get("access"));
             }
-            authorizableManager.updateAuthorizable(a);
           }
         }
+        if (json.has(GROUP_TITLE_PROPERTY)) {
+          a.setProperty(GROUP_TITLE_PROPERTY, json.get(GROUP_TITLE_PROPERTY));
+        }
+        if (json.has(GROUP_DESCRIPTION_PROPERTY)) {
+          a.setProperty(GROUP_DESCRIPTION_PROPERTY, json.get(GROUP_DESCRIPTION_PROPERTY));
+        }
+        authorizableManager.updateAuthorizable(a);
       }
     }
     // update the profile content
@@ -410,5 +416,6 @@ public class ProfileServiceImpl implements ProfileService {
     AccessControlManager accessControlManger = session.getAccessControlManager();
     LiteJsonImporter importer = new LiteJsonImporter();
     importer.importContent(contentManager, json, profilePath, true, true,true, accessControlManger);
+
   }
 }

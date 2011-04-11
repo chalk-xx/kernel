@@ -720,6 +720,16 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
           if ( LOGGER.isDebugEnabled()) {
             LOGGER.debug(" Saving {} {} {} {} {}",new Object[]{o,g.getPropertiesForUpdate(), Arrays.toString(g.getMembers()),  Arrays.toString(g.getMembersAdded()),  Arrays.toString(g.getMembersRemoved())});
           }
+          // we mustn't overwrite newer properties with ours
+          Authorizable auth = authorizableManager.findAuthorizable(((Group) o).getId());
+          if (auth != null) {
+            Long storageLastModified = (Long) auth.getProperty(Authorizable.LASTMODIFIED_FIELD);
+            Long mineLastModified = (Long) g.getProperty(Authorizable.LASTMODIFIED_FIELD);
+            if (storageLastModified != null && (storageLastModified > mineLastModified)) {
+              g.setProperty("sakai:group-title", auth.getProperty("sakai:group-title"));
+              g.setProperty("sakai:group-description", auth.getProperty("sakai:group-description"));
+            }
+          }
           authorizableManager.updateAuthorizable((Group) o);
         } else if (o instanceof User ) {
           if ( LOGGER.isDebugEnabled()) {

@@ -1,5 +1,8 @@
 package org.sakaiproject.nakamura.profile.servlet;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -97,15 +100,17 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
         // prepare the response
         HtmlResponse htmlResponse = new JSONResponse();
         htmlResponse.setReferer(request.getHeader("referer"));
-        String picture = request.getParameter("picture");
-        if (picture != null) {
+        Map<String,String> authzProperties = propertiesToUpdate(request, ImmutableSet.of("picture", "sakai:group-title", "sakai:group-description"));
+        if (!authzProperties.isEmpty()) {
           final Resource resource = request.getResource();
           final Content targetContent = resource.adaptTo(Content.class);
           final Session session = resource.adaptTo(Session.class);
           String authId = PathUtils.getAuthorizableId(targetContent.getPath());
           AuthorizableManager am = session.getAuthorizableManager();
           Authorizable au = am.findAuthorizable(authId);
-          au.setProperty("picture", picture);
+          for (String key : authzProperties.keySet()) {
+            au.setProperty(key, authzProperties.get(key));
+          }
           am.updateAuthorizable(au);
         }
         if (postOperations.containsKey(operation)) {
@@ -136,6 +141,17 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
 
   }
 
+  private Map<String, String> propertiesToUpdate(SlingHttpServletRequest request,
+      ImmutableSet<String> propNames) {
+    Map<String, String> rv = Maps.newHashMap();
+    for (String propName : propNames) {
+      String propValue = request.getParameter(propName);
+      if (propValue != null) {
+        rv.put(propName, propValue);
+      }
+    }
+    return rv;
+  }
   /**
    * compute redirect URL (SLING-126)
    *
