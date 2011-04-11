@@ -269,22 +269,8 @@ module SlingUsers
       end
       return user
     end
-
-    def create_group(groupname, title = nil)
-      @log.info "Creating group: #{groupname}"
-      group = Group.new(groupname)
-      params = { ":name" => group.name }
-	  if (title)
-        params['sakai:group-title'] = title
-      end
-      result = @sling.execute_post(@sling.url_for($GROUP_URI), params)
-      if (result.code.to_i > 299)
-        return nil
-      end
-      return group
-    end
     
-    def create_group_complete(groupname, title = nil)
+    def create_group(groupname, title = nil)
         @log.info "Creating group: #{groupname}"
               group = Group.new(groupname)
       params = { ":name" => group.name }
