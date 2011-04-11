@@ -62,7 +62,7 @@ public class MessageIndexingHandler implements IndexingHandler {
     Builder<String,String> propBuilder = ImmutableMap.builder();
     propBuilder.put("sakai:messagebox", "messagebox");
     propBuilder.put("sakai:type", "type");
-    propBuilder.put("_created", "created");
+    propBuilder.put(Content.CREATED_FIELD, Content.CREATED_FIELD);
     propBuilder.put("sakai:category", "category");
     propBuilder.put("sakai:from", "from");
     propBuilder.put("sakai:to", "to");
