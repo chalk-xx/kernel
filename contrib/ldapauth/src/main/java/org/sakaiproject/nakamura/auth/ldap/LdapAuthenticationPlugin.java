@@ -43,6 +43,8 @@ import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapUtil;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessService;
@@ -327,9 +329,11 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
    * 
    * @param session
    * @param user
+ * @throws StorageClientException 
+ * @throws AccessDeniedException 
    */
   private void decorateUser(Session session, Authorizable user, LDAPConnection conn)
-      throws LDAPException {
+      throws LDAPException, AccessDeniedException, StorageClientException {
     // fix up the user dn to search
     String userDn = LdapUtil
         .escapeLDAPSearchFilter(userFilter.replace("{}", user.getId()));
@@ -349,6 +353,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
           user.setProperty(jcrPropName, attr.getStringValue());
         }
       }
+      session.getAuthorizableManager().updateAuthorizable(user);
     } else {
       log.warn("Can't find user [" + userDn + "]");
     }
