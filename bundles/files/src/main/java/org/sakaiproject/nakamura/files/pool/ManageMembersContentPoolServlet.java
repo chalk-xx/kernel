@@ -43,6 +43,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -215,20 +216,28 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       response.sendError(SC_UNAUTHORIZED, "Anonymous users cannot manipulate content.");
       return;
     }
-
+    boolean releaseSession = false;
+    Session session = null;
     try {
       // Get the node.
       Resource resource = request.getResource();
-      Session session = resource.adaptTo(Session.class);
+      session = resource.adaptTo(Session.class);
       AccessControlManager accessControlManager = session.getAccessControlManager();
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       Authorizable thisUser = authorizableManager.findAuthorizable(session.getUserId());
       Content node = resource.adaptTo(Content.class);
-      if (! accessControlManager.can(thisUser, Security.ZONE_CONTENT, node.getPath(), Permissions.CAN_WRITE)) {
+      if (! accessControlManager.can(thisUser, Security.ZONE_CONTENT, node.getPath(), Permissions.CAN_WRITE)
+          && isRequestingNonPublicOperations(request)) {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
         return;
       }
-      ContentManager contentManager = resource.adaptTo(ContentManager.class);
+
+      if (!isRequestingNonPublicOperations(request)) {
+        session = session.getRepository().loginAdministrative();
+        releaseSession = true;
+        accessControlManager = session.getAccessControlManager();
+      }
+      ContentManager contentManager = session.getContentManager();
 
       Map<String, Object> properties = node.getProperties();
       String[] managers = (String[]) properties
@@ -308,7 +317,23 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
           request.getPathInfo(), e.getMessage());
       LOGGER.debug("Cause: ", e);
       response.sendError(SC_INTERNAL_SERVER_ERROR, "Could not save content node.");
+    } finally {
+      if (releaseSession && session != null) {
+        try {
+          session.logout();
+        } catch (ClientPoolException e) {
+          LOGGER.error("Unable to logout from administrative session.", e);
+        }
+      }
     }
+  }
+
+  @SuppressWarnings("rawtypes")
+  private boolean isRequestingNonPublicOperations(SlingHttpServletRequest request) {
+    Map parameterMap = request.getParameterMap();
+    return (parameterMap.containsKey(":manager")
+        || parameterMap.containsKey(":manager@Delete")
+        || parameterMap.containsKey(":viewer@Delete"));
   }
 
 
