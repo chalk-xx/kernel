@@ -1,5 +1,6 @@
 package org.sakaiproject.nakamura.search.solr;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -74,7 +75,9 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
     defaultMaxResults = OsgiUtil.toInteger(props.get("defaultMaxResults"),
         defaultMaxResults);
   }
-
+  
+  private static final Map<String,String> sortNameMap = ImmutableMap.of(
+      "created","_created","createdBy","_createdBy","lastModified","_lastModified","lastModifiedBy","_lastModifiedBy");
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
       Query query, boolean asAnon) throws SolrSearchException {
     try {
@@ -299,10 +302,10 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
         }
       }
       // solr is now using the field names with underscores
-      // so we must add the underscores to match
+      // so we must add the underscores to match certain properties
       String sortOn = sort[0];
-      if (!sortOn.startsWith("_")) {
-        sortOn = "_" + sortOn;
+      if (sortNameMap.containsKey(sortOn)) {
+        sortOn = sortNameMap.get(sortOn);
       }
       solrQuery.setSortField(sortOn, o);
       break;
