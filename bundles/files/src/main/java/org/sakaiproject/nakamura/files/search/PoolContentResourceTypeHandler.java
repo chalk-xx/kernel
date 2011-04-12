@@ -44,7 +44,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.lite.util.Iterables;
-import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
@@ -95,7 +94,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     builder.put(FilesConstants.SAKAI_TAGS, "tag");
     builder.put(FilesConstants.LAST_MODIFIED, "lastModified");
     builder.put(FilesConstants.LAST_MODIFIED_BY, "lastModifiedBy");
-    builder.put(FilesConstants.CREATED, "created");
+    builder.put(FilesConstants.CREATED, FilesConstants.CREATED);
     builder.put(FilesConstants.CREATED_BY, "createdBy");
     builder.put(FilesConstants.LINK_PATHS, FilesConstants.LINK_PATHS);
     builder.put(FilesConstants.SAKAI_DESCRIPTION, "description");

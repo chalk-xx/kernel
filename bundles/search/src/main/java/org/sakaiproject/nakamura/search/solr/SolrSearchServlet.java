@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.search.solr;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.DEFAULT_PAGED_ITEMS;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.JSON_RESULTS;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_ITEMS_PER_PAGE;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_PAGE;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.REG_BATCH_PROCESSOR_NAMES;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.REG_PROCESSOR_NAMES;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.REG_PROVIDER_NAMES;
@@ -177,10 +178,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           limitResults = node.getProperty(SAKAI_LIMIT_RESULTS).getBoolean();
         }
 
-        long nitems = SolrSearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
-            DEFAULT_PAGED_ITEMS);
-
-
         // KERN-1147 Respond better when all parameters haven't been provided for a query
         Query query = null;
         try {
@@ -190,9 +187,25 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           return;
         }
 
+        long nitems = SolrSearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+            DEFAULT_PAGED_ITEMS);
+        long page = SolrSearchUtil.longRequestParameter(request, PARAMS_PAGE, 0);
+
         // allow number of items to be specified in sakai:query-template-options
         if (query.getOptions().containsKey(PARAMS_ITEMS_PER_PAGE)) {
           nitems = Long.valueOf(query.getOptions().get(PARAMS_ITEMS_PER_PAGE));
+        } else {
+          // add this to the options so that all queries are constrained to a limited
+          // number of returns per page.
+          query.getOptions().put(PARAMS_ITEMS_PER_PAGE, Long.toString(nitems));
+        }
+
+        if (query.getOptions().containsKey(PARAMS_PAGE)) {
+          page = Long.valueOf(query.getOptions().get(PARAMS_PAGE));
+        } else {
+          // add this to the options so that all queries are constrained to a limited
+          // number of returns per page.
+          query.getOptions().put(PARAMS_PAGE, Long.toString(page));
         }
 
         boolean useBatch = false;

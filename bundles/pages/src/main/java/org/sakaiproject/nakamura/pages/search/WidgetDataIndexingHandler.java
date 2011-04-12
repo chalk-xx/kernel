@@ -22,8 +22,10 @@ import com.google.common.collect.Lists;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
@@ -48,6 +50,8 @@ import java.util.Collection;
  * ://confluence.sakaiproject.org/display/KERNDOC/KERN-1675+Searching+Widget+Data} for
  * more details.
  */
+@Component(immediate = true)
+@Service
 public class WidgetDataIndexingHandler implements IndexingHandler {
 
   public static final String INDEXED_FIELDS = "sakai:indexed-fields";
@@ -102,9 +106,9 @@ public class WidgetDataIndexingHandler implements IndexingHandler {
         // concatenate the fields requested to be indexed.
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < indexedFields.length; i++) {
-          sb.append(indexedFields[i]);
-          if (i < indexedFields.length - 1) {
-            sb.append(' ');
+          Object propVal = content.getProperty(indexedFields[i]);
+          if (propVal != null) {
+            sb.append(propVal).append(' ');
           }
         }
 
