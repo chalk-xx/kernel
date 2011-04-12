@@ -335,7 +335,8 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
     try {
       String store = messagingService.getFullPathToStore(au.getId(), session);
       store = ISO9075.encodePath(store);
-      String queryString = "path:" + ClientUtils.escapeQueryChars(store) + "* AND resourceType:sakai/message AND type:internal AND messagebox:inbox AND read:false";
+      store = store.substring(0, store.length() - 1);
+      String queryString = "path:" + ClientUtils.escapeQueryChars(store) + " AND resourceType:sakai/message AND type:internal AND messagebox:inbox AND read:false";
       Query query = new Query(queryString, null);
       LOG.debug("Submitting Query {} ", query);
       SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
