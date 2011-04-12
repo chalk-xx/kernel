@@ -278,6 +278,10 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
    */
   private void parseSort(SolrQuery solrQuery, String val) {
     String[] sort = StringUtils.split(val);
+    // we don't support score sorting at all yet
+    if ("score".equals(sort[0])) {
+    	return;
+    }
     switch (sort.length) {
       case 1:
       solrQuery.setSortField(sort[0], ORDER.asc);
@@ -294,11 +298,11 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
           o = ORDER.asc;
         }
       }
-      // KERN-1752 solr is not using the field names with underscores
-      // so we must trim the underscores to match
+      // solr is now using the field names with underscores
+      // so we must add the underscores to match
       String sortOn = sort[0];
-      if (sortOn.startsWith("_")) {
-        sortOn = sortOn.substring(1);
+      if (!sortOn.startsWith("_")) {
+        sortOn = "_" + sortOn;
       }
       solrQuery.setSortField(sortOn, o);
       break;
