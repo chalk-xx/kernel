@@ -116,20 +116,24 @@ public class FileSearchPropertyProvider implements SolrSearchPropertyProvider {
    */
   protected String doTags(SlingHttpServletRequest request) {
     String[] tags = request.getParameterValues("sakai:tags");
-    StringBuilder sb = new StringBuilder();
+    StringBuilder tag = new StringBuilder();
+    StringBuilder ngram = new StringBuilder();
 
     if (tags != null) {
-      sb.append("tag:(");
+      tag.append("(tag:(");
+      ngram.append("ngram:(");
       for (int i = 0; i < tags.length; i++) {
-        sb.append("\"").append(ClientUtils.escapeQueryChars(tags[i])).append("\"");
+        tag.append("\"").append(ClientUtils.escapeQueryChars(tags[i])).append("\"");
+        ngram.append("\"").append(ClientUtils.escapeQueryChars(tags[i])).append("\"");
 
         if (i < tags.length - 1) {
-          sb.append(" AND ");
+          tag.append(" AND ");
+          ngram.append(" AND ");
         }
       }
-      sb.append(")");
+      tag.append(") OR ").append(ngram).append("))");
     }
-    return sb.toString();
+    return tag.toString();
   }
 
   /**

@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "resourceType:sakai/pooled-content AND (content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q})${_taguuids})",
+  "sakai:query-template": "resourceType:sakai/pooled-content AND (content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q}) OR ngram:(${q})${_taguuids})",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
