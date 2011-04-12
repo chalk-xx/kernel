@@ -1,6 +1,5 @@
 package org.sakaiproject.nakamura.search.solr;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -26,7 +25,6 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.schema.TextField;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -75,9 +73,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
     defaultMaxResults = OsgiUtil.toInteger(props.get("defaultMaxResults"),
         defaultMaxResults);
   }
-  
-  private static final Map<String,String> sortNameMap = ImmutableMap.of(
-      "created","_created","createdBy","_createdBy","lastModified","_lastModified","lastModifiedBy","_lastModifiedBy");
+
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
       Query query, boolean asAnon) throws SolrSearchException {
     try {
@@ -301,13 +297,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
           o = ORDER.asc;
         }
       }
-      // solr is now using the field names with underscores
-      // so we must add the underscores to match certain properties
-      String sortOn = sort[0];
-      if (sortNameMap.containsKey(sortOn)) {
-        sortOn = sortNameMap.get(sortOn);
-      }
-      solrQuery.setSortField(sortOn, o);
+      solrQuery.setSortField(sort[0], o);
       break;
     default:
       LOGGER.warn("Expected the sort option to be 1 or 2 terms. Found: {}", val);
