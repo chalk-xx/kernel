@@ -33,7 +33,7 @@ class TC_FormAuthTest < Test::Unit::TestCase
 	assert_equal("200",res.code)
 	props = JSON.parse(res.body)
 	# check the node really was last modified by the correct user.
-	assert_equal(u.name, props["lastModifiedBy"], "Cant find lastModifiedBy in #{res.body}")
+	assert_equal(u.name, props["_lastModifiedBy"], "Cant find _lastModifiedBy in #{res.body}")
 	@log.debug(res.body)
   end
 
