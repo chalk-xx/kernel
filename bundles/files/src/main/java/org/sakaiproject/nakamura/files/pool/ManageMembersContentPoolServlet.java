@@ -35,6 +35,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -57,6 +58,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -185,7 +187,8 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       if (detailed) {
         profileMap = profileService.getProfileMap(au, jcrSession);
       } else {
-        profileMap = profileService.getCompactProfileMap(au, jcrSession);
+        BasicUserInfo basicUserInfo = new BasicUserInfo();
+        profileMap = new ValueMapDecorator(basicUserInfo.getProperties(au));
       }
       if (profileMap != null) {
         writer.valueMap(profileMap);

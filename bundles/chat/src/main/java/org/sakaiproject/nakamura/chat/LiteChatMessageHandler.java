@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.Event;
@@ -45,7 +46,7 @@ import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,9 +76,6 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
 
   @Reference
   protected transient LiteMessagingService messagingService;
-
-  @Reference
-  protected transient ProfileService profileService;
 
   /**
    * Default constructor
@@ -165,7 +163,8 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
   public void writeProfileInformation(Session session, String recipient, JSONWriter write, javax.jcr.Session jcrSession) {
     try {
       Authorizable au = session.getAuthorizableManager().findAuthorizable(recipient);
-      ValueMap map = profileService.getCompactProfileMap(au, jcrSession);
+      BasicUserInfo basicUserInfo = new BasicUserInfo();
+      ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(au));
       ((ExtendedJSONWriter) write).valueMap(map);
     } catch (Exception e) {
       LOG.error("Failed to write profile information for " + recipient, e);

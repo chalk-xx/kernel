@@ -19,13 +19,13 @@ package org.sakaiproject.nakamura.user.lite.servlet;
 
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -41,7 +41,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -103,8 +103,8 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
   private static final Logger logger = LoggerFactory.getLogger(LiteGroupMemberServlet.class);
   private static final long serialVersionUID = 7976930178619974246L;
 
-  @Reference
-  protected transient ProfileService profileService;
+//  @Reference
+//  protected transient ProfileService profileService;
 
   static final String ITEMS = "items";
   static final String PAGE = "page";
@@ -171,25 +171,20 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
           items, page);
 
       // Write the whole lot out.
-      javax.jcr.Session session = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
       writer.array();
       int i = 0;
       while (iterator.hasNext() && i < items) {
         Entry<String, Authorizable> entry = iterator.next();
         Authorizable au = entry.getValue();
-        ValueMap profile = null;
-        if (selectors.contains("detailed")) {
-          profile = profileService.getProfileMap(au, session);
-        }else {
-          profile = profileService.getCompactProfileMap(au, session);
-        }
+        BasicUserInfo basicUserInfo = new BasicUserInfo();
+        ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(au));
         if (profile != null) {
           writer.valueMap(profile);
           i++;
-        } else {
+        } /*else {
           // profile wasn't found.  safe to ignore and not include the group
           logger.info("Profile not found for " + au.getId());
-        }
+        }*/
       }
       writer.endArray();
 
@@ -208,12 +203,12 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
       response.sendError(HttpServletResponse.SC_FORBIDDEN,
       "Failed to get members.");
       return;
-    } catch (RepositoryException e) {
+    }/* catch (RepositoryException e) {
       logger.error(e.getMessage(),e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
       "Failed to get members.");
       return;
-    }
+    }*/
 
   }
 

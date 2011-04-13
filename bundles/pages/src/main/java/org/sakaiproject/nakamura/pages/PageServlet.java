@@ -68,7 +68,7 @@ public class PageServlet extends SlingSafeMethodsServlet {
       RequestParameter rp = request.getRequestParameter("path");
       ResourceResolver resourceResolver = request.getResourceResolver();
       if (rp != null) {
-        String contentPath = rp.getString();
+        String contentPath = rp.getString("UTF-8");
         if (contentPath.startsWith("/_groupa:")) {
           contentPath = contentPath.replaceFirst("/_groupa:", "/~");
         }

@@ -32,7 +32,6 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -60,9 +59,6 @@ public class CommentSearchResultProcessor implements SolrSearchResultProcessor {
   private PresenceService presenceService;
 
   @Reference
-  private ProfileService profileService;
-
-  @Reference
   private SolrSearchServiceFactory searchServiceFactory;
 
   /**
@@ -78,7 +74,7 @@ public class CommentSearchResultProcessor implements SolrSearchResultProcessor {
     try {
       Content content = session.getContentManager().get(result.getPath());
       Post p = new Post(content, session);
-      p.outputPostAsJSON((ExtendedJSONWriter) write, presenceService, profileService, session);
+      p.outputPostAsJSON((ExtendedJSONWriter) write, presenceService, /*profileService,*/ session);
     } catch (StorageClientException e) {
       throw new RuntimeException(e.getMessage(), e);
     } catch (AccessDeniedException e) {

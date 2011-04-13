@@ -32,6 +32,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
@@ -44,7 +45,8 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+//import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,9 +76,6 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
   private static final String COMMENT_ID = "commentId";
   private static final String AUTHOR = "author";
   private static final String CREATED = "_created";
-
-  @Reference
-  private ProfileService profileService;
 
   @Reference
   private Repository repository;
@@ -115,7 +114,6 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
     try {
       ContentManager contentManager = resource.adaptTo(ContentManager.class);
       Session session = resource.adaptTo(Session.class);
-      javax.jcr.Session jcrSession = resource.getResourceResolver().adaptTo(javax.jcr.Session.class);
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       Content comments = contentManager.get(poolContent.getPath() + "/" + COMMENTS);
       response.setContentType("application/json");
@@ -135,12 +133,10 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
 
           try {
             Authorizable author = authorizableManager.findAuthorizable(authorId);
-            ValueMap profile = profileService.getCompactProfileMap(author, jcrSession);
+            BasicUserInfo basicUserInfo = new BasicUserInfo();
+            ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(author));
             w.valueMapInternals(profile);
           } catch (StorageClientException e ) {
-            w.key(AUTHOR);
-            w.value(authorId);
-          } catch (RepositoryException e) {
             w.key(AUTHOR);
             w.value(authorId);
           }
@@ -155,7 +151,6 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
           w.value(properties.get(CREATED));
 
           w.endObject();
-
         }
       }
 

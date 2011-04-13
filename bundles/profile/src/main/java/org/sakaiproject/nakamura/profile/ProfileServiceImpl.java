@@ -17,18 +17,18 @@
  */
 package org.sakaiproject.nakamura.profile;
 
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_DESCRIPTION_PROPERTY;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_TITLE_PROPERTY;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_BASIC;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_EMAIL_PROPERTY;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_FIRSTNAME_PROPERTY;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_LASTNAME_PROPERTY;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_PICTURE;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.PREFERRED_NAME;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_ROLE;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_COLLEGE;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_DEPARTMENT;
-import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_DATEOFBIRTH;
+import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_DESCRIPTION_PROPERTY;
+import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_TITLE_PROPERTY;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_BASIC;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_EMAIL_PROPERTY;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_FIRSTNAME_PROPERTY;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_LASTNAME_PROPERTY;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_PICTURE;
+import static org.sakaiproject.nakamura.api.user.UserConstants.PREFERRED_NAME;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_ROLE;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_COLLEGE;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_DEPARTMENT;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_DATEOFBIRTH;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -56,11 +56,12 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
 import org.sakaiproject.nakamura.api.resource.lite.LiteJsonImporter;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -216,6 +217,7 @@ public class ProfileServiceImpl implements ProfileService {
    *
    * @see org.sakaiproject.nakamura.api.profile.ProfileService#getCompactProfileMap(org.apache.jackrabbit.api.security.user.Authorizable,
    *      javax.jcr.Session)
+   * @deprecated Replaced with {@link BasicUserInfo#getProperties(Authorizable)} in user bundle
    */
   public ValueMap getCompactProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException, StorageClientException, AccessDeniedException {
@@ -262,7 +264,7 @@ public class ProfileServiceImpl implements ProfileService {
     if ( authorizable.hasProperty("access")) {
       compactProfile.put("access", authorizable.getProperty("access"));
     } else {
-      compactProfile.put(ProfileConstants.USER_BASIC_ACCESS, ProfileConstants.EVERYBODY_ACCESS_VALUE);
+      compactProfile.put(UserConstants.USER_BASIC_ACCESS, UserConstants.EVERYBODY_ACCESS_VALUE);
     }
     return compactProfile;
   }
@@ -344,11 +346,19 @@ public class ProfileServiceImpl implements ProfileService {
     }
   }
 
+  
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.api.profile.ProfileService#getCompactProfileMap(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable, javax.jcr.Session)
+   * @deprecated Replaced with {@link BasicUserInfo#getProperties(org.apache.jackrabbit.api.security.user.Authorizable, Session)} in user bundle
+   */
   public ValueMap getCompactProfileMap(
       org.apache.jackrabbit.api.security.user.Authorizable authorizable, Session session) throws RepositoryException {
     org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
     try {
       return getCompactProfileMap(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID()), session);
+      //BasicUserInfo basicUserInfo = new BasicUserInfo();
+      //return new ValueMapDecorator(basicUserInfo.getProperties(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID())));
     } catch (StorageClientException e) {
       throw new RepositoryException(e.getMessage(), e);
     } catch (AccessDeniedException e) {
@@ -371,7 +381,7 @@ public class ProfileServiceImpl implements ProfileService {
     rv.put("rep:userId", User.ANON_USER);
     ValueMap basicProfile =  basicProfile(
         ImmutableMap.of(USER_FIRSTNAME_PROPERTY, "Anonymous", USER_LASTNAME_PROPERTY, "User", USER_EMAIL_PROPERTY, "anon@sakai.invalid"));
-    basicProfile.put(ProfileConstants.USER_BASIC_ACCESS, ProfileConstants.EVERYBODY_ACCESS_VALUE);
+    basicProfile.put(UserConstants.USER_BASIC_ACCESS, UserConstants.EVERYBODY_ACCESS_VALUE);
     rv.put(USER_BASIC,basicProfile);
     return rv;
   }

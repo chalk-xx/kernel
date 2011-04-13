@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -34,19 +35,17 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.util.Date;
-
-import javax.jcr.RepositoryException;
 
 
 @Component(label = "GroupJoinRequestSearchResultProcessor", description = "Formatter for group join request search results.")
@@ -55,10 +54,6 @@ import javax.jcr.RepositoryException;
     @Property(name = "sakai.search.processor", value = "GroupJoinRequest") })
 @Service
 public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultProcessor {
-
-  @Reference
-  private ProfileService profileService;
-
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
@@ -94,7 +89,8 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
 
         if (auth != null) {
           write.object();
-          ValueMap map = profileService.getCompactProfileMap(auth, jcrSession);
+          BasicUserInfo basicUserInfo = new BasicUserInfo();
+          ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(auth));
           ((ExtendedJSONWriter)write).valueMapInternals(map);
           write.key("_created");
           Long created = (Long) result.getFirstValue(Content.CREATED_FIELD);
@@ -110,9 +106,9 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
       } catch (StorageClientException e) {
         throw new RuntimeException(e.getMessage(), e);
       } catch (AccessDeniedException e) {
-      } catch (RepositoryException e) {
+      } /*catch (RepositoryException e) {
         throw new RuntimeException(e.getMessage(), e);
-      }
+      }*/
     }
   }
 

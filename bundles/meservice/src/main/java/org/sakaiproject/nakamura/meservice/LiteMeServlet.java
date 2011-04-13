@@ -1,5 +1,4 @@
 /*
- * Licensed to the Sakai Foundation (SF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership. The SF licenses this file
@@ -50,6 +49,7 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -234,7 +234,8 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
             continue;
           }
         }
-        ValueMap groupProfile = profileService.getCompactProfileMap(group, jcrSession);
+        BasicUserInfo basicUserInfo = new BasicUserInfo();
+        ValueMap groupProfile = new ValueMapDecorator(basicUserInfo.getProperties(group));
         if (groupProfile != null) {
           writer.valueMap(groupProfile);
         }
@@ -334,7 +335,8 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
     try {
       String store = messagingService.getFullPathToStore(au.getId(), session);
       store = ISO9075.encodePath(store);
-      String queryString = "path:" + ClientUtils.escapeQueryChars(store) + "* AND resourceType:sakai/message AND type:internal AND messagebox:inbox AND read:false";
+      store = store.substring(0, store.length() - 1);
+      String queryString = "path:" + ClientUtils.escapeQueryChars(store) + " AND resourceType:sakai/message AND type:internal AND messagebox:inbox AND read:false";
       Query query = new Query(queryString, null);
       LOG.debug("Submitting Query {} ", query);
       SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(

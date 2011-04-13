@@ -46,9 +46,9 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.ByteArrayOutputStream;
@@ -84,17 +84,12 @@ public class DiscussionThreadedProcessorTest {
 
     Session session = mock(Session.class);
 
-    ProfileService profileService = mock(ProfileService.class);
-    processor.profileService = profileService;
-
     AccessControlManager accessControlManager = mock(AccessControlManager.class);
     when(session.getAccessControlManager()).thenReturn(accessControlManager);
     @SuppressWarnings("unused")
     User adminUser = new User(ImmutableMap.of(User.ID_FIELD, (Object) "admin"));
     @SuppressWarnings("unused")
     User anonUser = new User(ImmutableMap.of(User.ID_FIELD, (Object) "anonymous"));
-    when(profileService.getCompactProfileMap(isA(Authorizable.class),
-        isA(javax.jcr.Session.class))).thenReturn(ValueMap.EMPTY);
     
     AuthorizableManager authMgr = mock(AuthorizableManager.class);
     when(session.getAuthorizableManager()).thenReturn(authMgr);

@@ -24,6 +24,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -59,18 +60,34 @@ public interface ProfileService {
   /**
    * Gets the compact profile information from JCR and expands external resources
    * efficiently.
-   *
-   * @param profileNode
-   *          The node that represents the top level profile node.
-   *
+   * 
+   * @param authorizable
+   *          the authorizable
+   * @param session
+   *          the session
    * @return A Map that represents the profile.
+   * @throws RepositoryException
+   * @throws StorageClientException
+   * @throws AccessDeniedException
+   * @deprecated Replaced with {@link BasicUserInfo#getProperties(Authorizable)} in user bundle
    */
   ValueMap getCompactProfileMap(
       Authorizable authorizable,
       Session session) throws RepositoryException, StorageClientException,
       AccessDeniedException;
 
-
+  /**
+   * Gets the compact profile information from JCR and expands external resources
+   * efficiently.
+   * 
+   * @param au
+   *          the JCR authorizable
+   * @param session
+   *          the JCR session
+   * @return A Map that represents the profile.
+   * @throws RepositoryException
+   * @deprecated Replaced with {@link BasicUserInfo#getProperties(org.apache.jackrabbit.api.security.user.Authorizable, Session)} in user bundle
+   */
   ValueMap getCompactProfileMap(org.apache.jackrabbit.api.security.user.Authorizable au,
       Session session) throws RepositoryException;
 

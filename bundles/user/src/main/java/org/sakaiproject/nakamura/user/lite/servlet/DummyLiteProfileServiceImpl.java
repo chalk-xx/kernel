@@ -15,6 +15,11 @@ public class DummyLiteProfileServiceImpl implements LiteProfileService {
     return new ValueMapDecorator(au.getSafeProperties());
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.user.lite.servlet.LiteProfileService#getCompactProfileMap(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable, org.sakaiproject.nakamura.api.lite.Session)
+   * @deprecated
+   */
   public ValueMap getCompactProfileMap(Authorizable au, Session session) {
     return new ValueMapDecorator(au.getSafeProperties());
   }
