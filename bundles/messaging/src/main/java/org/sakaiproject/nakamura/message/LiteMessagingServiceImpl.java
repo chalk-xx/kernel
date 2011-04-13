@@ -56,8 +56,6 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
   @Reference
   protected transient LockManager lockManager;
 
-  @Reference
-
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteMessagingServiceImpl.class);
 

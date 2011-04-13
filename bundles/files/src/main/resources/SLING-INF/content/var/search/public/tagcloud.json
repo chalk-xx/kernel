@@ -4,7 +4,7 @@
       "sort": "${sortOn} ${sortOrder}",
       "items": "10000"
   },
-  "sortOn": "lastModified",
+  "sortOn": "_lastModified",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
   "sakai:batchresultprocessor": "TagCloud",

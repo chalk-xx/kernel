@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": 'path:${_connectionstore} AND resourceType:sakai/contact AND state:(${state} -NONE) AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}))',
+  "sakai:query-template": 'path:${_connectionstore} AND resourceType:sakai/contact AND state:(${state} -NONE) AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR ngram:(${q}))',
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },

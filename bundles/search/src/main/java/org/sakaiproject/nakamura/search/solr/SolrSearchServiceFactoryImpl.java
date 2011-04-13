@@ -25,7 +25,6 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.schema.TextField;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -278,6 +277,10 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
    */
   private void parseSort(SolrQuery solrQuery, String val) {
     String[] sort = StringUtils.split(val);
+    // we don't support score sorting at all yet
+    if ("score".equals(sort[0])) {
+    	return;
+    }
     switch (sort.length) {
       case 1:
       solrQuery.setSortField(sort[0], ORDER.asc);
@@ -294,13 +297,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
           o = ORDER.asc;
         }
       }
-      // KERN-1752 solr is not using the field names with underscores
-      // so we must trim the underscores to match
-      String sortOn = sort[0];
-      if (sortOn.startsWith("_")) {
-        sortOn = sortOn.substring(1);
-      }
-      solrQuery.setSortField(sortOn, o);
+      solrQuery.setSortField(sort[0], o);
       break;
     default:
       LOGGER.warn("Expected the sort option to be 1 or 2 terms. Found: {}", val);

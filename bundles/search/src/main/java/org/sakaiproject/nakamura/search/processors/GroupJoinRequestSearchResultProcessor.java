@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -92,7 +93,7 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
           ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(auth));
           ((ExtendedJSONWriter)write).valueMapInternals(map);
           write.key("_created");
-          Long created = (Long) result.getFirstValue("created");
+          Long created = (Long) result.getFirstValue(Content.CREATED_FIELD);
           Date createdDate = null;
           if ( created != null) {
             createdDate = new Date(created);
