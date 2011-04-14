@@ -125,9 +125,10 @@ public class FileSearchPropertyProvider implements SolrSearchPropertyProvider {
       StringBuilder edgeNgram = new StringBuilder("edgengram:(");
 
       for (int i = 0; i < tags.length; i++) {
-        tag.append("\"").append(ClientUtils.escapeQueryChars(tags[i])).append("\"");
-        ngram.append("\"").append(ClientUtils.escapeQueryChars(tags[i])).append("\"");
-        edgeNgram.append("\"").append(ClientUtils.escapeQueryChars(tags[i])).append("\"");
+        String term = ClientUtils.escapeQueryChars(tags[i]);
+        tag.append("\"").append(term).append("\"");
+        ngram.append("\"").append(term).append("\"");
+        edgeNgram.append("\"").append(term).append("\"");
 
         if (i < tags.length - 1) {
           tag.append(" AND ");
