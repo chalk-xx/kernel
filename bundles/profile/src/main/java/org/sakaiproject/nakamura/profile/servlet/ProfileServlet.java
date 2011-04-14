@@ -36,7 +36,6 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +65,7 @@ import javax.servlet.http.HttpServletResponse;
         + " provider. All of that information is used by the ProfileProvider implementation to convert and node in the profile subtree, marked as external "
         + "into a map of maps, the structure and layout of that map being determined by the implementation of the ProfileProvider. " })
 @SlingServlet(extensions = { "json" }, methods = { "GET" }, resourceTypes = {
-    ProfileConstants.GROUP_PROFILE_RT, ProfileConstants.USER_PROFILE_RT }, selectors = { "profile" })
+    ProfileConstants.GROUP_PROFILE_RT, ProfileConstants.USER_PROFILE_RT })
 public class ProfileServlet extends SlingSafeMethodsServlet {
 
   /**
@@ -95,7 +94,6 @@ public class ProfileServlet extends SlingSafeMethodsServlet {
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
       ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
-      map.put("userid", PathUtils.getAuthorizableId(profileContent.getPath()));
       writer.valueMap(map);
     } catch (AccessDeniedException e) {
       LOGGER.warn("Failed to access profile at {}: {}", new Object[] {

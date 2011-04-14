@@ -56,6 +56,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
@@ -157,6 +158,13 @@ public class ProfileServiceImpl implements ProfileService {
       // Return it as a ValueMap.
       ValueMap map = new ValueMapDecorator(new HashMap<String, Object>());
       handleNode(profileContent, providedNodeData, map);
+      final String resourceType = (String) profileContent
+          .getProperty("sling:resourceType");
+      if (ProfileConstants.USER_PROFILE_RT.equals(resourceType)) {
+        map.put("userid", PathUtils.getAuthorizableId(profileContent.getPath()));
+      } else if (ProfileConstants.GROUP_PROFILE_RT.equals(resourceType)) {
+        map.put("groupid", PathUtils.getAuthorizableId(profileContent.getPath()));
+      }
       return map;
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
