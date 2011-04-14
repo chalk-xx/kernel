@@ -70,24 +70,6 @@
                 </bundle>
                 <bundle>
                   <groupId>org.sakaiproject.nakamura</groupId>
-                  <artifactId>org.sakaiproject.nakamura.auth.opensso</artifactId>
-                  <version>${nakamura.version}</version>
-                  <startLevel>30</startLevel>
-                </bundle>
-                <bundle>
-                  <groupId>org.sakaiproject.nakamura</groupId>
-                  <artifactId>org.sakaiproject.nakamura.remotefiles</artifactId>
-                  <version>${nakamura.version}</version>
-                  <startLevel>30</startLevel>
-                </bundle>
-                <bundle>
-                  <groupId>org.sakaiproject.nakamura</groupId>
-                  <artifactId>org.sakaiproject.nakamura.site.join</artifactId>
-                  <version>${nakamura.version}</version>
-                  <startLevel>30</startLevel>
-                </bundle>
-                <bundle>
-                  <groupId>org.sakaiproject.nakamura</groupId>
                   <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
                   <version>${nakamura.version}</version>
                   <startLevel>1</startLevel>
