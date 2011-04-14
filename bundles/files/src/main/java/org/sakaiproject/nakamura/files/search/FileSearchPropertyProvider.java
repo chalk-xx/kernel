@@ -157,7 +157,7 @@ public class FileSearchPropertyProvider implements SolrSearchPropertyProvider {
     StringBuilder sb = new StringBuilder();
 
     if (connectedUsers.size() > 0) {
-      sb.append("AND createdBy:(");
+      sb.append("AND _createdBy:(");
       Iterator<String> users = connectedUsers.iterator();
       while (users.hasNext()) {
         String u = users.next();
