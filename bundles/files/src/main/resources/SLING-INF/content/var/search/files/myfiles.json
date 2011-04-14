@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "path:${_mySpace} AND (content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q}) OR path:(${q}) OR ngram:(${q})) ${_usedin}${_tags}",
+  "sakai:query-template": "path:${_mySpace} AND (content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q}) OR path:(${q}) OR ngram:(${q}) OR edgengram:(${q})) ${_usedin}${_tags}",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },

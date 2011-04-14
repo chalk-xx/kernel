@@ -28,6 +28,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
+import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 
@@ -115,23 +116,26 @@ public class FileSearchPropertyProvider implements SolrSearchPropertyProvider {
    * @return
    */
   protected String doTags(SlingHttpServletRequest request) {
-    String[] tags = request.getParameterValues("sakai:tags");
+    String[] tags = request.getParameterValues(FilesConstants.SAKAI_TAGS);
     StringBuilder tag = new StringBuilder();
-    StringBuilder ngram = new StringBuilder();
 
     if (tags != null) {
       tag.append("(tag:(");
-      ngram.append("ngram:(");
+      StringBuilder ngram = new StringBuilder("ngram:(");
+      StringBuilder edgeNgram = new StringBuilder("edgengram:(");
+
       for (int i = 0; i < tags.length; i++) {
         tag.append("\"").append(ClientUtils.escapeQueryChars(tags[i])).append("\"");
         ngram.append("\"").append(ClientUtils.escapeQueryChars(tags[i])).append("\"");
+        edgeNgram.append("\"").append(ClientUtils.escapeQueryChars(tags[i])).append("\"");
 
         if (i < tags.length - 1) {
           tag.append(" AND ");
           ngram.append(" AND ");
+          edgeNgram.append(" AND ");
         }
       }
-      tag.append(") OR ").append(ngram).append("))");
+      tag.append(") OR ").append(ngram).append(") OR ").append(edgeNgram).append("))");
     }
     return tag.toString();
   }
