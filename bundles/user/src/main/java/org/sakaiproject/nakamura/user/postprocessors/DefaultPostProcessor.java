@@ -494,7 +494,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         accessControlManager.setAcl(Security.ZONE_CONTENT, homePath,
             aclModifications.toArray(new AclModification[aclModifications.size()]));
       } catch (AccessDeniedException e) {
-        LOGGER.info("User {} is not able to update ACLs for the Home path of Authorizable {} - exception {}",
+        LOGGER.warn("User {} is not able to update ACLs for the Home path of Authorizable {} - exception {}",
             new Object[] {session.getUserId(), authorizable.getId(), e.getMessage()});
       }
 
@@ -687,7 +687,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       try {
         authorizableManager.delete(managersGroup);
       } catch (Exception e) {
-        LOGGER.info("Failed to delete managers group {}  {}", managersGroup);
+        LOGGER.warn("Failed to delete managers group {}  {}", managersGroup);
       }
     } else {
       LOGGER.debug(" {} has no manager group {} ", authorizable,
@@ -973,7 +973,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     LOGGER.info("Viewer Settings {}", viewerSettings);
     LOGGER.info("Manager Settings {}", managerSettings);
     for (AclModification a : aclModifications) {
-      LOGGER.info("     Change {} ", a);
+      LOGGER.debug("     Change {} ", a);
     }
 
   }

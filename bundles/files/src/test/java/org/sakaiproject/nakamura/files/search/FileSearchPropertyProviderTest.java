@@ -53,7 +53,7 @@ public class FileSearchPropertyProviderTest {
     String[] tags = new String[] { "foo", "bar" };
     when(request.getParameterValues("sakai:tags")).thenReturn(tags);
     String result = provider.doTags(request);
-    assertEquals("tag:(\"foo\" AND \"bar\")", result);
+    assertEquals("(tag:(\"foo\" AND \"bar\") OR ngram:(\"foo\" AND \"bar\"))", result);
   }
 
   @Test

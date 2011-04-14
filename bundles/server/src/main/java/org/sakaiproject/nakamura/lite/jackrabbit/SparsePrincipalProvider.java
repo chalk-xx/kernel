@@ -134,7 +134,7 @@ public class SparsePrincipalProvider implements PrincipalProvider {
     } catch (StorageClientException e) {
       LOGGER.debug(e.getMessage(), e);
     }
-    return new PrincipalIteratorAdapter(Collections.EMPTY_LIST);
+    return PrincipalIteratorAdapter.EMPTY;
   }
 
   public PrincipalIterator getGroupMembership(final Principal principal) {
@@ -142,6 +142,9 @@ public class SparsePrincipalProvider implements PrincipalProvider {
     try {
       org.sakaiproject.nakamura.api.lite.authorizable.Authorizable a = authorizableManager
           .findAuthorizable(principal.getName());
+      if (a == null) {
+        return PrincipalIteratorAdapter.EMPTY;
+      }
       Collections.addAll(memberIds, a.getPrincipals());
     } catch (AccessDeniedException e) {
       LOGGER.debug(e.getMessage(), e);

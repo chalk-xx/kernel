@@ -25,6 +25,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -34,7 +35,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -99,7 +100,7 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = 7976930178619974246L;
 
   // @Reference
-  protected transient ProfileService profileService;
+  //protected transient ProfileService profileService;
 
   static final String ITEMS = "items";
   static final String PAGE = "page";
@@ -172,18 +173,18 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
       while (iterator.hasNext() && i < items) {
         Entry<String, Authorizable> entry = iterator.next();
         Authorizable au = entry.getValue();
-        ValueMap profile = null;
+        BasicUserInfo basicUserInfo = new BasicUserInfo();
+        ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(au, session));
+        /*
         if(selectors.contains("detailed")){
-   // PORTED TO Lite cant use      profile = profileService.getProfileMap(au, session);
+   // PORTED TO Lite cant use profile = profileService.getProfileMap(au, session);
         }else{
-   // PORTED TO Lite cant use       profile = profileService.getCompactProfileMap(au, session);
+   // PORTED TO Lite cant use profile = profileService.getCompactProfileMap(au, session);
         }
+        */
         if (profile != null) {
           writer.valueMap(profile);
           i++;
-        } else {
-          // profile wasn't found.  safe to ignore and not include the group
-          logger.info("Profile not found for " + au.getID());
         }
       }
       writer.endArray();

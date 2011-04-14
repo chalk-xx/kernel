@@ -1,8 +1,10 @@
 {
   "sakai:query-template": "path:${_pNodePath}/activity AND resourceType:sakai/activity",
   "sakai:query-template-options": {
-      "sort": "created desc"
+      "sort": "${sortOn} ${sortOrder}"
   },
+  "sortOn": "_created",
+  "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "PooledContentNode",
   "sakai:title": "Pooled Content - Activity Feed",

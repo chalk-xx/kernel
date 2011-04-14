@@ -36,6 +36,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +95,7 @@ public class ProfileServlet extends SlingSafeMethodsServlet {
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
       ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
+      map.put("userid", PathUtils.getAuthorizableId(profileContent.getPath()));
       writer.valueMap(map);
     } catch (AccessDeniedException e) {
       LOGGER.warn("Failed to access profile at {}: {}", new Object[] {

@@ -25,7 +25,6 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.schema.TextField;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -61,18 +60,33 @@ import java.util.Set;
 @Service
 public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
 
+  @Property(longValue = 100L)
+  private static final String VERY_SLOW_QUERY_TIME = "verySlowQueryTime";
+  @Property(longValue = 10L)
+  private static final String SLOW_QUERY_TIME = "slowQueryTime";
+  @Property(intValue = 100)
+  private static final String DEFAULT_MAX_RESULTS = "defaultMaxResults";
+
+  public class SlowQueryLogger {
+    // only used to mark the logger.
+  }
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SolrSearchServiceFactoryImpl.class);
+  private static final Logger SOLR_QUERY_LOGGER = LoggerFactory.getLogger(SlowQueryLogger.class);
   @Reference
   private SolrServerService solrSearchService;
 
-  @Property(name = "defaultMaxResults", intValue = 100)
+  
   private int defaultMaxResults = 100; // set to 100 to allow testing
+  private long slowQueryThreshold;
+  private long verySlowQueryThreshold;
 
   @Activate
   protected void activate(Map<?, ?> props) {
-    defaultMaxResults = OsgiUtil.toInteger(props.get("defaultMaxResults"),
+    defaultMaxResults = OsgiUtil.toInteger(props.get(DEFAULT_MAX_RESULTS),
         defaultMaxResults);
+    slowQueryThreshold = OsgiUtil.toLong(props.get(SLOW_QUERY_TIME), 10L);
+    verySlowQueryThreshold = OsgiUtil.toLong(props.get(VERY_SLOW_QUERY_TIME), 100L);
   }
 
   public SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request,
@@ -138,13 +152,27 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
     SolrQuery solrQuery = buildQuery(request, queryString, query.getOptions());
 
     SolrServer solrServer = solrSearchService.getServer();
+    if ( LOGGER.isDebugEnabled()) {
+      try {
+        LOGGER.debug("Performing Query {} ", URLDecoder.decode(solrQuery.toString(),"UTF-8"));
+      } catch (UnsupportedEncodingException e) {
+      }
+    }
+    long tquery = System.currentTimeMillis();
+    QueryResponse response = solrServer.query(solrQuery);
+    tquery = System.currentTimeMillis() - tquery;
     try {
-      LOGGER.info("Performing Query {} ", URLDecoder.decode(solrQuery.toString(),"UTF-8"));
+      if ( tquery > slowQueryThreshold && tquery < verySlowQueryThreshold ) {
+        SOLR_QUERY_LOGGER.warn("Slow query {} ms {} ",tquery, URLDecoder.decode(solrQuery.toString(),"UTF-8"));
+      } else if ( tquery > verySlowQueryThreshold ) {
+        SOLR_QUERY_LOGGER.error("Very Slow query {} ms {} ",tquery, URLDecoder.decode(solrQuery.toString(),"UTF-8"));
+      }
     } catch (UnsupportedEncodingException e) {
     }
-    QueryResponse response = solrServer.query(solrQuery);
     SolrSearchResultSetImpl rs = new SolrSearchResultSetImpl(response);
-    LOGGER.info("Got {} hits in {} ms", rs.getSize(), response.getElapsedTime());
+    if ( LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Got {} hits in {} ms", rs.getSize(), response.getElapsedTime());
+    }
     return rs;
   }
 
@@ -278,6 +306,10 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
    */
   private void parseSort(SolrQuery solrQuery, String val) {
     String[] sort = StringUtils.split(val);
+    // we don't support score sorting at all yet
+    if ("score".equals(sort[0])) {
+    	return;
+    }
     switch (sort.length) {
       case 1:
       solrQuery.setSortField(sort[0], ORDER.asc);
@@ -294,13 +326,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
           o = ORDER.asc;
         }
       }
-      // KERN-1752 solr is not using the field names with underscores
-      // so we must trim the underscores to match
-      String sortOn = sort[0];
-      if (sortOn.startsWith("_")) {
-        sortOn = sortOn.substring(1);
-      }
-      solrQuery.setSortField(sortOn, o);
+      solrQuery.setSortField(sort[0], o);
       break;
     default:
       LOGGER.warn("Expected the sort option to be 1 or 2 terms. Found: {}", val);

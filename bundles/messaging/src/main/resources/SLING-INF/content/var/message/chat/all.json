@@ -4,7 +4,7 @@
       "sort": "${sortOn} ${sortOrder}"
   },
   "_from": "",
-  "sortOn": "created",
+  "sortOn": "_created",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "ChatMessage",

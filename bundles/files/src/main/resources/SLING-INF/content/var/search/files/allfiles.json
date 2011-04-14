@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q}) ${_tags}${_usedin}",
+  "sakai:query-template": "content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q}) OR ngram:(${q}) ${_tags}${_usedin}",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },

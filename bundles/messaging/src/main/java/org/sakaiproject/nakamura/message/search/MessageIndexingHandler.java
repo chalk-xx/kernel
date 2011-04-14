@@ -62,7 +62,7 @@ public class MessageIndexingHandler implements IndexingHandler {
     Builder<String,String> propBuilder = ImmutableMap.builder();
     propBuilder.put("sakai:messagebox", "messagebox");
     propBuilder.put("sakai:type", "type");
-    propBuilder.put("_created", "created");
+    propBuilder.put(Content.CREATED_FIELD, Content.CREATED_FIELD);
     propBuilder.put("sakai:category", "category");
     propBuilder.put("sakai:from", "from");
     propBuilder.put("sakai:to", "to");
@@ -75,6 +75,8 @@ public class MessageIndexingHandler implements IndexingHandler {
 
   private static final Logger logger = LoggerFactory
       .getLogger(MessageIndexingHandler.class);
+
+  private static final String AUTH_SUFFIX = "-auth";
 
   @Reference(target = "(type=sparse)")
   private ResourceIndexingService resourceIndexingService;
@@ -138,6 +140,7 @@ public class MessageIndexingHandler implements IndexingHandler {
             // client. the resource indexing service will add all nodes of the path and
             // we want this one to return first in the result processor.
             doc.setField(FIELD_PATH, authId);
+            doc.addField(FIELD_ID, path + AUTH_SUFFIX);
 
             // set the return to a single value field so we can group it
             doc.setField("returnpath", authId);
@@ -164,7 +167,7 @@ public class MessageIndexingHandler implements IndexingHandler {
       Event event) {
     logger.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty(FIELD_PATH);
-    return ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
+    return ImmutableList.of("id:(" + ClientUtils.escapeQueryChars(path) + " OR " + ClientUtils.escapeQueryChars(path + AUTH_SUFFIX) + ")");
   }
 
 }

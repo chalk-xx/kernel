@@ -7,6 +7,10 @@ public interface SolrSearchConstants {
    */
   public static final int DEFAULT_PAGED_ITEMS = 25;
   /**
+   * The default page to start on.
+   */
+  public static final int DEFAULT_PAGE = 0;
+  /**
    * The frequency of the aggregate term.
    */
   public static final String JSON_COUNT = "count";
