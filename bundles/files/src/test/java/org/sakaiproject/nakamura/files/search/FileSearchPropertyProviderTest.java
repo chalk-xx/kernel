@@ -53,7 +53,7 @@ public class FileSearchPropertyProviderTest {
     String[] tags = new String[] { "foo", "bar" };
     when(request.getParameterValues("sakai:tags")).thenReturn(tags);
     String result = provider.doTags(request);
-    assertEquals("(tag:(\"foo\" AND \"bar\") OR ngram:(\"foo\" AND \"bar\"))", result);
+    assertEquals("(tag:(\"foo\" AND \"bar\") OR ngram:(\"foo\" AND \"bar\") OR edgengram:(\"foo\" AND \"bar\"))", result);
   }
 
   @Test
@@ -64,7 +64,7 @@ public class FileSearchPropertyProviderTest {
         .thenReturn(connections);
 
     String query = provider.getMyContacts(request, "alice");
-    assertEquals("AND createdBy:(\"bob\" OR \"jack\")", query);
+    assertEquals("AND _createdBy:(\"bob\" OR \"jack\")", query);
   }
 
   @Test
