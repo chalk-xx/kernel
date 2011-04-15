@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.solr.client.solrj.util.ClientUtils;
@@ -77,7 +78,7 @@ public class TagMatchSearchPropertyProvider implements SolrSearchPropertyProvide
         if (q.endsWith("*")) {
           q = q.substring(0, q.length()-1);
         }
-        String statement = "//element(*)MetaData[@sling:resourceType='sakai/tag' and jcr:like(@sakai:tag-name,'%"+q+"%')]";
+        String statement = "//element(*)MetaData[@sling:resourceType='sakai/tag' and jcr:like(@sakai:tag-name,'%" + ISO9075.encode(q) + "%')]";
         QueryManager qm = session.getWorkspace().getQueryManager();
         @SuppressWarnings("deprecation")
         Query query = qm.createQuery(statement, Query.XPATH);

@@ -488,8 +488,14 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           || StringUtils.contains(requestValue, '~')) {
         requestValue = requestValue.toLowerCase();
       }
+      // we're selective with what we escape to make sure we don't hinder
+      // search functionality
       // KERN-1703 Escape just :
       requestValue = StringUtils.replace(requestValue, ":", "\\:");
+      // KERN-1788 Escape / and \
+      requestValue = StringUtils.replace(requestValue, "/", "\\/");
+      requestValue = StringUtils.replace(requestValue, "\\", "\\\\");
+
       propertiesMap.put(entry.getKey(), requestValue);
     }
 
