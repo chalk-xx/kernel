@@ -43,13 +43,18 @@ public class SolrSearchUtil {
   public static long[] getOffsetAndSize(SlingHttpServletRequest request,
       final Map<String, String> options) {
     long nitems;
-    if (options != null && options.containsKey(PARAMS_ITEMS_PER_PAGE)) {
+    if (options != null && options.get(PARAMS_ITEMS_PER_PAGE) != null) {
       nitems = Long.valueOf(options.get(PARAMS_ITEMS_PER_PAGE));
     } else {
       nitems = SolrSearchUtil.longRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
           DEFAULT_PAGED_ITEMS);
     }
-    long page = SolrSearchUtil.longRequestParameter(request, PARAMS_PAGE, 0);
+    long page;
+    if (options != null && options.get(PARAMS_PAGE) != null) {
+      page = Long.valueOf(options.get(PARAMS_PAGE));
+    } else {
+      page = SolrSearchUtil.longRequestParameter(request, PARAMS_PAGE, 0);
+    }
     long offset = page * nitems;
     long resultSize = Math.max(nitems, offset);
     return new long[]{offset, resultSize };

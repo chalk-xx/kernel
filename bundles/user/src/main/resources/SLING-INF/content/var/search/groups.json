@@ -4,7 +4,7 @@
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}",
       "group": true,
-      "group.field": "path"
+      "group.field": "returnpath"
   },
   "sortOn": "score",
   "sortOrder": "desc",
