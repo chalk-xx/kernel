@@ -19,11 +19,8 @@ class TC_Kern538Test < Test::Unit::TestCase
     treeuser = create_user("treeuser1#{m}")
     @s.switch_user(treeuser)
 
-    # Create foo node in private store
-    @s.execute_post(@s.url_for("#{treeuser.private_path_for(@s)}/foo"), {"foo" => "bar"})
-
     # Create the default tree
-    jsonRes = create_tree(default_tree(), "#{treeuser.private_path_for(@s)}/foo")
+    jsonRes = create_tree(default_tree(), "#{treeuser.private_path_for(@s)}/#{m}")
 
     #Assertions
     default_asserts(jsonRes)
@@ -34,13 +31,10 @@ class TC_Kern538Test < Test::Unit::TestCase
     treeuser = create_user("treeuser2#{m}")
     @s.switch_user(treeuser)
 
-    # Create foo node in private store
-    @s.execute_post(@s.url_for("#{treeuser.private_path_for(@s)}/foo"), {"foo" => "bar"})
-
     # Create the default tree
     tree = default_tree()
     tree["foo"]["jcr:primaryType"] = "nt:file"
-    jsonRes = create_tree(tree, "#{treeuser.private_path_for(@s)}/foo")
+    jsonRes = create_tree(tree, "#{treeuser.private_path_for(@s)}/#{m}")
 
     #Assertions
     default_asserts(jsonRes)
