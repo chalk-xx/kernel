@@ -30,7 +30,7 @@ install "org.apache.sling.api" "2.0.9" $version
 install "org.apache.sling.bundleresource.impl" "2.0.5" $version
 install "org.apache.sling.engine" "2.0.7" $version
 install "org.apache.sling.openidauth" "0.9.1" $version
-install "org.apache.sling.jcr.contentloader" "2.0.7" $version
+install "org.apache.sling.jcr.contentloader" "2.1.3" $version
 install "org.apache.sling.jcr.base" "2.0.7" $version
 install "org.apache.sling.jcr.resource" "2.0.7" $version
 install "org.apache.sling.fsresource" "1.0.1" $version
