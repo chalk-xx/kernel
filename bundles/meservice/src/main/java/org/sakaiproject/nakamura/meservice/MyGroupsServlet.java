@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.meservice;
 
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -112,7 +113,8 @@ import javax.jcr.RepositoryException;
     )
   }
 )
-@SlingServlet(paths = { "/system/jackrabbitme/groups" }, generateComponent = true, generateService = true, methods = { "GET" })
+@Component(enabled=false)
+@SlingServlet(paths = { "/system/jackrabbitme/groups" }, generateComponent = false, generateService = true, methods = { "GET" })
 @Reference(name="profileService", referenceInterface=ProfileService.class)
 public class MyGroupsServlet extends AbstractMyGroupsServlet {
   private static final long serialVersionUID = 8809581334593701801L;
