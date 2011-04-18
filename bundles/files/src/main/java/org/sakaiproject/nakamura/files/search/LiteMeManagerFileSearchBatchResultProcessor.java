@@ -58,11 +58,13 @@ import java.util.Set;
 import javax.jcr.RepositoryException;
 
 /**
- * Formats the files search results.
+ * adapted from LiteFileSearchBatchResultProcessor
+ * BatchProcessor to filter out duplicate Content items when feeding the My recent content widget
+ * see KERN-1708.
  */
 @Component(immediate = true, metatype = true)
 @Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = SolrSearchConstants.REG_BATCH_PROCESSOR_NAMES, value = "LiteMeManaagerFiles") })
+    @Property(name = SolrSearchConstants.REG_BATCH_PROCESSOR_NAMES, value = "LiteMeManagerFiles") })
 @Service(value = SolrSearchBatchResultProcessor.class)
 public class LiteMeManagerFileSearchBatchResultProcessor implements SolrSearchBatchResultProcessor {
 
@@ -96,12 +98,14 @@ public class LiteMeManagerFileSearchBatchResultProcessor implements SolrSearchBa
   }
 
   /**
+   * adapted from LiteFileSearchBatchResultProcessor,
+   * adds filtering to return only unique results
    * {@inheritDoc}
    * 
    * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor#writeResults(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.commons.json.io.JSONWriter, java.util.Iterator)
    */
-  public void writeResultsNew(SlingHttpServletRequest request, JSONWriter write,
+  public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> iterator) throws JSONException {
     Map<String, Result> uniqueResultsMap = new HashMap<String, Result>();
     collectUniqueItems(uniqueResultsMap, iterator);
@@ -128,53 +132,25 @@ public class LiteMeManagerFileSearchBatchResultProcessor implements SolrSearchBa
     }
   }
   
-
+/*
+ * a temporary patch for KERN-1708. The Sparse search var/search/pool/me/manager-all.json is
+ * returning  multiple items, all the same with the same id's, content bodies
+ * and timestamps.  These are not versions but true duplicates.  Until
+ * that issue is fixed, adding this BatchResultProcessor method to filter out
+ * all but 1 item.  As all properties appear to be the same just taking the simple
+ * route of putting into HashMap with path as key.  This works so that the
+ * "My recent content" only shows one item after multiple revisions have been uploaded
+ * Iterating through results is not recommended but it is probably safe in this
+ * context as one user is not likely to have a huge number of content items.
+ * In any event, this can be removed when underlying cause is determined
+ */
   private void collectUniqueItems(Map<String, Result> uniqueResultsMap,
       Iterator<Result> iterator) {
     String path;
     while (iterator.hasNext()) {
       final Result result = iterator.next();
       path = result.getPath();
-      uniqueResultsMap.put(path, result);
-      
-    }
-  }
-
-  public void writeResults(SlingHttpServletRequest request, JSONWriter write,
-      Iterator<Result> iterator) throws JSONException {
-    final Integer iDepth = (Integer) request.getAttribute("depth");
-    int depth = 0;
-    if (iDepth != null) {
-      depth = iDepth.intValue();
-    }
-    try {
-      javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
-      final Session session = StorageClientUtils.adaptToSession(jcrSession);
-      while (iterator.hasNext()) {
-        final Result result = iterator.next();
-        try {
-          if ("authorizable".equals(result.getFirstValue("resourceType"))) {
-            AuthorizableManager authManager = session.getAuthorizableManager();
-            Authorizable auth = authManager.findAuthorizable((String) result.getFirstValue("id"));
-            if (auth != null) {
-              write.object();
-              ValueMap map = profileService.getProfileMap(auth, jcrSession);
-              ExtendedJSONWriter.writeValueMapInternals(write, map);
-              write.endObject();
-            }
-          } else {
-            String contentPath = result.getPath();
-            final Content content = session.getContentManager().get(contentPath);
-            handleContent(content, session, write, depth);
-          }
-        } catch (AccessDeniedException e) {
-          // do nothing
-        } catch (RepositoryException e) {
-          throw new JSONException(e);
-        }
-      }
-    } catch (StorageClientException e) {
-      throw new JSONException(e);
+      uniqueResultsMap.put(path, result); 
     }
   }
 
