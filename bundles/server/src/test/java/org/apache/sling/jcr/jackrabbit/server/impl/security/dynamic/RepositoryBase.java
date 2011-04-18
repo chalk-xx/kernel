@@ -23,6 +23,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.config.RepositoryConfig;
 import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider;
+import org.mockito.Mockito;
 import org.osgi.framework.BundleContext;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -116,6 +117,8 @@ public class RepositoryBase {
     SakaiActivator.setRuleProcessorManager(ruleProcessorManagerImpl);
     SakaiActivator.setPrincipalProviderManager(principalProviderRegistryManagerImpl);
     sakaiActivator = new SakaiActivator();
+    Mockito.when(bundleContext.getProperty("sling.repository.home")).thenReturn("target/testrepo");
+    Mockito.when(bundleContext.getProperty("sling.home")).thenReturn("target/testrepo");
     sakaiActivator.start(bundleContext);
 
     // setup the Sparse Content Repository.
