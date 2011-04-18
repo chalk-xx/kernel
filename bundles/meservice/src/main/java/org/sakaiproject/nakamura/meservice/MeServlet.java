@@ -22,6 +22,7 @@ import static org.sakaiproject.nakamura.api.connections.ConnectionState.ACCEPTED
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.INVITED;
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.PENDING;
 
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
@@ -95,7 +96,8 @@ import javax.servlet.http.HttpServletResponse;
         + "\"jcr:primaryType\":\"nt:unstructured\"}\n" + "}<pre>"),
     @ServiceResponse(code = 401, description = "Unauthorized: credentials provided were not acceptable to return information for."),
     @ServiceResponse(code = 500, description = "Unable to return information about current user.") }))
-@SlingServlet(paths = { "/system/jackrabbitme" }, generateComponent = true, generateService = true, methods = { "GET" })
+@Component(enabled=false)
+@SlingServlet(paths = { "/system/jackrabbitme" }, generateComponent = false, generateService = true, methods = { "GET" })
 public class MeServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = -3786472219389695181L;

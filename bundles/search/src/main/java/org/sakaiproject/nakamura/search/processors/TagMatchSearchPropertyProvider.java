@@ -17,11 +17,13 @@
  */
 package org.sakaiproject.nakamura.search.processors;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.solr.client.solrj.util.ClientUtils;
@@ -70,33 +72,31 @@ public class TagMatchSearchPropertyProvider implements SolrSearchPropertyProvide
     try {
       javax.jcr.Session session = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
 
-      if (request.getParameter("q") == null) {
-        throw new IllegalArgumentException(
-            "Must provide 'q' parameter to use for search.");
-      }
+      StringBuilder tagClause = new StringBuilder();
       String q = request.getParameter("q");
-      if (q.endsWith("*")) {
-        q = q.substring(0, q.length()-1);
-      }
-      String statement = "//element(*)MetaData[@sling:resourceType='sakai/tag' and jcr:like(@sakai:tag-name,'%"+q+"%')]";
-      QueryManager qm = session.getWorkspace().getQueryManager();
-      @SuppressWarnings("deprecation")
-      Query query = qm.createQuery(statement, Query.XPATH);
-      QueryResult qr = query.execute();
-      RowIterator rows = qr.getRows();
-
-      StringBuffer tagClause = new StringBuffer();
-      if (rows.getSize() > 0) {
-        tagClause.append(" OR taguuid:(");
-        String sep = "";
-        while(rows.hasNext()) {
-          tagClause.append(sep);
-          Row row = rows.nextRow();
-          Node tagNode = row.getNode();
-          tagClause.append(ClientUtils.escapeQueryChars(tagNode.getIdentifier()));
-          sep = " OR ";
+      if (!StringUtils.isBlank(q)) {
+        if (q.endsWith("*")) {
+          q = q.substring(0, q.length()-1);
         }
-        tagClause.append(")");
+        String statement = "//element(*)MetaData[@sling:resourceType='sakai/tag' and jcr:like(@sakai:tag-name,'%" + ISO9075.encode(q) + "%')]";
+        QueryManager qm = session.getWorkspace().getQueryManager();
+        @SuppressWarnings("deprecation")
+        Query query = qm.createQuery(statement, Query.XPATH);
+        QueryResult qr = query.execute();
+        RowIterator rows = qr.getRows();
+  
+        if (rows.getSize() > 0) {
+          tagClause.append(" OR taguuid:(");
+          String sep = "";
+          while(rows.hasNext()) {
+            tagClause.append(sep);
+            Row row = rows.nextRow();
+            Node tagNode = row.getNode();
+            tagClause.append(ClientUtils.escapeQueryChars(tagNode.getIdentifier()));
+            sep = " OR ";
+          }
+          tagClause.append(")");
+        }
       }
 
       propertiesMap.put("_taguuids", tagClause.toString());

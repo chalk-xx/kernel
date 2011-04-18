@@ -17,7 +17,6 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryRe
 
   private QueryResponse queryResponse;
   private SolrDocumentList responseList;
-  private long numFound = -1L;
 
   public SolrSearchResultSetImpl(QueryResponse queryResponse) {
     this.queryResponse = queryResponse;
@@ -51,10 +50,7 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryRe
     if (responseList == null) {
       // null list so let's try to load it
       responseList = queryResponse.getResults();
-      if (responseList != null) {
-        // standard search result when grouping is not applied
-        numFound = responseList.getNumFound();
-      } else {
+      if (responseList == null) {
         // will be null if search was grouped
         responseList = new SolrDocumentList();
 
@@ -62,6 +58,9 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryRe
         NamedList<Object> grouped = (NamedList<Object>) response.get("grouped");
         if (grouped.size() > 0) {
           NamedList<Object> groupings = (NamedList<Object>) grouped.getVal(0);
+          // have to set this manually
+          long numFound = (Integer) groupings.get("matches");
+          responseList.setNumFound(numFound);
           List<NamedList<Object>> groups = (List<NamedList<Object>>) groupings.get("groups");
 
           for (NamedList<Object> group : groups) {
@@ -69,9 +68,6 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryRe
             responseList.addAll(docList);
           }
         }
-
-        // have to set this manually
-        responseList.setNumFound(responseList.size());
       }
     }
   }

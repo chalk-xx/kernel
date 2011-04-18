@@ -1,6 +1,6 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": "((type:g AND (name:(${q}) OR title:(${q}) OR description:(${q}) OR title:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q})${_taguuids})) OR (type:u AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR title:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q})${_taguuids})))",
+  "sakai:query-template": "((type:g AND (name:(${q}) OR title:(${q}) OR description:(${q}) OR title:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q})${_taguuids})) OR (type:u AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR title:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q})${_taguuids})))",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}",
       "group": true,

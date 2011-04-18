@@ -89,10 +89,18 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
     Session session =
       StorageClientUtils.adaptToSession(jcrSession);
     String userId = session.getUserId();
+    String requestedUserId = request.getParameter("uid");
+    if ( requestedUserId != null && requestedUserId.length() > 0) {
+      userId = requestedUserId;
+    }
     try {
       // Find the Group entities associated with the user.
       AuthorizableManager am = session.getAuthorizableManager();
       Authorizable authorizable = am.findAuthorizable(userId);
+      if ( authorizable == null ) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST,"User "+userId+" not found.");
+        return;
+      }
       TreeMap<String, Group> groups = getGroups(authorizable, am);
 
       // Get the specified search query filter, if any.

@@ -484,13 +484,12 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       // KERN-1601 Wildcard searches have to be manually lowercased for case insensitive
       // matching as Solr bypasses the analyzer when dealing with a wildcard or fuzzy
       // search.
-      if (StringUtils.contains(requestValue, '*')
-          || StringUtils.contains(requestValue, '~')) {
+      if (StringUtils.contains(requestValue, '*')) {
         requestValue = requestValue.toLowerCase();
       }
-      // KERN-1703 Escape just :
-      requestValue = StringUtils.replace(requestValue, ":", "\\:");
-      propertiesMap.put(entry.getKey(), requestValue);
+      // we're selective with what we escape to make sure we don't hinder
+      // search functionality
+      propertiesMap.put(entry.getKey(), escapeQueryChars(requestValue));
     }
 
     // 3. load properties from a property provider
@@ -779,4 +778,24 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     return false;
   }
 
+  /**
+   * Stolen from org.apache.solr.client.solrj.util.ClientUtils
+   * See: <a href="http://lucene.apache.org/java/docs/nightly/queryparsersyntax.html#Escaping%20Special%20Characters">Escaping Special Characters</a>
+   * Removed escaping for * and "
+   */
+  protected String escapeQueryChars(String s) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      // These characters are part of the query syntax and must be escaped
+      if (c == '\\' || c == '+' || c == '-' || c == '!'  || c == '(' || c == ')'|| c == ':'
+        || c == '^' || c == '[' || c == ']' || c == '{' || c == '}' || c == '~'
+        || c == '?' || c == '|' || c == '&' || c == ';'
+        || Character.isWhitespace(c)) {
+        sb.append('\\');
+      }
+      sb.append(c);
+    }
+    return sb.toString();
+  }
 }
