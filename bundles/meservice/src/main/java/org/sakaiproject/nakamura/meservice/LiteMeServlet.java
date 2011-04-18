@@ -50,12 +50,12 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
@@ -149,7 +149,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       if ( requestedUserId != null && requestedUserId.length() > 0) {
         userId = requestedUserId;
       }
-      Authorizable au = um.findAuthorizable(requestedUserId);
+      Authorizable au = um.findAuthorizable(userId);
       if ( au == null ) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST,"User "+userId+" not found.");
         return;
