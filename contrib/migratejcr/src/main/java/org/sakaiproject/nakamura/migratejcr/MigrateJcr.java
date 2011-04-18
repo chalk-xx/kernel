@@ -42,6 +42,7 @@ import java.util.Set;
 import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.PropertyType;
@@ -132,7 +133,7 @@ public class MigrateJcr {
       Object value;
       if (prop.isMultiple()) {
         Value[] values = prop.getValues();
-        if(values[0].getType() == PropertyType.STRING) {
+        if(values.length > 0 && values[0].getType() == PropertyType.STRING) {
           String[] valueStrings = new String[values.length];
           for(int i = 0;i < values.length;i++) {
             valueStrings[i] = values[i].getString();
@@ -161,7 +162,11 @@ public class MigrateJcr {
     if (contentNode.hasNode("jcr:content")) {
       Node fileContentNode = contentNode.getNode("jcr:content");
       Binary binaryData = fileContentNode.getProperty("jcr:data").getBinary();
-      contentManager.writeBody(sparseContent.getPath(), binaryData.getStream());
+      try {
+        contentManager.writeBody(sparseContent.getPath(), binaryData.getStream());
+      } catch (Exception e) {
+        LOGGER.warn("Failed to write binary content for JCR path: " + contentNode.getPath());
+      }
     }
     // make recursive call for child nodes
     // depth-first traversal
@@ -248,6 +253,8 @@ public class MigrateJcr {
         LOGGER.info("Adding group home folder for " + groupId);
         copyNodeToSparse(authHomeNode, "a:"+groupId, sparseSession);
       }
+    } catch (PathNotFoundException e) {
+      LOGGER.warn("Didn't find expected profile element.", e);
     } finally {
       if (sparseSession != null) {
         sparseSession.logout();
