@@ -27,6 +27,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -62,6 +63,7 @@ public class SparseGetVersionServletHandler extends AbstractSafeMethodsServletRe
    * {@inheritDoc}
    * 
    */
+  @Override
   public void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     RequestPathInfo requestPathInfo = request.getRequestPathInfo();
@@ -119,8 +121,8 @@ public class SparseGetVersionServletHandler extends AbstractSafeMethodsServletRe
           return (AdapterType) versionContent;
         }
         if (type.equals(ValueMap.class) || type.equals(Map.class)) {
-          // TODO: convert this to a version map correctly.
-          return (AdapterType) versionContent.getProperties();
+          ValueMap vm = new ValueMapDecorator(versionContent.getProperties());
+          return (AdapterType) vm;
         }
         if (type.equals(InputStream.class)) {
           getResourceMetadata()
