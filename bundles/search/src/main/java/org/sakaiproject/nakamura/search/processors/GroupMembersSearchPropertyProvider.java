@@ -28,6 +28,7 @@ import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
@@ -66,7 +67,7 @@ public class GroupMembersSearchPropertyProvider implements SolrSearchPropertyPro
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
     try {
-      Session session = request.getResourceResolver().adaptTo(Session.class);
+      Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
       AuthorizableManager am = session.getAuthorizableManager();
 
       if (request.getParameter("q") == null) {
@@ -108,7 +109,7 @@ public class GroupMembersSearchPropertyProvider implements SolrSearchPropertyPro
         // update the query to filter before writing nodes
 
         // start building solr query
-        StringBuilder solrQuery = new StringBuilder("userId:(");
+        StringBuilder solrQuery = new StringBuilder("name:(");
 
         // add member id's
         Iterator<String> members = memberIds.iterator();
