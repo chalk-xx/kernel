@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.user.search;
 
+import static org.sakaiproject.nakamura.api.lite.StoreListener.ADDED_TOPIC;
+import static org.sakaiproject.nakamura.api.lite.StoreListener.TOPIC_BASE;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -39,6 +42,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.TopicIndexer;
@@ -103,76 +107,63 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
    */
   public Collection<SolrInputDocument> getDocuments(RepositorySession repositorySession,
       Event event) {
+    /*
+     * This general process can be better generalized so that a group is sent through
+     * common processing and only users indexed as "group" but that's not necessary yet.
+     * The processing below just indexes what is found rather than recursing down the
+     * hierarchy. This suffices as long as the inherited members are not required to be
+     * indexed which will raise the cost of indexing a group.
+     */
     logger.debug("GetDocuments for {} ", event);
     // get the name of the authorizable (user,group)
-    String name = (String) event.getProperty(FIELD_PATH);
+    String authName = (String) event.getProperty(FIELD_PATH);
 
     // stop processing if the user isn't to be indexed
-    if (BLACKLISTED_AUTHZ.contains(name)) {
+    if (BLACKLISTED_AUTHZ.contains(authName)) {
       return Collections.emptyList();
     }
 
     List<SolrInputDocument> documents = Lists.newArrayList();
-    if (!StringUtils.isBlank(name)) {
+    if (!StringUtils.isBlank(authName)) {
       try {
         Session session = repositorySession.adaptTo(Session.class);
         AuthorizableManager authzMgr = session.getAuthorizableManager();
-        Authorizable authorizable = authzMgr.findAuthorizable(name);
-        if (authorizable != null) {
-          SolrInputDocument doc = new SolrInputDocument();
 
-          Map<String, Object> properties = authorizable.getSafeProperties();
+        Authorizable authorizable = authzMgr.findAuthorizable(authName);
+        SolrInputDocument doc = createAuthDoc(authorizable, session);
+        if (doc != null) {
+          documents.add(doc);
 
           if (authorizable.isGroup()) {
-            if (groupIsUserFacing(authorizable)) {
-              // add group properties
-              Map<String, String> fields = GROUP_WHITELISTED_PROPS;
-
-              for (Entry<String, Object> p : properties.entrySet()) {
-                if (fields.containsKey(p.getKey())) {
-                  doc.addField(fields.get(p.getKey()), p.getValue());
-                }
+            if ((TOPIC_BASE + "authorizables/" + ADDED_TOPIC).equals(event.getTopic())) {
+              Group group = (Group) authorizable;
+              String[] memberIds = group.getMembers();
+              for (String memberId : memberIds) {
+                // update the docs for authorizables set initially
+                processMembers(memberId, documents, session);
               }
             } else {
-              // manager or contact group. no indexing to be done so exit the method
-              return documents;
-            }
-          } else {
-            // add user properties
-            Map<String, String> fields = USER_WHITELISTED_PROPS;
+              // update the docs for authorizables that were added to the group
+              String added = (String) event.getProperty("added");
+              if (added != null) {
+                processMembers(added.substring(1, added.length() - 1 ), documents, session);
+              }
 
-            for (Entry<String, Object> p : properties.entrySet()) {
-              if (fields.containsKey(p.getKey())) {
-                doc.addField(fields.get(p.getKey()), p.getValue());
+              // update the docs for authorizables that were removed from the group
+              String removed = (String) event.getProperty("removed");
+              if (removed != null) {
+                processMembers(removed.substring(1, removed.length() - 1 ), documents, session);
               }
             }
           }
 
-          // add readers
-          AccessControlManager accessControlManager = session.getAccessControlManager();
-          String[] principals = accessControlManager.findPrincipals(
-              Security.ZONE_AUTHORIZABLES, name, Permissions.CAN_READ.getPermission(),
-              true);
-          for (String principal : principals) {
-            doc.addField(FIELD_READERS, principal);
-          }
-
-          // add the name as the return path so we can group on it later when we search
-          // for widgetdata
-          doc.setField(FIELD_PATH, name);
-          doc.setField("returnpath", name);
-          // set the resource type and ID
-          doc.setField(FIELD_RESOURCE_TYPE, "authorizable");
-          doc.setField(FIELD_ID, name);
-
-          documents.add(doc);
           String topic = null;
           if (event.getTopic().endsWith(StoreListener.ADDED_TOPIC)) {
             topic = StoreListener.ADDED_TOPIC;
           } else {
             topic = StoreListener.UPDATED_TOPIC;
           }
-          logger.info("{} authorizable for searching: {}", topic, name);
+          logger.info("{} authorizable for searching: {}", topic, authName);
         }
       } catch (StorageClientException e) {
         logger.warn(e.getMessage(), e);
@@ -184,14 +175,101 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     return documents;
   }
 
+  /**
+   * @param event
+   * @param documents
+   * @param session
+   * @throws StorageClientException
+   * @throws AccessDeniedException
+   */
+  private void processMembers(String userIdCsv, List<SolrInputDocument> documents,
+      Session session) throws StorageClientException, AccessDeniedException {
+    if (userIdCsv != null) {
+      String[] userIds = StringUtils.split(userIdCsv);
+      for (String userId : userIds) {
+        if (!StringUtils.isBlank(userId) && !"null".equals(userId)) {
+          SolrInputDocument userDoc = createAuthDoc(userId, session);
+          if (userDoc != null) {
+            documents.add(userDoc);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * @param authorizable
+   * @param doc
+   * @param properties
+   */
+  private SolrInputDocument createAuthDoc(String authId, Session session)
+      throws StorageClientException, AccessDeniedException {
+    Authorizable authorizable = session.getAuthorizableManager().findAuthorizable(authId);
+    if (authorizable != null) {
+      return createAuthDoc(authorizable, session);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * @param authorizable
+   * @param doc
+   * @param properties
+   */
+  private SolrInputDocument createAuthDoc(Authorizable authorizable, Session session)
+      throws StorageClientException {
+    if (!isUserFacing(authorizable)) {
+      return null;
+    }
+    // add user properties
+    String authName = authorizable.getId();
+
+    SolrInputDocument doc = new SolrInputDocument();
+    Map<String, String> fields = (authorizable.isGroup()) ? GROUP_WHITELISTED_PROPS : USER_WHITELISTED_PROPS;
+
+    Map<String, Object> properties = authorizable.getSafeProperties();
+    for (Entry<String, Object> p : properties.entrySet()) {
+      if (fields.containsKey(p.getKey())) {
+        doc.addField(fields.get(p.getKey()), p.getValue());
+      }
+    }
+
+    // add groups to the user doc so we can find the user as a group member
+    if (!authorizable.isGroup()) {
+      for (String principal : authorizable.getPrincipals()) {
+        doc.addField("group", principal);
+      }
+    }
+
+    // add readers
+    AccessControlManager accessControlManager = session.getAccessControlManager();
+    String[] principals = accessControlManager.findPrincipals(
+        Security.ZONE_AUTHORIZABLES, authName, Permissions.CAN_READ.getPermission(),
+        true);
+    for (String principal : principals) {
+      doc.addField(FIELD_READERS, principal);
+    }
+
+    // add the name as the return path so we can group on it later when we search
+    // for widgetdata
+    doc.setField(FIELD_PATH, authName);
+    doc.setField("returnpath", authName);
+    // set the resource type and ID
+    doc.setField(FIELD_RESOURCE_TYPE, "authorizable");
+    doc.setField(FIELD_ID, authName);
+
+    return doc;
+  }
+
   // KERN-1607 don't include manager groups in the index
   // KERN-1600 don't include contact groups in the index
-  private boolean groupIsUserFacing(Authorizable group) {
-    boolean isNotManagingGroup = !group.hasProperty(UserConstants.PROP_MANAGED_GROUP);
-    boolean hasTitleAndNotBlank = group.hasProperty("sakai:group-title")
-        && !StringUtils.isBlank((String) group.getProperty("sakai:group-title"));
+  private boolean isUserFacing(Authorizable auth) {
+    boolean isNotManagingGroup = !auth.hasProperty(UserConstants.PROP_MANAGED_GROUP);
+    boolean hasTitleAndNotBlank = auth.hasProperty("sakai:group-title")
+        && !StringUtils.isBlank((String) auth.getProperty("sakai:group-title"));
 
-    return isNotManagingGroup && hasTitleAndNotBlank;
+    return !auth.isGroup() || (isNotManagingGroup && hasTitleAndNotBlank);
   }
 
   /**

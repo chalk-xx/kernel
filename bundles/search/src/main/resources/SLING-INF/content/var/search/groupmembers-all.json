@@ -1,15 +1,13 @@
 {
-  "sakai:query-template": 'resourceType:sakai/user-profile ${_groupQuery}',
+  "sakai:query-template": "type:u AND group:(${group})",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
-  "_groupQuery": "",
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
   "sakai:title": "Group Members - All",
-  "sakai:propertyprovider": "GroupMembers",
-  "sakai:batchresultprocessor": "GroupMembers",
+  "sakai:resultprocessor": "Profile",
   "sakai:shortDescription": "Get the group profile nodes out of the repository.",
   "sakai:parameters" : [
       "{\"name\" : \"group\", \"description\" : \"The group you want to limit your query to.\"}",
