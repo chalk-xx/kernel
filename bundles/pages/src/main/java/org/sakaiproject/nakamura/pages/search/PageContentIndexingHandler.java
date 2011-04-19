@@ -111,10 +111,12 @@ public class PageContentIndexingHandler implements IndexingHandler {
 
               AuthorizableManager am = session.getAuthorizableManager();
               Authorizable auth = am.findAuthorizable(authId);
-              if (auth.isGroup()) {
-                doc.setField("type", "g");
-              } else {
-                doc.setField("type", "u");
+              if (auth != null) {
+                if (auth.isGroup()) {
+                  doc.setField("type", "g");
+                } else {
+                  doc.setField("type", "u");
+                }
               }
               // set the path here so that it's the first path found when rendering to the
               // client. the resource indexing service will add all nodes of the path and
