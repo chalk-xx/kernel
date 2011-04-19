@@ -5,6 +5,7 @@
 
 export K2_TAG="HEAD"
 export S2_TAG="branches/sakai-2.8.x"
+export UX_SRC="git://github.com/sgithens/3akai-ux.git"
 export UX_TAG="HEAD"
 export HYBRID_TAG="branches/hybrid-1.1.x"
 export K2_HTTP_PORT="8080"
@@ -86,7 +87,7 @@ then
     echo "Skipping build 3akai-ux@$UX_TAG..."
 else
     echo "Building 3akai-ux@$UX_TAG..."
-    git clone -q git://github.com/sakaiproject/3akai-ux.git
+    git clone -q "$UX_SRC"
     cd 3akai-ux
     git checkout -b "build-$UX_TAG" $UX_TAG
     # enable My Sakai 2 Sites widget
@@ -140,8 +141,8 @@ then
 else
     echo "Building sakai2/$S2_TAG..."
     # untar tomcat
-    tar -xzf apache-tomcat-5.5.31.tar.gz
-    mv apache-tomcat-5.5.31 sakai2-demo
+    tar -xzf apache-tomcat-5.5.33.tar.gz
+    mv apache-tomcat-5.5.33 sakai2-demo
     mkdir -p sakai2-demo/sakai
     svn checkout -q "https://source.sakaiproject.org/svn/sakai/$S2_TAG" sakai
     cd sakai/
