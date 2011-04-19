@@ -25,7 +25,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.files.FileUtils;
@@ -34,10 +33,7 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
-import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
@@ -45,7 +41,6 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +49,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import javax.jcr.RepositoryException;
 
 /**
  * adapted from LiteFileSearchBatchResultProcessor
@@ -74,12 +67,8 @@ public class LiteMeManagerFileSearchBatchResultProcessor implements SolrSearchBa
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
 
-  @Reference
-  private ProfileService profileService;
-
-  public LiteMeManagerFileSearchBatchResultProcessor(SolrSearchServiceFactory searchServiceFactory, ProfileService profileService) {
+  public LiteMeManagerFileSearchBatchResultProcessor(SolrSearchServiceFactory searchServiceFactory) {
     this.searchServiceFactory = searchServiceFactory;
-    this.profileService = profileService;
   }
 
   public LiteMeManagerFileSearchBatchResultProcessor() {
