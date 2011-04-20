@@ -752,8 +752,8 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
   private void addProvider(ServiceReference serviceReference) {
     SolrSearchPropertyProvider provider = (SolrSearchPropertyProvider) osgiComponentContext
         .locateService(SEARCH_PROPERTY_PROVIDER, serviceReference);
-    if (processor == null) {
-      LOGGER.warn("Retrieved null processor [{}]", serviceReference);
+    if (provider == null) {
+      LOGGER.warn("Retrieved null provider [{}]", serviceReference);
       return;
     }
     Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
