@@ -25,9 +25,13 @@ module NakamuraData
     @user_manager = nil
     @sling = nil
     @file_manager = nil
+
+    attr_reader :upload_success_count, :upload_failure_count
     
     def initialize(options)
-
+      @upload_success_count = 0
+      @upload_failure_count = 0
+      
       @user_ids_file = options[:usersfile]
       @num_groups = options[:numgroups].to_i
       @groups_per_user = options[:groupsperuser].to_i
@@ -76,8 +80,10 @@ module NakamuraData
 	  target_user = @user_manager.create_user user_id.chomp, first_name.chomp, last_name.chomp
 	  if(target_user)
 	    @log.info("created user: #{target_user.inspect}")
+	    @file_log.info("created user: #{target_user.inspect}")
 	  else
 	    @log.info("user #{user_id} not created, may already exist?")
+	    @file_log.info("user #{user_id} not created, may already exist?")	    
 	    target_user = User.new user_id
 	  end
 	end
@@ -94,9 +100,11 @@ module NakamuraData
 	#def create_group_complete(groupname, manager, title = nil)
 	group = @user_manager.create_group group_name, "Test Group #{count.to_s}"
 	if(group)
-	  @log.info "created group: #{group.inspect}"
+	  @log.info "created group: #{group.name}"
+	  @file_log.info("user #{user_id} not created, may already exist?")	  
 	else
 	  @log.info("group #{group_name} not created, may already exist?")
+	  @file_log.info("group #{group_name} not created, may already exist?")	  
 	  group = Group.new group_name
 	end
 	@groups << group
@@ -105,11 +113,13 @@ module NakamuraData
 	manager_id = @user_ids[rand(@user_ids.length)]
 	manager_id = manager_id.split(",")[0]
 	result = add_group_manager group_name, manager_id
-	@log.info "result: #{result.inspect} from adding manager: #{manager_id} to group: #{group.inspect}"
+	@log.info "result: #{result.inspect} from adding manager: #{manager_id} to group: #{group.name}"
 	if (result.code.to_i > 299)
-	    @log.warn "error adding manager: #{manager_id} to group: #{group.inspect}"
+	    @log.warn "error adding manager: #{manager_id} to group: #{group.name}"
+	    @file_log.warn "error adding manager: #{manager_id} to group: #{group.name}"	    
 	  else
-	    @log.info "added manager: #{manager_id} to group: #{group.inspect}"
+	    @log.info "added manager: #{manager_id} to group: #{group.name}"
+	    @file_log.info "added manager: #{manager_id} to group: #{group.name}"
 	  end
       end
     end
@@ -130,9 +140,11 @@ module NakamuraData
 	  group = @groups[rand(@groups.length)]
 	  result = group.add_member @sling, user_id, "user"
 	  if (result.code.to_i > 299)
-	    @log.warn "error user: #{user_id} to group: #{group.inspect}"
+	    @log.warn "error user: #{user_id} to group: #{group.name}"
+	    @file_log.warn "error user: #{user_id} to group: #{group.name}"	    
 	  else
-	    @log.info "added user: #{user_id} to group: #{group.inspect}"
+	    @log.info "added user: #{user_id} to group: #{group.name}"
+	    @file_log.info "added user: #{user_id} to group: #{group.name}"	    
 	  end
 	  group_count = group_count + 1
 	end
@@ -146,6 +158,10 @@ module NakamuraData
 	rootdir_name = "./TestContent"
 	load_files_from_filesystem rootdir_name
       end
+	@log.info("Total files uploaded: #{upload_success_count.to_s}")
+	@log.info("File upload failures: #{upload_failure_count.to_s}")
+	@file_log.info("Total files uploaded: #{upload_success_count.to_s}")
+	@file_log.info("File upload failures: #{upload_failure_count.to_s}")         
     end
     
         
@@ -162,6 +178,15 @@ module NakamuraData
 	  @log.debug lorem_text
 	  file_name = "Lorem_Ipsum_#{rand(1000)}"
 	  res = @file_manager.upload_pooled_file(file_name, lorem_text, 'text/plain')
+	  if (res.code.to_i < 299)  
+	    @log.info("uploaded lorem content: #{file_name}")
+	    @file_log.info("uploaded lorem content: #{file_name}")
+	    @upload_success_count = @upload_success_count + 1
+	  else
+	    @log.info("failed uploading lorem content: #{file_name}")
+	    @file_log.info("failed uploading lorem content: #{file_name}")	    
+	    @upload_failure_count = @upload_failure_count + 1
+	  end
 	  file_extension = ".txt"
 	  json = JSON.parse(res.body)
 	  contentid = json[file_name ]
@@ -176,8 +201,6 @@ module NakamuraData
     # load the NYU content if requested
     def load_files_from_filesystem(rootdir_name)
       ignore_dirs = ['.','..']
-      upload_count = 0
-      failure_count = 0
       Dir.foreach(rootdir_name) do |dir_name|
 	@log.debug "Got #{dir_name}"
 	if (!ignore_dirs.include? dir_name)
@@ -189,18 +212,17 @@ module NakamuraData
 	      # we're not going to do the recursive thing, so just bail if we hit a subdirectory
 	      begin
 		load_file_from_filesystem content_dir.path, content_file_name, get_mime_type(content_file_name)
-		upload_count = upload_count + 1
 	      rescue Exception => ex
 		@log.warn "Failed uploading #{content_file_name} because #{ex.class}: #{ex.message}"
-		@log.info("failed uploading file: #{content_file_name} 0" )
-		failure_count = failure_count + 1
+		@log.warn("failed uploading file: #{content_file_name} 0" )
+		@file_log.warn "Failed uploading #{content_file_name} because #{ex.class}: #{ex.message}"
+		@file_log.warn("failed uploading file: #{content_file_name} 0" )		
+		@upload_failure_count = @upload_failure_count + 1
 	      end	
 	    end
 	  end
 	end
-      end
-      @log.info("Total files uploaded: #{upload_count.to_s}")
-      @log.info("File upload failures: #{failure_count.to_s}")
+      end   
     end
     
     
@@ -212,6 +234,7 @@ module NakamuraData
       file_name = full_file_name.slice(0, last_dot)
       file_extension = full_file_name.slice(last_dot, (file_name.length - 1))
       @log.info "uploading #{full_file_name} of mime type: #{mime_type}"
+      @file_log.info "uploading #{full_file_name} of mime type: #{mime_type}"      
       File.open("#{directory_name}/#{full_file_name}") do |file|
 	req = Net::HTTP::Post::Multipart.new url.path,
 	  "file" => UploadIO.new(file, mime_type, file_name)
@@ -219,10 +242,18 @@ module NakamuraData
 	res = Net::HTTP.start(url.host, url.port) do |http|
 	  http.request(req)
 	end
-	json = JSON.parse(res.body)
-	contentid = json[file_name]
-	@log.info("uploaded file: #{file_name} with content_id: #{contentid} 1" )
-	finish_content contentid, file_name, file_extension
+	if (res.code.to_i < 299)
+	  json = JSON.parse(res.body)
+	  contentid = json[file_name]	
+	  @log.info("uploaded file: #{file_name} with content_id: #{contentid} 1" )
+	  @file_log.info("uploaded file: #{file_name} with content_id: #{contentid} 1" )
+	  @upload_success_count = @upload_success_count + 1
+	  finish_content contentid, file_name, file_extension	  
+	else
+	  @log.info("failed to upload file: #{file_name} 0" )
+	  @file_log.info("failed to upload file: #{file_name} 0" )
+	  @upload_failure_count = @upload_failure_count + 1	  
+	end
       end
     end
     
@@ -308,9 +339,9 @@ if ($PROGRAM_NAME.include? 'sling_data_loader.rb')
   optparser.parse ARGV
   
   sdl = NakamuraData::SlingDataLoader.new options
-  #sdl.load_users_data
-  #sdl.create_users
-  #sdl.create_groups
-  #sdl.join_groups
+  sdl.load_users_data
+  sdl.create_users
+  sdl.create_groups
+  sdl.join_groups
   sdl.load_content
 end
