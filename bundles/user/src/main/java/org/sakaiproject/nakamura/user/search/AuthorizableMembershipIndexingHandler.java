@@ -116,6 +116,8 @@ public class AuthorizableMembershipIndexingHandler extends AuthorizableIndexingH
             processMembers(documents, session, removed);
           }
         }
+
+        logger.info("Added/removed members of authorizable [{}]", authorizable);
       }
     } catch (StorageClientException e) {
       logger.error(e.getMessage(), e);
