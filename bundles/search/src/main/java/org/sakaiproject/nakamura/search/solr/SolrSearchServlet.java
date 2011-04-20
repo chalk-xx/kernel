@@ -627,6 +627,11 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
   private void addProcessor(ServiceReference serviceReference) {
     SolrSearchResultProcessor processor = (SolrSearchResultProcessor) osgiComponentContext
         .locateService(SEARCH_RESULT_PROCESSOR, serviceReference);
+    if (processor == null) {
+      LOGGER.warn("Retrieved null processor [{}]", serviceReference);
+      return;
+    }
+
     Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
 
     processorsById.put(serviceId, processor);
@@ -681,6 +686,10 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
   private void addBatchProcessor(ServiceReference serviceReference) {
     SolrSearchBatchResultProcessor processor = (SolrSearchBatchResultProcessor) osgiComponentContext
         .locateService(SEARCH_BATCH_RESULT_PROCESSOR, serviceReference);
+    if (processor == null) {
+      LOGGER.warn("Retrieved null processor [{}]", serviceReference);
+      return;
+    }
     Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
 
     batchProcessorsById.put(serviceId, processor);
@@ -727,6 +736,10 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
   private void addProvider(ServiceReference serviceReference) {
     SolrSearchPropertyProvider provider = (SolrSearchPropertyProvider) osgiComponentContext
         .locateService(SEARCH_PROPERTY_PROVIDER, serviceReference);
+    if (processor == null) {
+      LOGGER.warn("Retrieved null processor [{}]", serviceReference);
+      return;
+    }
     Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
 
     propertyProviderById.put(serviceId, provider);
