@@ -17,9 +17,6 @@
  */
 package org.sakaiproject.nakamura.user.search;
 
-import static org.sakaiproject.nakamura.api.lite.StoreListener.ADDED_TOPIC;
-import static org.sakaiproject.nakamura.api.lite.StoreListener.TOPIC_BASE;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -42,7 +39,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
-import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.TopicIndexer;
@@ -81,7 +77,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   @Reference
-  private TopicIndexer topicIndexer;
+  protected TopicIndexer topicIndexer;
 
   // ---------- SCR integration ------------------------------------------------
   @Activate
@@ -109,53 +105,25 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       Event event) {
     /*
      * This general process can be better generalized so that a group is sent through
-     * common processing and only users indexed as "group" but that's not necessary yet.
-     * The processing below just indexes what is found rather than recursing down the
+     * common processing and only users are indexed in "group" but that's not necessary
+     * yet. The processing below just indexes what is found rather than recursing down the
      * hierarchy. This suffices as long as the inherited members are not required to be
      * indexed which will raise the cost of indexing a group.
      */
     logger.debug("GetDocuments for {} ", event);
-    // get the name of the authorizable (user,group)
-    String authName = (String) event.getProperty(FIELD_PATH);
-
-    // stop processing if the user isn't to be indexed
-    if (BLACKLISTED_AUTHZ.contains(authName)) {
-      return Collections.emptyList();
-    }
 
     List<SolrInputDocument> documents = Lists.newArrayList();
-    if (!StringUtils.isBlank(authName)) {
-      try {
-        Session session = repositorySession.adaptTo(Session.class);
-        AuthorizableManager authzMgr = session.getAuthorizableManager();
+    try {
+      Session session = repositorySession.adaptTo(Session.class);
+      AuthorizableManager authzMgr = session.getAuthorizableManager();
 
+      // get the name of the authorizable (user,group)
+      String authName = (String) event.getProperty(FIELD_PATH);
+      if (!StringUtils.isBlank(authName)) {
         Authorizable authorizable = authzMgr.findAuthorizable(authName);
         SolrInputDocument doc = createAuthDoc(authorizable, session);
         if (doc != null) {
           documents.add(doc);
-
-          if (authorizable.isGroup()) {
-            if ((TOPIC_BASE + "authorizables/" + ADDED_TOPIC).equals(event.getTopic())) {
-              Group group = (Group) authorizable;
-              String[] memberIds = group.getMembers();
-              for (String memberId : memberIds) {
-                // update the docs for authorizables set initially
-                processMembers(memberId, documents, session);
-              }
-            } else {
-              // update the docs for authorizables that were added to the group
-              String added = (String) event.getProperty("added");
-              if (added != null) {
-                processMembers(added.substring(1, added.length() - 1 ), documents, session);
-              }
-
-              // update the docs for authorizables that were removed from the group
-              String removed = (String) event.getProperty("removed");
-              if (removed != null) {
-                processMembers(removed.substring(1, removed.length() - 1 ), documents, session);
-              }
-            }
-          }
 
           String topic = null;
           if (event.getTopic().endsWith(StoreListener.ADDED_TOPIC)) {
@@ -165,36 +133,33 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
           }
           logger.info("{} authorizable for searching: {}", topic, authName);
         }
-      } catch (StorageClientException e) {
-        logger.warn(e.getMessage(), e);
-      } catch (AccessDeniedException e) {
-        logger.warn(e.getMessage(), e);
       }
+    } catch (StorageClientException e) {
+      logger.error(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      logger.error(e.getMessage(), e);
     }
     logger.debug("Got documents {} ", documents);
     return documents;
   }
 
   /**
-   * @param event
-   * @param documents
-   * @param session
-   * @throws StorageClientException
-   * @throws AccessDeniedException
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.solr.IndexingHandler#getDeleteQueries(org.sakaiproject.nakamura.api.solr.RepositorySession,
+   *      org.osgi.service.event.Event)
    */
-  private void processMembers(String userIdCsv, List<SolrInputDocument> documents,
-      Session session) throws StorageClientException, AccessDeniedException {
-    if (userIdCsv != null) {
-      String[] userIds = StringUtils.split(userIdCsv);
-      for (String userId : userIds) {
-        if (!StringUtils.isBlank(userId) && !"null".equals(userId)) {
-          SolrInputDocument userDoc = createAuthDoc(userId, session);
-          if (userDoc != null) {
-            documents.add(userDoc);
-          }
-        }
-      }
+  public Collection<String> getDeleteQueries(RepositorySession repositorySession,
+      Event event) {
+    Collection<String> retval = Collections.emptyList();
+    String topic = event.getTopic();
+    if (topic.endsWith(StoreListener.DELETE_TOPIC)) {
+      logger.debug("GetDelete for {} ", event);
+      String groupName = (String) event.getProperty(UserConstants.EVENT_PROP_USERID);
+      retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(groupName));
     }
+    return retval;
+
   }
 
   /**
@@ -202,7 +167,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
    * @param doc
    * @param properties
    */
-  private SolrInputDocument createAuthDoc(String authId, Session session)
+  protected SolrInputDocument createAuthDoc(String authId, Session session)
       throws StorageClientException, AccessDeniedException {
     Authorizable authorizable = session.getAuthorizableManager().findAuthorizable(authId);
     if (authorizable != null) {
@@ -217,7 +182,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
    * @param doc
    * @param properties
    */
-  private SolrInputDocument createAuthDoc(Authorizable authorizable, Session session)
+  protected SolrInputDocument createAuthDoc(Authorizable authorizable, Session session)
       throws StorageClientException {
     if (!isUserFacing(authorizable)) {
       return null;
@@ -238,7 +203,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     // add groups to the user doc so we can find the user as a group member
     if (!authorizable.isGroup()) {
       for (String principal : authorizable.getPrincipals()) {
-        doc.addField("group", principal);
+        doc.addField("group", StringUtils.removeEnd(principal, "-managers"));
       }
     }
 
@@ -264,30 +229,12 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
 
   // KERN-1607 don't include manager groups in the index
   // KERN-1600 don't include contact groups in the index
-  private boolean isUserFacing(Authorizable auth) {
+  protected boolean isUserFacing(Authorizable auth) {
+    boolean isBlacklisted = BLACKLISTED_AUTHZ.contains(auth.getId());
     boolean isNotManagingGroup = !auth.hasProperty(UserConstants.PROP_MANAGED_GROUP);
     boolean hasTitleAndNotBlank = auth.hasProperty("sakai:group-title")
         && !StringUtils.isBlank((String) auth.getProperty("sakai:group-title"));
 
-    return !auth.isGroup() || (isNotManagingGroup && hasTitleAndNotBlank);
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.api.solr.IndexingHandler#getDeleteQueries(org.sakaiproject.nakamura.api.solr.RepositorySession,
-   *      org.osgi.service.event.Event)
-   */
-  public Collection<String> getDeleteQueries(RepositorySession repositorySession,
-      Event event) {
-    Collection<String> retval = Collections.emptyList();
-    String topic = event.getTopic();
-    if (topic.endsWith(StoreListener.DELETE_TOPIC)) {
-      logger.debug("GetDelete for {} ", event);
-      String groupName = (String) event.getProperty(UserConstants.EVENT_PROP_USERID);
-      retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(groupName));
-    }
-    return retval;
-
+    return !isBlacklisted && (!auth.isGroup() || (isNotManagingGroup && hasTitleAndNotBlank));
   }
 }
