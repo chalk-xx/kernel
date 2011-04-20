@@ -571,7 +571,7 @@ public class GzipFilter extends UserAgentFilter
         public void doNotGzip() throws IOException
         {
             if (_gzOut!=null)
-                throw new IllegalStateException();
+                throw new IllegalStateException("_gzOut != null");
             if (_out==null || _bOut!=null )
             {
                 _out=_response.getOutputStream();
