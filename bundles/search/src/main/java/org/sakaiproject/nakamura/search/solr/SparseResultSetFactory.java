@@ -145,6 +145,10 @@ public class SparseResultSetFactory implements ResultSetFactory {
     }
   }
 
+  public String filterValue(String value) {
+    return value;
+  }
+
   /**
    * @param clause
    * @param clauseQuery

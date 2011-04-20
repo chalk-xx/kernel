@@ -316,12 +316,22 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    */
   protected Query processQuery(SlingHttpServletRequest request, Node queryNode)
       throws RepositoryException, MissingParameterException, JSONException {
+    // check the resource type and set the query type appropriately
+    // default to using solr for queries
+    javax.jcr.Property resourceType = queryNode.getProperty("sling:resourceType");
+    String queryType = null;
+    if ("sakai/sparse-search".equals(resourceType.getString())) {
+      queryType = Query.SPARSE;
+    } else {
+      queryType = Query.SOLR;
+    }
+
     String propertyProviderName = null;
     if (queryNode.hasProperty(SAKAI_PROPERTY_PROVIDER)) {
       propertyProviderName = queryNode.getProperty(SAKAI_PROPERTY_PROVIDER).getString();
     }
     Map<String, String> propertiesMap = loadProperties(request, propertyProviderName,
-        queryNode);
+        queryNode.getProperties(), queryType);
 
     String queryTemplate = queryNode.getProperty(SAKAI_QUERY_TEMPLATE).getString();
 
@@ -347,15 +357,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     // process the options as templates and check for missing params
     Map<String, String> options = processOptions(propertiesMap, queryOptions);
 
-    // check the resource type and set the query type appropriately
-    // default to using solr for queries
-    javax.jcr.Property resourceType = queryNode.getProperty("sling:resourceType");
-    Query query = null;
-    if ("sakai/sparse-search".equals(resourceType.getString())) {
-      query = new Query(Query.SPARSE, queryString, propertiesMap, options);
-    } else {
-      query = new Query(Query.SOLR, queryString, propertiesMap, options);
-    }
+    Query query = new Query(queryType, queryString, propertiesMap, options);
     return query;
   }
 
@@ -436,7 +438,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    * @throws RepositoryException
    */
   private Map<String, String> loadProperties(SlingHttpServletRequest request,
-      String propertyProviderName, Node node) throws RepositoryException {
+      String propertyProviderName, PropertyIterator defaultProps, String queryType) throws RepositoryException {
     Map<String, String> propertiesMap = new HashMap<String, String>();
 
     // 0. load authorizable (user) information
@@ -447,18 +449,18 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     propertiesMap.put("_userId", ClientUtils.escapeQueryChars(userId));
 
     // 1. load in properties from the query template node so defaults can be set
-    PropertyIterator props = node.getProperties();
-    while (props.hasNext()) {
-      javax.jcr.Property prop = props.nextProperty();
-      if (!propertiesMap.containsKey(prop.getName()) && !prop.isMultiple()) {
-        propertiesMap.put(prop.getName(), prop.getString());
+    if (defaultProps != null) {
+      while (defaultProps.hasNext()) {
+        javax.jcr.Property prop = defaultProps.nextProperty();
+        if (!propertiesMap.containsKey(prop.getName()) && !prop.isMultiple()) {
+          propertiesMap.put(prop.getName(), prop.getString());
+        }
       }
     }
 
     // 2. load in properties from the request
     RequestParameterMap params = request.getRequestParameterMap();
     for (Entry<String, RequestParameter[]> entry : params.entrySet()) {
-      String key = entry.getKey();
       RequestParameter[] vals = entry.getValue();
       String requestValue = vals[0].getString();
 
@@ -467,15 +469,16 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         continue;
       }
 
-      // KERN-1601 Wildcard searches have to be manually lowercased for case insensitive
-      // matching as Solr bypasses the analyzer when dealing with a wildcard or fuzzy
-      // search.
-      if (StringUtils.contains(requestValue, '*')) {
-        requestValue = requestValue.toLowerCase();
-      }
+//      // KERN-1601 Wildcard searches have to be manually lowercased for case insensitive
+//      // matching as Solr bypasses the analyzer when dealing with a wildcard or fuzzy
+//      // search.
+//      if (StringUtils.contains(requestValue, '*')) {
+//        requestValue = requestValue.toLowerCase();
+//      }
+
       // we're selective with what we escape to make sure we don't hinder
       // search functionality
-      propertiesMap.put(entry.getKey(), escapeQueryChars(requestValue));
+      propertiesMap.put(entry.getKey(), SearchUtil.escapeString(requestValue, queryType));
     }
 
     // 3. load properties from a property provider

@@ -294,7 +294,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
           + ConnectionConstants.CONTACT_STORE_NAME;
       store = ISO9075.encodePath(store);
       String queryString = "path:" + ClientUtils.escapeQueryChars(store) + " AND resourceType:sakai/contact AND state:(ACCEPTED OR INVITED OR PENDING)";
-      Query query = new Query(queryString, null);
+      Query query = new Query(queryString);
       LOG.debug("Submitting Query {} ", query);
       SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
           request, query, false);
@@ -353,7 +353,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       store = ISO9075.encodePath(store);
       store = store.substring(0, store.length() - 1);
       String queryString = "path:" + ClientUtils.escapeQueryChars(store) + " AND resourceType:sakai/message AND type:internal AND messagebox:inbox AND read:false";
-      Query query = new Query(queryString, null);
+      Query query = new Query(queryString);
       LOG.debug("Submitting Query {} ", query);
       SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
           request, query, false);

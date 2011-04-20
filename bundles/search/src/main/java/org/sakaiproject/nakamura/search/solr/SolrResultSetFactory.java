@@ -112,63 +112,63 @@ public class SolrResultSetFactory implements ResultSetFactory {
   public SolrSearchResultSet processQuery(SlingHttpServletRequest request, Query query,
       boolean asAnon) throws SolrSearchException {
     try {
-    // process the query string before checking for missing terms to a) give processors a
-    // chance to set things and b) catch any missing terms added by the processors.
-    String queryString = templateService.evaluateTemplate(query.getProperties(), query.getQueryString());
+      // process the query string before checking for missing terms to a) give processors a
+      // chance to set things and b) catch any missing terms added by the processors.
+      String queryString = templateService.evaluateTemplate(query.getProperties(), query.getQueryString());
 
-    // expand home directory references to full path; eg. ~user => a:user
-    queryString = SearchUtil.expandHomeDirectory(queryString);
+      // expand home directory references to full path; eg. ~user => a:user
+      queryString = SearchUtil.expandHomeDirectory(queryString);
 
-    // check for any missing terms & process the query template
-    Collection<String> missingTerms = templateService.missingTerms(queryString);
-    if (!missingTerms.isEmpty()) {
-      throw new MissingParameterException(
-          "Your request is missing parameters for the template: "
-              + StringUtils.join(missingTerms, ", "));
-    }
-
-    // apply readers restrictions.
-    if (asAnon) {
-      queryString = "(" + queryString + ")  AND readers:" + User.ANON_USER;
-    } else {
-      Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
-      if (!User.ADMIN_USER.equals(session.getUserId())) {
-        AuthorizableManager am = session.getAuthorizableManager();
-        Authorizable user = am.findAuthorizable(session.getUserId());
-        Set<String> readers = Sets.newHashSet();
-        for (Iterator<Group> gi = user.memberOf(am); gi.hasNext();) {
-          readers.add(SearchUtil.escapeString(gi.next().getId(), Query.SOLR));
-        }
-        readers.add(session.getUserId());
-        queryString = "(" + queryString + ") AND readers:(" + StringUtils.join(readers," OR ") + ")";
+      // check for any missing terms & process the query template
+      Collection<String> missingTerms = templateService.missingTerms(queryString);
+      if (!missingTerms.isEmpty()) {
+        throw new MissingParameterException(
+            "Your request is missing parameters for the template: "
+                + StringUtils.join(missingTerms, ", "));
       }
-    }
 
-    SolrQuery solrQuery = buildQuery(request, queryString, query.getOptions());
+      // apply readers restrictions.
+      if (asAnon) {
+        queryString = "(" + queryString + ")  AND readers:" + User.ANON_USER;
+      } else {
+        Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+        if (!User.ADMIN_USER.equals(session.getUserId())) {
+          AuthorizableManager am = session.getAuthorizableManager();
+          Authorizable user = am.findAuthorizable(session.getUserId());
+          Set<String> readers = Sets.newHashSet();
+          for (Iterator<Group> gi = user.memberOf(am); gi.hasNext();) {
+            readers.add(SearchUtil.escapeString(gi.next().getId(), Query.SOLR));
+          }
+          readers.add(session.getUserId());
+          queryString = "(" + queryString + ") AND readers:(" + StringUtils.join(readers," OR ") + ")";
+        }
+      }
 
-    SolrServer solrServer = solrSearchService.getServer();
-    if ( LOGGER.isDebugEnabled()) {
+      SolrQuery solrQuery = buildQuery(request, queryString, query.getOptions());
+
+      SolrServer solrServer = solrSearchService.getServer();
+      if ( LOGGER.isDebugEnabled()) {
+        try {
+          LOGGER.debug("Performing Query {} ", URLDecoder.decode(solrQuery.toString(),"UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+        }
+      }
+      long tquery = System.currentTimeMillis();
+      QueryResponse response = solrServer.query(solrQuery);
+      tquery = System.currentTimeMillis() - tquery;
       try {
-        LOGGER.debug("Performing Query {} ", URLDecoder.decode(solrQuery.toString(),"UTF-8"));
+        if ( tquery > slowQueryThreshold && tquery < verySlowQueryThreshold ) {
+          SOLR_QUERY_LOGGER.warn("Slow query {} ms {} ",tquery, URLDecoder.decode(solrQuery.toString(),"UTF-8"));
+        } else if ( tquery > verySlowQueryThreshold ) {
+          SOLR_QUERY_LOGGER.error("Very Slow query {} ms {} ",tquery, URLDecoder.decode(solrQuery.toString(),"UTF-8"));
+        }
       } catch (UnsupportedEncodingException e) {
       }
-    }
-    long tquery = System.currentTimeMillis();
-    QueryResponse response = solrServer.query(solrQuery);
-    tquery = System.currentTimeMillis() - tquery;
-    try {
-      if ( tquery > slowQueryThreshold && tquery < verySlowQueryThreshold ) {
-        SOLR_QUERY_LOGGER.warn("Slow query {} ms {} ",tquery, URLDecoder.decode(solrQuery.toString(),"UTF-8"));
-      } else if ( tquery > verySlowQueryThreshold ) {
-        SOLR_QUERY_LOGGER.error("Very Slow query {} ms {} ",tquery, URLDecoder.decode(solrQuery.toString(),"UTF-8"));
+      SolrSearchResultSetImpl rs = new SolrSearchResultSetImpl(response);
+      if ( LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Got {} hits in {} ms", rs.getSize(), response.getElapsedTime());
       }
-    } catch (UnsupportedEncodingException e) {
-    }
-    SolrSearchResultSetImpl rs = new SolrSearchResultSetImpl(response);
-    if ( LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Got {} hits in {} ms", rs.getSize(), response.getElapsedTime());
-    }
-    return rs;
+      return rs;
     } catch (StorageClientException e) {
       throw new SolrSearchException(500, e.getMessage());
     } catch (AccessDeniedException e) {
@@ -176,6 +176,34 @@ public class SolrResultSetFactory implements ResultSetFactory {
     } catch (SolrServerException e) {
         throw new SolrSearchException(500, e.getMessage());
     }
+  }
+
+  /**
+   * Stolen from org.apache.solr.client.solrj.util.ClientUtils
+   * See: <a href="http://lucene.apache.org/java/docs/nightly/queryparsersyntax.html#Escaping%20Special%20Characters">Escaping Special Characters</a>
+   * Removed escaping for * and "
+   */
+  public String filterValue(String value) {
+    // KERN-1601 Wildcard searches have to be manually lowercased for case insensitive
+    // matching as Solr bypasses the analyzer when dealing with a wildcard or fuzzy
+    // search.
+    if (StringUtils.contains(value, '*')) {
+      value = value.toLowerCase();
+    }
+
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < value.length(); i++) {
+      char c = value.charAt(i);
+      // These characters are part of the query syntax and must be escaped
+      if (c == '\\' || c == '+' || c == '-' || c == '!'  || c == '(' || c == ')'|| c == ':'
+        || c == '^' || c == '[' || c == ']' || c == '{' || c == '}' || c == '~'
+        || c == '?' || c == '|' || c == '&' || c == ';'
+        || Character.isWhitespace(c)) {
+        sb.append('\\');
+      }
+      sb.append(c);
+    }
+    return sb.toString();
   }
 
   /**
