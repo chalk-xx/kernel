@@ -60,6 +60,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.MissingParameterException;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
@@ -84,8 +85,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -153,8 +152,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
 
   @Reference
   private transient TemplateService templateService;
-
-  private Pattern homePathPattern = Pattern.compile("^(.*)(~([\\w-]*?))/");
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -305,24 +302,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     }
   }
 
-  private String expandHomeDirectory(String queryString) {
-    Matcher homePathMatcher = homePathPattern.matcher(queryString);
-    if (homePathMatcher.find()) {
-      String username = homePathMatcher.group(3);
-      String homePrefix = homePathMatcher.group(1);
-      String userHome = LitePersonalUtils.getHomePath(username);
-      userHome = ClientUtils.escapeQueryChars(userHome);
-      String homePath = homePrefix + userHome + "/";
-      String prefix = "";
-      if (homePathMatcher.start() > 0) {
-        prefix = queryString.substring(0, homePathMatcher.start());
-      }
-      String suffix = queryString.substring(homePathMatcher.end());
-      queryString = prefix + homePath + suffix;
-    }
-    return queryString;
-  }
-
   /**
    * Processes a velocity template so that variable references are replaced by the same
    * properties in the property provider and request.
@@ -346,21 +325,21 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
 
     String queryTemplate = queryNode.getProperty(SAKAI_QUERY_TEMPLATE).getString();
 
-    // process the query string before checking for missing terms to a) give processors a
-    // chance to set things and b) catch any missing terms added by the processors.
-    String queryString = templateService.evaluateTemplate(propertiesMap, queryTemplate);
+//    // process the query string before checking for missing terms to a) give processors a
+//    // chance to set things and b) catch any missing terms added by the processors.
+//    String queryString = templateService.evaluateTemplate(propertiesMap, queryTemplate);
 
     // expand home directory references to full path; eg. ~user => a:user
-    queryString = expandHomeDirectory(queryString);
+    String queryString = SearchUtil.expandHomeDirectory(queryTemplate);
 
-    // check for any missing terms & process the query template
-    Collection<String> missingTerms = templateService.missingTerms(propertiesMap,
-        queryTemplate);
-    if (!missingTerms.isEmpty()) {
-      throw new MissingParameterException(
-          "Your request is missing parameters for the template: "
-              + StringUtils.join(missingTerms, ", "));
-    }
+//    // check for any missing terms & process the query template
+//    Collection<String> missingTerms = templateService.missingTerms(propertiesMap,
+//        queryTemplate);
+//    if (!missingTerms.isEmpty()) {
+//      throw new MissingParameterException(
+//          "Your request is missing parameters for the template: "
+//              + StringUtils.join(missingTerms, ", "));
+//    }
 
     // collect query options
     JSONObject queryOptions = accumulateQueryOptions(queryNode);
