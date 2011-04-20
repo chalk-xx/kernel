@@ -5,7 +5,7 @@
 
 export K2_TAG="HEAD"
 export S2_TAG="branches/sakai-2.8.x"
-export UX_SRC="git://github.com/sgithens/3akai-ux.git"
+export UX_SRC="git://github.com/sakaiproject/3akai-ux.git"
 export UX_TAG="HEAD"
 export HYBRID_TAG="branches/hybrid-1.1.x"
 export K2_HTTP_PORT="8080"
