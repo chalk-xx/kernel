@@ -541,7 +541,7 @@ public class GzipFilter extends UserAgentFilter
 
         protected boolean setContentEncodingGzip()
         {
-          LOGGER.info("Encoding as GZip conetnt");
+          LOGGER.info("Encoding as GZip content");
             _response.setHeader("Content-Encoding", "gzip");
             return _response.containsHeader("Content-Encoding");
         }
