@@ -373,11 +373,17 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
         } while (!checkServerNumber());
 
       } else {
-        Object cs = getServerCache().put(serverId,
-            new ClusterServerImpl(serverId, serverNumber, thisSecureUrl));
+        try {
+          Object cs = getServerCache().put(serverId,
+              new ClusterServerImpl(serverId, serverNumber, thisSecureUrl));
 
-        if (cs == null) {
-          LOGGER.warn("This servers registration dissapeared, replaced as {} ", serverId);
+          if (cs == null) {
+            LOGGER.warn("This servers registration dissapeared, replaced as {} ",
+                serverId);
+          }
+        } catch (NullPointerException e) {
+          // prevent excessive logging in edge case where cache == null;
+          LOGGER.debug(e.getLocalizedMessage(), e);
         }
       }
     }
