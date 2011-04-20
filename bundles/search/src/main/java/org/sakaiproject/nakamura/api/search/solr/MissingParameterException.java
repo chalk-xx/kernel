@@ -20,7 +20,7 @@ package org.sakaiproject.nakamura.api.search.solr;
 /**
  * Exception representing unfulfilled parameters when processing a query template.
  */
-public class MissingParameterException extends Exception {
+public class MissingParameterException extends RuntimeException {
   private static final long serialVersionUID = 1L;
 
   public MissingParameterException() {
