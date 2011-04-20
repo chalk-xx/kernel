@@ -45,6 +45,9 @@ module NakamuraData
       @file_manager = FileManager.new(@sling)
       @log = Logger.new(STDOUT)
       @log.level = Logger::DEBUG
+      @file_log = Logger.new('upload.log', 'daily')
+      @file_log.level = Logger::DEBUG
+      @file_log.info "testing the file outputter"
     end
     
     def load_users_data
@@ -173,6 +176,8 @@ module NakamuraData
     # load the NYU content if requested
     def load_files_from_filesystem(rootdir_name)
       ignore_dirs = ['.','..']
+      upload_count = 0
+      failure_count = 0
       Dir.foreach(rootdir_name) do |dir_name|
 	@log.debug "Got #{dir_name}"
 	if (!ignore_dirs.include? dir_name)
@@ -184,13 +189,18 @@ module NakamuraData
 	      # we're not going to do the recursive thing, so just bail if we hit a subdirectory
 	      begin
 		load_file_from_filesystem content_dir.path, content_file_name, get_mime_type(content_file_name)
+		upload_count = upload_count + 1
 	      rescue Exception => ex
 		@log.warn "Failed uploading #{content_file_name} because #{ex.class}: #{ex.message}"
+		@log.info("failed uploading file: #{content_file_name} 0" )
+		failure_count = failure_count + 1
 	      end	
 	    end
 	  end
 	end
       end
+      @log.info("Total files uploaded: #{upload_count.to_s}")
+      @log.info("File upload failures: #{failure_count.to_s}")
     end
     
     
@@ -211,7 +221,7 @@ module NakamuraData
 	end
 	json = JSON.parse(res.body)
 	contentid = json[file_name]
-	@log.info("uploaded file: #{file_name} with content_id: #{contentid}" )
+	@log.info("uploaded file: #{file_name} with content_id: #{contentid} 1" )
 	finish_content contentid, file_name, file_extension
       end
     end
@@ -298,9 +308,9 @@ if ($PROGRAM_NAME.include? 'sling_data_loader.rb')
   optparser.parse ARGV
   
   sdl = NakamuraData::SlingDataLoader.new options
-  sdl.load_users_data
-  sdl.create_users
-  sdl.create_groups
-  sdl.join_groups
+  #sdl.load_users_data
+  #sdl.create_users
+  #sdl.create_groups
+  #sdl.join_groups
   sdl.load_content
 end
