@@ -168,6 +168,7 @@ public class LiteUpdateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
   protected transient EventAdmin eventAdmin;
 
   /** Returns the JCR repository used by this service. */
+  @Override
   protected Repository getRepository() {
     return repository;
   }
@@ -263,8 +264,9 @@ public class LiteUpdateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
     try {
       Dictionary<String, String> properties = new Hashtable<String, String>();
       properties.put(UserConstants.EVENT_PROP_USERID, authorizable.getId());
+      properties.put("path", authorizable.getId());
       EventUtils
-          .sendOsgiEvent(properties, UserConstants.TOPIC_GROUP_CREATED, eventAdmin);
+          .sendOsgiEvent(properties, UserConstants.TOPIC_GROUP_UPDATE, eventAdmin);
     } catch (Exception e) {
       // Trap all exception so we don't disrupt the normal behaviour.
       LOGGER.error("Failed to launch an OSGi event for creating a user.", e);
