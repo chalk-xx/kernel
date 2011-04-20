@@ -68,6 +68,23 @@ public class VelocityTemplateService implements TemplateService, TemplateNodeSou
     return rv;
   }
 
+  public Collection<String> missingTerms(String template) {
+    Collection<String> missingTerms = new ArrayList<String>();
+    int startPosition = template.indexOf("${");
+    while (startPosition > -1) {
+      int endPosition = template.indexOf("}", startPosition);
+      if (endPosition > -1) {
+        String key = template.substring(startPosition + 2, endPosition);
+        missingTerms.add(key);
+        // look for the next velocity replacement variable
+        startPosition = template.indexOf("${", endPosition);
+      } else {
+        break;
+      }
+    }
+    return missingTerms;
+  }
+
   public Collection<String> missingTerms(Map<String, ? extends Object> parameters,
       String template) {
     Collection<String> missingTerms = new ArrayList<String>();
