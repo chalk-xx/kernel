@@ -62,7 +62,6 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.MissingParameterException;
 import org.sakaiproject.nakamura.api.search.solr.Query;
-import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -306,11 +305,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     }
   }
 
-  private String addUserPrincipals(SlingHttpServletRequest request, String queryString) {
-    // TODO Auto-generated method stub
-    return queryString;
-  }
-
   private String expandHomeDirectory(String queryString) {
     Matcher homePathMatcher = homePathPattern.matcher(queryString);
     if (homePathMatcher.find()) {
@@ -359,9 +353,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     // expand home directory references to full path; eg. ~user => a:user
     queryString = expandHomeDirectory(queryString);
 
-    // append the user principals to the query string
-    queryString = addUserPrincipals(request, queryString);
-
     // check for any missing terms & process the query template
     Collection<String> missingTerms = templateService.missingTerms(propertiesMap,
         queryTemplate);
@@ -382,9 +373,9 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     javax.jcr.Property resourceType = queryNode.getProperty("sling:resourceType");
     Query query = null;
     if ("sakai/sparse-search".equals(resourceType.getString())) {
-      query = new Query(Type.SPARSE, queryString, options);
+      query = new Query(Query.SPARSE, queryString, propertiesMap, options);
     } else {
-      query = new Query(Type.SOLR, queryString, options);
+      query = new Query(Query.SOLR, queryString, propertiesMap, options);
     }
     return query;
   }

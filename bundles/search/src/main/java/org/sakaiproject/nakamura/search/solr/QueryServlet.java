@@ -26,7 +26,6 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.Query;
-import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.SolrQueryResponseWrapper;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -81,7 +80,7 @@ protected transient SolrSearchBatchResultProcessor defaultSearchBatchProcessor;
         options.put(name, request.getParameter(name));
       }
     }
-    Query query = new Query(Type.SOLR, queryParameter.getString(), options);
+    Query query = new Query(Query.SOLR, queryParameter.getString(), null, options);
 
     SolrSearchResultSet rs = null;
     try {
