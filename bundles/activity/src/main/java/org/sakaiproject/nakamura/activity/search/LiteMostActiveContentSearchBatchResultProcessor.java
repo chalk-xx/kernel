@@ -118,7 +118,7 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
     try {
       final String queryString = "resourceType:"
           + ClientUtils.escapeQueryChars(FilesConstants.POOLED_CONTENT_RT);
-      final Query query = new Query(Query.SOLR, queryString, null);
+      final Query query = new Query(queryString);
       final SolrSearchResultSet rs = searchServiceFactory.getSearchResultSet(request,
           query);
       if (rs != null) {

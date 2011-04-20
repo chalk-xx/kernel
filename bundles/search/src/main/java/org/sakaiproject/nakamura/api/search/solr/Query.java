@@ -37,6 +37,15 @@ public class Query {
 
   private Map<String, String> options;
 
+  public Query(String queryString) {
+    if (StringUtils.isBlank(queryString)) {
+      throw new IllegalArgumentException("'queryString' must be provided to query");
+    }
+
+    this.type = Query.SOLR;
+    this.queryString = queryString;
+  }
+
   /**
    * Create a query with a query string and optional properties to use Solr for searching.
    * 
@@ -45,12 +54,9 @@ public class Query {
    */
   public Query(String queryString, Map<String, String> properties,
       Map<String, String> options) {
-    if (StringUtils.isBlank(queryString)) {
-      throw new IllegalArgumentException("'queryString' must be provided to query");
-    }
+    this(queryString);
 
-    this.type = Query.SOLR;
-    this.queryString = queryString;
+    this.properties = properties;
     this.options = options;
   }
 

@@ -238,7 +238,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
     }
     final String queryString = sb.toString();
     org.sakaiproject.nakamura.api.search.solr.Query solrQuery = new org.sakaiproject.nakamura.api.search.solr.Query(
-        org.sakaiproject.nakamura.api.search.solr.Query.SOLR, queryString, ImmutableMap.of("sort", "score desc"));
+        queryString, null, ImmutableMap.of("sort", "score desc"));
     final SolrSearchBatchResultProcessor rp = new LiteFileSearchBatchResultProcessor(
         solrSearchServiceFactory, profileService);
     final SolrSearchResultSet srs = rp.getSearchResultSet(request, solrQuery);

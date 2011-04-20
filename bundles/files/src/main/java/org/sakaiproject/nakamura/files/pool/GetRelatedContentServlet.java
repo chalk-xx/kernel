@@ -130,7 +130,7 @@ public class GetRelatedContentServlet extends SlingSafeMethodsServlet {
           sb.append("taguuid:(").append(StringUtils.join(tagUuids, " OR "))
               .append(")");
         }
-        Query query = new Query(sb.toString(), null);
+        Query query = new Query(sb.toString());
         LOGGER.info("Submitting Query {} ", query);
         SolrSearchResultSet resultSet = solrSearchServiceFactory.getSearchResultSet(
             request, query, publicSearch);
