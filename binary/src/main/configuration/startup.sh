@@ -1,5 +1,5 @@
 #!/bin/bash
- K2VERSION=0.10
+ K2VERSION=0.11-SNAPSHOT
 
 
 # ---------------------------------
