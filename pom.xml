@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>base</artifactId>
-  <version>0.10-SNAPSHOT</version>
+  <version>0.11-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Sakai Nakamura Project</name>
   <description> Sakai Nakamura is an OSGi server built ontop of Apache Sling, supporting Sakai 3. </description>
@@ -94,9 +94,9 @@
         <module>contrib/ldapauth</module>
         <module>contrib/openssoauth</module>
         <module>contrib/ldap</module>
-        <module>contrib/remotefiles</module>
+        <!-- <module>contrib/remotefiles</module> -->
         <!-- to build oracle you must download and install oracle.jar first  <module>contrib/oracle-jdbc</module> -->
-        <module>contrib/sitejoin</module>
+        <!-- <module>contrib/sitejoin</module> -->
         <module>contrib/foreignprincipal</module>
         <module>contrib/rootconfig</module>
         <module>contrib/robots.txt</module>

@@ -22,12 +22,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.10-SNAPSHOT</version>
+    <version>0.11-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.presence</artifactId>
   <packaging>bundle</packaging>
-  <version>0.10-SNAPSHOT</version>
+  <version>0.11-SNAPSHOT</version>
   <name>Sakai Nakamura :: Presence Bundle</name>
   <description>Presence end point.</description>
   <build>
@@ -56,7 +56,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -78,37 +78,37 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.connections</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.profile</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.search</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -162,7 +162,7 @@
     <dependency>
     	<groupId>org.sakaiproject.nakamura</groupId>
     	<artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-    	<version>0.10-SNAPSHOT</version>
+    	<version>0.11-SNAPSHOT</version>
     	<scope>test</scope>
     </dependency>
     <!-- servlet -->

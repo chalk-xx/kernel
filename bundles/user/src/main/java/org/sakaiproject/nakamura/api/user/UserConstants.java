@@ -197,32 +197,32 @@ public interface UserConstants {
   /**
    * The name of the OSGi event topic for creating a user.
    */
-  public static final String TOPIC_USER_CREATED = "org/sakaiproject/nakamura/user/created";
+  public static final String TOPIC_USER_CREATED = "org/sakaiproject/nakamura/lite/user/created";
 
   /**
    * The name of the OSGi event topic for updating a user.
    */
-  public static final String TOPIC_USER_UPDATE = "org/sakaiproject/nakamura/user/updated";
+  public static final String TOPIC_USER_UPDATE = "org/sakaiproject/nakamura/lite/user/updated";
 
   /**
    * The name of the OSGi event topic for deleting a user.
    */
-  public static final String TOPIC_USER_DELETED = "org/sakaiproject/nakamura/user/deleted";
+  public static final String TOPIC_USER_DELETED = "org/sakaiproject/nakamura/lite/user/deleted";
 
   /**
    * The name of the OSGi event topic for creating a group.
    */
-  public static final String TOPIC_GROUP_CREATED = "org/sakaiproject/nakamura/group/created";
+  public static final String TOPIC_GROUP_CREATED = "org/sakaiproject/nakamura/lite/group/created";
 
   /**
    * The name of the OSGi event topic for updating a group.
    */
-  public static final String TOPIC_GROUP_UPDATE = "org/sakaiproject/nakamura/group/updated";
+  public static final String TOPIC_GROUP_UPDATE = "org/sakaiproject/nakamura/lite/group/updated";
 
   /**
    * The name of the OSGi event topic for deleting a group.
    */
-  public static final String TOPIC_GROUP_DELETED = "org/sakaiproject/nakamura/group/deleted";
+  public static final String TOPIC_GROUP_DELETED = "org/sakaiproject/nakamura/lite/group/deleted";
   
   
 

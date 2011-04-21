@@ -20,7 +20,7 @@
   <resources>
     <j2se version="1.5+" java-vm-args=" -Xmx512m -XX:MaxPermSize=256m -server " />
 
-    <jar href="lib/org.sakaiproject.nakamura.app-0.10-SNAPSHOT.jar" main="true"/>
+    <jar href="lib/org.sakaiproject.nakamura.app-0.11-SNAPSHOT.jar" main="true"/>
 
   </resources>
   <application-desc main-class="org.sakaiproject.nakamura.app.LaunchNakamura" />

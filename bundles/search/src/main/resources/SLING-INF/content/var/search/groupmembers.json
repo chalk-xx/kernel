@@ -1,15 +1,13 @@
 {
-  "sakai:query-template": 'resourceType:sakai/user-profile AND (${q}) ${_groupQuery}',
+  "sakai:query-template": "type:u AND group:(${group}) AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) ngram:(${q}) OR edgengram:(${q}))",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
-  "_groupQuery": "",
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
   "sakai:title": "Group Members",
-  "sakai:propertyprovider": "GroupMembers",
-  "sakai:batchresultprocessor": "GroupMembers",
+  "sakai:resultprocessor": "Profile",
   "sakai:shortDescription": "Get the group profile nodes out of the repository.",
   "sakai:parameters" : [
       "{\"name\" : \"q\", \"description\" : \"The term you want to match against. This will match any property on the group profile.\"}",

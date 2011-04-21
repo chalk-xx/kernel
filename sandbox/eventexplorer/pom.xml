@@ -5,12 +5,12 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.10-SNAPSHOT</version>
+    <version>0.11-SNAPSHOT</version>
   </parent>
   <packaging>pom</packaging>
   <name>Sakai Nakamura :: Event Explorer</name>
   <artifactId>eventexplorer</artifactId>
-  <version>0.10-SNAPSHOT</version>
+  <version>0.11-SNAPSHOT</version>
   <modules>
     <module>bundles/cassandrathrift</module>
     <module>bundles/storage/jdbc</module>

@@ -22,12 +22,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.10-SNAPSHOT</version>
+    <version>0.11-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.utils</artifactId>
   <packaging>bundle</packaging>
-  <version>0.10-SNAPSHOT</version>
+  <version>0.11-SNAPSHOT</version>
   <name>Sakai Nakamura :: Utilities</name>
   <description>Utility Library providing path, string, array, IO, date and other utilities, generally not available elsewhere.</description>
   <build>

@@ -19,12 +19,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.10-SNAPSHOT</version>
+    <version>0.11-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.doc</artifactId>
   <packaging>bundle</packaging>
-  <version>0.10-SNAPSHOT</version>
+  <version>0.11-SNAPSHOT</version>
   <name>Sakai Nakamura :: Documentation Support bundle</name>
   <description>Sakai Documentation Support bundle</description>
   <build>
@@ -91,7 +91,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
