@@ -1,7 +1,6 @@
 package org.sakaiproject.nakamura.jetty;
 
 import org.apache.felix.http.api.ExtHttpService;
-import org.mortbay.servlet.GzipFilter;
 
 import java.io.IOException;
 import java.util.Dictionary;

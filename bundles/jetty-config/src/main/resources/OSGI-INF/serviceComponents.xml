@@ -6,9 +6,9 @@
         <property name="service.vendor" type="String" value="The Sakai Foundation"/>
         <property name="service.pid" value="org.sakaiproject.nakamura.jetty.OSGiGZipFilter"/>
         <property name="bufferSize" type="Integer" value="8192"/>
-        <property name="minGzipSize" type="Integer" value="0"/>
+        <property name="minGzipSize" type="Integer" value="8192"/>
         <property name="userAgent" type="String" value="(?:Mozilla[^\(]*\(compatible;\s*+([^;]*);.*)|(?:.*?([^\s]+/[^\s]+).*)"/>
-       <property name="mimeTypes" type="String" value=""/> 
+       <property name="mimeTypes" type="String" value="text/html,text/plain,text/css,text/javascript,text/xml,application/xml,application/xhtml+xml,application/rss+xml,application/javascript,application/x-javascript,application/json"/> 
        <property name="excludedAgents" type="String" value=""/>         
         <reference name="extHttpService" 
             interface="org.apache.felix.http.api.ExtHttpService" 

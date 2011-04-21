@@ -36,6 +36,7 @@ import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -49,12 +50,12 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketException;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucketService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
@@ -76,7 +77,13 @@ import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "MeServlet", shortDescription = "Returns information about the current active user.", description = "Presents information about current user in JSON format.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/me"), methods = @ServiceMethod(name = "GET", description = "Get information about current user.", response = {
+@ServiceDocumentation(name = "MeServlet",
+    shortDescription = "Returns information about the current active user.",
+    description = "Presents information about current user in JSON format.",
+    bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/me"),
+    methods = @ServiceMethod(name = "GET", description = "Get information about current user.",
+        parameters = { @ServiceParameter(name="uid", description="If present the user id of the me feed to be returned")},
+        response = {
     @ServiceResponse(code = 200, description = "Request for information was successful. <br />"
         + "A JSON representation of the current user is returned. E.g. for an anonymous user:"
         + "<pre>{\"user\":\n"
@@ -137,7 +144,16 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
         return;
       }
       AuthorizableManager um = session.getAuthorizableManager();
-      Authorizable au = um.findAuthorizable(session.getUserId());
+      String userId = session.getUserId();
+      String requestedUserId = request.getParameter("uid");
+      if ( requestedUserId != null && requestedUserId.length() > 0) {
+        userId = requestedUserId;
+      }
+      Authorizable au = um.findAuthorizable(userId);
+      if ( au == null ) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST,"User "+userId+" not found.");
+        return;
+      }
       PrintWriter w = response.getWriter();
       ExtendedJSONWriter writer = new ExtendedJSONWriter(w);
       writer.object();

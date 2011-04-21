@@ -273,6 +273,22 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           }
         }
         write.endArray();
+        
+        if (page > 0 || rs.getSize() == nitems) {
+          // the result set may have been truncated by paging, so lets get a fuller count
+          query.getOptions().put(PARAMS_ITEMS_PER_PAGE, Long.toString(maximumResults));
+          query.getOptions().put(PARAMS_PAGE, Long.toString(0));
+          try {
+            if (useBatch) {
+              rs = searchBatchProcessor.getSearchResultSet(request, query);
+            } else {
+              rs = searchProcessor.getSearchResultSet(request, query);
+            }
+          } catch (SolrSearchException e) {
+            response.sendError(e.getCode(), e.getMessage());
+            return;
+          }
+        }
 
         // write the total out after processing the list to give the underlying iterator
         // a chance to walk the results then report how many there were.
@@ -484,13 +500,12 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       // KERN-1601 Wildcard searches have to be manually lowercased for case insensitive
       // matching as Solr bypasses the analyzer when dealing with a wildcard or fuzzy
       // search.
-      if (StringUtils.contains(requestValue, '*')
-          || StringUtils.contains(requestValue, '~')) {
+      if (StringUtils.contains(requestValue, '*')) {
         requestValue = requestValue.toLowerCase();
       }
-      // KERN-1703 Escape just :
-      requestValue = StringUtils.replace(requestValue, ":", "\\:");
-      propertiesMap.put(entry.getKey(), requestValue);
+      // we're selective with what we escape to make sure we don't hinder
+      // search functionality
+      propertiesMap.put(entry.getKey(), escapeQueryChars(requestValue));
     }
 
     // 3. load properties from a property provider
@@ -628,6 +643,11 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
   private void addProcessor(ServiceReference serviceReference) {
     SolrSearchResultProcessor processor = (SolrSearchResultProcessor) osgiComponentContext
         .locateService(SEARCH_RESULT_PROCESSOR, serviceReference);
+    if (processor == null) {
+      LOGGER.warn("Retrieved null processor [{}]", serviceReference);
+      return;
+    }
+
     Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
 
     processorsById.put(serviceId, processor);
@@ -682,6 +702,10 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
   private void addBatchProcessor(ServiceReference serviceReference) {
     SolrSearchBatchResultProcessor processor = (SolrSearchBatchResultProcessor) osgiComponentContext
         .locateService(SEARCH_BATCH_RESULT_PROCESSOR, serviceReference);
+    if (processor == null) {
+      LOGGER.warn("Retrieved null processor [{}]", serviceReference);
+      return;
+    }
     Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
 
     batchProcessorsById.put(serviceId, processor);
@@ -728,6 +752,10 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
   private void addProvider(ServiceReference serviceReference) {
     SolrSearchPropertyProvider provider = (SolrSearchPropertyProvider) osgiComponentContext
         .locateService(SEARCH_PROPERTY_PROVIDER, serviceReference);
+    if (provider == null) {
+      LOGGER.warn("Retrieved null provider [{}]", serviceReference);
+      return;
+    }
     Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
 
     propertyProviderById.put(serviceId, provider);
@@ -779,4 +807,24 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     return false;
   }
 
+  /**
+   * Stolen from org.apache.solr.client.solrj.util.ClientUtils
+   * See: <a href="http://lucene.apache.org/java/docs/nightly/queryparsersyntax.html#Escaping%20Special%20Characters">Escaping Special Characters</a>
+   * Removed escaping for * and "
+   */
+  protected String escapeQueryChars(String s) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      // These characters are part of the query syntax and must be escaped
+      if (c == '\\' || c == '+' || c == '-' || c == '!'  || c == '(' || c == ')'|| c == ':'
+        || c == '^' || c == '[' || c == ']' || c == '{' || c == '}' || c == '~'
+        || c == '?' || c == '|' || c == '&' || c == ';'
+        || Character.isWhitespace(c)) {
+        sb.append('\\');
+      }
+      sb.append(c);
+    }
+    return sb.toString();
+  }
 }

@@ -302,6 +302,7 @@ public class LiteCreateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
                 try {
                   Dictionary<String, String> properties = new Hashtable<String, String>();
                   properties.put(UserConstants.EVENT_PROP_USERID, principalName);
+                  properties.put("path", principalName);
                   EventUtils
                       .sendOsgiEvent(properties, UserConstants.TOPIC_GROUP_CREATED, eventAdmin);
                 } catch (Exception e) {

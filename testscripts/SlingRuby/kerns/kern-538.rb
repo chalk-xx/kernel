@@ -19,11 +19,8 @@ class TC_Kern538Test < Test::Unit::TestCase
     treeuser = create_user("treeuser1#{m}")
     @s.switch_user(treeuser)
 
-    # Create foo node in private store
-    @s.execute_post(@s.url_for("#{treeuser.private_path_for(@s)}/foo"), {"foo" => "bar"})
-
     # Create the default tree
-    jsonRes = create_tree(default_tree(), "#{treeuser.private_path_for(@s)}/foo")
+    jsonRes = create_tree(default_tree(), "#{treeuser.private_path_for(@s)}/#{m}")
 
     #Assertions
     default_asserts(jsonRes)
@@ -34,13 +31,10 @@ class TC_Kern538Test < Test::Unit::TestCase
     treeuser = create_user("treeuser2#{m}")
     @s.switch_user(treeuser)
 
-    # Create foo node in private store
-    @s.execute_post(@s.url_for("#{treeuser.private_path_for(@s)}/foo"), {"foo" => "bar"})
-
     # Create the default tree
     tree = default_tree()
     tree["foo"]["jcr:primaryType"] = "nt:file"
-    jsonRes = create_tree(tree, "#{treeuser.private_path_for(@s)}/foo")
+    jsonRes = create_tree(tree, "#{treeuser.private_path_for(@s)}/#{m}")
 
     #Assertions
     default_asserts(jsonRes)
@@ -110,9 +104,9 @@ class TC_Kern538Test < Test::Unit::TestCase
     assert_not_nil(jsonRes["foo"]["bar1"], "Expected to find the Bar1 Element" )
     assert_not_nil(jsonRes["foo"]["bar2"], "Expected to find the Bar2 Element" )
     assert_equal(jsonRes["foo"]["title"], "Foo", "Expected to get 'Foo' as title.")
-    assert_equal(jsonRes["foo"]["bar1"]["unit"], 1, "Expexted to get a childnode 'bar1' with property unit of '1.5'.")
+    assert_equal(jsonRes["foo"]["bar1"]["unit"], "1", "Expexted to get a childnode 'bar1' with property unit of '1'.")
     assert_equal(jsonRes["foo"]["bar1"]["title"], "First bar", "Expexted to get a childnode 'bar1' with property title of 'First bar'.")
-    assert_equal(jsonRes["foo"]["bar2"]["unit"], 2.5, "Expexted to get a childnode 'bar2' with property unit of '2.5'.")
+    assert_equal(jsonRes["foo"]["bar2"]["unit"], "2.5", "Expexted to get a childnode 'bar2' with property unit of '2.5'.")
     assert_equal(jsonRes["foo"]["bar2"]["title"], "Second bar", "Expexted to get a childnode 'bar2' with property title of 'Second bar'.")
   end
 
