@@ -42,7 +42,6 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
-import org.sakaiproject.nakamura.api.search.solr.MissingParameterException;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.ResultSetFactory;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -55,7 +54,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -112,21 +110,7 @@ public class SolrResultSetFactory implements ResultSetFactory {
   public SolrSearchResultSet processQuery(SlingHttpServletRequest request, Query query,
       boolean asAnon) throws SolrSearchException {
     try {
-      // process the query string before checking for missing terms to a) give processors a
-      // chance to set things and b) catch any missing terms added by the processors.
-      String queryString = templateService.evaluateTemplate(query.getProperties(), query.getQueryString());
-
-      // expand home directory references to full path; eg. ~user => a:user
-      queryString = SearchUtil.expandHomeDirectory(queryString);
-
-      // check for any missing terms & process the query template
-      Collection<String> missingTerms = templateService.missingTerms(queryString);
-      if (!missingTerms.isEmpty()) {
-        throw new MissingParameterException(
-            "Your request is missing parameters for the template: "
-                + StringUtils.join(missingTerms, ", "));
-      }
-
+      String queryString = query.getQueryString();
       // apply readers restrictions.
       if (asAnon) {
         queryString = "(" + queryString + ")  AND readers:" + User.ANON_USER;
