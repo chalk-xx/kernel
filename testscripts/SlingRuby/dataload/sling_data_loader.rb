@@ -103,7 +103,7 @@ module NakamuraData
 	group = @user_manager.create_group group_name, "Test Group #{count.to_s}"
 	if(group)
 	  @log.info "created group: #{group.name}"
-	  @file_log.info("user #{user_id} not created, may already exist?")	  
+	  @file_log.info "created group: #{group.name}"	  
 	else
 	  @log.info("group #{group_name} not created, may already exist?")
 	  @file_log.info("group #{group_name} not created, may already exist?")	  
