@@ -335,27 +335,27 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
 
     String queryTemplate = queryNode.getProperty(SAKAI_QUERY_TEMPLATE).getString();
 
-//    // process the query string before checking for missing terms to a) give processors a
-//    // chance to set things and b) catch any missing terms added by the processors.
-//    String queryString = templateService.evaluateTemplate(propertiesMap, queryTemplate);
+    // process the query string before checking for missing terms to a) give processors a
+    // chance to set things and b) catch any missing terms added by the processors.
+    String queryString = templateService.evaluateTemplate(propertiesMap, queryTemplate);
 
     // expand home directory references to full path; eg. ~user => a:user
-    String queryString = SearchUtil.expandHomeDirectory(queryTemplate);
+    queryString = SearchUtil.expandHomeDirectory(queryTemplate);
 
-//    // check for any missing terms & process the query template
-//    Collection<String> missingTerms = templateService.missingTerms(propertiesMap,
-//        queryTemplate);
-//    if (!missingTerms.isEmpty()) {
-//      throw new MissingParameterException(
-//          "Your request is missing parameters for the template: "
-//              + StringUtils.join(missingTerms, ", "));
-//    }
+    // check for any missing terms & process the query template
+    Collection<String> missingTerms = templateService.missingTerms(propertiesMap,
+        queryTemplate);
+    if (!missingTerms.isEmpty()) {
+      throw new MissingParameterException(
+          "Your request is missing parameters for the template: "
+              + StringUtils.join(missingTerms, ", "));
+    }
 
     // collect query options
     JSONObject queryOptions = accumulateQueryOptions(queryNode);
 
     // process the options as templates and check for missing params
-    Map<String, String> options = processOptions(propertiesMap, queryOptions);
+    Map<String, String> options = processOptions(propertiesMap, queryOptions, queryType);
 
     Query query = new Query(queryType, queryString, propertiesMap, options);
     return query;
@@ -369,7 +369,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    * @throws MissingParameterException
    */
   private Map<String, String> processOptions(Map<String, String> propertiesMap,
-      JSONObject queryOptions) throws JSONException, MissingParameterException {
+      JSONObject queryOptions, String queryType) throws JSONException, MissingParameterException {
     Collection<String> missingTerms;
     Map<String, String> options = Maps.newHashMap();
     if (queryOptions != null) {
@@ -385,7 +385,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         }
 
         String processedVal = templateService.evaluateTemplate(propertiesMap, val);
-        options.put(key, processedVal);
+        options.put(key, SearchUtil.escapeString(processedVal, queryType));
       }
     }
     return options;
@@ -468,13 +468,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       if (StringUtils.isBlank(requestValue)) {
         continue;
       }
-
-//      // KERN-1601 Wildcard searches have to be manually lowercased for case insensitive
-//      // matching as Solr bypasses the analyzer when dealing with a wildcard or fuzzy
-//      // search.
-//      if (StringUtils.contains(requestValue, '*')) {
-//        requestValue = requestValue.toLowerCase();
-//      }
 
       // we're selective with what we escape to make sure we don't hinder
       // search functionality
@@ -778,26 +771,5 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       }
     }
     return false;
-  }
-
-  /**
-   * Stolen from org.apache.solr.client.solrj.util.ClientUtils
-   * See: <a href="http://lucene.apache.org/java/docs/nightly/queryparsersyntax.html#Escaping%20Special%20Characters">Escaping Special Characters</a>
-   * Removed escaping for * and "
-   */
-  protected String escapeQueryChars(String s) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < s.length(); i++) {
-      char c = s.charAt(i);
-      // These characters are part of the query syntax and must be escaped
-      if (c == '\\' || c == '+' || c == '-' || c == '!'  || c == '(' || c == ')'|| c == ':'
-        || c == '^' || c == '[' || c == ']' || c == '{' || c == '}' || c == '~'
-        || c == '?' || c == '|' || c == '&' || c == ';'
-        || Character.isWhitespace(c)) {
-        sb.append('\\');
-      }
-      sb.append(c);
-    }
-    return sb.toString();
   }
 }

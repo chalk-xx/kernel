@@ -5,6 +5,8 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.osgi.OsgiUtil;
@@ -20,10 +22,10 @@ import java.util.Map;
 @Service
 public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
 
-  @Reference(referenceInterface = ResultSetFactory.class)
+  @Reference(referenceInterface = ResultSetFactory.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
   private Map<String, ResultSetFactory> resultSetFactories = Maps.newHashMap();
 
-  protected void bindResultFactories(ResultSetFactory factory, Map<?, ?> props) {
+  protected void bindResultSetFactories(ResultSetFactory factory, Map<?, ?> props) {
     String type = OsgiUtil.toString(props.get("type"), null);
     if (!StringUtils.isBlank(type)) {
       synchronized (resultSetFactories) {
@@ -32,7 +34,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
     }
   }
 
-  protected void unbindResultFactories(ResultSetFactory factory, Map<?, ?> props) {
+  protected void unbindResultSetFactories(ResultSetFactory factory, Map<?, ?> props) {
     String type = OsgiUtil.toString(props.get("type"), null);
     if (!StringUtils.isBlank(type)) {
       synchronized (resultSetFactories) {

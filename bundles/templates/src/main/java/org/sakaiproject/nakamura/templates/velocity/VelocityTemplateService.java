@@ -57,12 +57,12 @@ public class VelocityTemplateService implements TemplateService, TemplateNodeSou
     for (Object key : parameters.keySet()) {
       Object value = parameters.get(key);
       if (value instanceof RequestParameter) {
-        rv.put(key.toString(), ((RequestParameter) value).getString());
+        rv.put(key.toString(), String.valueOf((RequestParameter) value));
       } else if (value instanceof String[]) {
         String[] values = (String[])value;
         rv.put(key.toString(), values[0]);
       } else {
-        rv.put(key.toString(), value.toString());
+        rv.put(key.toString(), String.valueOf(value));
       }
     }
     return rv;
