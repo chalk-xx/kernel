@@ -26,7 +26,7 @@ module NakamuraData
     @sling = nil
     @file_manager = nil
 
-    attr_reader :upload_success_count, :upload_failure_count
+    attr_reader :log, :task
     
     def initialize(options)
       @upload_success_count = 0
@@ -36,6 +36,8 @@ module NakamuraData
       @num_groups = options[:numgroups].to_i
       @groups_per_user = options[:groupsperuser].to_i
       @load_content_files = options[:loadfiles].to_i
+      @content_root = options[:contentroot]
+      @task = options[:task]
       
       @groups = []
       @user_ids = []
@@ -49,7 +51,7 @@ module NakamuraData
       @file_manager = FileManager.new(@sling)
       @log = Logger.new(STDOUT)
       @log.level = Logger::DEBUG
-      @file_log = Logger.new('upload.log', 'daily')
+      @file_log = Logger.new('load.log', 'daily')
       @file_log.level = Logger::DEBUG
       @file_log.info "testing the file outputter"
     end
@@ -155,13 +157,12 @@ module NakamuraData
     def load_content
       load_simple_content
       if(@load_content_files == 1)
-	rootdir_name = "./TestContent"
-	load_files_from_filesystem rootdir_name
+	load_files_from_filesystem @content_root
       end
-	@log.info("Total files uploaded: #{upload_success_count.to_s}")
-	@log.info("File upload failures: #{upload_failure_count.to_s}")
-	@file_log.info("Total files uploaded: #{upload_success_count.to_s}")
-	@file_log.info("File upload failures: #{upload_failure_count.to_s}")         
+	@log.info("Total files uploaded: #{@upload_success_count.to_s}")
+	@log.info("File upload failures: #{@upload_failure_count.to_s}")
+	@file_log.info("Total files uploaded: #{@upload_success_count.to_s}")
+	@file_log.info("File upload failures: #{@upload_failure_count.to_s}")         
     end
     
         
@@ -201,28 +202,33 @@ module NakamuraData
     # load the NYU content if requested
     def load_files_from_filesystem(rootdir_name)
       ignore_dirs = ['.','..']
-      Dir.foreach(rootdir_name) do |dir_name|
-	@log.debug "Got #{dir_name}"
-	if (!ignore_dirs.include? dir_name)
-	  # this is a top level content containing directory e.g. doc
-	  content_dir = Dir.new rootdir_name + '/' + dir_name
-	  content_dir.each do |content_file_name|
-	    if (!ignore_dirs.include? content_file_name)
-	      @log.debug "Got content file name: #{content_file_name}"
-	      # we're not going to do the recursive thing, so just bail if we hit a subdirectory
-	      begin
-		load_file_from_filesystem content_dir.path, content_file_name, get_mime_type(content_file_name)
-	      rescue Exception => ex
-		@log.warn "Failed uploading #{content_file_name} because #{ex.class}: #{ex.message}"
-		@log.warn("failed uploading file: #{content_file_name} 0" )
-		@file_log.warn "Failed uploading #{content_file_name} because #{ex.class}: #{ex.message}"
-		@file_log.warn("failed uploading file: #{content_file_name} 0" )		
-		@upload_failure_count = @upload_failure_count + 1
-	      end	
+      begin
+	Dir.foreach(rootdir_name) do |dir_name|
+	  @log.debug "Got #{dir_name}"
+	  if (!ignore_dirs.include? dir_name)
+	    # this is a top level content containing directory e.g. doc
+	    content_dir = Dir.new rootdir_name + '/' + dir_name
+	    content_dir.each do |content_file_name|
+	      if (!ignore_dirs.include? content_file_name)
+		@log.debug "Got content file name: #{content_file_name}"
+		# we're not going to do the recursive thing, so just bail if we hit a subdirectory
+		begin
+		  load_file_from_filesystem content_dir.path, content_file_name, get_mime_type(content_file_name)
+		rescue Exception => ex
+		  @log.warn "Failed uploading #{content_file_name} because #{ex.class}: #{ex.message}"
+		  @log.warn("failed uploading file: #{content_file_name} 0" )
+		  @file_log.warn "Failed uploading #{content_file_name} because #{ex.class}: #{ex.message}"
+		  @file_log.warn("failed uploading file: #{content_file_name} 0" )		
+		  @upload_failure_count = @upload_failure_count + 1
+		end	
+	      end
 	    end
 	  end
 	end
-      end   
+      rescue Exception => ex
+	@log.warn "failed to load content from root dir #{rootdir_name}"
+	@file_log.warn "failed to load content from root dir #{rootdir_name}"
+      end 	
     end
     
     
@@ -321,27 +327,48 @@ if ($PROGRAM_NAME.include? 'sling_data_loader.rb')
     end
     
     options[:numgroups] = 200
-    opts.on("-g", "--num-groups NUMGROUPS", "Number of groups to create") do |ng|
+    opts.on("-g", "--num-groups [NUMGROUPS]", "Number of groups to create, default is 200") do |ng|
       options[:numgroups] = ng
     end
     
     options[:groupsperuser] = 2
-    opts.on("-m", "--groups-per-user GROUPSPERUSER", "Number of groups that user is a member of") do |oi|
+    opts.on("-m", "--groups-per-user [GROUPSPERUSER]", "Number of groups that user is a member of, default is 2") do |oi|
       options[:groupsperuser] = oi
     end
     
     options[:loadfiles] = 1
-    opts.on("-f", "--load-content-files CONTENTFILES", "Load static content files") do |lf|
+    opts.on("-f", "--load-content-files [CONTENTFILES]", "Load static content files, default is 1") do |lf|
       options[:loadfiles] = lf
     end
+    
+    options[:contentroot] = './TestContent'
+    opts.on("-r", "--content-root [CONTENTROOT]", "Root Directory of Content files, default is './TestContent'") do |cr|
+      options[:contentroot] = cr
+    end
+    
+    options[:task] = 'all'
+    # tasks are 'all' (the default), 'usersandgroups' or 'content'
+    opts.on("-t", "--task [TASK]", "The task or tasks to perform one of 'all'(the default), 'usersandgroups', 'content'" ) do |tk|
+      options[:task] = tk
+    end    
   end
   
   optparser.parse ARGV
   
   sdl = NakamuraData::SlingDataLoader.new options
   sdl.load_users_data
-  sdl.create_users
-  sdl.create_groups
-  sdl.join_groups
-  sdl.load_content
+  if (sdl.task == 'all')
+    sdl.create_users
+    sdl.create_groups
+    sdl.join_groups
+    sdl.load_content
+  elsif (sdl.task == 'usersandgroups')
+    sdl.create_users
+    sdl.create_groups
+    sdl.join_groups
+  elsif (sdl.task == 'content')
+    sdl.load_content    
+  else
+    sdl.log.warn("-t --task parameter incorrect, @task is #{sdl.task}")
+  end
 end
