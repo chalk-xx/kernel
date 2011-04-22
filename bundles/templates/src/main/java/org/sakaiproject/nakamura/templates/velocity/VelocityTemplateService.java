@@ -19,11 +19,13 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.jcr.Node;
 import javax.jcr.Repository;
+import org.apache.commons.lang.StringUtils;
 
 @Service
 @Component(immediate = true)
@@ -57,19 +59,44 @@ public class VelocityTemplateService implements TemplateService, TemplateNodeSou
     for (Object key : parameters.keySet()) {
       Object value = parameters.get(key);
       if (value instanceof RequestParameter) {
-        rv.put(key.toString(), ((RequestParameter) value).getString());
+        rv.put(key.toString(), String.valueOf((RequestParameter) value));
       } else if (value instanceof String[]) {
         String[] values = (String[])value;
         rv.put(key.toString(), values[0]);
       } else {
-        rv.put(key.toString(), value.toString());
+        rv.put(key.toString(), String.valueOf(value));
       }
     }
     return rv;
   }
 
+  public Collection<String> missingTerms(String template) {
+    if (template == null || StringUtils.isBlank(template)) {
+      return Collections.emptyList();
+    }
+
+    Collection<String> missingTerms = new ArrayList<String>();
+    int startPosition = template.indexOf("${");
+    while (startPosition > -1) {
+      int endPosition = template.indexOf("}", startPosition);
+      if (endPosition > -1) {
+        String key = template.substring(startPosition + 2, endPosition);
+        missingTerms.add(key);
+        // look for the next velocity replacement variable
+        startPosition = template.indexOf("${", endPosition);
+      } else {
+        break;
+      }
+    }
+    return missingTerms;
+  }
+
   public Collection<String> missingTerms(Map<String, ? extends Object> parameters,
       String template) {
+    if (template == null || StringUtils.isBlank(template)) {
+      return Collections.emptyList();
+    }
+
     Collection<String> missingTerms = new ArrayList<String>();
     int startPosition = template.indexOf("${");
     while (startPosition > -1) {

@@ -59,10 +59,9 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.MissingParameterException;
 import org.sakaiproject.nakamura.api.search.solr.Query;
-import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -85,8 +84,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -154,8 +151,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
 
   @Reference
   private transient TemplateService templateService;
-
-  private Pattern homePathPattern = Pattern.compile("^(.*)(~([\\w-]*?))/");
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -306,29 +301,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     }
   }
 
-  private String addUserPrincipals(SlingHttpServletRequest request, String queryString) {
-    // TODO Auto-generated method stub
-    return queryString;
-  }
-
-  private String expandHomeDirectory(String queryString) {
-    Matcher homePathMatcher = homePathPattern.matcher(queryString);
-    if (homePathMatcher.find()) {
-      String username = homePathMatcher.group(3);
-      String homePrefix = homePathMatcher.group(1);
-      String userHome = LitePersonalUtils.getHomePath(username);
-      userHome = ClientUtils.escapeQueryChars(userHome);
-      String homePath = homePrefix + userHome + "/";
-      String prefix = "";
-      if (homePathMatcher.start() > 0) {
-        prefix = queryString.substring(0, homePathMatcher.start());
-      }
-      String suffix = queryString.substring(homePathMatcher.end());
-      queryString = prefix + homePath + suffix;
-    }
-    return queryString;
-  }
-
   /**
    * Processes a velocity template so that variable references are replaced by the same
    * properties in the property provider and request.
@@ -343,12 +315,22 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    */
   protected Query processQuery(SlingHttpServletRequest request, Node queryNode)
       throws RepositoryException, MissingParameterException, JSONException {
+    // check the resource type and set the query type appropriately
+    // default to using solr for queries
+    javax.jcr.Property resourceType = queryNode.getProperty("sling:resourceType");
+    String queryType = null;
+    if ("sakai/sparse-search".equals(resourceType.getString())) {
+      queryType = Query.SPARSE;
+    } else {
+      queryType = Query.SOLR;
+    }
+
     String propertyProviderName = null;
     if (queryNode.hasProperty(SAKAI_PROPERTY_PROVIDER)) {
       propertyProviderName = queryNode.getProperty(SAKAI_PROPERTY_PROVIDER).getString();
     }
     Map<String, String> propertiesMap = loadProperties(request, propertyProviderName,
-        queryNode);
+        queryNode.getProperties(), queryType);
 
     String queryTemplate = queryNode.getProperty(SAKAI_QUERY_TEMPLATE).getString();
 
@@ -357,14 +339,10 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     String queryString = templateService.evaluateTemplate(propertiesMap, queryTemplate);
 
     // expand home directory references to full path; eg. ~user => a:user
-    queryString = expandHomeDirectory(queryString);
-
-    // append the user principals to the query string
-    queryString = addUserPrincipals(request, queryString);
+    queryString = SearchUtil.expandHomeDirectory(queryString);
 
     // check for any missing terms & process the query template
-    Collection<String> missingTerms = templateService.missingTerms(propertiesMap,
-        queryTemplate);
+    Collection<String> missingTerms = templateService.missingTerms(queryString);
     if (!missingTerms.isEmpty()) {
       throw new MissingParameterException(
           "Your request is missing parameters for the template: "
@@ -375,17 +353,9 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     JSONObject queryOptions = accumulateQueryOptions(queryNode);
 
     // process the options as templates and check for missing params
-    Map<String, String> options = processOptions(propertiesMap, queryOptions);
+    Map<String, String> options = processOptions(propertiesMap, queryOptions, queryType);
 
-    // check the resource type and set the query type appropriately
-    // default to using solr for queries
-    javax.jcr.Property resourceType = queryNode.getProperty("sling:resourceType");
-    Query query = null;
-    if ("sakai/sparse-search".equals(resourceType.getString())) {
-      query = new Query(Type.SPARSE, queryString, options);
-    } else {
-      query = new Query(Type.SOLR, queryString, options);
-    }
+    Query query = new Query(queryType, queryString, propertiesMap, options);
     return query;
   }
 
@@ -397,7 +367,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    * @throws MissingParameterException
    */
   private Map<String, String> processOptions(Map<String, String> propertiesMap,
-      JSONObject queryOptions) throws JSONException, MissingParameterException {
+      JSONObject queryOptions, String queryType) throws JSONException, MissingParameterException {
     Collection<String> missingTerms;
     Map<String, String> options = Maps.newHashMap();
     if (queryOptions != null) {
@@ -413,6 +383,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         }
 
         String processedVal = templateService.evaluateTemplate(propertiesMap, val);
+        processedVal = SearchUtil.escapeString(processedVal, queryType);
         options.put(key, processedVal);
       }
     }
@@ -428,8 +399,9 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    * @throws PathNotFoundException
    * @throws JSONException
    */
-  private JSONObject accumulateQueryOptions(Node queryNode) throws RepositoryException,
-      ValueFormatException, PathNotFoundException, JSONException {
+  private JSONObject accumulateQueryOptions(Node queryNode)
+      throws RepositoryException, ValueFormatException, PathNotFoundException,
+      JSONException {
     JSONObject queryOptions = null;
     if (queryNode.hasProperty(SAKAI_QUERY_TEMPLATE_OPTIONS)) {
       // process the options as JSON string
@@ -443,8 +415,10 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         PropertyIterator props = optionsNode.getProperties();
         while (props.hasNext()) {
           javax.jcr.Property prop = props.nextProperty();
-          if (!prop.getName().startsWith("jcr:")) {
-            queryOptions.put(prop.getName(), prop.getString());
+          String key = prop.getName();
+          String val = prop.getString();
+          if (!key.startsWith("jcr:")) {
+            queryOptions.put(key, val);
           }
         }
       }
@@ -466,7 +440,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    * @throws RepositoryException
    */
   private Map<String, String> loadProperties(SlingHttpServletRequest request,
-      String propertyProviderName, Node node) throws RepositoryException {
+      String propertyProviderName, PropertyIterator defaultProps, String queryType) throws RepositoryException {
     Map<String, String> propertiesMap = new HashMap<String, String>();
 
     // 0. load authorizable (user) information
@@ -477,18 +451,20 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     propertiesMap.put("_userId", ClientUtils.escapeQueryChars(userId));
 
     // 1. load in properties from the query template node so defaults can be set
-    PropertyIterator props = node.getProperties();
-    while (props.hasNext()) {
-      javax.jcr.Property prop = props.nextProperty();
-      if (!propertiesMap.containsKey(prop.getName()) && !prop.isMultiple()) {
-        propertiesMap.put(prop.getName(), prop.getString());
+    if (defaultProps != null) {
+      while (defaultProps.hasNext()) {
+        javax.jcr.Property prop = defaultProps.nextProperty();
+        String key = prop.getName();
+        if (!propertiesMap.containsKey(key) && !prop.isMultiple()) {
+          String val = prop.getString();
+          propertiesMap.put(key, val);
+        }
       }
     }
 
     // 2. load in properties from the request
     RequestParameterMap params = request.getRequestParameterMap();
     for (Entry<String, RequestParameter[]> entry : params.entrySet()) {
-      String key = entry.getKey();
       RequestParameter[] vals = entry.getValue();
       String requestValue = vals[0].getString();
 
@@ -497,15 +473,11 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         continue;
       }
 
-      // KERN-1601 Wildcard searches have to be manually lowercased for case insensitive
-      // matching as Solr bypasses the analyzer when dealing with a wildcard or fuzzy
-      // search.
-      if (StringUtils.contains(requestValue, '*')) {
-        requestValue = requestValue.toLowerCase();
-      }
       // we're selective with what we escape to make sure we don't hinder
       // search functionality
-      propertiesMap.put(entry.getKey(), escapeQueryChars(requestValue));
+      String key = entry.getKey();
+      String val = SearchUtil.escapeString(requestValue, queryType);
+      propertiesMap.put(key, val);
     }
 
     // 3. load properties from a property provider
@@ -805,26 +777,5 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       }
     }
     return false;
-  }
-
-  /**
-   * Stolen from org.apache.solr.client.solrj.util.ClientUtils
-   * See: <a href="http://lucene.apache.org/java/docs/nightly/queryparsersyntax.html#Escaping%20Special%20Characters">Escaping Special Characters</a>
-   * Removed escaping for * and "
-   */
-  protected String escapeQueryChars(String s) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < s.length(); i++) {
-      char c = s.charAt(i);
-      // These characters are part of the query syntax and must be escaped
-      if (c == '\\' || c == '+' || c == '-' || c == '!'  || c == '(' || c == ')'|| c == ':'
-        || c == '^' || c == '[' || c == ']' || c == '{' || c == '}' || c == '~'
-        || c == '?' || c == '|' || c == '&' || c == ';'
-        || Character.isWhitespace(c)) {
-        sb.append('\\');
-      }
-      sb.append(c);
-    }
-    return sb.toString();
   }
 }
