@@ -77,13 +77,10 @@ public class SolrResultSetFactory implements ResultSetFactory {
   private final class SlowQueryLogger { }
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SolrResultSetFactory.class);
-  private static final Logger SOLR_QUERY_LOGGER = LoggerFactory.getLogger(SlowQueryLogger.class);
+  private static final Logger SLOW_QUERY_LOGGER = LoggerFactory.getLogger(SlowQueryLogger.class);
 
   @Reference
   private SolrServerService solrSearchService;
-
-  @Reference
-  private transient TemplateService templateService;
 
   private int defaultMaxResults = 100; // set to 100 to allow testing
   private long slowQueryThreshold;
@@ -141,10 +138,10 @@ public class SolrResultSetFactory implements ResultSetFactory {
       QueryResponse response = solrServer.query(solrQuery);
       tquery = System.currentTimeMillis() - tquery;
       try {
-        if ( tquery > slowQueryThreshold && tquery < verySlowQueryThreshold ) {
-          SOLR_QUERY_LOGGER.warn("Slow query {} ms {} ",tquery, URLDecoder.decode(solrQuery.toString(),"UTF-8"));
-        } else if ( tquery > verySlowQueryThreshold ) {
-          SOLR_QUERY_LOGGER.error("Very Slow query {} ms {} ",tquery, URLDecoder.decode(solrQuery.toString(),"UTF-8"));
+        if ( tquery > verySlowQueryThreshold ) {
+          SLOW_QUERY_LOGGER.error("Very slow solr query {} ms {} ",tquery, URLDecoder.decode(solrQuery.toString(),"UTF-8"));
+        } else if ( tquery > slowQueryThreshold ) {
+          SLOW_QUERY_LOGGER.warn("Slow solr query {} ms {} ",tquery, URLDecoder.decode(solrQuery.toString(),"UTF-8"));
         }
       } catch (UnsupportedEncodingException e) {
       }
@@ -160,34 +157,6 @@ public class SolrResultSetFactory implements ResultSetFactory {
     } catch (SolrServerException e) {
         throw new SolrSearchException(500, e.getMessage());
     }
-  }
-
-  /**
-   * Stolen from org.apache.solr.client.solrj.util.ClientUtils
-   * See: <a href="http://lucene.apache.org/java/docs/nightly/queryparsersyntax.html#Escaping%20Special%20Characters">Escaping Special Characters</a>
-   * Removed escaping for * and "
-   */
-  public String filterValue(String value) {
-    // KERN-1601 Wildcard searches have to be manually lowercased for case insensitive
-    // matching as Solr bypasses the analyzer when dealing with a wildcard or fuzzy
-    // search.
-    if (StringUtils.contains(value, '*')) {
-      value = value.toLowerCase();
-    }
-
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < value.length(); i++) {
-      char c = value.charAt(i);
-      // These characters are part of the query syntax and must be escaped
-      if (c == '\\' || c == '+' || c == '-' || c == '!'  || c == '(' || c == ')'|| c == ':'
-        || c == '^' || c == '[' || c == ']' || c == '{' || c == '}' || c == '~'
-        || c == '?' || c == '|' || c == '&' || c == ';'
-        || Character.isWhitespace(c)) {
-        sb.append('\\');
-      }
-      sb.append(c);
-    }
-    return sb.toString();
   }
 
   /**
