@@ -59,7 +59,6 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.MissingParameterException;
 import org.sakaiproject.nakamura.api.search.solr.Query;
@@ -340,11 +339,10 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     String queryString = templateService.evaluateTemplate(propertiesMap, queryTemplate);
 
     // expand home directory references to full path; eg. ~user => a:user
-    queryString = SearchUtil.expandHomeDirectory(queryTemplate);
+    queryString = SearchUtil.expandHomeDirectory(queryString);
 
     // check for any missing terms & process the query template
-    Collection<String> missingTerms = templateService.missingTerms(propertiesMap,
-        queryTemplate);
+    Collection<String> missingTerms = templateService.missingTerms(queryString);
     if (!missingTerms.isEmpty()) {
       throw new MissingParameterException(
           "Your request is missing parameters for the template: "
@@ -385,7 +383,8 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         }
 
         String processedVal = templateService.evaluateTemplate(propertiesMap, val);
-        options.put(key, SearchUtil.escapeString(processedVal, queryType));
+        processedVal = SearchUtil.escapeString(processedVal, queryType);
+        options.put(key, processedVal);
       }
     }
     return options;
@@ -400,8 +399,9 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    * @throws PathNotFoundException
    * @throws JSONException
    */
-  private JSONObject accumulateQueryOptions(Node queryNode) throws RepositoryException,
-      ValueFormatException, PathNotFoundException, JSONException {
+  private JSONObject accumulateQueryOptions(Node queryNode)
+      throws RepositoryException, ValueFormatException, PathNotFoundException,
+      JSONException {
     JSONObject queryOptions = null;
     if (queryNode.hasProperty(SAKAI_QUERY_TEMPLATE_OPTIONS)) {
       // process the options as JSON string
@@ -415,8 +415,10 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         PropertyIterator props = optionsNode.getProperties();
         while (props.hasNext()) {
           javax.jcr.Property prop = props.nextProperty();
-          if (!prop.getName().startsWith("jcr:")) {
-            queryOptions.put(prop.getName(), prop.getString());
+          String key = prop.getName();
+          String val = prop.getString();
+          if (!key.startsWith("jcr:")) {
+            queryOptions.put(key, val);
           }
         }
       }
@@ -452,8 +454,10 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     if (defaultProps != null) {
       while (defaultProps.hasNext()) {
         javax.jcr.Property prop = defaultProps.nextProperty();
-        if (!propertiesMap.containsKey(prop.getName()) && !prop.isMultiple()) {
-          propertiesMap.put(prop.getName(), prop.getString());
+        String key = prop.getName();
+        if (!propertiesMap.containsKey(key) && !prop.isMultiple()) {
+          String val = prop.getString();
+          propertiesMap.put(key, val);
         }
       }
     }
@@ -471,7 +475,9 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
 
       // we're selective with what we escape to make sure we don't hinder
       // search functionality
-      propertiesMap.put(entry.getKey(), SearchUtil.escapeString(requestValue, queryType));
+      String key = entry.getKey();
+      String val = SearchUtil.escapeString(requestValue, queryType);
+      propertiesMap.put(key, val);
     }
 
     // 3. load properties from a property provider
