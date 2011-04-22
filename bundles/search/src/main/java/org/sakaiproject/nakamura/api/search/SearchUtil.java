@@ -90,10 +90,11 @@ public class SearchUtil {
    *
    * @param value
    * @param queryLanguage
-   *          The language to escape for. This can be XPATH, SQL, JCR_SQL2, JCR_JQOM, or SOLR.
+   *          The language to escape for. This can be XPATH, SQL, JCR_SQL2,
+   *          JCR_JQOM, solr or sparse.
    *          Look at {@link Query Query}.
    *          For SOLR, this is nearly equivalent to ClientUtils.escapeQueryChars(value)
-   *            but does not escape * or "
+   *            but does not escape *, " or whitespace.
    * @return
    */
   @SuppressWarnings("deprecation") // Suppressed because we need to check depreciated methods just in case.
@@ -111,15 +112,16 @@ public class SearchUtil {
         for (int i = 0; i < value.length(); i++) {
           char c = value.charAt(i);
           // These characters are part of the query syntax and must be escaped
-          if (c == '\\' || c == '+' || c == '-' || c == '!'  || c == '(' || c == ')'|| c == ':'
-            || c == '^' || c == '[' || c == ']' || c == '{' || c == '}' || c == '~'
-            || c == '?' || c == '|' || c == '&' || c == ';'
-            || Character.isWhitespace(c)) {
+          if (c == '\\' || c == '+' || c == '-' || c == '!' || c == '(' || c == ')'
+            || c == ':' || c == '^' || c == '[' || c == ']' || c == '{' || c == '}'
+            || c == '~' || c == '?' || c == '|' || c == '&' || c == ';') {
             sb.append('\\');
           }
           sb.append(c);
         }
         escaped = sb.toString();
+      } else if (queryLanguage.equals(org.sakaiproject.nakamura.api.search.solr.Query.SPARSE)) {
+        escaped = value;
       } else {
         LOGGER.error("Unknown query language: " + queryLanguage);
       }

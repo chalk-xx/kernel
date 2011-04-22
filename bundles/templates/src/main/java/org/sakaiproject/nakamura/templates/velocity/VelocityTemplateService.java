@@ -19,11 +19,13 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.jcr.Node;
 import javax.jcr.Repository;
+import org.apache.commons.lang.StringUtils;
 
 @Service
 @Component(immediate = true)
@@ -69,6 +71,10 @@ public class VelocityTemplateService implements TemplateService, TemplateNodeSou
   }
 
   public Collection<String> missingTerms(String template) {
+    if (template == null || StringUtils.isBlank(template)) {
+      return Collections.emptyList();
+    }
+
     Collection<String> missingTerms = new ArrayList<String>();
     int startPosition = template.indexOf("${");
     while (startPosition > -1) {
@@ -87,6 +93,10 @@ public class VelocityTemplateService implements TemplateService, TemplateNodeSou
 
   public Collection<String> missingTerms(Map<String, ? extends Object> parameters,
       String template) {
+    if (template == null || StringUtils.isBlank(template)) {
+      return Collections.emptyList();
+    }
+
     Collection<String> missingTerms = new ArrayList<String>();
     int startPosition = template.indexOf("${");
     while (startPosition > -1) {
