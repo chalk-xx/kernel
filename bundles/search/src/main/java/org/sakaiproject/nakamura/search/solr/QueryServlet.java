@@ -25,27 +25,18 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 
 import org.sakaiproject.nakamura.api.solr.SolrServerService;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.common.util.NamedList;
-import org.apache.solr.common.SolrDocument;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.apache.sling.commons.json.JSONException;
 
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
-import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 
 import org.apache.felix.scr.annotations.Properties;
@@ -57,7 +48,7 @@ import org.apache.felix.scr.annotations.Property;
   bindings = {
     @ServiceBinding(
       type = BindingType.PATH,
-      bindings = { "/system/solrdebug" }
+      bindings = { "/system/query" }
     )
   },
   methods = {
@@ -66,8 +57,8 @@ import org.apache.felix.scr.annotations.Property;
       description = {"Send a request to Solr.<br>" +
                      "Any parameters provided will be passed through to Solr by calling setParam() on a SolrQuery object. " +
                      "Example queries:<br>" +
-                     "<pre>http://localhost:8080/system/solrdebug?q=fish&sort=score asc&rows=10&indent=1\n" +
-                     "http://localhost:8080/system/solrdebug?qt=/admin/luke&fl=email&numTerms=100&indent=1\n" +
+                     "<pre>http://localhost:8080/system/query?q=fish&sort=score asc&rows=10&indent=1\n" +
+                     "http://localhost:8080/system/query?qt=/admin/luke&fl=email&numTerms=100&indent=1\n" +
                      "</pre>" +
                      "Browse the Solr Wiki at http://wiki.apache.org/solr/ for examples of query types and their corresponding parameters."
                      },
@@ -78,7 +69,7 @@ import org.apache.felix.scr.annotations.Property;
   }
 )
 @Component(enabled=false)
-@SlingServlet(methods={"GET"}, paths = { "/system/query" }, generateComponent = false)
+@SlingServlet(methods = "GET", paths = "/system/query", generateComponent = false)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Perform arbitrary queries against Solr") })
