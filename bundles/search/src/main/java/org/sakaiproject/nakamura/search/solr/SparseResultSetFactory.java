@@ -20,6 +20,8 @@ package org.sakaiproject.nakamura.search.solr;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -51,6 +53,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -69,6 +73,12 @@ public class SparseResultSetFactory implements ResultSetFactory {
   private int defaultMaxResults = 100; // set to 100 to allow testing
   private long slowQueryThreshold;
   private long verySlowQueryThreshold;
+
+  /** only used to mark the logger */
+  private final class SlowQueryLogger { }
+  
+  private static final Logger LOGGER = LoggerFactory.getLogger(SparseResultSetFactory.class);
+  private static final Logger SLOW_QUERY_LOGGER = LoggerFactory.getLogger(SlowQueryLogger.class);
 
   @Activate
   protected void activate(Map<?, ?> props) {
@@ -133,7 +143,17 @@ public class SparseResultSetFactory implements ResultSetFactory {
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
         .adaptTo(javax.jcr.Session.class));
     ContentManager cm = session.getContentManager();
+    long tquery = System.currentTimeMillis();
     Iterable<Content> items = cm.find(props);
+    tquery = System.currentTimeMillis() - tquery;
+    try {
+      if ( tquery > verySlowQueryThreshold ) {
+        SLOW_QUERY_LOGGER.error("Very slow sparse query {} ms {} ",tquery, URLDecoder.decode(query.toString(),"UTF-8"));
+      } else if ( tquery > slowQueryThreshold ) {
+        SLOW_QUERY_LOGGER.warn("Slow sparse query {} ms {} ",tquery, URLDecoder.decode(query.toString(),"UTF-8"));
+      }
+    } catch (UnsupportedEncodingException e) {
+    }
     SolrSearchResultSet rs = new SparseSearchResultSet(items, defaultMaxResults);
     return rs;
     } catch (AccessDeniedException e) {
@@ -143,10 +163,6 @@ public class SparseResultSetFactory implements ResultSetFactory {
     } catch (ParseException e) {
       throw new SolrSearchException(500, e.getMessage());
     }
-  }
-
-  public String filterValue(String value) {
-    return value;
   }
 
   /**

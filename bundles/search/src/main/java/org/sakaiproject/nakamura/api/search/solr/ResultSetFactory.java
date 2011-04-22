@@ -25,6 +25,4 @@ import org.apache.sling.api.SlingHttpServletRequest;
 public interface ResultSetFactory {
   SolrSearchResultSet processQuery(SlingHttpServletRequest request, Query query,
       boolean asAnon) throws SolrSearchException;
-
-  String filterValue(String value);
 }
