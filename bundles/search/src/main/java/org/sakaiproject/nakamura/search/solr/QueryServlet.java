@@ -72,7 +72,7 @@ import org.apache.felix.scr.annotations.Property;
 @SlingServlet(methods = "GET", paths = "/system/query", generateComponent = false)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Perform arbitrary queries against Solr") })
+    @Property(name = "service.description", value = "Perform arbitrary queries against Solr.  WARNING: do not enable in production without separately protecting the /system/query URL.") })
 public class QueryServlet extends SlingSafeMethodsServlet {
 
   static final long serialVersionUID = -7250872090976232073L;
