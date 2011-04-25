@@ -36,7 +36,6 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.search.solr.Query;
-import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
@@ -130,7 +129,8 @@ public class RelatedContentSearchPropertyProvider extends
     sourceQuery.append(") OR viewer:(");
     sourceQuery.append(Join.join(" OR ", viewers));
     sourceQuery.append("))");
-    final Query query = new Query(Type.SOLR, sourceQuery.toString(), SOURCE_QUERY_OPTIONS);
+    final Query query = new Query(Query.SOLR, sourceQuery.toString(), null,
+        SOURCE_QUERY_OPTIONS);
 
     SolrSearchResultSet rs = null;
     try {
