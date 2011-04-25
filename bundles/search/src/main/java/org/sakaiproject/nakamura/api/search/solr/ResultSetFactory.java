@@ -17,26 +17,12 @@
  */
 package org.sakaiproject.nakamura.api.search.solr;
 
+import org.apache.sling.api.SlingHttpServletRequest;
+
 /**
- * Exception representing unfulfilled parameters when processing a query template.
+ * Interface for query processors that generate a result set.
  */
-public class MissingParameterException extends RuntimeException {
-  private static final long serialVersionUID = 1L;
-
-  public MissingParameterException() {
-    super();
-  }
-
-  public MissingParameterException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public MissingParameterException(String message) {
-    super(message);
-  }
-
-  public MissingParameterException(Throwable cause) {
-    super(cause);
-  }
-
+public interface ResultSetFactory {
+  SolrSearchResultSet processQuery(SlingHttpServletRequest request, Query query,
+      boolean asAnon) throws SolrSearchException;
 }
