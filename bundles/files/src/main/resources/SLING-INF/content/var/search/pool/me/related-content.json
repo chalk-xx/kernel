@@ -1,0 +1,13 @@
+{
+  "sakai:query-template": 'resourceType:sakai/pooled-content AND (manager:(${managers}) OR viewer:(${viewers})) AND (filename:(${fileNames}) OR taguuid:(${tagUuids}))',
+  "sakai:query-template-options": {
+      "sort": "score desc"
+  },
+  "sling:resourceType": "sakai/solr-search",
+  "sakai:propertyprovider" : "RelatedContentSearchPropertyProvider",
+  "sakai:resultprocessor": "AllFiles",
+  "sakai:aggregate-search-results": [ "sakai:tags" ],
+  "sakai:aggregate-search-results-children": "false",
+  "sakai:title": "Pooled Content - Related Content",
+  "sakai:shortDescription": "Lists content related to content in My Library."
+}
