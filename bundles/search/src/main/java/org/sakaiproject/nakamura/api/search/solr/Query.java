@@ -26,16 +26,25 @@ import java.util.Map;
  * greater ease when parsing as templates and for building the SolrQuery object.
  */
 public class Query {
+  public static final String SPARSE = "sparse";
+  public static final String SOLR = "solr";
 
-  public enum Type {
-    SOLR, SPARSE
-  }
-
-  private Type type;
+  private String type;
 
   private String queryString;
 
+  private Map<String, String> properties;
+
   private Map<String, String> options;
+
+  public Query(String queryString) {
+    if (StringUtils.isBlank(queryString)) {
+      throw new IllegalArgumentException("'queryString' must be provided to query");
+    }
+
+    this.type = Query.SOLR;
+    this.queryString = queryString;
+  }
 
   /**
    * Create a query with a query string and optional properties to use Solr for searching.
@@ -43,13 +52,11 @@ public class Query {
    * @param queryString
    * @param options
    */
-  public Query(String queryString, Map<String, String> options) {
-    if (StringUtils.isBlank(queryString)) {
-      throw new IllegalArgumentException("'queryString' must be provided to query");
-    }
+  public Query(String queryString, Map<String, String> properties,
+      Map<String, String> options) {
+    this(queryString);
 
-    this.type = Type.SOLR;
-    this.queryString = queryString;
+    this.properties = properties;
     this.options = options;
   }
 
@@ -58,8 +65,9 @@ public class Query {
    *
    * @param properties
    */
-  public Query(Type type, String queryString, Map<String, String> options) {
-    this(queryString, options);
+  public Query(String type, String queryString, Map<String, String> properties,
+      Map<String, String> options) {
+    this(queryString, properties, options);
 
     this.type = type;
   }
@@ -70,7 +78,7 @@ public class Query {
    * @return SOLR, SPARSE
    * @see Type
    */
-  public Type getType() {
+  public String getType() {
     return type;
   }
 
@@ -81,6 +89,15 @@ public class Query {
    */
   public String getQueryString() {
     return queryString;
+  }
+
+  /**
+   * Get the options to be applied when querying such as sorting.
+   *
+   * @return {@link Map} of options. null if not set.
+   */
+  public Map<String, String> getProperties() {
+    return properties;
   }
 
   /**

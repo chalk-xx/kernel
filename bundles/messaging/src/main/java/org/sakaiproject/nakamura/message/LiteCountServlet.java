@@ -142,7 +142,7 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
 
       queryString.append(")&start=0&sort=_created desc");
 
-      Query query = new Query(queryString.toString(), null);
+      Query query = new Query(queryString.toString());
       LOGGER.info("Submitting Query {} ", query);
       SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
           request, query, false);

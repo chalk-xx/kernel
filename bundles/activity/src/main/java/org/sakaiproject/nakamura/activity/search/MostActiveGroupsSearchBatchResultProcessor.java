@@ -33,7 +33,6 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
-import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
@@ -110,7 +109,7 @@ public class MostActiveGroupsSearchBatchResultProcessor implements
     long totalCanRead = 0L;
     try {
       final String queryString = "resourceType:authorizable AND type:g";
-      final Query query = new Query(Type.SOLR, queryString, null);
+      final Query query = new Query(queryString);
       final SolrSearchResultSet rs = searchServiceFactory.getSearchResultSet(request,
           query);
       if (rs != null) {
