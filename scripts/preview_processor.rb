@@ -65,7 +65,6 @@ Dir["*"].each do |id|
     File.open(filename, 'wb') { |f| f.write content_file.body }
 
     if ['.png', '.jpg', '.jpeg', '.gif', '.psd'].include? extension
-
       # Images don't need a preview so we make a big and small thumbnail instead.
 
       page_count = 1
@@ -86,7 +85,6 @@ Dir["*"].each do |id|
       ## Cleaning crew.
       FileUtils.rm DOCS_DIR + "/#{filename_thumb}"
     else
-
       # Generating image previews of te document.
       Docsplit.extract_images filename, :size => '700x', :format => :jpg
 
@@ -95,14 +93,14 @@ Dir["*"].each do |id|
       Dir.mkdir PREVS_DIR + "/#{id}" unless File.directory? PREVS_DIR + "/#{id}"
 
       # Moving these previews to another directory: "PREVS_DIR/filename/index.jpg".
-      Dir[id + '_*'].each_with_index do |preview, index|
+      Dir[id + '_*'].sort.each_with_index do |preview, index|
         FileUtils.mv "#{preview}", "#{PREVS_DIR}/#{id}/#{index}.jpg"
       end
 
       Dir.chdir PREVS_DIR + "/#{id}"
       page_count = Dir["*"].size
       # Upload each preview and create+upload a thumbnail.
-      Dir["*"].each_with_index do |filename_p, index|
+      Dir["*"].sort.each_with_index do |filename_p, index|
         nbytes = File.size filename_p
         content = nil
         File.open(filename_p, "rb") { |f| content = f.read nbytes }
