@@ -129,8 +129,7 @@ public class RelatedContentSearchPropertyProvider extends
     sourceQuery.append(") OR viewer:(");
     sourceQuery.append(Join.join(" OR ", viewers));
     sourceQuery.append("))");
-    final Query query = new Query(Query.SOLR, sourceQuery.toString(), null,
-        SOURCE_QUERY_OPTIONS);
+    final Query query = new Query(Query.SOLR, sourceQuery.toString(), SOURCE_QUERY_OPTIONS);
 
     SolrSearchResultSet rs = null;
     try {
