@@ -16,12 +16,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.11-SNAPSHOT</version>
+    <version>0.10-20110426</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.securityloader</artifactId>
   <packaging>bundle</packaging>
-  <version>0.11-SNAPSHOT</version>
+  <version>0.10-20110426</version>
   <name>Sakai Nakamura :: Security Loader Bundle</name>
   <description>Security Loader Bundle, watches for bundles with security configuration and
     loads them into the JCR on startup, recording the details in /var in the JCR .</description>
@@ -49,13 +49,13 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -84,7 +84,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

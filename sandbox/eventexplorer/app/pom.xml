@@ -17,12 +17,12 @@
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </parent>
 
     <artifactId>org.sakaiproject.nakamura.eventexplorer.app</artifactId>
     <packaging>jar</packaging>
-    <version>0.11-SNAPSHOT</version>
+    <version>0.10-20110426</version>
 
     <name>Sakai Nakamura :: Event explorer Standalone Java Application</name>
     <description> Standalone Java Application. When executed this will bring up a JMS listener that 

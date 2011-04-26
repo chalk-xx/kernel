@@ -3,7 +3,7 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.11-SNAPSHOT</version>
+    <version>0.10-20110426</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -11,7 +11,7 @@
   <artifactId>org.sakaiproject.nakamura.docproxy</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Document Proxy</name>
-  <version>0.11-SNAPSHOT</version>
+  <version>0.10-20110426</version>
   <description>This will allow resources in external repositories to form part of the URL space whilst still allowing the JCR to contain metadata on the item.</description>
   <build>
     <plugins>
@@ -40,7 +40,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -86,12 +86,12 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.search</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.woodstox</groupId>
@@ -133,7 +133,7 @@
         <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>

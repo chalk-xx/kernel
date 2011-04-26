@@ -22,12 +22,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.11-SNAPSHOT</version>
+    <version>0.10-20110426</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.world</artifactId>
   <packaging>bundle</packaging>
-  <version>0.11-SNAPSHOT</version>
+  <version>0.10-20110426</version>
   <name>Sakai Nakamura :: World Support</name>
   <description>World Support bundle</description>
   <build>
@@ -67,27 +67,27 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.core</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.templates</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </dependency>
     <dependency>
       <groupId>com.google.collections</groupId>

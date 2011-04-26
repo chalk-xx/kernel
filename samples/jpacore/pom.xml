@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.11-SNAPSHOT</version>
+    <version>0.10-20110426</version>
   </parent>
   <artifactId>org.eclipse.persistence.core</artifactId>
   <packaging>bundle</packaging>

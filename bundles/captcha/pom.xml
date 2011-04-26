@@ -19,12 +19,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.11-SNAPSHOT</version>
+    <version>0.10-20110426</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.captcha</artifactId>
   <packaging>bundle</packaging>
-  <version>0.11-SNAPSHOT</version>
+  <version>0.10-20110426</version>
   <name>Sakai Nakamura :: Captcha Bundle</name>
   <description>Provides a captcha service. The default implementation is reCAPTCHA.</description>
   <build>
@@ -98,19 +98,19 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.commons.commons-httpclient</artifactId>
-      <version>3.1-0.11-SNAPSHOT</version>
+      <version>3.1-0.10-20110426</version>
       <scope>provided</scope>
     </dependency>
 
@@ -118,7 +118,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -16,12 +16,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.11-SNAPSHOT</version>
+    <version>0.10-20110426</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.formauth</artifactId>
   <packaging>bundle</packaging>
-  <version>0.11-SNAPSHOT</version>
+  <version>0.10-20110426</version>
   <name>Sakai Nakamura :: Form Auth Bundle</name>
   <description>Provides Form based authentication support to the request cycle and adds a URL against which form based authentication can be performed.</description>
   <build>
@@ -58,7 +58,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </dependency>
     <dependency>
       <groupId>javax.jcr</groupId>
@@ -97,7 +97,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </dependency>
   </dependencies>
 </project>

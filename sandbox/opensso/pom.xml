@@ -5,11 +5,11 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.11-SNAPSHOT</version>
+    <version>0.10-20110426</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.opensso</artifactId>
-  <version>0.11-SNAPSHOT</version>
+  <version>0.10-20110426</version>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Open SSO Authenticator</name>
   <build>
@@ -93,13 +93,13 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </dependency>
     
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </dependency>
     
     

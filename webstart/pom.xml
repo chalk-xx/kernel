@@ -17,12 +17,12 @@
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
     </parent>
 
     <artifactId>org.sakaiproject.nakamura.webstart</artifactId>
     <packaging>pom</packaging>
-    <version>0.11-SNAPSHOT</version>
+    <version>0.10-20110426</version>
 
     <name>Sakai Nakamura :: Webstart Package</name>
     <description> Webstart Package </description>
@@ -112,7 +112,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.app</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>

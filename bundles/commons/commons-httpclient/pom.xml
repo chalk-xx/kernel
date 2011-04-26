@@ -22,12 +22,12 @@
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-20110426</version>
       <relativePath>../../../pom.xml</relativePath>
     </parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>org.sakaiproject.nakamura.commons.commons-httpclient</artifactId>
-    <version>3.1-0.11-SNAPSHOT</version>
+    <version>3.1-0.10-20110426</version>
     <packaging>bundle</packaging>
     <name>Sakai Nakamura :: Apache Commons HTTPClient bundle</name>
     <description>
