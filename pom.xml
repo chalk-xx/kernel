@@ -81,6 +81,7 @@
         <module>bundles/directory</module>
         <module>bundles/templates</module>
         <module>bundles/world</module>
+        <module>testscripts</module>
       </modules>
     </profile>
     <profile>
