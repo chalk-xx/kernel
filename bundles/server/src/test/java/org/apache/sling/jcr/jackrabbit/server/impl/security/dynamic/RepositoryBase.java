@@ -22,7 +22,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.config.RepositoryConfig;
-import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider;
+import org.apache.sling.jcr.jackrabbit.server.impl.Activator;
 import org.mockito.Mockito;
 import org.osgi.framework.BundleContext;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
@@ -50,7 +50,7 @@ import javax.jcr.SimpleCredentials;
  */
 public class RepositoryBase {
   private RepositoryImpl repository;
-  private SakaiActivator sakaiActivator;
+  private Activator sakaiActivator;
   private BundleContext bundleContext;
   private org.sakaiproject.nakamura.lite.RepositoryImpl sparseRepository;
   private ConfigurationImpl configuration;
@@ -106,17 +106,7 @@ public class RepositoryBase {
    */
   private void setupSakaiActivator() throws ClientPoolException, StorageClientException,
       AccessDeniedException, ClassNotFoundException {
-    DynamicPrincipalManagerFactoryImpl dynamicPrincipalManagerFactoryImpl = new DynamicPrincipalManagerFactoryImpl(
-        bundleContext);
-    RuleProcessorManagerImpl ruleProcessorManagerImpl = new RuleProcessorManagerImpl(
-        bundleContext);
-    PrincipalProviderRegistryManagerImpl principalProviderRegistryManagerImpl = new PrincipalProviderRegistryManagerImpl(
-        bundleContext);
-    principalProviderRegistryManagerImpl.addProvider(new RulesPrincipalProvider());
-    SakaiActivator.setDynamicPrincipalManagerFactory(dynamicPrincipalManagerFactoryImpl);
-    SakaiActivator.setRuleProcessorManager(ruleProcessorManagerImpl);
-    SakaiActivator.setPrincipalProviderManager(principalProviderRegistryManagerImpl);
-    sakaiActivator = new SakaiActivator();
+    sakaiActivator = new Activator();
     Mockito.when(bundleContext.getProperty("sling.repository.home")).thenReturn("target/testrepo");
     Mockito.when(bundleContext.getProperty("sling.home")).thenReturn("target/testrepo");
     sakaiActivator.start(bundleContext);
