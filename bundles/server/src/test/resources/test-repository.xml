@@ -30,12 +30,8 @@
           </UserManager>
     </SecurityManager>
 
-    <!--
-      <AccessManager
-      class="org.apache.jackrabbit.core.security.DefaultAccessManager">
-    -->
     <AccessManager
-      class="org.apache.sling.jcr.jackrabbit.server.impl.security.PluggableDefaultAccessManager">
+      class="org.apache.jackrabbit.core.security.DefaultAccessManager">
 
     </AccessManager>
 
