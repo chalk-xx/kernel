@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 /**
  *
@@ -125,12 +126,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
         if (doc != null) {
           documents.add(doc);
 
-          String topic = null;
-          if (event.getTopic().endsWith(StoreListener.ADDED_TOPIC)) {
-            topic = StoreListener.ADDED_TOPIC;
-          } else {
-            topic = StoreListener.UPDATED_TOPIC;
-          }
+          String topic = PathUtils.lastElement(event.getTopic());
           logger.info("{} authorizable for searching: {}", topic, authName);
         }
       }
@@ -230,6 +226,10 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
   // KERN-1607 don't include manager groups in the index
   // KERN-1600 don't include contact groups in the index
   protected boolean isUserFacing(Authorizable auth) {
+    if (auth == null) {
+      return false;
+    }
+
     boolean isBlacklisted = BLACKLISTED_AUTHZ.contains(auth.getId());
     boolean isNotManagingGroup = !auth.hasProperty(UserConstants.PROP_MANAGED_GROUP);
     boolean hasTitleAndNotBlank = auth.hasProperty("sakai:group-title")

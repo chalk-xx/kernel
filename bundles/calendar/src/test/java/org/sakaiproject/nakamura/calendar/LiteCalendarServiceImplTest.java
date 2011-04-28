@@ -23,7 +23,6 @@ import static org.junit.Assert.assertNotNull;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
-import edu.emory.mathcs.backport.java.util.Collections;
 
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
@@ -51,6 +50,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.Collections;
 import java.util.List;
 
 public class LiteCalendarServiceImplTest {

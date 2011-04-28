@@ -212,9 +212,16 @@ public class SparseMapUserManager implements UserManager, SessionListener {
   public void loggingOut(SessionImpl session) {
   }
 
-  public void loggedOut(SessionImpl session) {
+  public void loggedOut(SessionImpl triggerSession) {
     try {
+      // log out the Sparse Session.
       this.session.logout();
+      // the trigger session is the session that this session is bound to.
+      // if that session and the jcrSession that this session is bound to are not the same, then we must log out the jcrSession
+      // to prevent a leak.
+      if ( triggerSession != jcrSession ) {
+        this.jcrSession.logout();
+      }
       int systemSessions = systemSessionCounter.get();
       int sessions = sessionCounter.get();
       if ("org.apache.jackrabbit.core.SystemSession".equals(session.getClass().getName())) {
@@ -222,12 +229,8 @@ public class SparseMapUserManager implements UserManager, SessionListener {
       } else {
         sessions = sessionCounter.decrementAndGet();
       }
-      LOGGER.debug("Logged out of sparse triggered bu Session {} {} {} ", new Object[] {
+      LOGGER.debug("Logged out of sparse triggered by Session {} {} {} ", new Object[] {
           session, sessions, systemSessions });
-      if (session != jcrSession) {
-        LOGGER.debug("Odd session are not the same on login logout {} {} ", jcrSession,
-            session);
-      }
     } catch (ClientPoolException e) {
       LOGGER.error("Failed to logout ", e);
     }
