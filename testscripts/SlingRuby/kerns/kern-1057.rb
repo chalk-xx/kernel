@@ -23,14 +23,12 @@ class TC_Kern1057Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Should have created group as admin")
     @s.switch_user(manager)
     details = group.details(@s)
-    managersgroupname = details["properties"]["sakai:managers-group"]
-    managersgroup = Group.new(managersgroupname)
-    assert(managersgroup.has_member(@s, manager.name), "Should have added user to managers group")
-    res = @s.execute_post(@s.url_for("#{Group.url_for(managersgroupname)}.update.html"), {
+    assert(group.has_member(@s, manager.name), "Should have added user as manager to group")
+    res = @s.execute_post(@s.url_for("#{Group.url_for(group.name)}.update.html"), {
       ":member" => other.name
     })
-    assert_equal("200", res.code, "Should have added member to managers group")
-    assert(managersgroup.has_member(@s, other.name), "Should have found new user in managers group")
+    assert_equal("200", res.code, "Should have added member as manager to group")
+    assert(group.has_member(@s, other.name), "Should have found new manager member in group")
   end
 
 end

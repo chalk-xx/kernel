@@ -19,8 +19,6 @@ package org.sakaiproject.nakamura.user.lite.servlet;
 
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGERS;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_VIEWERS;
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGED_GROUP;
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGERS_GROUP;
 
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -228,11 +226,6 @@ public class LiteUpdateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
     // properties directly except to delete them.
     reqProperties.remove(groupPath + "/" + PROP_GROUP_MANAGERS);
     reqProperties.remove(groupPath + "/" + PROP_GROUP_VIEWERS);
-
-    // Block direct manipulation of the properties that implement
-    // a Sakai Group entity's Managers group.
-    reqProperties.remove(PROP_MANAGERS_GROUP);
-    reqProperties.remove(PROP_MANAGED_GROUP);
 
     // write content from form
     writeContent(session, authorizable, reqProperties, changes, toSave);
