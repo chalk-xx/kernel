@@ -1,10 +1,5 @@
 package org.sakaiproject.nakamura.user.postprocessors;
 
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_BARE_AUTHORIZABLE;
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_GROUP_MANAGERS;
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGED_GROUP;
-import static org.sakaiproject.nakamura.api.user.UserConstants.PROP_MANAGERS_GROUP;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
@@ -306,13 +301,13 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
     boolean isGroup = authorizable instanceof Group;
 
-    if (ModificationType.DELETE.equals(change.getType())) {
-      LOGGER.debug("Performing delete operation on {} ", authorizable.getId());
-      if (isGroup) {
-        deleteManagersGroup(authorizable, authorizableManager);
-      }
-      return; // do not
-    }
+//    if (ModificationType.DELETE.equals(change.getType())) {
+//      LOGGER.debug("Performing delete operation on {} ", authorizable.getId());
+//      if (isGroup) {
+//        deleteManagersGroup(authorizable, authorizableManager);
+//      }
+//      return; // do not
+//    }
 
     // WARNING: Creation and Update requests are more disjunct than is usual.
     //
@@ -349,7 +344,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     // object itself)
     if (isGroup) {
       if (isCreate) {
-        createManagersGroup(authorizable, authorizableManager, accessControlManager,
+        setGroupManagers(authorizable, authorizableManager, accessControlManager,
             parameters);
       } else {
         updateManagersGroup(authorizable, authorizableManager, accessControlManager,
@@ -446,8 +441,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           for (final Entry<String, Object> entry : authorizable.getSafeProperties()
               .entrySet()) {
             final String key = entry.getKey();
-            if (key.startsWith("sakai:group") || "sakai:pages-visible".equals(key)
-                || "sakai:managers-group".equals(key)) {
+            if (key.startsWith("sakai:group") || "sakai:pages-visible".equals(key)) {
               sakaiAuthzProperties.put(key, entry.getValue());
             }
           }
@@ -676,25 +670,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
     }
   }
 
-  @Deprecated
-  private void deleteManagersGroup(Authorizable authorizable,
-      AuthorizableManager authorizableManager) {
-    if (authorizable.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-      String managersGroup = (String) authorizable
-          .getProperty(UserConstants.PROP_MANAGERS_GROUP);
-      LOGGER
-          .debug(" {} deleting managers group  {}", authorizable.getId(), managersGroup);
-      try {
-        authorizableManager.delete(managersGroup);
-      } catch (Exception e) {
-        LOGGER.warn("Failed to delete managers group {}  {}", managersGroup);
-      }
-    } else {
-      LOGGER.debug(" {} has no manager group {} ", authorizable,
-          authorizable.getSafeProperties());
-    }
-  }
-
   /**
    * Create the managers group. Note, this is deprecated since this is not how
    * we will do this longer term.
@@ -707,75 +682,42 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
    * @throws StorageClientException
    */
   @Deprecated
-  private void createManagersGroup (Authorizable authorizable,
+  private void setGroupManagers (Authorizable authorizable,
       AuthorizableManager authorizableManager, AccessControlManager accessControlManager,
       Map<String, Object[]> parameters) throws AccessDeniedException,
       StorageClientException {
-    if (!authorizable.hasProperty(PROP_MANAGERS_GROUP)) {
-      // if authorizable.getId() is unique, then it only has 1 manages group, which is
-      // also unique by definition.
-      String managersGroupId = authorizable.getId() + "-managers";
-      authorizable.setProperty(PROP_MANAGERS_GROUP, managersGroupId);
-      Set<String> managers = Sets.newHashSet(StorageClientUtils.nonNullStringArray(
-          (String[])authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
-      managers.add(managersGroupId);
-      authorizable.setProperty(UserConstants.PROP_GROUP_MANAGERS,
-          managers.toArray(new String[managers.size()]));
+    // if authorizable.getId() is unique, then it only has 1 manages group, which is
+    // also unique by definition.
+    Set<String> managers = Sets.newHashSet(StorageClientUtils.nonNullStringArray(
+        (String[])authorizable.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
 
-      authorizableManager.updateAuthorizable(authorizable);
-
-      authorizableManager.createGroup(managersGroupId, managersGroupId,
-          ImmutableMap.of(PROP_MANAGED_GROUP, (Object) authorizable.getId(), // the ID of
-                                                                             // the group
-                                                                             // this group
-                                                                             // manages
-              PROP_MANAGERS_GROUP, managersGroupId, // the ID of the special managers
-                                                    // group
-              PROP_GROUP_MANAGERS, new String[] {managersGroupId}, // the managers of this group (ie
-                                                    // itself)
-              PROP_BARE_AUTHORIZABLE, true));
-
-      Group managersGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
-      Object[] addValues = parameters.get(PARAM_ADD_TO_MANAGERS_GROUP);
-      if ((addValues != null) && (addValues instanceof String[])) {
-        for (String memberId : (String[]) addValues) {
-          Authorizable toAdd = authorizableManager.findAuthorizable(memberId);
-          if (toAdd != null) {
-            managersGroup.addMember(toAdd.getId());
-          } else {
-            LOGGER.warn("Could not add {} to managers group {}", memberId,
-                managersGroupId);
-          }
+    Object[] addValues = parameters.get(PARAM_ADD_TO_MANAGERS_GROUP);
+    if ((addValues != null) && (addValues instanceof String[])) {
+      for (String memberId : (String[]) addValues) {
+        Authorizable toAdd = authorizableManager.findAuthorizable(memberId);
+        managers.add(memberId);
+        if (toAdd != null) {
+          ((Group) authorizable).addMember(toAdd.getId());
+        } else {
+          LOGGER.warn("Could not add manager {} group {}", memberId,
+              authorizable.getId());
         }
       }
-      authorizableManager.updateAuthorizable(managersGroup);
-
-      // grant the mangers group management over this group
-      accessControlManager.setAcl(
-          Security.ZONE_AUTHORIZABLES,
-          authorizable.getId(),
-          new AclModification[] { new AclModification(AclModification
-              .grantKey(managersGroupId), Permissions.CAN_MANAGE.getPermission(),
-              Operation.OP_REPLACE) });
-      // and over itself
-      accessControlManager.setAcl(
-          Security.ZONE_AUTHORIZABLES,
-          managersGroupId,
-          new AclModification[] { new AclModification(AclModification
-              .grantKey(managersGroupId), Permissions.CAN_MANAGE.getPermission(),
-              Operation.OP_REPLACE) });
-
-      // The Manager members must be included in all access rights granted to Group
-      // members.
-      if (authorizable.isGroup()) {
-        Group mainGroup = (Group) authorizable;
-        mainGroup.addMember(managersGroupId);
-        authorizableManager.updateAuthorizable(mainGroup);
-      }
-    } else {
-      LOGGER.info("Group {} already has Managers group {} - no changes made", authorizable,
-          (String) authorizable.getProperty(PROP_MANAGERS_GROUP));
     }
+    authorizable.setProperty(UserConstants.PROP_GROUP_MANAGERS,
+        managers.toArray(new String[managers.size()]));
+    authorizableManager.updateAuthorizable(authorizable);
+
+    // grant the mangers management over this group
+    for (String managerId : managers) {
+    accessControlManager.setAcl(
+        Security.ZONE_AUTHORIZABLES,
+        authorizable.getId(),
+        new AclModification[] { new AclModification(AclModification
+            .grantKey(managerId), Permissions.CAN_MANAGE.getPermission(),
+            Operation.OP_REPLACE) });
+    }
+
   }
 
   /**
@@ -794,33 +736,29 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       AuthorizableManager authorizableManager, AccessControlManager accessControlManager,
       Map<String, Object[]> parameters) throws AccessDeniedException,
       StorageClientException {
-    if (authorizable.hasProperty(PROP_MANAGERS_GROUP)) {
-      boolean isUpdateNeeded = false;
-      String managersGroupId = (String) authorizable.getProperty(PROP_MANAGERS_GROUP);
-      Group managersGroup = (Group) authorizableManager.findAuthorizable(managersGroupId);
-      Object[] removeValues = parameters.get(PARAM_REMOVE_FROM_MANAGERS_GROUP);
-      if ((removeValues != null) && (removeValues instanceof String[])) {
-        isUpdateNeeded = true;
-        for (String memberId : (String[]) removeValues) {
-          managersGroup.removeMember(memberId);
+    boolean isUpdateNeeded = false;
+    Object[] removeValues = parameters.get(PARAM_REMOVE_FROM_MANAGERS_GROUP);
+    if ((removeValues != null) && (removeValues instanceof String[])) {
+      isUpdateNeeded = true;
+      for (String memberId : (String[]) removeValues) {
+        ((Group) authorizable).removeMember(memberId);
+      }
+    }
+    Object[] addValues = parameters.get(PARAM_ADD_TO_MANAGERS_GROUP);
+    if ((addValues != null) && (addValues instanceof String[])) {
+      isUpdateNeeded = true;
+      for (String memberId : (String[]) addValues) {
+        Authorizable toAdd = authorizableManager.findAuthorizable(memberId);
+        if (toAdd != null) {
+          ((Group) authorizable).addMember(toAdd.getId());
+        } else {
+          LOGGER.warn("Could not add manager {} to group {}", memberId,
+              authorizable.getId());
         }
       }
-      Object[] addValues = parameters.get(PARAM_ADD_TO_MANAGERS_GROUP);
-      if ((addValues != null) && (addValues instanceof String[])) {
-        isUpdateNeeded = true;
-        for (String memberId : (String[]) addValues) {
-          Authorizable toAdd = authorizableManager.findAuthorizable(memberId);
-          if (toAdd != null) {
-            managersGroup.addMember(toAdd.getId());
-          } else {
-            LOGGER.warn("Could not add {} to managers group {}", memberId,
-                managersGroup.getId());
-          }
-        }
-      }
-      if (isUpdateNeeded) {
-        authorizableManager.updateAuthorizable(managersGroup);
-      }
+    }
+    if (isUpdateNeeded) {
+      authorizableManager.updateAuthorizable(authorizable);
     }
   }
 
