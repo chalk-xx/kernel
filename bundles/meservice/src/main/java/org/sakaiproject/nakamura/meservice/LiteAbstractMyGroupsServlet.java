@@ -63,7 +63,7 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
   public static final String JSON_RESULTS = "results";
   private static final Set<String> IGNORE_PROPERTIES = new HashSet<String>();
   private static final String[] IGNORE_PROPERTY_NAMES = new String[] {
-    "members", "principals", "sakai:managers-group"
+    "members", "principals",
   };
 
   static {

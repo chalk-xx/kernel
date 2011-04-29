@@ -24,7 +24,7 @@ class TC_Kern292Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Expected second add to be Ok")
     members = g1.members(@s)
    # this test would be 1 with the JR user manager, but the sparse user manager does not maintain RI, perposfully
-    assert_equal(1, members.size, "Expected group to have no extra members #{members} ")
+    assert_equal(0, members.size, "Expected group to have no extra members #{members} ")
   end
 
   def test_add_members_acyclic
@@ -40,8 +40,8 @@ class TC_Kern292Test < Test::Unit::TestCase
     end
     res = g1.add_members(@s, users.map { |u| u.name } << g2.name)
     assert_equal("200", res.code, "Expected second add to be Ok")
-	members = g1.members(@s)
-    assert_equal(4, members.size, "Expected group to only those members that it should have, bob, sam, jim, and the managers")
+    members = g1.members(@s)
+    assert_equal(3, members.size, "Expected group to only those members that it should have: bob, sam, and jim")
   end
 
   def test_remove_ignores_nonmembers
@@ -54,11 +54,11 @@ class TC_Kern292Test < Test::Unit::TestCase
     res = g1.add_members(@s, users.map { |u| u.name })
     assert_equal("200", res.code, "Expected add to succeed")
     members = g1.members(@s)
-    assert_equal(4, members.size, "Expected group to have four members")
+    assert_equal(3, members.size, "Expected group to have three members")
     res = g1.remove_members(@s, [ users[0].name, other.name, users[2].name ])
     assert_equal("200", res.code, "Expected remove to be Ok")
-	members = g1.members(@s)
-    assert_equal(2, members.size, "Expected group to remove only pav and simon")
+    members = g1.members(@s)
+    assert_equal(1, members.size, "Expected group to remove only pav and steve")
   end
 
 end

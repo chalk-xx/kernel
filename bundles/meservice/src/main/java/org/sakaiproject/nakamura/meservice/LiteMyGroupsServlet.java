@@ -49,7 +49,6 @@ import java.util.TreeMap;
           "{" +
           "  \"items\": 10," +
           "  \"results\": [{" +
-          "      \"sakai:managers-group\": \"test-managers\"," +
           "      \"jcr:path\": \"/~test/public/authprofile\"," +
           "      \"sakai:group-title\": \"test\"," +
           "      \"sakai:group-joinable\": \"no\"," +
