@@ -5,7 +5,7 @@
   },
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "RelatedContentSearchPropertyProvider",
-  "sakai:resultprocessor": "AllFiles",
+  "sakai:batchresultprocessor": "RelatedContentSearchBatchResultProcessor",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",
   "sakai:title": "Pooled Content - Related Content",
