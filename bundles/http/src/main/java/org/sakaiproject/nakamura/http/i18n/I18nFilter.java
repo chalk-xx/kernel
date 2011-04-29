@@ -67,7 +67,7 @@ import javax.servlet.http.HttpServletResponse;
 })
 public class I18nFilter implements Filter {
   public static final String PARAM_LANGUAGE = "l";
-  public static final String DEFAULT_BUNDLES_PATH = "/dev/_bundle";
+  public static final String DEFAULT_BUNDLES_PATH = "/dev/bundle";
   public static final String DEFAULT_MESSAGE_KEY_PATTERN = "__MSG__(.+?)__";
   public static final boolean DEFAULT_SHOW_MISSING_KEYS = true;
 
