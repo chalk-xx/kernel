@@ -254,10 +254,8 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
     for ( String membername : members) {
       Authorizable member = authorizableManager.findAuthorizable(membername);
       // filter this out if it is a manager member
-      if (!managers.contains(member.getId())) {
-        String name = getName(member);
-        map.put(name, member);
-      }
+      String name = getName(member);
+      map.put(name, member);
     }
     return map;
   }
