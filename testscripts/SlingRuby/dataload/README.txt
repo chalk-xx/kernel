@@ -40,12 +40,18 @@ ruby sling_data_loader.rb --server http://localhost:8080/ --adminpwd admin --use
 or
 ruby sling_data_loader.rb -s http://localhost:8080/ -a admin -u someusers.csv -g 200 -m 2 -f 1
 
+see comments for new command params that allow choice of content root and tasks the script will perform
+
 Command notes:
 1) admin user does all the data loading
 2) the trailing slash on --server value is required
 3) --load-content-files refers to the 600 MBytes of NYU content, simple text file content "Lorem Ipsum" files will be generated in any case
-   --load-content-files has 2 values, 0 for do not load or 1 for do load the files.
+   --load-content-files has 2 values, 0 for do not load or 1 for do load the files which is the default.
 4) after loading users, you can login as any user by picking one of the id's someusers.csv with the default password
+5) added new disk log file 'load.log' that will be written to thw working directory for accounting of the items loaded
+6) added new -r", "--content-root" param that allows specification of content root, defaults to './TestContent'
+7) added new "-t", "--task" param that allows choice of what gets loaded.  defaults to 'all' but you can specify '-t content' to only load content
+   or '-t usersandgroups' to only load users and groups
 
 Timing Notes: Using my MacbookPro as both localhost server and ruby client,
 I was able to load 500 users in 3 minutes.  That means 10,000 users would
