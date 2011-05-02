@@ -224,22 +224,24 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
    * @param writer
    * @param session
    * @param au
+   * @param jcrSession
    * @throws JSONException
-   * @throws StorageClientException 
-   * @throws AccessDeniedException 
-   * @throws RepositoryException 
+   * @throws StorageClientException
+   * @throws AccessDeniedException
+   * @throws RepositoryException
    */
   protected void writeGroups(ExtendedJSONWriter writer, Session session, Authorizable au, javax.jcr.Session jcrSession)
-      throws JSONException, StorageClientException, AccessDeniedException, RepositoryException {
+      throws JSONException, StorageClientException, AccessDeniedException {
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
     writer.array();
     if (!UserConstants.ANON_USERID.equals(au.getId())) {
-      // It might be better to just use au.declaredMemberOf() .
-      // au.memberOf will fetch ALL the groups this user is a member of, including
-      // indirect ones.
-      String[] principals = au.getPrincipals();
-      for(String principal : principals) {
-        Authorizable group = authorizableManager.findAuthorizable(principal);
+      // KERN-1831 changed from getPrincipals to memberOf to drill down list
+      for (Iterator<Group> memberOf = au.memberOf(authorizableManager); memberOf.hasNext(); ) {
+//      this is the old code for outputting only direct memberships. might be needed later if such a flag is added.
+//      String[] principals = au.getPrincipals();
+//      for(String principal : principals) {
+//        Authorizable group = authorizableManager.findAuthorizable(principal);
+        Authorizable group = memberOf.next();
         if (group == null
             || !(group instanceof Group)
             || Group.EVERYONE.equals(group.getId())
