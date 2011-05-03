@@ -49,7 +49,9 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import javax.jcr.RepositoryException;
 
@@ -99,6 +101,22 @@ public class LiteFileSearchBatchResultProcessor implements SolrSearchBatchResult
    */
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> iterator) throws JSONException {
+
+    writeResultsInternal(request, write, iterator);
+  }
+
+  /**
+   * Same as writeResults logic, but counts number of results iterated over.
+   * 
+   * @param request
+   * @param write
+   * @param iterator
+   * @return Set containing all unique paths processed.
+   * @throws JSONException
+   */
+  public Set<String> writeResultsInternal(SlingHttpServletRequest request,
+      JSONWriter write, Iterator<Result> iterator) throws JSONException {
+    final Set<String> uniquePaths = new HashSet<String>();
     final Integer iDepth = (Integer) request.getAttribute("depth");
     int depth = 0;
     if (iDepth != null) {
@@ -109,6 +127,7 @@ public class LiteFileSearchBatchResultProcessor implements SolrSearchBatchResult
       final Session session = StorageClientUtils.adaptToSession(jcrSession);
       while (iterator.hasNext()) {
         final Result result = iterator.next();
+        uniquePaths.add(result.getPath());
         try {
           if ("authorizable".equals(result.getFirstValue("resourceType"))) {
             AuthorizableManager authManager = session.getAuthorizableManager();
@@ -133,6 +152,7 @@ public class LiteFileSearchBatchResultProcessor implements SolrSearchBatchResult
     } catch (StorageClientException e) {
       throw new JSONException(e);
     }
+    return uniquePaths;
   }
 
   /**

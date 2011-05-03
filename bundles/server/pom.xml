@@ -15,12 +15,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.11-SNAPSHOT</version>
+    <version>0.10-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
   <packaging>jar</packaging>
-  <version>2.1.0-0.11-SNAPSHOT</version>
+  <version>2.1.0-0.10-SNAPSHOT</version>
   <name>Sakai Nakamura :: Server Extension Bundle</name>
   <description>Extension bundle that provides additional functionality in the repository
     area as required by Sakai.</description>
@@ -59,13 +59,7 @@
               <excludeTransitive>false</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
               <excludes>
-                 META-INF/MANIFEST.MF,
-                 org.apache.jackrabbit.core.query.lucene.LazyTextExtractorField,
-                 org.apache.jackrabbit.core.ItemManager,
-                 org.apache.jackrabbit.core.security.principal.AbstractPrincipalProvider,
-                 org.apache.jackrabbit.core.security.authorization.acl.ACLProvider,
-                 org.apache.jackrabbit.core.security.principal.DefaultPrincipalProvider,
-                 org.apache.jackrabbit.core.SessionImpl
+                 META-INF/MANIFEST.MF
               </excludes>
             </configuration>
           </execution>
@@ -108,7 +102,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -191,7 +185,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.tika</artifactId>
-      <version>0.7-0.11-SNAPSHOT</version>
+      <version>0.7-0.10-SNAPSHOT</version>
     </dependency>
     
     
@@ -203,7 +197,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.11-SNAPSHOT</version>
+      <version>0.10-SNAPSHOT</version>
     </dependency>
 
   </dependencies>

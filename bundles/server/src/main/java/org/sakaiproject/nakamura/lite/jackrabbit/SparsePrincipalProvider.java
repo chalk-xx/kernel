@@ -110,7 +110,6 @@ public class SparsePrincipalProvider implements PrincipalProvider {
     return findPrincipals(simpleFilter, PrincipalManager.SEARCH_TYPE_ALL);
   }
 
-  @SuppressWarnings("unchecked")
   public PrincipalIterator findPrincipals(String simpleFilter, int searchType) {
 
     checkInitialized();

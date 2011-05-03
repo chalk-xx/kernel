@@ -24,7 +24,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -34,7 +33,6 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,9 +90,6 @@ public class GroupMembersSearchPropertyProvider implements SolrSearchPropertyPro
       // collect the declared members of the requested group
       addDeclaredMembers(memberIds, group);
 
-      // get the managers group for the requested group and collect its members
-      addDeclaredManagerMembers(memberIds, group);
-
       boolean includeSelf = Boolean.parseBoolean(request.getParameter("includeSelf"));
       String currentUser = request.getRemoteUser();
       if (!includeSelf) {
@@ -148,39 +143,5 @@ public class GroupMembersSearchPropertyProvider implements SolrSearchPropertyPro
       memberIds.add(member);
     }
   }
-
-  /**
-   * Add any declared manager members of {@link group} to {@link memberIds}.
-   *
-   * @param memberIds List to collect member IDs.
-   * @param group Group to plunder through for manager member IDs.
-   * @param um UserManager for digging up the manager group.
-   * @throws {@link ClientPoolException}
-   * @throws {@link StorageClientException}
-   * @throws {@link AccessDeniedException}
-   */
-  private void addDeclaredManagerMembers(Collection<String> memberIds, Group group)
-      throws ClientPoolException, StorageClientException, AccessDeniedException {
-
-    Session adminSession = null;
-
-    try {
-      adminSession = repository.loginAdministrative();
-      AuthorizableManager am = adminSession.getAuthorizableManager();
-
-      if (group.hasProperty(UserConstants.PROP_MANAGERS_GROUP)) {
-        String managerGroupId = (String) group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
-        Group managerGroup = (Group) am.findAuthorizable(managerGroupId);
-        if (managerGroup != null) {
-          addDeclaredMembers(memberIds, managerGroup);
-        } else {
-          logger.warn("Unable to find manager's group [" + managerGroupId + "]");
-        }
-      }
-    } finally {
-      if (adminSession != null) {
-        adminSession.logout();
-      }
-    }
-  }
+  
 }

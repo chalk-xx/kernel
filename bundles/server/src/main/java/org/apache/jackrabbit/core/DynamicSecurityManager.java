@@ -17,11 +17,11 @@
 package org.apache.jackrabbit.core;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.Credentials;
@@ -37,7 +37,6 @@ import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.core.RepositoryImpl.WorkspaceInfo;
 import org.apache.jackrabbit.core.config.AccessManagerConfig;
 import org.apache.jackrabbit.core.config.LoginModuleConfig;
 import org.apache.jackrabbit.core.config.SecurityConfig;
@@ -54,17 +53,16 @@ import org.apache.jackrabbit.core.security.authentication.AuthContext;
 import org.apache.jackrabbit.core.security.authentication.AuthContextProvider;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProvider;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFactory;
-// import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFactoryImpl; Nakamura Change
+import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFactoryImpl;
 import org.apache.jackrabbit.core.security.authorization.WorkspaceAccessManager;
-import org.apache.jackrabbit.core.security.authorization.acl.DynamicAccessControlProviderFactoryImpl; // Nakamura Change
 import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
+// Nakamura Change import org.apache.jackrabbit.core.security.principal.DefaultPrincipalProvider;
 import org.apache.jackrabbit.core.security.principal.PrincipalManagerImpl;
 import org.apache.jackrabbit.core.security.principal.PrincipalProvider;
 import org.apache.jackrabbit.core.security.principal.PrincipalProviderRegistry;
-// import org.apache.jackrabbit.core.security.principal.ProviderRegistryImpl; Nakamura Change
+import org.apache.jackrabbit.core.security.principal.ProviderRegistryImpl;
 import org.apache.jackrabbit.core.security.user.UserManagerImpl;
-import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivator; //Nakamura Change
-import org.sakaiproject.nakamura.lite.jackrabbit.SparsePrincipalProvider;
+import org.sakaiproject.nakamura.lite.jackrabbit.SparsePrincipalProvider; // Nakamura Change
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,8 +82,6 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * the default logger
      */
     private static final Logger log = LoggerFactory.getLogger(DynamicSecurityManager.class);
-
-    private static final ThreadLocal<AMContext> amContextHolder = new ThreadLocal<AMContext>(); // Nakamura Change
 
     /**
      * Flag indicating if the security manager was properly initialized.
@@ -126,7 +122,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * key = name of the workspace,
      * value = {@link AccessControlProvider}
      */
-    private final Map<String, AccessControlProviderHolder> acProviders = new ConcurrentHashMap<String, AccessControlProviderHolder>();
+    private final Map<String, AccessControlProvider> acProviders = new HashMap<String, AccessControlProvider>();
 
     /**
      * the AccessControlProviderFactory
@@ -207,7 +203,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
         createSystemUsers(systemUserManager, this.systemSession, adminId, anonymousId);
 
         // init default ac-provider-factory
-        acProviderFactory = new DynamicAccessControlProviderFactoryImpl(); //Nakamura change
+        acProviderFactory = new AccessControlProviderFactoryImpl();
         acProviderFactory.init(this.systemSession);
 
         // create the workspace access manager
@@ -226,7 +222,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
         // 1) create default
         PrincipalProvider defaultPP = createDefaultPrincipalProvider();
         // 2) create registry instance
-        principalProviderRegistry = SakaiActivator.getPrincipalProviderRegistryManager().getPrincipalProvider(defaultPP);  // Nakamura Change
+        principalProviderRegistry = new ProviderRegistryImpl(defaultPP);
         // 3) register all configured principal providers.
         for (Properties props : moduleConfig) {
             principalProviderRegistry.registerProvider(props);
@@ -240,9 +236,11 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      */
     public void dispose(String workspaceName) {
         checkInitialized();
-        AccessControlProviderHolder prov = acProviders.remove(workspaceName);
-        if (prov != null) {
-            prov.close();
+        synchronized (acProviders) {
+            AccessControlProvider prov = acProviders.remove(workspaceName);
+            if (prov != null) {
+                prov.close();
+            }
         }
     }
 
@@ -251,10 +249,12 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      */
     public void close() {
         checkInitialized();
-        for (AccessControlProviderHolder accessControlProvider : acProviders.values()) {
-            accessControlProvider.close();
+        synchronized (acProviders) {
+            for (AccessControlProvider accessControlProvider : acProviders.values()) {
+                accessControlProvider.close();
+            }
+            acProviders.clear();
         }
-        acProviders.clear();
     }
 
     /**
@@ -273,16 +273,8 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             } else {
                 accessMgr = amConfig.newInstance(AccessManager.class);
             }
-            // Start Nakamura Change -------------------------------
-            // place the AMContext in a thread local to make it available to underlying classes
-            // we have to do this since this is going through API's
-            DynamicSecurityManager.amContextHolder.set(amContext);
-            try {
-              accessMgr.init(amContext, pp, workspaceAccessManager);
-            } finally {
-              DynamicSecurityManager.amContextHolder.set(null);
-            }
-            // End Nakamura Change -------------------------------
+
+            accessMgr.init(amContext, pp, workspaceAccessManager);
             return accessMgr;
         } catch (AccessDeniedException e) {
             // re-throw
@@ -320,15 +312,13 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             String workspaceName = systemSession.getWorkspace().getName();
             try {
                 SessionImpl sImpl = (SessionImpl) session;
-                UserManager uMgr;
+                UserManager uMgr; // Nakamura Change
                 if (workspaceName.equals(sImpl.getWorkspace().getName())) {
                     uMgr = createUserManager(sImpl);
                 } else {
                     SessionImpl s = (SessionImpl) sImpl.createSession(workspaceName);
                     uMgr = createUserManager(s);
-                    if ( uMgr instanceof SessionListener) {
-                    	sImpl.addListener((SessionListener) uMgr);
-                    }
+                    sImpl.addListener((SessionListener) uMgr); // Nakamura Change
                 }
                 return uMgr;
             } catch (NoSuchWorkspaceException e) {
@@ -454,6 +444,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * @return user manager
      * @throws RepositoryException if an error occurs
      */
+    // Start Nakamura Change (UserManager rather than UserManagerImpl)
     protected UserManager createUserManager(SessionImpl session) throws RepositoryException {
         UserManagerConfig umc = getConfig().getUserManagerConfig();
         Properties params = (umc == null) ? null : umc.getParameters();
@@ -474,6 +465,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
         }
         return um;
     }
+    // End Nakamura Change
 
     /**
      * @param session The session used to create the principal manager.
@@ -499,6 +491,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * @return An new instance of <code>DefaultPrincipalProvider</code>.
      * @throws RepositoryException If an error occurs.
      */
+    // Start Nakamura Change (Sparse Prinipal Provider rather than DefaultPrincipalProvider)
     protected PrincipalProvider createDefaultPrincipalProvider() throws RepositoryException {
         PrincipalProvider defaultPP = new SparsePrincipalProvider();
         defaultPP.init(new Properties());
@@ -555,11 +548,9 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     private AccessControlProvider getAccessControlProvider(String workspaceName)
             throws NoSuchWorkspaceException, RepositoryException {
         checkInitialized();
-        AccessControlProvider provider = getAccessControlProviderHolder(workspaceName).get();
+        AccessControlProvider provider = acProviders.get(workspaceName);
         if (provider == null || !provider.isLive()) {
-            // providers are bound to threads, so we need to create a new SystemSession per provider.
-            WorkspaceInfo workspaceInfo = repository.getWorkspaceInfo(workspaceName);
-            SystemSession systemSession = SystemSession.create(repository,workspaceInfo.getConfig());
+            SystemSession systemSession = repository.getSystemSession(workspaceName);
             // mark this session as 'active' so the workspace does not get disposed
             // by the workspace-janitor until the garbage collector is done
             // TODO: review again... this workaround is now used in several places.
@@ -567,24 +558,12 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
 
             WorkspaceConfig conf = repository.getConfig().getWorkspaceConfig(workspaceName);
             WorkspaceSecurityConfig secConf = (conf == null) ?  null : conf.getSecurityConfig();
-            provider = acProviderFactory.createProvider(systemSession, secConf);
-            getAccessControlProviderHolder(workspaceName).set(provider, systemSession);
+            synchronized (acProviders) {
+                provider = acProviderFactory.createProvider(systemSession, secConf);
+                acProviders.put(workspaceName, provider);
+            }
         }
         return provider;
-    }
-
-    private AccessControlProviderHolder getAccessControlProviderHolder(String workspaceName) {
-        AccessControlProviderHolder accessControlProviderHolder = acProviders.get(workspaceName);
-        if ( accessControlProviderHolder == null ) {
-          synchronized (acProviders) {
-            accessControlProviderHolder = acProviders.get(workspaceName);
-            if ( accessControlProviderHolder == null ) {
-              accessControlProviderHolder = new AccessControlProviderHolder(workspaceName, 60000L*5L, 1000);
-              acProviders.put(workspaceName, accessControlProviderHolder);
-            }
-          }
-        }
-        return accessControlProviderHolder;        
     }
 
     /**
@@ -662,13 +641,4 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             return prov.canAccessRoot(principals);
         }
     }
-    // Start Nakamura Change
-    /**
-     * Gets the AMContext, which may be null if none was bound.
-     * @return
-     */
-    public static AMContext getThreadBoundAMContext() {
-      return DynamicSecurityManager.amContextHolder.get();
-    }
-    // End Nakamura Change
 }

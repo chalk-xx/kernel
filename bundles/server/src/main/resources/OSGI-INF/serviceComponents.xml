@@ -1,17 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
-<!-- 
-Moved to activator
-    <scr:component enabled="true" immediate="true" name="org.sakaiproject.nakamura.lite.jackrabbit.SparseRepositoryHolder" activate="activate" deactivate="deactivate">
-        <implementation class="org.sakaiproject.nakamura.lite.jackrabbit.SparseRepositoryHolder"/>
-        <service servicefactory="false">
-            <provide interface="org.sakaiproject.nakamura.lite.jackrabbit.JackrabbitRepositoryStartupService"/>
-        </service>
-        <reference name="Repository" interface="org.sakaiproject.nakamura.api.lite.Repository" cardinality="1..1" policy="static" bind="bindRepository" unbind="unbindRepository"/>
-        <property name="service.vendor" value="The Sakai Foundation"/>
-        <property name="service.pid" value="org.sakaiproject.nakamura.lite.jackrabbit.SparseComponentHolder"/>
-    </scr:component>
- -->
     <!--
     Jndi and Rmi interfaces are disabled 
     <scr:component enabled="true" immediate="true" name="org.apache.sling.jcr.jackrabbit.server.JndiRegistrationSupport">
@@ -57,13 +45,5 @@ Moved to activator
         <reference name="log" interface="org.osgi.service.log.LogService" cardinality="1..1" policy="static" bind="bindLog" unbind="unbindLog"/>
         <!--  this binds to the Lite Reposiotry to ensure its available before the Sling repo starts -->
         <reference name="repository" interface="org.sakaiproject.nakamura.api.lite.Repository" cardinality="1..1" policy="static" bind="bindRepository" unbind="unbindRepository"/>
-    </scr:component>
-    <scr:component enabled="true" immediate="true" name="org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider">
-        <implementation class="org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider"/>
-        <service servicefactory="false">
-            <provide interface="org.apache.jackrabbit.core.security.principal.PrincipalProvider"/>
-        </service>
-        <property name="service.vendor" value="The Sakai Foundation"/>
-        <property name="service.pid" value="org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider"/>
     </scr:component>
 </components>

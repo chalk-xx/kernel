@@ -15,19 +15,14 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
+package org.sakaiproject.nakamura.api.search.solr;
 
-import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleProcessor;
+import org.apache.sling.api.SlingHttpServletRequest;
 
 /**
- *
+ * Interface for query processors that generate a result set.
  */
-public interface RuleProcessorManager {
-
-  /**
-   * @param ruleProcessor
-   * @return
-   */
-  RuleProcessor getRuleProcessor(String ruleProcessor);
-
+public interface ResultSetFactory {
+  SolrSearchResultSet processQuery(SlingHttpServletRequest request, Query query,
+      boolean asAnon) throws SolrSearchException;
 }

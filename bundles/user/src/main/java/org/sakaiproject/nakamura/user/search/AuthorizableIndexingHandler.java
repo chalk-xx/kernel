@@ -43,6 +43,7 @@ import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.TopicIndexer;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 /**
  *
@@ -63,12 +65,15 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.DELETE_TOPIC,
       StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.UPDATED_TOPIC };
 
+  public static final String SAKAI_EXCLUDE = "sakai:excludeSearch";
+
   // list of properties to be indexed
   private static final Map<String, String> USER_WHITELISTED_PROPS = ImmutableMap.of("firstName","firstName",
       "lastName","lastName","email","email","type","type","sakai:tag-uuid","taguuid");
 
   private static final Map<String, String> GROUP_WHITELISTED_PROPS = ImmutableMap.of(
-      "name", "name", "type", "type", "sakai:group-title", "title", "sakai:group-description", "description","sakai:tag-uuid","taguuid");
+      "name", "name", "type", "type", "sakai:group-title", "title", "sakai:group-description", "description",
+      "sakai:tag-uuid", "taguuid");
 
   // list of authorizables to not index
   private static final Set<String> BLACKLISTED_AUTHZ = ImmutableSet.of("admin",
@@ -111,33 +116,24 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
      * indexed which will raise the cost of indexing a group.
      */
     logger.debug("GetDocuments for {} ", event);
-
     List<SolrInputDocument> documents = Lists.newArrayList();
-    try {
-      Session session = repositorySession.adaptTo(Session.class);
-      AuthorizableManager authzMgr = session.getAuthorizableManager();
 
-      // get the name of the authorizable (user,group)
-      String authName = (String) event.getProperty(FIELD_PATH);
-      if (!StringUtils.isBlank(authName)) {
-        Authorizable authorizable = authzMgr.findAuthorizable(authName);
-        SolrInputDocument doc = createAuthDoc(authorizable, session);
-        if (doc != null) {
-          documents.add(doc);
-
-          String topic = null;
-          if (event.getTopic().endsWith(StoreListener.ADDED_TOPIC)) {
-            topic = StoreListener.ADDED_TOPIC;
-          } else {
-            topic = StoreListener.UPDATED_TOPIC;
-          }
-          logger.info("{} authorizable for searching: {}", topic, authName);
-        }
+    // get the name of the authorizable (user,group)
+    String authName = String.valueOf(event.getProperty(FIELD_PATH));
+    Authorizable authorizable = getAuthorizable(authName, repositorySession);
+    if (authorizable != null) {
+      // KERN-1822 check if the authorizable is marked to be excluded from searches
+      if (Boolean.parseBoolean(String.valueOf(authorizable.getProperty(SAKAI_EXCLUDE)))) {
+        return documents;
       }
-    } catch (StorageClientException e) {
-      logger.error(e.getMessage(), e);
-    } catch (AccessDeniedException e) {
-      logger.error(e.getMessage(), e);
+
+      SolrInputDocument doc = createAuthDoc(authorizable, repositorySession);
+      if (doc != null) {
+        documents.add(doc);
+
+        String topic = PathUtils.lastElement(event.getTopic());
+        logger.info("{} authorizable for searching: {}", topic, authName);
+      }
     }
     logger.debug("Got documents {} ", documents);
     return documents;
@@ -155,38 +151,35 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     String topic = event.getTopic();
     if (topic.endsWith(StoreListener.DELETE_TOPIC)) {
       logger.debug("GetDelete for {} ", event);
-      String groupName = (String) event.getProperty(UserConstants.EVENT_PROP_USERID);
+      String groupName = String.valueOf(event.getProperty(UserConstants.EVENT_PROP_USERID));
       retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(groupName));
+    } else {
+      // KERN-1822 check if the authorizable is marked to be excluded from searches
+      String authName = String.valueOf(event.getProperty(FIELD_PATH));
+      Authorizable authorizable = getAuthorizable(authName, repositorySession);
+      if (authorizable != null
+          && Boolean.parseBoolean(String.valueOf(authorizable.getProperty(SAKAI_EXCLUDE)))) {
+        retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(authName));
+      }
     }
     return retval;
 
   }
 
+  // ---------- internal methods ----------
   /**
+   * Create the SolrInputDocument for an authorizable.
+   *
    * @param authorizable
    * @param doc
    * @param properties
+   * @return The SolrInputDocument or null if authorizable shouldn't be indexed.
    */
-  protected SolrInputDocument createAuthDoc(String authId, Session session)
-      throws StorageClientException, AccessDeniedException {
-    Authorizable authorizable = session.getAuthorizableManager().findAuthorizable(authId);
-    if (authorizable != null) {
-      return createAuthDoc(authorizable, session);
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * @param authorizable
-   * @param doc
-   * @param properties
-   */
-  protected SolrInputDocument createAuthDoc(Authorizable authorizable, Session session)
-      throws StorageClientException {
+  protected SolrInputDocument createAuthDoc(Authorizable authorizable, RepositorySession repositorySession) {
     if (!isUserFacing(authorizable)) {
       return null;
     }
+
     // add user properties
     String authName = authorizable.getId();
 
@@ -208,12 +201,17 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     }
 
     // add readers
-    AccessControlManager accessControlManager = session.getAccessControlManager();
-    String[] principals = accessControlManager.findPrincipals(
-        Security.ZONE_AUTHORIZABLES, authName, Permissions.CAN_READ.getPermission(),
-        true);
-    for (String principal : principals) {
-      doc.addField(FIELD_READERS, principal);
+    try {
+      Session session = repositorySession.adaptTo(Session.class);
+      AccessControlManager accessControlManager = session.getAccessControlManager();
+      String[] principals = accessControlManager.findPrincipals(
+          Security.ZONE_AUTHORIZABLES, authName, Permissions.CAN_READ.getPermission(),
+          true);
+      for (String principal : principals) {
+        doc.addField(FIELD_READERS, principal);
+      }
+    } catch (StorageClientException e) {
+      logger.error(e.getMessage(), e);
     }
 
     // add the name as the return path so we can group on it later when we search
@@ -227,14 +225,50 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     return doc;
   }
 
-  // KERN-1607 don't include manager groups in the index
-  // KERN-1600 don't include contact groups in the index
+  /**
+   * Check if an authorizable is user facing.
+   * 
+   * KERN-1607 don't include manager groups in the index KERN-1600 don't include contact
+   * groups in the index
+   * 
+   * @param auth
+   *          The authorizable to check
+   * @return true if the authorizable is not blacklisted and (is not a group or (is not a
+   *         managing group and has a non-blank title)). false otherwise.
+   */
   protected boolean isUserFacing(Authorizable auth) {
+    if (auth == null) {
+      return false;
+    }
+
     boolean isBlacklisted = BLACKLISTED_AUTHZ.contains(auth.getId());
     boolean isNotManagingGroup = !auth.hasProperty(UserConstants.PROP_MANAGED_GROUP);
     boolean hasTitleAndNotBlank = auth.hasProperty("sakai:group-title")
-        && !StringUtils.isBlank((String) auth.getProperty("sakai:group-title"));
+        && !StringUtils.isBlank(String.valueOf(auth.getProperty("sakai:group-title")));
 
     return !isBlacklisted && (!auth.isGroup() || (isNotManagingGroup && hasTitleAndNotBlank));
+  }
+
+  /**
+   * Get an authorizable. Convenience method to handle exceptions and processing.
+   *
+   * @param authName ID of the authorizable to get.
+   * @param repositorySession
+   * @return Authorizable found or null if none found.
+   */
+  protected Authorizable getAuthorizable(String authName, RepositorySession repositorySession) {
+    Authorizable authorizable = null;
+    try {
+      Session session = repositorySession.adaptTo(Session.class);
+      AuthorizableManager authzMgr = session.getAuthorizableManager();
+
+      // get the name of the authorizable (user,group)
+      authorizable = authzMgr.findAuthorizable(authName);
+    } catch (StorageClientException e) {
+      logger.error(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      logger.error(e.getMessage(), e);
+    }
+    return authorizable;
   }
 }

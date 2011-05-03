@@ -27,6 +27,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
@@ -54,7 +55,6 @@ import java.util.TreeMap;
           "{" +
           "  \"items\": 10," +
           "  \"results\": [{" +
-          "      \"sakai:managers-group\": \"test-managers\"," +
           "      \"jcr:path\": \"/~test/public/authprofile\"," +
           "      \"sakai:group-title\": \"test\"," +
           "      \"sakai:group-joinable\": \"no\"," +
@@ -127,11 +127,13 @@ public class LiteMyManagedGroupsServlet extends LiteAbstractMyGroupsServlet {
     Iterator<Group> allGroupsIter = member.memberOf(userManager);
     while (allGroupsIter.hasNext()) {
       Group group = allGroupsIter.next();
-      if (!group.getId().equals(Group.EVERYONE) && group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
-        String managedGroupId = (String) group.getProperty(UserConstants.PROP_MANAGED_GROUP);
-        if (managedGroupId != null) {
-          Group managedGroup = (Group) userManager.findAuthorizable(managedGroupId);
-          managedGroups.put(managedGroupId, managedGroup);
+      if (!group.getId().equals(Group.EVERYONE)) {
+        for(String managerId : StorageClientUtils.nonNullStringArray(
+            (String[]) group.getProperty(UserConstants.PROP_GROUP_MANAGERS))) {
+          if (member.getId().equals(managerId)) {
+            managedGroups.put(group.getId(), group);
+            break;
+          }
         }
       }
     }

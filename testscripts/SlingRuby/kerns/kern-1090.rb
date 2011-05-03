@@ -30,13 +30,6 @@ class TC_Kern1090Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Group member query should be available to nonmember")
     members = JSON.parse(res.body)
     assert_equal(member.name, members[0]["userid"], "Group members should be returned to nonmember")
-    details = group.details(@s)
-    managersgroupname = details["properties"]["sakai:managers-group"]
-    assert_not_nil(managersgroupname, "Managers group property should be available to nonmember")
-    res = @s.execute_get(@s.url_for(Group.url_for(managersgroupname) + ".members.json"))
-    assert_equal("200", res.code, "Managers group member query should be available to nonmember")
-    members = JSON.parse(res.body)
-    assert_equal(manager.name, members[0]["userid"], "Managers group members should be returned to nonmember")
   end
 
 end

@@ -249,15 +249,11 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
 
     // Only the direct members are required.
-    // If we would do group.getMembers() that would also retrieve all the indirect ones.
     String[] members = group.getMembers();
+    List<String> managers = Arrays.asList(StorageClientUtils.nonNullStringArray((String[]) group.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
     for ( String membername : members) {
       Authorizable member = authorizableManager.findAuthorizable(membername);
-      if (member.hasProperty("sakai:managed-group") && group.getId().equals(member.getProperty("sakai:managed-group"))) {
-        // for purposes of returning a list of members, we disregard the group's managers' group,
-        // which is technically a member, but we don't want to see it here.
-        continue;
-      }
+      // filter this out if it is a manager member
       String name = getName(member);
       map.put(name, member);
     }
@@ -290,14 +286,12 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
     // group and may not apply.
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
-    String managersGroup = (String) group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
-    if (managersGroup != null ) {
 
-      Group mgrGroup = (Group) authorizableManager.findAuthorizable(managersGroup);
-
-      String[] members = mgrGroup.getMembers();
-      for  (String memberName : members) {
-        Authorizable mau = authorizableManager.findAuthorizable(memberName);
+    String[] members = group.getMembers();
+    List<String> managers = Arrays.asList(StorageClientUtils.nonNullStringArray((String[]) group.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
+    for  (String memberName : members) {
+      Authorizable mau = authorizableManager.findAuthorizable(memberName);
+      if (managers.contains(memberName)) {
         String name = getName(mau);
         map.put(name, mau);
       }

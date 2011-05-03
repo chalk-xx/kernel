@@ -18,16 +18,12 @@
 package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.JackrabbitAccessControlList;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.core.security.AnonymousPrincipal;
-import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipal;
 import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
-import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleACLModifier;
-import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RulesBasedAce;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,39 +32,27 @@ import org.mockito.MockitoAnnotations;
 import org.osgi.framework.BundleContext;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.util.ISO8601Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.Item;
 import javax.jcr.LoginException;
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.Property;
 import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 import javax.jcr.Value;
-import javax.jcr.ValueFactory;
-import javax.jcr.security.AccessControlList;
-import javax.jcr.security.AccessControlManager;
-import javax.jcr.security.AccessControlPolicy;
-import javax.jcr.security.AccessControlPolicyIterator;
-import javax.jcr.security.Privilege;
 
 /**
  *
  */
 public class RepositoryBaseTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryBaseTest.class);
-  private static final long ADAY = 3600000L * 24L;
   private static BundleContext bundleContext;
   private static RepositoryBase repositoryBase;
 
@@ -192,312 +176,8 @@ public class RepositoryBaseTest {
     }
   }
 
-  @Test
-  public void testAcePrincipal() throws LoginException, RepositoryException, IOException,
-      ClientPoolException, StorageClientException,
-      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
-      ClassNotFoundException {
-    Repository repo = getRepositoryBase().getRepository();
-    JackrabbitSession session = null;
-    try {
-      LOGGER.info("Opening Admin Session ");
-      session = (JackrabbitSession) repo.login(new SimpleCredentials("admin", "admin"
-          .toCharArray()));
-      LOGGER.info("Done Opening Admin Session ");
-      PrincipalManager principalManager = session.getPrincipalManager();
 
-      Principal principal = principalManager.getPrincipal(RulesBasedAce.createPrincipal(
-          "ieb").getName());
-      Assert.assertNotNull(principal);
-      Assert.assertTrue(principal instanceof RulesPrincipal);
-      RulesPrincipal rp = (RulesPrincipal) principal;
-      Assert.assertEquals("ieb", rp.getPrincipalName());
 
-    } finally {
-      session.logout();
-    }
-  }
-
-  @Test
-  public void testAddRuleBasedPrincipal() throws RepositoryException, IOException,
-      ClientPoolException, StorageClientException,
-      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
-      ClassNotFoundException {
-    Repository repo = getRepositoryBase().getRepository();
-    JackrabbitSession session = null;
-    try {
-      LOGGER.info("Opening Admin Session ");
-      session = (JackrabbitSession) repo.login(new SimpleCredentials("admin", "admin"
-          .toCharArray()));
-      LOGGER.info("Done Opening Admin Session ");
-      PrincipalManager principalManager = session.getPrincipalManager();
-
-      Node node = session.getRootNode().addNode("testnodeace");
-      AccessControlManager accessControlManager = session.getAccessControlManager();
-      String resourcePath = node.getPath();
-
-      AccessControlList acl = null;
-      AccessControlPolicy[] policies = accessControlManager.getPolicies(resourcePath);
-      for (AccessControlPolicy policy : policies) {
-        if (policy instanceof AccessControlList) {
-          acl = (AccessControlList) policy;
-          break;
-        }
-      }
-      if (acl == null) {
-        AccessControlPolicyIterator applicablePolicies = accessControlManager
-            .getApplicablePolicies(resourcePath);
-        while (applicablePolicies.hasNext()) {
-          AccessControlPolicy policy = applicablePolicies.nextAccessControlPolicy();
-          if (policy instanceof AccessControlList) {
-            acl = (AccessControlList) policy;
-            break;
-          }
-        }
-      }
-      Assert.assertNotNull(acl);
-
-      Principal principal = principalManager.getPrincipal(RulesBasedAce.createPrincipal(
-          "ieb").getName());
-
-      Assert.assertNotNull(principal);
-      Assert.assertTrue(principal instanceof RulesPrincipal);
-      RulesPrincipal rp = (RulesPrincipal) principal;
-      Assert.assertEquals("ieb", rp.getPrincipalName());
-
-      Privilege[] privileges = new Privilege[] { accessControlManager
-          .privilegeFromName("jcr:write") };
-
-      acl.addAccessControlEntry(principal, privileges);
-
-      accessControlManager.setPolicy(resourcePath, acl);
-
-      // make the ACL a rules based.
-      RuleACLModifier ruleAclModifier = new RuleACLModifier();
-      Map<String, Object> ruleProperties = new HashMap<String, Object>();
-
-      ValueFactory vf = session.getValueFactory();
-
-      long now = System.currentTimeMillis();
-      String[] range = new String[4];
-      for (int i = 0; i < 4; i++) {
-        ISO8601Date start = new ISO8601Date();
-        start.setTimeInMillis((ADAY * i) + now - 3600000L);
-        ISO8601Date end = new ISO8601Date();
-        end.setTimeInMillis((ADAY * i) + now + 3600000L);
-        range[i] = start.toString() + "/" + end.toString();
-      }
-
-      Value[] ranges = new Value[] { vf.createValue(range[1]), vf.createValue(range[2]),
-          vf.createValue(range[3]) };
-      ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, vf.createValue(range[0]));
-
-      Map<String, Object> propMap = ruleAclModifier.setProperties(resourcePath, session,
-          principal, ruleProperties);
-      Assert.assertEquals(1, propMap.size());
-      Assert.assertTrue(propMap.containsKey(RulesBasedAce.P_ACTIVE_RANGE));
-      Property sp = (Property) propMap.get(RulesBasedAce.P_ACTIVE_RANGE);
-      Assert.assertEquals(range[0], sp.getString());
-
-      LOGGER.info("Setting Active Range to an array ++++++++++++++++");
-      ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, ranges);
-      propMap = ruleAclModifier.setProperties(resourcePath, session, principal,
-          ruleProperties);
-      LOGGER.info("Setting Active Range to an array ----------------");
-      Assert.assertTrue(propMap.containsKey(RulesBasedAce.P_ACTIVE_RANGE));
-      Property[] p = (Property[]) propMap.get(RulesBasedAce.P_ACTIVE_RANGE);
-      Assert.assertEquals(3, p.length);
-      for (int i = 0; i < 3; i++) {
-        Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE + i, p[i].getName());
-        Assert.assertEquals(range[i + 1], p[i].getString());
-      }
-    } finally {
-      session.logout();
-    }
-
-  }
-
-  @Test
-  public void testDateBaseACL() throws IOException, RepositoryException,
-      ClientPoolException, StorageClientException,
-      org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
-      ClassNotFoundException {
-    Repository repo = getRepositoryBase().getRepository();
-    JackrabbitSession session = null;
-    try {
-      LOGGER.info("Opening Admin Session ");
-      session = (JackrabbitSession) repo.login(new SimpleCredentials("admin", "admin"
-          .toCharArray()));
-      LOGGER.info("Done Opening Admin Session ");
-      PrincipalManager principalManager = session.getPrincipalManager();
-
-      String testNode = "testDateBaseACLNode" + System.currentTimeMillis();
-      String testUserId = "testUser" + System.currentTimeMillis();
-
-      Node node = session.getRootNode().addNode(testNode);
-
-      String resourcePath = node.getPath();
-
-      // create a user
-      UserManager userManager = session.getUserManager();
-      userManager.createUser(testUserId, "testpassword");
-
-      if (session.hasPendingChanges()) {
-        session.save();
-      }
-      session.logout();
-
-      // login as testUserId and test the theory we can see the node.
-
-      LOGGER.info("Opening {} Session For testing read of  {} , Should be OK ",
-          testUserId, testNode);
-      session = (JackrabbitSession) repo.login(new SimpleCredentials(testUserId,
-          "testpassword".toCharArray()));
-      Node testN = session.getNode("/" + testNode);
-      Assert.assertNotNull(testN);
-      session.logout();
-      LOGGER.info("Was OK reading {} ", testNode);
-
-      // log back in as admin, to make the ACL active.
-      session = (JackrabbitSession) repo.login(new SimpleCredentials("admin", "admin"
-          .toCharArray()));
-
-      AccessControlManager accessControlManager = session.getAccessControlManager();
-
-      JackrabbitAccessControlList acl = null;
-      AccessControlPolicy[] policies = accessControlManager.getPolicies(resourcePath);
-      for (AccessControlPolicy policy : policies) {
-        if (policy instanceof JackrabbitAccessControlList) {
-          acl = (JackrabbitAccessControlList) policy;
-          break;
-        }
-      }
-      if (acl == null) {
-        AccessControlPolicyIterator applicablePolicies = accessControlManager
-            .getApplicablePolicies(resourcePath);
-        while (applicablePolicies.hasNext()) {
-          AccessControlPolicy policy = applicablePolicies.nextAccessControlPolicy();
-          if (policy instanceof JackrabbitAccessControlList) {
-            acl = (JackrabbitAccessControlList) policy;
-            break;
-          }
-        }
-      }
-      Assert.assertNotNull(acl);
-
-      Principal principal = principalManager.getPrincipal(RulesBasedAce.createPrincipal(
-          testUserId).getName());
-
-      Assert.assertNotNull(principal);
-      Assert.assertTrue(principal instanceof RulesPrincipal);
-      RulesPrincipal rp = (RulesPrincipal) principal;
-      Assert.assertEquals(testUserId, rp.getPrincipalName());
-
-      Privilege[] privileges = new Privilege[] { accessControlManager
-          .privilegeFromName("jcr:all") };
-
-      acl.addEntry(principal, privileges, false); // deny all for ieb
-
-      accessControlManager.setPolicy(resourcePath, acl);
-      // At this point the ACL is in place, but its not rules based
-      // Next we set some properties on that ACL using the principal as a Key
-      // and activate it. At this moment ieb should still be able to read the node, as the
-      // ACE
-      // although deny binds to some strange principal.
-
-      // make the ACL a rules based.
-      RuleACLModifier ruleAclModifier = new RuleACLModifier();
-      Map<String, Object> ruleProperties = new HashMap<String, Object>();
-
-      ValueFactory vf = session.getValueFactory();
-
-      // set the time so this ACL is active.
-      long now = System.currentTimeMillis();
-      ISO8601Date start = new ISO8601Date();
-      start.setTimeInMillis(now - 3600000L);
-      ISO8601Date end = new ISO8601Date();
-      end.setTimeInMillis(now + 3600000L);
-      String range = start.toString() + "/" + end.toString();
-      System.err.println("Date Range is " + range);
-
-      ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, vf.createValue(range));
-
-      Map<String, Object> propMap = ruleAclModifier.setProperties(resourcePath, session,
-          principal, ruleProperties);
-      Assert.assertTrue(propMap.containsKey(RulesBasedAce.P_ACTIVE_RANGE));
-      Property p = (Property) propMap.get(RulesBasedAce.P_ACTIVE_RANGE);
-      Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE, p.getName());
-      Assert.assertEquals(range, p.getString());
-
-      if (session.hasPendingChanges()) {
-        session.save();
-      }
-      session.logout();
-
-      LOGGER.info("Opening {} Session For testing read of  {} , Should Fail ",
-          testUserId, testNode);
-      session = (JackrabbitSession) repo.login(new SimpleCredentials(testUserId,
-          "testpassword".toCharArray()));
-      try {
-        testN = session.getNode("/" + testNode);
-        Assert.fail(); // the Rules based ACL should have prevented me from accessing the
-                       // node.
-      } catch (PathNotFoundException e) {
-        // OK
-      }
-      session.logout();
-      LOGGER.info("Did  Fail {} ", testUserId);
-
-      // Ok now adjust the range to be inactive.
-      // log back in as admin, to make the ACL active.
-      session = (JackrabbitSession) repo.login(new SimpleCredentials("admin", "admin"
-          .toCharArray()));
-
-      // make the ACL a rules based.
-      ruleAclModifier = new RuleACLModifier();
-      ruleProperties = new HashMap<String, Object>();
-
-      vf = session.getValueFactory();
-
-      // set the time so this ACL will be active in the future.
-      now = System.currentTimeMillis();
-      start = new ISO8601Date();
-      start.setTimeInMillis(now + 3600000L);
-      end = new ISO8601Date();
-      end.setTimeInMillis(now + 2 * 3600000L);
-      range = start.toString() + "/" + end.toString();
-
-      System.err.println("Date Range is " + range);
-
-      ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, vf.createValue(range));
-
-      propMap = ruleAclModifier.setProperties(resourcePath, session, principal,
-          ruleProperties);
-      Assert.assertEquals(1, propMap.size());
-      Assert.assertTrue(propMap.containsKey(RulesBasedAce.P_ACTIVE_RANGE));
-      p = (Property) propMap.get(RulesBasedAce.P_ACTIVE_RANGE);
-      Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE, p.getName());
-      Assert.assertEquals(range, p.getString());
-
-      if (session.hasPendingChanges()) {
-        session.save();
-      }
-      session.logout();
-
-      LOGGER.info("Opening {} Session For testing read of  {} , Should be OK ",
-          testUserId, testNode);
-
-      session = (JackrabbitSession) repo.login(new SimpleCredentials(testUserId,
-          "testpassword".toCharArray()));
-      testN = session.getNode("/" + testNode);
-      session.logout();
-      LOGGER.info("Was OK {} ", testNode);
-
-    } finally {
-      session.logout();
-    }
-
-  }
 
   @Test
   public void testUserAccessControl() throws LoginException, RepositoryException,

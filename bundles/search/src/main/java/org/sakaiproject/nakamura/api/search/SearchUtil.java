@@ -22,9 +22,14 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_PAGE;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.search.SearchServlet;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.jcr.query.Query;
 
@@ -85,8 +90,11 @@ public class SearchUtil {
    *
    * @param value
    * @param queryLanguage
-   *          The language to escape for. This can be XPATH, SQL, JCR_SQL2 or JCR_JQOM.
+   *          The language to escape for. This can be XPATH, SQL, JCR_SQL2,
+   *          JCR_JQOM, solr or sparse.
    *          Look at {@link Query Query}.
+   *          For SOLR, this is nearly equivalent to ClientUtils.escapeQueryChars(value)
+   *            but does not escape *, " or whitespace.
    * @return
    */
   @SuppressWarnings("deprecation") // Suppressed because we need to check depreciated methods just in case.
@@ -98,6 +106,22 @@ public class SearchUtil {
         // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
         escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
             .replaceAll("'", "''").replaceAll("\"", "\\\\\"");
+      } else if (queryLanguage.equals(org.sakaiproject.nakamura.api.search.solr.Query.SOLR)) {
+//        escaped = ClientUtils.escapeQueryChars(value);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < value.length(); i++) {
+          char c = value.charAt(i);
+          // These characters are part of the query syntax and must be escaped
+          if (c == '\\' || c == '+' || c == '-' || c == '!' || c == '(' || c == ')'
+            || c == ':' || c == '^' || c == '[' || c == ']' || c == '{' || c == '}'
+            || c == '~' || c == '?' || c == '|' || c == '&' || c == ';') {
+            sb.append('\\');
+          }
+          sb.append(c);
+        }
+        escaped = sb.toString();
+      } else if (queryLanguage.equals(org.sakaiproject.nakamura.api.search.solr.Query.SPARSE)) {
+        escaped = value;
       } else {
         LOGGER.error("Unknown query language: " + queryLanguage);
       }
@@ -126,4 +150,24 @@ public class SearchUtil {
     return maxRecursionLevels;
   }
 
+  /** Pattern to match on home paths. */
+  private static Pattern homePathPattern = Pattern.compile("^(.*)(~([\\w-]*?))/");
+
+  public static String expandHomeDirectory(String queryString) {
+    Matcher homePathMatcher = homePathPattern.matcher(queryString);
+    if (homePathMatcher.find()) {
+      String username = homePathMatcher.group(3);
+      String homePrefix = homePathMatcher.group(1);
+      String userHome = LitePersonalUtils.getHomePath(username);
+      userHome = ClientUtils.escapeQueryChars(userHome);
+      String homePath = homePrefix + userHome + "/";
+      String prefix = "";
+      if (homePathMatcher.start() > 0) {
+        prefix = queryString.substring(0, homePathMatcher.start());
+      }
+      String suffix = queryString.substring(homePathMatcher.end());
+      queryString = prefix + homePath + suffix;
+    }
+    return queryString;
+  }
 }
