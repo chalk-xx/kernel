@@ -8,6 +8,23 @@ require 'ruby-lib-dir.rb'
 require 'sling/sling'
 include SlingInterface
 
+# to run: ./preview_processor.rb http://localhost:8080/
+
+def resize_and_write_file filename, filename_output, max_width, max_height
+  pic = Magick::Image.read(filename).first
+  img_width, img_height = pic.columns, pic.rows
+
+  if img_width > max_width || img_height > max_height
+    pic.resize_to_fill! max_width, max_height
+  end
+
+  pic = Magick::Image.new(max_width, max_height).composite(pic, Magick::CenterGravity, Magick::OverCompositeOp)
+  pic.write filename_output
+
+  nbytes, content = File.size(filename_output), nil
+  File.open(filename_output, "rb") { |f| content = f.read nbytes }
+  content
+end
 
 server=ARGV[0]
 @s = Sling.new(server)
@@ -15,7 +32,6 @@ res = @s.execute_get(@s.url_for("var/search/needsprocessing.json"))
 raise "Failed to retrieve list to process [#{res.code}]" unless res.code == '200'
 process = JSON.parse(res.body)
 
-# ./preview_processor.rb http://localhost:8080/
 MAIN_DIR = Dir.getwd
 DOCS_DIR = "#{MAIN_DIR}/docs"
 PREVS_DIR = "#{MAIN_DIR}/previews"
@@ -41,115 +57,79 @@ Dir["*"].each do |id|
     next unless meta_file.code == '200' # skip.
     meta = JSON.parse meta_file.body
     extension = meta['sakai:fileextension']
+    raise "File extension is nil" if extension.nil?
 
     # making a local copy of the file.
     filename = id + extension
     content_file = @s.execute_get @s.url_for("p/#{id}")
     File.open(filename, 'wb') { |f| f.write content_file.body }
 
-    page_count = 0
-    if ['.png', '.jpg', '.gif', '.psd'].include? extension
+    if ['.png', '.jpg', '.jpeg', '.gif', '.psd'].include? extension
+      # Images don't need a preview so we make a big and small thumbnail instead.
 
-      # images don't need a preview so we make a thumbnail instead.
-      # we can identify them later with the sakai:pagecount property (set to 0)
+      page_count = 1
+      filename_thumb = 'thumb.jpg'
 
-      max_width = 900
-      max_height = 500
-      aspect_ratio = max_width.to_f / max_height.to_f
+      ## Big thumbnail
+      content = resize_and_write_file filename, filename_thumb, 900, 500
 
-      pic = Magick::Image.read(filename).first
+      @s.execute_file_post @s.url_for("system/pool/createfile.#{id}.page1-normal"), "thumbnail", "thumbnail", content, "image/jpeg"
+      puts "Uploaded thumb to curl #{@s.url_for("p/#{id}.page1-normal.jpg")}"
 
-      img_width = pic.columns
-      img_height = pic.rows
-      img_ratio = img_width.to_f / img_height.to_f
+      ## Small thumbnail
+      content = resize_and_write_file filename, filename_thumb, 180, 225
 
-      scale_ratio = if img_ratio > aspect_ratio
-                      max_width.to_f / img_width
-                    else
-                      max_height.to_f / img_height
-                    end
+      @s.execute_file_post @s.url_for("system/pool/createfile.#{id}.page1-small"), "thumbnail", "thumbnail", content, "image/jpeg"
+      puts "Uploaded thumb to curl #{@s.url_for("p/#{id}.page1-small.jpg")}"
 
-      thumb = pic.resize scale_ratio
-
-      white_bg = Magick::Image.new max_width, max_height
-      pic = white_bg.composite thumb, Magick::CenterGravity, Magick::OverCompositeOp
-
-      Dir.mkdir PREVS_DIR + "/#{id}" unless File.directory? PREVS_DIR + "/#{id}"
-      Dir.chdir PREVS_DIR + "/#{id}"
-      pic.write 'thumb.jpg'
-
-      nbytes = File.size 'thumb.jpg'
-      content = nil
-      File.open('thumb.jpg', "rb") { |f| content = f.read nbytes }
-
-      @s.execute_file_post @s.url_for("system/pool/createfile.#{id}.preview"), "thumbnail", "thumbnail", content, "image/jpeg"
-      puts "Uploaded thumb to curl #{@s.url_for("p/#{id}.preview.jpg")}"
+      ## Cleaning crew.
+      FileUtils.rm DOCS_DIR + "/#{filename_thumb}"
     else
-      # generating image previews of te document.
+      # Generating image previews of te document.
       Docsplit.extract_images filename, :size => '700x', :format => :jpg
 
-      next if Dir[id + '_*'].size == 0 # skip documents with a pagecount of 0, to be sure.
+      next if Dir[id + '_*'].size == 0 # Skip documents with a pagecount of 0, to be sure.
 
       Dir.mkdir PREVS_DIR + "/#{id}" unless File.directory? PREVS_DIR + "/#{id}"
-      # moving these previews to another directory: "PREVS_DIR/filename/index.jpg".
-      Dir[id + '_*'].each_with_index do |preview, index|
+
+      # Moving these previews to another directory: "PREVS_DIR/filename/index.jpg".
+      Dir[id + '_*'].sort.each_with_index do |preview, index|
         FileUtils.mv "#{preview}", "#{PREVS_DIR}/#{id}/#{index}.jpg"
       end
 
       Dir.chdir PREVS_DIR + "/#{id}"
       page_count = Dir["*"].size
-      # upload each preview and create+upload a thumbnail.
-      Dir["*"].each_with_index do |screenname, index|
-        nbytes = File.size screenname
+      # Upload each preview and create+upload a thumbnail.
+      Dir["*"].sort.each_with_index do |filename_p, index|
+        nbytes = File.size filename_p
         content = nil
-        File.open(screenname, "rb") { |f| content = f.read nbytes }
+        File.open(filename_p, "rb") { |f| content = f.read nbytes }
 
         # 1 based index! (necessity for the docpreviewer 3akai-ux widget).
         # id.pagex-normal.jpg
         @s.execute_file_post @s.url_for("system/pool/createfile.#{id}.page#{index+1}-normal"), "thumbnail", "thumbnail", content, "image/jpeg"
         puts "Uploaded image to curl #{@s.url_for("p/#{id}.page#{index+1}-normal.jpg")}"
 
-        # creating a thumbnail of the preview.
+        # Creating a thumbnail of the preview.
         # id.pagex-small.jpg
-        max_width = 180
-        max_height = 225
-        aspect_ratio = max_width.to_f / max_height.to_f
+        filename_thumb = File.basename(filename_p, '.*') + '.small.jpg'
 
-        pic = Magick::Image.read(screenname).first
+        content = resize_and_write_file filename_p, filename_thumb, 180, 225
 
-        img_width = pic.columns
-        img_height = pic.rows
-        img_ratio = img_width.to_f / img_height.to_f
-
-        scale_ratio = if img_ratio > aspect_ratio
-                        max_width.to_f / img_width
-                      else
-                        max_height.to_f / img_height
-                      end
-
-        thumb = pic.resize scale_ratio
-
-        white_bg = Magick::Image.new max_width, max_height
-        pic = white_bg.composite thumb, Magick::CenterGravity, Magick::OverCompositeOp
-
-        img_file = File.basename screenname, '.*' # filename without extension.
-        small_screenname = img_file + '.small.jpg'
-        pic.write small_screenname
-
-        nbytes = File.size small_screenname
-        File.open(small_screenname, "rb") { |f| content = f.read nbytes }
         @s.execute_file_post @s.url_for("system/pool/createfile.#{id}.page#{index+1}-small"), "thumbnail", "thumbnail", content, "image/jpeg"
         puts "Uploaded image to curl #{@s.url_for("p/#{id}.page#{index+1}-small.jpg")}"
       end
+
+      # Cleaning crew.
+      FileUtils.remove_dir PREVS_DIR + "/#{id}"
+
     end
+
+    # cleaning crew.
+    FileUtils.rm DOCS_DIR + "/#{filename}"
 
     # passing on the page_count.
     @s.execute_post @s.url_for("p/#{id}"), {"sakai:pagecount" => page_count}
-
-    # cleaning crew.
-    puts "cleaning up #{id}"
-    FileUtils.remove_dir PREVS_DIR + "/#{id}"
-    FileUtils.rm DOCS_DIR + "/#{filename}"
 
     Dir.chdir DOCS_DIR # otherwise we won't find the next file.
   rescue Exception => msg
