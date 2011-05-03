@@ -8,7 +8,24 @@ require 'ruby-lib-dir.rb'
 require 'sling/sling'
 include SlingInterface
 
+# override the initialize_http_header method that sling.rb overrides
+# in order to properly set the referrer
+module Net::HTTPHeader
+  def initialize_http_header(initheader)
+    @header = {"Referer" => [ARGV[0]]}
+    return unless initheader
+    initheader.each do |key, value|
+      warn "net/http: warning: duplicated HTTP header: #{key}" if key?(key) and $VERBOSE
+      @header[key.downcase] = [value.strip]
+    end
+  end
+end
+
+server=ARGV[0]
+@s = Sling.new(server)
+
 # to run: ./preview_processor.rb http://localhost:8080/
+DEBUG = false
 
 # override the initialize_http_header method that sling.rb overrides
 # in order to properly set the referrer
@@ -40,8 +57,6 @@ def resize_and_write_file filename, filename_output, max_width, max_height
   content
 end
 
-server=ARGV[0]
-@s = Sling.new(server)
 res = @s.execute_get(@s.url_for("var/search/needsprocessing.json"))
 raise "Failed to retrieve list to process [#{res.code}]" unless res.code == '200'
 process = JSON.parse(res.body)
@@ -70,7 +85,7 @@ Dir["*"].each do |id|
     meta_file = @s.execute_get @s.url_for("p/#{id}.json")
     next unless meta_file.code == '200' # skip.
     meta = JSON.parse meta_file.body
-    extension = meta['sakai:fileextension']
+    extension = File.extname meta['sakai:pooled-content-file-name']
     raise "File extension is nil" if extension.nil?
 
     # making a local copy of the file.
@@ -150,7 +165,7 @@ Dir["*"].each do |id|
     puts "error generating preview/thumbnail (ID: #{id}): #{msg}"
   ensure
     # flagging the file as processed (for both succeeded and failed processes).
-    @s.execute_post @s.url_for("p/#{id}"), {"sakai:needsprocessing" => "false"}
+    @s.execute_post @s.url_for("p/#{id}"), {"sakai:needsprocessing" => "false"} unless DEBUG
   end
 end
 
