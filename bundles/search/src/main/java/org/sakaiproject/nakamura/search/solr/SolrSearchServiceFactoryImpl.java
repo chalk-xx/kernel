@@ -15,31 +15,34 @@ import org.sakaiproject.nakamura.api.search.solr.ResultSetFactory;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 @Component
 @Service
 public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(SolrSearchServiceFactoryImpl.class);
+
   @Reference(referenceInterface = ResultSetFactory.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-  private Map<String, ResultSetFactory> resultSetFactories = Maps.newHashMap();
+  private ConcurrentMap<String, ResultSetFactory> resultSetFactories = Maps.newConcurrentHashMap();
 
   protected void bindResultSetFactories(ResultSetFactory factory, Map<?, ?> props) {
     String type = OsgiUtil.toString(props.get("type"), null);
     if (!StringUtils.isBlank(type)) {
-      synchronized (resultSetFactories) {
-        resultSetFactories.put(type, factory);
-      }
+      resultSetFactories.put(type, factory);
+    } else {
+      LOGGER.warn("Unable to bind result set factory: no 'type' property [{}]", factory);
     }
   }
 
   protected void unbindResultSetFactories(ResultSetFactory factory, Map<?, ?> props) {
     String type = OsgiUtil.toString(props.get("type"), null);
     if (!StringUtils.isBlank(type)) {
-      synchronized (resultSetFactories) {
-        resultSetFactories.remove(type);
-      }
+      resultSetFactories.remove(type);
     }
   }
 

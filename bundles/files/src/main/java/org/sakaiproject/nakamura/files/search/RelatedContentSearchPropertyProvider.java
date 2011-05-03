@@ -54,7 +54,17 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * Provides properties to process the search
+ * Create a feed that lists content related to the content in My Library. The criteria
+ * that should be used for this are:
+ * <p>
+ * - Other content with similar words in the title</br> - Other content from my contact's
+ * library</br> - Other content with similar tags</br> - Other content with similar
+ * directory locations
+ * </p>
+ * 
+ * When less than 11 items are found for these criteria, the feed should be filled up with
+ * random content. However, preference should be given to items that have a thumbnail
+ * (page1-small.jpg), a description, tags and comments.
  */
 @Component(label = "RelatedContentSearchPropertyProvider", description = "Property provider for related content searches")
 @Service
@@ -129,8 +139,7 @@ public class RelatedContentSearchPropertyProvider extends
     sourceQuery.append(") OR viewer:(");
     sourceQuery.append(Join.join(" OR ", viewers));
     sourceQuery.append("))");
-    final Query query = new Query(Query.SOLR, sourceQuery.toString(), null,
-        SOURCE_QUERY_OPTIONS);
+    final Query query = new Query(Query.SOLR, sourceQuery.toString(), SOURCE_QUERY_OPTIONS);
 
     SolrSearchResultSet rs = null;
     try {

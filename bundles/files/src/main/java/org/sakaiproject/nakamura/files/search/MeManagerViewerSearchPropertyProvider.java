@@ -79,7 +79,7 @@ public class MeManagerViewerSearchPropertyProvider implements SolrSearchProperty
    * @param request
    * @return
    */
-  protected String getUser(final SlingHttpServletRequest request) {
+  protected static String getUser(final SlingHttpServletRequest request) {
     String user = request.getRemoteUser();
     final RequestParameter useridParam = request.getRequestParameter("userid");
     if (useridParam != null) {
@@ -93,7 +93,7 @@ public class MeManagerViewerSearchPropertyProvider implements SolrSearchProperty
    * @param user
    * @return An empty list if the user cannot be found. Values will be solr query escaped.
    */
-  protected Set<String> getPrincipals(final Session session, final String user) {
+  protected static Set<String> getPrincipals(final Session session, final String user) {
 
     final Set<String> viewerAndManagerPrincipals = new HashSet<String>();
     try {
