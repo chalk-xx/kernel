@@ -59,6 +59,7 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.MissingParameterException;
 import org.sakaiproject.nakamura.api.search.solr.Query;
@@ -89,6 +90,7 @@ import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -325,12 +327,23 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       queryType = Query.SOLR;
     }
 
-    String propertyProviderName = null;
+    String[] propertyProviderNames = null;
     if (queryNode.hasProperty(SAKAI_PROPERTY_PROVIDER)) {
-      propertyProviderName = queryNode.getProperty(SAKAI_PROPERTY_PROVIDER).getString();
+      javax.jcr.Property propProv = queryNode.getProperty(SAKAI_PROPERTY_PROVIDER);
+      if (propProv.isMultiple()) {
+        Value[] propProvVals = propProv.getValues();
+        propertyProviderNames = new String[propProvVals.length];
+
+        for (int i = 0; i < propProvVals.length; i++) {
+          propertyProviderNames[i] = propProvVals[i].getString();
+        }
+      } else {
+        propertyProviderNames = new String[1];
+        propertyProviderNames[0] = propProv.getString();
+      }
     }
-    Map<String, String> propertiesMap = loadProperties(request, propertyProviderName,
-        queryNode.getProperties(), queryType);
+    Map<String, String> propertiesMap = loadProperties(request,
+        propertyProviderNames, queryNode.getProperties(), queryType);
 
     String queryTemplate = queryNode.getProperty(SAKAI_QUERY_TEMPLATE).getString();
 
@@ -440,7 +453,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
    * @throws RepositoryException
    */
   private Map<String, String> loadProperties(SlingHttpServletRequest request,
-      String propertyProviderName, PropertyIterator defaultProps, String queryType) throws RepositoryException {
+      String[] propertyProviderNames, PropertyIterator defaultProps, String queryType) throws RepositoryException {
     Map<String, String> propertiesMap = new HashMap<String, String>();
 
     // 0. load authorizable (user) information
@@ -481,14 +494,16 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     }
 
     // 3. load properties from a property provider
-    if (propertyProviderName != null) {
-      LOGGER.debug("Trying Provider Name {} ", propertyProviderName);
-      SolrSearchPropertyProvider provider = propertyProvider.get(propertyProviderName);
-      if (provider != null) {
-        LOGGER.debug("Trying Provider {} ", provider);
-        provider.loadUserProperties(request, propertiesMap);
-      } else {
-        LOGGER.warn("No properties provider found for {} ", propertyProviderName);
+    if (propertyProviderNames != null) {
+      for (String propertyProviderName : propertyProviderNames) {
+        LOGGER.debug("Trying Provider Name {} ", propertyProviderName);
+        SolrSearchPropertyProvider provider = propertyProvider.get(propertyProviderName);
+        if (provider != null) {
+          LOGGER.debug("Trying Provider {} ", provider);
+          provider.loadUserProperties(request, propertiesMap);
+        } else {
+          LOGGER.warn("No properties provider found for {} ", propertyProviderName);
+        }
       }
     } else {
       LOGGER.debug("No Provider ");
