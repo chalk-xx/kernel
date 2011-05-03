@@ -25,7 +25,7 @@ server=ARGV[0]
 @s = Sling.new(server)
 
 # to run: ./preview_processor.rb http://localhost:8080/
-DEBUG = true
+DEBUG = false
 
 def resize_and_write_file filename, filename_output, max_width, max_height
   pic = Magick::Image.read(filename).first
