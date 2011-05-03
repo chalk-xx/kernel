@@ -9,6 +9,7 @@ require 'sling/sling'
 include SlingInterface
 
 # to run: ./preview_processor.rb http://localhost:8080/
+DEBUG = true
 
 def resize_and_write_file filename, filename_output, max_width, max_height
   pic = Magick::Image.read(filename).first
@@ -28,6 +29,7 @@ end
 
 server=ARGV[0]
 @s = Sling.new(server)
+
 res = @s.execute_get(@s.url_for("var/search/needsprocessing.json"))
 raise "Failed to retrieve list to process [#{res.code}]" unless res.code == '200'
 process = JSON.parse(res.body)
@@ -107,7 +109,7 @@ Dir["*"].each do |id|
 
         # 1 based index! (necessity for the docpreviewer 3akai-ux widget).
         # id.pagex-normal.jpg
-        @s.execute_file_post @s.url_for("system/pool/createfile.#{id}.page#{index+1}-normal"), "thumbnail", "thumbnail", content, "image/jpeg"
+        puts @s.execute_file_post @s.url_for("system/pool/createfile.#{id}.page#{index+1}-normal"), "thumbnail", "thumbnail", content, "image/jpeg"
         puts "Uploaded image to curl #{@s.url_for("p/#{id}.page#{index+1}-normal.jpg")}"
 
         # Creating a thumbnail of the preview.
@@ -132,11 +134,11 @@ Dir["*"].each do |id|
     @s.execute_post @s.url_for("p/#{id}"), {"sakai:pagecount" => page_count}
 
     Dir.chdir DOCS_DIR # otherwise we won't find the next file.
-  rescue Exception => msg
-    puts "error generating preview/thumbnail (ID: #{id}): #{msg}"
+  #rescue Exception => msg
+  #  puts "error generating preview/thumbnail (ID: #{id}): #{msg}"
   ensure
     # flagging the file as processed (for both succeeded and failed processes).
-    @s.execute_post @s.url_for("p/#{id}"), {"sakai:needsprocessing" => "false"}
+    puts @s.execute_post @s.url_for("p/#{id}"), {"sakai:needsprocessing" => "false"} unless DEBUG
   end
 end
 
