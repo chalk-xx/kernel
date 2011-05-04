@@ -97,7 +97,7 @@
         <!-- <module>contrib/remotefiles</module> -->
         <!-- to build oracle you must download and install oracle.jar first  <module>contrib/oracle-jdbc</module> -->
         <!-- <module>contrib/sitejoin</module> -->
-        <module>contrib/foreignprincipal</module>
+        <!-- Need PrincipalProviders to make this work, was removed when simplifying Server module <module>contrib/foreignprincipal</module> -->
         <module>contrib/rootconfig</module>
         <module>contrib/robots.txt</module>
        </modules>
