@@ -27,19 +27,6 @@ server=ARGV[0]
 # to run: ./preview_processor.rb http://localhost:8080/
 DEBUG = false
 
-# override the initialize_http_header method that sling.rb overrides
-# in order to properly set the referrer
-module Net::HTTPHeader
-  def initialize_http_header(initheader)
-      @header = { "Referer" => [ARGV[0]] }
-      return unless initheader
-      initheader.each do |key, value|
-        warn "net/http: warning: duplicated HTTP header: #{key}" if key?(key) and $VERBOSE
-        @header[key.downcase] = [value.strip]
-      end
-  end
-end
-
 
 def resize_and_write_file filename, filename_output, max_width, max_height
   pic = Magick::Image.read(filename).first
