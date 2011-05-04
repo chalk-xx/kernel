@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.files.search;
 
 import com.google.common.base.Join;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -72,6 +73,11 @@ public class MeManagerViewerSearchPropertyProvider implements SolrSearchProperty
         user);
     if (!viewerAndManagerPrincipals.isEmpty()) {
       propertiesMap.put("au", Join.join(" OR ", viewerAndManagerPrincipals));
+    }
+
+    String q = request.getParameter("q");
+    if (!StringUtils.isBlank(q)) {
+      propertiesMap.put("_q", " AND (content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q}) OR path:(${q}) OR ngram:(${q}) OR edgengram:(${q}))");
     }
   }
 
