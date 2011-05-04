@@ -5,12 +5,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>eventexplorer</artifactId>
-    <version>0.10-SNAPSHOT</version>
+    <version>0.11-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.eventexplorer.listeners</artifactId>
   <packaging>bundle</packaging>
-  <version>0.10-SNAPSHOT</version>
+  <version>0.11-SNAPSHOT</version>
   <name>Sakai Nakamura :: Sakai Cassandra JMS Listeners</name>
   <description>Listeners for Nakamura messages that get stored in Cassandra</description>
 
@@ -39,7 +39,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.eventexplorer.cassandra-thrift</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.cassandra.deps</groupId>
@@ -81,7 +81,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
-      <version>5.3.0-0.10-SNAPSHOT</version>
+      <version>5.3.0-0.11-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

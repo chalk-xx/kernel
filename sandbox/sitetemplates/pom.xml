@@ -19,13 +19,13 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.10-SNAPSHOT</version>
+    <version>0.11-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.siteredux</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Site Templating engine</name>
-  <version>0.10-SNAPSHOT</version>
+  <version>0.11-SNAPSHOT</version>
   <description>Provides a robust templating mechanism for sites.</description>
   <build>
     <plugins>
@@ -109,22 +109,22 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
     </dependency>
     <dependency>
     	<groupId>org.sakaiproject.nakamura</groupId>
     	<artifactId>org.sakaiproject.nakamura.user</artifactId>
-    	<version>0.10-SNAPSHOT</version>
+    	<version>0.11-SNAPSHOT</version>
     </dependency>
     <dependency>
     	<groupId>org.sakaiproject.nakamura</groupId>
     	<artifactId>org.sakaiproject.nakamura.search</artifactId>
-    	<version>0.10-SNAPSHOT</version>
+    	<version>0.11-SNAPSHOT</version>
     	<exclusions>
     		<exclusion>
     			<artifactId>org.sakaiproject.nakamura.profile</artifactId>
@@ -135,31 +135,31 @@
     <dependency>
     	<groupId>org.sakaiproject.nakamura</groupId>
     	<artifactId>org.sakaiproject.nakamura.site</artifactId>
-    	<version>0.10-SNAPSHOT</version>
+    	<version>0.11-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.version</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
     </dependency>
     
     <!-- TESTING -->
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.10-SNAPSHOT</version>
+      <version>0.11-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.1.0-0.10-SNAPSHOT</version>
+      <version>2.1.0-0.11-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.1.0-0.10-SNAPSHOT</version>
+      <version>2.1.0-0.11-SNAPSHOT</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
