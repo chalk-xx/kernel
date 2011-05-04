@@ -105,8 +105,8 @@ public class RelatedContactsSearchPropertyProvider implements SolrSearchProperty
    * @see org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider#loadUserProperties(org.apache.sling.api.SlingHttpServletRequest,
    *      java.util.Map)
    */
-  public void loadUserProperties(SlingHttpServletRequest request,
-      Map<String, String> propertiesMap) {
+  public void loadUserProperties(final SlingHttpServletRequest request,
+      final Map<String, String> propertiesMap) {
 
     /* find source contacts to match against */
     try {
@@ -142,6 +142,7 @@ public class RelatedContactsSearchPropertyProvider implements SolrSearchProperty
         allTagUuids.add(String.valueOf(false));
       }
       propertiesMap.put("tagUuids", Join.join(" OR ", allTagUuids));
+
     } catch (AccessDeniedException e) {
       LOG.error(e.getLocalizedMessage(), e);
     } catch (StorageClientException e) {
