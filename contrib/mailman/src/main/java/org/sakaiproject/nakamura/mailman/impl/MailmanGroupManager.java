@@ -118,7 +118,6 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
                 //TODO not hardcode @example and write a comment
                 try {
                     mailmanManager.createList(principalName, principalName + "@example.com", listManagementPassword);
-                    mailmanManager.createList(principalName + "-managers", principalName + "-managers@example.com", listManagementPassword);
                 } catch (Exception e) {
                     LOGGER.error("Unable to create mailman list for group", e);
                 }
@@ -133,19 +132,23 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
                 break;
             case join: {
                 LOGGER.info("Got group join event");
-                String userId = event.getProperty("added").toString();
+                String addedId = event.getProperty("added").toString();
                 String emailAddress = null;
+                String addedType = null;
                 try {
-                    if (userId.endsWith("-managers")) {
-                        emailAddress = userId + "@example.com";
+                    if (isSubgroup(addedId)) {
+                        emailAddress = addedId + "@example.com";
+                        addedType = "subgroup";
                     } else {
-                        emailAddress = getEmailForUser(userId);
+                        emailAddress = getEmailForUser(addedId);
                         if (emailAddress != null) {
-                            LOGGER.info("Adding " + userId + " to mailman group " + principalName);
+                            addedType = "user";
                         } else {
-                            LOGGER.warn("No email address recorded for user: " + userId + ". Not adding to mailman list");
+                            LOGGER.warn("No email address recorded for user: " + addedId + ". Not adding to mailman list");
+                            return;
                         }
                     }
+                    LOGGER.info("Adding " + addedType + ": " + addedId + " to mailman group " + principalName);
                     mailmanManager.addMember(principalName, listManagementPassword, emailAddress);
                 } catch (RepositoryException ex) {
                     java.util.logging.Logger.getLogger(MailmanGroupManager.class.getName()).log(Level.SEVERE, null, ex);
@@ -164,7 +167,7 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
                 try {
                     String emailAddress = getEmailForUser(userId);
                     if (emailAddress != null) {
-                        LOGGER.info("Adding " + userId + " to mailman group " + principalName);
+                        LOGGER.info("Removing user: " + userId + " to mailman group " + principalName);
                         mailmanManager.removeMember(userId, listManagementPassword, emailAddress);
                     } else {
                         LOGGER.warn("No email address recorded for user: " + userId + ". Not removing from mailman list");
@@ -183,9 +186,15 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
         }
     }
 
+    private Boolean isSubgroup(String groupId) throws AccessDeniedException, StorageClientException {
+        Authorizable authorizable = authorizableManager.findAuthorizable(groupId);
+        return authorizable.isGroup();
+    }
+
     private String getEmailForUser(String userId) throws RepositoryException, AccessDeniedException, StorageClientException {
         LOGGER.warn("ADC: getEmailForUser - userId: " + userId);
         Authorizable authorizable = authorizableManager.findAuthorizable(userId);
+
         LOGGER.warn("ADC: getEmailForUser" + Arrays.toString(authorizable.getPrincipals()) + " ... " + authorizable.getId());
         String email = (String) authorizable.getProperty("email");
         return email;
