@@ -5,6 +5,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -32,7 +33,7 @@ public class DeleteOperation extends AbstractSparsePostOperation {
             + " for delete");
         return;
       }
-      contentManager.delete(contentPath);
+      StorageClientUtils.deleteTree(contentManager, contentPath);
       changes.add(Modification.onDeleted(resource.getPath()));
 
     } else {
@@ -41,7 +42,7 @@ public class DeleteOperation extends AbstractSparsePostOperation {
         Resource resource = res.next();
         Content contentItem = resource.adaptTo(Content.class);
         if (contentItem != null) {
-          contentManager.delete(contentItem.getPath());
+          StorageClientUtils.deleteTree(contentManager, contentItem.getPath());
           changes.add(Modification.onDeleted(resource.getPath()));
         }
       }

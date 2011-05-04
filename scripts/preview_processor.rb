@@ -27,6 +27,7 @@ server=ARGV[0]
 # to run: ./preview_processor.rb http://localhost:8080/
 DEBUG = false
 
+
 def resize_and_write_file filename, filename_output, max_width, max_height
   pic = Magick::Image.read(filename).first
   img_width, img_height = pic.columns, pic.rows
