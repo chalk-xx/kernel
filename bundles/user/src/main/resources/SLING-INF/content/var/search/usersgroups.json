@@ -8,6 +8,7 @@
   },
   "sortOn": "score",
   "sortOrder": "desc",
+  "_categoryAnd": "",
   "sakai:propertyprovider" : ["TagMatch","Category"],
   "sakai:resultprocessor": "Profile",
   "sakai:title": "Users, Groups",
