@@ -48,7 +48,7 @@ def process_as_image? extension
 end
 
 def determine_file_extension_with_mime_type mimetype
-  fe = `grep #{mimetype} ../mime.types`.gsub(mimetype, '').strip.strip.split(' ')[0]
+  fe = `grep #{mimetype} ../mime.types`.gsub(mimetype, '').strip
   if fe == '' || fe.nil?
     ''
   else
