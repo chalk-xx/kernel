@@ -159,7 +159,7 @@ def main
         FileUtils.remove_dir PREV_DIR + "/#{id}"
       end
 
-      # Pass on the page_count and flagging the file as processed.
+      # Pass on the page_count
       @s.execute_post @s.url_for("p/#{id}"), {"sakai:pagecount" => page_count}
 
       # Change to the documents directory otherwise we won't find the next file.
@@ -170,7 +170,7 @@ def main
       puts "#{Time.new} error generating preview/thumbnail (ID: #{id}): #{msg}"
       @s.execute_post @s.url_for("p/#{id}"), {"sakai:processing_failed" => "true"}
     ensure
-      # No matter what we delete the temp copied file.
+      # No matter what we  flag the file as processed and delete the temp copied file.
       @s.execute_post @s.url_for("p/#{id}"), {"sakai:needsprocessing" => "false"}
       FileUtils.rm DOCS_DIR + "/#{filename}"
     end
