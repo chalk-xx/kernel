@@ -135,6 +135,10 @@ public class RelatedContactsSearchPropertyProvider implements SolrSearchProperty
         }
       }
 
+      if (relatedConnectionPaths.size() < 1) {
+        // to prevent solr parse errors
+        relatedConnectionPaths.add(String.valueOf(false));
+      }
       final String connectionPath = Join.join(" OR ", relatedConnectionPaths);
       propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, connectionPath);
 

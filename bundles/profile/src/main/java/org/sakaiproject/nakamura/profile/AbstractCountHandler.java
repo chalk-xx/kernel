@@ -12,6 +12,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 
 
 @Component(componentAbstract=true)
@@ -23,6 +24,8 @@ public abstract class AbstractCountHandler {
   private Session adminSession;
 
   protected AuthorizableManager authorizableManager;
+
+  protected ContentManager contentManager;
 
   
 
@@ -60,11 +63,13 @@ public abstract class AbstractCountHandler {
       AccessDeniedException {
     adminSession = repository.loginAdministrative();
     authorizableManager = adminSession.getAuthorizableManager();
+    contentManager = adminSession.getContentManager();
   }
 
   @Deactivate
   protected void deactivate(ComponentContext ctx) throws ClientPoolException {
     authorizableManager = null;
+    contentManager = null;
     adminSession.logout();
     adminSession = null;
 
