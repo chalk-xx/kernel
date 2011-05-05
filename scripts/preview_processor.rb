@@ -26,6 +26,7 @@ module Net::HTTPHeader
 end
 
 # Re-sized an image and saves the stream of bytes of the re-sized image to a new file with a specific filename.
+# Note: important to read for psd image previews: http://www.rubblewebs.co.uk/imagemagick/psd.php
 def resize_and_write_file(filename, filename_output, max_width, max_height = nil)
   pic = Magick::Image.read(filename).first
   img_width, img_height = pic.columns, pic.rows
