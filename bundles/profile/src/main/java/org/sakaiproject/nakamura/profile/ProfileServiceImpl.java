@@ -52,7 +52,6 @@ import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
@@ -113,9 +112,6 @@ public class ProfileServiceImpl implements ProfileService {
   @Reference
   private CountProvider countProvider;
   
-  @Reference
-  private Repository repository;
-
   @Activate
   protected void activate(Map<String, Object> properties ) {
     basicProfileElements = OsgiUtil.toStringArray(properties.get(BASIC_PROFILE_ELEMENTS), DEFAULT_BASIC_PROFILE_ELEMENTS);
