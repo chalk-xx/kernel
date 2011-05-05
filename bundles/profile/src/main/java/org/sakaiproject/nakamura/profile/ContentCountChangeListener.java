@@ -10,6 +10,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.StoreListener;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -42,10 +43,15 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
         // this is a content node.
         @SuppressWarnings("unchecked")
         Map<String, Object> beforeEvent = (Map<String, Object>) event.getProperty(StoreListener.BEFORE_EVENT_PROPERTY);
-        Set<String> before = Sets.newHashSet((String[])beforeEvent.get("sakai:pooled-content-viewer"));
-        before.addAll(ImmutableList.of((String[])beforeEvent.get("sakai:pooled-content-manager")));
-        Set<String> after = Sets.newHashSet((String[])content.getProperty("sakai:pooled-content-viewer"));
-        after.addAll(ImmutableList.of((String[])content.getProperty("sakai:pooled-content-manager")));
+        Set<String> before = Sets.newHashSet();
+        if ( beforeEvent != null ) {
+          before.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-viewer"))));
+          before.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-manager"))));
+        }
+
+        Set<String> after = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[])content.getProperty("sakai:pooled-content-viewer")));
+        after.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])content.getProperty("sakai:pooled-content-manager"))));
+
         Set<String> removed = Sets.difference(before,after);
         Set<String> added = Sets.difference(after, before);
         for ( String userId : added ) {
