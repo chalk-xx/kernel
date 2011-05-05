@@ -1,6 +1,7 @@
 package org.sakaiproject.nakamura.profile;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import org.apache.felix.scr.annotations.Component;
@@ -13,6 +14,8 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.StoreListener;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.CountProvider;
 import org.slf4j.Logger;
@@ -33,6 +36,7 @@ import java.util.Set;
 public class ContentCountChangeListener extends AbstractCountHandler implements EventHandler {
   
   private static final Logger LOG = LoggerFactory.getLogger(ContentCountChangeListener.class);
+  private static final Set<String> IGNORE_AUTHIDS = ImmutableSet.of(Group.EVERYONE, User.ADMIN_USER, User.ANON_USER);
 
   public void handleEvent(Event event) {
     try {
@@ -43,22 +47,23 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
         // this is a content node.
         @SuppressWarnings("unchecked")
         Map<String, Object> beforeEvent = (Map<String, Object>) event.getProperty(StoreListener.BEFORE_EVENT_PROPERTY);
-        Set<String> before = Sets.newHashSet();
         if ( beforeEvent != null ) {
+          Set<String> before = Sets.newHashSet();
           before.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-viewer"))));
           before.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-manager"))));
-        }
-
-        Set<String> after = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[])content.getProperty("sakai:pooled-content-viewer")));
-        after.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])content.getProperty("sakai:pooled-content-manager"))));
-
-        Set<String> removed = Sets.difference(before,after);
-        Set<String> added = Sets.difference(after, before);
-        for ( String userId : added ) {
-          inc(userId, CountProvider.CONTENT_ITEMS_PROP);
-        }
-        for ( String userId : removed ) {
-          dec(userId, CountProvider.CONTENT_ITEMS_PROP);
+          Set<String> after = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[])content.getProperty("sakai:pooled-content-viewer")));
+          after.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])content.getProperty("sakai:pooled-content-manager"))));
+          before = Sets.difference(before, IGNORE_AUTHIDS);
+          after = Sets.difference(after, IGNORE_AUTHIDS);
+          Set<String> removed = Sets.difference(before,after);
+          Set<String> added = Sets.difference(after, before);
+          LOG.info("Path{} Before{} After{} Added{} Removed{} ",new Object[]{path, before, after, added, removed});
+          for ( String userId : added ) {
+            inc(userId, CountProvider.CONTENT_ITEMS_PROP);
+          }
+          for ( String userId : removed ) {
+            dec(userId, CountProvider.CONTENT_ITEMS_PROP);
+          }
         }
       }
     } catch (StorageClientException e) {
