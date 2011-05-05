@@ -26,13 +26,18 @@ module Net::HTTPHeader
 end
 
 # Re-sized an image and saves the stream of bytes of the re-sized image to a new file with a specific filename.
-def resize_and_write_file(filename, filename_output, max_width, max_height)
+def resize_and_write_file(filename, filename_output, max_width, max_height = nil)
   pic = Magick::Image.read(filename).first
   img_width, img_height = pic.columns, pic.rows
+  ratio = img_width.to_f / max_width.to_f
 
-  if img_width > max_width || img_height > max_height
-    pic.resize_to_fill! max_width, max_height
+  if max_height.nil?
+    max_height = img_height / ratio
   end
+
+  img_ratio = img_width.to_f / img_height.to_f
+  img_ratio > ratio ? scale_ratio = max_width.to_f / img_width : scale_ratio = max_height.to_f / img_height
+  pic.resize!(scale_ratio)
 
   pic = Magick::Image.new(max_width, max_height).composite(pic, Magick::CenterGravity, Magick::OverCompositeOp)
   pic.write filename_output
@@ -115,7 +120,7 @@ def main
         page_count = 1
         filename_thumb = 'thumb.jpg'
 
-        content = resize_and_write_file filename, filename_thumb, 900, 500
+        content = resize_and_write_file filename, filename_thumb, 900
         post_file_to_server id, content, :normal, page_count
 
         content = resize_and_write_file filename, filename_thumb, 180, 225
@@ -148,7 +153,7 @@ def main
 
           # Generate 2 thumbnails and upload them to the server.
           filename_thumb = File.basename(filename_p, '.*') + '.normal.jpg'
-          content = resize_and_write_file filename_p, filename_thumb, 700, 990
+          content = resize_and_write_file filename_p, filename_thumb, 700
           post_file_to_server id, content, :normal, index + 1
 
           filename_thumb = File.basename(filename_p, '.*') + '.small.jpg'
