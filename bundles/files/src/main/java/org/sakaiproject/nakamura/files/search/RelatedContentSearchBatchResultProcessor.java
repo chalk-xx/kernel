@@ -41,6 +41,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -82,12 +83,13 @@ public class RelatedContentSearchBatchResultProcessor extends
 
   public static final Map<String, String> SOURCE_QUERY_OPTIONS;
   static {
-    SOURCE_QUERY_OPTIONS = new HashMap<String, String>(3);
+    final Map<String, String> sqo = new HashMap<String, String>(3);
     // sort by highest score
-    SOURCE_QUERY_OPTIONS.put("sort", "score desc");
+    sqo.put("sort", "score desc");
     // limit source content for matching to 11 per specs; see KERN-1797
-    SOURCE_QUERY_OPTIONS.put("items", String.valueOf(VOLUME));
-    SOURCE_QUERY_OPTIONS.put("page", "0");
+    sqo.put("items", String.valueOf(VOLUME));
+    sqo.put("page", "0");
+    SOURCE_QUERY_OPTIONS = Collections.unmodifiableMap(sqo);
   }
 
   /**

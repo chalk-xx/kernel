@@ -29,6 +29,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
@@ -45,6 +46,7 @@ import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
@@ -56,9 +58,11 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -93,6 +97,8 @@ public class RelatedContactsSearchBatchResultProcessor implements
    */
   public static final int VOLUME = 11;
 
+  protected static final String AUTHORIZABLE_RT = "authorizable";
+
   private static final Logger LOG = LoggerFactory
       .getLogger(RelatedContactsSearchBatchResultProcessor.class);
 
@@ -101,6 +107,24 @@ public class RelatedContactsSearchBatchResultProcessor implements
 
   @Reference
   private ConnectionManager connectionManager;
+
+  /**
+   * Used for random people matching
+   */
+  public static final Map<String, String> SOURCE_QUERY_OPTIONS;
+  static {
+    final Map<String, String> sqo = new HashMap<String, String>(3);
+    // sort by highest score
+    sqo.put("sort", "score desc");
+    sqo.put("items", String.valueOf(VOLUME));
+    sqo.put("page", "0");
+    SOURCE_QUERY_OPTIONS = Collections.unmodifiableMap(sqo);
+  }
+
+  private static final String DEFAULT_SEARCH_PROC_TARGET = "(&("
+      + SolrSearchResultProcessor.DEFAULT_PROCESSOR_PROP + "=true))";
+  @Reference(target = DEFAULT_SEARCH_PROC_TARGET)
+  private transient SolrSearchResultProcessor defaultSearchProcessor;
 
   /**
    * {@inheritDoc}
@@ -113,6 +137,7 @@ public class RelatedContactsSearchBatchResultProcessor implements
 
     final Session session = StorageClientUtils.adaptToSession(request
         .getResourceResolver().adaptTo(javax.jcr.Session.class));
+    final String user = session.getUserId();
     final List<String> connectedUsers = connectionManager.getConnectedUsers(request,
         session.getUserId(), ConnectionState.ACCEPTED);
     final long nitems = SolrSearchUtil.longRequestParameter(request,
@@ -122,12 +147,14 @@ public class RelatedContactsSearchBatchResultProcessor implements
 
     final Set<String> processedUsers = new HashSet<String>();
     try {
+      final AuthorizableManager authMgr = session.getAuthorizableManager();
+      final Authorizable auth = authMgr.findAuthorizable(user);
       while (iterator.hasNext() && processedUsers.size() < nitems) {
         final Result result = iterator.next();
         final String resourceType = (String) result.getFirstValue("resourceType");
         if (ConnectionConstants.SAKAI_CONTACT_RT.equals(resourceType)) {
           renderConnection(request, writer, result, connectedUsers, processedUsers);
-        } else if ("authorizable".equals(resourceType)) {
+        } else if (AUTHORIZABLE_RT.equals(resourceType)) {
           renderAuthorizable(request, writer, result, connectedUsers, processedUsers);
         } else {
           LOG.warn("TODO: add missing handler for this resource type: {}: {}",
@@ -135,9 +162,8 @@ public class RelatedContactsSearchBatchResultProcessor implements
         }
       }
       if (processedUsers.size() < nitems) {
-        // Add people that are a member of groups I'm a member of
-        final AuthorizableManager authMgr = session.getAuthorizableManager();
-        final Authorizable auth = authMgr.findAuthorizable(session.getUserId());
+        // TODO migrate to part of the primary solr query - this was a quick solution
+        /* Add people that are a member of groups I'm a member of */
         final Set<String> relatedUsers = new HashSet<String>();
         final String[] principals = auth.getPrincipals();
         if (principals != null) {
@@ -149,7 +175,6 @@ public class RelatedContactsSearchBatchResultProcessor implements
             if (group != null) {
               final String[] members = group.getMembers();
               if (members != null) {
-                // TODO should add a gate to restrict number of adds to max page size
                 relatedUsers.addAll(Arrays.asList(members));
               }
             }
@@ -158,11 +183,51 @@ public class RelatedContactsSearchBatchResultProcessor implements
           final List<String> relatedPeopleFromGroupMembers = new ArrayList<String>(
               relatedUsers);
           Collections.shuffle(relatedPeopleFromGroupMembers);
-          for (final String user : relatedPeopleFromGroupMembers) {
-            renderContact(user, request, writer, connectedUsers, processedUsers);
+          for (final String peep : relatedPeopleFromGroupMembers) {
+            renderContact(peep, request, writer, connectedUsers, processedUsers);
           }
         }
       }
+      if (processedUsers.size() < nitems) {
+        /* Add some random people to feed */
+
+        // query to find random people
+        // TODO add some randomness; probably through solr.RandomSortField
+        final StringBuilder sourceQuery = new StringBuilder("resourceType:");
+        sourceQuery.append(AUTHORIZABLE_RT);
+        sourceQuery.append(" AND type:u AND id:([* TO *] NOT ");
+        sourceQuery.append(ClientUtils.escapeQueryChars(user));
+        sourceQuery.append(")");
+        final Query query = new Query(Query.SOLR, sourceQuery.toString(),
+            SOURCE_QUERY_OPTIONS);
+
+        SolrSearchResultSet rs = null;
+        try {
+          rs = defaultSearchProcessor.getSearchResultSet(request, query);
+        } catch (SolrSearchException e) {
+          LOG.error(e.getLocalizedMessage(), e);
+          throw new IllegalStateException(e);
+        }
+        if (rs != null) {
+          final Iterator<Result> i = rs.getResultSetIterator();
+          while (i.hasNext() && processedUsers.size() <= nitems) {
+            final Result result = i.next();
+            final String path = (String) result.getFirstValue("path");
+            if (processedUsers.contains(path)) {
+              // we have already painted this result
+              continue;
+            }
+            final User u = (User) authMgr.findAuthorizable(path);
+            if (u != null) {
+              renderContact(u.getId(), request, writer, connectedUsers, processedUsers);
+            } else {
+              // fail quietly in this edge case
+              LOG.debug("Contact not found: {}", path);
+            }
+          }
+        }
+      }
+
       if (processedUsers.size() < VOLUME) {
         LOG.info(
             "Did not meet functional specification. There should be at least {} results; actual size was: {}",
