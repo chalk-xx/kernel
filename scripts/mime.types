@@ -359,6 +359,7 @@ application/x-javascript	js
 application/x-koan		skp skd skt skm
 application/x-latex		latex
 application/x-netcdf		nc cdf
+application/x-photoshop		psd
 application/x-sh		sh
 application/x-shar		shar
 application/x-shockwave-flash	swf
