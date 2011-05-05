@@ -24,9 +24,9 @@ import org.slf4j.LoggerFactory;
         "org/sakaiproject/nakamura/lite/group/ADDED",
         "org/sakaiproject/nakamura/lite/group/UPDATED"}) })
         
-public class GroupMembershipCountChangeListener extends AbstractCountHandler implements EventHandler {
+public class ContentCountChangeListener extends AbstractCountHandler implements EventHandler {
   
-  private static final Logger LOG = LoggerFactory.getLogger(GroupMembershipCountChangeListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ContentCountChangeListener.class);
 
   public void handleEvent(Event event) {
     try {
@@ -43,4 +43,6 @@ public class GroupMembershipCountChangeListener extends AbstractCountHandler imp
       LOG.debug("Failed to update count ", e);
     }
   }
+  
+  
 }

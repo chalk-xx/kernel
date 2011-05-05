@@ -4,9 +4,6 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
-import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-
-import java.util.Map;
 
 
 /**
@@ -30,13 +27,12 @@ public interface CountProvider {
   
   /**
    * get total counts for group memberships, contacts and content items
-   * @param authorizable
+   * @param au the authorizable, may be modified by the update operation.
    * @param session
-   * @return
    * @throws AccessDeniedException
    * @throws StorageClientException
    */
-  public Map<String, Integer> getAllNewCounts(Authorizable authorizable, Session session) throws AccessDeniedException, StorageClientException;
+  public void update(Authorizable au) throws AccessDeniedException, StorageClientException;
   
   /**
    * are the counts null or too old
@@ -47,45 +43,5 @@ public interface CountProvider {
    */
   public boolean needsRefresh(Authorizable authorizable) throws AccessDeniedException, StorageClientException;
   
-  /**
-   * returns total count of groups the user belongs to
-   * @param authorizable
-   * @param session
-   * @return
-   * @throws AccessDeniedException
-   * @throws StorageClientException
-   */
-  public int getNewGroupsCount(Authorizable authorizable, Session session) throws AccessDeniedException, StorageClientException;
-  
-  /**
-   * get the number of members that a group has
-   * @param group
-   * @param session
-   * @return
-   * @throws AccessDeniedException
-   * @throws StorageClientException
-   */
-  public int getNewMembersCount(Group group, Session session) throws AccessDeniedException, StorageClientException;
-  
-  /**
-   * returns the total number of content items that a user either owns or can view
-   * @param authorizable
-   * @param session
-   * @return
-   * @throws AccessDeniedException
-   * @throws StorageClientException
-   */
-  public int getNewContentCount(Authorizable authorizable, Session session) throws AccessDeniedException, StorageClientException; 
-  
-  /**
-   * returns the total number of contacts a user has for all ConntectState states
-   * 
-   * @param authorizable
-   * @param session
-   * @return
-   * @throws AccessDeniedException
-   * @throws StorageClientException
-   */
-  public int getNewContactsCount(Authorizable authorizable, Session session) throws AccessDeniedException, StorageClientException;
 
 }

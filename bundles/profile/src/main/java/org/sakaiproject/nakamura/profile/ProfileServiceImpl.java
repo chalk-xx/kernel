@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.profile;
 
 import static org.sakaiproject.nakamura.api.profile.CountProvider.CONTACTS_PROP;
 import static org.sakaiproject.nakamura.api.profile.CountProvider.CONTENT_ITEMS_PROP;
-import static org.sakaiproject.nakamura.api.profile.CountProvider.COUNTS_LAST_UPDATE_PROP;
 import static org.sakaiproject.nakamura.api.profile.CountProvider.COUNTS_PROP;
 import static org.sakaiproject.nakamura.api.profile.CountProvider.GROUP_MEMBERSHIPS_PROP;
 import static org.sakaiproject.nakamura.api.profile.CountProvider.GROUP_MEMBERS_PROP;
@@ -77,12 +76,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -147,7 +144,7 @@ public class ProfileServiceImpl implements ProfileService {
       profileMap.putAll(getProfileMap(profileContent, session));
     }
     profileMap.put(USER_BASIC, basicProfileMapForAuthorizable(authorizable));
-    profileMap.put(COUNTS_PROP, countsMapforAuthorizable(authorizable, session));
+    profileMap.put(COUNTS_PROP, countsMapforAuthorizable(authorizable, sparseSession));
     if (authorizable.isGroup()) {
       addGroupProperties(authorizable, profileMap);
     } else {
@@ -187,7 +184,7 @@ public class ProfileServiceImpl implements ProfileService {
       AuthorizableManager auManager = sparseSession.getAuthorizableManager();
       String authorizableId = PathUtils.getAuthorizableId(profileContent.getPath());
       Authorizable au = auManager.findAuthorizable(authorizableId);
-      map.put(COUNTS_PROP, countsMapforAuthorizable(au, jcrSession));
+      map.put(COUNTS_PROP, countsMapforAuthorizable(au, sparseSession));
       return map;
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
@@ -304,36 +301,17 @@ public class ProfileServiceImpl implements ProfileService {
     return compactProfile;
   }
 
-  private ValueMap countsMapforAuthorizable(Authorizable authorizable, Session session) throws AccessDeniedException, StorageClientException {
-    Map<String, Integer> counts = null;
+  private ValueMap countsMapforAuthorizable(Authorizable authorizable, org.sakaiproject.nakamura.api.lite.Session session) throws AccessDeniedException, StorageClientException {
     if (countProvider.needsRefresh(authorizable)) {
-      // having a problem with a given user not having access rights to a group but we
-      // need the group counts refreshed (or initialized) anyway
-      // for universal feed coverage so use an admin session
-      org.sakaiproject.nakamura.api.lite.Session adminSession = null;
-      try {
-        adminSession = repository.loginAdministrative();
-        counts = countProvider.getAllNewCounts(authorizable, adminSession);
-        Set<Entry<String, Integer>> entries = counts.entrySet();
-        for (Entry<String, Integer> entry : entries) {
-          authorizable.setProperty(entry.getKey(), entry.getValue());
-        }
-        authorizable.setProperty(COUNTS_LAST_UPDATE_PROP, new Date().getTime());
-        AuthorizableManager auManager = adminSession.getAuthorizableManager();
-        auManager.updateAuthorizable(authorizable);
-      } finally {
-        if (adminSession != null) {
-          adminSession.logout();
-        }
-      }
+       countProvider.update(authorizable);
     }
-    Builder<String, Integer> propertyBuilder = ImmutableMap.builder();
+    Builder<String, Object> propertyBuilder = ImmutableMap.builder();
     for (String countPropName : USER_COUNTS_PROPS) {
       if (authorizable.hasProperty(countPropName)) {
-        propertyBuilder.put(countPropName, (Integer)authorizable.getProperty(countPropName));
+        propertyBuilder.put(countPropName, authorizable.getProperty(countPropName));
       }
     }
-    ValueMap allCounts = buildIndividualCounts(propertyBuilder.build());
+    ValueMap allCounts = new ValueMapDecorator(propertyBuilder.build());
     if (LOG.isDebugEnabled())LOG.debug("counts map: {} for authorizableId: {}", new Object[]{allCounts, authorizable.getId()});
     return allCounts;
   }
@@ -444,15 +422,6 @@ public class ProfileServiceImpl implements ProfileService {
     return basic;
   }
   
-  private ValueMap buildIndividualCounts(Map<String, Integer> counts) {
-//    ValueMap allCounts = new ValueMapDecorator(new HashMap<String, Object>());
-    ValueMap individualCounts = new ValueMapDecorator(new HashMap<String, Object>());
-    for (String key : counts.keySet()) {
-      individualCounts.put(key, counts.get(key));
-    }
-//    allCounts.put(COUNTS_PROP, individualCounts);
-    return individualCounts;
-  }
   
   private ValueMap anonymousProfile() {
     ValueMap rv = new ValueMapDecorator(new HashMap<String, Object>());
