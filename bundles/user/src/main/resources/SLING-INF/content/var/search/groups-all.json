@@ -6,6 +6,7 @@
   },
   "sortOn": "score",
   "sortOrder": "desc",
+  "_categoryAnd": "",
   "sakai:propertyprovider" : "Category",
   "sakai:resultprocessor": "Profile",
   "sakai:title": "Groups - All",
