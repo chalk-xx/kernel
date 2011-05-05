@@ -37,9 +37,8 @@ def resize_and_write_file(filename, filename_output, max_width, max_height = nil
 
   img_ratio = img_width.to_f / img_height.to_f
   img_ratio > ratio ? scale_ratio = max_width.to_f / img_width : scale_ratio = max_height.to_f / img_height
-  pic.resize!(scale_ratio)
+  pic.resize_to_fit!(max_width, scale_ratio * img_height)
 
-  pic = Magick::Image.new(max_width, max_height).composite(pic, Magick::CenterGravity, Magick::OverCompositeOp)
   pic.write filename_output
 
   nbytes, content = File.size(filename_output), nil
