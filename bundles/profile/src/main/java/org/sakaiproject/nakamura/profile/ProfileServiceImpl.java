@@ -298,8 +298,12 @@ public class ProfileServiceImpl implements ProfileService {
   }
 
   private ValueMap countsMapforAuthorizable(Authorizable authorizable, org.sakaiproject.nakamura.api.lite.Session session) throws AccessDeniedException, StorageClientException {
-    if (countProvider.needsRefresh(authorizable)) {
-       countProvider.update(authorizable);
+    if (countProvider != null) {
+      if (countProvider.needsRefresh(authorizable)) {
+        countProvider.update(authorizable);
+      }
+    } else {
+      throw new IllegalStateException("@Reference CountProvider is null!");
     }
     Builder<String, Object> propertyBuilder = ImmutableMap.builder();
     for (String countPropName : USER_COUNTS_PROPS) {
