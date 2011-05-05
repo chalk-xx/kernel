@@ -6,7 +6,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -25,7 +24,6 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.profile.CountProvider;
 import org.sakaiproject.nakamura.api.solr.SolrServerService;
-import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,7 +117,8 @@ public class CountProviderImpl implements CountProvider {
       StorageClientException {
     // find the content where the user has been made either a viewer or a manager
     String userID = ClientUtils.escapeQueryChars(au.getId());
-    String queryString = "resourceType:sparse/Content AND (viewer:" + userID
+    // pooled-content-manager, pooled-content-viewer
+    String queryString = "resourceType:sakai/pooled-content AND (viewer:" + userID
         + " OR manager:" + userID + ")";
     return getCount(queryString);
   }
@@ -129,11 +128,11 @@ public class CountProviderImpl implements CountProvider {
     // find the number of contacts in the current users store that are in state Accepted,
     // invited or pending.
     String userID = au.getId();
-    String store = LitePersonalUtils.getHomePath(userID) + "/" + CONTACT_STORE_NAME;
-    store = ISO9075.encodePath(store);
-    String queryString = "path:" + ClientUtils.escapeQueryChars(store)
-        + " AND resourceType:sakai/contact AND state:(ACCEPTED OR INVITED OR PENDING)";
-    return getCount(queryString);
+    Authorizable g =   authorizableManager.findAuthorizable("g-contacts-"+userID);
+    if ( g instanceof Group ) {
+      return ((Group) g).getMembers().length;
+    }
+    return 0;
   }
 
   /**
