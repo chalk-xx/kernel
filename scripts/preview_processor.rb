@@ -28,7 +28,7 @@ server=ARGV[0]
 DEBUG = false
 
 
-def resize_and_write_file filename, filename_output, max_width, max_height
+def resize_and_write_file(filename, filename_output, max_width, max_height)
   pic = Magick::Image.read(filename).first
   img_width, img_height = pic.columns, pic.rows
 
@@ -44,11 +44,11 @@ def resize_and_write_file filename, filename_output, max_width, max_height
   content
 end
 
-def process_as_image? extension
+def process_as_image?(extension)
   ['.png', '.jpg', '.gif', '.psd'].include? extension
 end
 
-def determine_file_extension_with_mime_type mimetype
+def determine_file_extension_with_mime_type(mimetype)
   fe = `grep #{mimetype} ../mime.types`.gsub(mimetype, '').strip.split(' ')[0]
   if fe == '' || fe.nil?
     ''
@@ -74,7 +74,7 @@ process['results'].each do |f|
   FileUtils.touch f['jcr:name']
 end
 
-puts "pending files: #{Dir["*"].join(', ')}" if Dir["*"].size > 0
+puts "#{Time.new} pending files: #{Dir["*"].join(', ')}" if Dir["*"].size > 0
 # for all items in pending folder.
 Dir["*"].each do |id|
   FileUtils.rm id # removing the temp file, we don't need it anymore.
@@ -117,7 +117,7 @@ Dir["*"].each do |id|
       FileUtils.rm DOCS_DIR + "/#{filename_thumb}" unless DEBUG
     else
       # Generating image previews of te document.
-      Docsplit.extract_images filename, :size => '700x', :format => :jpg
+      Docsplit.extract_images filename, :size => '1000x', :format => :jpg
 
       next if Dir[id + '_*'].size == 0 # Skip documents with a pagecount of 0, to be sure.
 
@@ -137,7 +137,17 @@ Dir["*"].each do |id|
         File.open(filename_p, "rb") { |f| content = f.read nbytes }
 
         # 1 based index! (necessity for the docpreviewer 3akai-ux widget).
+        # id.pagex-large.jpg
+        @s.execute_file_post @s.url_for("system/pool/createfile.#{id}.page#{index+1}-large"), "thumbnail", "thumbnail", content, "image/jpeg"
+        puts "Uploaded image to curl #{@s.url_for("p/#{id}.page#{index+1}-large.jpg")}"
+
+        # TODO: refactor the lines below
+        # Creating a thumbnail of the preview.
         # id.pagex-normal.jpg
+        filename_thumb = File.basename(filename_p, '.*') + '.normal.jpg'
+
+        content = resize_and_write_file filename_p, filename_thumb, 700, 990
+
         @s.execute_file_post @s.url_for("system/pool/createfile.#{id}.page#{index+1}-normal"), "thumbnail", "thumbnail", content, "image/jpeg"
         puts "Uploaded image to curl #{@s.url_for("p/#{id}.page#{index+1}-normal.jpg")}"
 
@@ -162,12 +172,15 @@ Dir["*"].each do |id|
     # passing on the page_count.
     @s.execute_post @s.url_for("p/#{id}"), {"sakai:pagecount" => page_count}
 
-    Dir.chdir DOCS_DIR # otherwise we won't find the next file.
-  rescue Exception => msg
-    puts "error generating preview/thumbnail (ID: #{id}): #{msg}"
-  ensure
     # flagging the file as processed (for both succeeded and failed processes).
     @s.execute_post @s.url_for("p/#{id}"), {"sakai:needsprocessing" => "false"} unless DEBUG
+
+    Dir.chdir DOCS_DIR # otherwise we won't find the next file.
+  rescue Exception => msg
+    puts "#{Time.new} error generating preview/thumbnail (ID: #{id}): #{msg}"
+    @s.execute_post @s.url_for("p/#{id}"), {"sakai:processing_failed_before" => "true"}
+  ensure
+
   end
 end
 
