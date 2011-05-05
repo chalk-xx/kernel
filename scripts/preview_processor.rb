@@ -161,7 +161,6 @@ def main
 
       # Pass on the page_count and flagging the file as processed.
       @s.execute_post @s.url_for("p/#{id}"), {"sakai:pagecount" => page_count}
-      @s.execute_post @s.url_for("p/#{id}"), {"sakai:needsprocessing" => "false"}
 
       # Change to the documents directory otherwise we won't find the next file.
       Dir.chdir DOCS_DIR
@@ -169,9 +168,10 @@ def main
       # Output a timestamp + the error message whenever an exception is raised
       # and flag this file as failed for processing.
       puts "#{Time.new} error generating preview/thumbnail (ID: #{id}): #{msg}"
-      @s.execute_post @s.url_for("p/#{id}"), {"sakai:processing_failed_before" => "true"}
+      @s.execute_post @s.url_for("p/#{id}"), {"sakai:processing_failed" => "true"}
     ensure
       # No matter what we delete the temp copied file.
+      @s.execute_post @s.url_for("p/#{id}"), {"sakai:needsprocessing" => "false"}
       FileUtils.rm DOCS_DIR + "/#{filename}"
     end
   end
