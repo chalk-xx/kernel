@@ -11,6 +11,7 @@ require 'RMagick'
 MAIN_DIR = Dir.getwd
 DOCS_DIR = "#{MAIN_DIR}/docs"
 PREV_DIR = "#{MAIN_DIR}/previews"
+LOGS_DIR = "#{MAIN_DIR}/logs"
 
 # Override the initialize_http_header method that sling.rb overrides
 # in order to properly set the referrer.
@@ -98,10 +99,11 @@ def main
   # Create some temporary directories.
   Dir.mkdir DOCS_DIR unless File.directory? DOCS_DIR
   Dir.mkdir PREV_DIR unless File.directory? PREV_DIR
+  Dir.mkdir LOGS_DIR unless File.directory? LOGS_DIR
 
   # Setup loggers.
   @loggers << Logger.new(STDOUT)
-  @loggers << Logger.new(MAIN_DIR + "/logs/#{Date.today}.log", 'daily')
+  @loggers << Logger.new("#{LOGS_DIR}/#{Date.today}.log", 'daily')
   @loggers.each { |logger| logger.level = Logger::INFO }
 
   # Create a temporary file in the DOCS_DIR for all the pending files and outputs all the filenames in the terminal.
