@@ -19,14 +19,9 @@ package org.sakaiproject.nakamura.activity;
 
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_FEED_RESOURCE_TYPE;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE;
-import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_STORE_NAME;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_STORE_RESOURCE_TYPE;
-import static org.sakaiproject.nakamura.api.activity.ActivityConstants.LITE_EVENT_TOPIC;
-import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_ACTOR_ID;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_APPLICATION_ID;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_TEMPLATE_ID;
-
-import com.google.common.collect.ImmutableMap;
 
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -36,12 +31,11 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestPathInfo;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.osgi.service.event.EventAdmin;
-import org.sakaiproject.nakamura.api.activity.ActivityConstants;
-import org.sakaiproject.nakamura.api.activity.ActivityUtils;
+import org.sakaiproject.nakamura.api.activity.ActivityService;
+import org.sakaiproject.nakamura.api.activity.ActivityServiceCallback;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -53,24 +47,13 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AclModification.Operation;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
-import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.StringUtils;
-import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Dictionary;
-import java.util.Hashtable;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -102,8 +85,9 @@ public class LiteActivityCreateServlet extends SlingAllMethodsServlet {
   private static final Logger LOG = LoggerFactory
       .getLogger(LiteActivityCreateServlet.class);
 
+  
   @Reference
-  protected transient EventAdmin eventAdmin;
+  private ActivityService activityService;
 
   /**
    * {@inheritDoc}
@@ -112,7 +96,7 @@ public class LiteActivityCreateServlet extends SlingAllMethodsServlet {
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
   @Override
-  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
+  protected void doPost(final SlingHttpServletRequest request, final SlingHttpServletResponse response)
       throws ServletException, IOException {
     // Let's perform some validation on the request parameters.
     // Do we have the minimum required?
@@ -153,68 +137,34 @@ public class LiteActivityCreateServlet extends SlingAllMethodsServlet {
       response.sendError(HttpServletResponse.SC_PRECONDITION_FAILED);
       return;
     }
-    Session session = null;
     try {
-      session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(
+      
+      
+      final Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(
           javax.jcr.Session.class));
-      ContentManager contentManager = session.getContentManager();
-      // create activityStore if it does not exist
-      String path = StorageClientUtils.newPath(location.getPath(), ACTIVITY_STORE_NAME);
-      if (!contentManager.exists(path)) {
-        contentManager.update(new Content(path, ImmutableMap.of(
-            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-            (Object) ActivityConstants.ACTIVITY_STORE_RESOURCE_TYPE)));
-        // set ACLs so that everyone can add activities; anonymous = none.
-        session.getAccessControlManager().setAcl(
-            Security.ZONE_CONTENT,
-            path,
-            new AclModification[] {
-                new AclModification(AclModification.denyKey(User.ANON_USER),
-                    Permissions.ALL.getPermission(), Operation.OP_REPLACE),
-                new AclModification(AclModification.grantKey(Group.EVERYONE),
-                    Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE),
-                new AclModification(AclModification.grantKey(Group.EVERYONE),
-                    Permissions.CAN_WRITE.getPermission(), Operation.OP_REPLACE),
-                new AclModification(AclModification.grantKey(session.getUserId()),
-                    Permissions.ALL.getPermission(), Operation.OP_REPLACE) });
-      }
-      // create activity within activityStore
-      String activtyPath = StorageClientUtils.newPath(path, ActivityUtils.createId());
-      if (!contentManager.exists(activtyPath)) {
-        contentManager.update(new Content(activtyPath, ImmutableMap.of(
-            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-            (Object) ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE)));
-      }
+      activityService.createActivity(session, location, new ActivityServiceCallback() {
+        
+        public Resource processRequest(Content activtyNode) throws StorageClientException, ServletException, IOException {
+          RequestPathInfo requestPathInfo = request.getRequestPathInfo();
+          // Wrapper which needs to remove the .activity selector from RequestPathInfo to
+          // avoid
+          // an infinite loop.
+          final RequestPathInfo wrappedPathInfo = createRequestPathInfo(requestPathInfo,
+              activtyNode.getPath());
 
-      RequestPathInfo requestPathInfo = request.getRequestPathInfo();
-      // Wrapper which needs to remove the .activity selector from RequestPathInfo to
-      // avoid
-      // an infinite loop.
-      final RequestPathInfo wrappedPathInfo = createRequestPathInfo(requestPathInfo,
-          activtyPath);
-
-      // Next insert the new RequestPathInfo into a wrapped Request
-      SlingHttpServletRequest wrappedRequest = new SlingHttpServletRequestWrapper(request) {
-        @Override
-        public RequestPathInfo getRequestPathInfo() {
-          return wrappedPathInfo;
+          // Next insert the new RequestPathInfo into a wrapped Request
+          SlingHttpServletRequest wrappedRequest = new SlingHttpServletRequestWrapper(request) {
+            @Override
+            public RequestPathInfo getRequestPathInfo() {
+              return wrappedPathInfo;
+            }
+          };
+          
+          SparseContentResource target = new SparseContentResource(activtyNode, session, request.getResourceResolver());
+          request.getRequestDispatcher(target).forward(wrappedRequest, response);
+          return target;
         }
-      };
-
-      // We redispatch the request to the created sakai/activity.
-      // This allows for custom properties to be set by the UI.
-      Content activtyNode = contentManager.get(activtyPath);
-      SparseContentResource target = new SparseContentResource(activtyNode, session, request.getResourceResolver());
-      request.getRequestDispatcher(target).forward(wrappedRequest, response);
-
-      activtyNode = contentManager.get(activtyPath);
-      activtyNode.setProperty(PARAM_ACTOR_ID, currentUser);
-      contentManager.update(activtyNode);
-      // post the asynchronous OSGi event
-      final Dictionary<String, String> properties = new Hashtable<String, String>();
-      properties.put(UserConstants.EVENT_PROP_USERID, request.getRemoteUser());
-      properties.put(ActivityConstants.EVENT_PROP_PATH, activtyPath);
-      EventUtils.sendOsgiEvent(target, properties, LITE_EVENT_TOPIC, eventAdmin);
+      });
     } catch (StorageClientException e) {
       throw new ServletException(e.getMessage(), e);
     } catch (AccessDeniedException e) {
@@ -252,19 +202,4 @@ public class LiteActivityCreateServlet extends SlingAllMethodsServlet {
     };
   }
 
-  /**
-   * @param eventAdmin
-   *          the new EventAdmin service to bind to this service.
-   */
-  protected void bindEventAdmin(EventAdmin eventAdmin) {
-    this.eventAdmin = eventAdmin;
-  }
-
-  /**
-   * @param eventAdmin
-   *          the EventAdminService to be unbound from this service.
-   */
-  protected void unbindEventAdmin(EventAdmin eventAdmin) {
-    this.eventAdmin = null;
-  }
 }
