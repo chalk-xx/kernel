@@ -117,7 +117,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
   protected Repository sparseRepository;
 
   @Reference
-  private EventAdmin eventAdmin;
+  protected EventAdmin eventAdmin;
 
   private static final long serialVersionUID = -5099697955361286370L;
 
