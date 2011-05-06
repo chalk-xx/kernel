@@ -7,7 +7,7 @@
   "sortOn": "score",
   "sortOrder": "desc",
   "_categoryAnd": "",
-  "sakai:propertyprovider" : "Category",
+  "sakai:propertyprovider" : "CategoryPropertyProvider",
   "sakai:resultprocessor": "Profile",
   "sakai:title": "Groups - All",
   "sakai:shortDescription": "Get the group profile nodes out of the repository.",

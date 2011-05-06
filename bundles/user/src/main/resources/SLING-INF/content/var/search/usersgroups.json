@@ -9,7 +9,7 @@
   "sortOn": "score",
   "sortOrder": "desc",
   "_categoryAnd": "",
-  "sakai:propertyprovider" : ["TagMatch","Category"],
+  "sakai:propertyprovider" : ["TagMatch","CategoryPropertyProvider"],
   "sakai:resultprocessor": "Profile",
   "sakai:title": "Users, Groups",
   "sakai:shortDescription": "Get profile nodes of users or groups.",

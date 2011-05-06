@@ -34,7 +34,7 @@ import java.util.Map;
 @Component
 @Service
 @Properties({
-  @Property(name = SearchConstants.REG_PROVIDER_NAMES, value = "Category")
+  @Property(name = SearchConstants.REG_PROVIDER_NAMES, value = "CategoryPropertyProvider")
 })
 public class CategoryPropertyProvider implements SolrSearchPropertyProvider {
   /**
