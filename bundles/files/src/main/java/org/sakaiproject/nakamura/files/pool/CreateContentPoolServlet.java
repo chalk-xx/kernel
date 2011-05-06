@@ -323,7 +323,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       AclModification.addAcl(true, Permissions.CAN_MANAGE, au.getId(), modifications);
       accessControlManager.setAcl(Security.ZONE_CONTENT, poolId, modifications.toArray(new AclModification[modifications.size()]));
 
-      ActivityUtils.postActivity(eventAdmin, au.getId()d, poolId, "Content", "default", "pooled content", "CREATED_FILE", null);
+      ActivityUtils.postActivity(eventAdmin, au.getId(), poolId, "Content", "default", "pooled content", "CREATED_FILE", null);
     } else {
       Content content = contentManager.get(poolId);
       content.setProperty(StorageClientUtils.getAltField(Content.MIMETYPE_FIELD, alternativeStream), contentType);
