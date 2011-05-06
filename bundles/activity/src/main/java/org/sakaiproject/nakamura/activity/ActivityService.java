@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.api.activity;
+package org.sakaiproject.nakamura.activity;
 
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -11,6 +11,6 @@ import javax.servlet.ServletException;
 
 public interface ActivityService {
 
-  void createActivity(Session session, Content location, ActivityServiceCallback activityServiceCallback) throws AccessDeniedException, StorageClientException, ServletException, IOException;
+  void createActivity(Session session, Content location, String userId, ActivityServiceCallback activityServiceCallback) throws AccessDeniedException, StorageClientException, ServletException, IOException;
 
 }

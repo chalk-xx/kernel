@@ -31,11 +31,8 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestPathInfo;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
-import org.sakaiproject.nakamura.api.activity.ActivityService;
-import org.sakaiproject.nakamura.api.activity.ActivityServiceCallback;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -142,9 +139,9 @@ public class LiteActivityCreateServlet extends SlingAllMethodsServlet {
       
       final Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(
           javax.jcr.Session.class));
-      activityService.createActivity(session, location, new ActivityServiceCallback() {
+      activityService.createActivity(session, location, session.getUserId(), new ActivityServiceCallback() {
         
-        public Resource processRequest(Content activtyNode) throws StorageClientException, ServletException, IOException {
+        public void processRequest(Content activtyNode) throws StorageClientException, ServletException, IOException {
           RequestPathInfo requestPathInfo = request.getRequestPathInfo();
           // Wrapper which needs to remove the .activity selector from RequestPathInfo to
           // avoid
@@ -162,7 +159,6 @@ public class LiteActivityCreateServlet extends SlingAllMethodsServlet {
           
           SparseContentResource target = new SparseContentResource(activtyNode, session, request.getResourceResolver());
           request.getRequestDispatcher(target).forward(wrappedRequest, response);
-          return target;
         }
       });
     } catch (StorageClientException e) {
