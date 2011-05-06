@@ -53,7 +53,7 @@ import java.util.Set;
 public class ActivityIndexingHandler implements IndexingHandler {
 
   // list of properties to be indexed
-  private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of("created");
+  private static final Set<String> WHITELISTED_PROPS = ImmutableSet.of("_created");
 
   private static final Logger logger = LoggerFactory
       .getLogger(ActivityIndexingHandler.class);
