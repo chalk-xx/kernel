@@ -11,6 +11,7 @@ require 'RMagick'
 MAIN_DIR = Dir.getwd
 DOCS_DIR = "#{MAIN_DIR}/docs"
 PREV_DIR = "#{MAIN_DIR}/previews"
+LOGS_DIR = "#{MAIN_DIR}/logs"
 
 # Override the initialize_http_header method that sling.rb overrides
 # in order to properly set the referrer.
@@ -67,7 +68,17 @@ end
 # 1 based index! (necessity for the docpreviewer 3akai-ux widget), e.g: id.pagex-large.jpg
 def post_file_to_server id, content, size, page_count
   @s.execute_file_post @s.url_for("system/pool/createfile.#{id}.page#{page_count}-#{size}"), "thumbnail", "thumbnail", content, "image/jpeg"
-  puts "Uploaded image to curl #{@s.url_for("p/#{id}.page#{page_count}-#{size}.jpg")}"
+  log "Uploaded image to curl #{@s.url_for("p/#{id}.page#{page_count}-#{size}.jpg")}"
+end
+
+@loggers = []
+
+def log msg, level = :info
+  if level == :warn
+    @loggers.each { |logger| logger.warn(msg) }
+  elsif level == :info
+    @loggers.each { |logger| logger.info(msg) }
+  end
 end
 
 # This is the main method we call at the end of the script.
@@ -88,17 +99,25 @@ def main
   # Create some temporary directories.
   Dir.mkdir DOCS_DIR unless File.directory? DOCS_DIR
   Dir.mkdir PREV_DIR unless File.directory? PREV_DIR
+  Dir.mkdir LOGS_DIR unless File.directory? LOGS_DIR
+
+  # Setup loggers.
+  @loggers << Logger.new(STDOUT)
+  @loggers << Logger.new("#{LOGS_DIR}/#{Date.today}.log", 'daily')
+  @loggers.each { |logger| logger.level = Logger::INFO }
 
   # Create a temporary file in the DOCS_DIR for all the pending files and outputs all the filenames in the terminal.
   Dir.chdir DOCS_DIR
   queued_files = process_results.collect do |result|
     FileUtils.touch result['jcr:name']
   end
-  puts "#{Time.new} queued files: #{queued_files.join(', ')}"
+
+  log " "
+  log "Starts a new batch of queued files: #{queued_files.join(', ')}"
 
   Dir['*'].each do |id|
     FileUtils.rm id
-    puts "#{Time.new} processing #{id}"
+    log "processing #{id}"
 
     begin
       meta_file = @s.execute_get @s.url_for("p/#{id}.json")
@@ -110,7 +129,7 @@ def main
       mime_type = meta['_mimeType']
       extension = determine_file_extension_with_mime_type mime_type
       filename = id + extension
-      puts "with filename: #{filename}"
+      log "with filename: #{filename}"
 
       # Making a local copy of the file.
       content_file = @s.execute_get @s.url_for("p/#{id}")
@@ -172,7 +191,7 @@ def main
     rescue Exception => msg
       # Output a timestamp + the error message whenever an exception is raised
       # and flag this file as failed for processing.
-      puts "#{Time.new} error generating preview/thumbnail (ID: #{id}): #{msg}"
+      log "error generating preview/thumbnail (ID: #{id}): #{msg}", :warn
       @s.execute_post @s.url_for("p/#{id}"), {"sakai:processing_failed" => "true"}
     ensure
       # No matter what we  flag the file as processed and delete the temp copied file.
