@@ -121,10 +121,6 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = -5099697955361286370L;
 
-  public static final char[] ENCODING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-      .toCharArray();
-  public static final char[] HASHENCODING = "abcdefghijklmnopqrstuvwxyz1234567890"
-      .toCharArray();
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateContentPoolServlet.class);
@@ -279,6 +275,8 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
     contentManager.update(content);
 
+    ActivityUtils.postActivity(eventAdmin, au.getId(), poolId, "Content", "default", "pooled content", "UPDATED_CONTENT", null);
+
     // deny anon everyting
     // deny everyone everything
     // grant the user everything.
@@ -329,6 +327,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       content.setProperty(StorageClientUtils.getAltField(Content.MIMETYPE_FIELD, alternativeStream), contentType);
       contentManager.update(content);
       contentManager.writeBody(poolId, value.getInputStream(),alternativeStream);
+      ActivityUtils.postActivity(eventAdmin, au.getId(), poolId, "Content", "default", "pooled content", "UPDATED_FILE", null);
     }
   }
 

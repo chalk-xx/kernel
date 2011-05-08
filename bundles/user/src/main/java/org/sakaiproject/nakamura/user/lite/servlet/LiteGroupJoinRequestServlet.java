@@ -41,6 +41,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.util.ActivityUtils;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 
@@ -136,6 +137,7 @@ public class LiteGroupJoinRequestServlet extends SlingAllMethodsServlet {
         targetGroup.addMember(userId);
         Dictionary<String, Object> eventProps = new Hashtable<String, Object>();
         eventAdmin.postEvent(new Event(GroupEvent.joinedSite.getTopic(), eventProps));
+        ActivityUtils.postActivity(eventAdmin, userId, group.getPath(), "Content", "default", "pooled content", "JOINED_GROUP", null);
         break;
       case withauth:
         // check to see if this user is already there

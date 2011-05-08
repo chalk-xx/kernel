@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -33,6 +34,7 @@ import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
+import org.sakaiproject.nakamura.util.ActivityUtils;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -55,6 +57,9 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
 
   @Reference
   protected transient LockManager lockManager;
+
+  @Reference
+  protected transient EventAdmin eventAdmin;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteMessagingServiceImpl.class);
@@ -128,6 +133,7 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
       try {
         ContentManager contentManager = session.getContentManager();
         contentManager.update(msg);
+        ActivityUtils.postActivity(eventAdmin, session.getUserId(), msg.getPath(), "content", "default", "message", "SENT_MESSAGE", null);
       } catch (StorageClientException e) {
         LOGGER.warn("StorageClientException on trying to save message."
             + e.getMessage());
