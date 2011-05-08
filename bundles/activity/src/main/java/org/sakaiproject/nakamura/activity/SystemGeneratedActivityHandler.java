@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.activity;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
@@ -51,7 +52,9 @@ public class SystemGeneratedActivityHandler implements EventHandler {
 
   public static final Logger LOG = LoggerFactory
       .getLogger(SystemGeneratedActivityHandler.class);
+  @Reference
   private Repository repository;
+  @Reference
   private ActivityService activityService;
   
   public void handleEvent(Event event) {
