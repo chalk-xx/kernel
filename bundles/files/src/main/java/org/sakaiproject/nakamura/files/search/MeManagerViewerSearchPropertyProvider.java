@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.files.search;
 
 import com.google.common.base.Join;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -38,6 +39,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 
+import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -53,6 +55,8 @@ import java.util.Set;
   @Property(name = "sakai.search.provider", value = "MeManagerViewer") })
 public class MeManagerViewerSearchPropertyProvider implements SolrSearchPropertyProvider {
 
+  private static final String QUERY = " AND (content:({0}) OR filename:({0}) OR tag:({0}) OR description:({0}) OR path:({0}) OR ngram:({0}) OR edgengram:({0}))";
+  
   @Reference
   protected ConnectionManager connectionManager;
 
@@ -72,6 +76,11 @@ public class MeManagerViewerSearchPropertyProvider implements SolrSearchProperty
         user);
     if (!viewerAndManagerPrincipals.isEmpty()) {
       propertiesMap.put("au", Join.join(" OR ", viewerAndManagerPrincipals));
+    }
+
+    String q = request.getParameter("q");
+    if (!StringUtils.isBlank(q)) {
+      propertiesMap.put("_q", MessageFormat.format(QUERY, q));
     }
   }
 

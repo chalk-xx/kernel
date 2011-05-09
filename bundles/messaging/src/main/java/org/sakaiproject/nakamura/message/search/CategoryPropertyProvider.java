@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @Component
 @Service
-@Properties(value = {
+@Properties({
   @Property(name = SearchConstants.REG_PROVIDER_NAMES, value = "Category")
 })
 public class CategoryPropertyProvider implements SolrSearchPropertyProvider {
@@ -45,17 +45,10 @@ public class CategoryPropertyProvider implements SolrSearchPropertyProvider {
       Map<String, String> propertiesMap) {
     String cat = request.getParameter("category");
 
-    String category = " category:";
-    String categoryAnd = "";
-    String categoryOr = "";
     if (!StringUtils.isBlank(cat)) {
-      category += cat;
-      categoryAnd = " AND category:" + cat;
-      categoryOr = " OR category:" + cat;
+      propertiesMap.put("_category", " category:" + cat);
+      propertiesMap.put("_categoryAnd", " AND category:" + cat);
+      propertiesMap.put("_categoryOr", " OR category:" + cat);
     }
-
-    propertiesMap.put("_category", category);
-    propertiesMap.put("_categoryAnd", categoryAnd);
-    propertiesMap.put("_categoryOr", categoryOr);
   }
 }

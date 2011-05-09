@@ -40,7 +40,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +60,9 @@ public class ActivityFeedSearchResultProcessor implements SolrSearchResultProces
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
+
+  @Reference
+  private BasicUserInfoService basicUserInfoService;
 
   public ActivityFeedSearchResultProcessor() {
   }
@@ -92,8 +95,7 @@ public class ActivityFeedSearchResultProcessor implements SolrSearchResultProces
       if (!StringUtils.isBlank(actor)) {
         Authorizable actorAuth = session.getAuthorizableManager().findAuthorizable(actor);
         if (actorAuth != null) {
-          BasicUserInfo basicUserInfo = new BasicUserInfo();
-          ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(actorAuth));
+          ValueMap profile = new ValueMapDecorator(basicUserInfoService.getProperties(actorAuth));
           ExtendedJSONWriter.writeValueMapInternals(write, profile);
         } else {
           LOGGER.warn("Unable to find actor for activity [{}]", contentPath);

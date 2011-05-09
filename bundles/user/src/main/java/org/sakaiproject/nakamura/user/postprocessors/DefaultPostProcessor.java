@@ -23,6 +23,7 @@ import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -41,6 +42,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessor;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.ActivityUtils;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -230,7 +232,11 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   @Reference
   protected Repository repository;
 
+  @Reference
+  protected EventAdmin eventAdmin;
+
   private String visibilityPreference;
+
 
   @Activate
   @Modified
@@ -468,6 +474,19 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
           authorizable.setProperty(propName, profileProperties.get(propName));
         }
         authorizableManager.updateAuthorizable(authorizable);
+        if ( isCreate ) {
+          if ( isGroup ) {
+            ActivityUtils.postActivity(eventAdmin, session.getUserId(), homePath, "Authorizable", "default", "group", "GROUP_CREATED", null);
+          } else {
+            ActivityUtils.postActivity(eventAdmin, session.getUserId(), homePath, "Authorizable", "default", "user", "USER_CREATED", null);
+          }
+        } else {
+          if ( isGroup ) {
+            ActivityUtils.postActivity(eventAdmin, session.getUserId(), homePath, "Authorizable", "default", "group", "GROUP_UPDATED", null);
+          } else {
+            ActivityUtils.postActivity(eventAdmin, session.getUserId(), homePath, "Authorizable", "default", "user", "USER_UPDATED", null);
+          }
+        }
       }
     } else {
       // Attempt to sync the Acl on the home folder with whatever is present in the

@@ -226,4 +226,36 @@ public class ServerProtectionServiceImplTest {
 
   }
 
+  @Test
+  public void testSSLTrustedHost() throws NoSuchAlgorithmException, InvalidSyntaxException, IOException {
+    // test the special treatment of ssl referers
+    serverProtectionService = new ServerProtectionServiceImpl();
+    Dictionary<String, Object> properties = new Hashtable<String, Object>();
+    properties.put(ServerProtectionServiceImpl.TRUSTED_HOSTS_CONF, new String[]{
+            "https://www.somehost.edu",
+            "https://www.somehost.edu:443"
+    });
+    properties.put(ServerProtectionServiceImpl.TRUSTED_REFERER_CONF, new String[]{
+            "https://www.somehost.edu/somewhereelse/index.html",
+            "https://www.somehost.edu:443/somewhereelse/index.html"
+    });
+    Mockito.when(componentContext.getProperties()).thenReturn(properties);
+    Mockito.when(componentContext.getBundleContext()).thenReturn(bundleContext);
+    serverProtectionService.activate(componentContext);
+
+    Mockito.when(hrequest.getMethod()).thenReturn("POST");
+    Mockito.when(hrequest.getScheme()).thenReturn("https");
+    Mockito.when(hrequest.getServerName()).thenReturn("www.somehost.edu");
+    Mockito.when(hrequest.getServerPort()).thenReturn(443);
+    Mockito.when(hrequest.getRequestURI()).thenReturn("/some/url");
+    Vector<String> referers = new Vector<String>();
+    referers.add("https://www.somehost.edu/somewhereelse/index.html");
+    Mockito.when(hrequest.getHeaders("Referer")).thenReturn(referers.elements());
+    Assert.assertTrue(serverProtectionService.isMethodSafe(hrequest, hresponse));
+
+    referers.clear();
+    referers.add("https://www.somehost.edu:443/somewhereelse/index.html");
+    Mockito.when(hrequest.getHeaders("Referer")).thenReturn(referers.elements());
+    Assert.assertTrue(serverProtectionService.isMethodSafe(hrequest, hresponse));
+  }
 }
