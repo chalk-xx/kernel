@@ -16,7 +16,6 @@
  */
 package org.sakaiproject.nakamura.mailman.impl;
 
-import java.util.Arrays;
 import java.util.logging.Level;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
@@ -40,6 +39,7 @@ import java.util.Map;
 import javax.jcr.RepositoryException;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
 
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -69,6 +69,8 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
     private Session session; // fetched from the repository
     private AuthorizableManager authorizableManager = null; // fetchs from the session
     private String listManagementPassword;
+    
+    private String DOMAIN_NAME_FOR_EMAIL_ADDRESSES = "@example.com";
 
     public MailmanGroupManager() {
     }
@@ -80,7 +82,11 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
 
     @Activate
     public void activate(Map<?, ?> props) throws ClientPoolException, StorageClientException, AccessDeniedException {
-        session = repository.loginAdministrative();
+        LOGGER.info("Got component initialization");
+        listManagementPassword = (String) props.get(LIST_MANAGEMENT_PASSWORD);
+
+        session = this.repository.loginAdministrative();
+        LOGGER.error("ADC test: " + session.getUserId());
         authorizableManager = session.getAuthorizableManager();
     }
 
@@ -93,6 +99,13 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
         } finally {
             session = null;
         }
+    }
+    
+    @Modified
+    @SuppressWarnings("unchecked")
+    public void updated(Dictionary config) throws ConfigurationException {
+        LOGGER.info("Got config update");
+        listManagementPassword = (String) config.get(LIST_MANAGEMENT_PASSWORD);
     }
 
     public void handleEvent(Event event) {
@@ -115,9 +128,8 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
             case create:
                 LOGGER.info("Got authorizable creation: " + principalName);
 
-                //TODO not hardcode @example and write a comment
                 try {
-                    mailmanManager.createList(principalName, principalName + "@example.com", listManagementPassword);
+                    mailmanManager.createList(principalName, principalName + DOMAIN_NAME_FOR_EMAIL_ADDRESSES, listManagementPassword);
                 } catch (Exception e) {
                     LOGGER.error("Unable to create mailman list for group", e);
                 }
@@ -130,14 +142,14 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
                     LOGGER.error("Unable to delete mailman list for group", e);
                 }
                 break;
-            case join: {
-                LOGGER.info("Got group join event");
+            case join: {                
                 String addedId = event.getProperty("added").toString();
+                LOGGER.info("Got group join event ***" + addedId + "***");
                 String emailAddress = null;
                 String addedType = null;
                 try {
                     if (isSubgroup(addedId)) {
-                        emailAddress = addedId + "@example.com";
+                        emailAddress = addedId + DOMAIN_NAME_FOR_EMAIL_ADDRESSES;
                         addedType = "subgroup";
                     } else {
                         emailAddress = getEmailForUser(addedId);
@@ -192,22 +204,8 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
     }
 
     private String getEmailForUser(String userId) throws RepositoryException, AccessDeniedException, StorageClientException {
-        LOGGER.warn("ADC: getEmailForUser - userId: " + userId);
         Authorizable authorizable = authorizableManager.findAuthorizable(userId);
-
-        LOGGER.warn("ADC: getEmailForUser" + Arrays.toString(authorizable.getPrincipals()) + " ... " + authorizable.getId());
         String email = (String) authorizable.getProperty("email");
         return email;
-    }
-
-    @SuppressWarnings("unchecked")
-    public void updated(Dictionary config) throws ConfigurationException {
-        LOGGER.info("Got config update");
-        listManagementPassword = (String) config.get(LIST_MANAGEMENT_PASSWORD);
-    }
-
-    protected void activate(ComponentContext componentContext) {
-        LOGGER.info("Got component initialization");
-        listManagementPassword = (String) componentContext.getProperties().get(LIST_MANAGEMENT_PASSWORD);
     }
 }
