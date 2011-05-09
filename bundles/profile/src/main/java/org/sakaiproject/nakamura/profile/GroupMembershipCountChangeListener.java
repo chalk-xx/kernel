@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Event Handler counting Group Membership ADDED and UPDATED Events."),
     @Property(name = "event.topics", value = {
-        "org/sakaiproject/nakamura/lite/group/ADDED",
-        "org/sakaiproject/nakamura/lite/group/UPDATED"}) })
+        "org/sakaiproject/nakamura/lite/authorizables/ADDED",
+        "org/sakaiproject/nakamura/lite/authorizables/UPDATED"}) })
         
 public class GroupMembershipCountChangeListener extends AbstractCountHandler implements EventHandler {
   
@@ -34,8 +34,12 @@ public class GroupMembershipCountChangeListener extends AbstractCountHandler imp
       String groupId = (String) event.getProperty(StoreListener.PATH_PROPERTY);
       Authorizable au = authorizableManager.findAuthorizable(groupId);
       if ( au instanceof Group ) {
-        au.setProperty(CountProvider.GROUP_MEMBERS_PROP, ((Group) au).getMembers().length);
-        authorizableManager.updateAuthorizable(au);
+        int n = ((Group) au).getMembers().length;
+        Integer v = (Integer) au.getProperty(CountProvider.GROUP_MEMBERS_PROP);
+        if ( v == null || n != v.intValue()) {
+          au.setProperty(CountProvider.GROUP_MEMBERS_PROP, ((Group) au).getMembers().length);
+          authorizableManager.updateAuthorizable(au);
+        }
       }
     } catch (StorageClientException e) {
       LOG.debug("Failed to update count ", e);
