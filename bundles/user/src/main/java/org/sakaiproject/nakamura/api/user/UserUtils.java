@@ -1,5 +1,12 @@
 package org.sakaiproject.nakamura.api.user;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.PREFERRED_NAME;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_COLLEGE;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_DATEOFBIRTH;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_DEPARTMENT;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_PICTURE;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_ROLE;
+
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_DESCRIPTION_PROPERTY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_TITLE_PROPERTY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_BASIC;
@@ -21,7 +28,11 @@ import java.util.Map;
 public class UserUtils {
 
   
-  
+  private final static String[] DEFAULT_BASIC_PROFILE_ELEMENTS = new String[] {USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY,
+    USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME, USER_ROLE, USER_DEPARTMENT, USER_COLLEGE, USER_DATEOFBIRTH};
+
+
+  private static String[] basicProfileElements = DEFAULT_BASIC_PROFILE_ELEMENTS;
 
   private static void addUserProperties(Authorizable user, ValueMap profileMap) {
     // Backward compatible reasons.
@@ -39,13 +50,13 @@ public class UserUtils {
         .getProperty(GROUP_DESCRIPTION_PROPERTY));
   }
 
-  public static ValueMap getCompactProfile(Authorizable authorizable, String[] basicProfileElements) {
+  public static ValueMap getCompactProfile(Authorizable authorizable) {
     if (User.ANON_USER.equals(authorizable.getId())) {
       return anonymousProfile();
     }
     
     ValueMap compactProfile = new ValueMapDecorator(new HashMap<String, Object>());
-    compactProfile.put(USER_BASIC, basicProfileMapForAuthorizable(authorizable, basicProfileElements));
+    compactProfile.put(USER_BASIC, basicProfileMapForAuthorizable(authorizable));
 
     if (authorizable.isGroup()) {
       addGroupProperties(authorizable, compactProfile);
@@ -55,9 +66,9 @@ public class UserUtils {
     return compactProfile;
   }
   
-  private static ValueMap basicProfileMapForAuthorizable(Authorizable authorizable, String[] basicProfileElements) {
+  private static ValueMap basicProfileMapForAuthorizable(Authorizable authorizable) {
     Builder<String, String> propertyBuilder = ImmutableMap.builder();
-    for (String profileElementName : basicProfileElements) {
+    for (String profileElementName : basicProfileElements ) {
       if (authorizable.hasProperty(profileElementName)) {
         propertyBuilder.put(profileElementName, (String)authorizable.getProperty(profileElementName));
       }
@@ -91,6 +102,18 @@ public class UserUtils {
     basicProfile.put(UserConstants.USER_BASIC_ACCESS, UserConstants.EVERYBODY_ACCESS_VALUE);
     rv.put(USER_BASIC,basicProfile);
     return rv;
+  }
+
+  public static String[] getBasicProfileElements() {
+    return basicProfileElements;
+  }
+
+  public static String[] getDefaultBasicProfileElements() {
+    return DEFAULT_BASIC_PROFILE_ELEMENTS;
+  }
+
+  public static void setBasicProfileElements(String[] newBasicProfileElements) {
+    basicProfileElements = newBasicProfileElements;
   }
 
 

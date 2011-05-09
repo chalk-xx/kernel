@@ -97,8 +97,6 @@ public class ProfileServiceImpl implements ProfileService {
   private ProviderSettingsFactory providerSettingsFactory = new ProviderSettingsFactory();
   public static final Logger LOG = LoggerFactory.getLogger(ProfileServiceImpl.class);
   
-  private final static String[] DEFAULT_BASIC_PROFILE_ELEMENTS = new String[] {USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY,
-    USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME, USER_ROLE, USER_DEPARTMENT, USER_COLLEGE, USER_DATEOFBIRTH};
 
   private final static String[] USER_COUNTS_PROPS = new String[] {CONTACTS_PROP, GROUP_MEMBERSHIPS_PROP, CONTENT_ITEMS_PROP, GROUP_MEMBERS_PROP};
 
@@ -106,14 +104,14 @@ public class ProfileServiceImpl implements ProfileService {
       USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME, USER_ROLE, USER_DEPARTMENT, USER_COLLEGE, USER_DATEOFBIRTH})
   public final static String BASIC_PROFILE_ELEMENTS = "basicProfileElements";
 
-  private String[] basicProfileElements;
   
   @Reference
   private CountProvider countProvider;
   
   @Activate
   protected void activate(Map<String, Object> properties ) {
-    basicProfileElements = OsgiUtil.toStringArray(properties.get(BASIC_PROFILE_ELEMENTS), DEFAULT_BASIC_PROFILE_ELEMENTS);
+    // To make the basic profile detached from the Profile Service, we have to to this. Its a bit Ugly.
+    UserUtils.setBasicProfileElements(OsgiUtil.toStringArray(properties.get(BASIC_PROFILE_ELEMENTS), UserUtils.getDefaultBasicProfileElements()));
   }
 
   /**
@@ -127,7 +125,7 @@ public class ProfileServiceImpl implements ProfileService {
    */
   public ValueMap getCompactProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException, StorageClientException, AccessDeniedException {
-    return UserUtils.getCompactProfile(authorizable, basicProfileElements);
+    return UserUtils.getCompactProfile(authorizable);
   }
   /**
    * {@inheritDoc}
@@ -138,9 +136,7 @@ public class ProfileServiceImpl implements ProfileService {
       org.apache.jackrabbit.api.security.user.Authorizable authorizable, Session session) throws RepositoryException {
     org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
     try {
-      return getCompactProfileMap(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID()), session);
-      //BasicUserInfo basicUserInfo = new BasicUserInfo();
-      //return new ValueMapDecorator(basicUserInfo.getProperties(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID())));
+      return UserUtils.getCompactProfile(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID()));
     } catch (StorageClientException e) {
       throw new RepositoryException(e.getMessage(), e);
     } catch (AccessDeniedException e) {
@@ -189,7 +185,7 @@ public class ProfileServiceImpl implements ProfileService {
   public ValueMap getProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException, StorageClientException, AccessDeniedException {
     if (User.ANON_USER.equals(authorizable.getId())) {
-      return UserUtils.getCompactProfile(authorizable, basicProfileElements);
+      return UserUtils.getCompactProfile(authorizable);
     }
     String profilePath = LitePersonalUtils.getProfilePath(authorizable.getId());
     org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
@@ -207,7 +203,7 @@ public class ProfileServiceImpl implements ProfileService {
       profileMap.put("userid", authorizable.getId());
     }
 
-    profileMap.putAll(UserUtils.getCompactProfile(authorizable, basicProfileElements));   
+    profileMap.putAll(UserUtils.getCompactProfile(authorizable));
     return profileMap;
   }
 
@@ -394,7 +390,7 @@ public class ProfileServiceImpl implements ProfileService {
           JSONObject basic = json.getJSONObject("basic");
           if (basic.has("elements")) {
             JSONObject elements = basic.getJSONObject("elements");
-            for (String element : basicProfileElements) {
+            for (String element : UserUtils.getBasicProfileElements()) {
               if (elements.has(element)) {
                 JSONObject elementObject = elements.getJSONObject(element);
                 if (elementObject.has("value")) {
