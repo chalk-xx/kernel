@@ -32,7 +32,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
@@ -131,7 +131,7 @@ public class Post {
   }
 
   public void outputPostAsJSON(ExtendedJSONWriter writer,
-      PresenceService presenceService, /*ProfileService profileService,*/ Session session)
+      PresenceService presenceService, BasicUserInfoService basicUserInfoService, Session session)
       throws JSONException, StorageClientException, AccessDeniedException,
       RepositoryException {
     boolean canEdit = checkEdit();
@@ -148,7 +148,7 @@ public class Post {
     if (isDeleted && !canDelete) {
       // This post has been deleted and we dont have sufficient rights to edit, so we just
       // show the replies.
-      outputChildrenAsJSON(writer, presenceService, /*profileService,*/ session);
+      outputChildrenAsJSON(writer, presenceService, basicUserInfoService, session);
     } else {
       writer.object();
 
@@ -174,8 +174,7 @@ public class Post {
         for (int i = 0; i < edittedBy.length; i++) {
           writer.object();
           Authorizable au = authMgr.findAuthorizable(edittedBy[i]);
-          BasicUserInfo basicUserInfo = new BasicUserInfo();
-          ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(au));
+          ValueMap profile = new ValueMapDecorator(basicUserInfoService.getProperties(au));
           writer.valueMapInternals(profile);
           PresenceUtils.makePresenceJSON(writer, edittedBy[i], presenceService, true);
           writer.endObject();
@@ -191,8 +190,7 @@ public class Post {
       for (String sender : senders) {
         writer.object();
         Authorizable au = authMgr.findAuthorizable(sender);
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(au));
+        ValueMap profile = new ValueMapDecorator(basicUserInfoService.getProperties(au));
         writer.valueMapInternals(profile);
         PresenceUtils.makePresenceJSON(writer, sender, presenceService, true);
         writer.endObject();
@@ -203,7 +201,7 @@ public class Post {
       // All the replies on this post.
       writer.key("replies");
       writer.array();
-      outputChildrenAsJSON(writer, presenceService, /*profileService,*/ session);
+      outputChildrenAsJSON(writer, presenceService, basicUserInfoService, session);
       writer.endArray();
 
       writer.endObject();
@@ -211,12 +209,12 @@ public class Post {
   }
 
   public void outputChildrenAsJSON(ExtendedJSONWriter writer,
-      PresenceService presenceService, /*ProfileService profileService,*/ Session session)
+      PresenceService presenceService, BasicUserInfoService basicUserInfoService, Session session)
       throws JSONException, StorageClientException, AccessDeniedException,
       RepositoryException {
     LOG.info("this post {} has {} children", getPostId(), getChildren().size());
     for (Post p : children) {
-      p.outputPostAsJSON(writer, presenceService, /*profileService,*/ session);
+      p.outputPostAsJSON(writer, presenceService, basicUserInfoService, session);
     }
   }
 

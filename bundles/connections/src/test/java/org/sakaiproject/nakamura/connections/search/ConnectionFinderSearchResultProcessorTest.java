@@ -42,7 +42,9 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.user.lite.servlet.BasicUserInfoServiceImpl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
@@ -63,10 +65,12 @@ public class ConnectionFinderSearchResultProcessorTest {
   @Mock
   ContentManager cm;
 
+
   @Test
   public void test() throws Exception {
     ConnectionFinderSearchResultProcessor processor = new ConnectionFinderSearchResultProcessor();
     processor.searchServiceFactory = searchServiceFactory;
+    processor.basicUserInfoService = new BasicUserInfoServiceImpl();
 
     Object hybridSession = mock(javax.jcr.Session.class, withSettings()
         .extraInterfaces(SessionAdaptable.class));

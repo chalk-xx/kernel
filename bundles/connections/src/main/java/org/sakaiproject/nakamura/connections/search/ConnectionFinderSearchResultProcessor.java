@@ -41,8 +41,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
-
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +61,9 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
 
   @Reference
   SolrSearchServiceFactory searchServiceFactory;
+
+  @Reference
+  BasicUserInfoService basicUserInfoService;
 
   public void writeResult(SlingHttpServletRequest request, JSONWriter writer, Result result)
       throws JSONException {
@@ -85,8 +87,7 @@ public class ConnectionFinderSearchResultProcessor implements SolrSearchResultPr
         writer.key("target");
         writer.value(contactUser);
         writer.key("profile");
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        ExtendedJSONWriter.writeValueMap(writer, new ValueMapDecorator(basicUserInfo.getProperties(auth)));
+        ExtendedJSONWriter.writeValueMap(writer, new ValueMapDecorator(basicUserInfoService.getProperties(auth)));
         writer.key("details");
         ExtendedJSONWriter.writeContentTreeToWriter(writer, contactContent,
             maxTraversalDepth);

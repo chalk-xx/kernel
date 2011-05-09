@@ -45,11 +45,14 @@ import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.jackrabbit.JackrabbitSparseUtils;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -113,6 +116,8 @@ public class MeServlet extends SlingSafeMethodsServlet {
 
   @Reference
   protected transient ProfileService profileService;
+  @Reference
+  private BasicUserInfoService basicUserInfoService;
 
   /**
    * {@inheritDoc}
@@ -162,6 +167,14 @@ public class MeServlet extends SlingSafeMethodsServlet {
       LOG.error("Failed to get a user his profile node in /system/me", e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Failed to get the profile node.");
+    } catch (AccessDeniedException e) {
+      LOG.error("Failed to get a user his profile node in /system/me", e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Failed to get the profile node.");
+    } catch (StorageClientException e) {
+      LOG.error("Failed to get a user his profile node in /system/me", e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Failed to get the profile node.");
     }
 
   }
@@ -172,19 +185,21 @@ public class MeServlet extends SlingSafeMethodsServlet {
    * @param au
    * @throws JSONException
    * @throws RepositoryException
+   * @throws StorageClientException 
+   * @throws AccessDeniedException 
    */
   protected void writeGroups(ExtendedJSONWriter writer, Session session, Authorizable au)
-      throws JSONException, RepositoryException {
+      throws JSONException, RepositoryException, AccessDeniedException, StorageClientException {
     writer.array();
     if (!UserConstants.ANON_USERID.equals(au.getID())) {
       // It might be better to just use au.declaredMemberOf() .
       // au.memberOf will fetch ALL the groups this user is a member of, including
       // indirect ones.
       Iterator<Group> groups = au.memberOf();
+      org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
       while (groups.hasNext()) {
         Group group = groups.next();
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        ValueMap groupProfile = new ValueMapDecorator(basicUserInfo.getProperties(group, session));
+        ValueMap groupProfile = new ValueMapDecorator(basicUserInfoService.getProperties(sparseSession.getAuthorizableManager().findAuthorizable(group.getID())));
         if (groupProfile != null) {
           writer.valueMap(groupProfile);
         }

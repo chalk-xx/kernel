@@ -54,7 +54,7 @@ import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +89,8 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
 
   @Reference
   protected transient LockManager lockManager;
+  @Reference
+  private BasicUserInfoService basicUserInfoService;
 
   /**
    * Default constructor
@@ -222,8 +224,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
       Authorizable au = authorizableManager.findAuthorizable(recipient);
       if (au != null) {
         write.object();
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(au));
+        ValueMap map = new ValueMapDecorator(basicUserInfoService.getProperties(au));
         ExtendedJSONWriter.writeValueMapInternals(write, map);
         if (au instanceof User) {
           // Pass in the presence.

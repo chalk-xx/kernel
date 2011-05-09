@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -88,12 +89,13 @@ public class RelatedContentSearchPropertyProvider extends
    */
   public static final Map<String, String> SOURCE_QUERY_OPTIONS;
   static {
-    SOURCE_QUERY_OPTIONS = new HashMap<String, String>(3);
+    final Map<String, String> sqo = new HashMap<String, String>(3);
     // sort by most recent content
-    SOURCE_QUERY_OPTIONS.put("sort", "_lastModified desc");
+    sqo.put("sort", "_lastModified desc");
     // limit source content for matching to something reasonable
-    SOURCE_QUERY_OPTIONS.put("items", "100");
-    SOURCE_QUERY_OPTIONS.put("page", "0");
+    sqo.put("items", "100");
+    sqo.put("page", "0");
+    SOURCE_QUERY_OPTIONS = Collections.unmodifiableMap(sqo);
   }
 
   /**
@@ -139,7 +141,8 @@ public class RelatedContentSearchPropertyProvider extends
     sourceQuery.append(") OR viewer:(");
     sourceQuery.append(Join.join(" OR ", viewers));
     sourceQuery.append("))");
-    final Query query = new Query(Query.SOLR, sourceQuery.toString(), SOURCE_QUERY_OPTIONS);
+    final Query query = new Query(Query.SOLR, sourceQuery.toString(),
+        SOURCE_QUERY_OPTIONS);
 
     SolrSearchResultSet rs = null;
     try {
@@ -162,14 +165,18 @@ public class RelatedContentSearchPropertyProvider extends
             // grab the unique file name tokens
             String fileName = (String) content
                 .getProperty(FilesConstants.POOLED_CONTENT_FILENAME);
-            final String fileExtension = (String) content
-                .getProperty("sakai:fileextension");
-            final int extensionIndex = fileName.lastIndexOf(fileExtension);
-            if (extensionIndex > 0) {
-              fileName = fileName.substring(0, extensionIndex);
+            if (fileName != null) {
+              final String fileExtension = (String) content
+                  .getProperty("sakai:fileextension");
+              if (fileExtension != null) {
+                final int extensionIndex = fileName.lastIndexOf(fileExtension);
+                if (extensionIndex > 0) {
+                  fileName = fileName.substring(0, extensionIndex);
+                }
+              }
+              final String[] foundFileNames = REGEX_PATTERN.split(fileName);
+              allFileNames.addAll(Arrays.asList(foundFileNames));
             }
-            final String[] foundFileNames = REGEX_PATTERN.split(fileName);
-            allFileNames.addAll(Arrays.asList(foundFileNames));
 
             // grab all the unique tag uuids
             final String[] tagUuids = (String[]) content

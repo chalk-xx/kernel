@@ -46,7 +46,7 @@ import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +76,9 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
 
   @Reference
   protected transient LiteMessagingService messagingService;
+
+  @Reference
+  protected transient BasicUserInfoService basicUserInfoService;
 
   /**
    * Default constructor
@@ -163,8 +166,7 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
   public void writeProfileInformation(Session session, String recipient, JSONWriter write, javax.jcr.Session jcrSession) {
     try {
       Authorizable au = session.getAuthorizableManager().findAuthorizable(recipient);
-      BasicUserInfo basicUserInfo = new BasicUserInfo();
-      ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(au));
+      ValueMap map = new ValueMapDecorator(basicUserInfoService.getProperties(au));
       ((ExtendedJSONWriter) write).valueMap(map);
     } catch (Exception e) {
       LOG.error("Failed to write profile information for " + recipient, e);

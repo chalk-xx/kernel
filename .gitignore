@@ -30,3 +30,4 @@ activemq-data
 /store
 scripts/docs
 scripts/previews
+scripts/logs

@@ -1,0 +1,13 @@
+{
+  "sakai:query-template": 'resourceType:sakai/pooled-content AND (description:[* TO *]^2 OR taguuid:[* TO *]^2 OR id:[* TO *]^0)',
+  "sakai:query-template-options": {
+      "sort": "random_${randomSeed} asc"
+  },
+  "sling:resourceType": "sakai/solr-search",
+  "sakai:propertyprovider" : "RandomContentSearchPropertyProvider",
+  "sakai:batchresultprocessor": "LiteFiles",
+  "sakai:aggregate-search-results": [ "sakai:tags" ],
+  "sakai:aggregate-search-results-children": "false",
+  "sakai:title": "Random Pooled Content",
+  "sakai:shortDescription": "Lists random content."
+}

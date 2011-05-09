@@ -43,7 +43,7 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
       // The members of a group are defined in the membership, so simply use that value, no need to increment or decrement.
       String path = (String) event.getProperty(StoreListener.PATH_PROPERTY);
       Content content = contentManager.get(path);
-      if ( content.hasProperty("sling:resourceType") && "sakai/pooled-content".equals(content.getProperty("sling:resourceType")) ) {
+      if ( content != null && content.hasProperty("sling:resourceType") && "sakai/pooled-content".equals(content.getProperty("sling:resourceType")) ) {
         // this is a content node.
         @SuppressWarnings("unchecked")
         Map<String, Object> beforeEvent = (Map<String, Object>) event.getProperty(StoreListener.BEFORE_EVENT_PROPERTY);
@@ -65,6 +65,8 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
             dec(userId, CountProvider.CONTENT_ITEMS_PROP);
           }
         }
+      } else if ( content == null ) {
+        LOG.warn("Content is null for {}, hope thats ok",path);
       }
     } catch (StorageClientException e) {
       LOG.debug("Failed to update count ", e);

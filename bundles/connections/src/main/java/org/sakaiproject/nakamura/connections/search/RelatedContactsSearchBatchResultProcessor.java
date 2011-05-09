@@ -50,7 +50,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,6 +125,9 @@ public class RelatedContactsSearchBatchResultProcessor implements
       + SolrSearchResultProcessor.DEFAULT_PROCESSOR_PROP + "=true))";
   @Reference(target = DEFAULT_SEARCH_PROC_TARGET)
   private transient SolrSearchResultProcessor defaultSearchProcessor;
+
+  @Reference
+  private transient BasicUserInfoService basicUserInfoService;
 
   /**
    * {@inheritDoc}
@@ -315,9 +318,8 @@ public class RelatedContactsSearchBatchResultProcessor implements
         writer.key("target");
         writer.value(user);
         writer.key("profile");
-        final BasicUserInfo basicUserInfo = new BasicUserInfo();
         ExtendedJSONWriter.writeValueMap(writer,
-            new ValueMapDecorator(basicUserInfo.getProperties(auth)));
+            new ValueMapDecorator(basicUserInfoService.getProperties(auth)));
         writer.endObject();
         processedUsers.add(user);
       }

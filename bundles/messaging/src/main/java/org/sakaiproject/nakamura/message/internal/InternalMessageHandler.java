@@ -30,6 +30,9 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.service.event.Event;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
@@ -41,7 +44,7 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
@@ -82,6 +85,9 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
 
   @Reference
   protected transient LockManager lockManager;
+  
+  @Reference
+  protected transient BasicUserInfoService basicUserInfoService;
 
   /**
    * Default constructor
@@ -197,16 +203,15 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
   public void writeProfileInformation(Session session, String recipient, JSONWriter write) {
     try {
       // Look up the recipient and check if it is an authorizable.
-      UserManager um = AccessControlUtil.getUserManager(session);
-      Authorizable au = um.getAuthorizable(recipient);
+      org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
+      org.sakaiproject.nakamura.api.lite.authorizable.Authorizable au = sparseSession.getAuthorizableManager().findAuthorizable(recipient);
       if (au != null) {
         write.object();
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(au, session));
+        ValueMap map = new ValueMapDecorator(basicUserInfoService.getProperties(au));
         ((ExtendedJSONWriter)write).valueMapInternals(map);
         if (au instanceof User) {
           // Pass in the presence.
-          PresenceUtils.makePresenceJSON(write, au.getID(), presenceService, true);
+          PresenceUtils.makePresenceJSON(write, au.getId(), presenceService, true);
         }
         write.endObject();
       } else {
@@ -216,7 +221,9 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
       }
     } catch (JSONException e) {
       LOG.error(e.getMessage(), e);
-    } catch (RepositoryException e) {
+    } catch (AccessDeniedException e) {
+      LOG.error(e.getMessage(), e);
+    } catch (StorageClientException e) {
       LOG.error(e.getMessage(), e);
     }
   }

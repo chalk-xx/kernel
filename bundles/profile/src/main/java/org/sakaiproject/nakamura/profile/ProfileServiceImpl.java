@@ -24,23 +24,11 @@ import static org.sakaiproject.nakamura.api.profile.CountProvider.GROUP_MEMBERSH
 import static org.sakaiproject.nakamura.api.profile.CountProvider.GROUP_MEMBERS_PROP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_DESCRIPTION_PROPERTY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_TITLE_PROPERTY;
-import static org.sakaiproject.nakamura.api.user.UserConstants.PREFERRED_NAME;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_BASIC;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_COLLEGE;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_DATEOFBIRTH;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_DEPARTMENT;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_EMAIL_PROPERTY;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_FIRSTNAME_PROPERTY;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_LASTNAME_PROPERTY;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_PICTURE;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_ROLE;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 
-import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
@@ -51,7 +39,6 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.osgi.OsgiUtil;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
@@ -67,8 +54,7 @@ import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
 import org.sakaiproject.nakamura.api.resource.lite.LiteJsonImporter;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
-import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -98,23 +84,75 @@ public class ProfileServiceImpl implements ProfileService {
   private ProviderSettingsFactory providerSettingsFactory = new ProviderSettingsFactory();
   public static final Logger LOG = LoggerFactory.getLogger(ProfileServiceImpl.class);
   
-  private final static String[] DEFAULT_BASIC_PROFILE_ELEMENTS = new String[] {USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY,
-    USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME, USER_ROLE, USER_DEPARTMENT, USER_COLLEGE, USER_DATEOFBIRTH};
 
   private final static String[] USER_COUNTS_PROPS = new String[] {CONTACTS_PROP, GROUP_MEMBERSHIPS_PROP, CONTENT_ITEMS_PROP, GROUP_MEMBERS_PROP};
 
-  @Property(value={USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY,
-      USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME, USER_ROLE, USER_DEPARTMENT, USER_COLLEGE, USER_DATEOFBIRTH})
-  public final static String BASIC_PROFILE_ELEMENTS = "basicProfileElements";
 
-  private String[] basicProfileElements;
   
   @Reference
   private CountProvider countProvider;
   
-  @Activate
-  protected void activate(Map<String, Object> properties ) {
-    basicProfileElements = OsgiUtil.toStringArray(properties.get(BASIC_PROFILE_ELEMENTS), DEFAULT_BASIC_PROFILE_ELEMENTS);
+  @Reference
+  private BasicUserInfoService basicUserInfoService;
+
+  /**
+   * {@inheritDoc}
+   * @throws AccessDeniedException 
+   * @throws StorageClientException 
+   *
+   * @see org.sakaiproject.nakamura.api.profile.ProfileService#getCompactProfileMap(org.apache.jackrabbit.api.security.user.Authorizable,
+   *      javax.jcr.Session)
+   * @deprecated Replaced with {@link BasicUserInfoService#getProperties(Authorizable)} in user bundle
+   */
+  public ValueMap getCompactProfileMap(Authorizable authorizable, Session session)
+      throws RepositoryException, StorageClientException, AccessDeniedException {
+    return new ValueMapDecorator(basicUserInfoService.getProperties(authorizable));
+  }
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.api.profile.ProfileService#getCompactProfileMap(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable, javax.jcr.Session)
+   * @deprecated Replaced with {@link BasicUserInfoService#getProperties(Authorizable)} in user bundle
+   */
+  public ValueMap getCompactProfileMap(
+      org.apache.jackrabbit.api.security.user.Authorizable authorizable, Session session) throws RepositoryException {
+    org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
+    try {
+      return  new ValueMapDecorator(basicUserInfoService.getProperties(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID())));
+    } catch (StorageClientException e) {
+      throw new RepositoryException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      throw new RepositoryException(e.getMessage(), e);
+    }
+  }
+
+  public ValueMap getProfileMap(
+      org.apache.jackrabbit.api.security.user.Authorizable authorizable, Session session) throws RepositoryException {
+    org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
+    try {
+      return getProfileMap(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID()), session);
+    } catch (StorageClientException e) {
+      throw new RepositoryException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      throw new RepositoryException(e.getMessage(), e);
+    }
+  }
+
+  public ValueMap getProfileMap(Content profileContent, Session session)
+      throws RepositoryException {
+    try {
+      org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils
+          .adaptToSession(session);
+      AuthorizableManager authorizableManager = sparseSession.getAuthorizableManager();
+      Authorizable authorizable = authorizableManager.findAuthorizable(PathUtils
+          .getAuthorizableId(profileContent.getPath()));
+      return getProfileMap(
+          sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getId()),
+          session);
+    } catch (StorageClientException e) {
+      throw new RepositoryException(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      throw new RepositoryException(e.getMessage(), e);
+    }
   }
 
   /**
@@ -128,7 +166,7 @@ public class ProfileServiceImpl implements ProfileService {
   public ValueMap getProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException, StorageClientException, AccessDeniedException {
     if (User.ANON_USER.equals(authorizable.getId())) {
-      return anonymousProfile();
+      return new ValueMapDecorator(basicUserInfoService.getProperties(authorizable));
     }
     String profilePath = LitePersonalUtils.getProfilePath(authorizable.getId());
     org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
@@ -137,15 +175,16 @@ public class ProfileServiceImpl implements ProfileService {
     
     if (contentManager.exists(profilePath)) {
       Content profileContent = contentManager.get(profilePath);
-      profileMap.putAll(getProfileMap(profileContent, session));
+      profileMap.putAll(getResolvedProfileMap(authorizable, profileContent, session));
     }
-    profileMap.put(USER_BASIC, basicProfileMapForAuthorizable(authorizable));
     profileMap.put(COUNTS_PROP, countsMapforAuthorizable(authorizable, sparseSession));
     if (authorizable.isGroup()) {
-      addGroupProperties(authorizable, profileMap);
+      profileMap.put("groupid", authorizable.getId());
     } else {
-      addUserProperties(authorizable, profileMap);
+      profileMap.put("userid", authorizable.getId());
     }
+
+    profileMap.putAll(basicUserInfoService.getProperties(authorizable));
     return profileMap;
   }
 
@@ -155,7 +194,7 @@ public class ProfileServiceImpl implements ProfileService {
    *
    * @see org.sakaiproject.nakamura.api.profile.ProfileService#getProfileMap(javax.jcr.Node)
    */
-  public ValueMap getProfileMap(Content profileContent, Session jcrSession) throws RepositoryException {
+  public ValueMap getResolvedProfileMap(Authorizable authorizable, Content profileContent, Session jcrSession) throws RepositoryException {
     // Get the data from our external providers.
     Map<String, List<ProviderSettings>> providersMap = scanForProviders(profileContent, jcrSession);
     Map<Content, Future<Map<String, Object>>> providedNodeData = new HashMap<Content, Future<Map<String, Object>>>();
@@ -176,20 +215,11 @@ public class ProfileServiceImpl implements ProfileService {
       } else if (ProfileConstants.GROUP_PROFILE_RT.equals(resourceType)) {
         map.put("groupid", PathUtils.getAuthorizableId(profileContent.getPath()));
       }
-      org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(jcrSession);
-      AuthorizableManager auManager = sparseSession.getAuthorizableManager();
-      String authorizableId = PathUtils.getAuthorizableId(profileContent.getPath());
-      Authorizable au = auManager.findAuthorizable(authorizableId);
-      map.put(COUNTS_PROP, countsMapforAuthorizable(au, sparseSession));
       return map;
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(e.getMessage(),e);
     } catch (ExecutionException e) {
-      throw new RuntimeException(e);
-    } catch (StorageClientException e) {
-      throw new RuntimeException(e);
-    } catch (AccessDeniedException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(e.getMessage(),e);
     }
   }
 
@@ -238,64 +268,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   * @throws AccessDeniedException 
-   * @throws StorageClientException 
-   *
-   * @see org.sakaiproject.nakamura.api.profile.ProfileService#getCompactProfileMap(org.apache.jackrabbit.api.security.user.Authorizable,
-   *      javax.jcr.Session)
-   * @deprecated Replaced with {@link BasicUserInfo#getProperties(Authorizable)} in user bundle
-   */
-  public ValueMap getCompactProfileMap(Authorizable authorizable, Session session)
-      throws RepositoryException, StorageClientException, AccessDeniedException {
-    if (User.ANON_USER.equals(authorizable.getId())) {
-      return anonymousProfile();
-    }
-    
-    ValueMap compactProfile = new ValueMapDecorator(new HashMap<String, Object>());
-    compactProfile.put(USER_BASIC, basicProfileMapForAuthorizable(authorizable));
 
-    if (authorizable.isGroup()) {
-      addGroupProperties(authorizable, compactProfile);
-    } else {
-      addUserProperties(authorizable, compactProfile);
-    }
-    return compactProfile;
-  }
-
-  private void addUserProperties(Authorizable user, ValueMap profileMap) {
-    // Backward compatible reasons.
-    profileMap.put("rep:userId", user.getId());
-    profileMap.put("userid", user.getId());
-    profileMap.put("hash", user.getId());
-  }
-
-  private void addGroupProperties(Authorizable group, ValueMap profileMap) {
-    // For a group we just dump it's title and description.
-    profileMap.put("groupid", group.getId());
-    profileMap.put("sakai:group-id", group.getId());
-    profileMap.put(GROUP_TITLE_PROPERTY, group.getProperty(GROUP_TITLE_PROPERTY));
-    profileMap.put(GROUP_DESCRIPTION_PROPERTY, group
-        .getProperty(GROUP_DESCRIPTION_PROPERTY));
-  }
-
-  private ValueMap basicProfileMapForAuthorizable(Authorizable authorizable) {
-    Builder<String, String> propertyBuilder = ImmutableMap.builder();
-    for (String profileElementName : basicProfileElements) {
-      if (authorizable.hasProperty(profileElementName)) {
-        propertyBuilder.put(profileElementName, (String)authorizable.getProperty(profileElementName));
-      }
-    }
-    // The map were we will stick the compact information in.
-    ValueMap compactProfile = basicProfile(propertyBuilder.build());
-    if ( authorizable.hasProperty("access")) {
-      compactProfile.put("access", authorizable.getProperty("access"));
-    } else {
-      compactProfile.put(UserConstants.USER_BASIC_ACCESS, UserConstants.EVERYBODY_ACCESS_VALUE);
-    }
-    return compactProfile;
-  }
 
   private ValueMap countsMapforAuthorizable(Authorizable authorizable, org.sakaiproject.nakamura.api.lite.Session session) throws AccessDeniedException, StorageClientException {
     if (countProvider != null) {
@@ -380,58 +353,10 @@ public class ProfileServiceImpl implements ProfileService {
     }
   }
 
-  public ValueMap getProfileMap(
-      org.apache.jackrabbit.api.security.user.Authorizable authorizable, Session session) throws RepositoryException {
-    org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
-    try {
-      return getProfileMap(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID()), session);
-    } catch (StorageClientException e) {
-      throw new RepositoryException(e.getMessage(), e);
-    } catch (AccessDeniedException e) {
-      throw new RepositoryException(e.getMessage(), e);
-    }
-  }
 
   
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.profile.ProfileService#getCompactProfileMap(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable, javax.jcr.Session)
-   * @deprecated Replaced with {@link BasicUserInfo#getProperties(org.apache.jackrabbit.api.security.user.Authorizable, Session)} in user bundle
-   */
-  public ValueMap getCompactProfileMap(
-      org.apache.jackrabbit.api.security.user.Authorizable authorizable, Session session) throws RepositoryException {
-    org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
-    try {
-      return getCompactProfileMap(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID()), session);
-      //BasicUserInfo basicUserInfo = new BasicUserInfo();
-      //return new ValueMapDecorator(basicUserInfo.getProperties(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID())));
-    } catch (StorageClientException e) {
-      throw new RepositoryException(e.getMessage(), e);
-    } catch (AccessDeniedException e) {
-      throw new RepositoryException(e.getMessage(), e);
-    }
-  }
-  
-  private ValueMap basicProfile(Map<String, String> elementsMap) {
-    ValueMap basic = new ValueMapDecorator(new HashMap<String, Object>());
-    ValueMap elements = new ValueMapDecorator(new HashMap<String, Object>());
-    for (String key : elementsMap.keySet()) {
-      elements.put(key, new ValueMapDecorator(ImmutableMap.of("value", (Object) elementsMap.get(key))));
-    }
-    basic.put("elements", elements);
-    return basic;
-  }
   
   
-  private ValueMap anonymousProfile() {
-    ValueMap rv = new ValueMapDecorator(new HashMap<String, Object>());
-    rv.put("rep:userId", User.ANON_USER);
-    ValueMap basicProfile =  basicProfile(
-        ImmutableMap.of(USER_FIRSTNAME_PROPERTY, "Anonymous", USER_LASTNAME_PROPERTY, "User", USER_EMAIL_PROPERTY, "anon@sakai.invalid"));
-    basicProfile.put(UserConstants.USER_BASIC_ACCESS, UserConstants.EVERYBODY_ACCESS_VALUE);
-    rv.put(USER_BASIC,basicProfile);
-    return rv;
-  }
 
   public void update(org.sakaiproject.nakamura.api.lite.Session session,
       String profilePath, JSONObject json) throws StorageClientException,
@@ -446,7 +371,7 @@ public class ProfileServiceImpl implements ProfileService {
           JSONObject basic = json.getJSONObject("basic");
           if (basic.has("elements")) {
             JSONObject elements = basic.getJSONObject("elements");
-            for (String element : basicProfileElements) {
+            for (String element : basicUserInfoService.getBasicProfileElements()) {
               if (elements.has(element)) {
                 JSONObject elementObject = elements.getJSONObject(element);
                 if (elementObject.has("value")) {

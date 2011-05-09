@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Event Handler counting Group Membership ADDED and UPDATED Events."),
     @Property(name = "event.topics", value = {
-        "org/sakaiproject/nakamura/lite/group/ADDED",
-        "org/sakaiproject/nakamura/lite/group/UPDATED"}) })
+        "org/sakaiproject/nakamura/lite/authorizables/ADDED",
+        "org/sakaiproject/nakamura/lite/authorizables/UPDATED"}) })
         
 public class ConnectionsCountChangeListener extends AbstractCountHandler implements EventHandler {
   
@@ -37,9 +37,15 @@ public class ConnectionsCountChangeListener extends AbstractCountHandler impleme
         Authorizable user = authorizableManager.findAuthorizable(userId);
         Authorizable contactsGroup = authorizableManager.findAuthorizable(path);
         if ( user != null && contactsGroup instanceof Group ) {
-          user.setProperty(CountProvider.CONTACTS_PROP, ((Group) contactsGroup).getMembers().length);
-          authorizableManager.updateAuthorizable(user);
-        }        
+          int n = ((Group) contactsGroup).getMembers().length;
+          Integer v = (Integer) user.getProperty(CountProvider.CONTACTS_PROP);
+          if ( v == null || n != v.intValue()) {
+            user.setProperty(CountProvider.CONTACTS_PROP, n);
+            authorizableManager.updateAuthorizable(user);
+          }
+        } else {
+          LOG.error("Failed to locate User ID from {} ",path);
+        }
       }
     } catch (StorageClientException e) {
       LOG.debug("Failed to update count ", e);

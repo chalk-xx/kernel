@@ -99,9 +99,9 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   @Property(value = { "/", "/index.html" })
   private static final String TRUSTED_EXACT_PATHS_CONF = "trusted.exact.paths";
   @Property(value = { "/", "http://localhost:8080" })
-  private static final String TRUSTED_REFERER_CONF = "trusted.referer";
-  @Property(value = { "http://localhost:8080" })
-  private static final String TRUSTED_HOSTS_CONF = "trusted.hosts";
+  static final String TRUSTED_REFERER_CONF = "trusted.referer";
+  @Property(value = { "http://localhost:8080" }, cardinality = 9999999)
+  static final String TRUSTED_HOSTS_CONF = "trusted.hosts";
   @Property(value = { DEFAULT_TRUSTED_SECRET_VALUE })
   private static final String TRUSTED_SECRET_CONF = "trusted.secret";
   @Property(value = {"/system/console"})
@@ -497,8 +497,16 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   }
 
   private boolean isSafeHost(HttpServletRequest hrequest) {
+    // special case for ssl referers, which come in with no port, usually
+    if ( "https".equals(hrequest.getScheme()) ) {
+      String portlessHost = "https://" + hrequest.getServerName();
+      if ( safeHosts.contains(portlessHost)) {
+        return true;
+      }
+    }
+
     String requestHost = hrequest.getScheme() + "://" + hrequest.getServerName() + ":"
-        + hrequest.getServerPort();
+          + hrequest.getServerPort();
     // safe hosts are defiend as hosts from which we we can accept non get operations
     return safeHosts.contains(requestHost);
   }
