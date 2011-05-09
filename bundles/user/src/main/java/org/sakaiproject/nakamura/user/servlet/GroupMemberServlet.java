@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -35,11 +36,12 @@ import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -96,14 +98,13 @@ import javax.servlet.http.HttpServletResponse;
 //    @Property(name = "service.description", value = "Renders the members or managers for a group") })
 public class GroupMemberServlet extends SlingSafeMethodsServlet {
 
-  private static final Logger logger = LoggerFactory.getLogger(GroupMemberServlet.class);
   private static final long serialVersionUID = 7976930178619974246L;
 
-  // @Reference
-  //protected transient ProfileService profileService;
 
   static final String ITEMS = "items";
   static final String PAGE = "page";
+  @Reference
+  private BasicUserInfoService basicUserInfoService;
 
   /**
    * {@inheritDoc}
@@ -168,13 +169,14 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
 
       // Write the whole lot out.
       Session session = request.getResourceResolver().adaptTo(Session.class);
+      org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
       writer.array();
       int i = 0;
       while (iterator.hasNext() && i < items) {
         Entry<String, Authorizable> entry = iterator.next();
         Authorizable au = entry.getValue();
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(au, session));
+        org.sakaiproject.nakamura.api.lite.authorizable.Authorizable sparseAuthorizable = sparseSession.getAuthorizableManager().findAuthorizable(au.getID());
+        ValueMap profile = new ValueMapDecorator(basicUserInfoService.getProperties(sparseAuthorizable));
         /*
         if(selectors.contains("detailed")){
    // PORTED TO Lite cant use profile = profileService.getProfileMap(au, session);
@@ -196,6 +198,14 @@ public class GroupMemberServlet extends SlingSafeMethodsServlet {
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Failed to build a proper JSON output.");
+      return;
+    } catch (AccessDeniedException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Failed to get Authorizable.");
+      return;
+    } catch (StorageClientException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Failed to get Authorizable.");
       return;
     }
 

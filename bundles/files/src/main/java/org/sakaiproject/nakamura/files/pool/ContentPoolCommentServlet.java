@@ -45,8 +45,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-//import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +78,8 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
 
   @Reference
   private Repository repository;
+  @Reference
+  private BasicUserInfoService basicUserInfoService;
 
   /**
    * Determine if we will accept this request. Had to add this because something is
@@ -133,8 +134,7 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
 
           try {
             Authorizable author = authorizableManager.findAuthorizable(authorId);
-            BasicUserInfo basicUserInfo = new BasicUserInfo();
-            ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(author));
+            ValueMap profile = new ValueMapDecorator(basicUserInfoService.getProperties(author));
             w.valueMapInternals(profile);
           } catch (StorageClientException e ) {
             w.key(AUTHOR);

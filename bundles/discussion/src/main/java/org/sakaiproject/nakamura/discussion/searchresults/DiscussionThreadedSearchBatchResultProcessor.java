@@ -40,6 +40,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +73,8 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
   @Reference
   PresenceService presenceService;
 
+  @Reference
+  BasicUserInfoService basicUserInfoService;
 
   @Reference
   SolrSearchServiceFactory searchServiceFactory;
@@ -129,7 +132,7 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       // The posts are sorted, now return them as json.
       for (String basePostId : basePosts) {
         allPosts.get(basePostId).outputPostAsJSON((ExtendedJSONWriter) writer,
-            presenceService, /*profileService,*/ session);
+            presenceService, basicUserInfoService, session);
       }
     } catch (StorageClientException e) {
       throw new RuntimeException(e.getMessage(), e);

@@ -16,17 +16,17 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
+import org.sakaiproject.nakamura.user.lite.servlet.BasicUserInfoServiceImpl;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BasicUserInfoTest {
-  private BasicUserInfo basicUserInfo;
+public class BasicUserInfoServiceTest {
+  private BasicUserInfoServiceImpl basicUserInfoService;
   
   private Repository repository;
   private Session session;
@@ -44,7 +44,7 @@ public class BasicUserInfoTest {
     assertTrue(aam.createUser("ieb", "Ian Boston", "password", userProps));
     adminSession.logout();
     session = repository.loginAdministrative("ieb");
-    basicUserInfo = new BasicUserInfo();
+    basicUserInfoService = new BasicUserInfoServiceImpl();
   }
   
   @After
@@ -55,14 +55,17 @@ public class BasicUserInfoTest {
   public void testGetUserInfo() throws Exception {
     String authorizableId = session.getUserId();
     Authorizable a = session.getAuthorizableManager().findAuthorizable(authorizableId);
-    Map<String, Object> basicUserInfoMap = basicUserInfo.getProperties(a);
+    Map<String, Object> basicUserInfoMap = basicUserInfoService.getProperties(a);
     Set<String> keys = basicUserInfoMap.keySet();
     for (String key : keys) {
       System.out.println("Key: [" + key + "] Value: [" + basicUserInfoMap.get(key) + "]");
     }
-    ValueMap basicProfile = (ValueMap) basicUserInfoMap.get(UserConstants.USER_BASIC);
-    ValueMap elements = (ValueMap) basicProfile.get("elements");
-    ValueMap emailProp = (ValueMap) elements.get(UserConstants.USER_EMAIL_PROPERTY);
+    @SuppressWarnings("unchecked")
+    Map<String, Object> basicProfile = (Map<String, Object>) basicUserInfoMap.get(UserConstants.USER_BASIC);
+    @SuppressWarnings("unchecked")
+    Map<String, Object> elements = (Map<String, Object>) basicProfile.get("elements");
+    @SuppressWarnings("unchecked")
+    Map<String, Object> emailProp =  (Map<String, Object>) elements.get(UserConstants.USER_EMAIL_PROPERTY);
     assertEquals("ieb@gmail.com", String.valueOf(emailProp.get("value")));
     return;
   }

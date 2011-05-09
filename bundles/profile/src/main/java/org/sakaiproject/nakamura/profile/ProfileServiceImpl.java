@@ -24,22 +24,11 @@ import static org.sakaiproject.nakamura.api.profile.CountProvider.GROUP_MEMBERSH
 import static org.sakaiproject.nakamura.api.profile.CountProvider.GROUP_MEMBERS_PROP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_DESCRIPTION_PROPERTY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_TITLE_PROPERTY;
-import static org.sakaiproject.nakamura.api.user.UserConstants.PREFERRED_NAME;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_COLLEGE;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_DATEOFBIRTH;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_DEPARTMENT;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_EMAIL_PROPERTY;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_FIRSTNAME_PROPERTY;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_LASTNAME_PROPERTY;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_PICTURE;
-import static org.sakaiproject.nakamura.api.user.UserConstants.USER_ROLE;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 
-import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
@@ -50,7 +39,6 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.osgi.OsgiUtil;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
@@ -66,8 +54,7 @@ import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
 import org.sakaiproject.nakamura.api.resource.lite.LiteJsonImporter;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
-import org.sakaiproject.nakamura.api.user.UserUtils;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -100,19 +87,13 @@ public class ProfileServiceImpl implements ProfileService {
 
   private final static String[] USER_COUNTS_PROPS = new String[] {CONTACTS_PROP, GROUP_MEMBERSHIPS_PROP, CONTENT_ITEMS_PROP, GROUP_MEMBERS_PROP};
 
-  @Property(value={USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY,
-      USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME, USER_ROLE, USER_DEPARTMENT, USER_COLLEGE, USER_DATEOFBIRTH})
-  public final static String BASIC_PROFILE_ELEMENTS = "basicProfileElements";
 
   
   @Reference
   private CountProvider countProvider;
   
-  @Activate
-  protected void activate(Map<String, Object> properties ) {
-    // To make the basic profile detached from the Profile Service, we have to to this. Its a bit Ugly.
-    UserUtils.setBasicProfileElements(OsgiUtil.toStringArray(properties.get(BASIC_PROFILE_ELEMENTS), UserUtils.getDefaultBasicProfileElements()));
-  }
+  @Reference
+  private BasicUserInfoService basicUserInfoService;
 
   /**
    * {@inheritDoc}
@@ -121,22 +102,22 @@ public class ProfileServiceImpl implements ProfileService {
    *
    * @see org.sakaiproject.nakamura.api.profile.ProfileService#getCompactProfileMap(org.apache.jackrabbit.api.security.user.Authorizable,
    *      javax.jcr.Session)
-   * @deprecated Replaced with {@link BasicUserInfo#getProperties(Authorizable)} in user bundle
+   * @deprecated Replaced with {@link BasicUserInfoService#getProperties(Authorizable)} in user bundle
    */
   public ValueMap getCompactProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException, StorageClientException, AccessDeniedException {
-    return UserUtils.getCompactProfile(authorizable);
+    return new ValueMapDecorator(basicUserInfoService.getProperties(authorizable));
   }
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.profile.ProfileService#getCompactProfileMap(org.sakaiproject.nakamura.api.lite.authorizable.Authorizable, javax.jcr.Session)
-   * @deprecated Replaced with {@link BasicUserInfo#getProperties(org.apache.jackrabbit.api.security.user.Authorizable, Session)} in user bundle
+   * @deprecated Replaced with {@link BasicUserInfoService#getProperties(Authorizable)} in user bundle
    */
   public ValueMap getCompactProfileMap(
       org.apache.jackrabbit.api.security.user.Authorizable authorizable, Session session) throws RepositoryException {
     org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
     try {
-      return UserUtils.getCompactProfile(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID()));
+      return  new ValueMapDecorator(basicUserInfoService.getProperties(sparseSession.getAuthorizableManager().findAuthorizable(authorizable.getID())));
     } catch (StorageClientException e) {
       throw new RepositoryException(e.getMessage(), e);
     } catch (AccessDeniedException e) {
@@ -185,7 +166,7 @@ public class ProfileServiceImpl implements ProfileService {
   public ValueMap getProfileMap(Authorizable authorizable, Session session)
       throws RepositoryException, StorageClientException, AccessDeniedException {
     if (User.ANON_USER.equals(authorizable.getId())) {
-      return UserUtils.getCompactProfile(authorizable);
+      return new ValueMapDecorator(basicUserInfoService.getProperties(authorizable));
     }
     String profilePath = LitePersonalUtils.getProfilePath(authorizable.getId());
     org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
@@ -203,7 +184,7 @@ public class ProfileServiceImpl implements ProfileService {
       profileMap.put("userid", authorizable.getId());
     }
 
-    profileMap.putAll(UserUtils.getCompactProfile(authorizable));
+    profileMap.putAll(basicUserInfoService.getProperties(authorizable));
     return profileMap;
   }
 
@@ -390,7 +371,7 @@ public class ProfileServiceImpl implements ProfileService {
           JSONObject basic = json.getJSONObject("basic");
           if (basic.has("elements")) {
             JSONObject elements = basic.getJSONObject("elements");
-            for (String element : UserUtils.getBasicProfileElements()) {
+            for (String element : basicUserInfoService.getBasicProfileElements()) {
               if (elements.has(element)) {
                 JSONObject elementObject = elements.getJSONObject(element);
                 if (elementObject.has("value")) {

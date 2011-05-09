@@ -19,23 +19,21 @@
 package org.sakaiproject.nakamura.chat;
 
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.chat.ChatManagerService;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageProfileWriter;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingService;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
@@ -69,6 +67,9 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
 
   @Reference
   protected transient MessagingService messagingService;
+
+  @Reference
+  protected transient BasicUserInfoService basicUserInfoService;
 
   /**
    * Default constructor
@@ -149,10 +150,8 @@ public class ChatMessageHandler implements MessageTransport, MessageProfileWrite
    */
   public void writeProfileInformation(Session session, String recipient, JSONWriter write) {
     try {
-      UserManager um = AccessControlUtil.getUserManager(session);
-      Authorizable au = um.getAuthorizable(recipient);
-      BasicUserInfo basicUserInfo = new BasicUserInfo();
-      ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(au, session));
+      org.sakaiproject.nakamura.api.lite.Session sparseSession = StorageClientUtils.adaptToSession(session);
+      ValueMap map = new ValueMapDecorator(basicUserInfoService.getProperties(sparseSession.getAuthorizableManager().findAuthorizable(recipient)));
       ((ExtendedJSONWriter) write).valueMap(map);
     } catch (Exception e) {
       LOG.error("Failed to write profile information for " + recipient, e);
