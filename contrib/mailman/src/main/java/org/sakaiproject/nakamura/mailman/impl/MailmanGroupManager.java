@@ -16,158 +16,196 @@
  */
 package org.sakaiproject.nakamura.mailman.impl;
 
+import java.util.logging.Level;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.User;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
-import org.sakaiproject.nakamura.api.user.AuthorizableEvent;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.mailman.MailmanManager;
-import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
-
-import javax.jcr.Node;
+import java.util.Map;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 
 @Component(immediate = true, metatype = true, label = "%mail.manager.impl.label", description = "%mail.manager.impl.desc")
 @Service(value = EventHandler.class)
 public class MailmanGroupManager implements EventHandler, ManagedService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MailmanGroupManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MailmanGroupManager.class);
+    @SuppressWarnings("unused")
+    @Property(value = "The Sakai Foundation")
+    private static final String SERVICE_VENDOR = "service.vendor";
+    @SuppressWarnings("unused")
+    @Property(value = "Handles management of mailman integration")
+    private static final String SERVICE_DESCRIPTION = "service.description";
+    @SuppressWarnings("unused")
+    @Property(value = {"org/sakaiproject/nakamura/lite/authorizables/ADDED"})
+    private static final String EVENT_TOPICS = "event.topics";
+    @Property(value = "password")
+    private static final String LIST_MANAGEMENT_PASSWORD = "mailman.listmanagement.password";
+    @Reference
+    private MailmanManager mailmanManager;
+    @Reference
+    private Repository repository;
+    private Session session; // fetched from the repository
+    private AuthorizableManager authorizableManager = null; // fetchs from the session
+    private String listManagementPassword;
+    
+    private String DOMAIN_NAME_FOR_EMAIL_ADDRESSES = "@example.com";
 
-  @SuppressWarnings("unused")
-  @Property(value = "The Sakai Foundation")
-  private static final String SERVICE_VENDOR = "service.vendor";
-
-  @SuppressWarnings("unused")
-  @Property(value = "Handles management of mailman integration")
-  private static final String SERVICE_DESCRIPTION = "service.description";
-
-  @SuppressWarnings("unused")
-  @Property(value = { "org/apache/sling/jackrabbit/usermanager/event/create",
-      "org/apache/sling/jackrabbit/usermanager/event/delete",
-      "org/apache/sling/jackrabbit/usermanager/event/join",
-      "org/apache/sling/jackrabbit/usermanager/event/part" })
-  private static final String EVENT_TOPICS = "event.topics";
-
-  @Property(value = "password")
-  private static final String LIST_MANAGEMENT_PASSWORD = "mailman.listmanagement.password";
-
-  @Reference
-  private MailmanManager mailmanManager;
-
-  @Reference
-  private SlingRepository slingRepository;
-
-  private String listManagementPassword;
-
-  public MailmanGroupManager() {
-  }
-
-  public MailmanGroupManager(MailmanManager mailmanManager, SlingRepository slingRepository) {
-    this.mailmanManager = mailmanManager;
-    this.slingRepository = slingRepository;
-  }
-
-  public void handleEvent(Event event) {
-    LOGGER.info("Got event on topic: " + event.getTopic());
-    Operation operation = (Operation) event.getProperty(AuthorizableEvent.OPERATION);
-    String principalName = event.getProperty(AuthorizableEvent.PRINCIPAL_NAME).toString();
-    switch (operation) {
-      case create:
-        LOGGER.info("Got authorizable creation: " + principalName);
-        if (principalName.startsWith("g-")) {
-          LOGGER.info("Got group creation. Creating mailman list");
-          try {
-            mailmanManager.createList(principalName, principalName + "@example.com", listManagementPassword);
-          } catch (Exception e) {
-            LOGGER.error("Unable to create mailman list for group", e);
-          }
-        }
-        break;
-      case delete:
-        LOGGER.info("Got authorizable deletion: " + principalName);
-        if (principalName.startsWith("g-")) {
-          LOGGER.info("Got group deletion. Deleting mailman list");
-          try {
-            mailmanManager.deleteList(principalName, listManagementPassword);
-          } catch (Exception e) {
-            LOGGER.error("Unable to delete mailman list for group", e);
-          }
-        }
-        break;
-      case join:
-      {
-        LOGGER.info("Got group join event");
-        Group group = (Group)event.getProperty(AuthorizableEvent.GROUP);
-        User user = (User)event.getProperty(AuthorizableEvent.USER);
-        try {
-          String emailAddress = getEmailForUser(user);
-          if (emailAddress != null) {
-            LOGGER.info("Adding " + user.getID() + " to mailman group " + group.getID());
-            mailmanManager.addMember(group.getID(), listManagementPassword, emailAddress);
-          } else {
-            LOGGER.warn("No email address recorded for user: " + user.getID() + ". Not adding to mailman list");
-          }
-        } catch (RepositoryException e) {
-          LOGGER.error("Repository exception adding user to mailman group", e);
-        } catch (MailmanException e) {
-          LOGGER.error("Mailman exception adding user to mailman group", e);
-        }
-      }
-        break;
-      case part:
-      {
-        LOGGER.info("Got group join event");
-        Group group = (Group)event.getProperty(AuthorizableEvent.GROUP);
-        User user = (User)event.getProperty(AuthorizableEvent.USER);
-        try {
-          String emailAddress = getEmailForUser(user);
-          if (emailAddress != null) {
-            LOGGER.info("Adding " + user.getID() + " to mailman group " + group.getID());
-            mailmanManager.removeMember(group.getID(), listManagementPassword, emailAddress);
-          } else {
-            LOGGER.warn("No email address recorded for user: " + user.getID() + ". Not removing from mailman list");
-          }
-        } catch (RepositoryException e) {
-          LOGGER.error("Repository exception removing user from mailman group", e);
-        } catch (MailmanException e) {
-          LOGGER.error("Mailman exception removing user from mailman group", e);
-        }
-      }
-        break;
+    public MailmanGroupManager() {
     }
-  }
 
-  private String getEmailForUser(User user) throws RepositoryException {
-    Session session = slingRepository.loginAdministrative(null);
-    Node profileNode = (Node)session.getItem(PersonalUtils.getProfilePath(user));
-    String emailAddress = PersonalUtils.getPrimaryEmailAddress(profileNode);
-    session.logout();
-    return emailAddress;
-  }
+    public MailmanGroupManager(MailmanManager mailmanManager, Repository repository) {
+        this.mailmanManager = mailmanManager;
+        this.repository = repository;
+    }
 
-  @SuppressWarnings("unchecked")
-  public void updated(Dictionary config) throws ConfigurationException {
-    LOGGER.info("Got config update");
-    listManagementPassword = (String) config.get(LIST_MANAGEMENT_PASSWORD);
-  }
+    @Activate
+    public void activate(Map<?, ?> props) throws ClientPoolException, StorageClientException, AccessDeniedException {
+        LOGGER.info("Got component initialization");
+        listManagementPassword = (String) props.get(LIST_MANAGEMENT_PASSWORD);
 
-  protected void activate(ComponentContext componentContext) {
-    LOGGER.info("Got component initialization");
-    listManagementPassword = (String)componentContext.getProperties().get(LIST_MANAGEMENT_PASSWORD);
-  }
+        session = this.repository.loginAdministrative();
+        LOGGER.error("ADC test: " + session.getUserId());
+        authorizableManager = session.getAuthorizableManager();
+    }
 
+    @Deactivate
+    public void deactivate() {
+        try {
+            session.logout();
+        } catch (Exception e) {
+            LOGGER.error("Error logging out of the session", e);
+        } finally {
+            session = null;
+        }
+    }
+    
+    @Modified
+    @SuppressWarnings("unchecked")
+    public void updated(Dictionary config) throws ConfigurationException {
+        LOGGER.info("Got config update");
+        listManagementPassword = (String) config.get(LIST_MANAGEMENT_PASSWORD);
+    }
+
+    public void handleEvent(Event event) {
+        if (!event.getProperty("type").toString().equalsIgnoreCase("group")) {
+            return; // we only need the events with type: group
+        }
+        LOGGER.info("Got event on topic: " + event.getTopic());
+
+        Operation operation = null;
+        if (event.getProperty("added") != null) {
+            operation = Operation.join;
+        } else if (event.getProperty("removed") != null) {
+            operation = Operation.part;
+        } else {
+            operation = Operation.create;
+        }
+
+        String principalName = event.getProperty("path").toString();
+        switch (operation) {
+            case create:
+                LOGGER.info("Got authorizable creation: " + principalName);
+
+                try {
+                    mailmanManager.createList(principalName, principalName + DOMAIN_NAME_FOR_EMAIL_ADDRESSES, listManagementPassword);
+                } catch (Exception e) {
+                    LOGGER.error("Unable to create mailman list for group", e);
+                }
+                break;
+            case delete:
+                LOGGER.info("Got authorizable deletion: " + principalName);
+                try {
+                    mailmanManager.deleteList(principalName, listManagementPassword);
+                } catch (Exception e) {
+                    LOGGER.error("Unable to delete mailman list for group", e);
+                }
+                break;
+            case join: {                
+                String addedId = event.getProperty("added").toString();
+                LOGGER.info("Got group join event ***" + addedId + "***");
+                String emailAddress = null;
+                String addedType = null;
+                try {
+                    if (isSubgroup(addedId)) {
+                        emailAddress = addedId + DOMAIN_NAME_FOR_EMAIL_ADDRESSES;
+                        addedType = "subgroup";
+                    } else {
+                        emailAddress = getEmailForUser(addedId);
+                        if (emailAddress != null) {
+                            addedType = "user";
+                        } else {
+                            LOGGER.warn("No email address recorded for user: " + addedId + ". Not adding to mailman list");
+                            return;
+                        }
+                    }
+                    LOGGER.info("Adding " + addedType + ": " + addedId + " to mailman group " + principalName);
+                    mailmanManager.addMember(principalName, listManagementPassword, emailAddress);
+                } catch (RepositoryException ex) {
+                    java.util.logging.Logger.getLogger(MailmanGroupManager.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (AccessDeniedException ex) {
+                    java.util.logging.Logger.getLogger(MailmanGroupManager.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (StorageClientException ex) {
+                    java.util.logging.Logger.getLogger(MailmanGroupManager.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (MailmanException e) {
+                    LOGGER.error("Mailman exception adding user to mailman group", e);
+                }
+            }
+            break;
+            case part: {
+                LOGGER.info("Got group join event");
+                String userId = event.getProperty("removed").toString();
+                try {
+                    String emailAddress = getEmailForUser(userId);
+                    if (emailAddress != null) {
+                        LOGGER.info("Removing user: " + userId + " to mailman group " + principalName);
+                        mailmanManager.removeMember(userId, listManagementPassword, emailAddress);
+                    } else {
+                        LOGGER.warn("No email address recorded for user: " + userId + ". Not removing from mailman list");
+                    }
+                } catch (AccessDeniedException ex) {
+                    java.util.logging.Logger.getLogger(MailmanGroupManager.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (StorageClientException ex) {
+                    java.util.logging.Logger.getLogger(MailmanGroupManager.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (RepositoryException e) {
+                    LOGGER.error("Repository exception removing user from mailman group", e);
+                } catch (MailmanException e) {
+                    LOGGER.error("Mailman exception removing user from mailman group", e);
+                }
+            }
+            break;
+        }
+    }
+
+    private Boolean isSubgroup(String groupId) throws AccessDeniedException, StorageClientException {
+        Authorizable authorizable = authorizableManager.findAuthorizable(groupId);
+        return authorizable.isGroup();
+    }
+
+    private String getEmailForUser(String userId) throws RepositoryException, AccessDeniedException, StorageClientException {
+        Authorizable authorizable = authorizableManager.findAuthorizable(userId);
+        String email = (String) authorizable.getProperty("email");
+        return email;
+    }
 }
