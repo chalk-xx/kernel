@@ -71,11 +71,11 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
   private static final Map<String, String> USER_WHITELISTED_PROPS;
   static {
     Builder<String, String> builder = ImmutableMap.builder();
-    builder.put("firstName","firstName");
-    builder.put("lastName","lastName");
-    builder.put("email","email");
-    builder.put("type","type");
-    builder.put("sakai:tag-uuid","taguuid");
+    builder.put(UserConstants.USER_FIRSTNAME_PROPERTY, "firstName");
+    builder.put(UserConstants.USER_LASTNAME_PROPERTY, "lastName");
+    builder.put(UserConstants.USER_EMAIL_PROPERTY, "email");
+    builder.put("type", "type");
+    builder.put("sakai:tag-uuid", "taguuid");
     USER_WHITELISTED_PROPS = builder.build();
   }
 
@@ -84,8 +84,8 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     Builder<String, String> builder = ImmutableMap.builder();
     builder.put("name", "name");
     builder.put("type", "type");
-    builder.put("sakai:group-title", "title");
-    builder.put("sakai:group-description", "description");
+    builder.put(UserConstants.GROUP_TITLE_PROPERTY, "title");
+    builder.put(UserConstants.GROUP_DESCRIPTION_PROPERTY, "description");
     builder.put("sakai:tag-uuid", "taguuid");
     builder.put("sakai:category", "category");
     GROUP_WHITELISTED_PROPS = builder.build();
