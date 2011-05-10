@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 public class ConnectionsCountChangeListener extends AbstractCountHandler implements EventHandler {
   
   private static final Logger LOG = LoggerFactory.getLogger(ConnectionsCountChangeListener.class);
+  private ConnectionsCounter connectionsCounter = new ConnectionsCounter();
 
   public void handleEvent(Event event) {
     try {
@@ -38,7 +39,7 @@ public class ConnectionsCountChangeListener extends AbstractCountHandler impleme
         Authorizable user = authorizableManager.findAuthorizable(userId);
         Authorizable contactsGroup = authorizableManager.findAuthorizable(path);
         if ( user != null && contactsGroup instanceof Group ) {
-          int n = ((Group) contactsGroup).getMembers().length;
+          int n = connectionsCounter.count(user, authorizableManager);
           Integer v = (Integer) user.getProperty(CountProvider.CONTACTS_PROP);
           if ( v == null || n != v.intValue()) {
             user.setProperty(CountProvider.CONTACTS_PROP, n);

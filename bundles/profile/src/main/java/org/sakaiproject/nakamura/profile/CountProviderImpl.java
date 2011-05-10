@@ -1,7 +1,5 @@
 package org.sakaiproject.nakamura.profile;
 
-import com.google.common.collect.ImmutableSet;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -9,11 +7,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
@@ -30,8 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
-import java.util.Iterator;
-import java.util.Set;
 
 @Component(immediate = true, metatype = true)
 @Service(value = CountProvider.class)
@@ -45,8 +36,6 @@ public class CountProviderImpl implements CountProvider {
   public static final String CONTACT_STORE_NAME = "contacts";
 
   private static final Logger LOG = LoggerFactory.getLogger(CountProviderImpl.class);
-  private static final Set<String> IGNORE_AUTHIDS = ImmutableSet.of(Group.EVERYONE);
-  private static final int MAX_GROUP_COUNT = 5000; // to limit iteration through groups count to prevent any DOS attacks there
 
   @Reference
   private SolrServerService solrSearchService;
@@ -58,6 +47,14 @@ public class CountProviderImpl implements CountProvider {
   private static final String UPDATE_INTERVAL = "sakai.countProvider.updateIntervalMinutes";
 
   private long updateInterval;
+
+  private GroupMembershipCounter groupMembershipCounter = new GroupMembershipCounter();
+
+  private ConnectionsCounter contactsCounter = new ConnectionsCounter();
+
+  private ContentCounter contentCounter = new ContentCounter();
+
+  private GroupMembersCounter groupMembersCounter = new GroupMembersCounter();
 
   public void update(Authorizable requestAu) throws AccessDeniedException,
       StorageClientException {
@@ -99,7 +96,7 @@ public class CountProviderImpl implements CountProvider {
         authorizableManager.updateAuthorizable(requestAu);
       } else {
         LOG.warn("update could not get authorizable: {} from adminSession",
-            new Object[] { au.getId() });
+            new Object[] { requestAu.getId() });
       }
     } finally {
       if ( adminSession != null ) {
@@ -125,79 +122,24 @@ public class CountProviderImpl implements CountProvider {
 
   private int getMembersCount(Group group) throws AccessDeniedException,
       StorageClientException {
-    // this may not be absolutely correct
-    return group.getMembers().length;
+    return groupMembersCounter.count(group);
   }
 
   private int getGroupsCount(Authorizable au, AuthorizableManager authorizableManager)
       throws AccessDeniedException, StorageClientException {
-    int count = 0;
-    // code borrowed from LiteMeServlet to include indirect memberships
-    // KERN-1831 changed from getPrincipals to memberOf to drill down list
-    for (Iterator<Group> memberOf = au.memberOf(authorizableManager); memberOf.hasNext();) {
-      Authorizable group = memberOf.next();
-      if (group == null || !(group instanceof Group)
-          || IGNORE_AUTHIDS.contains(group.getId())) {
-        // we don't want to count the everyone groups
-        continue;
-      }
-      if (group.hasProperty("sakai:managed-group")) {
-        // fetch the group that the manager group manages
-        group = authorizableManager.findAuthorizable((String) group
-            .getProperty("sakai:managed-group"));
-        if (group == null || !(group instanceof Group)) {
-          continue;
-        }
-      }
-      count++;
-      if (count >= MAX_GROUP_COUNT) {
-        LOG.warn("getGroupsCount() has reached its maximum of {} check for reason, possible DOS issue?", new Object[]{MAX_GROUP_COUNT});
-        return count;
-      }
-    }
-    return count;
+    return groupMembershipCounter.count(au,authorizableManager);
   }
 
   private int getContentCount(Authorizable au) throws AccessDeniedException,
       StorageClientException {
-    // find the content where the user has been made either a viewer or a manager
-    String userID = ClientUtils.escapeQueryChars(au.getId());
-    // pooled-content-manager, pooled-content-viewer
-    String queryString = "resourceType:sakai/pooled-content AND (viewer:" + userID
-        + " OR manager:" + userID + ")";
-    return getCount(queryString);
+    return contentCounter.countExact(au, solrSearchService);
   }
 
   private int getContactsCount(Authorizable au, AuthorizableManager authorizableManager)
       throws AccessDeniedException, StorageClientException {
-    // find the number of contacts in the current users store that are in state Accepted,
-    // invited or pending.
-    String userID = au.getId();
-    Authorizable g = authorizableManager.findAuthorizable("g-contacts-" + userID);
-    if (g instanceof Group) {
-      return ((Group) g).getMembers().length;
-    }
-    return 0;
+    return contactsCounter.count(au,authorizableManager);
   }
 
-  /**
-   * @param queryString
-   * @return the count of results, we assume if they are returned the user can read them
-   *         and we do not iterate through the entire set to check.
-   */
-  private int getCount(String queryString) {
-    SolrServer solrServer = solrSearchService.getServer();
-    SolrQuery solrQuery = new SolrQuery(queryString);
-
-    QueryResponse response;
-    try {
-      response = solrServer.query(solrQuery);
-      return (int) response.getResults().getNumFound();
-    } catch (SolrServerException e) {
-      LOG.warn(e.getMessage(), e);
-    }
-    return 0;
-  }
 
   // ---------- SCR integration ---------------------------------------------
   @Activate
