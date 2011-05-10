@@ -30,6 +30,7 @@ public class ConnectionsCountChangeListener extends AbstractCountHandler impleme
 
   public void handleEvent(Event event) {
     try {
+      if (LOG.isDebugEnabled()) LOG.debug("handleEvent() " + dumpEvent(event));
       String path = (String) event.getProperty(StoreListener.PATH_PROPERTY);
       if ( path.startsWith("g-contacts-")) {
         // contacts are
