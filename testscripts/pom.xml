@@ -43,6 +43,10 @@
       <resource>
         <directory>jmeter</directory>
         <targetPath>jmeter</targetPath>
+        <excludes>
+          <exclude>**/jakarta-jmeter*/**</exclude>
+          <exclude>**/files/*.txt</exclude>
+        </excludes>
       </resource>
       <resource>
         <directory>loadup</directory>
