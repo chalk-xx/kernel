@@ -927,8 +927,8 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
 
     }
 
-    LOGGER.info("Viewer Settings {}", viewerSettings);
-    LOGGER.info("Manager Settings {}", managerSettings);
+    LOGGER.debug("Viewer Settings {}", viewerSettings);
+    LOGGER.debug("Manager Settings {}", managerSettings);
     for (AclModification a : aclModifications) {
       LOGGER.debug("     Change {} ", a);
     }
