@@ -42,9 +42,8 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.user.lite.servlet.BasicUserInfoServiceImpl;
+import org.sakaiproject.nakamura.user.BasicUserInfoServiceImpl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
