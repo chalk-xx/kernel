@@ -40,6 +40,7 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
 
   public void handleEvent(Event event) {
     try {
+      if (LOG.isDebugEnabled()) LOG.debug("handleEvent() " + dumpEvent(event));
       // The members of a group are defined in the membership, so simply use that value, no need to increment or decrement.
       String path = (String) event.getProperty(StoreListener.PATH_PROPERTY);
       Content content = contentManager.get(path);

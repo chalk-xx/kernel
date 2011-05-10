@@ -274,12 +274,16 @@ public class ProfileServiceImpl implements ProfileService {
     if (countProvider != null) {
       if (countProvider.needsRefresh(authorizable)) {
         countProvider.update(authorizable);
+        // having problem with properties not being visible with an authMgrauthMgr.update(requestAu) in CountProvideImple
+        //  doing this as temporary fix
+        AuthorizableManager authMgr = session.getAuthorizableManager();
+        authorizable = authMgr.findAuthorizable(authorizable.getId());
       }
     } else {
       throw new IllegalStateException("@Reference CountProvider is null!");
     }
     Builder<String, Object> propertyBuilder = ImmutableMap.builder();
-    for (String countPropName : USER_COUNTS_PROPS) {
+    for (String countPropName : USER_COUNTS_PROPS) {     
       if (authorizable.hasProperty(countPropName)) {
         propertyBuilder.put(countPropName, authorizable.getProperty(countPropName));
       }

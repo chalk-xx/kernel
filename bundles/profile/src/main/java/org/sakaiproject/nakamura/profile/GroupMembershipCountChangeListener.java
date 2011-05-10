@@ -11,6 +11,7 @@ import org.sakaiproject.nakamura.api.lite.StoreListener;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.profile.CountProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ public class GroupMembershipCountChangeListener extends AbstractCountHandler imp
 
   public void handleEvent(Event event) {
     try {
+      if (LOG.isDebugEnabled()) LOG.debug("handleEvent() " + dumpEvent(event));
       // The members of a group are defined in the membership, so simply use that value, no need to increment or decrement.
       String groupId = (String) event.getProperty(StoreListener.PATH_PROPERTY);
       Authorizable au = authorizableManager.findAuthorizable(groupId);
@@ -41,6 +43,10 @@ public class GroupMembershipCountChangeListener extends AbstractCountHandler imp
           authorizableManager.updateAuthorizable(au);
         }
       }
+      else if (au instanceof User) {
+        String userId = (String) event.getProperty(StoreListener.PATH_PROPERTY);
+        if (LOG.isDebugEnabled()) LOG.debug("got User event for " + userId);
+      }
     } catch (StorageClientException e) {
       LOG.debug("Failed to update count ", e);
     } catch (AccessDeniedException e) {
@@ -48,3 +54,4 @@ public class GroupMembershipCountChangeListener extends AbstractCountHandler imp
     }
   }
 }
+
