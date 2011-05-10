@@ -87,7 +87,11 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
     Map<String, Object> basicUserInfo = Maps.newHashMap();
     basicUserInfo.put(USER_BASIC, basicProfileMapForAuthorizable(authorizable));
     basicUserInfo.put(COUNTS_PROP, countsMapforAuthorizable(authorizable));
-
+    if ( authorizable.hasProperty(UserConstants.SAKAI_EXCLUDE)) {
+      basicUserInfo.put(UserConstants.SAKAI_EXCLUDE, authorizable.getProperty(UserConstants.SAKAI_EXCLUDE));
+    } else {
+      basicUserInfo.put(UserConstants.SAKAI_EXCLUDE, false);
+    }
 
     if (authorizable.isGroup()) {
       addGroupProperties(authorizable, basicUserInfo);

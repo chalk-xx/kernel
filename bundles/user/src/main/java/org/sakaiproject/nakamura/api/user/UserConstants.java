@@ -250,5 +250,11 @@ public interface UserConstants {
    */
   public static final String GROUP_MEMBERS_PROP = "membersCount"; // the number of members that a group has
 
+  /**
+   * If present and true, the authorizable will not appear in the search index.
+   */
+  public static final String SAKAI_EXCLUDE = "sakai:excludeSearch";
+
+
 
 }
