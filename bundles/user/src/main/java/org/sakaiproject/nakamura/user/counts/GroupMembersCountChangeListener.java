@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.profile;
+package org.sakaiproject.nakamura.user.counts;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -12,7 +12,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
-import org.sakaiproject.nakamura.api.profile.CountProvider;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,10 +25,10 @@ import org.slf4j.LoggerFactory;
         "org/sakaiproject/nakamura/lite/authorizables/ADDED",
         "org/sakaiproject/nakamura/lite/authorizables/UPDATED"}) })
         
-public class GroupMembershipCountChangeListener extends AbstractCountHandler implements EventHandler {
+public class GroupMembersCountChangeListener extends AbstractCountHandler implements EventHandler {
   
-  private static final Logger LOG = LoggerFactory.getLogger(GroupMembershipCountChangeListener.class);
-  private GroupMembershipCounter groupMembershipCounter = new GroupMembershipCounter();
+  private static final Logger LOG = LoggerFactory.getLogger(GroupMembersCountChangeListener.class);
+  private GroupMembersCounter groupMembersCounter = new GroupMembersCounter();
 
   public void handleEvent(Event event) {
     try {
@@ -37,10 +37,10 @@ public class GroupMembershipCountChangeListener extends AbstractCountHandler imp
       String groupId = (String) event.getProperty(StoreListener.PATH_PROPERTY);
       Authorizable au = authorizableManager.findAuthorizable(groupId);
       if ( au instanceof Group ) {
-        int n = groupMembershipCounter.count(au, authorizableManager);
-        Integer v = (Integer) au.getProperty(CountProvider.GROUP_MEMBERSHIPS_PROP);
+        int n = groupMembersCounter.count((Group) au);
+        Integer v = (Integer) au.getProperty(UserConstants.GROUP_MEMBERS_PROP);
         if ( v == null || n != v.intValue()) {
-          au.setProperty(CountProvider.GROUP_MEMBERSHIPS_PROP, n);
+          au.setProperty(UserConstants.GROUP_MEMBERS_PROP, n);
           authorizableManager.updateAuthorizable(au);
         }
       }

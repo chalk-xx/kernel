@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.profile;
+package org.sakaiproject.nakamura.user.counts;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;

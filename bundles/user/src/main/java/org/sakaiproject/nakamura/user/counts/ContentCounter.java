@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.profile;
+package org.sakaiproject.nakamura.user.counts;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;

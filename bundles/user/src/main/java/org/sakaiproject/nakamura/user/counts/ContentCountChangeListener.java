@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.profile;
+package org.sakaiproject.nakamura.user.counts;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -17,7 +17,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.sakaiproject.nakamura.api.profile.CountProvider;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,10 +60,10 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
           Set<String> added = Sets.difference(after, before);
           LOG.info("Path{} Before{} After{} Added{} Removed{} ",new Object[]{path, before, after, added, removed});
           for ( String userId : added ) {
-            inc(userId, CountProvider.CONTENT_ITEMS_PROP);
+            inc(userId, UserConstants.CONTENT_ITEMS_PROP);
           }
           for ( String userId : removed ) {
-            dec(userId, CountProvider.CONTENT_ITEMS_PROP);
+            dec(userId, UserConstants.CONTENT_ITEMS_PROP);
           }
         }
       } else if ( content == null ) {

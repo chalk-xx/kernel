@@ -1,13 +1,11 @@
-package org.sakaiproject.nakamura.profile;
+package org.sakaiproject.nakamura.user.counts;
 
-import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -17,12 +15,12 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
-import org.sakaiproject.nakamura.api.profile.CountProvider;
 import org.sakaiproject.nakamura.api.solr.SolrServerService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Dictionary;
+import java.util.Map;
 
 @Component(immediate = true, metatype = true)
 @Service(value = CountProvider.class)
@@ -38,10 +36,10 @@ public class CountProviderImpl implements CountProvider {
   private static final Logger LOG = LoggerFactory.getLogger(CountProviderImpl.class);
 
   @Reference
-  private SolrServerService solrSearchService;
+  protected SolrServerService solrSearchService;
 
   @Reference
-  private Repository repository;
+  protected Repository repository;
 
   @Property(intValue = 30)
   private static final String UPDATE_INTERVAL = "sakai.countProvider.updateIntervalMinutes";
@@ -66,30 +64,30 @@ public class CountProviderImpl implements CountProvider {
       Authorizable au = authorizableManager.findAuthorizable(requestAu.getId());
       if (au != null) {
         int contentCount = getContentCount(au);
-        requestAu.setProperty(CONTENT_ITEMS_PROP, contentCount);
-        au.setProperty(CONTENT_ITEMS_PROP, contentCount);
+        requestAu.setProperty(UserConstants.CONTENT_ITEMS_PROP, contentCount);
+        au.setProperty(UserConstants.CONTENT_ITEMS_PROP, contentCount);
         if (au instanceof User) {
           int contactsCount = getContactsCount(au, authorizableManager);
           int groupsContact = getGroupsCount(au, authorizableManager);
-          au.setProperty(CONTACTS_PROP, contactsCount);
-          au.setProperty(GROUP_MEMBERSHIPS_PROP, groupsContact);
-          requestAu.setProperty(CONTACTS_PROP, contactsCount);
-          requestAu.setProperty(GROUP_MEMBERSHIPS_PROP, groupsContact);
+          au.setProperty(UserConstants.CONTACTS_PROP, contactsCount);
+          au.setProperty(UserConstants.GROUP_MEMBERSHIPS_PROP, groupsContact);
+          requestAu.setProperty(UserConstants.CONTACTS_PROP, contactsCount);
+          requestAu.setProperty(UserConstants.GROUP_MEMBERSHIPS_PROP, groupsContact);
           if (LOG.isDebugEnabled())
             LOG.debug("update User authorizable: {} with {}={}, {}={}, {}={}",
-                new Object[] { requestAu.getId(), CONTENT_ITEMS_PROP, contentCount,
-                    CONTACTS_PROP, contactsCount, GROUP_MEMBERSHIPS_PROP, groupsContact });
+                new Object[] { requestAu.getId(), UserConstants.CONTENT_ITEMS_PROP, contentCount,
+                UserConstants.CONTACTS_PROP, contactsCount, UserConstants.GROUP_MEMBERSHIPS_PROP, groupsContact });
         } else if (au instanceof Group) {
           int membersCount = getMembersCount((Group) au);
-          au.setProperty(GROUP_MEMBERS_PROP, membersCount);
-          requestAu.setProperty(GROUP_MEMBERS_PROP, membersCount);
+          au.setProperty(UserConstants.GROUP_MEMBERS_PROP, membersCount);
+          requestAu.setProperty(UserConstants.GROUP_MEMBERS_PROP, membersCount);
           if (LOG.isDebugEnabled())
             LOG.debug("update Group authorizable: {} with {}={}, {}={}", new Object[] {
-                requestAu.getId(), CONTENT_ITEMS_PROP, contentCount, GROUP_MEMBERS_PROP,
+                requestAu.getId(), UserConstants.CONTENT_ITEMS_PROP, contentCount, UserConstants.GROUP_MEMBERS_PROP,
                 membersCount });
         }
         long lastUpdate = System.currentTimeMillis();
-        au.setProperty(COUNTS_LAST_UPDATE_PROP, lastUpdate);
+        au.setProperty(UserConstants.COUNTS_LAST_UPDATE_PROP, lastUpdate);
         // only update the Authorizable associated with the admin session.
         // NB we have updated the requestAuthorizable
         authorizableManager.updateAuthorizable(au);
@@ -111,7 +109,7 @@ public class CountProviderImpl implements CountProvider {
 
   public boolean needsRefresh(Authorizable authorizable) throws AccessDeniedException,
       StorageClientException {
-    Long lastMillis = (Long) authorizable.getProperty(COUNTS_LAST_UPDATE_PROP);
+    Long lastMillis = (Long) authorizable.getProperty(UserConstants.COUNTS_LAST_UPDATE_PROP);
     if (lastMillis != null) {
       long updateMillis = lastMillis + updateInterval;
       long nowMillis = System.currentTimeMillis();
@@ -142,17 +140,11 @@ public class CountProviderImpl implements CountProvider {
 
 
   // ---------- SCR integration ---------------------------------------------
-  @Activate
-  public void activate(ComponentContext componentContext) throws StorageClientException,
+  @Modified
+  public void modify(Map<String, Object> properties) throws StorageClientException,
       AccessDeniedException {
-    @SuppressWarnings("unchecked")
-    Dictionary<String, Object> props = componentContext.getProperties();
-    updateInterval = OsgiUtil.toInteger(props.get(UPDATE_INTERVAL), 30) * 60 * 1000;
+    updateInterval = OsgiUtil.toInteger(properties.get(UPDATE_INTERVAL), 30) * 60 * 1000;
   }
 
-  @Deactivate
-  protected void deactivate(ComponentContext ctx) throws ClientPoolException {
-
-  }
 
 }

@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.profile;
+package org.sakaiproject.nakamura.user.counts;
 
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 
