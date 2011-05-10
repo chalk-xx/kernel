@@ -396,7 +396,9 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         }
 
         String processedVal = templateService.evaluateTemplate(propertiesMap, val);
-        processedVal = SearchUtil.escapeString(processedVal, queryType);
+        if ("sort".equals(key)) {
+          processedVal = SearchUtil.escapeString(processedVal, queryType);
+        }
         options.put(key, processedVal);
       }
     }

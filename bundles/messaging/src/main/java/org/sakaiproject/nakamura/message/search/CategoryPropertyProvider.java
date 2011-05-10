@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.message.search;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -33,9 +32,7 @@ import java.util.Map;
  */
 @Component
 @Service
-@Properties({
-  @Property(name = SearchConstants.REG_PROVIDER_NAMES, value = "CategoryPropertyProvider")
-})
+@Property(name = SearchConstants.REG_PROVIDER_NAMES, value = "CategoryPropertyProvider")
 public class CategoryPropertyProvider implements SolrSearchPropertyProvider {
   /**
    * {@inheritDoc}
