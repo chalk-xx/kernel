@@ -153,6 +153,7 @@ public class SparseResultSetFactory implements ResultSetFactory {
         SLOW_QUERY_LOGGER.warn("Slow sparse query {} ms {} ",tquery, URLDecoder.decode(query.toString(),"UTF-8"));
       }
     } catch (UnsupportedEncodingException e) {
+        // quietly swallow this exception
     }
     SolrSearchResultSet rs = new SparseSearchResultSet(items, defaultMaxResults);
     return rs;
