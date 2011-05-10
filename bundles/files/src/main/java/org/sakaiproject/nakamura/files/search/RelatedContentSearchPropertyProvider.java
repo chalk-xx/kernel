@@ -83,6 +83,8 @@ public class RelatedContentSearchPropertyProvider extends
   @Reference(target = DEFAULT_SEARCH_PROC_TARGET)
   private transient SolrSearchResultProcessor defaultSearchProcessor;
 
+  private static final int MAX_SOURCE_LIMIT = 100;
+
   /**
    * The solr query options that will be used in phase one where we find source content to
    * match against.
@@ -93,7 +95,7 @@ public class RelatedContentSearchPropertyProvider extends
     // sort by most recent content
     sqo.put("sort", "_lastModified desc");
     // limit source content for matching to something reasonable
-    sqo.put("items", "100");
+    sqo.put("items", String.valueOf(MAX_SOURCE_LIMIT));
     sqo.put("page", "0");
     SOURCE_QUERY_OPTIONS = Collections.unmodifiableMap(sqo);
   }
@@ -157,7 +159,8 @@ public class RelatedContentSearchPropertyProvider extends
         final Iterator<Result> i = rs.getResultSetIterator();
         final Set<String> allFileNames = new HashSet<String>();
         final Set<String> allTagUuids = new HashSet<String>();
-        while (i.hasNext()) {
+        int count = 0;
+        while (i.hasNext() && count < MAX_SOURCE_LIMIT) {
           final Result result = i.next();
           final String path = (String) result.getFirstValue("path");
           final Content content = contentManager.get(path);
@@ -188,6 +191,7 @@ public class RelatedContentSearchPropertyProvider extends
             // fail quietly in this edge case
             LOG.debug("Content not found: {}", path);
           }
+          count++;
         }
 
         /* phase two - provide properties for final search */

@@ -193,9 +193,19 @@ public class SolrResultSetFactory implements ResultSetFactory {
    * @param val
    */
   private void parseSort(SolrQuery solrQuery, String val) {
-    String[] sort = StringUtils.split(val);
+    /* disable KERN-1855 for now; needs more discussion. */
+    // final String[] sortFields = solrQuery.getSortFields();
+    // we were using setSortField, now using addSortField; verify state
+    // if (sortFields != null && sortFields.length > 0) {
+    // throw new IllegalStateException("Expected zero sort fields, found: " + sortFields);
+    // }
+    // final String[] criteria = val.split(",");
+    // for (final String criterion : criteria) {
+    // final String[] sort = StringUtils.split(criterion);
+    final String[] sort = StringUtils.split(val);
     switch (sort.length) {
-      case 1:
+    case 1:
+      // solrQuery.addSortField(sort[0], ORDER.asc);
       solrQuery.setSortField(sort[0], ORDER.asc);
       break;
     case 2:
@@ -203,17 +213,19 @@ public class SolrResultSetFactory implements ResultSetFactory {
       ORDER o = ORDER.asc;
       try {
         o = ORDER.valueOf(sortOrder);
-      } catch ( IllegalArgumentException a) {
-        if ( sortOrder.startsWith("d") ) {
+      } catch (IllegalArgumentException a) {
+        if (sortOrder.startsWith("d")) {
           o = ORDER.desc;
         } else {
           o = ORDER.asc;
         }
       }
+      // solrQuery.addSortField(sort[0], o);
       solrQuery.setSortField(sort[0], o);
       break;
     default:
       LOGGER.warn("Expected the sort option to be 1 or 2 terms. Found: {}", val);
     }
+    // }
   }
 }

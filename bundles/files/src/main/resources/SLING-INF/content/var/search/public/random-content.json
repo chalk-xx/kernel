@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": 'resourceType:sakai/pooled-content AND (description:[* TO *]^2 OR taguuid:[* TO *]^2 OR id:[* TO *]^0)',
+  "sakai:query-template": '+(resourceType:sakai/pooled-content)',
   "sakai:query-template-options": {
       "sort": "random_${randomSeed} asc"
   },
