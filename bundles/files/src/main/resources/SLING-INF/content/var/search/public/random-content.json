@@ -1,7 +1,7 @@
 {
-  "sakai:query-template": '+(resourceType:sakai/pooled-content) description:[* TO *]^2 taguuid:[* TO *]^2',
+  "sakai:query-template": '+(resourceType:sakai/pooled-content)',
   "sakai:query-template-options": {
-      "sort": "score desc, random_${randomSeed} asc"
+      "sort": "random_${randomSeed} asc"
   },
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "RandomContentSearchPropertyProvider",
