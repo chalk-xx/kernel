@@ -140,7 +140,7 @@ public class PageServlet extends SlingSafeMethodsServlet {
    * getPageTree: returns List of all pages under the passed path
    */
   private List<Content> getPageTree(Content pageContent) {
-    List<Content> contentList = new ArrayList();
+    List<Content> contentList = new ArrayList<Content>();
 
     // Add to list only if content is a page
     String resourceType = (String) pageContent.getProperty("sling:resourceType");

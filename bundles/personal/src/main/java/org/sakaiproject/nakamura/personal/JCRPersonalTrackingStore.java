@@ -18,9 +18,7 @@
 package org.sakaiproject.nakamura.personal;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.sakaiproject.nakamura.api.personal.PersonalTrackingStore;
 import org.sakaiproject.nakamura.util.JcrUtils;

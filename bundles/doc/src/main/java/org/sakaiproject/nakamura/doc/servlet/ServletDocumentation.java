@@ -70,7 +70,7 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
         serviceDocumetation = (ServiceDocumentation) c
             .getAnnotation(ServiceDocumentation.class);
       } catch (ClassNotFoundException ex) {
-        LOGGER.warn("No documentation proxy {} ", name);
+        LOGGER.debug("No documentation proxy {} ", name);
         // no doc class present.
       }
     }

@@ -6,7 +6,7 @@
   "sortOn": "_created",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
-  "sakai:batchresultprocessor": "LiteMostActiveContent",
+  "sakai:resultprocessor": "AllActivities",
   "sakai:title": "Activity - All System Activities",
   "sakai:shortDescription": "Shows the latest activities in the system.",
   "sakai:description": [

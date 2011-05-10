@@ -77,7 +77,6 @@ public class SparseResultSetFactory implements ResultSetFactory {
   /** only used to mark the logger */
   private final class SlowQueryLogger { }
   
-  private static final Logger LOGGER = LoggerFactory.getLogger(SparseResultSetFactory.class);
   private static final Logger SLOW_QUERY_LOGGER = LoggerFactory.getLogger(SlowQueryLogger.class);
 
   @Activate
@@ -186,6 +185,7 @@ public class SparseResultSetFactory implements ResultSetFactory {
     }
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   private void accumulateValue(Map<String, Object> map, String key, Object val) {
     Object o = map.get(key);
     if (o != null) {

@@ -1,6 +1,11 @@
-package org.sakaiproject.nakamura.user.lite.servlet;
+package org.sakaiproject.nakamura.user;
 
+import static org.sakaiproject.nakamura.api.user.UserConstants.CONTACTS_PROP;
+import static org.sakaiproject.nakamura.api.user.UserConstants.CONTENT_ITEMS_PROP;
+import static org.sakaiproject.nakamura.api.user.UserConstants.COUNTS_PROP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_DESCRIPTION_PROPERTY;
+import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_MEMBERSHIPS_PROP;
+import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_MEMBERS_PROP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_TITLE_PROPERTY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.PREFERRED_NAME;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_BASIC;
@@ -21,12 +26,18 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.user.counts.CountProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -45,6 +56,13 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
 
 
   private static String[] basicUserInfoElements = DEFAULT_BASIC_USER_INFO_ELEMENTS;
+  
+  private final static String[] USER_COUNTS_PROPS = new String[] {CONTACTS_PROP, GROUP_MEMBERSHIPS_PROP, CONTENT_ITEMS_PROP, GROUP_MEMBERS_PROP};
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(BasicUserInfoServiceImpl.class);
+
+  @Reference
+  protected CountProvider countProvider;
 
 
   @Activate
@@ -66,18 +84,51 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
       return anonymousBasicInfo();
     }
     
-    Map<String, Object> compactProfile = Maps.newHashMap();
-    compactProfile.put(USER_BASIC, basicProfileMapForAuthorizable(authorizable));
+    Map<String, Object> basicUserInfo = Maps.newHashMap();
+    basicUserInfo.put(USER_BASIC, basicProfileMapForAuthorizable(authorizable));
+    basicUserInfo.put(COUNTS_PROP, countsMapforAuthorizable(authorizable));
+    if ( authorizable.hasProperty(UserConstants.SAKAI_EXCLUDE)) {
+      basicUserInfo.put(UserConstants.SAKAI_EXCLUDE, authorizable.getProperty(UserConstants.SAKAI_EXCLUDE));
+    } else {
+      basicUserInfo.put(UserConstants.SAKAI_EXCLUDE, false);
+    }
 
     if (authorizable.isGroup()) {
-      addGroupProperties(authorizable, compactProfile);
+      addGroupProperties(authorizable, basicUserInfo);
     } else {
-      addUserProperties(authorizable, compactProfile);
+      addUserProperties(authorizable, basicUserInfo);
     }
-    return compactProfile;
+    return basicUserInfo;
   }
   
   
+
+  private Map<String, Object> countsMapforAuthorizable(Authorizable authorizable) {
+    if (countProvider != null) {
+      try {
+      if (countProvider.needsRefresh(authorizable)) {
+        countProvider.update(authorizable);
+      }
+      } catch ( StorageClientException e) {
+        LOGGER.error(e.getMessage(),e);
+      } catch (AccessDeniedException e) {
+        LOGGER.info("Failed to update the count on authorizable {} {} ", authorizable, e.getMessage());
+      }
+    } else {
+      throw new IllegalStateException("@Reference CountProvider is null!");
+    }
+    Builder<String, Object> propertyBuilder = ImmutableMap.builder();
+    for (String countPropName : USER_COUNTS_PROPS) {     
+      if (authorizable.hasProperty(countPropName)) {
+        propertyBuilder.put(countPropName, authorizable.getProperty(countPropName));
+      }
+    }
+    Map<String, Object> allCounts = propertyBuilder.build();
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("counts map: {} for authorizableId: {}", new Object[]{allCounts, authorizable.getId()});
+    }
+    return allCounts;
+  }
 
 
   private void addUserProperties(Authorizable user, Map<String, Object> basicInfo) {

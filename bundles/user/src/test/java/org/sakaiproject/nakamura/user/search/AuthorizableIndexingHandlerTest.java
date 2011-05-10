@@ -35,6 +35,7 @@ import org.sakaiproject.nakamura.api.lite.StoreListener;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -85,7 +86,7 @@ public class AuthorizableIndexingHandlerTest {
 
   @Test
   public void deleteExcluded() {
-    user1.setProperty(AuthorizableIndexingHandler.SAKAI_EXCLUDE, "true");
+    user1.setProperty(UserConstants.SAKAI_EXCLUDE, "true");
 
     Hashtable<String, Object> props = new Hashtable<String, Object>();
     props.put("path", "user1");
@@ -99,7 +100,7 @@ public class AuthorizableIndexingHandlerTest {
 
   @Test
   public void doNotIndexExcluded() {
-    user1.setProperty(AuthorizableIndexingHandler.SAKAI_EXCLUDE, "true");
+    user1.setProperty(UserConstants.SAKAI_EXCLUDE, "true");
 
     Hashtable<String, Object> props = new Hashtable<String, Object>();
     props.put("path", "user1");

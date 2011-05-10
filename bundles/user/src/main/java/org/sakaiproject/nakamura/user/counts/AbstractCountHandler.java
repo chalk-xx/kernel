@@ -1,10 +1,11 @@
-package org.sakaiproject.nakamura.profile;
+package org.sakaiproject.nakamura.user.counts;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -48,6 +49,17 @@ public abstract class AbstractCountHandler {
     }
   }
 
+  protected String dumpEvent(Event event) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Event ").append(event).append(" with properties");
+    String[] propNames = event.getPropertyNames();
+    for (int i = 0; i < propNames.length; i++) {
+      String propName = propNames[i];
+      sb.append(propName).append("=").append(event.getProperty(propName)).append(", ");
+    }
+    return sb.toString();
+  }
+
   private int toInt(Object property) {
     if (property instanceof Integer) {
       return (Integer) property;
@@ -55,8 +67,6 @@ public abstract class AbstractCountHandler {
     return 0;
   }
   
-  
-
   // ---------- SCR integration ---------------------------------------------
   @Activate
   public void activate(ComponentContext componentContext) throws StorageClientException,

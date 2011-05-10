@@ -17,17 +17,13 @@
  */
 package org.sakaiproject.nakamura.image;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-
-import com.google.common.collect.ImmutableMap;
-
-import static org.mockito.Mockito.when;
-
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import static org.mockito.Mockito.*;
+import com.google.common.collect.ImmutableMap;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.api.SlingHttpServletRequest;

@@ -27,7 +27,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 
@@ -45,9 +44,6 @@ public class DiscussionManagerTest {
 
   @Mock
   private static BundleContext bundleContext;
-
-  @Mock
-  private EventAdmin eventAdmin;
 
   private static RepositoryBase repositoryBase;
 

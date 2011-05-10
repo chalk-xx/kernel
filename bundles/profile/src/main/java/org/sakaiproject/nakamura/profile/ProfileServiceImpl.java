@@ -17,16 +17,8 @@
  */
 package org.sakaiproject.nakamura.profile;
 
-import static org.sakaiproject.nakamura.api.profile.CountProvider.CONTACTS_PROP;
-import static org.sakaiproject.nakamura.api.profile.CountProvider.CONTENT_ITEMS_PROP;
-import static org.sakaiproject.nakamura.api.profile.CountProvider.COUNTS_PROP;
-import static org.sakaiproject.nakamura.api.profile.CountProvider.GROUP_MEMBERSHIPS_PROP;
-import static org.sakaiproject.nakamura.api.profile.CountProvider.GROUP_MEMBERS_PROP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_DESCRIPTION_PROPERTY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_TITLE_PROPERTY;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -48,7 +40,6 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.profile.CountProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
@@ -85,12 +76,7 @@ public class ProfileServiceImpl implements ProfileService {
   public static final Logger LOG = LoggerFactory.getLogger(ProfileServiceImpl.class);
   
 
-  private final static String[] USER_COUNTS_PROPS = new String[] {CONTACTS_PROP, GROUP_MEMBERSHIPS_PROP, CONTENT_ITEMS_PROP, GROUP_MEMBERS_PROP};
-
-
   
-  @Reference
-  private CountProvider countProvider;
   
   @Reference
   private BasicUserInfoService basicUserInfoService;
@@ -176,12 +162,6 @@ public class ProfileServiceImpl implements ProfileService {
     if (contentManager.exists(profilePath)) {
       Content profileContent = contentManager.get(profilePath);
       profileMap.putAll(getResolvedProfileMap(authorizable, profileContent, session));
-    }
-    profileMap.put(COUNTS_PROP, countsMapforAuthorizable(authorizable, sparseSession));
-    if (authorizable.isGroup()) {
-      profileMap.put("groupid", authorizable.getId());
-    } else {
-      profileMap.put("userid", authorizable.getId());
     }
 
     profileMap.putAll(basicUserInfoService.getProperties(authorizable));
@@ -269,25 +249,6 @@ public class ProfileServiceImpl implements ProfileService {
   }
 
 
-
-  private ValueMap countsMapforAuthorizable(Authorizable authorizable, org.sakaiproject.nakamura.api.lite.Session session) throws AccessDeniedException, StorageClientException {
-    if (countProvider != null) {
-      if (countProvider.needsRefresh(authorizable)) {
-        countProvider.update(authorizable);
-      }
-    } else {
-      throw new IllegalStateException("@Reference CountProvider is null!");
-    }
-    Builder<String, Object> propertyBuilder = ImmutableMap.builder();
-    for (String countPropName : USER_COUNTS_PROPS) {
-      if (authorizable.hasProperty(countPropName)) {
-        propertyBuilder.put(countPropName, authorizable.getProperty(countPropName));
-      }
-    }
-    ValueMap allCounts = new ValueMapDecorator(propertyBuilder.build());
-    if (LOG.isDebugEnabled())LOG.debug("counts map: {} for authorizableId: {}", new Object[]{allCounts, authorizable.getId()});
-    return allCounts;
-  }
 
   /**
    * Loops over an entire profile and checks if some of the nodes are marked as external.

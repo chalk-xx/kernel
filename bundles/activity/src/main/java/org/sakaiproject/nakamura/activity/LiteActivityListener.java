@@ -119,7 +119,7 @@ public class LiteActivityListener implements MessageListener {
       ContentManager contentManager = session.getContentManager();
       try {
         Content activity = contentManager.get(activityItemPath);
-        if (!activity.hasProperty(PARAM_ACTOR_ID)) {
+        if (activity == null || !activity.hasProperty(PARAM_ACTOR_ID)) {
           // we must know the actor
           throw new IllegalStateException(
               "Could not determine actor of activity: " + activity);

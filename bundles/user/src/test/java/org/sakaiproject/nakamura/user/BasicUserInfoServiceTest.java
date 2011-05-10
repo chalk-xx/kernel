@@ -3,11 +3,18 @@ package org.sakaiproject.nakamura.user;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.apache.sling.api.resource.ValueMap;
+import com.google.common.collect.ImmutableMap;
+
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.params.SolrParams;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
@@ -16,9 +23,10 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.solr.SolrServerService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
-import org.sakaiproject.nakamura.user.lite.servlet.BasicUserInfoServiceImpl;
+import org.sakaiproject.nakamura.user.counts.CountProviderImpl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +40,7 @@ public class BasicUserInfoServiceTest {
   private Session session;
   
   @Before
-  public void before() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public void before() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, SolrServerException {
     System.out.println(System.getProperty("java.version"));
     repository = (Repository) new BaseMemoryRepository().getRepository();
     final Session adminSession = repository.loginAdministrative();
@@ -45,6 +53,27 @@ public class BasicUserInfoServiceTest {
     adminSession.logout();
     session = repository.loginAdministrative("ieb");
     basicUserInfoService = new BasicUserInfoServiceImpl();
+    final SolrServerService sss = Mockito.mock(SolrServerService.class);
+    SolrServer solrServer = Mockito.mock(SolrServer.class);
+    Mockito.when(sss.getServer()).thenReturn(solrServer);
+    QueryResponse response = Mockito.mock(QueryResponse.class);
+    Mockito.when(solrServer.query(Mockito.any(SolrParams.class))).thenReturn(response);
+    SolrDocumentList results = Mockito.mock(SolrDocumentList.class);
+    Mockito.when(response.getResults()).thenReturn(results);
+    Mockito.when(results.getNumFound()).thenReturn(10L);
+    CountProviderImpl countProviderImpl = new CountProviderImpl() {
+        @Override
+        public void modify(Map<String, Object> properties) throws StorageClientException,
+            AccessDeniedException {
+          repository = BasicUserInfoServiceTest.this.repository;
+          solrSearchService = sss;
+          System.err.println("Setting Solr search service "+solrSearchService);
+          super.modify(properties);
+        }
+    };
+    Map<String, Object> m = ImmutableMap.of();
+    countProviderImpl.modify(m);
+    basicUserInfoService.countProvider = countProviderImpl;
   }
   
   @After

@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.api.profile;
+package org.sakaiproject.nakamura.user.counts;
 
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -11,18 +11,6 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
  */
 public interface CountProvider {
 
-//counts: {
-//  contacts: x
-//  memberships: y
-//  content: z
-//} 
-  
-  public static final String COUNTS_PROP = "counts";
-  public static final String CONTACTS_PROP = "contactsCount";
-  public static final String GROUP_MEMBERSHIPS_PROP = "membershipsCount";  // the number of groups a user belongs to
-  public static final String CONTENT_ITEMS_PROP = "contentCount";
-  public static final String COUNTS_LAST_UPDATE_PROP = "countLastUpdate";
-  public static final String GROUP_MEMBERS_PROP = "membersCount"; // the number of members that a group has
   
   /**
    * get total counts for group memberships, contacts and content items

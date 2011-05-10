@@ -151,6 +151,7 @@ public class SakaiSmtpServerTest {
     when(contentManager.get("a:bob/message/messagenode/part001")).thenReturn(part1node);
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testBadFormatMessage() throws Exception {
 
@@ -262,6 +263,7 @@ public class SakaiSmtpServerTest {
     return 0;
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testGoodFormatMessage() throws Exception {
     InputStream dataStream = new ByteArrayInputStream(
@@ -298,6 +300,7 @@ public class SakaiSmtpServerTest {
     sakaiSmtpServer.deactivate(componentContext);
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testGoodFormatMultipartMessage() throws Exception {
 
@@ -334,6 +337,7 @@ public class SakaiSmtpServerTest {
     sakaiSmtpServer.deactivate(componentContext);
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testGoodFormatMultipartBinaryMessage() throws Exception {
 

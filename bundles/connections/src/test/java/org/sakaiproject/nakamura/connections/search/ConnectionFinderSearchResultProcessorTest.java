@@ -30,6 +30,7 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
@@ -42,9 +43,9 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.user.lite.servlet.BasicUserInfoServiceImpl;
+import org.sakaiproject.nakamura.user.BasicUserInfoServiceImpl;
+import org.sakaiproject.nakamura.user.counts.CountProvider;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
@@ -70,7 +71,12 @@ public class ConnectionFinderSearchResultProcessorTest {
   public void test() throws Exception {
     ConnectionFinderSearchResultProcessor processor = new ConnectionFinderSearchResultProcessor();
     processor.searchServiceFactory = searchServiceFactory;
-    processor.basicUserInfoService = new BasicUserInfoServiceImpl();
+    processor.basicUserInfoService = new BasicUserInfoServiceImpl() {
+        public BasicUserInfoServiceImpl setup() {
+          countProvider = Mockito.mock(CountProvider.class);
+          return this;
+        }
+    }.setup();
 
     Object hybridSession = mock(javax.jcr.Session.class, withSettings()
         .extraInterfaces(SessionAdaptable.class));

@@ -100,6 +100,7 @@ public class AuthorizablePostProcessorServiceTest {
     when(requestParameterMap.getValues(anyString())).thenReturn(new RequestParameter[] {requestParameter});
     when(request.getRequestParameterMap()).thenReturn(requestParameterMap);
 
+    @SuppressWarnings("rawtypes")
     ArgumentCaptor<Map> mapArgument = ArgumentCaptor.forClass(Map.class);
     authorizablePostProcessService.process(user, session, ModificationType.MODIFY, request);
     verify(authorizablePostProcessor).process(eq(user), eq(session), any(Modification.class), mapArgument.capture());
@@ -107,7 +108,7 @@ public class AuthorizablePostProcessorServiceTest {
     assertNotNull(mapArgument.getValue().get(":dopass"));
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Test
   public void parametersAreOptional() throws Exception {
     ArgumentCaptor<Map> mapArgument = ArgumentCaptor.forClass(Map.class);

@@ -65,7 +65,6 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.DELETE_TOPIC,
       StoreListener.TOPIC_BASE + "authorizables/" + StoreListener.UPDATED_TOPIC };
 
-  public static final String SAKAI_EXCLUDE = "sakai:excludeSearch";
 
   // list of properties to be indexed
   private static final Map<String, String> USER_WHITELISTED_PROPS;
@@ -139,7 +138,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     Authorizable authorizable = getAuthorizable(authName, repositorySession);
     if (authorizable != null) {
       // KERN-1822 check if the authorizable is marked to be excluded from searches
-      if (Boolean.parseBoolean(String.valueOf(authorizable.getProperty(SAKAI_EXCLUDE)))) {
+      if (Boolean.parseBoolean(String.valueOf(authorizable.getProperty(UserConstants.SAKAI_EXCLUDE)))) {
         return documents;
       }
 
@@ -174,7 +173,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       String authName = String.valueOf(event.getProperty(FIELD_PATH));
       Authorizable authorizable = getAuthorizable(authName, repositorySession);
       if (authorizable != null
-          && Boolean.parseBoolean(String.valueOf(authorizable.getProperty(SAKAI_EXCLUDE)))) {
+          && Boolean.parseBoolean(String.valueOf(authorizable.getProperty(UserConstants.SAKAI_EXCLUDE)))) {
         retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(authName));
       }
     }
