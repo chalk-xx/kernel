@@ -83,6 +83,7 @@ public class TrustedAuthenticationServletTest {
   }
 
 
+  @SuppressWarnings("rawtypes")
   @Test
   public void testDoGet() throws ServletException, IOException, NamespaceException, InvalidKeyException, NoSuchAlgorithmException, IllegalStateException {
 

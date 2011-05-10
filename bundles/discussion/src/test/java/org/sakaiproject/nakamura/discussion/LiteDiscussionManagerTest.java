@@ -67,6 +67,7 @@ public class LiteDiscussionManagerTest {
 //    return getRepository().login(new SimpleCredentials("admin", "admin".toCharArray()));
 //  }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testFindSettings() throws Exception {
     // Add a couple of nodes
@@ -83,10 +84,10 @@ public class LiteDiscussionManagerTest {
     assertEquals("/settingsNode", result.getPath());
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testFindMessage() throws Exception {
     // Add a couple of nodes
-    Content messagesNode = new Content("/messages", null);
     Content msgNode = new Content("/messages/msgNodeCorrect", null);
     msgNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, MessageConstants.SAKAI_MESSAGE_RT);
     msgNode.setProperty("sakai:marker", "foo");

@@ -1,12 +1,10 @@
 package org.sakaiproject.nakamura.user;
 
-import com.google.common.collect.ImmutableMap;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.apache.sling.api.resource.ValueMap;
-import org.apache.solr.client.solrj.SolrResponse;
+import com.google.common.collect.ImmutableMap;
+
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -16,7 +14,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;

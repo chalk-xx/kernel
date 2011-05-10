@@ -24,8 +24,6 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.sakaiproject.nakamura.api.templates.TemplateService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -45,8 +43,6 @@ public class FulfillTemplateServlet extends SlingSafeMethodsServlet {
   @Reference
   protected TemplateService templateService;
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(FulfillTemplateServlet.class);
 
   @Override
   @SuppressWarnings("unchecked")
