@@ -11,9 +11,9 @@
     "sortOn": "score",
     "sortOrder": "desc",
     "_categoryAnd": "",
-    "sakai:batchresultprocessor": "Files",
+    //"sakai:batchresultprocessor": "Files",
     "sakai:propertyprovider" : ["TagMatch","Category","Files"],
-    "sakai:resultprocessor": "Profile",
+    "sakai:resultprocessor": "GeneralFeed", // this is in the search bundle
     "sakai:aggregate-search-results": [ "sakai:tags" ],
     "sakai:aggregate-search-results-children": "false",
     "sakai:title": "General",
@@ -29,6 +29,6 @@
         "Get user profile nodes out of the repository filtered by a username, get group profile nodes out of the repository filtered by any value on the profile node."
     ],
     "sakai:response": [
-        "Doing a standard query searching for all profiles matching 'simong'.<br /> Example: Request to: /var/search/general.json?q=simong"
+        "Doing a standard query searching for all profiles matching 'awesome'.<br /> Example: Request to: /var/search/general.json?q=awsome"
     ]
 }
