@@ -1,20 +1,19 @@
-{ "sakai:query-template": "(path:${_userMessagePath} AND resourceType:sakai/message AND messagebox:(${box})${_categoryClause}) AND (title:(${q}) OR content:(${q}) OR ngram:(${q}) OR edgengram:(${q}))",
+{ "sakai:query-template": "sakai\\:messagestore:${_userMessagePath} AND sling\\:resourceType:sakai/message AND sakai\\:messagebox:(${box})${_categoryClause}",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },
   "sortOn": "_created",
   "sortOrder": "desc",
-  "sling:resourceType": "sakai/solr-search",
+  "sling:resourceType": "sakai/sparse-search",
   "sakai:propertyprovider" : "MessageSparse",
   "sakai:resultprocessor": "Message",
-  "sakai:title": "Messaging - User - Box and category with query term.",
+  "sakai:title": "Messaging - User - Box and category.",
   "sakai:shortDescription": "Get all the messages for a specified box and category.",
   "sakai:parameters" : [
                         "{\"name\" : \"box\", \"description\" : \"The messagebox you want the messages for.\"}",
                         "{\"name\" : \"category\", \"description\" : \"The category you want the messages filtered on.\"}",
-                        "{\"name\" : \"q\", \"description\" : \"Filter for title OR content.\"}",
                         "{\"name\" : \"sortOn\", \"description\" : \"Sort the results on this property.\"}",
-                        "{\"name\" : \"sortOrder\", \"description\" : \"Either 'asc' or 'desc'.\"}"
+                      "{\"name\" : \"sortOrder\", \"description\" : \"Either 'asc' or 'desc'.\"}"
     ],
   "sakai:description": [
                       "This search will dump all the messages for the specified messagebox matching the provided category."
