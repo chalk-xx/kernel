@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.message;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.PropertyOption;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.event.EventAdmin;
@@ -180,19 +181,11 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
    * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#getFullPathToStore(java.lang.String, org.sakaiproject.nakamura.api.lite.Session)
    */
   public String getFullPathToStore(String rcpt, Session session) throws MessagingException {
-    String path = "";
-    if (rcpt.startsWith("w-")) {
-      // This is a widget
-      // TODO This is also a bug. KERN-1442
-      return LitePersonalUtils.expandHomeDirectory(rcpt.substring(2)) + "/";
+    if (rcpt.indexOf("/") >= 0) {
+      // This is a path
+      return PathUtils.toUserContentPath(rcpt) + "/";
     }
-    // TODO TEMPORARY HACK TO ENABLE SPARSE MIGRATION! Use a proper service once the Home Folder
-    // logic is properly set up.
-    path = MessageConstants.SAKAI_MESSAGE_PATH_PREFIX + rcpt + "/" + MessageConstants.FOLDER_MESSAGES + "/";
-//      Authorizable au = PersonalUtils.getAuthorizable(session, rcpt);
-//      path = PersonalUtils.getHomeFolder(au) + "/" + MessageConstants.FOLDER_MESSAGES;
-
-    return path;
+    return LitePersonalUtils.getHomePath( rcpt ) + "/" + MessageConstants.FOLDER_MESSAGES + "/";
   }
 
   /**
