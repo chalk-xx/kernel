@@ -1,0 +1,34 @@
+{
+    "sling:resourceType": "sakai/solr-search",
+    "sakai:query-template": "(type:u AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR title:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q})${_taguuids})) OR (type:g ${_categoryAnd} AND (name:(${q}) OR title:(${q}) OR description:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q})${_taguuids})) OR (content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q}) OR ngram:(${q}) OR edgengram:(${q}) ${_tags}${_usedin})",
+    "sakai:query-template-options": {
+        "sort": "${sortOn} ${sortOrder}",
+        "group": true,
+        "group.field": "returnpath"
+    },
+    "_tags": "",
+    "_usedin": "",
+    "sortOn": "score",
+    "sortOrder": "desc",
+    "_categoryAnd": "",
+    //"sakai:batchresultprocessor": "Files",
+    "sakai:propertyprovider" : ["TagMatch","Category","Files"],
+    "sakai:resultprocessor": "GeneralFeed", // this is in the search bundle
+    "sakai:aggregate-search-results": [ "sakai:tags" ],
+    "sakai:aggregate-search-results-children": "false",
+    "sakai:title": "General",
+    "sakai:shortDescription": "Get general nodes out of the repository.",
+    "sakai:parameters" : [
+        "{\"name\" : \"q\", \"description\" : \"The term you want to match against. This will match any property on the general profile\"}",
+        "{\"name\" : \"sakai:tags\", \"description\" : \"A comma seperated list of tags that the file(s) should match\"}",
+        "{\"name\" : \"usedin\", \"description\" : \"Filter files based on where they are used (linked to.) This can be a multivalued parameter.\"}",
+        "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. The default is score\"}",
+        "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'asc' or 'desc'.\"}"
+    ],
+    "sakai:description": [
+        "Get user profile nodes out of the repository filtered by a username, get group profile nodes out of the repository filtered by any value on the profile node."
+    ],
+    "sakai:response": [
+        "Doing a standard query searching for all profiles matching 'awesome'.<br /> Example: Request to: /var/search/general.json?q=awsome"
+    ]
+}
