@@ -7,8 +7,6 @@
   "sortOrder": "desc",
   "sakai:propertyprovider" : "TagMatch",
   "sling:resourceType": "sakai/solr-search",
-  "sakai:aggregate-search-results": [ "sakai:tags" ],
-  "sakai:aggregate-search-results-children": "false",
   "sakai:title": "Pooled Content - All",
   "sakai:shortDescription": "Search trough all the pooled files.",
   "sakai:parameters" : [
