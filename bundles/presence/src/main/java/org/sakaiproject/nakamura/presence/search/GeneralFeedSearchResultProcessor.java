@@ -96,29 +96,35 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
         javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
         Session session = StorageClientUtils.adaptToSession(jcrSession);
 
-        // TODO write an if to check we're having a file atm.
+        if (result.getFirstValue("resourceType").equals("authorizable")) {
+            LOGGER.warn("ADC is processing this as a Group or User");
+            try {
+                AuthorizableManager authManager = session.getAuthorizableManager();
 
-        // for users and groups
-        try {
-            AuthorizableManager authManager = session.getAuthorizableManager();
+                String authorizableId = (String) result.getFirstValue("path");
+                Authorizable auth = authManager.findAuthorizable(authorizableId);
 
-            String authorizableId = (String) result.getFirstValue("path");
-            Authorizable auth = authManager.findAuthorizable(authorizableId);
+                write.object();
 
-            write.object();
-            if (auth != null) {
-                ValueMap map = profileService.getProfileMap(auth, jcrSession);
-                ExtendedJSONWriter.writeValueMapInternals(write, map);
 
-                // If this is a User Profile, then include Presence data.
-                if (!auth.isGroup()) {
-                    PresenceUtils.makePresenceJSON(write, authorizableId, presenceService, true);
+                if (auth != null) {
+                    ValueMap map = profileService.getProfileMap(auth, jcrSession);
+                    ExtendedJSONWriter.writeValueMapInternals(write, map);
+
+                    // If this is a User Profile, then include Presence data.
+                    if (!auth.isGroup()) {
+                        PresenceUtils.makePresenceJSON(write, authorizableId, presenceService, true);
+                    }
                 }
+                write.endObject();
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
             }
-            write.endObject();
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+        } else {
+            LOGGER.warn("ADC is processing this as a File");
+            // process this as file
         }
+        
 
         LOGGER.warn("ADC has left the building!");
     }
