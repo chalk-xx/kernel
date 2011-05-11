@@ -34,12 +34,9 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import javax.jcr.RepositoryException;
-import javax.jcr.Value;
 import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
@@ -83,46 +80,15 @@ public class TagMatchSearchPropertyProvider implements SolrSearchPropertyProvide
         }
         String statement = "//element(*)MetaData[@sling:resourceType='sakai/tag' and jcr:like(@sakai:tag-name,'%" + ISO9075.encode(q) + "%')]";
         QueryResult result = JcrResourceUtil.query(session, statement, "xpath");
-        final String[] colNames = result.getColumnNames();
-        final RowIterator rows = result.getRows();
-        Iterator<Map<String,Object>> resultIter = new Iterator<Map<String, Object>>() {
-            public boolean hasNext() {
-                return rows.hasNext();
-            };
-
-            public Map<String, Object> next() {
-                Map<String, Object> result = new HashMap<String, Object>();
-                try {
-                  Row row = rows.nextRow();
-                  result.put("uuid", row.getNode().getIdentifier());
-                  Value[] values = row.getValues();
-                  for (int i = 0; i < values.length; i++) {
-                    Value v = values[i];
-                    if (v != null) {
-                      result.put(colNames[i],
-                          JcrResourceUtil.toJavaObject(values[i]));
-                        }
-                    }
-                } catch (RepositoryException re) {
-                    logger.error(
-                        "queryResources$next: Problem accessing row values",
-                        re);
-                }
-                return result;
-            }
-
-            public void remove() {
-                throw new UnsupportedOperationException("remove");
-            }
-        };
+        RowIterator rows = result.getRows();
   
-        if (resultIter.hasNext()) {
+        if (rows.hasNext()) {
           tagClause.append(" OR taguuid:(");
           String sep = "";
-          while(resultIter.hasNext()) {
+          while(rows.hasNext()) {
             tagClause.append(sep);
-            Map<String, Object> row = resultIter.next();
-            String uuid = (String) row.get("uuid");
+            Row row = rows.nextRow();
+            String uuid = row.getNode().getIdentifier();
             tagClause.append(ClientUtils.escapeQueryChars(uuid));
             sep = " OR ";
           }
