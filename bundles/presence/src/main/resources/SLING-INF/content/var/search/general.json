@@ -11,9 +11,8 @@
     "sortOn": "score",
     "sortOrder": "desc",
     "_categoryAnd": "",
-    //"sakai:batchresultprocessor": "Files",
     "sakai:propertyprovider" : ["TagMatch","Category","Files"],
-    "sakai:resultprocessor": "GeneralFeed", // this is in the search bundle
+    "sakai:resultprocessor": "GeneralFeed",
     "sakai:aggregate-search-results": [ "sakai:tags" ],
     "sakai:aggregate-search-results-children": "false",
     "sakai:title": "General",

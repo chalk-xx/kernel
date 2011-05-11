@@ -126,10 +126,9 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
             } else {
                 LOGGER.warn("ADC is processing this as a File");
                 // process this as file
-                write.object();
+                // no need to wrap this with write.object(); and write.endObject(); writeFileNode will do this automatically.
                 Content content = session.getContentManager().get(authorizableId);
                 FileUtils.writeFileNode(content, session, write);
-                write.endObject();
             }
 
         } catch (RepositoryException ex) {
