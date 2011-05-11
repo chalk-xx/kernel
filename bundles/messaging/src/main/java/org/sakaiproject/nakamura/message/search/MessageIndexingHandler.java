@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.message.search;
 
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_BODY;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_SUBJECT;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -70,6 +73,8 @@ public class MessageIndexingHandler implements IndexingHandler {
     propBuilder.put("sakai:marker", "marker");
     propBuilder.put("sakai:sendstate", "sendstate");
     propBuilder.put("sakai:initialpost", "initialpost");
+    propBuilder.put(PROP_SAKAI_SUBJECT, "title");
+    propBuilder.put(PROP_SAKAI_BODY, "content");
     WHITELISTED_PROPS = propBuilder.build();
   }
 
