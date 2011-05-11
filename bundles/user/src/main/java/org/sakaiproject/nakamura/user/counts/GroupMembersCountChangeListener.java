@@ -41,7 +41,7 @@ public class GroupMembersCountChangeListener extends AbstractCountHandler implem
         Integer v = (Integer) au.getProperty(UserConstants.GROUP_MEMBERS_PROP);
         if ( v == null || n != v.intValue()) {
           au.setProperty(UserConstants.GROUP_MEMBERS_PROP, n);
-          authorizableManager.updateAuthorizable(au);
+//          authorizableManager.updateAuthorizable(au);
         }
       }
       else if (au instanceof User) {
