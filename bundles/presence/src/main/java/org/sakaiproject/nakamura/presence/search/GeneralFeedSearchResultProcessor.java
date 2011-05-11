@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.presence.search;
 
+import java.util.logging.Level;
+import javax.jcr.RepositoryException;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -26,10 +28,15 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
@@ -95,19 +102,18 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
     public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result) throws JSONException {
         javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
         Session session = StorageClientUtils.adaptToSession(jcrSession);
+        try {
 
-        if (result.getFirstValue("resourceType").equals("authorizable")) {
-            LOGGER.warn("ADC is processing this as a Group or User");
-            try {
-                AuthorizableManager authManager = session.getAuthorizableManager();
+            AuthorizableManager authManager;
+            authManager = session.getAuthorizableManager();
+            String authorizableId = (String) result.getFirstValue("path");
 
-                String authorizableId = (String) result.getFirstValue("path");
+            if ("authorizable".equals(result.getFirstValue("resourceType"))) {
                 Authorizable auth = authManager.findAuthorizable(authorizableId);
-
-                write.object();
-
-
                 if (auth != null) {
+                    write.object();
+                    LOGGER.warn("ADC is processing this as a Group or User");
+
                     ValueMap map = profileService.getProfileMap(auth, jcrSession);
                     ExtendedJSONWriter.writeValueMapInternals(write, map);
 
@@ -115,17 +121,24 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
                     if (!auth.isGroup()) {
                         PresenceUtils.makePresenceJSON(write, authorizableId, presenceService, true);
                     }
+                    write.endObject();
                 }
+            } else {
+                LOGGER.warn("ADC is processing this as a File");
+                // process this as file
+                write.object();
+                Content content = session.getContentManager().get(authorizableId);
+                FileUtils.writeFileNode(content, session, write);
                 write.endObject();
-            } catch (Exception e) {
-                LOGGER.error(e.getMessage(), e);
             }
-        } else {
-            LOGGER.warn("ADC is processing this as a File");
-            // process this as file
-        }
-        
 
+        } catch (RepositoryException ex) {
+            java.util.logging.Logger.getLogger(GeneralFeedSearchResultProcessor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (AccessDeniedException ex) {
+            java.util.logging.Logger.getLogger(GeneralFeedSearchResultProcessor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (StorageClientException ex) {
+            java.util.logging.Logger.getLogger(GeneralFeedSearchResultProcessor.class.getName()).log(Level.SEVERE, null, ex);
+        }
         LOGGER.warn("ADC has left the building!");
     }
 }
