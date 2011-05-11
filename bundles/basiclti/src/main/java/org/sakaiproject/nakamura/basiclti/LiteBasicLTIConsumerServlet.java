@@ -417,26 +417,23 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
         launchProps.put(USER_ID, az.getId());
       }
 
-      final Content groupHomeNode = findGroupHomeNode(node, session);
-      if (groupHomeNode == null) {
+      final Content pooledContentNode = findPooledContentNode(node, session);
+      if (pooledContentNode == null) {
         final String message = "Could not locate group home node.";
         sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message,
             new IllegalStateException(message), response);
         return;
       }
-      final String sitePath = groupHomeNode.getPath();
-      final String contextId = contextIdResolver.resolveContextId(groupHomeNode);
+      final String sitePath = pooledContentNode.getPath();
+      final String contextId = contextIdResolver.resolveContextId(pooledContentNode);
       if (contextId == null) {
         throw new IllegalStateException("Could not resolve context_id!");
       }
-      Content groupProfileNode = session.getContentManager().get(
-          groupHomeNode.getPath() + "/public/authprofile");
-      // Content groupProfileNode = groupHomeNode.getNode("public/authprofile");
       launchProps.put(CONTEXT_ID, contextId);
       launchProps.put(CONTEXT_TITLE,
-          (String)groupProfileNode.getProperty("sakai:group-title"));
+          (String)pooledContentNode.getProperty("sakai:pooled-content-file-name"));
       launchProps.put(CONTEXT_LABEL,
-          (String)groupProfileNode.getProperty("sakai:group-id"));
+          (String)pooledContentNode.getProperty("sakai:description"));
 
       // FIXME how to determine site type?
       // CourseSection probably satisfies 90% of our use cases.
@@ -1183,8 +1180,9 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
   }
 
   /**
-   * Utility method to start walking back up the hierarchy looking for the containing Site
-   * node. If the Site node cannot be found, null is returned.
+   * Utility method to start walking back up the hierarchy looking for the 
+   * containing pooled content node. If the pooled content node cannot be found, 
+   * null is returned.
    * 
    * @param startingNode
    * @param session
@@ -1192,7 +1190,7 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
    * @throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException
    * @throws StorageClientException
    */
-  private Content findGroupHomeNode(final Content startingNode, Session session)
+  private Content findPooledContentNode(final Content startingNode, Session session)
       throws StorageClientException,
       org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException {
     Content returnNode = null;
@@ -1202,7 +1200,7 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final String traversalPath = traversalNode.getPath();
       lastSlash = traversalPath.lastIndexOf("/");
       if (traversalNode.hasProperty("sling:resourceType")) {
-        if ("sakai/group-home".equals((String)traversalNode
+        if ("sakai/pooled-content".equals((String)traversalNode
             .getProperty("sling:resourceType"))) {
           // found the parent site node
           returnNode = traversalNode;
