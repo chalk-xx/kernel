@@ -9,8 +9,6 @@
   "sling:resourceType": "sakai/sparse-search",
   "sakai:propertyprovider" : "PooledContentSparse",
   "sakai:batchresultprocessor": "LiteMeManagerFiles",
-  "sakai:aggregate-search-results": [ "sakai:tags" ],
-  "sakai:aggregate-search-results-children": "false",
   "sakai:title": "Pooled Content - Me - Manager - All",
   "sakai:shortDescription": "Searches trough all the files where the current user is a manager.",
   "sakai:parameters" : [

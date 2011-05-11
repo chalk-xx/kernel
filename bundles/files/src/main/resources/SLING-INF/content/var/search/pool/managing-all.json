@@ -6,8 +6,6 @@
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
-  "sakai:aggregate-search-results": [ "sakai:tags" ],
-  "sakai:aggregate-search-results-children": "false",
   "sakai:title": "Pooled Content - Managers - All",
   "sakai:shortDescription": "Searches trough all the files filtered on a manager.",
   "sakai:parameters" : [
