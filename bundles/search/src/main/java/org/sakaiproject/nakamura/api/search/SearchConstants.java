@@ -94,6 +94,15 @@ public interface SearchConstants {
   public static final String SEARCH_PROPERTY_PROVIDER = "SearchPropertyProvider";
 
   /**
+   * A property of the search template, containing a list of properties to aggregate.
+   */
+  public static final String SAKAI_AGGREGATE = "sakai:aggregate-search-results";
+  /**
+   * A property of the search template where there are properties to aggregate, if true,
+   * child nodes of the result set will be inspected during the aggregation process.
+   */
+  public static final String SAKAI_AGGREGATE_CHILDREN = "sakai:aggregate-search-results-children";
+  /**
    * The default amount of items in a page.
    */
   public static final int DEFAULT_PAGED_ITEMS = 25;
