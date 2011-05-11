@@ -21,8 +21,8 @@ package org.sakaiproject.nakamura.api.message;
  * Represents the routing information for a message. Implementations of this interface are
  * added to the the {@link MessageRoutes} for by the {@link MessageRouterManager} or
  * {@link MessageRoute} implementations and inspected by {@link MessageTransport}
- * implementations to perform routing. The content and format of {@ling
- * MessageRoute#getRcpt()} is dependant on the transport of the {@link MessageRoute}
+ * implementations to perform routing. The content and format of {@link
+ * MessageRoute#getRcpt()} is dependent on the transport of the {@link MessageRoute}
  */
 public interface MessageRoute {
 
