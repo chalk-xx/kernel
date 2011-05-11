@@ -8,6 +8,4 @@
   "sling:resourceType": "sakai/solr-search",
   "sakai:batchresultprocessor": "Files",
   "sakai:propertyprovider": "Files",
-  "sakai:aggregate-search-results": [ "sakai:tags" ],
-  "sakai:aggregate-search-results-children": "false"
 }

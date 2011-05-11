@@ -8,8 +8,6 @@
   "sling:resourceType": "sakai/solr-search",
   "sakai:resultprocessor": "Files",
   "sakai:propertyprovider": "Files",
-  "sakai:aggregate-search-results": [ "sakai:tags" ],
-  "sakai:aggregate-search-results-children": "false",
   "sakai:title": "Files - Resources.",
   "sakai:shortDescription": "Looks for sakai/link or sakai/folder nodes at a certain path.",
   "sakai:parameters" : [

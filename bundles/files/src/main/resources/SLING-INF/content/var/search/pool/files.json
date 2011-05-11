@@ -8,8 +8,6 @@
   "sling:resourceType": "sakai/solr-search",
   "sakai:batchresultprocessor": "LiteFiles",
   "sakai:propertyprovider": "PooledContent",
-  "sakai:aggregate-search-results": [ "sakai:tags" ],
-  "sakai:aggregate-search-results-children": "false",
   "sakai:title": "Pooled Content - Group search",
   "sakai:shortDescription": "Finds all the files where a group is a manager or a viewer.",
   "sakai:parameters" : [
