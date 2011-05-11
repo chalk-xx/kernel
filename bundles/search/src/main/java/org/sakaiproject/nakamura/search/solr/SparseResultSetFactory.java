@@ -78,6 +78,7 @@ public class SparseResultSetFactory implements ResultSetFactory {
   private final class SlowQueryLogger { }
   
   private static final Logger SLOW_QUERY_LOGGER = LoggerFactory.getLogger(SlowQueryLogger.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SparseResultSetFactory.class);
 
   @Activate
   protected void activate(Map<?, ?> props) {
@@ -152,6 +153,8 @@ public class SparseResultSetFactory implements ResultSetFactory {
         SLOW_QUERY_LOGGER.warn("Slow sparse query {} ms {} ",tquery, URLDecoder.decode(query.toString(),"UTF-8"));
       }
     } catch (UnsupportedEncodingException e) {
+        // quietly swallow this exception
+      LOGGER.debug(e.getLocalizedMessage(), e);
     }
     SolrSearchResultSet rs = new SparseSearchResultSet(items, defaultMaxResults);
     return rs;

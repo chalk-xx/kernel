@@ -50,7 +50,7 @@ public class ProxyDocumentationServlet extends SlingSafeMethodsServlet {
       if (path != null) {
         docWriter.writeSearchInfo(path.getString(), session);
       } else {
-        String query = "//*[@sling:resourceType='sakai/proxy']";
+        String query = "//*[@sling:resourceType='sakai/proxy'] order by sakai:title";
         docWriter.writeNodes(session, query, DocumentationConstants.PREFIX + "/proxy");
       }
     } catch (ItemNotFoundException e) {

@@ -75,7 +75,7 @@ import java.util.List;
     @Property(name = "service.description", value = "Handler for internally delivered messages.") })
 public class LiteInternalMessageHandler implements LiteMessageTransport,
     LiteMessageProfileWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LiteInternalMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_INTERNAL;
 
   @Reference
@@ -108,6 +108,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
     Session session = null;
     try {
 
+      // TODO: this should not be the administrative session, it should be a session as the sender.
       session = slingRepository.loginAdministrative();
 
       // recipients keeps track of who have already received the message, to avoid
@@ -116,8 +117,8 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       for (MessageRoute route : routes) {
         if (MessageTransport.INTERNAL_TRANSPORT.equals(route.getTransport())) {
-          LOG.info("Started handling a message.");
           String recipient = route.getRcpt();
+          LOG.info("Started handling a message for delivery to {} ", recipient );
           // the path were we want to save messages in.
           String messageId = (String) originalMessage
               .getProperty(MessageConstants.PROP_SAKAI_ID);
@@ -180,6 +181,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
                   .build()));
           contentManager.copy(originalMessage.getPath(), toPath, true);
           Content message = contentManager.get(toPath);
+          LOG.info("Message As delivered is {} ",message);
 
           // Add some extra properties on the just created node.
           message.setProperty(MessageConstants.PROP_SAKAI_READ, false);

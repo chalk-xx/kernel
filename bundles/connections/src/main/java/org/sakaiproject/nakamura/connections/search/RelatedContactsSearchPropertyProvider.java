@@ -36,7 +36,6 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
-import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.connections.ConnectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,11 +75,6 @@ public class RelatedContactsSearchPropertyProvider implements SolrSearchProperty
 
   private static final Logger LOG = LoggerFactory
       .getLogger(RelatedContactsSearchPropertyProvider.class);
-
-  private static final String DEFAULT_SEARCH_PROC_TARGET = "(&("
-      + SolrSearchResultProcessor.DEFAULT_PROCESSOR_PROP + "=true))";
-  @Reference(target = DEFAULT_SEARCH_PROC_TARGET)
-  private transient SolrSearchResultProcessor defaultSearchProcessor;
 
   @Reference
   protected ConnectionManager connectionManager;

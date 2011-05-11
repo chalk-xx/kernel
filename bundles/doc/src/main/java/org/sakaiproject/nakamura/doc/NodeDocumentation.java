@@ -53,15 +53,14 @@ public class NodeDocumentation {
    * @throws RepositoryException
    */
   public NodeDocumentation(Node node) throws RepositoryException {
-    if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-        && node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            .getString().equals("sakai/search")) {
-      setDocumentationNode(true);
-    }
-    if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-        && node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            .getString().equals("sakai/proxy")) {
-      setDocumentationNode(true);
+    if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
+      String resourceType = node.getProperty(
+          JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
+      if ("sakai/solr-search".equals(resourceType)
+          || "sakai/sparse-search".equals(resourceType)
+          || "sakai/proxy".equals(resourceType)) {
+        setDocumentationNode(true);
+      }
     }
     setPath(node.getPath());
     if (node.hasProperty(TITLE)) {
