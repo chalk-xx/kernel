@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
@@ -31,10 +32,14 @@ import org.sakaiproject.nakamura.connections.ConnectionUtils;
 import java.util.Map;
 
 @Component(label = "ConnectionSearchPropertyProvider", description= "Provides properties to handle connection searches.")
-@Service
+@Services({
+    @Service(SolrSearchPropertyProvider.class),
+    @Service(ConnectionSearchPropertyProvider.class)
+})
 @Properties({
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "sakai.search.provider", value="Connection")})
+    @Property(name = "sakai.search.provider", value="Connection")
+})
 public class ConnectionSearchPropertyProvider implements SolrSearchPropertyProvider {
 
   /**
