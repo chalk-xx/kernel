@@ -31,6 +31,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StoreListener;
@@ -212,6 +213,15 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     if (!authorizable.isGroup()) {
       for (String principal : authorizable.getPrincipals()) {
         doc.addField("group", StringUtils.removeEnd(principal, "-managers"));
+      }
+    }
+
+    // add users to the group doc so we can find the group by its member users
+    // (and recommend similar groups based on group membership too)
+    if (authorizable.isGroup()) {
+      Group group = (Group) authorizable;
+      for (String member : group.getMembers()) {
+        doc.addField(FIELD_READERS, member);
       }
     }
 

@@ -1,6 +1,6 @@
 {
   "sling:resourceType": "sakai/solr-search",
-  "sakai:query-template": "resourceType:authorizable ${_groupQuery}",
+  "sakai:query-template": "resourceType:authorizable AND type:g ${_groupQuery}",
   "sakai:query-template-options": {
     "fq": "type:g",
     "sort": "${sortOn} ${sortOrder}",
@@ -8,7 +8,7 @@
   "sortOn": "score",
   "sortOrder": "desc",
   "_groupQuery": "",
-  "sakai:propertyprovider" : ["TagMatch", "MyRelatedGroupsPropertyProvider"],
+  "sakai:propertyprovider" : ["MyRelatedGroupsPropertyProvider"],
   "sakai:resultprocessor": "Profile",
   "sakai:title": "My Related Groups",
   "sakai:shortDescription": "Get the group profile nodes out of the repository.",
