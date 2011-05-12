@@ -9,7 +9,10 @@ public class GroupMembersCounter {
    * @return the number of members in this group.
    */
   public int count(Group group) {
-    return group.getMembers().length;
+    if ( group == null || !CountProvider.IGNORE_AUTHIDS.contains(group.getId())) {
+      return group.getMembers().length;
+    }
+    return 0;
   }
 
 }

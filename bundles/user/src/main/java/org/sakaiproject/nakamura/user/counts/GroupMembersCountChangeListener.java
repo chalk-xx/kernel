@@ -35,18 +35,20 @@ public class GroupMembersCountChangeListener extends AbstractCountHandler implem
       if (LOG.isDebugEnabled()) LOG.debug("handleEvent() " + dumpEvent(event));
       // The members of a group are defined in the membership, so simply use that value, no need to increment or decrement.
       String groupId = (String) event.getProperty(StoreListener.PATH_PROPERTY);
-      Authorizable au = authorizableManager.findAuthorizable(groupId);
-      if ( au instanceof Group ) {
-        int n = groupMembersCounter.count((Group) au);
-        Integer v = (Integer) au.getProperty(UserConstants.GROUP_MEMBERS_PROP);
-        if ( v == null || n != v.intValue()) {
-          au.setProperty(UserConstants.GROUP_MEMBERS_PROP, n);
-//          authorizableManager.updateAuthorizable(au);
+      if (  !CountProvider.IGNORE_AUTHIDS.contains(groupId) ) {
+        Authorizable au = authorizableManager.findAuthorizable(groupId);
+        if ( au instanceof Group ) {
+          int n = groupMembersCounter.count((Group) au);
+          Integer v = (Integer) au.getProperty(UserConstants.GROUP_MEMBERS_PROP);
+          if ( v == null || n != v.intValue()) {
+            au.setProperty(UserConstants.GROUP_MEMBERS_PROP, n);
+            authorizableManager.updateAuthorizable(au);
+          }
         }
-      }
-      else if (au instanceof User) {
-        String userId = (String) event.getProperty(StoreListener.PATH_PROPERTY);
-        if (LOG.isDebugEnabled()) LOG.debug("got User event for " + userId);
+        else if (au instanceof User) {
+          String userId = (String) event.getProperty(StoreListener.PATH_PROPERTY);
+          if (LOG.isDebugEnabled()) LOG.debug("got User event for " + userId);
+        }
       }
     } catch (StorageClientException e) {
       LOG.debug("Failed to update count ", e);
