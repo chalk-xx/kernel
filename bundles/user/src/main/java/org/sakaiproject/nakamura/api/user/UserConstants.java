@@ -256,5 +256,6 @@ public interface UserConstants {
   public static final String SAKAI_EXCLUDE = "sakai:excludeSearch";
 
 
+  public static final String SAKAI_CATEGORY = "sakai:category";
 
 }
