@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 
 public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryResponseWrapper {
@@ -31,6 +30,7 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryRe
   private SolrDocumentList responseList;
 
   public SolrSearchResultSetImpl(QueryResponse queryResponse) {
+    LOGGER.debug("new SolrSearchResultSetImpl(QueryResponse {})", queryResponse);
     this.queryResponse = queryResponse;
   }
 
@@ -109,7 +109,6 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryRe
   }
 
 
-  @SuppressWarnings("unchecked")
   private void loadResponse() {
     if (responseList == null) {
       // null list so let's try to load it

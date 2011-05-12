@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.Query;
@@ -92,7 +93,7 @@ public class MyRelatedGroupsPropertyProvider implements SolrSearchPropertyProvid
       // Session session = repo.loginAdministrative();
       String user = request.getRemoteUser();
 
-      LOGGER.info("RECOMMENDING GROUPS FOR: " + user);
+      LOGGER.debug("RECOMMENDING GROUPS FOR: " + user);
 
       // Perform a MoreLikeThis query for this user's groups
       Map<String,String> mltOptions = new HashMap<String,String>();
@@ -110,7 +111,7 @@ public class MyRelatedGroupsPropertyProvider implements SolrSearchPropertyProvid
       String mltQuery = String.format("type:g AND " +
                                       "resourceType:authorizable AND " +
                                       "readers:\"%s\"",
-                                      user);
+                                      ClientUtils.escapeQueryChars(user));
 
       SolrSearchResultSet suggestedGroups =
         searchServiceFactory.getSearchResultSet(request,
@@ -132,15 +133,15 @@ public class MyRelatedGroupsPropertyProvider implements SolrSearchPropertyProvid
       if (suggestedIds.size() > 0) {
         propertiesMap.put("_groupQuery",
                           " AND id:(" +
-                          StringUtils.join(suggestedIds.iterator(), " OR ") +
+                          StringUtils.join(suggestedIds, " OR ") +
                           ")" +
                           String.format (" AND -readers:\"%s\"",
-                                         user));
+                          ClientUtils.escapeQueryChars(user)));
       } else {
         propertiesMap.put("_groupQuery", "");
       }
 
-      LOGGER.info ("Query: " + propertiesMap.get("_groupQuery"));
+      LOGGER.debug("Query: " + propertiesMap.get("_groupQuery"));
 
       // AuthorizableManager authMgr = session.getAuthorizableManager();
       // Authorizable auth = authMgr.findAuthorizable(user);
@@ -221,6 +222,7 @@ public class MyRelatedGroupsPropertyProvider implements SolrSearchPropertyProvid
       // }
     } catch (SolrSearchException e) {
       LOGGER.error(e.getMessage(), e);
+      throw new IllegalStateException(e);
       // } catch (AccessDeniedException e) {
       // LOGGER.error(e.getMessage(), e);
       // } catch (StorageClientException e) {
