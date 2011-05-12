@@ -42,6 +42,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import javax.jcr.RepositoryException;
+import javax.servlet.http.HttpServletResponse;
 
 
 /**
@@ -140,6 +141,7 @@ public abstract class AbstractSparsePostOperation implements SparsePostOperation
         } catch ( AccessDeniedException e ) {
             log.error("Access Denied {} ",e.getMessage());
             log.debug("Access Denied Cause ", e);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED, "Access denied for " + request.getRequestURI());
             response.setError(e);
         } catch (Exception e) {
 
