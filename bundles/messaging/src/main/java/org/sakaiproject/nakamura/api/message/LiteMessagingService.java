@@ -114,5 +114,13 @@ public interface LiteMessagingService {
    */
   public List<String> expandAliases(String localRecipient);
 
+  /**
+   * Check that the the message should be delivered.
+   * @param recipient the recipient that delivery is being attempted to.
+   * @param originalMessage the original message.
+   * @return true if the sender has permission to deliver the message, false if not.
+   */
+  public boolean checkDeliveryAccessOk(String recipient, Content originalMessage, Session session);
+
 
 }

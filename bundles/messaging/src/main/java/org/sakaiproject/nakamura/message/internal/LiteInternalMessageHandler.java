@@ -108,7 +108,6 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
     Session session = null;
     try {
 
-      // TODO: this should not be the administrative session, it should be a session as the sender.
       session = slingRepository.loginAdministrative();
 
       // recipients keeps track of who have already received the message, to avoid
@@ -165,31 +164,36 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
         // only send a message to a user who hasn't already received one:
         if (!recipients.contains(recipient)) {
 
-          String toPath = messagingService.getFullPathToMessage(recipient, messageId,
-              session);
-
-          try {
-            lockManager.waitForLock(toPath);
-          } catch (LockTimeoutException e1) {
-            throw new MessagingException("Unable to lock destination message store");
-          }
-          
-          ImmutableMap.Builder<String, Object> propertyBuilder = ImmutableMap.builder();
-          // Copy the content into the user his folder.
-          contentManager.update(
-              new Content(toPath.substring(0, toPath.lastIndexOf("/")), propertyBuilder
-                  .build()));
-          contentManager.copy(originalMessage.getPath(), toPath, true);
-          Content message = contentManager.get(toPath);
-          LOG.info("Message As delivered is {} ",message);
-
-          // Add some extra properties on the just created node.
-          message.setProperty(MessageConstants.PROP_SAKAI_READ, false);
-          message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
-          message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE, MessageConstants.STATE_NOTIFIED);
-          message.setProperty(MessageConstants.PROP_SAKAI_MESSAGE_STORE, messagingService.getFullPathToStore(recipient, session));
+          if ( messagingService.checkDeliveryAccessOk(recipient, originalMessage, session ) ) {
+            String toPath = messagingService.getFullPathToMessage(recipient, messageId,
+                session);
+            
+            
+  
+            try {
+              lockManager.waitForLock(toPath);
+            } catch (LockTimeoutException e1) {
+              throw new MessagingException("Unable to lock destination message store");
+            }
+            
+            ImmutableMap.Builder<String, Object> propertyBuilder = ImmutableMap.builder();
+            // Copy the content into the user his folder.
+            contentManager.update(
+                new Content(toPath.substring(0, toPath.lastIndexOf("/")), propertyBuilder
+                    .build()));
+            contentManager.copy(originalMessage.getPath(), toPath, true);
+            Content message = contentManager.get(toPath);
+            LOG.info("Message As delivered is {} ",message);
+  
+            // Add some extra properties on the just created node.
+            message.setProperty(MessageConstants.PROP_SAKAI_READ, false);
+            message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
+            message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE, MessageConstants.STATE_NOTIFIED);
+            message.setProperty(MessageConstants.PROP_SAKAI_MESSAGE_STORE, messagingService.getFullPathToStore(recipient, session));
           contentManager.update(message);
-
+          } else {
+            LOG.warn("Unable to deliver message, permission denied {} ", originalMessage.getPath());
+          }
           recipients.add(recipient);
         }
       }
