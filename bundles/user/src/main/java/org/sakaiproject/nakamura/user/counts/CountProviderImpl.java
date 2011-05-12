@@ -56,7 +56,9 @@ public class CountProviderImpl implements CountProvider {
 
   public void update(Authorizable requestAu) throws AccessDeniedException,
       StorageClientException {
-
+    if ( requestAu == null || IGNORE_AUTHIDS.contains(requestAu.getId())) {
+      return;
+    }
     Session adminSession = null;
     try {
       adminSession = repository.loginAdministrative();
@@ -109,13 +111,16 @@ public class CountProviderImpl implements CountProvider {
 
   public boolean needsRefresh(Authorizable authorizable) throws AccessDeniedException,
       StorageClientException {
-    Long lastMillis = (Long) authorizable.getProperty(UserConstants.COUNTS_LAST_UPDATE_PROP);
-    if (lastMillis != null) {
-      long updateMillis = lastMillis + updateInterval;
-      long nowMillis = System.currentTimeMillis();
-      return nowMillis > updateMillis;
+    if (authorizable != null && !IGNORE_AUTHIDS.contains(authorizable.getId())) {
+      Long lastMillis = (Long) authorizable.getProperty(UserConstants.COUNTS_LAST_UPDATE_PROP);
+      if (lastMillis != null) {
+        long updateMillis = lastMillis + updateInterval;
+        long nowMillis = System.currentTimeMillis();
+        return nowMillis > updateMillis;
+      }
+      return true;
     }
-    return true;
+    return false;
   }
 
   private int getMembersCount(Group group) throws AccessDeniedException,
