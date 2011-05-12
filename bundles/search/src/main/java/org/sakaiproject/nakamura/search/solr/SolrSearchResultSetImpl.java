@@ -27,7 +27,7 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryRe
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SolrSearchResultSetImpl.class);
 
-  private QueryResponse queryResponse;
+  private final QueryResponse queryResponse;
   private SolrDocumentList responseList;
 
   public SolrSearchResultSetImpl(QueryResponse queryResponse) {
@@ -123,6 +123,8 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryRe
       } else {
         responseList = queryResponse.getResults();
         if (responseList == null) {
+          // will be null if search was grouped
+          responseList = new SolrDocumentList();
           // Must be one of our alternative query types.
           if (response.get("grouped") != null) {
             loadGroupedResponse(response);
