@@ -9,7 +9,7 @@
   "sortOrder": "desc",
   "_groupQuery": "",
   "sakai:propertyprovider" : ["MyRelatedGroupsPropertyProvider"],
-  "sakai:resultprocessor": "Profile",
+  "sakai:batchresultprocessor": "MyRelatedGroupsSearchBatchResultProcessor",
   "sakai:title": "My Related Groups",
   "sakai:shortDescription": "Get the group profile nodes out of the repository.",
   "sakai:parameters" : [
