@@ -15,12 +15,15 @@ public class ContentCounter {
   private static final Logger LOGGER = LoggerFactory.getLogger(ContentCounter.class);
 
   public int countExact(Authorizable au, SolrServerService solrSearchService) {
-    // find the content where the user has been made either a viewer or a manager
-    String userID = ClientUtils.escapeQueryChars(au.getId());
-    // pooled-content-manager, pooled-content-viewer
-    String queryString = "resourceType:sakai/pooled-content AND (viewer:" + userID
-        + " OR manager:" + userID + ")";
-    return getCount(queryString, solrSearchService);    
+    if ( au == null || !CountProvider.IGNORE_AUTHIDS.contains(au.getId())) {
+      // find the content where the user has been made either a viewer or a manager
+      String userID = ClientUtils.escapeQueryChars(au.getId());
+      // pooled-content-manager, pooled-content-viewer
+      String queryString = "resourceType:sakai/pooled-content AND (viewer:" + userID
+          + " OR manager:" + userID + ")";
+      return getCount(queryString, solrSearchService); 
+    }
+    return 0;
   }
   
   /**
