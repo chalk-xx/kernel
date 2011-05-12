@@ -168,7 +168,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       // All the ones that are files will be stored.
       int statusCode = HttpServletResponse.SC_BAD_REQUEST;
       boolean fileUpload = false;
-      Map<String, String> results = new HashMap<String, String>();
+      Map<String, Object> results = new HashMap<String, Object>();
       for (Entry<String, RequestParameter[]> e : request.getRequestParameterMap()
           .entrySet()) {
         for (RequestParameter p : e.getValue()) {
@@ -177,14 +177,12 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
             // Generate an ID and store it.
             if ( poolId == null ) {
               String createPoolId = generatePoolId();
-              createFile(createPoolId, null, adminSession, p, au, true);
-              results.put(p.getFileName(), createPoolId);
+              results.put(p.getFileName(), createFile(createPoolId, null, adminSession, p, au, true).getProperties());
               statusCode = HttpServletResponse.SC_CREATED;
               fileUpload = true;
             } else {
-              createFile(poolId, alternativeStream, session, p, au, false);
               // Add it to the map so we can output something to the UI.
-              results.put(p.getFileName(), poolId);
+              results.put(p.getFileName(), createFile(poolId, alternativeStream, session, p, au, false).getProperties());
               statusCode = HttpServletResponse.SC_OK;
               fileUpload = true;
               break;
@@ -197,8 +195,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
         // not a file upload, ok, create an item and use all the request paremeters, only if there was no poolId specified
         if ( poolId == null ) {
           String createPoolId = generatePoolId();
-          createContentItem(createPoolId, adminSession, request, au);
-          results.put("_contentItem", createPoolId);
+          results.put("_contentItem", createContentItem(createPoolId, adminSession, request, au).getProperties());
           statusCode = HttpServletResponse.SC_CREATED;
         }
       }
@@ -240,7 +237,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
     }
   }
 
-  private void createContentItem(String poolId, Session session,
+  private Content createContentItem(String poolId, Session session,
       SlingHttpServletRequest request, Authorizable au) throws StorageClientException, AccessDeniedException {
     ContentManager contentManager = session.getContentManager();
     AccessControlManager accessControlManager = session.getAccessControlManager();
@@ -286,9 +283,10 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
     AclModification.addAcl(true, Permissions.CAN_MANAGE, au.getId(), modifications);
     accessControlManager.setAcl(Security.ZONE_CONTENT, poolId, modifications.toArray(new AclModification[modifications.size()]));
 
+    return contentManager.get(poolId);
   }
 
-  private void createFile(String poolId, String alternativeStream, Session session, RequestParameter value,
+  private Content createFile(String poolId, String alternativeStream, Session session, RequestParameter value,
       Authorizable au, boolean create) throws IOException, AccessDeniedException, StorageClientException {
     // Get the content type.
     String contentType = getContentType(value);
@@ -329,6 +327,7 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       contentManager.writeBody(poolId, value.getInputStream(),alternativeStream);
       ActivityUtils.postActivity(eventAdmin, au.getId(), poolId, "Content", "default", "pooled content", "UPDATED_FILE", null);
     }
+    return contentManager.get(poolId);
   }
 
   /**
