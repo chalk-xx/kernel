@@ -18,20 +18,15 @@
 package org.sakaiproject.nakamura.connections.search;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_TITLE_PROPERTY;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.solr.client.solrj.util.ClientUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,14 +38,8 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.search.solr.Query;
-import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -72,14 +61,13 @@ public class MyRelatedGroupsPropertyProviderTest {
   @Mock
   private SolrSearchResultSet rs;
 
-  private ConnectionSearchPropertyProvider connPropProv;
-  private MyRelatedGroupsPropertyProvider provider;
+  // private ConnectionSearchPropertyProvider connPropProv;
+  // private MyRelatedGroupsPropertyProvider provider;
 
   @Before
   public void setUp() throws Exception {
-    connPropProv = new ConnectionSearchPropertyProvider();
-    provider = new MyRelatedGroupsPropertyProvider(connPropProv, searchServiceFactory,
-        repo);
+    // connPropProv = new ConnectionSearchPropertyProvider();
+    // provider = new MyRelatedGroupsPropertyProvider(searchServiceFactory);
     when(request.getRemoteUser()).thenReturn("user1");
 
     when(repo.loginAdministrative()).thenReturn(session);

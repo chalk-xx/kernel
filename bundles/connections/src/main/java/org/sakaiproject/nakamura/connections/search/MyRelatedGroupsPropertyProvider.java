@@ -17,23 +17,12 @@
  */
 package org.sakaiproject.nakamura.connections.search;
 
-import com.google.common.collect.Sets;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.solr.client.solrj.util.ClientUtils;
-import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
-import org.sakaiproject.nakamura.api.lite.Repository;
-import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
-import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
-import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.Query;
@@ -42,19 +31,15 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.MessageFormat;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Set;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides properties for myrelatedgroups.json. Added my groups and contact's groups,
@@ -66,24 +51,25 @@ import java.util.Set;
 public class MyRelatedGroupsPropertyProvider implements SolrSearchPropertyProvider {
   private static final Logger LOGGER = LoggerFactory.getLogger(MyRelatedGroupsPropertyProvider.class);
 
-  private static final String CONTACTS_QUERY_TMPL = "path:({0}) AND resourceType:sakai/contact AND state:(ACCEPTED -NONE)";
+  // private static final String CONTACTS_QUERY_TMPL =
+  // "path:({0}) AND resourceType:sakai/contact AND state:(ACCEPTED -NONE)";
 
-  @Reference
-  private ConnectionSearchPropertyProvider connPropProv;
+  // @Reference
+  // private ConnectionSearchPropertyProvider connPropProv;
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
 
-  @Reference
-  private Repository repo;
+  // @Reference
+  // private Repository repo;
 
   public MyRelatedGroupsPropertyProvider() {
   }
 
-  MyRelatedGroupsPropertyProvider(ConnectionSearchPropertyProvider connPropProv, SolrSearchServiceFactory searchServiceFactory, Repository repo) {
-    this.connPropProv = connPropProv;
+  MyRelatedGroupsPropertyProvider(SolrSearchServiceFactory searchServiceFactory) {
+    // this.connPropProv = connPropProv;
     this.searchServiceFactory = searchServiceFactory;
-    this.repo = repo;
+    // this.repo = repo;
   }
 
   /**
@@ -103,7 +89,7 @@ public class MyRelatedGroupsPropertyProvider implements SolrSearchPropertyProvid
     try {
       // collect the names of "my groups" for exclusion in final list of groups to
       // consider
-      Session session = repo.loginAdministrative();
+      // Session session = repo.loginAdministrative();
       String user = request.getRemoteUser();
 
       LOGGER.info("RECOMMENDING GROUPS FOR: " + user);
@@ -235,50 +221,51 @@ public class MyRelatedGroupsPropertyProvider implements SolrSearchPropertyProvid
       // }
     } catch (SolrSearchException e) {
       LOGGER.error(e.getMessage(), e);
-    } catch (AccessDeniedException e) {
-      LOGGER.error(e.getMessage(), e);
-    } catch (StorageClientException e) {
-      LOGGER.error(e.getMessage(), e);
+      // } catch (AccessDeniedException e) {
+      // LOGGER.error(e.getMessage(), e);
+      // } catch (StorageClientException e) {
+      // LOGGER.error(e.getMessage(), e);
     }
   }
 
-  /**
-   * Collect the groups that my contact's are members of excluding groups I'm a member of
-   * 
-   * @param request
-   * @param propertiesMap
-   * @param myGroups
-   * @throws SolrSearchException
-   */
-  private Set<String> getContactsGroups(SlingHttpServletRequest request,
-      Map<String, String> propertiesMap, HashSet<String> myGroups)
-      throws SolrSearchException {
-    // set the connection store location in the query.
-    connPropProv.loadUserProperties(request, propertiesMap);
-    String contactsQuery = MessageFormat.format(CONTACTS_QUERY_TMPL,
-        propertiesMap.get(ConnectionConstants.SEARCH_PROP_CONNECTIONSTORE));
-
-    HashSet<String> contactsGroups = Sets.newHashSet();
-    SolrSearchResultSet contactsRs = searchServiceFactory.getSearchResultSet(request,
-        new Query(contactsQuery));
-
-    Iterator<Result> contactsResults = contactsRs.getResultSetIterator();
-    while (contactsResults.hasNext()) {
-      Result result = contactsResults.next();
-      Map<String, Collection<Object>> props = result.getProperties();
-
-      Collection<Object> userGroups = props.get("group");
-      if (userGroups != null) {
-        Iterator<Object> userGroupsIter = userGroups.iterator();
-        while (userGroupsIter.hasNext()) {
-          String userGroup = String.valueOf(userGroupsIter.next());
-          if (!myGroups.contains(userGroup) && !contactsGroups.contains(userGroup)) {
-            contactsGroups.add(userGroup);
-          }
-        }
-      }
-    }
-
-    return contactsGroups;
-  }
+  // /**
+  // * Collect the groups that my contact's are members of excluding groups I'm a member
+  // of
+  // *
+  // * @param request
+  // * @param propertiesMap
+  // * @param myGroups
+  // * @throws SolrSearchException
+  // */
+  // private Set<String> getContactsGroups(SlingHttpServletRequest request,
+  // Map<String, String> propertiesMap, HashSet<String> myGroups)
+  // throws SolrSearchException {
+  // // set the connection store location in the query.
+  // connPropProv.loadUserProperties(request, propertiesMap);
+  // String contactsQuery = MessageFormat.format(CONTACTS_QUERY_TMPL,
+  // propertiesMap.get(ConnectionConstants.SEARCH_PROP_CONNECTIONSTORE));
+  //
+  // HashSet<String> contactsGroups = Sets.newHashSet();
+  // SolrSearchResultSet contactsRs = searchServiceFactory.getSearchResultSet(request,
+  // new Query(contactsQuery));
+  //
+  // Iterator<Result> contactsResults = contactsRs.getResultSetIterator();
+  // while (contactsResults.hasNext()) {
+  // Result result = contactsResults.next();
+  // Map<String, Collection<Object>> props = result.getProperties();
+  //
+  // Collection<Object> userGroups = props.get("group");
+  // if (userGroups != null) {
+  // Iterator<Object> userGroupsIter = userGroups.iterator();
+  // while (userGroupsIter.hasNext()) {
+  // String userGroup = String.valueOf(userGroupsIter.next());
+  // if (!myGroups.contains(userGroup) && !contactsGroups.contains(userGroup)) {
+  // contactsGroups.add(userGroup);
+  // }
+  // }
+  // }
+  // }
+  //
+  // return contactsGroups;
+  // }
 }
