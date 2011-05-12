@@ -141,7 +141,7 @@ public abstract class AbstractSparsePostOperation implements SparsePostOperation
         } catch ( AccessDeniedException e ) {
             log.error("Access Denied {} ",e.getMessage());
             log.debug("Access Denied Cause ", e);
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED, "Access denied for " + request.getRequestURI());
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN, "Access denied for " + request.getRequestURI());
             response.setError(e);
         } catch (Exception e) {
 
