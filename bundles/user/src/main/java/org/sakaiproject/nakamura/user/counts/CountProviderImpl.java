@@ -1,5 +1,6 @@
 package org.sakaiproject.nakamura.user.counts;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
@@ -90,6 +91,7 @@ public class CountProviderImpl implements CountProvider {
         }
         long lastUpdate = System.currentTimeMillis();
         au.setProperty(UserConstants.COUNTS_LAST_UPDATE_PROP, lastUpdate);
+        requestAu.setProperty(UserConstants.COUNTS_LAST_UPDATE_PROP, lastUpdate);
         // only update the Authorizable associated with the admin session.
         // NB we have updated the requestAuthorizable
         authorizableManager.updateAuthorizable(au);
@@ -116,6 +118,9 @@ public class CountProviderImpl implements CountProvider {
       if (lastMillis != null) {
         long updateMillis = lastMillis + updateInterval;
         long nowMillis = System.currentTimeMillis();
+        LOG.debug("Last Udpate last:{} interval:{} updateafter:{} needsupdate:{}  {} ",
+            new Object[] { lastMillis, updateInterval, updateMillis,
+                (updateMillis - nowMillis), (nowMillis > updateMillis) });
         return nowMillis > updateMillis;
       }
       return true;
@@ -145,10 +150,15 @@ public class CountProviderImpl implements CountProvider {
 
 
   // ---------- SCR integration ---------------------------------------------
+  @Activate
+  public void activate(Map<String, Object> properties) throws StorageClientException,
+      AccessDeniedException {
+    modify(properties);
+  }
   @Modified
   public void modify(Map<String, Object> properties) throws StorageClientException,
       AccessDeniedException {
-    updateInterval = OsgiUtil.toInteger(properties.get(UPDATE_INTERVAL), 30) * 60 * 1000;
+    updateInterval = OsgiUtil.toLong(properties.get(UPDATE_INTERVAL), 30) * 60 * 1000;
   }
 
 
