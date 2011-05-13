@@ -69,13 +69,15 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
     private static final String SERVICE_DESCRIPTION = "service.description";
     @Reference
     private ProxyClientService proxyClientService;
-    @Property(value = "localhost")
+    @Property(value = "fubar-100-51.dmz.caret.local")
     private static final String MAILMAN_HOST = "mailman.host";
-    @Property(value = "/mailman")
+    @Property(value = "/cgi-bin/mailman")
     private static final String MAILMAN_PATH = "mailman.path";
-    @Property(value = "password")
+    @Property(value = "foobar22!")
     private static final String LIST_ADMIN_PASSWORD = "mailman.listadmin.password";
     private ImmutableMap<String, String> configMap = ImmutableMap.of();
+    @Property(value = "caret.cam.ac.uk")
+    private static final String MM_HOST_NAME = "mailman.listmanagement.hostname";
 
     private String getMailmanUrl(String stub) {
         return "http://" + configMap.get(MAILMAN_HOST) + configMap.get(MAILMAN_PATH) + stub;
@@ -97,10 +99,36 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
             new NameValuePair("doit", "Create List")
         };
         post.setRequestBody(parametersBody);
+        int result = 0;
+        try {
+            result = client.executeMethod(post);
+            if (result != HttpServletResponse.SC_OK) {
+                throw new MailmanException("Unable to create list");
+            }
+        } catch (HttpException e) {
+            throw new MailmanException("HTTP Exception communicating with mailman server", e);
+        } catch (IOException e) {
+            throw new MailmanException("IOException communicating with mailman server", e);
+        } finally {
+            post.releaseConnection();
+        }
+    }
+
+    public void setListSettings(String listName, String listPassword) throws MailmanException {
+        LOGGER.info("let's set this reply-to header bitches. (ad602) " + listName);
+        HttpClient client = new HttpClient(proxyClientService.getHttpConnectionManager());
+        PostMethod post = new PostMethod(getMailmanUrl("/admin/" + listName + "/general"));
+
+        NameValuePair[] parameters = new NameValuePair[]{
+            new NameValuePair("first_strip_reply_to", "1"),
+            new NameValuePair("reply_goes_to_list", "1"),
+            new NameValuePair("host_name", MM_HOST_NAME)
+        };
+        post.setQueryString(parameters);
         try {
             int result = client.executeMethod(post);
             if (result != HttpServletResponse.SC_OK) {
-                throw new MailmanException("Unable to create list");
+                throw new MailmanException("Unable to properly set the Reply-To header for this list");
             }
         } catch (HttpException e) {
             throw new MailmanException("HTTP Exception communicating with mailman server", e);

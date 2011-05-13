@@ -30,4 +30,5 @@ public interface MailmanManager {
   public boolean addMember(String listName, String listPassword, String userEmail) throws MailmanException;
   public boolean removeMember(String listName, String listPassword, String userEmail) throws MailmanException;
   public MessageRoute generateMessageRouteForGroup(String groupName);
+  public void setListSettings(String principalName, String listManagementPassword) throws MailmanException;
 }
