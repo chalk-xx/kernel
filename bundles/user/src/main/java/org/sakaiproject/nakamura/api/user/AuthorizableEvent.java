@@ -21,7 +21,9 @@ package org.sakaiproject.nakamura.api.user;
 /**
  * A notification style event fired asynchronously with serializable properties detached
  * form the session and request.
+ * @deprecated use sparse versions
  */
+@Deprecated
 public interface AuthorizableEvent {
   /**
    * The topic that the event is sent as.

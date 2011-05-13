@@ -33,7 +33,6 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.nakamura.api.user.AuthorizableEventUtil;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

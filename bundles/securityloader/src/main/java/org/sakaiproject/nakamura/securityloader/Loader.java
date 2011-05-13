@@ -31,7 +31,6 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.Bundle;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
