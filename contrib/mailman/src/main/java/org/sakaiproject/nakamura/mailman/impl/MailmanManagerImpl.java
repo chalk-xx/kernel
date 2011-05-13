@@ -118,18 +118,19 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
     }
 
     public void setListSettings(String listName, String listPassword) throws MailmanException {
-        LOGGER.info("let's set this reply-to header bitches. (ad602) " + listName);
         HttpClient client = new HttpClient(proxyClientService.getHttpConnectionManager());
         PostMethod post = new PostMethod(getMailmanUrl("/admin/" + listName + "/general"));
 
         NameValuePair[] parameters = new NameValuePair[]{
             new NameValuePair("first_strip_reply_to", "1"),
             new NameValuePair("reply_goes_to_list", "1"),
-            new NameValuePair("host_name", configMap.get(MM_HOST_NAME))
+            new NameValuePair("host_name", configMap.get(MM_HOST_NAME)),
+            new NameValuePair("adminpw", listPassword)
         };
         post.setQueryString(parameters);
         try {
             int result = client.executeMethod(post);
+            LOGGER.info("MAILMAN: " + result);
             if (result != HttpServletResponse.SC_OK) {
                 throw new MailmanException("Unable to properly set the Reply-To header for this list");
             }

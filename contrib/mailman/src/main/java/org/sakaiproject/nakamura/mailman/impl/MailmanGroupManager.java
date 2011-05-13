@@ -57,7 +57,7 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
     @Property(value = "Handles management of mailman integration")
     private static final String SERVICE_DESCRIPTION = "service.description";
     @SuppressWarnings("unused")
-    @Property(value = {"org/sakaiproject/nakamura/lite/authorizables/ADDED", "org/sakaiproject/nakamura/lite/authorizables/UPDATED"})
+    @Property(value = {"org/sakaiproject/nakamura/lite/authorizables/ADDED"})
     private static final String EVENT_TOPICS = "event.topics";
     @Property(value = "password")
     private static final String LIST_MANAGEMENT_PASSWORD = "mailman.listmanagement.password";
@@ -105,7 +105,7 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
     }
 
     public void handleEvent(Event event) {
-        if (!event.getProperty("type").toString().equalsIgnoreCase("group")) {
+        if (!"group".equalsIgnoreCase(event.getProperty("type").toString())) {
             return; // we only need the events with type: group
         }
         LOGGER.info("Got event on topic: " + event.getTopic());
@@ -148,15 +148,19 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
                         if (emailAddress != null) {
                             // add the user to the subgroup
                             mailmanManager.addMember(principalName, listManagementPassword, emailAddress);
+                            LOGGER.info("Added: " + addedId + " to mailman group " + principalName);
                             // add the user to the maingroup
                             String[] splittedPrincipalName = principalName.split("-");
                             principalName = "";
                             for (int i = 0; i < splittedPrincipalName.length; i++) {
                                 if (i < (splittedPrincipalName.length - 1)) {
                                     principalName += splittedPrincipalName[i];
+                                    if (i < (splittedPrincipalName.length - 2)) {
+                                        principalName += "-";
+                                    }
                                 }
                             }
-                            LOGGER.info("Adding " + ": " + addedId + " to mailman group " + principalName);
+                            LOGGER.info("Added: " + addedId + " to mailman group " + principalName);
                             mailmanManager.addMember(principalName, listManagementPassword, emailAddress);
                         } else {
                             LOGGER.warn("No email address recorded for user: " + addedId + ". Not adding to mailman list");
