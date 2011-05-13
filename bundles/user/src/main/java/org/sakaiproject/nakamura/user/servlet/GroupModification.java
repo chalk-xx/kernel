@@ -21,6 +21,10 @@ import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 
+/**
+ * @deprecated use direct access to Sparse Users, dont go via JCR.
+ */
+@Deprecated
 public class GroupModification extends Modification {
 
   private Group mainGroup;
