@@ -1,5 +1,6 @@
 package org.sakaiproject.nakamura.user.counts;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
@@ -56,7 +57,9 @@ public class CountProviderImpl implements CountProvider {
 
   public void update(Authorizable requestAu) throws AccessDeniedException,
       StorageClientException {
-
+    if ( requestAu == null || IGNORE_AUTHIDS.contains(requestAu.getId())) {
+      return;
+    }
     Session adminSession = null;
     try {
       adminSession = repository.loginAdministrative();
@@ -88,10 +91,10 @@ public class CountProviderImpl implements CountProvider {
         }
         long lastUpdate = System.currentTimeMillis();
         au.setProperty(UserConstants.COUNTS_LAST_UPDATE_PROP, lastUpdate);
+        requestAu.setProperty(UserConstants.COUNTS_LAST_UPDATE_PROP, lastUpdate);
         // only update the Authorizable associated with the admin session.
         // NB we have updated the requestAuthorizable
         authorizableManager.updateAuthorizable(au);
-        authorizableManager.updateAuthorizable(requestAu);
       } else {
         LOG.warn("update could not get authorizable: {} from adminSession",
             new Object[] { requestAu.getId() });
@@ -109,13 +112,19 @@ public class CountProviderImpl implements CountProvider {
 
   public boolean needsRefresh(Authorizable authorizable) throws AccessDeniedException,
       StorageClientException {
-    Long lastMillis = (Long) authorizable.getProperty(UserConstants.COUNTS_LAST_UPDATE_PROP);
-    if (lastMillis != null) {
-      long updateMillis = lastMillis + updateInterval;
-      long nowMillis = System.currentTimeMillis();
-      return nowMillis > updateMillis;
+    if (authorizable != null && !IGNORE_AUTHIDS.contains(authorizable.getId())) {
+      Long lastMillis = (Long) authorizable.getProperty(UserConstants.COUNTS_LAST_UPDATE_PROP);
+      if (lastMillis != null) {
+        long updateMillis = lastMillis + updateInterval;
+        long nowMillis = System.currentTimeMillis();
+        LOG.debug("Last Udpate last:{} interval:{} updateafter:{} needsupdate:{}  {} ",
+            new Object[] { lastMillis, updateInterval, updateMillis,
+                (updateMillis - nowMillis), (nowMillis > updateMillis) });
+        return nowMillis > updateMillis;
+      }
+      return true;
     }
-    return true;
+    return false;
   }
 
   private int getMembersCount(Group group) throws AccessDeniedException,
@@ -140,10 +149,15 @@ public class CountProviderImpl implements CountProvider {
 
 
   // ---------- SCR integration ---------------------------------------------
+  @Activate
+  public void activate(Map<String, Object> properties) throws StorageClientException,
+      AccessDeniedException {
+    modify(properties);
+  }
   @Modified
   public void modify(Map<String, Object> properties) throws StorageClientException,
       AccessDeniedException {
-    updateInterval = OsgiUtil.toInteger(properties.get(UPDATE_INTERVAL), 30) * 60 * 1000;
+    updateInterval = OsgiUtil.toLong(properties.get(UPDATE_INTERVAL), 30) * 60 * 1000;
   }
 
 

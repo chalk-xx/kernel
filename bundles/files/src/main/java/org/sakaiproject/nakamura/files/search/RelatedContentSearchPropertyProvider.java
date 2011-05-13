@@ -205,7 +205,13 @@ public class RelatedContentSearchPropertyProvider extends
         }
         managers.remove(user); // do not display my own content
         viewers.remove(user); // do not display my own content
+        if (managers.isEmpty()) { // to prevent solr parse errors
+          managers.add(AVOID_FALSE_POSITIVE_MATCHES);
+        }
         propertiesMap.put("managers", Join.join(" OR ", managers));
+        if (viewers.isEmpty()) { // to prevent solr parse errors
+          viewers.add(AVOID_FALSE_POSITIVE_MATCHES);
+        }
         propertiesMap.put("viewers", Join.join(" OR ", viewers));
 
         if (allFileNames.isEmpty()) { // to prevent solr parse errors

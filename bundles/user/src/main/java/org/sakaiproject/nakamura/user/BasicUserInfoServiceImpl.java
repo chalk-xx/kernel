@@ -3,6 +3,7 @@ package org.sakaiproject.nakamura.user;
 import static org.sakaiproject.nakamura.api.user.UserConstants.CONTACTS_PROP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.CONTENT_ITEMS_PROP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.COUNTS_PROP;
+import static org.sakaiproject.nakamura.api.user.UserConstants.SAKAI_CATEGORY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_DESCRIPTION_PROPERTY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_MEMBERSHIPS_PROP;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_MEMBERS_PROP;
@@ -17,6 +18,7 @@ import static org.sakaiproject.nakamura.api.user.UserConstants.USER_FIRSTNAME_PR
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_LASTNAME_PROPERTY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_PICTURE;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_ROLE;
+import static org.sakaiproject.nakamura.api.user.UserConstants.COUNTS_LAST_UPDATE_PROP;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -57,7 +59,7 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
 
   private static String[] basicUserInfoElements = DEFAULT_BASIC_USER_INFO_ELEMENTS;
   
-  private final static String[] USER_COUNTS_PROPS = new String[] {CONTACTS_PROP, GROUP_MEMBERSHIPS_PROP, CONTENT_ITEMS_PROP, GROUP_MEMBERS_PROP};
+  private final static String[] USER_COUNTS_PROPS = new String[] {CONTACTS_PROP, GROUP_MEMBERSHIPS_PROP, CONTENT_ITEMS_PROP, GROUP_MEMBERS_PROP, COUNTS_LAST_UPDATE_PROP, SAKAI_CATEGORY};
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BasicUserInfoServiceImpl.class);
 

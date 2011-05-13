@@ -9,5 +9,4 @@ public interface SolrSearchServiceFactory {
 
   SolrSearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
       throws SolrSearchException;
-
 }

@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.connections.search;
 
-import com.google.common.collect.Sets;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
@@ -26,31 +24,23 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
-import org.sakaiproject.nakamura.api.lite.Repository;
-import org.sakaiproject.nakamura.api.lite.Session;
-import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
-import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
-import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
+import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Provides properties for myrelatedgroups.json. Added my groups and contact's groups,
@@ -62,24 +52,25 @@ import java.util.Set;
 public class MyRelatedGroupsPropertyProvider implements SolrSearchPropertyProvider {
   private static final Logger LOGGER = LoggerFactory.getLogger(MyRelatedGroupsPropertyProvider.class);
 
-  private static final String CONTACTS_QUERY_TMPL = "path:({0}) AND resourceType:sakai/contact AND state:(ACCEPTED -NONE)";
+  // private static final String CONTACTS_QUERY_TMPL =
+  // "path:({0}) AND resourceType:sakai/contact AND state:(ACCEPTED -NONE)";
 
-  @Reference
-  private ConnectionSearchPropertyProvider connPropProv;
+  // @Reference
+  // private ConnectionSearchPropertyProvider connPropProv;
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
 
-  @Reference
-  private Repository repo;
+  // @Reference
+  // private Repository repo;
 
   public MyRelatedGroupsPropertyProvider() {
   }
 
-  MyRelatedGroupsPropertyProvider(ConnectionSearchPropertyProvider connPropProv, SolrSearchServiceFactory searchServiceFactory, Repository repo) {
-    this.connPropProv = connPropProv;
+  MyRelatedGroupsPropertyProvider(SolrSearchServiceFactory searchServiceFactory) {
+    // this.connPropProv = connPropProv;
     this.searchServiceFactory = searchServiceFactory;
-    this.repo = repo;
+    // this.repo = repo;
   }
 
   /**
@@ -99,132 +90,184 @@ public class MyRelatedGroupsPropertyProvider implements SolrSearchPropertyProvid
     try {
       // collect the names of "my groups" for exclusion in final list of groups to
       // consider
-      Session session = repo.loginAdministrative();
+      // Session session = repo.loginAdministrative();
       String user = request.getRemoteUser();
-      AuthorizableManager authMgr = session.getAuthorizableManager();
-      Authorizable auth = authMgr.findAuthorizable(user);
-      Iterator<Group> authGroups = auth.memberOf(authMgr);
 
-      HashSet<String> names = Sets.newHashSet();
-      HashSet<String> titles = Sets.newHashSet();
-      HashSet<String> tagUuids = Sets.newHashSet();
-      while (authGroups.hasNext()) {
-        Group g = authGroups.next();
-        if ("everyone".equals(g.getId()) || StringUtils.startsWith(g.getId(), "g-contacts-")) {
-          continue;
-        }
+      LOGGER.debug("RECOMMENDING GROUPS FOR: " + user);
 
-        names.add(ClientUtils.escapeQueryChars(g.getId()));
-        titles.add(ClientUtils.escapeQueryChars(String.valueOf(g
-            .getProperty(UserConstants.GROUP_TITLE_PROPERTY))));
-        String[] groupTagUuids = (String[]) g.getProperty("sakai:tag-uuid");
-        if (groupTagUuids != null) {
-          for (String tagUuid : groupTagUuids) {
-            tagUuids.add(ClientUtils.escapeQueryChars(tagUuid));
-          }
+      // Perform a MoreLikeThis query for this user's groups
+      Map<String,String> mltOptions = new HashMap<String,String>();
+      mltOptions.put("fl", "*,score");
+      mltOptions.put("rows", "10");
+      mltOptions.put("mlt", "true");
+      mltOptions.put("mlt.fl", "readers,title");
+      mltOptions.put("mlt.count", "10");
+      mltOptions.put("mlt.mintf", "1");
+      mltOptions.put("mlt.mindf", "1");
+      mltOptions.put("mlt.boost", "true");
+      mltOptions.put("mlt.qf", "title^2 readers^1");
+
+      // Matches all of user's groups
+      String mltQuery = String.format("type:g AND " +
+                                      "resourceType:authorizable AND " +
+                                      "readers:\"%s\"",
+                                      ClientUtils.escapeQueryChars(user));
+
+      SolrSearchResultSet suggestedGroups =
+        searchServiceFactory.getSearchResultSet(request,
+                                                new Query(mltQuery,
+                                                          mltOptions));
+
+      List<String> suggestedIds = new ArrayList<String>();
+
+      Iterator<Result> resultIterator = suggestedGroups.getResultSetIterator();
+      while (resultIterator.hasNext()) {
+        Result result = resultIterator.next();
+        Map<String, Collection<Object>> props = result.getProperties();
+
+        for (Object id : props.get("id")) {
+          suggestedIds.add(SearchUtil.escapeString ((String) id, Query.SOLR));
         }
       }
 
-      Set<String> contactsGroups = getContactsGroups(request, propertiesMap, names);
-
-      // AND (name:(${_contacts}) OR (-name:(${_names}) AND (taguuid:(${_taguuids}) OR title:(${_titles}))))
-      StringBuilder groupQuery = new StringBuilder();
-      if (names.size() > 0 || titles.size() > 0 || tagUuids.size() > 0 || contactsGroups.size() > 0) {
-        groupQuery.append("AND (");
-        if (contactsGroups.size() > 0) {
-          String _contactsGroups = StringUtils.join(contactsGroups.iterator(), " OR ");
-          groupQuery.append("name:(").append(_contactsGroups).append(")");
-        }
-
-        if (names.size() > 0 || tagUuids.size() > 0 || titles.size() > 0) {
-          if (contactsGroups.size() > 0) {
-            groupQuery.append(" OR (");
-          }
-
-          if (names.size() > 0) {
-            String _names = StringUtils.join(names.iterator(), " OR ");
-            groupQuery.append("-name:(").append(_names).append(")");
-          }
-
-          if (tagUuids.size() > 0 || titles.size() > 0) {
-            if (names.size() > 0) {
-              groupQuery.append(" AND (");
-            }
-
-            // check for tags
-            if (tagUuids.size() > 0) {
-              String _tagUuids = StringUtils.join(tagUuids.iterator(), " OR ");
-              groupQuery.append("taguuid:(").append(_tagUuids).append(")");
-            }
-
-            // check for titles
-            if (titles.size() > 0) {
-              if (tagUuids.size() > 0) {
-                groupQuery.append(" OR ");
-              }
-
-              String _titles = StringUtils.join(titles.iterator(), " OR ");
-              groupQuery.append("title:(").append(_titles).append(")");
-            }
-
-            if (names.size() > 0) {
-              groupQuery.append(")");
-            }
-          }
-
-          if (contactsGroups.size() > 0) {
-            groupQuery.append(")");
-          }
-        }
-        groupQuery.append(")");
+      if (suggestedIds.size() > 0) {
+        propertiesMap.put("_groupQuery",
+                          " AND id:(" +
+                          StringUtils.join(suggestedIds, " OR ") +
+                          ")" +
+                          String.format (" AND -readers:\"%s\"",
+                          ClientUtils.escapeQueryChars(user)));
+      } else {
+        propertiesMap.put("_groupQuery", "");
       }
-      propertiesMap.put("_groupQuery", groupQuery.toString());
+
+      LOGGER.debug("Query: " + propertiesMap.get("_groupQuery"));
+
+      // AuthorizableManager authMgr = session.getAuthorizableManager();
+      // Authorizable auth = authMgr.findAuthorizable(user);
+      // Iterator<Group> authGroups = auth.memberOf(authMgr);
+
+      // HashSet<String> names = Sets.newHashSet();
+      // HashSet<String> titles = Sets.newHashSet();
+      // HashSet<String> tagUuids = Sets.newHashSet();
+      // while (authGroups.hasNext()) {
+      //   Group g = authGroups.next();
+      //   if ("everyone".equals(g.getId()) || StringUtils.startsWith(g.getId(), "g-contacts-")) {
+      //     continue;
+      //   }
+
+      //   names.add(ClientUtils.escapeQueryChars(g.getId()));
+      //   titles.add(ClientUtils.escapeQueryChars(String.valueOf(g
+      //       .getProperty(UserConstants.GROUP_TITLE_PROPERTY))));
+      //   String[] groupTagUuids = (String[]) g.getProperty("sakai:tag-uuid");
+      //   if (groupTagUuids != null) {
+      //     for (String tagUuid : groupTagUuids) {
+      //       tagUuids.add(ClientUtils.escapeQueryChars(tagUuid));
+      //     }
+      //   }
+      // }
+
+      // Set<String> contactsGroups = getContactsGroups(request, propertiesMap, names);
+
+      // // AND (name:(${_contacts}) OR (-name:(${_names}) AND (taguuid:(${_taguuids}) OR title:(${_titles}))))
+      // StringBuilder groupQuery = new StringBuilder();
+      // if (names.size() > 0 || titles.size() > 0 || tagUuids.size() > 0 || contactsGroups.size() > 0) {
+      //   groupQuery.append("AND (");
+      //   if (contactsGroups.size() > 0) {
+      //     String _contactsGroups = StringUtils.join(contactsGroups.iterator(), " OR ");
+      //     groupQuery.append("name:(").append(_contactsGroups).append(")");
+      //   }
+
+      //   if (names.size() > 0 || tagUuids.size() > 0 || titles.size() > 0) {
+      //     if (contactsGroups.size() > 0) {
+      //       groupQuery.append(" OR (");
+      //     }
+
+      //     if (names.size() > 0) {
+      //       String _names = StringUtils.join(names.iterator(), " OR ");
+      //       groupQuery.append("-name:(").append(_names).append(")");
+      //     }
+
+      //     if (tagUuids.size() > 0 || titles.size() > 0) {
+      //       if (names.size() > 0) {
+      //         groupQuery.append(" AND (");
+      //       }
+
+      //       // check for tags
+      //       if (tagUuids.size() > 0) {
+      //         String _tagUuids = StringUtils.join(tagUuids.iterator(), " OR ");
+      //         groupQuery.append("taguuid:(").append(_tagUuids).append(")");
+      //       }
+
+      //       // check for titles
+      //       if (titles.size() > 0) {
+      //         if (tagUuids.size() > 0) {
+      //           groupQuery.append(" OR ");
+      //         }
+
+      //         String _titles = StringUtils.join(titles.iterator(), " OR ");
+      //         groupQuery.append("title:(").append(_titles).append(")");
+      //       }
+
+      //       if (names.size() > 0) {
+      //         groupQuery.append(")");
+      //       }
+      //     }
+
+      //     if (contactsGroups.size() > 0) {
+      //       groupQuery.append(")");
+      //     }
+      //   }
+      //   groupQuery.append(")");
+      // }
     } catch (SolrSearchException e) {
       LOGGER.error(e.getMessage(), e);
-    } catch (AccessDeniedException e) {
-      LOGGER.error(e.getMessage(), e);
-    } catch (StorageClientException e) {
-      LOGGER.error(e.getMessage(), e);
+      throw new IllegalStateException(e);
+      // } catch (AccessDeniedException e) {
+      // LOGGER.error(e.getMessage(), e);
+      // } catch (StorageClientException e) {
+      // LOGGER.error(e.getMessage(), e);
     }
   }
 
-  /**
-   * Collect the groups that my contact's are members of excluding groups I'm a member of
-   * 
-   * @param request
-   * @param propertiesMap
-   * @param myGroups
-   * @throws SolrSearchException
-   */
-  private Set<String> getContactsGroups(SlingHttpServletRequest request,
-      Map<String, String> propertiesMap, HashSet<String> myGroups)
-      throws SolrSearchException {
-    // set the connection store location in the query.
-    connPropProv.loadUserProperties(request, propertiesMap);
-    String contactsQuery = MessageFormat.format(CONTACTS_QUERY_TMPL,
-        propertiesMap.get(ConnectionConstants.SEARCH_PROP_CONNECTIONSTORE));
-
-    HashSet<String> contactsGroups = Sets.newHashSet();
-    SolrSearchResultSet contactsRs = searchServiceFactory.getSearchResultSet(request,
-        new Query(contactsQuery));
-
-    Iterator<Result> contactsResults = contactsRs.getResultSetIterator();
-    while (contactsResults.hasNext()) {
-      Result result = contactsResults.next();
-      Map<String, Collection<Object>> props = result.getProperties();
-
-      Collection<Object> userGroups = props.get("group");
-      if (userGroups != null) {
-        Iterator<Object> userGroupsIter = userGroups.iterator();
-        while (userGroupsIter.hasNext()) {
-          String userGroup = String.valueOf(userGroupsIter.next());
-          if (!myGroups.contains(userGroup) && !contactsGroups.contains(userGroup)) {
-            contactsGroups.add(userGroup);
-          }
-        }
-      }
-    }
-
-    return contactsGroups;
-  }
+  // /**
+  // * Collect the groups that my contact's are members of excluding groups I'm a member
+  // of
+  // *
+  // * @param request
+  // * @param propertiesMap
+  // * @param myGroups
+  // * @throws SolrSearchException
+  // */
+  // private Set<String> getContactsGroups(SlingHttpServletRequest request,
+  // Map<String, String> propertiesMap, HashSet<String> myGroups)
+  // throws SolrSearchException {
+  // // set the connection store location in the query.
+  // connPropProv.loadUserProperties(request, propertiesMap);
+  // String contactsQuery = MessageFormat.format(CONTACTS_QUERY_TMPL,
+  // propertiesMap.get(ConnectionConstants.SEARCH_PROP_CONNECTIONSTORE));
+  //
+  // HashSet<String> contactsGroups = Sets.newHashSet();
+  // SolrSearchResultSet contactsRs = searchServiceFactory.getSearchResultSet(request,
+  // new Query(contactsQuery));
+  //
+  // Iterator<Result> contactsResults = contactsRs.getResultSetIterator();
+  // while (contactsResults.hasNext()) {
+  // Result result = contactsResults.next();
+  // Map<String, Collection<Object>> props = result.getProperties();
+  //
+  // Collection<Object> userGroups = props.get("group");
+  // if (userGroups != null) {
+  // Iterator<Object> userGroupsIter = userGroups.iterator();
+  // while (userGroupsIter.hasNext()) {
+  // String userGroup = String.valueOf(userGroupsIter.next());
+  // if (!myGroups.contains(userGroup) && !contactsGroups.contains(userGroup)) {
+  // contactsGroups.add(userGroup);
+  // }
+  // }
+  // }
+  // }
+  //
+  // return contactsGroups;
+  // }
 }
