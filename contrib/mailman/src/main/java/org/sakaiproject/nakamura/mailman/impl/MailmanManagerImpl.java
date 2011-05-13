@@ -76,8 +76,8 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
     @Property(value = "password")
     private static final String LIST_ADMIN_PASSWORD = "mailman.listadmin.password";
     private ImmutableMap<String, String> configMap = ImmutableMap.of();
-    @Property(value = "caret.cam.ac.uk")
-    private static final String MM_HOST_NAME = "mailman.listmanagement.hostname";
+    @Property(value = "example.com")
+    private static final String MM_HOST_NAME = "mailman.listmanagement.host";
 
     private String getMailmanUrl(String stub) {
         return "http://" + configMap.get(MAILMAN_HOST) + configMap.get(MAILMAN_PATH) + stub;
