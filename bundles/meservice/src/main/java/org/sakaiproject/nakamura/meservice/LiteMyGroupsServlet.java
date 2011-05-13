@@ -117,7 +117,7 @@ public class LiteMyGroupsServlet extends LiteAbstractMyGroupsServlet {
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.meservice.AbstractMyGroupsServlet#getGroups(org.apache.jackrabbit.api.security.user.Authorizable, org.apache.jackrabbit.api.security.user.UserManager)
+   * @see org.sakaiproject.nakamura.meservice.LiteAbstractMyGroupsServlet#getGroups(org.apache.jackrabbit.api.security.user.Authorizable, org.apache.jackrabbit.api.security.user.UserManager)
    */
   @Override
   protected TreeMap<String, Group> getGroups(Authorizable member, AuthorizableManager userManager)

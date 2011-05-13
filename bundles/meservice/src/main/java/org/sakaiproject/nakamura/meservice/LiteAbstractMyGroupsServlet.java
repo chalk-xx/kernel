@@ -33,7 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = -8743012430930506449L;
-  private static final Logger LOGGER = LoggerFactory.getLogger(MyManagedGroupsServlet.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LiteAbstractMyGroupsServlet.class);
 
   public static final String PARAM_TEXT_TO_MATCH = "q";
 
