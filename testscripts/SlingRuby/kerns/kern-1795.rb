@@ -80,7 +80,7 @@ class TC_Kern1795Test < Test::Unit::TestCase
     res = @fm.upload_pooled_file('random.txt', 'This is some random content that should be stored in the pooled content area.', 'text/plain')
     assert_equal("201", res.code, "should be able to upload content")
     file = JSON.parse(res.body)
-    id = file['random.txt']
+    id = file['random.txt']['poolId']
     url = @fm.url_for_pooled_file(id)
     res = @s.execute_get(@s.url_for("/system/me.json"))
     assert_equal("200", res.code, "Me servlet should return successfully")

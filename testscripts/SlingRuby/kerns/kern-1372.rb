@@ -31,7 +31,7 @@ class TC_Kern1372Test < Test::Unit::TestCase
       res = @fm.upload_pooled_file(filename, "Plain content", "text/plain")
       assert_equal("201", res.code, "Expected to be able to create pooled content")
       json = JSON.parse(res.body)
-      contentid = json[filename]
+      contentid = json[filename]['poolId']
       res = @s.execute_post(@s.url_for("/p/#{contentid}"), {
         "sakai:permissions" => "everyone"
       })

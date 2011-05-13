@@ -190,7 +190,7 @@ module NakamuraData
 	  end
 	  file_extension = ".txt"
 	  json = JSON.parse(res.body)
-	  contentid = json[file_name ]
+	  contentid = json[file_name]['poolId']
 	  # in addition to the upload, the following properties need to be set for fully functional, viewable content
 	  finish_content contentid, file_name, file_extension
 	rescue Exception => ex

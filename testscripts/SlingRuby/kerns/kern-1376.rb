@@ -28,7 +28,7 @@ class TC_Kern1376Test < Test::Unit::TestCase
     res = @fm.upload_pooled_file("random-#{m}.txt", "Plain content", "text/plain")
     assert_equal("201", res.code, "Expected to be able to create pooled content")
 	uploadresult = JSON.parse(res.body)
-	contentid = uploadresult["random-#{m}.txt"]
+	contentid = uploadresult["random-#{m}.txt"]['poolId']
 	assert_not_nil(contentid, "Should have uploaded ID")
 	contentpath = @s.url_for("/p/#{contentid}")
 
