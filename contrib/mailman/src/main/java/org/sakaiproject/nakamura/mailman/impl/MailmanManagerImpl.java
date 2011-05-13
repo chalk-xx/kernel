@@ -69,11 +69,11 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
     private static final String SERVICE_DESCRIPTION = "service.description";
     @Reference
     private ProxyClientService proxyClientService;
-    @Property(value = "fubar-100-51.dmz.caret.local")
+    @Property(value = "example.com")
     private static final String MAILMAN_HOST = "mailman.host";
     @Property(value = "/cgi-bin/mailman")
     private static final String MAILMAN_PATH = "mailman.path";
-    @Property(value = "foobar22!")
+    @Property(value = "password")
     private static final String LIST_ADMIN_PASSWORD = "mailman.listadmin.password";
     private ImmutableMap<String, String> configMap = ImmutableMap.of();
     @Property(value = "caret.cam.ac.uk")
