@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
-import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
@@ -58,7 +57,7 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
     @Property(value = "Handles management of mailman integration")
     private static final String SERVICE_DESCRIPTION = "service.description";
     @SuppressWarnings("unused")
-    @Property(value = {"org/sakaiproject/nakamura/lite/authorizables/ADDED","org/sakaiproject/nakamura/lite/authorizables/UPDATED"})
+    @Property(value = {"org/sakaiproject/nakamura/lite/authorizables/ADDED", "org/sakaiproject/nakamura/lite/authorizables/UPDATED"})
     private static final String EVENT_TOPICS = "event.topics";
     @Property(value = "password")
     private static final String LIST_MANAGEMENT_PASSWORD = "mailman.listmanagement.password";
@@ -69,12 +68,6 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
     private Session session; // fetched from the repository
     private AuthorizableManager authorizableManager = null; // fetchs from the session
     private String listManagementPassword;
-
-    @Property(value = "caret.cam.ac.uk")
-    private static final String MM_HOST_NAME = "mailman.listmanagement.hostname";
-    private String MM_EMAIL_DOMAIN = "@" + MM_HOST_NAME;
-    @Property(value = "s3test-")
-    private static final String MM_EMAIL_PREFIX = "mailman.listmanagement.email_prefix";
 
     public MailmanGroupManager() {
     }
@@ -132,8 +125,7 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
                 LOGGER.info("Got authorizable creation: " + principalName);
 
                 try {
-                    mailmanManager.createList(principalName, MM_EMAIL_PREFIX + principalName + MM_EMAIL_DOMAIN, listManagementPassword);
-                    mailmanManager.setListSettings(principalName, listManagementPassword);
+                    mailmanManager.createList(principalName, listManagementPassword);
                 } catch (Exception e) {
                     LOGGER.error("Unable to create mailman list for group", e);
                 }

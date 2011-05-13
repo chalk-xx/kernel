@@ -78,17 +78,19 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
     private ImmutableMap<String, String> configMap = ImmutableMap.of();
     @Property(value = "example.com")
     private static final String MM_HOST_NAME = "mailman.listmanagement.host";
+    @Property(value = "")
+    private static final String MM_EMAIL_PREFIX = "mailman.listmanagement.email_prefix";
 
     private String getMailmanUrl(String stub) {
         return "http://" + configMap.get(MAILMAN_HOST) + configMap.get(MAILMAN_PATH) + stub;
     }
 
-    public void createList(String listName, String ownerEmail, String password) throws MailmanException {
+    public void createList(String listName, String password) throws MailmanException {
         HttpClient client = new HttpClient(proxyClientService.getHttpConnectionManager());
         PostMethod post = new PostMethod(getMailmanUrl("/create"));
         NameValuePair[] parametersBody = new NameValuePair[]{
             new NameValuePair("listname", listName),
-            new NameValuePair("owner", ownerEmail),
+            new NameValuePair("owner", configMap.get(MM_EMAIL_PREFIX) + listName + "@" + configMap.get(MM_HOST_NAME)),
             new NameValuePair("password", password),
             new NameValuePair("confirm", password),
             new NameValuePair("auth", configMap.get(LIST_ADMIN_PASSWORD)),
@@ -112,6 +114,7 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
         } finally {
             post.releaseConnection();
         }
+        setListSettings(listName, password);
     }
 
     public void setListSettings(String listName, String listPassword) throws MailmanException {
@@ -122,7 +125,7 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
         NameValuePair[] parameters = new NameValuePair[]{
             new NameValuePair("first_strip_reply_to", "1"),
             new NameValuePair("reply_goes_to_list", "1"),
-            new NameValuePair("host_name", MM_HOST_NAME)
+            new NameValuePair("host_name", configMap.get(MM_HOST_NAME))
         };
         post.setQueryString(parameters);
         try {
