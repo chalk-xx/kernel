@@ -95,7 +95,6 @@ public class CountProviderImpl implements CountProvider {
         // only update the Authorizable associated with the admin session.
         // NB we have updated the requestAuthorizable
         authorizableManager.updateAuthorizable(au);
-        authorizableManager.updateAuthorizable(requestAu);
       } else {
         LOG.warn("update could not get authorizable: {} from adminSession",
             new Object[] { requestAu.getId() });

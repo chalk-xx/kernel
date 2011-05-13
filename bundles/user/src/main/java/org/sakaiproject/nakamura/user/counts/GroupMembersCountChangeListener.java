@@ -35,7 +35,7 @@ public class GroupMembersCountChangeListener extends AbstractCountHandler implem
       if (LOG.isDebugEnabled()) LOG.debug("handleEvent() " + dumpEvent(event));
       // The members of a group are defined in the membership, so simply use that value, no need to increment or decrement.
       String groupId = (String) event.getProperty(StoreListener.PATH_PROPERTY);
-      if (  !CountProvider.IGNORE_AUTHIDS.contains(groupId) ) {
+      if ( !CountProvider.IGNORE_AUTHIDS.contains(groupId) ) {
         Authorizable au = authorizableManager.findAuthorizable(groupId);
         if ( au instanceof Group ) {
           int n = groupMembersCounter.count((Group) au);
@@ -57,4 +57,3 @@ public class GroupMembersCountChangeListener extends AbstractCountHandler implem
     }
   }
 }
-
