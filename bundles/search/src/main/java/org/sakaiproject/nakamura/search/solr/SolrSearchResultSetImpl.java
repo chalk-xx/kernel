@@ -90,12 +90,14 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryRe
       }
     }
 
+    Comparator scoreSorter = new Comparator<SolrDocument>() {
+      public int compare(SolrDocument doc1, SolrDocument doc2) {
+        return ((Float) doc1.getFieldValue("score")).compareTo((Float) doc2.getFieldValue("score"));
+      }
+    };
+
     // Sort our doc list by score (from lowest score to highest)
-    Collections.sort(resultDocs, new Comparator<SolrDocument>() {
-        public int compare(SolrDocument doc1, SolrDocument doc2) {
-          return ((Float) doc1.getFieldValue("score")).compareTo((Float) doc2.getFieldValue("score"));
-        }
-      });
+    Collections.sort(resultDocs, scoreSorter);
 
     Map<String,SolrDocument> deDupedDocs = new HashMap<String,SolrDocument>();
     // And de-dupe based on the ID field.  Where there are multiple occurrences
@@ -106,6 +108,10 @@ public class SolrSearchResultSetImpl implements SolrSearchResultSet, SolrQueryRe
 
     responseList.setNumFound(deDupedDocs.values().size());
     responseList.addAll(deDupedDocs.values());
+
+    // One final sort to get the results into descending score order...
+    Collections.sort(responseList, scoreSorter);
+    Collections.reverse(responseList);
   }
 
 

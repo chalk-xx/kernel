@@ -21,9 +21,12 @@ import static junit.framework.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_TITLE_PROPERTY;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -38,8 +41,15 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.search.solr.Query;
+import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -61,102 +71,95 @@ public class MyRelatedGroupsPropertyProviderTest {
   @Mock
   private SolrSearchResultSet rs;
 
-  // private ConnectionSearchPropertyProvider connPropProv;
-  // private MyRelatedGroupsPropertyProvider provider;
+  private MyRelatedGroupsPropertyProvider provider;
 
   @Before
   public void setUp() throws Exception {
-    // connPropProv = new ConnectionSearchPropertyProvider();
-    // provider = new MyRelatedGroupsPropertyProvider(searchServiceFactory);
+    provider = new MyRelatedGroupsPropertyProvider(searchServiceFactory);
     when(request.getRemoteUser()).thenReturn("user1");
 
     when(repo.loginAdministrative()).thenReturn(session);
     when(session.getAuthorizableManager()).thenReturn(authMgr);
     when(authMgr.findAuthorizable("user1")).thenReturn(auth1);
+
     Group group1 = mock(Group.class);
     when(group1.getId()).thenReturn("group1");
     when(group1.getProperty(GROUP_TITLE_PROPERTY)).thenReturn("Group 1 Test");
     when(group1.getProperty("sakai:tag-uuid")).thenReturn(new String[] { "123-456" });
-//    Group group2 = mock(Group.class);
-//    when(group2.getId()).thenReturn("group2");
-//    when(group2.getProperty(GROUP_TITLE_PROPERTY)).thenReturn("Group 2 Test");
-//    when(group2.getProperty("sakai:tag-uuid")).thenReturn(new String[] { "456" });
-//    Group group3 = mock(Group.class);
-//    when(group3.getId()).thenReturn("group3");
-//    when(group3.getProperty(GROUP_TITLE_PROPERTY)).thenReturn("Group 3 Test");
-//    when(group3.getProperty("sakai:tag-uuid")).thenReturn(new String[] { "789" });
+
     when(auth1.memberOf(authMgr)).thenReturn(Sets.newHashSet(group1).iterator());
 
     when(searchServiceFactory.getSearchResultSet(eq(request), any(Query.class)))
         .thenReturn(rs);
   }
 
- @Test
- public void stopComplaining() {
-     assertEquals("", "");
- }
+
+  @Test
+  public void noGroups() {
+    reset(auth1);
+    Collection<Group> noGroups = Collections.emptyList();
+    when(auth1.memberOf(authMgr)).thenReturn(noGroups.iterator());
+
+    List<Result> results = Lists.newArrayList();
+    when(rs.getResultSetIterator()).thenReturn(results.iterator());
+
+    Map<String, String> propertiesMap = Maps.newHashMap();
+
+    provider.loadUserProperties(request, propertiesMap);
+
+    assertEquals("", propertiesMap.get("_groupQuery"));
+  }
 
 
-  // @Test
-  // public void noGroups() {
-  //   reset(auth1);
-  //   Collection<Group> noGroups = Collections.emptyList();
-  //   when(auth1.memberOf(authMgr)).thenReturn(noGroups.iterator());
+  @Test
+  public void oneGroup() {
+    Result result1 = mock(Result.class);
+    Map<String, Collection<Object>> props1 = Maps.newHashMap();
+    props1.put("id", Sets.newHashSet((Object) "prop1-id"));
 
-  //   Result result1 = mock(Result.class);
-  //   Map<String, Collection<Object>> props1 = Maps.newHashMap();
-  //   Set<Result> results = Sets.newHashSet(result1);
-  //   when(result1.getProperties()).thenReturn(props1);
-  //   when(rs.getResultSetIterator()).thenReturn(results.iterator());
+    List<Result> results = Lists.newArrayList(result1);
+    when(result1.getProperties()).thenReturn(props1);
+    when(rs.getResultSetIterator()).thenReturn(results.iterator());
 
-  //   Map<String, String> propertiesMap = Maps.newHashMap();
+    Map<String, String> propertiesMap = Maps.newHashMap();
 
-  //   provider.loadUserProperties(request, propertiesMap);
+    provider.loadUserProperties(request, propertiesMap);
 
-  //   assertEquals("", propertiesMap.get("_groupQuery"));
-  // }
+    assertEquals(" AND id:(\"prop1\\-id\"^1) AND -readers:\"user1\"",
+                 propertiesMap.get("_groupQuery"));
+  }
 
-  // @Test
-  // public void oneGroup() {
-  //   Result result1 = mock(Result.class);
-  //   Map<String, Collection<Object>> props1 = Maps.newHashMap();
-  //   Set<Result> results = Sets.newHashSet(result1);
-  //   when(result1.getProperties()).thenReturn(props1);
-  //   when(rs.getResultSetIterator()).thenReturn(results.iterator());
 
-  //   Map<String, String> propertiesMap = Maps.newHashMap();
+  @Test
+  public void threeGroups() {
 
-  //   provider.loadUserProperties(request, propertiesMap);
+    Result result1 = mock(Result.class);
+    Map<String, Collection<Object>> props1 = Maps.newHashMap();
+    props1.put("id", Sets.newHashSet((Object) "prop1"));
+    when(result1.getProperties()).thenReturn(props1);
 
-  //   assertEquals(
-  //       "AND (-name:(group1) AND (taguuid:(" + ClientUtils.escapeQueryChars("123-456")
-  //           + ") OR title:(" + ClientUtils.escapeQueryChars("Group 1 Test") + ")))",
-  //       propertiesMap.get("_groupQuery"));
-  // }
+    Result result2 = mock(Result.class);
+    Map<String, Collection<Object>> props2 = Maps.newHashMap();
+    props2.put("id", Sets.newHashSet((Object) "prop2"));
+    when(result2.getProperties()).thenReturn(props2);
 
-  // @Test
-  // public void oneGroupTwoContactGroups() {
-  //   Result result1 = mock(Result.class);
-  //   Map<String, Collection<Object>> props1 = Maps.newHashMap();
-  //   props1.put("group", Sets.newHashSet((Object) "group1", "group2", "group3"));
-  //   Set<Result> results = Sets.newHashSet(result1);
-  //   when(result1.getProperties()).thenReturn(props1);
-  //   when(rs.getResultSetIterator()).thenReturn(results.iterator());
+    Result result3 = mock(Result.class);
+    Map<String, Collection<Object>> props3 = Maps.newHashMap();
+    props3.put("id", Sets.newHashSet((Object) "prop3"));
+    when(result3.getProperties()).thenReturn(props3);
 
-  //   Map<String, String> propertiesMap = Maps.newHashMap();
+    List<Result> results = Lists.newArrayList(result1, result2, result3);
 
-  //   provider.loadUserProperties(request, propertiesMap);
-  //   // AND (name:(group3 OR group2) OR (-name:(group1) AND (taguuid:(123\-456) OR title:(Group\ 1\ Test))))
-  //   String groupQuery = propertiesMap.get("_groupQuery");
-  //   assertTrue(groupQuery.startsWith("AND (name:(group"));
-  //   assertTrue(groupQuery.endsWith(") OR (-name:(group1) AND (taguuid:("
-  //       + ClientUtils.escapeQueryChars("123-456") + ") OR title:("
-  //       + ClientUtils.escapeQueryChars("Group 1 Test") + "))))"));
+    when(rs.getSize()).thenReturn((long)3);
+    when(rs.getResultSetIterator()).thenReturn(results.iterator());
 
-  //   // can't check the actual string because the order is not guaranteed
-  //   String contactGroups = groupQuery.substring(11, 27);
-  //   assertFalse(contactGroups.contains("group1"));
-  //   assertTrue(contactGroups.contains("group2"));
-  //   assertTrue(contactGroups.contains("group3"));
-  // }
+    Map<String, String> propertiesMap = Maps.newHashMap();
+
+    provider.loadUserProperties(request, propertiesMap);
+
+    System.out.println("GOT: " + propertiesMap.get("_groupQuery"));
+
+    assertEquals(" AND id:(\"prop1\"^4 OR \"prop2\"^3 OR \"prop3\"^2) AND -readers:\"user1\"",
+                 propertiesMap.get("_groupQuery"));
+  }
 }
