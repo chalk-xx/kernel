@@ -77,7 +77,7 @@ public class LiteJsonImporter {
         Object obj = json.get(key);
 
         String pathKey = getPathElement(key);
-        Class<?> type = getElementType(key);
+        Class<?> typeHint = getElementType(key);
 
         if (obj instanceof JSONObject) {
           if ( key.endsWith("@grant")) {
@@ -102,13 +102,13 @@ public class LiteJsonImporter {
           } else {
             // This represents a multivalued property
             JSONArray arr = (JSONArray) obj;
-            properties.put(pathKey, getArray(arr, type));
+            properties.put(pathKey, getArray(arr, typeHint));
           }
         } else {
           if ( key.endsWith("@Delete") ) {
             properties.put(pathKey, new RemoveProperty());
           } else {
-            properties.put(pathKey, getObject(obj, type));
+            properties.put(pathKey, getObject(obj, typeHint));
           }
         }
       }
@@ -158,15 +158,15 @@ public class LiteJsonImporter {
 
   protected Class<?> getElementType(String key) {
     if ( key == null || key.length() == 0) {
-      return String.class;
+      return Object.class;
     }
     String[] keyparts = StringUtils.split(key, "@",2);
     if ( keyparts.length < 2 ) {
-      return String.class;
+      return Object.class;
     }
     Class<?> type = TYPES.get(keyparts[1]);
     if ( type == null ) {
-      return String.class;
+      return Object.class;
     }
     return type;
   }
@@ -180,17 +180,19 @@ public class LiteJsonImporter {
     }
     return null;
   }
-  protected <T> T[] getArray(JSONArray arr, Class<T> type) throws JSONException {
+  protected <T> T[] getArray(JSONArray arr, Class<T> typeHint) throws JSONException {
     @SuppressWarnings("unchecked")
-    T[] array = (T[]) Array.newInstance(type, arr.length());
+    T[] array = (T[]) Array.newInstance(typeHint, arr.length());
     for ( int i = 0; i < arr.length(); i++ ) {
-      array[i] = getObject(arr.get(i), type);
+      array[i] = getObject(arr.get(i), typeHint);
     }
     return array;
   }
   @SuppressWarnings("unchecked")
   protected <T> T getObject(Object obj, Class<T> type) {
-    if ( type.equals(String.class)) {
+    if ( type.equals(Object.class)) {
+      return (T) obj; // no type hint, just accept the json parser
+    }else if ( type.equals(String.class)) {
       return (T) String.valueOf(obj);
     } else if ( type.equals(Integer.class) ) {
       if ( obj instanceof Integer ) {

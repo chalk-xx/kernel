@@ -67,15 +67,15 @@ public class LiteJsonImporterTest {
   @Test
   public void testTypes() {
     LiteJsonImporter liteImporter = new LiteJsonImporter();
-    Assert.assertEquals(String.class, liteImporter.getElementType(null));
-    Assert.assertEquals(String.class, liteImporter.getElementType(""));
-    Assert.assertEquals(String.class, liteImporter.getElementType("@"));
-    Assert.assertEquals(String.class, liteImporter.getElementType("@x"));
-    Assert.assertEquals(String.class, liteImporter.getElementType("key"));
-    Assert.assertEquals(String.class, liteImporter.getElementType("key@Unknown"));
-    Assert.assertEquals(String.class, liteImporter.getElementType("key@grant"));
-    Assert.assertEquals(String.class, liteImporter.getElementType("key@deny"));
-    Assert.assertEquals(String.class, liteImporter.getElementType("key@Delete"));
+    Assert.assertEquals(Object.class, liteImporter.getElementType(null));
+    Assert.assertEquals(Object.class, liteImporter.getElementType(""));
+    Assert.assertEquals(Object.class, liteImporter.getElementType("@"));
+    Assert.assertEquals(Object.class, liteImporter.getElementType("@x"));
+    Assert.assertEquals(Object.class, liteImporter.getElementType("key"));
+    Assert.assertEquals(Object.class, liteImporter.getElementType("key@Unknown"));
+    Assert.assertEquals(Object.class, liteImporter.getElementType("key@grant"));
+    Assert.assertEquals(Object.class, liteImporter.getElementType("key@deny"));
+    Assert.assertEquals(Object.class, liteImporter.getElementType("key@Delete"));
     Assert.assertEquals(String.class, liteImporter.getElementType("key@TypeString"));
     Assert.assertEquals(Integer.class, liteImporter.getElementType("key@TypeInteger"));
     Assert.assertEquals(Long.class, liteImporter.getElementType("key@TypeLong"));
