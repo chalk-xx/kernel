@@ -127,6 +127,10 @@ public class ReCaptchaService implements CaptchaService {
     try {
       int code = client.executeMethod(method);
       if (code != 200) {
+        LOGGER.warn("ReCaptcha request responded with {} {} if this persists enable debug logging on this class for more info ",code, method.getStatusText());
+        if ( LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Response was {} ",method.getResponseBodyAsString());
+        }
         return false;
       }
 
@@ -137,6 +141,7 @@ public class ReCaptchaService implements CaptchaService {
 
       LOGGER.debug("=== start of reCAPTCHA output ===\n" + body + "\n=== end of reCAPTCHA output ==="); // allow logging statement to show more clearly that the reCAPTCHA output contains a crlf character.
       if (!body.startsWith("true")) {
+        LOGGER.warn("ReCaptcha challenge [{}] responde [{}] denied, debug level has more info ",challenge,response);
         return false;
       }
 
