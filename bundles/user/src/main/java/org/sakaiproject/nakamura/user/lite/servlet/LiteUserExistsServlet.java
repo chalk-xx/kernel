@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -98,14 +99,8 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceResponse(code=204,description="Success, user exists."),
         @ServiceResponse(code=404,description="Bad request: the required userid parameter was missing.")
         }))
-@Component(immediate=true, metatype=true, label="Sakai Nakamura :: User Existence Check Servlet",
-    description="Returns 204 if userid exists, 404 if not")
-@Service(value=javax.servlet.Servlet.class)
-@Properties(value = {
-    @Property(name="sling.servlet.resourceTypes", value="sling/users"),
-    @Property(name="sling.servlet.methods", value="GET"),
-    @Property(name="sling.servlet.selectors", value="exists")
-})
+@Component(immediate=true, metatype=true)
+@SlingServlet(methods={"GET"}, selectors={"exists"}, resourceTypes={"sparse/users"}, generateComponent=false)
 public class LiteUserExistsServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = 7051557537133012560L;
 
