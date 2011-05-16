@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.meservice;
 
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -120,7 +121,8 @@ public class LiteMyGroupsServlet extends LiteAbstractMyGroupsServlet {
    * @see org.sakaiproject.nakamura.meservice.LiteAbstractMyGroupsServlet#getGroups(org.apache.jackrabbit.api.security.user.Authorizable, org.apache.jackrabbit.api.security.user.UserManager)
    */
   @Override
-  protected TreeMap<String, Group> getGroups(Authorizable member, AuthorizableManager userManager)
+  protected TreeMap<String, Group> getGroups(Authorizable member,
+      AuthorizableManager userManager, final SlingHttpServletRequest request)
       throws StorageClientException, AccessDeniedException {
     TreeMap<String, Group> groups = new TreeMap<String, Group>();
     String[] principals = member.getPrincipals();
@@ -137,10 +139,17 @@ public class LiteMyGroupsServlet extends LiteAbstractMyGroupsServlet {
           continue;
         }
       }
+      // KERN-1600 Group's without a title should only be system groups for things like
+      // managing contacts. The UI requires a title.
       if (group.getProperty("sakai:group-title") != null) {
-        // KERN-1600 Group's without a title should only be system groups for things like
-        // managing contacts. The UI requires a title.
-        groups.put(group.getId(), (Group) group);
+        final String category = stringRequestParameter(request, "category", null);
+        if (category == null) { // no filtering
+          groups.put(group.getId(), (Group) group);
+        } else { // KERN-1865 category filter
+          if (category.equals(group.getProperty("sakai:category"))) {
+            groups.put(group.getId(), (Group) group);
+          }
+        }
       }
     }
     return groups;

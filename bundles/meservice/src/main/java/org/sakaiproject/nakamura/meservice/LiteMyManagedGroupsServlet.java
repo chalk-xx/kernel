@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.meservice;
 
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -121,7 +122,8 @@ import java.util.TreeMap;
 public class LiteMyManagedGroupsServlet extends LiteAbstractMyGroupsServlet {
   private static final long serialVersionUID = 5286762541480563822L;
   @Override
-  protected TreeMap<String, Group> getGroups(Authorizable member, AuthorizableManager userManager)
+  protected TreeMap<String, Group> getGroups(Authorizable member,
+      AuthorizableManager userManager, SlingHttpServletRequest request)
       throws StorageClientException, AccessDeniedException {
     TreeMap<String, Group> managedGroups = new TreeMap<String, Group>();
     Iterator<Group> allGroupsIter = member.memberOf(userManager);
@@ -131,7 +133,14 @@ public class LiteMyManagedGroupsServlet extends LiteAbstractMyGroupsServlet {
         for(String managerId : StorageClientUtils.nonNullStringArray(
             (String[]) group.getProperty(UserConstants.PROP_GROUP_MANAGERS))) {
           if (member.getId().equals(managerId)) {
-            managedGroups.put(group.getId(), group);
+            final String category = stringRequestParameter(request, "category", null);
+            if (category == null) { // no filtering
+              managedGroups.put(group.getId(), group);
+            } else { // KERN-1865 category filter
+              if (category.equals(group.getProperty("sakai:category"))) {
+                managedGroups.put(group.getId(), group);
+              }
+            }
             break;
           }
         }
