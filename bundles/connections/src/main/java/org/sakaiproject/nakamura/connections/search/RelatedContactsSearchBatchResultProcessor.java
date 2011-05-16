@@ -232,7 +232,7 @@ public class RelatedContactsSearchBatchResultProcessor implements
       }
 
       if (processedUsers.size() < VOLUME) {
-        LOG.info(
+        LOG.debug(
             "Did not meet functional specification. There should be at least {} results; actual size was: {}",
             VOLUME, processedUsers.size());
       }

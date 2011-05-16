@@ -155,7 +155,7 @@ public class RelatedContentSearchBatchResultProcessor extends
             }
           }
           if (uniquePathsProcessed.size() < VOLUME) {
-            LOG.info(
+            LOG.debug(
                 "Did not meet functional specification. There should be at least {} results; actual size was: {}",
                 VOLUME, uniquePathsProcessed.size());
           }
