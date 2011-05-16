@@ -101,7 +101,7 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
         response.sendError(HttpServletResponse.SC_BAD_REQUEST,"User "+userId+" not found.");
         return;
       }
-      TreeMap<String, Group> groups = getGroups(authorizable, am);
+      TreeMap<String, Group> groups = getGroups(authorizable, am, request);
 
       // Get the specified search query filter, if any.
       Pattern filterPattern = getFilterPattern(request.getParameter(PARAM_TEXT_TO_MATCH));
@@ -185,7 +185,24 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
       return defaultValue;
     }
   }
-  protected abstract TreeMap<String, Group> getGroups(Authorizable member, AuthorizableManager userManager) throws StorageClientException, AccessDeniedException;
+
+  protected String stringRequestParameter(final SlingHttpServletRequest request,
+      final String paramName, final String defaultValue) {
+    final String p = request.getParameter(paramName);
+    if (p == null || p.trim().length() == 0) {
+      return defaultValue;
+    }
+    try {
+      return p;
+    } catch (Exception e) {
+      LOGGER.debug(e.getLocalizedMessage(), e);
+      return defaultValue;
+    }
+  }
+
+  protected abstract TreeMap<String, Group> getGroups(Authorizable member,
+      AuthorizableManager userManager, SlingHttpServletRequest request)
+      throws StorageClientException, AccessDeniedException;
 
   protected static Pattern getFilterPattern(String filterParameter) {
     Pattern filterPattern;
