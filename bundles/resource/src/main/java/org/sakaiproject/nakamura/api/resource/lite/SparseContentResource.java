@@ -206,7 +206,7 @@ public class SparseContentResource extends AbstractResource {
    */
   @Override
   public Iterator<Resource> listChildren() {
-    return new SparseContentResourceIterator(content.listChildren().iterator(), session, resourceResolver);
+    return new SparseContentResourceIterator(content.listChildren().iterator(), session, resourceResolver, this);
   }
 
   @Override
