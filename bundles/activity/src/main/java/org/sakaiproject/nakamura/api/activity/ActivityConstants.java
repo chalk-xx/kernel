@@ -91,5 +91,12 @@ public interface ActivityConstants {
    * The property in the event which will hold the location to the original activity.
    */
   public static final String EVENT_PROP_PATH = "sakai:activity-item-path";
+  /**
+   * Specifies the privacy settings for the activity. 
+   */
+  public static final String PARAM_ACTIVITY_PRIVACY = "sakai:activity-privacy";
+  
+  public static final String PRIVACY_PUBLIC = "public";
+
 
 }
