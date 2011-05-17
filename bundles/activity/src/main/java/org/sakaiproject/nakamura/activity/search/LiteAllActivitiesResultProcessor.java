@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
@@ -31,10 +30,10 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
-import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
@@ -44,12 +43,11 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-
-import javax.jcr.RepositoryException;
 
 @Component(immediate = true, metatype = true)
 @Service(value = SolrSearchResultProcessor.class)
@@ -66,9 +64,6 @@ public class LiteAllActivitiesResultProcessor implements SolrSearchResultProcess
 
   @Reference
   private BasicUserInfoService basicUserInfoService;
-
-  @Reference
-  private ProfileService profileService;
 
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result)
       throws JSONException {
@@ -101,15 +96,13 @@ public class LiteAllActivitiesResultProcessor implements SolrSearchResultProcess
         write.endObject();
         // KERN-1867 Activity feed should return more data about a group
         if ("sakai/group-home".equals(contentNode.getProperty("sling:resourceType"))) {
-          try {
-            final ValueMap vm = profileService.getProfileMap(contentNode, request
-                .getResourceResolver().adaptTo(javax.jcr.Session.class));
+          final Authorizable group = authorizableManager.findAuthorizable(PathUtils
+              .getAuthorizableId(contentNode.getPath()));
+          final Map<String, Object> basicUserInfo = basicUserInfoService
+              .getProperties(group);
+          if (basicUserInfo != null) {
             write.key("profile");
-            write.object();
-            ExtendedJSONWriter.writeValueMapInternals(write, vm);
-            write.endObject();
-          } catch (RepositoryException e) {
-            LOGGER.error(e.getLocalizedMessage(), e);
+            ExtendedJSONWriter.writeValueMap(write, basicUserInfo);
           }
         }
       } else {
