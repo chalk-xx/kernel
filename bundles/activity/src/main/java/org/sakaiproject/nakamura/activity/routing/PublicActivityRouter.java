@@ -34,7 +34,7 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 /**
- * This router will deliver an activity to the creator's personal feed.
+ * This router will deliver an activity to the public feed.
  */
 @Component(immediate = true, enabled = true)
 @Service(value = ActivityRouter.class)
@@ -70,7 +70,7 @@ public class PublicActivityRouter implements ActivityRouter {
     } catch (RepositoryException e) {
 
       LOGGER.error(
-          "Exception when trying to deliver an activity to the creator feed.",
+          "Exception when trying to deliver an activity to the public feed.",
           e);
     }
   }
