@@ -71,12 +71,9 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
     private PresenceService presenceService;
 
     public GeneralFeedSearchResultProcessor() {
-        LOGGER.info("w/ ctor 1!");
     }
 
     public GeneralFeedSearchResultProcessor(SolrSearchServiceFactory searchServiceFactory) {
-        LOGGER.info("w/ ctor 2!");
-
         if (searchServiceFactory == null) {
             throw new IllegalArgumentException("Search Service Factory must be set when not using as a component");
         }
@@ -84,8 +81,6 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
     }
 
     public GeneralFeedSearchResultProcessor(SolrSearchServiceFactory searchServiceFactory, ProfileService profileService, PresenceService presenceService) {
-        LOGGER.info("w/ ctor 3!");
-
         if (searchServiceFactory == null || profileService == null || presenceService == null) {
             throw new IllegalArgumentException("SearchServiceFactory, ProfileService and PresenceService must be set when not using as a component");
         }
