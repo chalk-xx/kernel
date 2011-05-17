@@ -132,7 +132,7 @@ public interface UserConstants {
   public static final String USER_DATEOFBIRTH = "dateofbirth";
   
   /**
-   * The name of the property which holds the user's date of birth.
+   * The name of the property which holds the list of tag names this user is tagged with.
    */
   public static final String USER_TAGS = "sakai:tags";
 
