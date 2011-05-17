@@ -18,6 +18,7 @@ import static org.sakaiproject.nakamura.api.user.UserConstants.USER_FIRSTNAME_PR
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_LASTNAME_PROPERTY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_PICTURE;
 import static org.sakaiproject.nakamura.api.user.UserConstants.USER_ROLE;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_TAGS;
 import static org.sakaiproject.nakamura.api.user.UserConstants.COUNTS_LAST_UPDATE_PROP;
 
 import com.google.common.collect.ImmutableMap;
@@ -50,11 +51,11 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
 
 
   @Property(value={USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY,
-      USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME, USER_ROLE, USER_DEPARTMENT, USER_COLLEGE, USER_DATEOFBIRTH})
+      USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME, USER_ROLE, USER_DEPARTMENT, USER_COLLEGE, USER_DATEOFBIRTH, USER_TAGS})
   public final static String BASIC_PROFILE_ELEMENTS = "basicUserInfoElements";
 
   private final static String[] DEFAULT_BASIC_USER_INFO_ELEMENTS = new String[] {USER_FIRSTNAME_PROPERTY, USER_LASTNAME_PROPERTY,
-    USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME, USER_ROLE, USER_DEPARTMENT, USER_COLLEGE, USER_DATEOFBIRTH};
+    USER_EMAIL_PROPERTY, USER_PICTURE, PREFERRED_NAME, USER_ROLE, USER_DEPARTMENT, USER_COLLEGE, USER_DATEOFBIRTH, USER_TAGS};
 
 
   private static String[] basicUserInfoElements = DEFAULT_BASIC_USER_INFO_ELEMENTS;
@@ -150,10 +151,10 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
   }
 
   private  Map<String, Object> basicProfileMapForAuthorizable(Authorizable authorizable) {
-    Builder<String, String> propertyBuilder = ImmutableMap.builder();
+    Builder<String, Object> propertyBuilder = ImmutableMap.builder();
     for (String basicUserInfoElementName : basicUserInfoElements ) {
       if (authorizable.hasProperty(basicUserInfoElementName)) {
-        propertyBuilder.put(basicUserInfoElementName, (String)authorizable.getProperty(basicUserInfoElementName));
+        propertyBuilder.put(basicUserInfoElementName, authorizable.getProperty(basicUserInfoElementName));
       }
     }
     // The map were we will stick the compact information in.
@@ -167,7 +168,7 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
   }
   
   
-  private  Map<String, Object> basicInfo(Map<String, String> elementsMap) {
+  private  Map<String, Object> basicInfo(Map<String, Object> elementsMap) {
     Map<String, Object> basic = Maps.newHashMap();
     Map<String, Object> elements = Maps.newHashMap();
     for (String key : elementsMap.keySet()) {
@@ -181,7 +182,7 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
     Map<String, Object> rv = Maps.newHashMap();
     rv.put("rep:userId", User.ANON_USER);
     Map<String, Object> basicProfile =  basicInfo(
-        ImmutableMap.of(USER_FIRSTNAME_PROPERTY, "Anonymous", USER_LASTNAME_PROPERTY, "User", USER_EMAIL_PROPERTY, "anon@sakai.invalid"));
+        ImmutableMap.of(USER_FIRSTNAME_PROPERTY, (Object)"Anonymous", USER_LASTNAME_PROPERTY, "User", USER_EMAIL_PROPERTY, "anon@sakai.invalid"));
     basicProfile.put(UserConstants.USER_BASIC_ACCESS, UserConstants.EVERYBODY_ACCESS_VALUE);
     rv.put(USER_BASIC,basicProfile);
     return rv;
