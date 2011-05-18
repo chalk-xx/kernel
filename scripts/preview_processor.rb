@@ -3,6 +3,8 @@ require 'fileutils'
 require 'ruby-lib-dir.rb'
 require 'sling/sling'
 include SlingInterface
+require 'sling/users'
+include SlingUsers
 require 'rubygems'
 require 'docsplit'
 RMAGICK_BYPASS_VERSION_TEST = true
@@ -84,7 +86,11 @@ end
 # This is the main method we call at the end of the script.
 def main
   server=ARGV[0]
+  admin_password = ARGV[1] || "admin"
   @s = Sling.new(server)
+  admin = User.new("admin", admin_password)
+  @s.switch_user(admin)
+  @s.do_login
 
   res = @s.execute_get(@s.url_for("var/search/needsprocessing.json"))
   unless res.code == '200'
