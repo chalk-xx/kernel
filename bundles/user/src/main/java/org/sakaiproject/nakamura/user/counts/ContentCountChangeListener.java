@@ -28,7 +28,8 @@ import java.util.Set;
     @Property(name = "service.description", value = "Event Handler counting Group Membership ADDED and UPDATED Events."),
     @Property(name = "event.topics", value = {
         "org/sakaiproject/nakamura/lite/content/ADDED",
-        "org/sakaiproject/nakamura/lite/content/UPDATED"}) })
+        "org/sakaiproject/nakamura/lite/content/UPDATED",
+        "org/sakaiproject/nakamura/lite/content/DELETE"}) })
         
 public class ContentCountChangeListener extends AbstractCountHandler implements EventHandler {
   
@@ -39,12 +40,20 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
       if (LOG.isDebugEnabled()) LOG.debug("handleEvent() " + dumpEvent(event));
       // The members of a group are defined in the membership, so simply use that value, no need to increment or decrement.
       String path = (String) event.getProperty(StoreListener.PATH_PROPERTY);
-      Content content = contentManager.get(path);
-      if ( content != null && content.hasProperty("sling:resourceType") && "sakai/pooled-content".equals(content.getProperty("sling:resourceType")) ) {
-        // this is a content node.
-        @SuppressWarnings("unchecked")
-        Map<String, Object> beforeEvent = (Map<String, Object>) event.getProperty(StoreListener.BEFORE_EVENT_PROPERTY);
-        if ( beforeEvent != null ) {
+      Content content = contentManager.get(path);        
+      @SuppressWarnings("unchecked")
+      Map<String, Object> beforeEvent = (Map<String, Object>) event.getProperty(StoreListener.BEFORE_EVENT_PROPERTY);
+      // content will be null when listening to DELETE topic as it has been deleted before reaching here
+      String resourceType = null;
+      if (content != null) {
+        resourceType = content.hasProperty("sling:resourceType") ? (String)content.getProperty("sling:resourceType") : null;
+      }
+      else if (beforeEvent != null) {
+        resourceType = beforeEvent.containsKey("sling:resourceType") ? (String)beforeEvent.get("sling:resourceType") : null;
+      }
+      if ( "sakai/pooled-content".equals(resourceType) ) {
+        // this either is or was a content node.
+        if ( beforeEvent != null && content != null) {
           Set<String> before = Sets.newHashSet();
           before.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-viewer"))));
           before.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-manager"))));
@@ -65,9 +74,16 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
               dec(userId, UserConstants.CONTENT_ITEMS_PROP);
             }
           }
+        } // we're in a DELETE topic where content is null because it has been deleted already and removed is just the users in the beforeEvent
+        else if ("org/sakaiproject/nakamura/lite/content/DELETE".equals(event.getTopic()) && beforeEvent != null) { 
+          Set<String> removed = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-viewer")));
+          removed.addAll(ImmutableList.of(StorageClientUtils.nonNullStringArray((String[])beforeEvent.get("sakai:pooled-content-manager")))); 
+          for ( String userId : removed ) {
+            if ( !CountProvider.IGNORE_AUTHIDS.contains(userId) ) {
+              dec(userId, UserConstants.CONTENT_ITEMS_PROP);
+            }
+          }
         }
-      } else if ( content == null ) {
-        LOG.warn("Content is null for {}, hope thats ok",path);
       }
     } catch (StorageClientException e) {
       LOG.debug("Failed to update count ", e);
@@ -75,6 +91,4 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
       LOG.debug("Failed to update count ", e);
     }
   }
-  
-  
 }

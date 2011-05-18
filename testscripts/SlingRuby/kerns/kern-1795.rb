@@ -26,58 +26,59 @@ class TC_Kern1795Test < Test::Unit::TestCase
     @test_group = create_group "g-test_group_#{m}", "Test Group"
   end
   
-  def test_add_user_to_group
+  def test_add_user_to_and_remove_user_from_group
     @s.switch_user(@test_user1)
     res = @s.execute_get(@s.url_for("/system/me.json"))
     @log.info("/system/me response #{res.inspect}")
     assert_equal("200", res.code, "Me servlet should return successfully")
     me = JSON.parse(res.body)
     counts = me['profile']['counts']
-    @log.info("user counts are: #{counts.inspect}")   
+    @log.info("test_add_user_to_and_remove_user_from_group initial user counts are: #{counts.inspect}")   
     assert_equal(0, counts['contentCount'])
     assert_equal(0, counts['membershipsCount'])
     assert_equal(0, counts['contactsCount'])
     
     @s.switch_user(User.admin_user)
     @test_group.add_member @s, @test_user1.name, 'user'
-    wait_for_indexer
+    wait_for_indexer    
     @s.switch_user(@test_user1)
     res = @s.execute_get(@s.url_for("/system/me.json"))
-    @log.info("/system/me response #{res.inspect}")
+    @log.info("after group.add_member /system/me response #{res.inspect}")
     assert_equal("200", res.code, "Me servlet should return successfully")
     me = JSON.parse(res.body)
     counts = me['profile']['counts']
-    @log.info("user counts are: #{counts.inspect}")
-#    this is failing for now, groupsCount not updating after addition of member
-    #assert_equal(1, counts['membershipsCount'])
+    @log.info("after group.add_member user counts are: #{counts.inspect}")
+    assert_equal(1, counts['membershipsCount'])
     
-    #@s.switch_user(User.admin_user)
-    #@test_group.remove_member @s, @test_user1.name, 'user'
-    #@s.switch_user(@test_user1)
-    #res = @s.execute_get(@s.url_for("/system/me.json"))
-    #@log.info("/system/me response #{res.inspect}")
-    #assert_equal("200", res.code, "Me servlet should return successfully")
-    #
-    #me = JSON.parse(res.body)
-    #counts = me['profile']['counts']
-    #@log.info("user counts are: #{counts.inspect}")
-    #assert_equal(0, counts['membershipsCount'])
+    @s.switch_user(User.admin_user)
+    @test_group.remove_member @s, @test_user1.name, 'user'
+    wait_for_indexer    
+    @s.switch_user(@test_user1)
+    res = @s.execute_get(@s.url_for("/system/me.json"))
+    @log.info("after group.remove_member /system/me response #{res.inspect}")
+    assert_equal("200", res.code, "Me servlet should return successfully")
+    
+    me = JSON.parse(res.body)
+    counts = me['profile']['counts']
+    @log.info("after group.remove_member user counts are: #{counts.inspect}")
+    assert_equal(0, counts['membershipsCount'])
   end
 
   # see KERN-1003.rb
-  def test_content_counts
+  def test_and_and_delete_content_counts
     @s.switch_user(@test_user1)
     res = @s.execute_get(@s.url_for("/system/me.json"))
     assert_equal("200", res.code, "Me servlet should return successfully")
     me = JSON.parse(res.body)
     counts = me['profile']['counts']
-    @log.info("user counts are: #{counts.inspect}")   
+    @log.info("test_and_and_delete_content_counts() user counts are: #{counts.inspect}")   
     assert_equal(0, counts['contentCount'])
     assert_equal(0, counts['membershipsCount'])
     assert_equal(0, counts['contactsCount'])
     
     # test uploading a file
     res = @fm.upload_pooled_file('random.txt', 'This is some random content that should be stored in the pooled content area.', 'text/plain')
+    wait_for_indexer
     assert_equal("201", res.code, "should be able to upload content")
     file = JSON.parse(res.body)
     id = file['random.txt']['poolId']
@@ -86,34 +87,31 @@ class TC_Kern1795Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Me servlet should return successfully")
     me = JSON.parse(res.body)
     counts = me['profile']['counts']
-    @log.info("user counts are: #{counts.inspect}")
+    @log.info("after fm.upload_pooled_file user counts are: #{counts.inspect}")
     assert_equal(1, counts['contentCount'], 'contentCount should be 1 after 1 upload')
     
-    # test deleting the file
-    # not working for now, not sure if this is correct way to delete content
-    # but am not getting an event in ContentCountChangeListener
+    # test deleting the file    
+    res = @s.execute_post(url, {":operation" => "delete"})
+    assert_equal(200, res.code.to_i, "Expected to be able to delete the file.")
+    wait_for_indexer #this was a solr delete
+    res = @s.execute_get(@s.url_for("/system/me.json"))
+    @log.info("/system/me response #{res.inspect}")
+    assert_equal("200", res.code, "Me servlet should return successfully")
     
-    #res = @s.execute_post(url, {":operation" => "delete"})
-    #assert_equal(200, res.code.to_i, "Expected to be able to delete the file.")
-    #wait_for_indexer #this was a solr delete
-    #res = @s.execute_get(@s.url_for("/system/me.json"))
-    #@log.info("/system/me response #{res.inspect}")
-    #assert_equal("200", res.code, "Me servlet should return successfully")
-    #
-    #me = JSON.parse(res.body)
-    #counts = me['profile']['counts']
-    #@log.info("user counts are: #{counts.inspect}")
-    #assert_equal(0, counts['contentCount'], 'contentCount should be 1 after 1 upload')
+    me = JSON.parse(res.body)
+    counts = me['profile']['counts']
+    @log.info("user counts are: #{counts.inspect}")
+    assert_equal(0, counts['contentCount'], 'contentCount should be 1 after 1 upload')
   end
   
   def test_add_contact_for_user    
     @s.switch_user(@test_user1)
     res = @s.execute_get(@s.url_for("/system/me.json"))
-    @log.info("/system/me response #{res.inspect}")
+    @log.info("test_add_contact_for_user() /system/me response #{res.inspect}")
     assert_equal("200", res.code, "Me servlet should return successfully")
     me = JSON.parse(res.body)
     counts = me['profile']['counts']
-    @log.info("user counts are: #{counts.inspect}")   
+    @log.info("test_add_contact_for_user initial user counts are: #{counts.inspect}")   
     assert_equal(0, counts['contentCount'])
     assert_equal(0, counts['membershipsCount'])
     assert_equal(0, counts['contactsCount'])
@@ -128,6 +126,19 @@ class TC_Kern1795Test < Test::Unit::TestCase
     counts = me['profile']['counts']
     @log.info("user counts are: #{counts.inspect}")
     assert_equal(1, counts['contactsCount'], 'contentCount should be 1 after 1 invitation')
+    
+    #remove the contact
+    res = @cm.remove_contact(@test_user2.name)
+    @log.info("@cm.remove_contact() #{res.inspect}")    
+    wait_for_indexer
+    res = @s.execute_get(@s.url_for("/system/me.json"))
+    @log.info("/system/me response #{res.inspect}")
+    assert_equal("200", res.code, "Me servlet should return successfully")
+    me = JSON.parse(res.body)
+    counts = me['profile']['counts']    
+    counts = me['profile']['counts']
+    @log.info("user counts are: #{counts.inspect}")
+    assert_equal(0, counts['contactsCount'], 'contentCount should be 0 after 1 removal')
   end
     
   def create_connection(baseUser, otherUser) 
