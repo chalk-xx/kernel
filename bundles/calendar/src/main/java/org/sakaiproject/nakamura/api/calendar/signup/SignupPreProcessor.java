@@ -19,8 +19,8 @@ package org.sakaiproject.nakamura.api.calendar.signup;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
-
-import javax.jcr.Node;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 
 /**
  *
@@ -41,7 +41,7 @@ public interface SignupPreProcessor {
    *           calendar exception} will be thrown containing the correct HTTP status code
    *           and message that should be returned.
    */
-  void checkSignup(SlingHttpServletRequest request, Node signupNode)
+  void checkSignup(SlingHttpServletRequest request, Content signupNode, Session session)
       throws CalendarException;
 
 }

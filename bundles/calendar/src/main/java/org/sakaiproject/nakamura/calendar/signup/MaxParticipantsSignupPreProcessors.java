@@ -18,21 +18,18 @@
 package org.sakaiproject.nakamura.calendar.signup;
 
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_EVENT_SIGNUP_PARTICIPANT_RT;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
 import org.sakaiproject.nakamura.api.calendar.signup.SignupPreProcessor;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
-import javax.jcr.query.QueryResult;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -52,14 +49,12 @@ public class MaxParticipantsSignupPreProcessors implements SignupPreProcessor {
    * @see org.sakaiproject.nakamura.api.calendar.signup.SignupPreProcessor#checkSignup(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.Node)
    */
-  public void checkSignup(SlingHttpServletRequest request, Node signupNode)
+  public void checkSignup(SlingHttpServletRequest request, Content signupNode, Session session)
       throws CalendarException {
 
-    try {
       // Get the number of maximum participants.
       if (signupNode.hasProperty(SAKAI_EVENT_MAX_PARTICIPANTS)) {
-        long maxParticipants = signupNode.getProperty(SAKAI_EVENT_MAX_PARTICIPANTS)
-            .getLong();
+        long maxParticipants = (Long) signupNode.getProperty(SAKAI_EVENT_MAX_PARTICIPANTS);
 
         // If a valid number is set, we check it.
         // -1 or smaller means we don't.
@@ -67,13 +62,6 @@ public class MaxParticipantsSignupPreProcessors implements SignupPreProcessor {
           checkParticipants(signupNode, maxParticipants);
         }
       }
-    } catch (RepositoryException e) {
-      LOGGER
-          .error(
-              "Caugth a repository exception when checking for the maximum participants for an event signup.",
-              e);
-      throw new CalendarException(500, e.getMessage());
-    }
 
   }
 
@@ -82,25 +70,16 @@ public class MaxParticipantsSignupPreProcessors implements SignupPreProcessor {
    * @param maxParticipants
    * @throws CalendarException
    */
-  protected void checkParticipants(Node signupNode, long maxParticipants)
+  protected void checkParticipants(Content signupNode, long maxParticipants)
       throws CalendarException {
 
     // Check how many participants there are in this event.
     // We do this by doing a query for the participants.
-    try {
-      Session session = signupNode.getSession();
-      QueryManager qm = session.getWorkspace().getQueryManager();
-      String query = "/jcr:root" + signupNode.getPath() + "//*[@sling:resourceType='"
-          + SAKAI_EVENT_SIGNUP_PARTICIPANT_RT + "']";
-      Query q = qm.createQuery(query, Query.XPATH);
-      QueryResult result = q.execute();
-      NodeIterator iterator = result.getNodes();
-
-      // If there is a massive number of participants, this will be rather slow.
-      long count = 0;
-      while (iterator.hasNext()) {
-        iterator.nextNode();
-        count++;
+    int count= 0;
+      for (Content content : signupNode.listChildren() ) {
+        if ( SAKAI_EVENT_SIGNUP_PARTICIPANT_RT.equals(content.getProperty((JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)))) {
+          count++;
+        }
       }
 
       // If we have filled the available slots, we throw an exception that bubbles up to
@@ -110,13 +89,6 @@ public class MaxParticipantsSignupPreProcessors implements SignupPreProcessor {
             "This event has reached the maximum number of participants.");
       }
 
-    } catch (RepositoryException e) {
-      LOGGER
-          .error(
-              "Caught a repository exception when trying to get the number of participants for a calendar event.",
-              e);
-      throw new CalendarException(500, e.getMessage());
-    }
 
   }
 
