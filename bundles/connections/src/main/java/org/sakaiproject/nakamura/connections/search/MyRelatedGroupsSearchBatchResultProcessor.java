@@ -100,18 +100,6 @@ public class MyRelatedGroupsSearchBatchResultProcessor implements
   @Reference
   private ProfileService profileService;
 
-  /**
-   * Used for random people matching
-   */
-  public static final Map<String, String> SOURCE_QUERY_OPTIONS;
-  static {
-    final Map<String, String> sqo = new HashMap<String, String>(3);
-    // sort by highest score
-    sqo.put("items", String.valueOf(VOLUME));
-    sqo.put("page", "0");
-    SOURCE_QUERY_OPTIONS = sqo;
-  }
-
   private static final String DEFAULT_SEARCH_PROC_TARGET = "(&("
       + SolrSearchResultProcessor.DEFAULT_PROCESSOR_PROP + "=true))";
   @Reference(target = DEFAULT_SEARCH_PROC_TARGET)
@@ -150,21 +138,14 @@ public class MyRelatedGroupsSearchBatchResultProcessor implements
         sourceQuery.append(AUTHORIZABLE_RT);
         sourceQuery.append(" AND type:g AND -readers:");
         sourceQuery.append(ClientUtils.escapeQueryChars(user));
-        final Map<String, String> sqo = new HashMap<String, String>(SOURCE_QUERY_OPTIONS);
-        // random solr sorting requires a seed for the dynamic random_* field
-        final int random = (int) (Math.random() * 10000);
-        sqo.put("sort", "random_" + random + " desc");
-        final Query query = new Query(Query.SOLR, sourceQuery.toString(), sqo);
 
-        SolrSearchResultSet rs = null;
-        try {
-          rs = defaultSearchProcessor.getSearchResultSet(request, query);
-        } catch (SolrSearchException e) {
-          LOG.error(e.getLocalizedMessage(), e);
-          throw new IllegalStateException(e);
-        }
-        if (rs != null) {
-          final Iterator<Result> i = rs.getResultSetIterator();
+        final Iterator<Result> i = SolrSearchUtil.getRandomResults(request,
+                                                                   defaultSearchProcessor,
+                                                                   sourceQuery.toString(),
+                                                                   "items", String.valueOf(VOLUME),
+                                                                   "page", "0");
+
+        if (i != null) {
           while (i.hasNext() && processedGroups.size() <= nitems) {
             final Result result = i.next();
             final String path = (String) result.getFirstValue("path");
@@ -182,6 +163,9 @@ public class MyRelatedGroupsSearchBatchResultProcessor implements
     } catch (AccessDeniedException e) {
       // quietly swallow access denied
       LOG.debug(e.getLocalizedMessage(), e);
+    } catch (SolrSearchException e) {
+      LOG.error(e.getLocalizedMessage(), e);
+      throw new IllegalStateException(e);
     } catch (StorageClientException e) {
       throw new IllegalStateException(e);
     }

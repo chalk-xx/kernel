@@ -1,0 +1,27 @@
+{
+  "sling:resourceType": "sakai/solr-search",
+  "sakai:query-template": "resourceType:\"sakai/pooled-content\" ${_contentQuery}",
+  "sakai:query-template-options": {
+    "sort": "${sortOn} ${sortOrder}",
+  },
+  "sortOn": "score",
+  "sortOrder": "desc",
+  "_contentQuery": "",
+  "sakai:batchresultprocessor": "RelatedContentSearchBatchResultProcessor",
+  "sakai:propertyprovider" : ["ContentLikeThisPropertyProvider"],
+  "sakai:title": "Content like this",
+  "sakai:shortDescription": "Find content items similar to a given content item.",
+  "sakai:parameters" : [
+    "{\"name\" : \"contentPath\", \"description\" : \"The path to the content you want to find similar content to.\"}",
+    "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. The default is score\"}",
+    "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'asc' or 'desc'.\"}"
+  ],
+  "sakai:description": [
+    "Get content items similar to a given content item."
+  ],
+  "sakai:response": [
+     "Find all content items similar to the one at path '/p/h9uhKk7Iaa'.<br> Example request: /var/search/content-like-this.json?contentPath=/p/h9uhKk7Iaa<br>Example response:<br><pre class=\"json\">{\"items\":25,\"results\":[{\"jcr:path\":\"h9IgFVpCym\",\"jcr:name\":\"h9IgFVpCym\",\"_length\":267628,\"sakai:needsprocessing\":\"true\",\"_lastModifiedBy\":\"admin\",\"_mimeType\":\"image/jpeg\",\"_bodyLastModifiedBy\":\"admin\",\"_createdBy\":\"admin\",\"_blockId\":\"73pBwIG3EeCDyPk4CgEBgA\",\"sling:resourceType\":\"sakai/pooled-content\",\"sakai:pooled-content-manager\":[\"admin\"],\"_created\":1305768781700,\"_id\":\"72zUQIG3EeCDyPk4CgEBgA\",\"_bodyCreatedBy\":\"admin\",\"sakai:pool-content-created-for\":\"admin\",\"sakai:pooled-content-file-name\":\"invite\",\"_bodyLastModified\":1305768781789,\"_lastModified\":1305768781700,\"_bodyCreated\":1305768781789,\"_bodyLocation\":\"2011/4/ys/iR/Lm/ysiRLmBbJ-yjHcc-KoMgRGeWrcI\",\"h9IgFVpCym/activity\":{\"jcr:path\":\"h9IgFVpCym/activity\",\"jcr:name\":\"activity\",\"sling:resourceType\":\"sakai/activityStore\",\"_created\":1305768782196,\"_id\":\"77iDQIG3EeCDyPk4CgEBgA\",\"_lastModifiedBy\":\"admin\",\"_lastModified\":1305768782196,\"_createdBy\":\"admin\",\"h9IgFVpCym/activity/2011-05-19-11-030cbe6daef7037b23fa6f58f16b7addd8fe8b05\":{\"jcr:path\":\"h9IgFVpCym/activity/2011-05-19-11-030cbe6daef7037b23fa6f58f16b7addd8fe8b05\",\"jcr:name\":\"2011-05-19-11-030cbe6daef7037b23fa6f58f16b7addd8fe8b05\",\"sling:resourceType\":\"sakai/activity\",\"_created\":1305768782280,\"_id\":\"78VUgIG3EeCDyPk4CgEBgA\",\"sakai:activity-appid\":\"default\",\"sakai:activity-type\":\"pooled content\",\"_lastModifiedBy\":\"admin\",\"_lastModified\":1305768782351,\"sakai:activity-actor\":\"admin\",\"sakai:activityMessage\":\"CREATED_FILE\",\"_createdBy\":\"admin\"}}},{\"jcr:path\":\"h9hM2K17aa\",\"jcr:name\":\"h9hM2K17aa\",\"_length\":1665,\"sakai:needsprocessing\":\"true\",\"_lastModifiedBy\":\"admin\",\"_mimeType\":\"text/xml\",\"_bodyLastModifiedBy\":\"admin\",\"_createdBy\":\"admin\",\"sakai:tag-uuid\":[\"9b0a0f98-a76e-4a8e-844e-ab4212248ed1\"],\"_blockId\":\"Z6t-YIG5EeC_ueTmCgEBgA\",\"sakai:tags\":[\"chickens\"],\"sling:resourceType\":\"sakai/pooled-content\",\"sakai:pooled-content-manager\":[\"admin\"],\"_created\":1305769412648,\"sakai:pool-content-created-for\":\"admin\",\"_bodyCreatedBy\":\"admin\",\"_id\":\"Z3_agIG5EeC_ueTmCgEBgA\",\"_bodyLastModified\":1305769412939,\"sakai:pooled-content-file-name\":\"movie.xml\",\"_lastModified\":1305769431616,\"_bodyCreated\":1305769412939,\"_bodyLocation\":\"2011/4/AS/c8/Y7/ASc8Y72t9Y99Gvazuht1G90DsD8\",\"h9hM2K17aa/activity\":{\"jcr:path\":\"h9hM2K17aa/activity\",\"jcr:name\":\"activity\",\"sling:resourceType\":\"sakai/activityStore\",\"_created\":1305769413784,\"_id\":\"aC0xgIG5EeC_ueTmCgEBgA\",\"_lastModifiedBy\":\"admin\",\"_lastModified\":1305769413784,\"_createdBy\":\"admin\",\"h9hM2K17aa/activity/2011-05-19-11-45a78ab5efb9496fc078583c962de4b10cac9d3d\":{\"jcr:path\":\"h9hM2K17aa/activity/2011-05-19-11-45a78ab5efb9496fc078583c962de4b10cac9d3d\",\"jcr:name\":\"2011-05-19-11-45a78ab5efb9496fc078583c962de4b10cac9d3d\",\"sling:resourceType\":\"sakai/activity\",\"_created\":1305769413944,\"_id\":\"aEWbgIG5EeC_ueTmCgEBgA\",\"sakai:activity-appid\":\"default\",\"sakai:activity-type\":\"pooled content\",\"_lastModifiedBy\":\"admin\",\"_lastModified\":1305769414079,\"sakai:activity-actor\":\"admin\",\"sakai:activityMessage\":\"CREATED_FILE\",\"_createdBy\":\"admin\"},\"h9hM2K17aa/activity/2011-05-19-11-f9e42ad54f49951773caa6fcb2ccc805b49c07d2\":{\"jcr:path\":\"h9hM2K17aa/activity/2011-05-19-11-f9e42ad54f49951773caa6fcb2ccc805b49c07d2\",\"jcr:name\":\"2011-05-19-11-f9e42ad54f49951773caa6fcb2ccc805b49c07d2\",\"sling:resourceType\":\"sakai/activity\",\"_created\":1305769431670,\"_id\":\"ctZhYIG5EeC_ueTmCgEBgA\",\"sakai:activity-appid\":\"content\",\"_lastModifiedBy\":\"admin\",\"_lastModified\":1305769431811,\"sakai:activity-templateid\":\"default\",\"sakai:activity-actor\":\"admin\",\"sakai:activityMessage\":\"__MSG__UPDATED_TAGS__\",\"_createdBy\":\"admin\"}}}],\"total\":2}</pre>"
+  ]
+}
+
+

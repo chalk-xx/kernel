@@ -221,4 +221,44 @@ public class SolrSearchUtil {
       return null;
     }
   }
+
+
+  public static Iterator<Result> getRandomResults(SlingHttpServletRequest request,
+                                                  SolrSearchResultProcessor searchProcessor,
+                                                  String query,
+                                                  String... options)
+    throws SolrSearchException
+  {
+    if ((options.length % 2) != 0) {
+      throw new IllegalArgumentException("The number of getRandomResults options must be even.");
+    }
+
+    final Map<String,String> queryOptions = new HashMap<String,String>();
+    for (int i = 0; i < options.length; i += 2) {
+      queryOptions.put(options[i], options[i + 1]);
+    }
+
+    // random solr sorting requires a seed for the dynamic random_* field
+    final int random = (int) (Math.random() * 10000);
+    queryOptions.put("sort", "random_" + random + " desc");
+
+    SolrSearchResultSet rs = null;
+    try {
+      rs = searchProcessor.getSearchResultSet
+        (request,
+         new org.sakaiproject.nakamura.api.search.solr.Query(org.sakaiproject.nakamura.api.search.solr.Query.SOLR,
+                                                             query,
+                                                             queryOptions));
+
+      if (rs == null) {
+        return null;
+      }
+
+      return rs.getResultSetIterator();
+
+    } catch (SolrSearchException e) {
+      LOGGER.error(e.getLocalizedMessage(), e);
+      throw new IllegalStateException(e);
+    }
+  }
 }
