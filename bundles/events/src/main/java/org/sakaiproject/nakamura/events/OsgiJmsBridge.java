@@ -284,7 +284,7 @@ public class OsgiJmsBridge implements EventHandler {
    * The values in Maps are inspected and converted using cleanProperty(obj)
    */
   @SuppressWarnings("unchecked")
-  protected static Object cleanProperty(Object obj){
+  public static Object cleanProperty(Object obj){
     if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
 	     || obj instanceof Number || obj instanceof String
 	     || obj instanceof List) {
