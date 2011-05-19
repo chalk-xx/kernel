@@ -34,9 +34,11 @@ import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventMessageM
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
+
 import java.util.Arrays;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -293,11 +295,11 @@ public class OsgiJmsBridge implements EventHandler {
 	}
 	if (obj instanceof Map){
 	  Map<String,Object> oldMap = (Map<String,Object>)obj;
-	  Map<String,Object> newMap = new HashMap<String,Object>();
-	  for (String key: ((Map<String,Object>)obj).keySet()){
+	  Builder<String, Object> newMap = ImmutableMap.builder();
+	  for (String key: oldMap.keySet()){
         newMap.put(key, cleanProperty(oldMap.get(key)));
 	  }
-	  return newMap;
+	  return newMap.build();
 	}
 	return null;
   }
