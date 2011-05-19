@@ -34,7 +34,9 @@ import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventMessageM
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -233,8 +235,8 @@ public class OsgiJmsBridge implements EventHandler {
         // message that was not of one of these types.
         if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
             || obj instanceof Number || obj instanceof Map || obj instanceof String
-            || obj instanceof List) {
-          msg.setObjectProperty(name, obj);
+            || obj instanceof List || obj instanceof Object[]) {
+          msg.setObjectProperty(name, cleanProperty(obj));
         }
       }
 
@@ -273,4 +275,30 @@ public class OsgiJmsBridge implements EventHandler {
     }
   }
 
+  /**
+   * Clean an event property value in order to send it as a property on a JMS Message
+   * Primitive types, Strings, and Lists are returned unmodified
+   * Arrays are converted to Lists. Nested Lists are not converted.
+   * The values in Maps are inspected and converted using cleanProperty(obj)
+   */
+  @SuppressWarnings("unchecked")
+  protected static Object cleanProperty(Object obj){
+    if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
+	     || obj instanceof Number || obj instanceof String
+	     || obj instanceof List) {
+      return obj;
+	}
+	if (obj instanceof Object[]){
+	  return Arrays.asList((Object[])obj);
+	}
+	if (obj instanceof Map){
+	  Map<String,Object> oldMap = (Map<String,Object>)obj;
+	  Map<String,Object> newMap = new HashMap<String,Object>();
+	  for (String key: ((Map<String,Object>)obj).keySet()){
+        newMap.put(key, cleanProperty(oldMap.get(key)));
+	  }
+	  return newMap;
+	}
+	return null;
+  }
 }
