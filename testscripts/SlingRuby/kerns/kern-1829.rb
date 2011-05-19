@@ -64,7 +64,6 @@ class TC_Kern1829Test < Test::Unit::TestCase
     sleep(2)
     res = @s.execute_get("#{url}/596725146/comments.tidy.-1.json")
     assert_equal("200", res.code)
-    puts(res.body)
     json = JSON.parse(res.body)
     checkPath("#{id}/596725146/comments", json)
 
