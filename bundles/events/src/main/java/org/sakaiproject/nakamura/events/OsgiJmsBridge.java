@@ -17,6 +17,20 @@
  */
 package org.sakaiproject.nakamura.events;
 
+import java.util.Dictionary;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.jms.Connection;
+import javax.jms.DeliveryMode;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -31,26 +45,9 @@ import org.sakaiproject.nakamura.api.events.EventDeliveryConstants;
 import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventAcknowledgeMode;
 import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventDeliveryMode;
 import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventMessageMode;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
-
-import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.jms.Connection;
-import javax.jms.DeliveryMode;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
 
 /**
  * Bridge to send OSGi events onto a JMS topic.
@@ -238,7 +235,7 @@ public class OsgiJmsBridge implements EventHandler {
         if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
             || obj instanceof Number || obj instanceof Map || obj instanceof String
             || obj instanceof List || obj instanceof Object[]) {
-          msg.setObjectProperty(name, cleanProperty(obj));
+          msg.setObjectProperty(name, EventUtils.cleanProperty(obj));
         }
       }
 
@@ -275,32 +272,5 @@ public class OsgiJmsBridge implements EventHandler {
         LOGGER.error(e.getMessage(), e);
       }
     }
-  }
-
-  /**
-   * Clean an event property value in order to send it as a property on a JMS Message
-   * Primitive types, Strings, and Lists are returned unmodified
-   * Arrays are converted to Lists. Nested Lists are not converted.
-   * The values in Maps are inspected and converted using cleanProperty(obj)
-   */
-  @SuppressWarnings("unchecked")
-  public static Object cleanProperty(Object obj){
-    if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
-	     || obj instanceof Number || obj instanceof String
-	     || obj instanceof List) {
-      return obj;
-	}
-	if (obj instanceof Object[]){
-	  return Arrays.asList((Object[])obj);
-	}
-	if (obj instanceof Map){
-	  Map<String,Object> oldMap = (Map<String,Object>)obj;
-	  Builder<String, Object> newMap = ImmutableMap.builder();
-	  for (String key: oldMap.keySet()){
-        newMap.put(key, cleanProperty(oldMap.get(key)));
-	  }
-	  return newMap.build();
-	}
-	return null;
   }
 }
