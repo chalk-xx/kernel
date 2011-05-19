@@ -57,7 +57,7 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
     @Property(value = "Handles management of mailman integration")
     private static final String SERVICE_DESCRIPTION = "service.description";
     @SuppressWarnings("unused")
-    @Property(value = {"org/sakaiproject/nakamura/lite/authorizables/UPDATED"})
+    @Property(value = {"org/sakaiproject/nakamura/lite/authorizables/ADDED","org/sakaiproject/nakamura/lite/authorizables/UPDATED"})
     private static final String EVENT_TOPICS = "event.topics";
     @Property(value = "password")
     private static final String LIST_MANAGEMENT_PASSWORD = "mailman.listmanagement.password";
