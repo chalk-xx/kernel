@@ -3,8 +3,8 @@
   "sakai:query-template": "(name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR title:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q})${_taguuids}) OR ((name:(${q}) OR title:(${q}) OR description:(${q}) OR content:(${q}) OR widgetdata:(${q}) OR ngram:(${q}) OR edgengram:(${q})${_taguuids})${_categoryAnd}) OR (resourceType:sakai/pooled-content AND (content:(${q}) OR filename:(${q}) OR tag:(${q}) OR description:(${q}) OR ngram:(${q}) OR edgengram:(${q})${_taguuids}))",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}",
-      "group": true,
-      "group.field": "returnpath"
+      //"group": true,
+      //"group.field": "returnpath"
   },
   "sortOn": "score",
   "sortOrder": "desc",

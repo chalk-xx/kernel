@@ -36,7 +36,6 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
@@ -72,12 +71,9 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
     private PresenceService presenceService;
 
     public GeneralFeedSearchResultProcessor() {
-        LOGGER.warn("ADC w/ ctor 1!");
     }
 
     public GeneralFeedSearchResultProcessor(SolrSearchServiceFactory searchServiceFactory) {
-        LOGGER.warn("ADC w/ ctor 2!");
-
         if (searchServiceFactory == null) {
             throw new IllegalArgumentException("Search Service Factory must be set when not using as a component");
         }
@@ -85,8 +81,6 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
     }
 
     public GeneralFeedSearchResultProcessor(SolrSearchServiceFactory searchServiceFactory, ProfileService profileService, PresenceService presenceService) {
-        LOGGER.warn("ADC w/ ctor 3!");
-
         if (searchServiceFactory == null || profileService == null || presenceService == null) {
             throw new IllegalArgumentException("SearchServiceFactory, ProfileService and PresenceService must be set when not using as a component");
         }
@@ -112,8 +106,6 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
                 Authorizable auth = authManager.findAuthorizable(authorizableId);
                 if (auth != null) {
                     write.object();
-                    LOGGER.warn("ADC is processing this as a Group or User");
-
                     ValueMap map = profileService.getProfileMap(auth, jcrSession);
                     ExtendedJSONWriter.writeValueMapInternals(write, map);
 
@@ -124,7 +116,6 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
                     write.endObject();
                 }
             } else {
-                LOGGER.warn("ADC is processing this as a File");
                 // process this as file
                 // no need to wrap this with write.object(); and write.endObject(); writeFileNode will do this automatically.
                 Content content = session.getContentManager().get(authorizableId);
@@ -138,6 +129,5 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
         } catch (StorageClientException ex) {
             java.util.logging.Logger.getLogger(GeneralFeedSearchResultProcessor.class.getName()).log(Level.SEVERE, null, ex);
         }
-        LOGGER.warn("ADC has left the building!");
     }
 }
