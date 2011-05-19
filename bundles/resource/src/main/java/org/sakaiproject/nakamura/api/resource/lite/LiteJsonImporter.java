@@ -180,9 +180,17 @@ public class LiteJsonImporter {
     }
     return null;
   }
+  @SuppressWarnings("unchecked")
   protected <T> T[] getArray(JSONArray arr, Class<T> typeHint) throws JSONException {
-    @SuppressWarnings("unchecked")
-    T[] array = (T[]) Array.newInstance(typeHint, arr.length());
+    if ( arr.length() == 0 ) {
+      if (typeHint.equals(Object.class)) {
+        return (T[]) new String[0];
+      } else {
+        return (T[]) Array.newInstance(typeHint, 0);
+      }
+    }
+    Object o = getObject(arr.get(0), typeHint);
+    T[] array = (T[]) Array.newInstance(o.getClass(), arr.length());
     for ( int i = 0; i < arr.length(); i++ ) {
       array[i] = getObject(arr.get(i), typeHint);
     }

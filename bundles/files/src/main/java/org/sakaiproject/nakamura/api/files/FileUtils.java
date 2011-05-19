@@ -394,9 +394,26 @@ public class FileUtils {
    * @throws RepositoryException
    */
   public static boolean isTag(Node node) throws RepositoryException {
-    if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+    if (node != null && node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
         && FilesConstants.RT_SAKAI_TAG.equals(node.getProperty(
             JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
+      return true;
+    }
+    return false;
+  }
+  
+  /**
+   * Check if a node is a proper sakai tag.
+   *
+   * @param node
+   *          The node to check if it is a tag.
+   * @return true if the node is a tag, false if it is not.
+   * @throws RepositoryException
+   */
+  public static boolean isTag(Content node) throws RepositoryException {
+    if (node != null && node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+        && FilesConstants.RT_SAKAI_TAG.equals(node.getProperty(
+            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))) {
       return true;
     }
     return false;

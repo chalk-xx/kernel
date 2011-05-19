@@ -183,14 +183,14 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
                     .build()));
             contentManager.copy(originalMessage.getPath(), toPath, true);
             Content message = contentManager.get(toPath);
-            LOG.info("Message As delivered is {} ",message);
+            LOG.debug("Message As delivered at {} from {} is {} ",new Object[]{message.getPath(), originalMessage.getPath(), message});
   
             // Add some extra properties on the just created node.
             message.setProperty(MessageConstants.PROP_SAKAI_READ, false);
             message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
             message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE, MessageConstants.STATE_NOTIFIED);
             message.setProperty(MessageConstants.PROP_SAKAI_MESSAGE_STORE, messagingService.getFullPathToStore(recipient, session));
-          contentManager.update(message);
+            contentManager.update(message);
           } else {
             LOG.warn("Unable to deliver message, permission denied {} ", originalMessage.getPath());
           }

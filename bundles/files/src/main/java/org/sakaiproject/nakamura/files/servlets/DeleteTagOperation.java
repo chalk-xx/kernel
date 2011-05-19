@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
-import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
 import com.google.common.collect.Sets;
 
@@ -80,6 +80,8 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "service.description", value = "Creates an internal link to a file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class DeleteTagOperation extends AbstractSparsePostOperation {
+
+  private static final String SAKAI_TAG_NAME = "sakai:tag-name";
 
   @Reference
   protected transient SlingRepository slingRepository;
@@ -149,6 +151,8 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
 
     try {
       String uuid = tagNode.getIdentifier();
+      String tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
+
       // We check if the node already has this tag.
       // If it does, we ignore it..
       if (node != null && hasUuid(node, uuid)) {
@@ -182,12 +186,20 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
           final String azId = PathUtils.getAuthorizableId(content.getPath());
           final Authorizable authorizable = authManager.findAuthorizable(azId);
           if (authorizable != null) {
-            final Set<String> nameSet = Sets
+            final Set<String> uuidSet = Sets
                 .newHashSet(StorageClientUtils.nonNullStringArray((String[]) authorizable
                     .getProperty(SAKAI_TAG_UUIDS)));
-            nameSet.remove(uuid);
+            uuidSet.remove(uuid);
             authorizable.setProperty(SAKAI_TAG_UUIDS,
+                uuidSet.toArray(new String[uuidSet.size()]));
+
+            final Set<String> nameSet = Sets
+                .newHashSet(StorageClientUtils.nonNullStringArray((String[]) authorizable
+                    .getProperty(SAKAI_TAGS)));
+            nameSet.remove(tagName);
+            authorizable.setProperty(SAKAI_TAGS,
                 nameSet.toArray(new String[nameSet.size()]));
+
             authManager.updateAuthorizable(authorizable);
           }
         }

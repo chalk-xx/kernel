@@ -37,9 +37,9 @@ class TC_Kern1829Test < Test::Unit::TestCase
     id = file['random.txt']['poolId']
     url = @fm.url_for_pooled_file(id)
     # create a comments message store
-    res = @s.execute_post("#{url}/comments/message", { "sling:resourceType" => "sakai/messagestore" })
+    res = @s.execute_post("#{url}/596725146/comments/message", { "sling:resourceType" => "sakai/messagestore" })
     assert_equal("201", res.code)
-    res = @s.execute_post("#{url}/comments", { 
+    res = @s.execute_post("#{url}/596725146/comments", { 
             ":operation" => "import", 
             ":contentType" => "json", 
             ":replaceProperties" => true, 
@@ -50,9 +50,9 @@ class TC_Kern1829Test < Test::Unit::TestCase
                '"sling:resourceType":"sakai/settings",  "sakai:marker":"596725146", '+ 
                '"sakai:type":"comment", "_charset_":"utf-8"  }' })
     assert_equal("201", res.code)
-    res = @s.execute_post("#{url}/comments/message.create.html", { 
+    res = @s.execute_post("#{url}/596725146/comments/message.create.html", { 
             "sakai:type" => "comment",
-            "sakai:to" => "internal:/p/#{id}/comments/message",
+            "sakai:to" => "internal:/p/#{id}/596725146/comments/message",
             "sakai:marker" => "596725146",
             "sakai:subject" => "Comment on /p/#{id}",
             "sakai:body" => "asdf",
@@ -62,12 +62,21 @@ class TC_Kern1829Test < Test::Unit::TestCase
 
     assert_equal("200", res.code)
     sleep(2)
-    res = @s.execute_get("#{url}/comments.tidy.-1.json")
+    res = @s.execute_get("#{url}/596725146/comments.tidy.-1.json")
     assert_equal("200", res.code)
     puts(res.body)
+    json = JSON.parse(res.body)
+    checkPath("#{id}/596725146/comments", json)
 
   end
 
-
+  def checkPath(path, json) 
+      json.each_pair do | k,v |
+          if v.is_a?(Hash)
+             checkPath("#{path}/#{k}",v)
+          end
+      end
+      assert_equal(json["_path"], path)
+  end
 
 end

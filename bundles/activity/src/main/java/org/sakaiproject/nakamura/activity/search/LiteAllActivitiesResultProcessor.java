@@ -30,6 +30,7 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -42,6 +43,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,6 +94,17 @@ public class LiteAllActivitiesResultProcessor implements SolrSearchResultProcess
           LOGGER.warn(e.getMessage(), e);
         }
         write.endObject();
+        // KERN-1867 Activity feed should return more data about a group
+        if ("sakai/group-home".equals(contentNode.getProperty("sling:resourceType"))) {
+          final Authorizable group = authorizableManager.findAuthorizable(PathUtils
+              .getAuthorizableId(contentNode.getPath()));
+          final Map<String, Object> basicUserInfo = basicUserInfoService
+              .getProperties(group);
+          if (basicUserInfo != null) {
+            write.key("profile");
+            ExtendedJSONWriter.writeValueMap(write, basicUserInfo);
+          }
+        }
       } else {
         ExtendedJSONWriter.writeValueMapInternals(write, result.getProperties());
       }

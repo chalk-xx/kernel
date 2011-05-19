@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -41,7 +42,14 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
@@ -52,6 +60,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.files.search.FileSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.files.search.LiteFileSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,6 +123,9 @@ public class TagServlet extends SlingSafeMethodsServlet {
   protected transient SolrSearchServiceFactory solrSearchServiceFactory;
   
   @Reference
+  protected transient Repository sparseRepository;
+  
+  @Reference
   private ProfileService profileService;
 
   /**
@@ -153,15 +165,36 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
     JSONWriter write = new JSONWriter(response.getWriter());
     write.setTidy(tidy);
-    Node tag = request.getResource().adaptTo(Node.class);
+    Resource tagResource = request.getResource();
+    String tagUuid = "";
+    try {
+      if (tagResource instanceof SparseContentResource) {
+        Content contentTag = tagResource.adaptTo(Content.class);
+        tagUuid = (String) contentTag.getProperty(Content.UUID_FIELD);
+      } else {
+        Node nodeTag = tagResource.adaptTo(Node.class);
+        tagUuid = nodeTag.getIdentifier();
+      }
+    } catch (Exception e) {
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+      return;
+    }
 
     try {
       if ("children".equals(selector)) {
-        sendChildren(tag, write);
+        if (tagResource instanceof SparseContentResource) {
+          sendChildren(tagResource.adaptTo(Content.class), write);
+        } else {
+          sendChildren(tagResource.adaptTo(Node.class), write);
+        }
       } else if ("parents".equals(selector)) {
-        sendParents(tag, write);
+        if (tagResource instanceof SparseContentResource) {
+          sendParents(tagResource.adaptTo(Content.class), write);
+        } else {
+          sendParents(tagResource.adaptTo(Node.class), write);
+        }
       } else if ("tagged".equals(selector)) {
-        sendFiles(tag, request, write, depth);
+        sendFiles(tagUuid, request, write, depth);
       }
       response.setContentType("application/json");
       response.setCharacterEncoding(CharEncoding.UTF_8);
@@ -177,6 +210,15 @@ public class TagServlet extends SlingSafeMethodsServlet {
     } catch (SolrSearchException e) {
       LOG.error(e.getLocalizedMessage(), e);
       response.sendError(e.getCode(), e.getMessage());
+    } catch (ClientPoolException e) {
+      LOG.error(e.getLocalizedMessage(), e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    } catch (StorageClientException e) {
+      LOG.error(e.getLocalizedMessage(), e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    } catch (AccessDeniedException e) {
+      LOG.error(e.getLocalizedMessage(), e);
+      response.sendError(HttpServletResponse.SC_FORBIDDEN);
     }
 
   }
@@ -189,12 +231,11 @@ public class TagServlet extends SlingSafeMethodsServlet {
    * @throws SearchException
    * @throws SolrSearchException
    */
-  protected void sendFiles(Node tag, SlingHttpServletRequest request, JSONWriter write,
+  protected void sendFiles(String uuid, SlingHttpServletRequest request, JSONWriter write,
       int depth) throws RepositoryException, JSONException, SearchException, SolrSearchException {
     
     // We expect tags to be referencable, if this tag is not..
     // it will throw an exception.
-    String uuid = tag.getIdentifier();
 
     // Tagging on any item will be performed by adding a weak reference to the content
     // item. Put simply a sakai:tag-uuid property with the UUID of the tag node. We use
@@ -202,7 +243,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
     // sufficient. This allows the tag to be renamed and moved without breaking the
     // relationship.
     String statement = "//*[@sakai:tag-uuid='" + uuid + "']";
-    Session session = tag.getSession();
+    Session session = request.getResourceResolver().adaptTo(Session.class);
     QueryManager qm = session.getWorkspace().getQueryManager();
     @SuppressWarnings("deprecation")
     Query query = qm.createQuery(statement, Query.XPATH);
@@ -274,6 +315,47 @@ public class TagServlet extends SlingSafeMethodsServlet {
 
     write.endObject();
   }
+  
+  /**
+   * Write all the parent tags of the passed in tag.
+   *
+   * @param tag
+   *          The tag that should be sent and get it's children parsed.
+   * @param write
+   *          The JSONWriter to write to
+   * @throws JSONException
+   * @throws RepositoryException
+   * @throws AccessDeniedException 
+   * @throws StorageClientException 
+   * @throws ClientPoolException 
+   */
+  protected void sendParents(Content tag, JSONWriter write) throws JSONException,
+  RepositoryException, ClientPoolException, StorageClientException, AccessDeniedException {
+    org.sakaiproject.nakamura.api.lite.Session sparseSession = null;
+    try {
+      sparseSession = sparseRepository.loginAdministrative();
+      ContentManager contentManager = sparseSession.getContentManager();
+      write.object();
+      ExtendedJSONWriter.writeNodeContentsToWriter(write, tag);
+      write.key("parent");
+      try {
+        Content parent = contentManager.get(PathUtils.getParentReference(tag.getPath()));
+        if (FileUtils.isTag(parent)) {
+          sendParents(parent, write);
+        } else {
+          write.value(false);
+        }
+      } catch (ItemNotFoundException e) {
+        write.value(false);
+      }
+
+      write.endObject();
+    } finally {
+      if (sparseSession != null) {
+        sparseSession.logout();
+      }
+    }
+  }
 
   /**
    * Write all the child tags of the passed in tag.
@@ -295,6 +377,33 @@ public class TagServlet extends SlingSafeMethodsServlet {
     NodeIterator iterator = tag.getNodes();
     while (iterator.hasNext()) {
       Node node = iterator.nextNode();
+      if (FileUtils.isTag(node)) {
+        sendChildren(node, write);
+      }
+    }
+    write.endArray();
+    write.endObject();
+
+  }
+  
+  /**
+   * Write all the child tags of the passed in tag.
+   *
+   * @param tag
+   *          The tag that should be sent and get it's children parsed.
+   * @param write
+   *          The JSONWriter to write to
+   * @throws JSONException
+   * @throws RepositoryException
+   */
+  protected void sendChildren(Content tag, JSONWriter write) throws JSONException,
+      RepositoryException {
+
+    write.object();
+    ExtendedJSONWriter.writeNodeContentsToWriter(write, tag);
+    write.key("children");
+    write.array();
+    for(Content node : tag.listChildren()) {
       if (FileUtils.isTag(node)) {
         sendChildren(node, write);
       }

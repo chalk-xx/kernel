@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.files.servlets;
 
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.TOPIC_FILES_TAG;
 
@@ -167,11 +168,20 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
       final String azId = PathUtils.getAuthorizableId(content.getPath());
       Authorizable authorizable = authManager.findAuthorizable(azId);
       if (authorizable != null) {
-        Set<String> nameSet = Sets.newHashSet(StorageClientUtils
+        // add tag uuids
+        Set<String> tagUuidSet = Sets.newHashSet(StorageClientUtils
             .nonNullStringArray((String[]) authorizable.getProperty(SAKAI_TAG_UUIDS)));
-        nameSet.add(tagUuid);
+        tagUuidSet.add(tagUuid);
         authorizable.setProperty(SAKAI_TAG_UUIDS,
-            nameSet.toArray(new String[nameSet.size()]));
+            tagUuidSet.toArray(new String[tagUuidSet.size()]));
+        
+        // add tag names
+        Set<String> tagNameSet = Sets.newHashSet(StorageClientUtils
+            .nonNullStringArray((String[]) authorizable.getProperty(SAKAI_TAGS)));
+        tagNameSet.add(tagName);
+        authorizable.setProperty(SAKAI_TAGS,
+            tagNameSet.toArray(new String[tagNameSet.size()]));
+        
         authManager.updateAuthorizable(authorizable);
       }
     }
