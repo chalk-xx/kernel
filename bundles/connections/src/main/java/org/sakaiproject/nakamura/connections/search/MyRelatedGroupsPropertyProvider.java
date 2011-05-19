@@ -26,6 +26,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -35,11 +36,6 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -84,55 +80,26 @@ public class MyRelatedGroupsPropertyProvider implements SolrSearchPropertyProvid
       LOGGER.debug("Recommending groups for: " + user);
 
       // Perform a MoreLikeThis query for this user's groups
-      Map<String,String> mltOptions = new HashMap<String,String>();
-      mltOptions.put("fl", "*,score");
-      mltOptions.put("rows", "10");
-      mltOptions.put("mlt", "true");
-      mltOptions.put("mlt.fl", "type,readers,title,name,taguuid");
-      mltOptions.put("mlt.count", "10");
-      mltOptions.put("mlt.mintf", "1");
-      mltOptions.put("mlt.mindf", "1");
-      mltOptions.put("mlt.boost", "true");
-      mltOptions.put("mlt.qf", "type^100 readers^3 name^2 taguuid^1 title^1");
+      String suggestedIds =
+          SolrSearchUtil.getMoreLikeThis(request, searchServiceFactory,
+                                         String.format("type:g AND " +
+                                                       "resourceType:authorizable AND " +
+                                                       "readers:\"%s\"",
+                                                       ClientUtils.escapeQueryChars(user)),
+                                         "fl", "*,score",
+                                         "rows", "10",
+                                         "mlt", "true",
+                                         "mlt.fl", "type,readers,title,name,taguuid",
+                                         "mlt.count", "10",
+                                         "mlt.mintf", "1",
+                                         "mlt.mindf", "1",
+                                         "mlt.boost", "true",
+                                         "mlt.qf", "type^100 readers^3 name^2 taguuid^1 title^1");
 
-      // Matches all of user's groups
-      String mltQuery = String.format("type:g AND " +
-                                      "resourceType:authorizable AND " +
-                                      "readers:\"%s\"",
-                                      ClientUtils.escapeQueryChars(user));
-
-      SolrSearchResultSet suggestedGroups =
-        searchServiceFactory.getSearchResultSet(request,
-                                                new Query(mltQuery,
-                                                          mltOptions));
-
-      List<String> suggestedIds = new ArrayList<String>();
-
-      Iterator<Result> resultIterator = suggestedGroups.getResultSetIterator();
-
-      // Assign a descending weight to each matched ID to preserve the original
-      // score ordering.
-      long weight = (suggestedGroups.getSize() + 1);
-
-      while (resultIterator.hasNext()) {
-        Result result = resultIterator.next();
-        Map<String, Collection<Object>> props = result.getProperties();
-
-        for (Object id : props.get("id")) {
-          suggestedIds.add("\"" +
-                           SearchUtil.escapeString((String) id, Query.SOLR) +
-                           "\"^" +
-                           weight);
-          weight--;
-        }
-      }
-
-      if (suggestedIds.size() > 0) {
+      if (suggestedIds != null) {
         propertiesMap.put("_groupQuery",
-                          " AND id:(" +
-                          StringUtils.join(suggestedIds, " OR ") +
-                          ")" +
-                          String.format(" AND -readers:\"%s\"",
+                          String.format(" AND %s AND -readers:\"%s\"",
+                                        suggestedIds,
                                         ClientUtils.escapeQueryChars(user)));
       } else {
         propertiesMap.put("_groupQuery", "");
