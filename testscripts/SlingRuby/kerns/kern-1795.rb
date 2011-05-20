@@ -135,7 +135,6 @@ class TC_Kern1795Test < Test::Unit::TestCase
     @log.info("/system/me response #{res.inspect}")
     assert_equal("200", res.code, "Me servlet should return successfully")
     me = JSON.parse(res.body)
-    counts = me['profile']['counts']    
     counts = me['profile']['counts']
     @log.info("user counts are: #{counts.inspect}")
     assert_equal(0, counts['contactsCount'], 'contentCount should be 0 after 1 removal')

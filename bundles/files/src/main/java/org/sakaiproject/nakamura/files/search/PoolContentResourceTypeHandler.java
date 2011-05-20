@@ -88,6 +88,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     builder.put(FilesConstants.POOLED_CONTENT_USER_VIEWER, "viewer");
     builder.put(FilesConstants.POOLED_CONTENT_FILENAME, "filename");
     builder.put(FilesConstants.POOLED_NEEDS_PROCESSING, "needsprocessing");
+    builder.put(FilesConstants.POOLED_CONTENT_CUSTOM_MIMETYPE, "custom-mimetype");
     builder.put(FilesConstants.SAKAI_FILE, "file");
     builder.put(FilesConstants.SAKAI_TAG_NAME, "tagname");
     builder.put(FilesConstants.SAKAI_TAG_UUIDS, "taguuid");
