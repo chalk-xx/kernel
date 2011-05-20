@@ -148,6 +148,12 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
     basicInfo.put(GROUP_TITLE_PROPERTY, group.getProperty(GROUP_TITLE_PROPERTY));
     basicInfo.put(GROUP_DESCRIPTION_PROPERTY, group
         .getProperty(GROUP_DESCRIPTION_PROPERTY));
+
+    // KERN-1859 add created, lastModified, createdBy, and lastModifiedBy
+    basicInfo.put("created", group.getProperty("created"));
+    basicInfo.put("lastModified", group.getProperty("lastModified"));
+    basicInfo.put("createdBy", group.getProperty("createdBy"));
+    basicInfo.put("lastModifiedBy", group.getProperty("lastModifiedBy"));
   }
 
   private  Map<String, Object> basicProfileMapForAuthorizable(Authorizable authorizable) {
