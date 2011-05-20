@@ -54,7 +54,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Filter to transform __MSG_*__ i18n message keys into i18n messages.
  */
-@Component(metatype = true)
+@Component(metatype = true, enabled=false)
 @Service
 @org.apache.felix.scr.annotations.Properties(value = {
     @Property(name = Constants.SERVICE_VENDOR, value = "The Sakai Foundation"),

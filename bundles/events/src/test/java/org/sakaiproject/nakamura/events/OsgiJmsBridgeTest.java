@@ -25,21 +25,11 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 
-import org.apache.activemq.command.ActiveMQMessage;
-import org.junit.Before;
-import org.junit.Test;
-import org.osgi.service.component.ComponentContext;
-import org.osgi.service.event.Event;
-import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
-import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
-
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -48,6 +38,14 @@ import javax.jms.Message;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.Topic;
+
+import org.apache.activemq.command.ActiveMQMessage;
+import org.junit.Before;
+import org.junit.Test;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
+import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
+import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 
 /**
  * Unit test for bridging events from OSGi to JMS.
@@ -223,52 +221,6 @@ public class OsgiJmsBridgeTest {
 
     // verify that all expected calls were made.
     verify(ctx, conn, connFactory, clusterTrackingService);
-  }
-
-  @SuppressWarnings("unchecked")
-  @Test
-  public void testCleanProperties(){
-	  // Unsupported types
-	  assertEquals(null, OsgiJmsBridge.cleanProperty(null));
-	  assertEquals(null, OsgiJmsBridge.cleanProperty(new ActiveMQMessage()));
-
-	  // Supported Primitives
-	  assertEquals(1, OsgiJmsBridge.cleanProperty(1));
-	  assertEquals((byte)1, OsgiJmsBridge.cleanProperty((byte)1));
-	  assertEquals(true, OsgiJmsBridge.cleanProperty(true));
-	  assertEquals("str", OsgiJmsBridge.cleanProperty("str"));
-
-	  // Lists are supported
-	  List<String> l = new ArrayList<String>();
-	  l.add("one");
-	  l.add("two");
-	  assertEquals(l, OsgiJmsBridge.cleanProperty(l));
-
-	  // Arrays are converted to Lists
-	  String[] sa = new String[]{"one", "two"};
-	  List<String> l2 = (List<String>)OsgiJmsBridge.cleanProperty(sa);
-	  assertEquals(2, l2.size());
-	  assertEquals("one", l2.get(0));
-
-	  // Map values are cleaned
-	  Map<String,Object> m = new HashMap<String,Object>();
-	  m.put("one", 1);
-	  m.put("array", new String[]{"str1", "str2"});
-
-	  // Nested Map
-	  Map<String,Object> hashProp = new HashMap<String, Object>();
-	  hashProp.put("prop1", 1);
-	  hashProp.put("propArray", new String[]{"meh", "bleh"});
-	  m.put("hash", hashProp);
-
-	  // Properties of the nested map
-	  Map<String,Object> m1 = (Map<String,Object>)OsgiJmsBridge.cleanProperty(m);
-	  assertEquals(new Integer(1), (Integer)m1.get("one"));
-	  assertEquals(2, ((List<String>)m1.get("array")).size());
-
-	  Map<String,Object> cleanedHashProp = (Map<String,Object>)m1.get("hash");
-	  assertEquals(true, (cleanedHashProp instanceof Map));
-	  assertEquals(2, ((List<String>)cleanedHashProp.get("propArray")).size());
   }
 
   /**
