@@ -358,7 +358,13 @@ public class ProfileServiceImpl implements ProfileService {
     ContentManager contentManager = session.getContentManager();
     AccessControlManager accessControlManger = session.getAccessControlManager();
     LiteJsonImporter importer = new LiteJsonImporter();
-    importer.importContent(contentManager, json, profilePath, true, true,true, accessControlManger);
+    // KERN-1835, "basic" subtree data is stored in Authorizable object above,
+    // therefore removing "basic" subtree data, before updating the content tree.
+    // Content tree update strategy is "Partial update (with @Delete instructions where needed)"
+    if (json.has("basic")) {
+      json.remove("basic");
+    }
+    importer.importContent(contentManager, json, profilePath, true, true, false, accessControlManger);
 
   }
 }
