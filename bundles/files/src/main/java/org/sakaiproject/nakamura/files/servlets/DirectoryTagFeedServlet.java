@@ -226,7 +226,13 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
     final SolrSearchBatchResultProcessor rp = new LiteFileSearchBatchResultProcessor(
         solrSearchServiceFactory, profileService);
     final SolrSearchResultSet srs = rp.getSearchResultSet(request, solrQuery);
-    rp.writeResults(request, write, selectOneResult(srs.getResultSetIterator()));
+    if (srs.getResultSetIterator().hasNext()) {
+      rp.writeResults(request, write, selectOneResult(srs.getResultSetIterator()));
+    } else {
+      // write an empty result
+      write.object();
+      write.endObject();
+    }
   }
 
   private Iterator<Result> selectOneResult(Iterator<Result> resultSetIterator) {
@@ -264,11 +270,12 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
           hasBeenRetrieved = true;
         }
       }
-      
+
     };
   }
 
   private boolean isBest(Result result) {
     return true;
   }
+
 }
