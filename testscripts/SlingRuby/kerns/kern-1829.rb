@@ -67,6 +67,17 @@ class TC_Kern1829Test < Test::Unit::TestCase
     json = JSON.parse(res.body)
     checkPath("#{id}/596725146/comments", json)
 
+    wait_for_indexer()
+
+    res = @s.execute_get("#{url}/596725146/comments.tidy.-1.json")
+
+    res = @s.execute_get(@s.url_for("/var/search/comments/flat.json?sortOn=_created&sortOrder=desc&page=0&items=10&marker=596725146&path=/p/#{id}/596725146/comments/message&_charset_=utf-8&_=1305140929946"))
+	assert_equal("200", res.code)
+	@log.error("Got #{res.body}")
+    json = JSON.parse(res.body)
+	assert_equal(1, json["total"])
+	assert_equal("Comment on /p/#{id}",json["results"][0]["post"]["sakai:subject"])
+
   end
 
   def checkPath(path, json) 
