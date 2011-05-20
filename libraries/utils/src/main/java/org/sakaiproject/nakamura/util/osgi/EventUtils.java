@@ -22,7 +22,13 @@ import org.apache.sling.api.resource.Resource;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
+
+import java.util.Arrays;
 import java.util.Dictionary;
+import java.util.List;
+import java.util.Map;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -99,5 +105,32 @@ public class EventUtils {
   public static void sendOsgiEvent(final Dictionary<String, String> properties,
       final String topic, final EventAdmin eventAdmin) {
     eventAdmin.postEvent(new Event(topic, properties));
+  }
+  
+  /**
+   * Clean an event property value in order to send it as a property on a JMS Message
+   * Primitive types, Strings, and Lists are returned unmodified
+   * Arrays are converted to Lists. Nested Lists are not converted.
+   * The values in Maps are inspected and converted using cleanProperty(obj)
+   */
+  @SuppressWarnings("unchecked")
+  public static Object cleanProperty(Object obj){
+    if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
+	     || obj instanceof Number || obj instanceof String
+	     || obj instanceof List) {
+      return obj;
+	}
+	if (obj instanceof Object[]){
+	  return Arrays.asList((Object[])obj);
+	}
+	if (obj instanceof Map){
+	  Map<String,Object> oldMap = (Map<String,Object>)obj;
+	  Builder<String, Object> newMap = ImmutableMap.builder();
+	  for (String key: oldMap.keySet()){
+        newMap.put(key, cleanProperty(oldMap.get(key)));
+	  }
+	  return newMap.build();
+	}
+	return null;
   }
 }
