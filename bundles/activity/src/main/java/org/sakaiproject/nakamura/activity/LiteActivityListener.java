@@ -114,7 +114,6 @@ public class LiteActivityListener implements MessageListener {
     try {
       final String activityItemPath = message
           .getStringProperty(ActivityConstants.EVENT_PROP_PATH);
-      LOG.info("Processing activity: {}", activityItemPath);
       Session session = sparseRepository.loginAdministrative(); 
       ContentManager contentManager = session.getContentManager();
       try {
@@ -176,7 +175,7 @@ public class LiteActivityListener implements MessageListener {
       }
     }
     contentProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-        ActivityConstants.ACTIVITY_FEED_RESOURCE_TYPE);
+        ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE);
     Content content = new Content(deliveryPath, contentProperties.build());
     contentManager.update(content);
   }
