@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.files.servlets;
 
 import com.google.common.collect.ImmutableMap;
 
-import org.apache.commons.lang.CharEncoding;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -37,45 +36,32 @@ import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
-import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
-import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
-import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
-import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.search.SearchException;
-import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.files.search.FileSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.files.search.LiteFileSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.ArrayList;import java.util.Iterator;
+import java.util.List;import java.util.NoSuchElementException;
 
-import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -165,7 +151,7 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
     write.setTidy(tidy);
     Resource directoryResource = request.getResource();
     try {
-      write.array();
+      write.object();
       if (directoryResource instanceof SparseContentResource) {
         Content contentDirectory = directoryResource.adaptTo(Content.class);
       } else {
@@ -173,10 +159,15 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
         NodeIterator nodeIter = directoryNode.getNodes();
         while (nodeIter.hasNext()) {
           Node child = nodeIter.nextNode();
-          writeTaggedItemsForDirectoryBranch(request, child, write);
+          write.key(child.getName());
+          write.object();
+          ExtendedJSONWriter.writeNodeContentsToWriter(write, child);
+          write.key("content");
+          writeOneTaggedItemForTagUuids(request, getTagUuidsForDirectoryBranch(child), write);
+          write.endObject();
         }
       }
-      write.endArray();
+      write.endObject();
     } catch (Exception e) {
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
       return;
@@ -184,36 +175,32 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
 
   }
 
-  /**
-   * @param tag
-   * @param request
-   * @throws RepositoryException
-   * @throws JSONException
-   * @throws SearchException
-   * @throws SolrSearchException
-   */
-  protected void writeTaggedItemsForDirectoryBranch(SlingHttpServletRequest request, Node directoryBranch, JSONWriter write) throws RepositoryException, JSONException, SearchException, SolrSearchException {
-    if (directoryBranch.hasNodes()) {
-      NodeIterator branchIter = directoryBranch.getNodes();
-      while(branchIter.hasNext()) {
-        Node branchChild = branchIter.nextNode();
-        writeTaggedItemsForDirectoryBranch(request, branchChild, write);
-      }
-    }
-      
-    if (directoryBranch.hasProperty("sling:resourceType") && "sakai/tag".equals(directoryBranch.getProperty("sling:resourceType").getString())) {
-      String tagUuid = directoryBranch.getIdentifier();
-      writeOneTaggedItemForTagUuid(request, tagUuid, write);
 
+  private List<String> getTagUuidsForDirectoryBranch(Node branch) throws RepositoryException {
+    List<String> rv = new ArrayList<String>();
+    if (branch.hasProperty("sling:resourceType") && "sakai/tag".equals(branch.getProperty("sling:resourceType").getString())) {
+      rv.add(branch.getIdentifier());
     }
+
+    NodeIterator branchIterator = branch.getNodes();
+    while (branchIterator.hasNext()) {
+      Node branchChild = branchIterator.nextNode();
+      rv.addAll(getTagUuidsForDirectoryBranch(branchChild));
+    }
+    return rv;
   }
   
-  private void writeOneTaggedItemForTagUuid(SlingHttpServletRequest request,
-      String tagUuid, JSONWriter write) throws RepositoryException, SearchException, JSONException, SolrSearchException {
+  private void writeOneTaggedItemForTagUuids(SlingHttpServletRequest request,
+      List<String> tagUuids, JSONWriter write) throws RepositoryException, SearchException, JSONException, SolrSearchException {
     // BL120 KERN-1617 Need to include Content tagged with tag uuid
     final StringBuilder sb = new StringBuilder();
-    sb.append("taguuid:");
-    sb.append(ClientUtils.escapeQueryChars(tagUuid));
+    sb.append("taguuid:(");
+    String sep = "";
+    for (String tagUuid : tagUuids) {
+      sb.append(sep + ClientUtils.escapeQueryChars(tagUuid));
+      sep = " ";
+    }
+    sb.append(")");
     final RequestParameter typeP = request.getRequestParameter("type");
     if (typeP != null) {
       final String type = typeP.getString();
