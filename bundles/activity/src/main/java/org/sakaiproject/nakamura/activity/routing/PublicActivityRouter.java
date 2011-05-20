@@ -49,8 +49,7 @@ public class PublicActivityRouter implements ActivityRouter {
    * @see org.sakaiproject.nakamura.api.activity.ActivityRouter#getPriority()
    */
   public int getPriority() {
-    // We deliver to ourselves first.
-    return 100;
+    return 0;
   }
 
   /**
