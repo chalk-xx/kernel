@@ -250,7 +250,7 @@ module NakamuraData
 	end
 	if (res.code.to_i < 299)
 	  json = JSON.parse(res.body)
-	  contentid = json[file_name]	
+	  contentid = json[file_name]["poolId"]	
 	  @log.info("uploaded file: #{file_name} with content_id: #{contentid} 1" )
 	  @file_log.info("uploaded file: #{file_name} with content_id: #{contentid} 1" )
 	  @upload_success_count = @upload_success_count + 1
