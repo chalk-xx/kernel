@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.resource.lite.servlet.post.helper;
 
 import org.apache.sling.servlets.post.Modification;
-import org.sakaiproject.nakamura.api.lite.RemoveProperty;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.resource.DateParser;
 import org.sakaiproject.nakamura.api.resource.lite.SparseRequestProperty;
@@ -168,12 +167,18 @@ public class SparsePropertyValueHandler {
       }
     } else if (values.length == 0) {
       // do not create new prop here, but clear existing
-      content.setProperty(prop.getName(), new RemoveProperty());
-      changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
+      // remove property
+      final String removePath = removePropertyIfExists(content, prop.getName());
+      if (removePath != null) {
+        changes.add(Modification.onDeleted(removePath));
+      }
     } else if (values.length == 1) {
       if (values[0].length() == 0) {
-        content.setProperty(prop.getName(), new RemoveProperty());
-        changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
+        // remove property
+        final String removePath = removePropertyIfExists(content, prop.getName());
+        if (removePath != null) {
+          changes.add(Modification.onDeleted(removePath));
+        }
       } else {
         content.setProperty(prop.getName(),fromRequest(type,values));
         changes.add(Modification.onModified(prop.getParentPath() + "@" + prop.getName()));
