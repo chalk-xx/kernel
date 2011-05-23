@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # Run the preview_processor.rb script every INTERVAL seconds.
