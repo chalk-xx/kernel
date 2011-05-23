@@ -81,7 +81,7 @@ public class LiteAllActivitiesResultProcessor implements SolrSearchResultProcess
         Map<String, Object> contentProperties = contentNode.getProperties();
         ExtendedJSONWriter.writeValueMapInternals(write, contentProperties);
         ExtendedJSONWriter.writeValueMapInternals(write, StorageClientUtils.getFilterMap(
-            activityNode.getProperties(), null, null, contentNode.getProperties().keySet()));
+            activityNode.getProperties(), null, null, contentNode.getProperties().keySet(), true));
         write.key("who");
         write.object();
         try {
