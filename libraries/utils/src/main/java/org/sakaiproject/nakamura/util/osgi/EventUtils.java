@@ -119,18 +119,21 @@ public class EventUtils {
 	     || obj instanceof Number || obj instanceof String
 	     || obj instanceof List) {
       return obj;
-	}
-	if (obj instanceof Object[]){
-	  return Arrays.asList((Object[])obj);
-	}
-	if (obj instanceof Map){
-	  Map<String,Object> oldMap = (Map<String,Object>)obj;
-	  Builder<String, Object> newMap = ImmutableMap.builder();
-	  for (String key: oldMap.keySet()){
-        newMap.put(key, cleanProperty(oldMap.get(key)));
-	  }
-	  return newMap.build();
-	}
-	return null;
+    }
+    if (obj instanceof Object[]){
+      return Arrays.asList((Object[])obj);
+    }
+    if (obj instanceof Map){
+      Map<String,Object> oldMap = (Map<String,Object>)obj;
+      Builder<String, Object> newMap = ImmutableMap.builder();
+      for (String key: oldMap.keySet()){
+        Object newVal = cleanProperty(oldMap.get(key));
+        if (newVal != null){
+          newMap.put(key, newVal);
+        }
+      }
+      return newMap.build();
+    }
+    return null;
   }
 }

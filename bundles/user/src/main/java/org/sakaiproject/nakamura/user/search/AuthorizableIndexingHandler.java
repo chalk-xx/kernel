@@ -31,7 +31,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.osgi.service.event.Event;
-import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StoreListener;
@@ -41,6 +40,8 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.TopicIndexer;
@@ -76,6 +77,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     builder.put(UserConstants.USER_EMAIL_PROPERTY, "email");
     builder.put("type", "type");
     builder.put("sakai:tag-uuid", "taguuid");
+    builder.put(Authorizable.LASTMODIFIED_FIELD, Content.LASTMODIFIED_FIELD);
     USER_WHITELISTED_PROPS = builder.build();
   }
 
@@ -88,6 +90,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     builder.put(UserConstants.GROUP_DESCRIPTION_PROPERTY, "description");
     builder.put("sakai:tag-uuid", "taguuid");
     builder.put("sakai:category", "category");
+    builder.put(Authorizable.LASTMODIFIED_FIELD, Content.LASTMODIFIED_FIELD);
     GROUP_WHITELISTED_PROPS = builder.build();
   }
 
