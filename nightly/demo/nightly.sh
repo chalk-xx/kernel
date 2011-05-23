@@ -38,6 +38,14 @@ rm -rf 3akai-ux
 rm -rf sakai3
 rm -rf ~/.m2/repository/org/sakaiproject
 
+# clean mysql database
+echo "Cleaning MySQL..."
+mysql -u sakaiuser << EOSQL
+drop database nakamura;
+create database nakamura default character set 'utf8';
+exit
+EOSQL
+
 # build 3akai ux
 echo "Building 3akai-ux@$UX_TAG..."
 cd $BUILD_DIR
@@ -68,6 +76,13 @@ echo 'trusted.secret=shhhhh' > load/org.sakaiproject.nakamura.http.usercontent.S
 echo 'trusted.hosts=http://sakai3-demo.uits.indiana.edu:8080' >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
 echo 'trusted.referer=http://sakai3-demo.uits.indiana.edu:8080' >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
 echo 'untrusted.contenturl=http://sakai3-demo.uits.indiana.edu:8082' >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
+#configure JDBC connector
+mkdir -p sling/config/org/sakaiproject/nakamura/lite/storage/jdbc
+echo 'service.pid="org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClientPool"' > sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
+echo 'jdbc-driver="com.mysql.jdbc.Driver"' >> sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
+echo 'jdbc-url="jdbc:mysql://localhost/nakamura?autoReconnectForPools=true"' >> sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
+echo 'username="sakaiuser"' >> sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
+echo 'password="ironchef"' >> sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
 java $K2_OPTS -jar $K2_ARTIFACT -p 8080 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # final cleanup
