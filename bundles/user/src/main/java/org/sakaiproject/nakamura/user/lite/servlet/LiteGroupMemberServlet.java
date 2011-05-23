@@ -119,6 +119,8 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+    response.setCharacterEncoding("UTF-8");
+
     Authorizable authorizable = null;
     Resource resource = request.getResource();
     if (resource != null) {
