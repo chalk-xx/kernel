@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
-import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
 import com.google.common.collect.Sets;
 
@@ -41,7 +41,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
-import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.files.FilesConstants;import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -57,11 +57,10 @@ import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.jcr.Node;
-import javax.jcr.RepositoryException;
+import javax.jcr.NodeIterator;import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.servlet.http.HttpServletResponse;
 
@@ -174,6 +173,20 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
         }
       } else if ( content != null ) {
         FileUtils.deleteTag(contentManager, content, tagNode);
+        javax.jcr.Session adminSession = null;
+        try {
+          adminSession = slingRepository.loginAdministrative(null);
+          Node adminTagNode = adminSession.getNode(tagNode.getPath());
+          String[] tagNames = StorageClientUtils.nonNullStringArray((String[]) content.getProperty(FilesConstants.SAKAI_TAGS));
+          decrementTagCounts(adminTagNode, tagNames, false);
+          if (adminSession.hasPendingChanges()) {
+            adminSession.save();
+          }
+        } finally {
+          if (adminSession != null) {
+            adminSession.logout();
+          }
+        }
         // keep authz in sync with authprofile
         final Session session = StorageClientUtils.adaptToSession(request.getResource()
             .getResourceResolver().adaptTo(javax.jcr.Session.class));
@@ -218,6 +231,70 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
 
   }
 
+  private void decrementTagCounts(Node nodeTag, String[] tagNames, boolean calledByAChild) throws RepositoryException {
+      if (calledByAChild || !alreadyTaggedBelowThisLevel(nodeTag, tagNames)) {
+        Long tagCount = 0L;
+        if (nodeTag.hasProperty(FilesConstants.SAKAI_TAG_COUNT)) {
+          tagCount = nodeTag.getProperty(FilesConstants.SAKAI_TAG_COUNT).getLong();
+          tagCount--;
+        }
+        nodeTag.setProperty(FilesConstants.SAKAI_TAG_COUNT, tagCount);
+      }
+
+      // if this node's parent is not the root, we keep going up
+      List<String> peerTags = new ArrayList<String>();
+      peerTags.addAll(ancestorTags(nodeTag));
+      NodeIterator nodeIterator = nodeTag.getParent().getNodes();
+      while(nodeIterator.hasNext()) {
+        Node peer = nodeIterator.nextNode();
+        if (FileUtils.isTag(peer) && !nodeTag.isSame(peer)) {
+          peerTags.add(peer.getProperty(SAKAI_TAG_NAME).getString());
+        }
+      }
+      if (!isChildOfRoot(nodeTag) && !alreadyTaggedAtOrAboveThisLevel(tagNames, peerTags)) {
+        decrementTagCounts(nodeTag.getParent(), tagNames, true);
+      }
+  }
+
+  private boolean alreadyTaggedBelowThisLevel(Node tagNode, String[] tagNames) throws RepositoryException {
+    List<String> tagNamesList = Arrays.asList(tagNames);
+    NodeIterator childNodes = tagNode.getNodes();
+    while(childNodes.hasNext()){
+      Node child = childNodes.nextNode();
+      if (alreadyTaggedBelowThisLevel(child, tagNames)) {
+        return true;
+      }
+      if (FileUtils.isTag(child) && tagNamesList.contains(child.getProperty(SAKAI_TAG_NAME).getString())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean alreadyTaggedAtOrAboveThisLevel(String[] tagNames, List<String>peerTags) {
+    for(String tagName : tagNames) {
+      if(peerTags.contains(tagName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private Collection<String> ancestorTags(Node tagNode) throws RepositoryException {
+      Collection<String> rv = new ArrayList<String>();
+      if(!isChildOfRoot(tagNode)) {
+        Node parentNode = tagNode.getParent();
+        if (FileUtils.isTag(parentNode)) {
+          rv.add(parentNode.getProperty(SAKAI_TAG_NAME).getString());
+        }
+        rv.addAll(ancestorTags(parentNode));
+      }
+      return rv;
+  }
+
+  private boolean isChildOfRoot(Node node) throws RepositoryException {
+    return node.getParent().isSame(node.getSession().getRootNode());
+  }
   /**
    * Checks if the node already has the uuid in it's properties.
    *
