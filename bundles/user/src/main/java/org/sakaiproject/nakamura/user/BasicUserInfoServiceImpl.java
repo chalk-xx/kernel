@@ -60,7 +60,7 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
 
   private static String[] basicUserInfoElements = DEFAULT_BASIC_USER_INFO_ELEMENTS;
   
-  private final static String[] USER_COUNTS_PROPS = new String[] {CONTACTS_PROP, GROUP_MEMBERSHIPS_PROP, CONTENT_ITEMS_PROP, GROUP_MEMBERS_PROP, COUNTS_LAST_UPDATE_PROP, SAKAI_CATEGORY};
+  private final static String[] USER_COUNTS_PROPS = new String[] {CONTACTS_PROP, GROUP_MEMBERSHIPS_PROP, CONTENT_ITEMS_PROP, GROUP_MEMBERS_PROP, COUNTS_LAST_UPDATE_PROP};
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BasicUserInfoServiceImpl.class);
 
@@ -149,7 +149,8 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
     basicInfo.put(GROUP_DESCRIPTION_PROPERTY, group
         .getProperty(GROUP_DESCRIPTION_PROPERTY));
 
-    // KERN-1859 add created, lastModified, createdBy, and lastModifiedBy
+    // KERN-1859 add sakai:category, created, lastModified, createdBy, and lastModifiedBy
+    basicInfo.put(SAKAI_CATEGORY, group.getProperty(SAKAI_CATEGORY));
     basicInfo.put("created", group.getProperty("created"));
     basicInfo.put("lastModified", group.getProperty("lastModified"));
     basicInfo.put("createdBy", group.getProperty("createdBy"));
