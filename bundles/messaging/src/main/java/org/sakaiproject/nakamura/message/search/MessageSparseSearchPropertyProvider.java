@@ -58,8 +58,17 @@ public class MessageSparseSearchPropertyProvider implements SolrSearchPropertyPr
       Map<String, String> propertiesMap) {
     String user = request.getRemoteUser();
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
-    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ClientUtils
-        .escapeQueryChars(messagingService.getFullPathToStore(user, session)));
+    final String resourceType = propertiesMap.get("sling:resourceType");
+    final boolean solrSearchType = "sakai/solr-search".equals(resourceType);
+    String fullPathToStore = ClientUtils.escapeQueryChars(messagingService
+        .getFullPathToStore(user, session));
+    if (solrSearchType) {
+      if (fullPathToStore.endsWith("/")) {
+        final int lastSlashPosition = fullPathToStore.lastIndexOf("/");
+        fullPathToStore = fullPathToStore.substring(0, lastSlashPosition);
+      }
+    }
+    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, fullPathToStore);
 
     RequestParameter address = request.getRequestParameter("address");
     if (address != null && !address.getString().equals("")) {
@@ -72,7 +81,12 @@ public class MessageSparseSearchPropertyProvider implements SolrSearchPropertyPr
 
     String[] categoryStrings = request.getParameterValues("category");
     if (categoryStrings != null && !categoryStrings[0].equals("") && !categoryStrings[0].equals("*")) {
-      StringBuffer categoryClauseBuffer = new StringBuffer(" AND sakai\\:category:(");
+      final StringBuilder categoryClauseBuffer = new StringBuilder();
+      if (solrSearchType) {
+        categoryClauseBuffer.append(" AND category:(");
+      } else {
+        categoryClauseBuffer.append(" AND sakai\\:category:(");
+      }
       String[] commaSeparatedTerms = categoryStrings[0].split(",");
       categoryClauseBuffer.append(commaSeparatedTerms[0]);
       for (int h = 0; h < categoryStrings.length; h++) {

@@ -55,7 +55,7 @@ import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
@@ -121,6 +121,8 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
 
   @Reference
   SolrSearchServiceFactory searchServiceFactory;
+  @Reference
+  BasicUserInfoService basicUserInfoService;
 
   /**
    * {@inheritDoc}
@@ -223,23 +225,27 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
    * @param writer
    * @param session
    * @param au
+   * @param jcrSession
    * @throws JSONException
-   * @throws StorageClientException 
-   * @throws AccessDeniedException 
-   * @throws RepositoryException 
+   * @throws StorageClientException
+   * @throws AccessDeniedException
+   * @throws RepositoryException
    */
   protected void writeGroups(ExtendedJSONWriter writer, Session session, Authorizable au, javax.jcr.Session jcrSession)
-      throws JSONException, StorageClientException, AccessDeniedException, RepositoryException {
+      throws JSONException, StorageClientException, AccessDeniedException {
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
     writer.array();
     if (!UserConstants.ANON_USERID.equals(au.getId())) {
-      // It might be better to just use au.declaredMemberOf() .
-      // au.memberOf will fetch ALL the groups this user is a member of, including
-      // indirect ones.
-      String[] principals = au.getPrincipals();
-      for(String principal : principals) {
-        Authorizable group = authorizableManager.findAuthorizable(principal);
-        if (group == null || !(group instanceof Group) || group.getId().equals(Group.EVERYONE)) {
+      // KERN-1831 changed from getPrincipals to memberOf to drill down list
+      for (Iterator<Group> memberOf = au.memberOf(authorizableManager); memberOf.hasNext(); ) {
+//      this is the old code for outputting only direct memberships. might be needed later if such a flag is added.
+//      String[] principals = au.getPrincipals();
+//      for(String principal : principals) {
+//        Authorizable group = authorizableManager.findAuthorizable(principal);
+        Authorizable group = memberOf.next();
+        if (group == null
+            || !(group instanceof Group)
+            || Group.EVERYONE.equals(group.getId())) {
           // we don't want the "everyone" group in this feed
           continue;
         }
@@ -250,8 +256,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
             continue;
           }
         }
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        ValueMap groupProfile = new ValueMapDecorator(basicUserInfo.getProperties(group));
+        ValueMap groupProfile = new ValueMapDecorator(basicUserInfoService.getProperties(group));
         if (groupProfile != null) {
           writer.valueMap(groupProfile);
         }
@@ -294,7 +299,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
           + ConnectionConstants.CONTACT_STORE_NAME;
       store = ISO9075.encodePath(store);
       String queryString = "path:" + ClientUtils.escapeQueryChars(store) + " AND resourceType:sakai/contact AND state:(ACCEPTED OR INVITED OR PENDING)";
-      Query query = new Query(queryString, null);
+      Query query = new Query(queryString);
       LOG.debug("Submitting Query {} ", query);
       SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
           request, query, false);
@@ -353,7 +358,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       store = ISO9075.encodePath(store);
       store = store.substring(0, store.length() - 1);
       String queryString = "path:" + ClientUtils.escapeQueryChars(store) + " AND resourceType:sakai/message AND type:internal AND messagebox:inbox AND read:false";
-      Query query = new Query(queryString, null);
+      Query query = new Query(queryString);
       LOG.debug("Submitting Query {} ", query);
       SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
           request, query, false);

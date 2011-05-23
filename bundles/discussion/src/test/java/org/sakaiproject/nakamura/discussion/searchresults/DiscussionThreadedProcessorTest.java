@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.discussion.searchresults;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
@@ -27,19 +26,17 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessControlManager;
-import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -48,7 +45,9 @@ import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
+import org.sakaiproject.nakamura.user.BasicUserInfoServiceImpl;
+import org.sakaiproject.nakamura.user.counts.CountProvider;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.ByteArrayOutputStream;
@@ -76,6 +75,13 @@ public class DiscussionThreadedProcessorTest {
     processor.searchServiceFactory = mock(SolrSearchServiceFactory.class);
     presenceService = mock(PresenceService.class);
     processor.presenceService = presenceService;
+    processor.basicUserInfoService = new BasicUserInfoServiceImpl() {
+
+      public BasicUserInfoService setup() {
+        countProvider = Mockito.mock(CountProvider.class);
+        return this;
+      }
+    }.setup();
   }
 
   @Test
@@ -166,9 +172,4 @@ public class DiscussionThreadedProcessorTest {
     return r;
   }
 
-  private Resource mockResource(Content content) {
-    Resource r = mock(Resource.class);
-    when(r.adaptTo(Content.class)).thenReturn(content);
-    return r;
-  }
 }

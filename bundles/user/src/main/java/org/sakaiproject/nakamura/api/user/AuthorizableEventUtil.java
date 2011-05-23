@@ -29,7 +29,9 @@ import javax.jcr.RepositoryException;
 
 /**
  * A utility class for creating events.
+ * @deprecated use sparse, not jcr for user management.
  */
+@Deprecated
 public class AuthorizableEventUtil {
 
 

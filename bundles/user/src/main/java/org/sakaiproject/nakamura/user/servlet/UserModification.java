@@ -24,6 +24,10 @@ import org.apache.sling.servlets.post.ModificationType;
 
 import javax.jcr.RepositoryException;
 
+/**
+ * @deprecated use direct access to sparse, dont go via JCR 
+ */
+@Deprecated
 public class UserModification extends Modification {
 
   private Group group;

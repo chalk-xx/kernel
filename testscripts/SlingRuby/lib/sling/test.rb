@@ -1,6 +1,7 @@
 require 'test/unit.rb'
 require 'sling/sling'
 require 'sling/users'
+require 'sling/file'
 require 'sling/search'
 require 'tempfile'
 require 'logger'
@@ -61,9 +62,23 @@ module SlingTest
     @created_groups << groupname
     return g
   end
-  
+
   def wait_for_indexer()
-    sleep(10)  # the indexer has a TTL on 5s on each batch, so 10s should be plenty.
+    magic_content = "#{Time.now().to_i}_#{rand(1000).to_s}"
+    filename = "wait_for_indexer_#{magic_content}"
+
+    fm = SlingFile::FileManager.new(@s)
+    fm.upload_pooled_file(filename, magic_content, 'text/plain')
+
+    # Give the indexer up to 20 seconds to catch up, but stop waiting early if
+    # we find our test item has landed in the index.
+    20.times do
+      res = @s.execute_get(@s.url_for("/var/search/files/allfiles.json?q=#{filename}"))
+      if JSON.parse(res.body)["total"] != 0
+          break
+      end
+      sleep(1)
+    end
   end
 
 end

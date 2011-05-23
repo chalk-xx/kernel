@@ -18,19 +18,10 @@
 package org.sakaiproject.nakamura.profile;
 
 
-import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.sakaiproject.nakamura.api.profile.ProviderSettings;
 
-import javax.jcr.Node;
-import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.nodetype.PropertyDefinition;
 
 /**
  *
@@ -38,18 +29,6 @@ import javax.jcr.nodetype.PropertyDefinition;
 public class ProviderSettingsFactoryImplTest {
 
 
-  @Mock
-  private Session session;
-  @Mock
-  private Node node;
-  @Mock
-  private Property config1Property;
-  @Mock
-  private PropertyDefinition propertyDefinition;
-  @Mock
-  private Value value;
-  @Mock
-  private Property settings1Property;
 
   /**
    *

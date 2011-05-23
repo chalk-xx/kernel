@@ -1,0 +1,11 @@
+{
+  "sakai:query-template": '+(resourceType:sakai/pooled-content)',
+  "sakai:query-template-options": {
+      "sort": "random_${randomSeed} asc"
+  },
+  "sling:resourceType": "sakai/solr-search",
+  "sakai:propertyprovider" : "RandomContentSearchPropertyProvider",
+  "sakai:batchresultprocessor": "LiteFiles",
+  "sakai:title": "Random Pooled Content",
+  "sakai:shortDescription": "Lists random content."
+}

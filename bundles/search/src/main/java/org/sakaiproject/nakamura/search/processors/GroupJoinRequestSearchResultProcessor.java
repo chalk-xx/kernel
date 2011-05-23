@@ -41,7 +41,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
@@ -57,6 +57,8 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
+  @Reference
+  private BasicUserInfoService basicUserInfoService;
 
   /**
    * {@inheritDoc}
@@ -89,8 +91,7 @@ public class GroupJoinRequestSearchResultProcessor implements SolrSearchResultPr
 
         if (auth != null) {
           write.object();
-          BasicUserInfo basicUserInfo = new BasicUserInfo();
-          ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(auth));
+          ValueMap map = new ValueMapDecorator(basicUserInfoService.getProperties(auth));
           ((ExtendedJSONWriter)write).valueMapInternals(map);
           write.key("_created");
           Long created = (Long) result.getFirstValue(Content.CREATED_FIELD);

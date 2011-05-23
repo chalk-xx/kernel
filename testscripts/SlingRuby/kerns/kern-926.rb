@@ -37,7 +37,7 @@ class TC_Kern926Test < Test::Unit::TestCase
     @s.switch_user(creator)
     res = @fm.upload_pooled_file('random.txt', 'This is some random content that should be stored in the pooled content area.', 'text/plain')
     file = JSON.parse(res.body)
-    id = file['random.txt']
+    id = file['random.txt']['poolId']
     url = @fm.url_for_pooled_file(id)
     res = @fm.get_members(id)
     @log.info("Before Member Changes #{res.body} ")
@@ -103,7 +103,7 @@ class TC_Kern926Test < Test::Unit::TestCase
     name = "random-#{content}.txt"
     res = @fm.upload_pooled_file(name, "Add the time to make it sort of random #{Time.now.to_f}.", 'text/plain')
     json = JSON.parse(res.body)
-    id = json[name]
+    id = json[name]['poolId']
     url = @fm.url_for_pooled_file(id)
 
     # Search the files that I manage .. should be 1

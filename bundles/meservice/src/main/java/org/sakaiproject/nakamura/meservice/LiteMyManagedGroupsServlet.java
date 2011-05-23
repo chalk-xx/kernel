@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.meservice;
 
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -27,6 +28,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
@@ -54,7 +56,6 @@ import java.util.TreeMap;
           "{" +
           "  \"items\": 10," +
           "  \"results\": [{" +
-          "      \"sakai:managers-group\": \"test-managers\"," +
           "      \"jcr:path\": \"/~test/public/authprofile\"," +
           "      \"sakai:group-title\": \"test\"," +
           "      \"sakai:group-joinable\": \"no\"," +
@@ -121,17 +122,27 @@ import java.util.TreeMap;
 public class LiteMyManagedGroupsServlet extends LiteAbstractMyGroupsServlet {
   private static final long serialVersionUID = 5286762541480563822L;
   @Override
-  protected TreeMap<String, Group> getGroups(Authorizable member, AuthorizableManager userManager)
+  protected TreeMap<String, Group> getGroups(Authorizable member,
+      AuthorizableManager userManager, SlingHttpServletRequest request)
       throws StorageClientException, AccessDeniedException {
     TreeMap<String, Group> managedGroups = new TreeMap<String, Group>();
     Iterator<Group> allGroupsIter = member.memberOf(userManager);
     while (allGroupsIter.hasNext()) {
       Group group = allGroupsIter.next();
-      if (!group.getId().equals(Group.EVERYONE) && group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
-        String managedGroupId = (String) group.getProperty(UserConstants.PROP_MANAGED_GROUP);
-        if (managedGroupId != null) {
-          Group managedGroup = (Group) userManager.findAuthorizable(managedGroupId);
-          managedGroups.put(managedGroupId, managedGroup);
+      if (!group.getId().equals(Group.EVERYONE)) {
+        for(String managerId : StorageClientUtils.nonNullStringArray(
+            (String[]) group.getProperty(UserConstants.PROP_GROUP_MANAGERS))) {
+          if (member.getId().equals(managerId)) {
+            final String category = stringRequestParameter(request, "category", null);
+            if (category == null) { // no filtering
+              managedGroups.put(group.getId(), group);
+            } else { // KERN-1865 category filter
+              if (category.equals(group.getProperty("sakai:category"))) {
+                managedGroups.put(group.getId(), group);
+              }
+            }
+            break;
+          }
         }
       }
     }

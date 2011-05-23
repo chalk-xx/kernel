@@ -18,7 +18,7 @@ class TC_NodeCreateTest < Test::Unit::TestCase
     res = @s.execute_post(@s.url_for(testpath), "a" => "foo", "b" => "bar")
 	assert_equal("201",res.code)
 	jsonResponse = JSON.parse(res.body)
-	poolId = jsonResponse['_contentItem']
+	poolId = jsonResponse['_contentItem']['poolId']
 	
     props = @s.get_node_props("/p/#{poolId}")
     assert_equal("foo", props["a"], "Expected property to be set")
@@ -28,7 +28,7 @@ class TC_NodeCreateTest < Test::Unit::TestCase
     res = @s.execute_file_post(@s.url_for("/p/#{poolId}.resource.html"), "file", "fileNo1", fBody, "text/plain")
 	assert_equal("201",res.code)
 	jsonResponse = JSON.parse(res.body)
-	resourceId = jsonResponse['fileNo1']
+	resourceId = jsonResponse['fileNo1']['resourceId']
 	assert_not_nil(resourceId)
 	
 	

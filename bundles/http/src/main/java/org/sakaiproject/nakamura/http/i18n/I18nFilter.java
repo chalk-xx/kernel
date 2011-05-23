@@ -54,7 +54,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Filter to transform __MSG_*__ i18n message keys into i18n messages.
  */
-@Component(metatype = true)
+@Component(metatype = true, enabled=false)
 @Service
 @org.apache.felix.scr.annotations.Properties(value = {
     @Property(name = Constants.SERVICE_VENDOR, value = "The Sakai Foundation"),
@@ -67,7 +67,7 @@ import javax.servlet.http.HttpServletResponse;
 })
 public class I18nFilter implements Filter {
   public static final String PARAM_LANGUAGE = "l";
-  public static final String DEFAULT_BUNDLES_PATH = "/dev/_bundle";
+  public static final String DEFAULT_BUNDLES_PATH = "/dev/bundle";
   public static final String DEFAULT_MESSAGE_KEY_PATTERN = "__MSG__(.+?)__";
   public static final boolean DEFAULT_SHOW_MISSING_KEYS = true;
 

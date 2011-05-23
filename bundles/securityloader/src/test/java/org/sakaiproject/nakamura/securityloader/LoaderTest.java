@@ -25,7 +25,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 
 import java.io.IOException;
 import java.net.URL;

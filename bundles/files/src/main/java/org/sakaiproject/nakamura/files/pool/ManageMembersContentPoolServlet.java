@@ -58,7 +58,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -100,6 +100,8 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
 
   @Reference
   protected transient ProfileService profileService;
+  @Reference
+  protected transient BasicUserInfoService basicUserInfoService;
 
   /**
    * Retrieves the list of members.
@@ -187,8 +189,7 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       if (detailed) {
         profileMap = profileService.getProfileMap(au, jcrSession);
       } else {
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        profileMap = new ValueMapDecorator(basicUserInfo.getProperties(au));
+        profileMap = new ValueMapDecorator(basicUserInfoService.getProperties(au));
       }
       if (profileMap != null) {
         writer.valueMap(profileMap);

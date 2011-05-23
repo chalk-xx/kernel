@@ -22,10 +22,15 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Permissions;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.locking.LockManager;
@@ -33,6 +38,7 @@ import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
+import org.sakaiproject.nakamura.util.ActivityUtils;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -55,6 +61,9 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
 
   @Reference
   protected transient LockManager lockManager;
+
+  @Reference
+  protected transient EventAdmin eventAdmin;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(LiteMessagingServiceImpl.class);
@@ -126,8 +135,10 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
     }
     try {
       try {
+        // TODO: perhaps we should check that we have permission to deliver the message, especially if routing is internal:/ 
         ContentManager contentManager = session.getContentManager();
         contentManager.update(msg);
+        ActivityUtils.postActivity(eventAdmin, session.getUserId(), msg.getPath(), "content", "default", "message", "SENT_MESSAGE", null);
       } catch (StorageClientException e) {
         LOGGER.warn("StorageClientException on trying to save message."
             + e.getMessage());
@@ -174,19 +185,11 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
    * @see org.sakaiproject.nakamura.api.message.LiteMessagingService#getFullPathToStore(java.lang.String, org.sakaiproject.nakamura.api.lite.Session)
    */
   public String getFullPathToStore(String rcpt, Session session) throws MessagingException {
-    String path = "";
-    if (rcpt.startsWith("w-")) {
-      // This is a widget
-      // TODO This is also a bug. KERN-1442
-      return LitePersonalUtils.expandHomeDirectory(rcpt.substring(2)) + "/";
+    if (rcpt.indexOf("/") >= 0) {
+      // This is a path
+      return PathUtils.toUserContentPath(rcpt) + "/";
     }
-    // TODO TEMPORARY HACK TO ENABLE SPARSE MIGRATION! Use a proper service once the Home Folder
-    // logic is properly set up.
-    path = MessageConstants.SAKAI_MESSAGE_PATH_PREFIX + rcpt + "/" + MessageConstants.FOLDER_MESSAGES + "/";
-//      Authorizable au = PersonalUtils.getAuthorizable(session, rcpt);
-//      path = PersonalUtils.getHomeFolder(au) + "/" + MessageConstants.FOLDER_MESSAGES;
-
-    return path;
+    return LitePersonalUtils.getHomePath( rcpt ) + "/" + MessageConstants.FOLDER_MESSAGES + "/";
   }
 
   /**
@@ -198,6 +201,49 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
     // at the moment we dont do alias expansion
     expanded.add(localRecipient);
     return expanded;
+  }
+  
+  /**
+   * Check that the message can be delivered by the creator of the message. If the
+   * destination is a users inbox, then there are no permissions, however if the
+   * destination is a content location, then we need to check that the user would have had
+   * write to that location. The user is defined as the owner of the outbox, and failing
+   * that the user that created the message node.
+   * 
+   * @param recipient the recipient of the message
+   * @param originalMessage the original message
+   * @param session the admin session being used to perform the delivery.
+   * @return true if the message should be delivered, false if not.
+   */
+  public boolean checkDeliveryAccessOk(String recipient, Content originalMessage,
+      Session session) {
+    try {
+      if (recipient.indexOf('/') < 0) {
+        return true; // delivery to non path recipients is always granted.
+      }
+      // extract the target path, and the user who created the original message, and then
+      // check that the user has write to the location.
+      String path = getFullPathToStore(recipient, session);
+      // messages come from an outbox in the users home space
+      String sendingUser = PathUtils.getAuthorizableId(originalMessage.getPath());
+      AuthorizableManager authorizableManager = session.getAuthorizableManager();
+      Authorizable sendingUserAu = authorizableManager.findAuthorizable(sendingUser);
+      if (sendingUserAu == null || sendingUserAu.isGroup()) {
+        sendingUser = (String) originalMessage.getProperty(Content.CREATED_BY_FIELD);
+        sendingUserAu = authorizableManager.findAuthorizable(sendingUser);
+      }
+      if (sendingUserAu == null) {
+        return false;
+      }
+
+      return session.getAccessControlManager().can(sendingUserAu, Security.ZONE_CONTENT,
+          path, Permissions.CAN_WRITE);
+    } catch (StorageClientException e) {
+      LOGGER.error(e.getMessage(), e);
+    } catch (AccessDeniedException e) {
+      LOGGER.error(e.getMessage(), e);
+    }
+    return false;
   }
 
 }

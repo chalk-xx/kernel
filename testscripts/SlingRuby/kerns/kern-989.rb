@@ -34,7 +34,7 @@ class TC_Kern989Test < Test::Unit::TestCase
     @s.switch_user(creator)
     res = @fm.upload_pooled_file('random.txt', '1', 'text/plain')
     file = JSON.parse(res.body)
-    id = file['random.txt']
+    id = file['random.txt']['poolId']
     url = @fm.url_for_pooled_file(id)
     res = @s.execute_post(url, { "testing" => "value1" })
     assert_equal("200", res.code)

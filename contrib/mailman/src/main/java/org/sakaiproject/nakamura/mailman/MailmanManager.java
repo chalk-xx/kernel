@@ -24,10 +24,11 @@ import java.util.List;
 public interface MailmanManager {
   public boolean isServerActive() throws MailmanException;
   public List<String> getLists() throws MailmanException;
-  public void createList(String listName, String ownerEmail, String password) throws MailmanException;
+  public void createList(String listName, String password) throws MailmanException;
   public void deleteList(String listName, String listPassword) throws MailmanException;
   public boolean listHasMember(String listName, String listPassword, String memberEmail) throws MailmanException;
   public boolean addMember(String listName, String listPassword, String userEmail) throws MailmanException;
   public boolean removeMember(String listName, String listPassword, String userEmail) throws MailmanException;
   public MessageRoute generateMessageRouteForGroup(String groupName);
+  public void setListSettings(String principalName, String listManagementPassword) throws MailmanException;
 }

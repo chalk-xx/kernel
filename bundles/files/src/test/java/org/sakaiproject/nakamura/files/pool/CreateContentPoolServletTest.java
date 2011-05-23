@@ -44,6 +44,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -123,6 +124,8 @@ public class CreateContentPoolServletTest {
   private ResourceResolver resourceResolver;
   @Mock
   private SparseMapUserManager sparseMapUserManager;
+  @Mock
+  private EventAdmin eventAdmin;
   private RepositoryImpl repository;
 
   public CreateContentPoolServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
@@ -243,6 +246,7 @@ public class CreateContentPoolServletTest {
     when(response.getWriter()).thenReturn(new PrintWriter(stringWriter));
 
     CreateContentPoolServlet cp = new CreateContentPoolServlet();
+    cp.eventAdmin = eventAdmin;
     cp.clusterTrackingService = clusterTrackingService;
     cp.sparseRepository = repository;
 

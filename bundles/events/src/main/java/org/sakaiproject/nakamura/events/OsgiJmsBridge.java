@@ -17,6 +17,20 @@
  */
 package org.sakaiproject.nakamura.events;
 
+import java.util.Dictionary;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.jms.Connection;
+import javax.jms.DeliveryMode;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -31,22 +45,9 @@ import org.sakaiproject.nakamura.api.events.EventDeliveryConstants;
 import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventAcknowledgeMode;
 import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventDeliveryMode;
 import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventMessageMode;
+import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Dictionary;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.jms.Connection;
-import javax.jms.DeliveryMode;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
 
 /**
  * Bridge to send OSGi events onto a JMS topic.
@@ -233,8 +234,8 @@ public class OsgiJmsBridge implements EventHandler {
         // message that was not of one of these types.
         if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
             || obj instanceof Number || obj instanceof Map || obj instanceof String
-            || obj instanceof List) {
-          msg.setObjectProperty(name, obj);
+            || obj instanceof List || obj instanceof Object[]) {
+          msg.setObjectProperty(name, EventUtils.cleanProperty(obj));
         }
       }
 
@@ -272,5 +273,4 @@ public class OsgiJmsBridge implements EventHandler {
       }
     }
   }
-
 }

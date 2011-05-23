@@ -21,6 +21,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.util.PreemptiveIterator;
 import org.slf4j.Logger;
@@ -34,11 +35,13 @@ public class SparseContentResourceIterator extends PreemptiveIterator<Resource> 
   final private Session session;
   final private ResourceResolver resourceResolver;
   private SparseContentResource nextResource;
+  private String parentPath;
 
-  public SparseContentResourceIterator(Iterator<Content> contentIterator, Session session, ResourceResolver resourceResolver) {
+  public SparseContentResourceIterator(Iterator<Content> contentIterator, Session session, ResourceResolver resourceResolver, Resource parent) {
     this.contentIterator = contentIterator;
     this.session = session;
     this.resourceResolver = resourceResolver;
+    this.parentPath = parent.getPath();
   }
 
   @Override
@@ -48,7 +51,8 @@ public class SparseContentResourceIterator extends PreemptiveIterator<Resource> 
       Content content = contentIterator.next();
       if (content != null) {
         try {
-          nextResource = new SparseContentResource(content, session, resourceResolver);
+          String childPath = StorageClientUtils.newPath(parentPath, StorageClientUtils.getObjectName(content.getPath()));
+          nextResource = new SparseContentResource(content, session, resourceResolver, childPath);
         } catch (StorageClientException e) {
           logger.debug("Unable to convert content {} to resource; cause {}", new Object[] {
               content, e.getMessage() }, e);

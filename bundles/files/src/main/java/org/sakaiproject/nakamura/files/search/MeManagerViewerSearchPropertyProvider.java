@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.files.search;
 
 import com.google.common.base.Join;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -34,12 +35,14 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.text.MessageFormat;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides properties to process the search
@@ -52,17 +55,15 @@ import java.util.Map;
   @Property(name = "sakai.search.provider", value = "MeManagerViewer") })
 public class MeManagerViewerSearchPropertyProvider implements SolrSearchPropertyProvider {
 
+  private static final String QUERY = " AND (content:({0}) OR filename:({0}) OR tag:({0}) OR description:({0}) OR path:({0}) OR ngram:({0}) OR edgengram:({0}))";
+  
   @Reference
   protected ConnectionManager connectionManager;
 
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
     
-    String user = request.getRemoteUser();
-    RequestParameter useridParam = request.getRequestParameter("userid");
-    if (useridParam != null) {
-      user = useridParam.getString();
-    }
+    final String user = getUser(request);
     
     if (User.ANON_USER.equals(user)) {
       // stop here, anonymous is not a manager or a viewer of anything
@@ -71,26 +72,55 @@ public class MeManagerViewerSearchPropertyProvider implements SolrSearchProperty
     javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
     Session session =
       StorageClientUtils.adaptToSession(jcrSession);
-    try {
-      AuthorizableManager authManager = session.getAuthorizableManager();
-      Authorizable userAuthorizable = authManager.findAuthorizable(user);
-      if (userAuthorizable != null) {
-        List<String> viewerAndManagerPrincipals = new ArrayList<String>();
-        for (String principal : userAuthorizable.getPrincipals()) {
-          viewerAndManagerPrincipals.add(ClientUtils.escapeQueryChars(principal));
-        }
-        viewerAndManagerPrincipals.remove("everyone");
-        viewerAndManagerPrincipals.add(ClientUtils.escapeQueryChars(user));
-
-        propertiesMap.put("au", Join.join(" OR ", viewerAndManagerPrincipals));
-      }
-    } catch (StorageClientException e) {
-      throw new RuntimeException(e);
-    } catch (AccessDeniedException e) {
-      throw new RuntimeException(e);
+    final Set<String> viewerAndManagerPrincipals = getPrincipals(session,
+        user);
+    if (!viewerAndManagerPrincipals.isEmpty()) {
+      propertiesMap.put("au", Join.join(" OR ", viewerAndManagerPrincipals));
     }
 
+    String q = request.getParameter("q");
+    if (!StringUtils.isBlank(q)) {
+      propertiesMap.put("_q", MessageFormat.format(QUERY, q));
+    }
+  }
 
+  /**
+   * @param request
+   * @return
+   */
+  protected static String getUser(final SlingHttpServletRequest request) {
+    String user = request.getRemoteUser();
+    final RequestParameter useridParam = request.getRequestParameter("userid");
+    if (useridParam != null) {
+      user = useridParam.getString();
+    }
+    return user;
+  }
+
+  /**
+   * @param session
+   * @param user
+   * @return An empty list if the user cannot be found. Values will be solr query escaped.
+   */
+  protected static Set<String> getPrincipals(final Session session, final String user) {
+
+    final Set<String> viewerAndManagerPrincipals = new HashSet<String>();
+    try {
+      final AuthorizableManager authManager = session.getAuthorizableManager();
+      final Authorizable userAuthorizable = authManager.findAuthorizable(user);
+      if (userAuthorizable != null) {
+        for (final String principal : userAuthorizable.getPrincipals()) {
+          viewerAndManagerPrincipals.add(ClientUtils.escapeQueryChars(principal));
+        }
+        viewerAndManagerPrincipals.remove(Group.EVERYONE);
+        viewerAndManagerPrincipals.add(ClientUtils.escapeQueryChars(user));
+      }
+    } catch (StorageClientException e) {
+      throw new IllegalStateException(e);
+    } catch (AccessDeniedException e) {
+      // quietly trap access denied exceptions
+    }
+    return viewerAndManagerPrincipals;
   }
 
 }

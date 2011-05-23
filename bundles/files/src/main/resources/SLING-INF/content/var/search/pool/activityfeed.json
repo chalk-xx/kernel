@@ -6,6 +6,7 @@
   "sortOn": "_created",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
+  "sakai:resultprocessor": "ActivityFeed", // this is in the activity bundle
   "sakai:propertyprovider" : "PooledContentNode",
   "sakai:title": "Pooled Content - Activity Feed",
   "sakai:shortDescription": "Returns recent activity nodes under a Pooled Content node.",

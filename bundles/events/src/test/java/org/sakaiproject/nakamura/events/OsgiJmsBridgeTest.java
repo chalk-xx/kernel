@@ -25,14 +25,6 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 
-import org.apache.activemq.command.ActiveMQMessage;
-import org.junit.Before;
-import org.junit.Test;
-import org.osgi.service.component.ComponentContext;
-import org.osgi.service.event.Event;
-import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
-import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
-
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -46,6 +38,14 @@ import javax.jms.Message;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.Topic;
+
+import org.apache.activemq.command.ActiveMQMessage;
+import org.junit.Before;
+import org.junit.Test;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
+import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
+import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 
 /**
  * Unit test for bridging events from OSGi to JMS.

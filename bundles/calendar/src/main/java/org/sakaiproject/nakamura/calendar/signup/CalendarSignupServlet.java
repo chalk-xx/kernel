@@ -27,16 +27,16 @@ import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_SIG
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_USER;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.TOPIC_CALENDAR_SIGNUP;
 
+import com.google.common.collect.ImmutableMap;
+
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
@@ -47,10 +47,16 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
-import org.sakaiproject.nakamura.util.PersonalUtils;
 import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,12 +67,8 @@ import java.util.Calendar;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map.Entry;
 
-import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -107,11 +109,11 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
 
   protected List<SignupPreProcessor> signupPreProcessors = new ArrayList<SignupPreProcessor>();
 
-  @Reference
-  protected transient SlingRepository slingRepository;
 
   @Reference
   protected transient EventAdmin eventAdmin;
+  @Reference
+  protected Repository repository;
 
 
   /**
@@ -133,15 +135,15 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
 
     // Grab the signup node.
     Resource signupResource = request.getResource();
-    Node signupNode = signupResource.adaptTo(Node.class);
-
+    Content signupNode = signupResource.adaptTo(Content.class);
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     try {
       // Check if this user is already signed up for this event.
-      checkAlreadySignedup(signupNode);
+      checkAlreadySignedup(signupNode, session);
 
       // Loop over all the pre processors and make sure this request is correct.
       for (SignupPreProcessor processor : signupPreProcessors) {
-        processor.checkSignup(request, signupNode);
+        processor.checkSignup(request, signupNode, session);
       }
     } catch (CalendarException e) {
       LOGGER.error("Invalid calendar signup request.", e);
@@ -151,10 +153,10 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
 
     try {
       // Handle the signup and add the participant.
-      handleSignup(signupNode);
+      handleSignup(signupNode, session);
 
       // Copy the event to the user his calendar.
-      copyEventNode(signupNode);
+      copyEventNode(signupNode, session);
 
       // Send an OSGi event for this sign up.
       Dictionary<String, String> properties = new Hashtable<String, String>();
@@ -172,20 +174,17 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
    * @param signupNode
    * @throws CalendarException
    */
-  protected void checkAlreadySignedup(Node signupNode) throws CalendarException {
+  protected void checkAlreadySignedup(Content signupNode, Session session) throws CalendarException {
     try {
-      Session session = signupNode.getSession();
-      String user = session.getUserID();
-      Authorizable au = PersonalUtils.getAuthorizable(session, user);
-
-      String path = signupNode.getPath() + "/" + PARTICIPANTS_NODE_NAME
-          + PathUtils.getSubPath(au);
-      if (session.itemExists(path)) {
+      String user = session.getUserId();
+      ContentManager contentManager = session.getContentManager();
+      String path = StorageClientUtils.newPath(signupNode.getPath() ,PARTICIPANTS_NODE_NAME+user);
+      if (contentManager.exists(path)) {
         throw new CalendarException(HttpServletResponse.SC_BAD_REQUEST,
             "You are already signed up for this event.");
       }
 
-    } catch (RepositoryException e) {
+    } catch (StorageClientException e) {
       LOGGER.error("Failed to check if this user was already signed up.", e);
       throw new CalendarException(500, "Could not check if you were already signed up.");
     }
@@ -197,54 +196,50 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
    * @param signupNode
    *          The node that represents the signup properties for this event.
    */
-  protected void copyEventNode(Node signupNode) throws CalendarException {
+  protected void copyEventNode(Content signupNode, Session session) throws CalendarException {
     try {
       // Grab the event
-      Node eventNode = signupNode.getParent();
-      Session session = signupNode.getSession();
-      Authorizable au = PersonalUtils.getAuthorizable(session, session.getUserID());
+      ContentManager contentManager = session.getContentManager();
+      Content eventNode = contentManager.get(StorageClientUtils.getParentObjectPath(signupNode.getPath()));
+      String userId = session.getUserId();
 
-      // Get the path that we should create.
-      String path = PersonalUtils.getHomePath(au);
-      path += "/" + SAKAI_CALENDAR_NODENAME;
-      String pathToEvent = eventNode.getName();
-      Node node = eventNode.getParent();
+      String parentPath = StorageClientUtils.getParentObjectPath(eventNode.getPath());
       boolean found = false;
-      while (!found && !node.getPath().equals("/")) {
-        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            && node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-                .getString().equals(SAKAI_CALENDAR_RT)) {
+      while (!found && !StorageClientUtils.isRoot(parentPath)) {
+        Content parentContent = contentManager.get(parentPath);
+        if (parentContent.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+            && SAKAI_CALENDAR_RT.equals(parentContent.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))) {
           found = true;
           break;
         }
-        pathToEvent = node.getName() + "/" + pathToEvent;
-        node = node.getParent();
+        parentPath = StorageClientUtils.getParentObjectPath(parentPath);
       }
-      path += "/" + pathToEvent;
+
+      // Get the path that we should create.
+      String path = StorageClientUtils.newPath(LitePersonalUtils.getHomePath(userId), SAKAI_CALENDAR_NODENAME);
+      path = StorageClientUtils.newPath(path, eventNode.getPath().substring(parentPath.length()));
 
       // Create the node under the user in his own calendar.
       // Copy all the properties over.
-      Node ownEventNode = JcrUtils.deepGetOrCreateNode(session, path);
-      PropertyIterator iterator = eventNode.getProperties();
-      while (iterator.hasNext()) {
-        Property p = iterator.nextProperty();
-        if (p.getName().startsWith("jcr:")) {
-          continue;
-        }
-        if (p.isMultiple()) {
-          ownEventNode.setProperty(p.getName(), p.getValues());
-        } else {
-          ownEventNode.setProperty(p.getName(), p.getValue());
+      Content ownEventNode = contentManager.get(path);
+      if ( ownEventNode == null ) {
+        ownEventNode = new Content(path, eventNode.getProperties());
+      } else {
+        for ( Entry<String, Object> e : eventNode.getProperties().entrySet()) {
+          ownEventNode.setProperty(e.getKey(),e.getValue());
         }
       }
-      ownEventNode.setProperty(SAKAI_SIGNEDUP_ORIGINAL_EVENT, eventNode.getIdentifier());
+      ownEventNode.setProperty(SAKAI_SIGNEDUP_ORIGINAL_EVENT, eventNode.getPath());
+      contentManager.update(ownEventNode);
+    } catch ( AccessDeniedException e) {
+      LOGGER
+      .warn(
+          "Caught repository exception when trying to copy a calendar event to a user his calendar during signup.",
+          e);
+      throw new CalendarException(403,
+      "Failed to copy the event to the current user his calendar. "+e.getMessage());
 
-      // Save the changes.
-      if (session.hasPendingChanges()) {
-        session.save();
-      }
-
-    } catch (RepositoryException e) {
+    } catch (StorageClientException e) {
       LOGGER
           .error(
               "Caught repository exception when trying to copy a calendar event to a user his calendar during signup.",
@@ -262,7 +257,7 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
    * @throws CalendarException
    *           Something went wrong, HTTP status code and message is included.
    */
-  protected void handleSignup(Node signupNode) throws CalendarException {
+  protected void handleSignup(Content signupNode, Session session) throws CalendarException {
 
     try {
       // Add the user to the participant list.
@@ -270,35 +265,31 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
 
       // Construct the absolute path in JCR from the signup node and the authorizable
       // hash.
-      Session session = signupNode.getSession();
-      Authorizable au = getAuthorizable(session);
-      String hash = PersonalUtils.getUserHashedPath(au);
-      String profilePath = PersonalUtils.getProfilePath(au);
-      Node profileNode = (Node) session.getItem(profilePath);
-      String path = signupNode.getPath() + "/" + PARTICIPANTS_NODE_NAME + "/" + hash;
+      String userId = session.getUserId();
+      String profilePath = LitePersonalUtils.getProfilePath(userId);
+      String path = signupNode.getPath() + "/" + PARTICIPANTS_NODE_NAME + "/" + userId;
       path = PathUtils.normalizePath(path);
 
       Session adminSession = null;
       try {
         // login as admin so we can create a subnode.
-        adminSession = slingRepository.loginAdministrative(null);
+        adminSession = repository.loginAdministrative(null);
+        ContentManager contentManager = adminSession.getContentManager();
 
-        // Create the participant node.
-        Node participantNode = JcrUtils.deepGetOrCreateNode(adminSession, path);
-        participantNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-            SAKAI_EVENT_SIGNUP_PARTICIPANT_RT);
-        participantNode.setProperty(SAKAI_USER, signupNode.getSession().getUserID());
-        participantNode.setProperty(SAKAI_SIGNEDUP_DATE, Calendar.getInstance());
-        participantNode.setProperty(SAKAI_CALENDAR_PROFILE_LINK, profileNode);
-        if (adminSession.hasPendingChanges()) {
-          adminSession.save();
-        }
+        Content content = new Content(path, ImmutableMap.of(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            (Object)SAKAI_EVENT_SIGNUP_PARTICIPANT_RT,SAKAI_USER, userId,SAKAI_SIGNEDUP_DATE, Calendar.getInstance(), SAKAI_CALENDAR_PROFILE_LINK, profilePath));
+        contentManager.update(content);
       } finally {
         // Destroy the admin session.
         adminSession.logout();
       }
 
-    } catch (RepositoryException e) {
+    } catch (AccessDeniedException e) {
+      LOGGER.error(
+          "Caught repository exception when trying to handle a calendar signup.", e);
+      throw new CalendarException(403,
+          "Failed to add current user to the participant list.");
+    } catch (StorageClientException e) {
       LOGGER.error(
           "Caught repository exception when trying to handle a calendar signup.", e);
       throw new CalendarException(500,
@@ -306,17 +297,6 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
     }
   }
 
-  /**
-   * Gets the authorizable for a session
-   * @param session
-   * @return
-   * @throws RepositoryException
-   */
-  protected Authorizable getAuthorizable(Session session) throws RepositoryException {
-    // Get the authorizable.
-    String user = session.getUserID();
-    return PersonalUtils.getAuthorizable(session, user);
-  }
 
   protected void bindPreProcessor(SignupPreProcessor preProcessor) {
     signupPreProcessors.add(preProcessor);

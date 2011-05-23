@@ -114,12 +114,11 @@ public class LiteActivityListener implements MessageListener {
     try {
       final String activityItemPath = message
           .getStringProperty(ActivityConstants.EVENT_PROP_PATH);
-      LOG.info("Processing activity: {}", activityItemPath);
       Session session = sparseRepository.loginAdministrative(); 
       ContentManager contentManager = session.getContentManager();
       try {
         Content activity = contentManager.get(activityItemPath);
-        if (!activity.hasProperty(PARAM_ACTOR_ID)) {
+        if (activity == null || !activity.hasProperty(PARAM_ACTOR_ID)) {
           // we must know the actor
           throw new IllegalStateException(
               "Could not determine actor of activity: " + activity);
@@ -176,7 +175,7 @@ public class LiteActivityListener implements MessageListener {
       }
     }
     contentProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-        ActivityConstants.ACTIVITY_FEED_RESOURCE_TYPE);
+        ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE);
     Content content = new Content(deliveryPath, contentProperties.build());
     contentManager.update(content);
   }

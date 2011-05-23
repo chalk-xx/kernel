@@ -17,10 +17,9 @@
  */
 package org.sakaiproject.nakamura.doc;
 
-import static org.junit.Assert.assertTrue;
-
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -89,7 +88,7 @@ public class DocumentationWriterTest {
   private Node createNode(String path, String title, String description, String response,
       String shortDesc, String parameter, String query) throws RepositoryException {
     MockNode node = new MockNode(path);
-    node.setProperty(SLING_RESOURCE_TYPE_PROPERTY, "sakai/search");
+    node.setProperty(SLING_RESOURCE_TYPE_PROPERTY, "sakai/solr-search");
     node.setProperty(NodeDocumentation.TITLE, title);
     node.setProperty(NodeDocumentation.DESCRIPTION, description);
     node.setProperty(NodeDocumentation.RESPONSE, response);
@@ -107,7 +106,7 @@ public class DocumentationWriterTest {
     QueryManager qm = mock(QueryManager.class);
     Query q = mock(Query.class);
     QueryResult result = mock(QueryResult.class);
-    String queryString = "//*[@sling:resourceType='sakai/search']";
+    String queryString = "//*[@sling:resourceType='sakai/sparse-search']";
 
     Node node = createNode(path, title, description, response, shortDesc, parameter,
         query);

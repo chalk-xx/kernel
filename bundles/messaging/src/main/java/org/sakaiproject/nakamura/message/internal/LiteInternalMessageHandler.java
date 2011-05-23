@@ -54,7 +54,7 @@ import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.presence.PresenceUtils;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +75,7 @@ import java.util.List;
     @Property(name = "service.description", value = "Handler for internally delivered messages.") })
 public class LiteInternalMessageHandler implements LiteMessageTransport,
     LiteMessageProfileWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LiteInternalMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_INTERNAL;
 
   @Reference
@@ -89,6 +89,8 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
 
   @Reference
   protected transient LockManager lockManager;
+  @Reference
+  private BasicUserInfoService basicUserInfoService;
 
   /**
    * Default constructor
@@ -114,8 +116,8 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       for (MessageRoute route : routes) {
         if (MessageTransport.INTERNAL_TRANSPORT.equals(route.getTransport())) {
-          LOG.info("Started handling a message.");
           String recipient = route.getRcpt();
+          LOG.info("Started handling a message for delivery to {} ", recipient );
           // the path were we want to save messages in.
           String messageId = (String) originalMessage
               .getProperty(MessageConstants.PROP_SAKAI_ID);
@@ -162,30 +164,36 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
         // only send a message to a user who hasn't already received one:
         if (!recipients.contains(recipient)) {
 
-          String toPath = messagingService.getFullPathToMessage(recipient, messageId,
-              session);
-
-          try {
-            lockManager.waitForLock(toPath);
-          } catch (LockTimeoutException e1) {
-            throw new MessagingException("Unable to lock destination message store");
+          if ( messagingService.checkDeliveryAccessOk(recipient, originalMessage, session ) ) {
+            String toPath = messagingService.getFullPathToMessage(recipient, messageId,
+                session);
+            
+            
+  
+            try {
+              lockManager.waitForLock(toPath);
+            } catch (LockTimeoutException e1) {
+              throw new MessagingException("Unable to lock destination message store");
+            }
+            
+            ImmutableMap.Builder<String, Object> propertyBuilder = ImmutableMap.builder();
+            // Copy the content into the user his folder.
+            contentManager.update(
+                new Content(toPath.substring(0, toPath.lastIndexOf("/")), propertyBuilder
+                    .build()));
+            contentManager.copy(originalMessage.getPath(), toPath, true);
+            Content message = contentManager.get(toPath);
+            LOG.debug("Message As delivered at {} from {} is {} ",new Object[]{message.getPath(), originalMessage.getPath(), message});
+  
+            // Add some extra properties on the just created node.
+            message.setProperty(MessageConstants.PROP_SAKAI_READ, false);
+            message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
+            message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE, MessageConstants.STATE_NOTIFIED);
+            message.setProperty(MessageConstants.PROP_SAKAI_MESSAGE_STORE, messagingService.getFullPathToStore(recipient, session));
+            contentManager.update(message);
+          } else {
+            LOG.warn("Unable to deliver message, permission denied {} ", originalMessage.getPath());
           }
-          
-          ImmutableMap.Builder<String, Object> propertyBuilder = ImmutableMap.builder();
-          // Copy the content into the user his folder.
-          contentManager.update(
-              new Content(toPath.substring(0, toPath.lastIndexOf("/")), propertyBuilder
-                  .build()));
-          contentManager.copy(originalMessage.getPath(), toPath, true);
-          Content message = contentManager.get(toPath);
-
-          // Add some extra properties on the just created node.
-          message.setProperty(MessageConstants.PROP_SAKAI_READ, false);
-          message.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
-          message.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE, MessageConstants.STATE_NOTIFIED);
-          message.setProperty(MessageConstants.PROP_SAKAI_MESSAGE_STORE, messagingService.getFullPathToStore(recipient, session));
-          contentManager.update(message);
-
           recipients.add(recipient);
         }
       }
@@ -222,8 +230,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
       Authorizable au = authorizableManager.findAuthorizable(recipient);
       if (au != null) {
         write.object();
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        ValueMap map = new ValueMapDecorator(basicUserInfo.getProperties(au));
+        ValueMap map = new ValueMapDecorator(basicUserInfoService.getProperties(au));
         ExtendedJSONWriter.writeValueMapInternals(write, map);
         if (au instanceof User) {
           // Pass in the presence.

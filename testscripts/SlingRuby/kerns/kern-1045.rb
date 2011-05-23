@@ -35,7 +35,7 @@ class TC_Kern1045 < Test::Unit::TestCase
     fileBody = "Add the time to make it sort of random #{Time.now.to_f}."
     res = @fm.upload_pooled_file(name, fileBody, 'text/plain')
     json = JSON.parse(res.body)
-    id = json[name]
+    id = json[name]['poolId']
 
 
     # Search the files that I manage .. should be 1

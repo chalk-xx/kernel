@@ -34,7 +34,6 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
-import org.sakaiproject.nakamura.api.search.solr.Query.Type;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
@@ -119,7 +118,7 @@ public class LiteMostActiveContentSearchBatchResultProcessor implements
     try {
       final String queryString = "resourceType:"
           + ClientUtils.escapeQueryChars(FilesConstants.POOLED_CONTENT_RT);
-      final Query query = new Query(Type.SOLR, queryString, null);
+      final Query query = new Query(queryString);
       final SolrSearchResultSet rs = searchServiceFactory.getSearchResultSet(request,
           query);
       if (rs != null) {

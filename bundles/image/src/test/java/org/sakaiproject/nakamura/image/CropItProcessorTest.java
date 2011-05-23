@@ -19,16 +19,16 @@ package org.sakaiproject.nakamura.image;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sanselan.ImageFormat;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.ImageWriteException;
 import org.apache.sanselan.Sanselan;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Before;
 import org.junit.Test;

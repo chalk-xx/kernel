@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -53,6 +54,8 @@ public class LiteMessagingServiceImplTest {
   private ContentManager contentManager;
   @Mock
   private LockManager lockManager;
+  @Mock
+  private EventAdmin eventAdmin;
 
   private String userName = "joe";
   private String groupName = "g-physics-101-viewers";
@@ -66,6 +69,7 @@ public class LiteMessagingServiceImplTest {
     when(session.getContentManager()).thenReturn(contentManager);
     messagingServiceImpl = new LiteMessagingServiceImpl();
     messagingServiceImpl.lockManager = lockManager;
+    messagingServiceImpl.eventAdmin = eventAdmin;
   }
 
   @After

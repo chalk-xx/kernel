@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.user.lite.servlet;
 
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -41,7 +42,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
-import org.sakaiproject.nakamura.api.user.BasicUserInfo;
+import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -103,11 +104,11 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
   private static final Logger logger = LoggerFactory.getLogger(LiteGroupMemberServlet.class);
   private static final long serialVersionUID = 7976930178619974246L;
 
-//  @Reference
-//  protected transient ProfileService profileService;
 
   static final String ITEMS = "items";
   static final String PAGE = "page";
+  @Reference
+  private BasicUserInfoService basicUserInfoService;
 
   /**
    * {@inheritDoc}
@@ -176,8 +177,7 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
       while (iterator.hasNext() && i < items) {
         Entry<String, Authorizable> entry = iterator.next();
         Authorizable au = entry.getValue();
-        BasicUserInfo basicUserInfo = new BasicUserInfo();
-        ValueMap profile = new ValueMapDecorator(basicUserInfo.getProperties(au));
+        ValueMap profile = new ValueMapDecorator(basicUserInfoService.getProperties(au));
         if (profile != null) {
           writer.valueMap(profile);
           i++;
@@ -249,15 +249,11 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
 
     // Only the direct members are required.
-    // If we would do group.getMembers() that would also retrieve all the indirect ones.
     String[] members = group.getMembers();
+    List<String> managers = Arrays.asList(StorageClientUtils.nonNullStringArray((String[]) group.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
     for ( String membername : members) {
       Authorizable member = authorizableManager.findAuthorizable(membername);
-      if (member.hasProperty("sakai:managed-group") && group.getId().equals(member.getProperty("sakai:managed-group"))) {
-        // for purposes of returning a list of members, we disregard the group's managers' group,
-        // which is technically a member, but we don't want to see it here.
-        continue;
-      }
+      // filter this out if it is a manager member
       String name = getName(member);
       map.put(name, member);
     }
@@ -290,14 +286,12 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
     // group and may not apply.
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
-    String managersGroup = (String) group.getProperty(UserConstants.PROP_MANAGERS_GROUP);
-    if (managersGroup != null ) {
 
-      Group mgrGroup = (Group) authorizableManager.findAuthorizable(managersGroup);
-
-      String[] members = mgrGroup.getMembers();
-      for  (String memberName : members) {
-        Authorizable mau = authorizableManager.findAuthorizable(memberName);
+    String[] members = group.getMembers();
+    List<String> managers = Arrays.asList(StorageClientUtils.nonNullStringArray((String[]) group.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
+    for  (String memberName : members) {
+      Authorizable mau = authorizableManager.findAuthorizable(memberName);
+      if (managers.contains(memberName)) {
         String name = getName(mau);
         map.put(name, mau);
       }

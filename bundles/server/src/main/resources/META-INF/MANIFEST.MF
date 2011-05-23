@@ -8,10 +8,8 @@ Sakai-Modifications-Doc: Added org.apache.sling.jcr.jackrabbit.server.
 Service-Component: OSGI-INF/serviceComponents.xml
 Note: Built by bundle profile, edited by hand
 Built-By: hand edited
-Old-Bundle-Activator: org.apache.sling.jcr.jackrabbit.server.impl.Acti
- vator
-Bundle-Activator: org.apache.sling.jcr.jackrabbit.server.impl.security
- .dynamic.SakaiActivator
+Bundle-Activator: org.apache.sling.jcr.jackrabbit.server.impl.Activato
+ r
 Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
 Created-By: Apache Maven Bundle Plugin
 Import-Package: com.microsoft.sqlserver.jdbc;resolution:=optional,java
@@ -71,9 +69,8 @@ Export-Package: org.apache.sling.jcr.jackrabbit.server;uses:="javax.jc
  krabbit.api.security.user,javax.jcr,javax.jcr.observation,org.apache.
  jackrabbit.util,org.apache.jackrabbit.spi.commons.conversion,org.apac
  he.jackrabbit.spi,javax.security.auth,org.apache.jackrabbit.commons.i
- terator";version="2.1.1",org.apache.sling.jcr.jackrabbit.server.secur
- ity.dynamic,org.apache.sling.jcr.jackrabbit.server.index,org.sakaipro
- ject.nakamura.api.lite.jackrabbit
+ terator";version="2.1.1",org.sakaiproject.nakamura.api.lite.jackrabbi
+ t
 Bundle-Version: 2.1.0.sakai
 Ignore-Package: org.apache.jackrabbit.test
 Bundle-Name: Apache Sling Jackrabbit Embedded Repository

@@ -67,8 +67,8 @@ public class SearchDocumentationServlet extends SlingSafeMethodsServlet {
       if (path != null) {
         docWriter.writeSearchInfo(path.getString(), session);
       } else {
-        String query = "//*[@sling:resourceType='sakai/search']";
-        docWriter.writeNodes(session, query, DocumentationConstants.PREFIX + "/proxy");
+        String query = "//*[@sling:resourceType='sakai/solr-search' or @sling:resourceType='sakai/sparse-search'] order by @sakai:title";
+        docWriter.writeNodes(session, query, DocumentationConstants.PREFIX + "/search");
       }
     } catch (ItemNotFoundException e) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND);

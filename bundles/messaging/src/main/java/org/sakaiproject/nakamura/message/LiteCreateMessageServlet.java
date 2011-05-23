@@ -55,7 +55,6 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.message.internal.InternalCreateMessagePreProcessor;
-import org.sakaiproject.nakamura.resource.lite.LiteResourceResolver;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

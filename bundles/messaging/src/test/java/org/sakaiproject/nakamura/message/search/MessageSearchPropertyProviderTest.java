@@ -29,13 +29,9 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.lite.Repository;
-import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
-import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 import org.sakaiproject.nakamura.message.LiteMessagingServiceImpl;
-import org.sakaiproject.nakamura.message.search.MessageSearchPropertyProvider;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 
@@ -49,8 +45,6 @@ public class MessageSearchPropertyProviderTest extends AbstractEasyMockTest {
 
   @Test
   public void testProperties() throws Exception {
-    BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
-    Repository repository = baseMemoryRepository.getRepository();
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
 
     ResourceResolver resolver = mock(ResourceResolver.class);

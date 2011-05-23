@@ -441,8 +441,9 @@ public class GzipFilter extends UserAgentFilter
             _contentLength=contentLength;
             _bufferSize=bufferSize;
             _minGzipSize=minGzipSize;
-            if (minGzipSize==0)
-                doGzip();
+            // KERN-1845 : java.lang.IllegalStateException: _gzOut != null
+            // if (minGzipSize==0)
+            // doGzip();
         }
 
         public void resetBuffer()
@@ -541,7 +542,7 @@ public class GzipFilter extends UserAgentFilter
 
         protected boolean setContentEncodingGzip()
         {
-          LOGGER.info("Encoding as GZip content");
+          LOGGER.debug("Encoding as GZip content");
             _response.setHeader("Content-Encoding", "gzip");
             return _response.containsHeader("Content-Encoding");
         }
