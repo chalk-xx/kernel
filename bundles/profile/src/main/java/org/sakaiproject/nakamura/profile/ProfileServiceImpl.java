@@ -235,8 +235,7 @@ public class ProfileServiceImpl implements ProfileService {
           map.put(k,e.getValue());
         }
       }
-      map.put("jcr:path", PathUtils.translateAuthorizablePath(profileContent.getPath()));
-      map.put("jcr:name", StorageClientUtils.getObjectName(profileContent.getPath()));
+      map.put("_path", PathUtils.translateAuthorizablePath(profileContent.getPath()));
 
       // We loop over the child nodes, but each node get checked against the baseMap
       // again.

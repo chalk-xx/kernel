@@ -22,13 +22,24 @@ import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.INFI
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_ITEMS_PER_PAGE;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_PAGE;
 import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.TIDY;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 
+import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.lang.StringUtils;
+
+
 import java.util.Map;
+import java.util.List;
+import java.util.Collection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+
 
 import javax.jcr.query.Query;
 
@@ -149,4 +160,105 @@ public class SolrSearchUtil {
     return maxRecursionLevels;
   }
 
+
+  /**
+   * Perform a MoreLikeThis query, retrieve the IDs of matching documents, and
+   * return a list of document IDs weighted relatively to their similarity
+   * score.
+   *
+   * @param mltQuery
+   *          A MoreLikeThis query (e.g.: "type:g AND readers:myuser")
+   * @param options
+   *          An even number of strings that will be passed as options to the MoreLikeThis query.
+   * @return A new Solr query string that yields the matching similar documents in order of
+   *         similarity (suitable for use in a query template)
+   */
+  public static String getMoreLikeThis(SlingHttpServletRequest request,
+                                       SolrSearchServiceFactory searchService,
+                                       String mltQuery,
+                                       String... options)
+    throws SolrSearchException
+  {
+    if ((options.length % 2) != 0) {
+      throw new IllegalArgumentException("The number of getMoreLikeThis options must be even.");
+    }
+
+    Map<String,String> mltOptions = new HashMap<String,String>();
+    for (int i = 0; i < options.length; i += 2) {
+      mltOptions.put(options[i], options[i + 1]);
+    }
+
+    SolrSearchResultSet moreLikeThat =
+      searchService.getSearchResultSet(request,
+                                       new org.sakaiproject.nakamura.api.search.solr.Query(mltQuery,
+                                                                                           mltOptions));
+
+    List<String> suggestedIds = new ArrayList<String>();
+
+    Iterator<Result> resultIterator = moreLikeThat.getResultSetIterator();
+
+    // Assign a descending weight to each matched ID to preserve the original
+    // score ordering.
+    long weight = (moreLikeThat.getSize() + 1);
+
+    while (resultIterator.hasNext()) {
+      Result result = resultIterator.next();
+      Map<String, Collection<Object>> props = result.getProperties();
+
+      for (Object id : props.get("id")) {
+        suggestedIds.add("\"" +
+                         SearchUtil.escapeString((String) id,
+                                                 org.sakaiproject.nakamura.api.search.solr.Query.SOLR) +
+                         "\"^" +
+                         weight * 100);
+        weight--;
+      }
+    }
+
+    if (suggestedIds.size() > 0) {
+      return "id:(" + StringUtils.join(suggestedIds, " OR ") + ")";
+    } else {
+      return null;
+    }
+  }
+
+
+  public static Iterator<Result> getRandomResults(SlingHttpServletRequest request,
+                                                  SolrSearchResultProcessor searchProcessor,
+                                                  String query,
+                                                  String... options)
+    throws SolrSearchException
+  {
+    if ((options.length % 2) != 0) {
+      throw new IllegalArgumentException("The number of getRandomResults options must be even.");
+    }
+
+    final Map<String,String> queryOptions = new HashMap<String,String>();
+    for (int i = 0; i < options.length; i += 2) {
+      queryOptions.put(options[i], options[i + 1]);
+    }
+
+    // random solr sorting requires a seed for the dynamic random_* field
+    final int random = (int) (Math.random() * 10000);
+    queryOptions.put("sort", "random_" + random + " desc");
+
+    SolrSearchResultSet rs = null;
+    try {
+      rs = searchProcessor.getSearchResultSet
+        (request,
+         new org.sakaiproject.nakamura.api.search.solr.Query(org.sakaiproject.nakamura.api.search.solr.Query.SOLR,
+                                                             query,
+                                                             queryOptions));
+
+      if (rs == null) {
+        return null;
+      }
+
+      return rs.getResultSetIterator();
+
+    } catch (SolrSearchException e) {
+      LOGGER.error(e.getLocalizedMessage(), e);
+      throw new IllegalStateException(e);
+    }
+  }
 }

@@ -162,20 +162,10 @@ public class ExtendedJSONWriter extends JSONWriter {
       return;
     }
 
-    // Since removal of bigstore we add in jcr:path and jcr:name
-    write.key("jcr:path");
-    write.value(PathUtils.translateAuthorizablePath(content.getPath()));
-    write.key("jcr:name");
-    write.value(StorageClientUtils.getObjectName(content.getPath()));
-
     Map<String, Object> props = content.getProperties();
     for (Entry<String, Object> prop : props.entrySet()) {
       String propName = prop.getKey();
       Object propValue = prop.getValue();
-
-      if ("_path".equals(propName)) {
-        continue;
-      }
 
       write.key(propName);
       if (propValue instanceof Object[]) {

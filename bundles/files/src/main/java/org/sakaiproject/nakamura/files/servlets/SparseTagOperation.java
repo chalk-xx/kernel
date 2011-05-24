@@ -34,7 +34,7 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.jcr.api.SlingRepository;import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -43,7 +43,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.files.FileUtils;
-import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.files.FilesConstants;import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -61,13 +61,10 @@ import org.sakaiproject.nakamura.util.osgi.EventUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.jcr.Node;
-import javax.jcr.RepositoryException;
+import javax.jcr.NodeIterator;import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.servlet.http.HttpServletResponse;
 
@@ -90,6 +87,9 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
 
   @Reference
   protected transient EventAdmin eventAdmin;
+
+  @Reference
+  protected transient SlingRepository slingRepository;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SparseTagOperation.class);
 
@@ -157,6 +157,20 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
         Node nodeTag = tagResource.adaptTo(Node.class);
         tagUuid = nodeTag.getIdentifier();
         tagName = tagContentWithNodeTag(contentManager, content, nodeTag);
+        javax.jcr.Session adminSession = null;
+        try {
+          adminSession = slingRepository.loginAdministrative(null);
+          Node adminTagNode = adminSession.getNode(nodeTag.getPath());
+          String[] tagNames = StorageClientUtils.nonNullStringArray((String[]) content.getProperty(SAKAI_TAGS));
+          incrementTagCounts(adminTagNode, tagNames, false);
+          if (adminSession.hasPendingChanges()) {
+            adminSession.save();
+          }
+        } finally {
+          if (adminSession != null) {
+            adminSession.logout();
+          }
+        }
       }
     } catch (Exception e) {
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -198,6 +212,67 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
       LOGGER.error("Could not send an OSGi event for tagging a file", e);
     }
 
+  }private void incrementTagCounts(Node nodeTag, String[] tagNames, boolean calledByAChild) throws RepositoryException {
+      if (calledByAChild || !alreadyTaggedBelowThisLevel(nodeTag, tagNames)) {
+        Long tagCount = 1L;
+        if (nodeTag.hasProperty(FilesConstants.SAKAI_TAG_COUNT)) {
+          tagCount = nodeTag.getProperty(FilesConstants.SAKAI_TAG_COUNT).getLong();
+          tagCount++;
+        }
+        nodeTag.setProperty(FilesConstants.SAKAI_TAG_COUNT, tagCount);
+      }
+
+      // if this node's parent is not the root, we keep going up
+      List<String> relatedTags = new ArrayList<String>();
+      relatedTags.addAll(ancestorTags(nodeTag));
+      NodeIterator nodeIterator = nodeTag.getParent().getNodes();
+      while(nodeIterator.hasNext()) {
+        Node peer = nodeIterator.nextNode();
+        if (FileUtils.isTag(peer) && !nodeTag.isSame(peer)) {
+          relatedTags.add(peer.getProperty(SAKAI_TAG_NAME).getString());
+        }
+      }
+      if (!isChildOfRoot(nodeTag) && !alreadyTaggedAtOrAboveThisLevel(tagNames, relatedTags)) {
+        incrementTagCounts(nodeTag.getParent(), tagNames, true);
+      }
+  }private Collection<String> ancestorTags(Node tagNode) throws RepositoryException {
+      Collection<String> rv = new ArrayList<String>();
+      if(!isChildOfRoot(tagNode)) {
+        Node parentNode = tagNode.getParent();
+        if (FileUtils.isTag(parentNode)) {
+          rv.add(parentNode.getProperty(SAKAI_TAG_NAME).getString());
+        }
+        rv.addAll(ancestorTags(parentNode));
+      }
+      return rv;
+  }
+
+  private boolean alreadyTaggedBelowThisLevel(Node tagNode, String[] tagNames) throws RepositoryException {
+    List<String> tagNamesList = Arrays.asList(tagNames);
+    NodeIterator childNodes = tagNode.getNodes();
+    while(childNodes.hasNext()){
+      Node child = childNodes.nextNode();
+      if (alreadyTaggedBelowThisLevel(child, tagNames)) {
+        return true;
+      }
+      if (FileUtils.isTag(child) && tagNamesList.contains(child.getProperty(SAKAI_TAG_NAME).getString())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean alreadyTaggedAtOrAboveThisLevel(String[] tagNames, List<String>peerTags) {
+    for(String tagName : tagNames) {
+      if(peerTags.contains(tagName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isChildOfRoot(Node node) throws RepositoryException {
+    return node.getParent().isSame(node.getSession().getRootNode());
   }
 
   private String tagContentWithNodeTag(ContentManager contentManager, Content content, Node nodeTag) throws Exception {

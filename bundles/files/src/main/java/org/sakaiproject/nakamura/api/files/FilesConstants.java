@@ -176,4 +176,4 @@ public interface FilesConstants {
       POOLED_CONTENT_USER_MANAGER, POOLED_NEEDS_PROCESSING,
       Content.MIMETYPE_FIELD);
 
-}
+String SAKAI_TAG_COUNT = "sakai:tag-count";}

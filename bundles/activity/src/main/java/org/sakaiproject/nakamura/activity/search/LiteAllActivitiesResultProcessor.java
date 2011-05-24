@@ -81,7 +81,7 @@ public class LiteAllActivitiesResultProcessor implements SolrSearchResultProcess
         Map<String, Object> contentProperties = contentNode.getProperties();
         ExtendedJSONWriter.writeValueMapInternals(write, contentProperties);
         ExtendedJSONWriter.writeValueMapInternals(write, StorageClientUtils.getFilterMap(
-            activityNode.getProperties(), null, null, contentNode.getProperties().keySet()));
+            activityNode.getProperties(), null, null, contentNode.getProperties().keySet(), true));
         write.key("who");
         write.object();
         try {
@@ -103,6 +103,26 @@ public class LiteAllActivitiesResultProcessor implements SolrSearchResultProcess
           if (basicUserInfo != null) {
             write.key("profile");
             ExtendedJSONWriter.writeValueMap(write, basicUserInfo);
+          }
+        }
+        // KERN-1864 Return comment in activity feed
+        if ("sakai/pooled-content".equals(contentNode.getProperty("sling:resourceType"))) {
+          if ("CONTENT_ADDED_COMMENT".equals(activityNode.getProperty("sakai:activityMessage"))) {
+            // expecting param ActivityConstants.PARAM_SOURCE to contain the path
+            // from the content node to the comment node for this activity.
+            if (activityNode.hasProperty(ActivityConstants.PARAM_SOURCE)) {
+              String sakaiActivitySource = (String) activityNode.getProperty(ActivityConstants.PARAM_SOURCE);
+              if (sakaiActivitySource != null ) {
+                // confirm comment path is related to the current content node.
+                if (sakaiActivitySource.startsWith(contentNode.getPath())) {
+                  Content commentNode = contentManager.get(sakaiActivitySource);
+                  if (commentNode != null) {
+                    write.key("sakai:comment-body");
+                    write.value(commentNode.getProperty("comment"));
+                  }
+                }
+              }
+            }
           }
         }
       } else {
