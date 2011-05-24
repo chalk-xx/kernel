@@ -38,6 +38,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,17 +82,6 @@ public class RelatedContentSearchBatchResultProcessor extends
    */
   public static final int VOLUME = 11;
 
-  public static final Map<String, String> SOURCE_QUERY_OPTIONS;
-  static {
-    final Map<String, String> sqo = new HashMap<String, String>(3);
-    // sort by highest score
-    sqo.put("sort", "score desc");
-    // limit source content for matching to 11 per specs; see KERN-1797
-    sqo.put("items", String.valueOf(VOLUME));
-    sqo.put("page", "0");
-    SOURCE_QUERY_OPTIONS = Collections.unmodifiableMap(sqo);
-  }
-
   /**
    * {@inheritDoc}
    * 
@@ -124,20 +114,20 @@ public class RelatedContentSearchBatchResultProcessor extends
       sourceQuery.append(user);
       // FYI: ^4 == 4 times boost; default boost value is one
       sourceQuery.append(")) AND (description:[* TO *] OR taguuid:[* TO *]))^4");
-      final Query query = new Query(Query.SOLR, sourceQuery.toString(),
-          SOURCE_QUERY_OPTIONS);
 
-      SolrSearchResultSet rs = null;
+
       try {
-        rs = defaultSearchProcessor.getSearchResultSet(request, query);
-      } catch (SolrSearchException e) {
-        LOG.error(e.getLocalizedMessage(), e);
-        throw new IllegalStateException(e);
-      }
-      if (rs != null) {
-        try {
+        final Iterator<Result> i = SolrSearchUtil.getRandomResults(request,
+                                                                   defaultSearchProcessor,
+                                                                   sourceQuery.toString(),
+                                                                   "items", String.valueOf(VOLUME),
+                                                                   "page", "0",
+                                                                   "sort", "score desc");
+
+
+        if (i != null) {
+
           final ContentManager contentManager = session.getContentManager();
-          final Iterator<Result> i = rs.getResultSetIterator();
           while (i.hasNext() && uniquePathsProcessed.size() <= VOLUME) {
             final Result result = i.next();
             final String path = (String) result.getFirstValue("path");
@@ -155,17 +145,22 @@ public class RelatedContentSearchBatchResultProcessor extends
             }
           }
           if (uniquePathsProcessed.size() < VOLUME) {
-            LOG.debug(
-                "Did not meet functional specification. There should be at least {} results; actual size was: {}",
-                VOLUME, uniquePathsProcessed.size());
+            LOG.debug("Did not meet functional specification. There should be at least {} results; actual size was: {}",
+                      VOLUME, uniquePathsProcessed.size());
           }
-        } catch (AccessDeniedException e) {
-          // quietly swallow access denied
-          LOG.debug(e.getLocalizedMessage(), e);
-        } catch (StorageClientException e) {
-          LOG.error(e.getLocalizedMessage(), e);
-          throw new IllegalStateException(e);
         }
+
+      } catch (AccessDeniedException e) {
+        // quietly swallow access denied
+        LOG.debug(e.getLocalizedMessage(), e);
+
+      } catch (SolrSearchException e) {
+        LOGGER.error(e.getMessage(), e);
+        throw new IllegalStateException(e);
+
+      } catch (StorageClientException e) {
+        LOG.error(e.getLocalizedMessage(), e);
+        throw new IllegalStateException(e);
       }
     }
   }

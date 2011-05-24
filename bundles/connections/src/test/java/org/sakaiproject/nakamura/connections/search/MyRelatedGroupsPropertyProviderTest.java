@@ -125,7 +125,7 @@ public class MyRelatedGroupsPropertyProviderTest {
 
     provider.loadUserProperties(request, propertiesMap);
 
-    assertEquals(" AND id:(\"prop1\\-id\"^1) AND -readers:\"user1\"",
+    assertEquals(" AND id:(\"prop1\\-id\"^100) AND -readers:\"user1\"",
                  propertiesMap.get("_groupQuery"));
   }
 
@@ -157,9 +157,7 @@ public class MyRelatedGroupsPropertyProviderTest {
 
     provider.loadUserProperties(request, propertiesMap);
 
-    System.out.println("GOT: " + propertiesMap.get("_groupQuery"));
-
-    assertEquals(" AND id:(\"prop1\"^4 OR \"prop2\"^3 OR \"prop3\"^2) AND -readers:\"user1\"",
+    assertEquals(" AND id:(\"prop1\"^400 OR \"prop2\"^300 OR \"prop3\"^200) AND -readers:\"user1\"",
                  propertiesMap.get("_groupQuery"));
   }
 }
