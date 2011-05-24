@@ -154,13 +154,21 @@ public class ManageMembersContentPoolServlet extends SlingAllMethodsServlet {
       writer.key("managers");
       writer.array();
       for (String manager : StorageClientUtils.nonNullStringArray(managers)) {
-        writeProfileMap(jcrSession, am, writer, manager, detailed);
+        try {
+          writeProfileMap(jcrSession, am, writer, manager, detailed);
+        } catch (AccessDeniedException e) {
+          LOGGER.debug("Skipping private manager [{}]", manager);
+        }
       }
       writer.endArray();
       writer.key("viewers");
       writer.array();
       for (String viewer : StorageClientUtils.nonNullStringArray(viewers)) {
-        writeProfileMap(jcrSession, am, writer, viewer, detailed);
+        try {
+          writeProfileMap(jcrSession, am, writer, viewer, detailed);
+        } catch (AccessDeniedException e) {
+          LOGGER.debug("Skipping private viewer [{}]", viewer);
+        }
       }
       writer.endArray();
       writer.endObject();
