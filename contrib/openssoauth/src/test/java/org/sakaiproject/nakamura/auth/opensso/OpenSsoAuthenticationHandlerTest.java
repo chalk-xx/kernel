@@ -9,7 +9,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -22,15 +21,10 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
-import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
-import org.apache.jackrabbit.api.security.user.User;
-import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.auth.core.spi.AuthenticationInfo;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.ModificationType;
 import org.junit.After;
@@ -39,15 +33,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.HashMap;
+import java.util.Map;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 import javax.jcr.ValueFactory;
 import javax.servlet.http.Cookie;
@@ -68,27 +65,26 @@ public class OpenSsoAuthenticationHandlerTest {
   @Mock
   ValueFactory valueFactory;
   @Mock
-  SlingRepository repository;
+  Repository repository;
   @Mock
-  JackrabbitSession adminSession;
+  Session adminSession;
   @Mock
-  UserManager userManager;
+  AuthorizableManager authMgr;
   @Mock
-  AuthorizablePostProcessService authzPostProcessService;
+  LiteAuthorizablePostProcessService authzPostProcessService;
 
   LocalTestServer server;
   HashMap<String, Object> props = new HashMap<String, Object>();
 
   @Before
-  public void setUp() throws RepositoryException {
+  public void setUp() throws Exception {
     when(request.getServerName()).thenReturn("localhost");
 
     ssoAuthenticationHandler = new OpenSsoAuthenticationHandler(repository,
         authzPostProcessService);
     ssoAuthenticationHandler.activate(props);
 
-    when(adminSession.getUserManager()).thenReturn(userManager);
-    when(adminSession.getValueFactory()).thenReturn(valueFactory);
+    when(adminSession.getAuthorizableManager()).thenReturn(authMgr);
     when(repository.loginAdministrative(null)).thenReturn(adminSession);
   }
 
@@ -185,47 +181,44 @@ public class OpenSsoAuthenticationHandlerTest {
     boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request,
         response, authenticationInfo);
     assertTrue(actionTaken);
-    verify(userManager, never()).createUser(anyString(), anyString());
-    verify(userManager, never()).createUser(anyString(), anyString(),
-        any(Principal.class), anyString());
+    verify(authMgr, never()).createUser(anyString(), anyString(), anyString(), any(Map.class));
   }
 
   @Test
   public void findUnknownUserWithFailedCreation() throws Exception {
     setAutocreateUser(true);
-    doThrow(new AuthorizableExistsException("Hey someUserId")).when(userManager).createUser(
-        anyString(), anyString());
+    when(authMgr.createUser(anyString(), anyString(), anyString(), any(Map.class))).thenReturn(Boolean.FALSE);
     setUpSsoCredentials();
     AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(
         request, response);
     boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request,
         response, authenticationInfo);
     assertTrue(actionTaken);
-    verify(userManager).createUser(eq("someUserId"), anyString());
+    verify(authMgr).createUser(eq("someUserId"), anyString(), anyString(), any(Map.class));
   }
 
   @Test
   public void findKnownUserWithCreation() throws Exception {
     setAutocreateUser(true);
-    User jcrUser = mock(User.class);
-    when(jcrUser.getID()).thenReturn("someUserId");
-    when(userManager.getAuthorizable("someUserId")).thenReturn(jcrUser);
+    User liteUser = mock(User.class);
+    when(liteUser.getId()).thenReturn("someUserId");
+    when(authMgr.findAuthorizable("someUserId")).thenReturn(liteUser);
     setUpSsoCredentials();
     AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(
         request, response);
     boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request,
         response, authenticationInfo);
     assertFalse(actionTaken);
-    verify(userManager, never()).createUser(eq("someUserId"), anyString());
+    verify(authMgr, never()).createUser(eq("someUserId"), anyString(), anyString(), any(Map.class));
   }
 
-  private void setUpPseudoCreateUserService() throws Exception {
-    User jcrUser = mock(User.class);
-    when(jcrUser.getID()).thenReturn("someUserId");
+  private User setUpPseudoCreateUserService() throws Exception {
+    User liteUser = mock(User.class);
+    when(liteUser.getId()).thenReturn("someUserId");
     ItemBasedPrincipal principal = mock(ItemBasedPrincipal.class);
     when(principal.getPath()).thenReturn(UserConstants.USER_REPO_LOCATION + "/someUserIds");
-    when(jcrUser.getPrincipal()).thenReturn(principal);
-    when(userManager.createUser(eq("someUserId"), anyString())).thenReturn(jcrUser);
+    when(authMgr.createUser(eq("someUserId"), anyString(), anyString(), any(Map.class))).thenReturn(Boolean.TRUE);
+    return liteUser;
   }
 
   @Test
@@ -233,28 +226,31 @@ public class OpenSsoAuthenticationHandlerTest {
     setAutocreateUser(true);
     setUpSsoCredentials();
     setUpPseudoCreateUserService();
+    User liteUser = setUpPseudoCreateUserService();
+    when(authMgr.findAuthorizable("someUserId")).thenReturn(null).thenReturn(liteUser);
     AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(
         request, response);
     boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request,
         response, authenticationInfo);
     assertFalse(actionTaken);
-    verify(userManager).createUser(eq("someUserId"), anyString());
+    verify(authMgr).createUser(eq("someUserId"), anyString(), anyString(), any(Map.class));
   }
 
   @Test
   public void postProcessingAfterUserCreation() throws Exception {
-    AuthorizablePostProcessService postProcessService = mock(AuthorizablePostProcessService.class);
+    LiteAuthorizablePostProcessService postProcessService = mock(LiteAuthorizablePostProcessService.class);
     ssoAuthenticationHandler.authzPostProcessService = postProcessService;
     setAutocreateUser(true);
     setUpSsoCredentials();
-    setUpPseudoCreateUserService();
+    User liteUser = setUpPseudoCreateUserService();
+    when(authMgr.findAuthorizable("someUserId")).thenReturn(null).thenReturn(liteUser);
     AuthenticationInfo authenticationInfo = ssoAuthenticationHandler.extractCredentials(
         request, response);
     boolean actionTaken = ssoAuthenticationHandler.authenticationSucceeded(request,
         response, authenticationInfo);
     assertFalse(actionTaken);
     verify(postProcessService).process(any(Authorizable.class), any(Session.class),
-        any(ModificationType.class));
+        any(ModificationType.class), any(SlingHttpServletRequest.class));
   }
 
   @Test

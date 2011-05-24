@@ -31,22 +31,21 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
-import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.User;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.auth.Authenticator;
 import org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler;
 import org.apache.sling.auth.core.spi.AuthenticationHandler;
 import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.apache.sling.auth.core.spi.DefaultAuthenticationFeedbackHandler;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.ModificationType;
 import org.osgi.framework.Constants;
-import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
-import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
+import org.sakaiproject.nakamura.api.lite.authorizable.User;
+import org.sakaiproject.nakamura.api.user.LiteAuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,9 +60,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
-import javax.jcr.ValueFactory;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -119,10 +116,10 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
 
   // needed for the automatic user creation.
   @Reference
-  protected SlingRepository repository;
+  protected Repository repository;
 
   @Reference
-  protected AuthorizablePostProcessService authzPostProcessService;
+  protected LiteAuthorizablePostProcessService authzPostProcessService;
 
   static final String LOGIN_URL = "sakai.auth.sso.url.login";
   private String loginUrl;
@@ -149,8 +146,8 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
   public OpenSsoAuthenticationHandler() {
   }
 
-  OpenSsoAuthenticationHandler(SlingRepository repository,
-      AuthorizablePostProcessService authzPostProcessService) {
+  OpenSsoAuthenticationHandler(Repository repository,
+      LiteAuthorizablePostProcessService authzPostProcessService) {
     this.repository = repository;
     this.authzPostProcessService = authzPostProcessService;
   }
@@ -383,12 +380,13 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
     Session session = null;
     try {
       session = repository.loginAdministrative(null); // usage checked and ok KERN-577
-      UserManager userManager = AccessControlUtil.getUserManager(session);
-      Authorizable authorizable = userManager.getAuthorizable(username);
+      AuthorizableManager authMgr = session.getAuthorizableManager();
+      Authorizable authorizable = authMgr.findAuthorizable(username);
       if (authorizable == null) {
         if (autoCreateUser) {
-          createUser(username, session);
-          isUserValid = true;
+          if (createUser(username, session) != null) {
+            isUserValid = true;
+          }
         }
       } else {
         isUserValid = true;
@@ -397,7 +395,11 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
       LOGGER.error(e.getMessage(), e);
     } finally {
       if (session != null) {
-        session.logout();
+        try {
+          session.logout();
+        } catch (ClientPoolException e) {
+          LOGGER.warn(e.getMessage(), e);
+        }
       }
     }
     return isUserValid;
@@ -409,18 +411,18 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
    */
   private User createUser(String principalName, Session session) throws Exception {
     LOGGER.info("Creating user {}", principalName);
-    UserManager userManager = AccessControlUtil.getUserManager(session);
-    User user = userManager.createUser(principalName, RandomStringUtils.random(32));
-    ItemBasedPrincipal principal = (ItemBasedPrincipal) user.getPrincipal();
-    String path = principal.getPath();
-    path = path.substring(UserConstants.USER_REPO_LOCATION.length());
-    ValueFactory valueFactory = session.getValueFactory();
-    user.setProperty("path", valueFactory.createValue(path));
+    AuthorizableManager authMgr = session.getAuthorizableManager();
+    if (authMgr.createUser(principalName, principalName, RandomStringUtils.random(32),
+        null)) {
+      LOGGER.info("User {} created", principalName);
+      User user = (User) authMgr.findAuthorizable(principalName);
 
-    if (authzPostProcessService != null) {
-      authzPostProcessService.process(user, session, ModificationType.CREATE);
+      if (authzPostProcessService != null) {
+        authzPostProcessService.process(user, session, ModificationType.CREATE, null);
+      }
+      return user;
     }
-    return user;
+    return null;
   }
 
   private String extractArtifact(HttpServletRequest request) {
