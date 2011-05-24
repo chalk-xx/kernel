@@ -518,6 +518,7 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
     } catch (Throwable e) {
       sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage(), e,
           response);
+      return;
     }
     response.setStatus(HttpServletResponse.SC_OK);
   }
