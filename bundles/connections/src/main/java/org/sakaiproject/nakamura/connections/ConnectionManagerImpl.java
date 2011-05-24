@@ -182,8 +182,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
   protected ConnectionState getConnectionState(Content userContactNode)
       throws ConnectionException {
     if (userContactNode == null) {
-      throw new IllegalArgumentException(
-          "Node cannot be null to check for connection state");
+      return ConnectionState.NONE;
     }
     try {
       if (userContactNode.hasProperty(ConnectionConstants.SAKAI_CONNECTION_STATE)) {
@@ -192,6 +191,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
             ConnectionConstants.SAKAI_CONNECTION_STATE));
       }
     } catch (Exception e) {
+      LOGGER.error(e.getLocalizedMessage(), e);
     }
     return ConnectionState.NONE;
   }
