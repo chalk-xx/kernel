@@ -105,6 +105,26 @@ public class LiteAllActivitiesResultProcessor implements SolrSearchResultProcess
             ExtendedJSONWriter.writeValueMap(write, basicUserInfo);
           }
         }
+        // KERN-1864 Return comment in activity feed
+        if ("sakai/pooled-content".equals(contentNode.getProperty("sling:resourceType"))) {
+          if ("CONTENT_ADDED_COMMENT".equals(activityNode.getProperty("sakai:activityMessage"))) {
+            // expecting param ActivityConstants.PARAM_SOURCE to contain the path
+            // from the content node to the comment node for this activity.
+            if (activityNode.hasProperty(ActivityConstants.PARAM_SOURCE)) {
+              String sakaiActivitySource = (String) activityNode.getProperty(ActivityConstants.PARAM_SOURCE);
+              if (sakaiActivitySource != null ) {
+                // confirm comment path is related to the current content node.
+                if (sakaiActivitySource.startsWith(contentNode.getPath())) {
+                  Content commentNode = contentManager.get(sakaiActivitySource);
+                  if (commentNode != null) {
+                    write.key("sakai:comment-body");
+                    write.value(commentNode.getProperty("comment"));
+                  }
+                }
+              }
+            }
+          }
+        }
       } else {
         ExtendedJSONWriter.writeValueMapInternals(write, result.getProperties());
       }

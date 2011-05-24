@@ -206,13 +206,25 @@ public class ContentPoolCommentServlet extends SlingAllMethodsServlet implements
       // have the node name be the number of the comments there are
       Calendar cal = Calendar.getInstance();
       String newNodeName = Long.toString(cal.getTimeInMillis());
-      Content newComment = new Content(path + "/" + newNodeName, ImmutableMap.of(AUTHOR,
+      String newNodePath = path + "/" + newNodeName;
+      Content newComment = new Content(newNodePath, ImmutableMap.of(AUTHOR,
           (Object)request.getRemoteUser(), COMMENT,
           body));
 
       contentManager.update(newComment);
 
       response.setStatus(HttpServletResponse.SC_CREATED);
+      // return the comment id created for this comment
+      response.setContentType("text/plain");
+      response.setCharacterEncoding("UTF-8");
+      ExtendedJSONWriter w = new ExtendedJSONWriter(response.getWriter());
+      w.object();
+      w.key(COMMENT_ID);
+      w.value(newNodePath);
+      w.endObject();
+    } catch (JSONException e) {
+      LOGGER.warn(e.getMessage(), e);
+      throw new ServletException(e.getMessage(), e);
     } catch (ClientPoolException e) {
       LOGGER.warn(e.getMessage(), e);
       throw new ServletException(e.getMessage(), e);
