@@ -335,20 +335,20 @@ class TC_BasicLTI < Test::Unit::TestCase
     parser = Parsers::StreamParser.new(html, listener);
     parser.parse;
     hash = listener.hash;
-    assert_equal(hash["form.action"], @ltiurl, "Form action should equal ltiurl");
-    assert_equal(hash["context_id"], context_id, "context_id should equal path to #{context_id}");
-    assert_equal(hash["context_label"], @groupid, "context_label should equal path to site id");
-    assert_equal(hash["context_title"], @groupname, "context_title should equal path to site name");
-    assert_equal(hash["context_type"].empty?, false, "context_type should not be empty");
-    assert_equal(hash["oauth_consumer_key"], @ltikey, "oauth_consumer_key should equal ltikey");
-    assert_equal(hash["resource_link_id"], @bltiJcrPath, "resource_link_id should equal saveUrl");
-    assert_equal(hash["roles"].empty?, false, "roles should not be empty");
-    assert_equal(hash["tool_consumer_instance_contact_email"].empty?, false, "tool_consumer_instance_contact_email should not be empty");
-    assert_equal(hash["tool_consumer_instance_description"].empty?, false, "tool_consumer_instance_description should not be empty");
-    assert_equal(hash["tool_consumer_instance_guid"].empty?, false, "tool_consumer_instance_guid should not be empty");
-    assert_equal(hash["tool_consumer_instance_name"].empty?, false, "tool_consumer_instance_name should not be empty");
-    assert_equal(hash["tool_consumer_instance_url"].empty?, false, "tool_consumer_instance_url should not be empty");
-    assert_equal(hash["user_id"].empty?, false, "user_id should not be empty");
+    assert_equal(@ltiurl, hash["form.action"], "Form action should equal ltiurl");
+    assert_equal(context_id, hash["context_id"], "context_id should equal path to #{context_id}");
+    assert_equal(@groupid, hash["context_label"], "context_label should equal path to site id");
+    assert_equal(@groupname, hash["context_title"], "context_title should equal path to site name");
+    assert_equal(false, hash["context_type"].empty?, "context_type should not be empty");
+    assert_equal(@ltikey, hash["oauth_consumer_key"], "oauth_consumer_key should equal ltikey");
+    assert_equal(@bltiJcrPath, hash["resource_link_id"], "resource_link_id should equal saveUrl");
+    assert_equal(false, hash["roles"].empty?, "roles should not be empty");
+    assert_equal(false, hash["tool_consumer_instance_contact_email"].empty?, "tool_consumer_instance_contact_email should not be empty");
+    assert_equal(false, hash["tool_consumer_instance_description"].empty?, "tool_consumer_instance_description should not be empty");
+    assert_equal(false, hash["tool_consumer_instance_guid"].empty?, "tool_consumer_instance_guid should not be empty");
+    assert_equal(false, hash["tool_consumer_instance_name"].empty?, "tool_consumer_instance_name should not be empty");
+    assert_equal(false, hash["tool_consumer_instance_url"].empty?, "tool_consumer_instance_url should not be empty");
+    assert_equal(false, hash["user_id"].empty?, "user_id should not be empty");
   end
 
   def prepare_group()
