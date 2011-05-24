@@ -25,7 +25,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
-import org.sakaiproject.nakamura.util.LitePersonalUtils;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.util.Map;
 
@@ -46,7 +46,7 @@ public class DiscussionThreadedPropertyProvider implements SolrSearchPropertyPro
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
     String path = request.getParameter("path");
-    String homePath = LitePersonalUtils.expandHomeDirectory(path) + "/";
+    String homePath = PathUtils.toUserContentPath(path) + "/";
     String pathHash = StorageClientUtils.insecureHash(homePath);
     propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGEROOT, pathHash);
   }
