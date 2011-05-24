@@ -1209,9 +1209,14 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
         }
       }
       // ~group/foo/bar
-      final String parentPath = traversalPath.substring(0, lastSlash);
-      traversalNode = session.getContentManager().get(parentPath);
-      if (traversalNode == null) {
+      if (lastSlash > 0) {
+        final String parentPath = traversalPath.substring(0, lastSlash);
+        traversalNode = session.getContentManager().get(parentPath);
+        if (traversalNode == null) {
+          break;
+        }
+      } else {
+        // we have walked all the way up and not found a match
         break;
       }
     }
