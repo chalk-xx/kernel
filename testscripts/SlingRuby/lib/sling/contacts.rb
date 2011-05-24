@@ -70,7 +70,7 @@ module SlingContacts
     end
 
     def get_all()
-			return find_contacts("*")
+			return find_contacts("*%3A*")
    end
 
 		def find_contacts(state)
