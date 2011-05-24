@@ -430,10 +430,26 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
         throw new IllegalStateException("Could not resolve context_id!");
       }
       launchProps.put(CONTEXT_ID, contextId);
-      launchProps.put(CONTEXT_TITLE,
-          (String)pooledContentNode.getProperty("sakai:pooled-content-file-name"));
-      launchProps.put(CONTEXT_LABEL,
-          (String)pooledContentNode.getProperty("sakai:description"));
+      if ("sakai/pooled-content".equals(pooledContentNode
+          .getProperty("sling:resourceType"))) {
+        launchProps.put(CONTEXT_TITLE,
+            (String) pooledContentNode.getProperty("sakai:pooled-content-file-name"));
+        launchProps.put(CONTEXT_LABEL,
+            (String) pooledContentNode.getProperty("sakai:description"));
+      } else { // sakai/group-home
+        final Content groupProfileNode = session.getContentManager().get(
+            pooledContentNode.getPath() + "/public/authprofile");
+        if (groupProfileNode != null) {
+          launchProps.put(CONTEXT_TITLE,
+              (String) groupProfileNode.getProperty("sakai:group-title"));
+          launchProps.put(CONTEXT_LABEL,
+              (String) groupProfileNode.getProperty("sakai:group-id"));
+        } else {
+          // cannot find group profile data
+          launchProps.put(CONTEXT_TITLE, (String) pooledContentNode.getProperty("_path"));
+          launchProps.put(CONTEXT_LABEL, (String) pooledContentNode.getProperty("_path"));
+        }
+      }
 
       // FIXME how to determine site type?
       // CourseSection probably satisfies 90% of our use cases.
@@ -518,6 +534,7 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
     } catch (Throwable e) {
       sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage(), e,
           response);
+      return;
     }
     response.setStatus(HttpServletResponse.SC_OK);
   }
@@ -1200,17 +1217,24 @@ public class LiteBasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final String traversalPath = traversalNode.getPath();
       lastSlash = traversalPath.lastIndexOf("/");
       if (traversalNode.hasProperty("sling:resourceType")) {
-        if ("sakai/pooled-content".equals((String)traversalNode
-            .getProperty("sling:resourceType"))) {
+        final String resourceType = (String) traversalNode
+            .getProperty("sling:resourceType");
+        if ("sakai/pooled-content".equals(resourceType)
+            || "sakai/group-home".equals(resourceType)) {
           // found the parent site node
           returnNode = traversalNode;
           break;
         }
       }
       // ~group/foo/bar
-      final String parentPath = traversalPath.substring(0, lastSlash);
-      traversalNode = session.getContentManager().get(parentPath);
-      if (traversalNode == null) {
+      if (lastSlash > 0) {
+        final String parentPath = traversalPath.substring(0, lastSlash);
+        traversalNode = session.getContentManager().get(parentPath);
+        if (traversalNode == null) {
+          break;
+        }
+      } else {
+        // we have walked all the way up and not found a match
         break;
       }
     }
