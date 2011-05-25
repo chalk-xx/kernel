@@ -194,7 +194,7 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
       List<String> tagUuids, JSONWriter write) throws RepositoryException, SearchException, JSONException, SolrSearchException {
     // BL120 KERN-1617 Need to include Content tagged with tag uuid
     final StringBuilder sb = new StringBuilder();
-    sb.append("access:public AND taguuid:(");
+    sb.append("taguuid:(");
     String sep = "";
     for (String tagUuid : tagUuids) {
       sb.append(sep + ClientUtils.escapeQueryChars(tagUuid));
