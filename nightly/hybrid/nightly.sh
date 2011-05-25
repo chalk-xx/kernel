@@ -78,6 +78,14 @@ else
     echo "Starting incremental build..."
 fi
 
+# clean mysql database
+echo "Cleaning MySQL..."
+mysql -u sakaiuser << EOSQL
+drop database nakamura;
+create database nakamura default character set 'utf8';
+exit
+EOSQL
+
 # build 3akai-ux
 cd $BUILD_DIR
 mkdir -p 3akai-ux
@@ -121,16 +129,31 @@ fi
 echo "Starting sakai3 instance..."
 cd app/target/
 K2_ARTIFACT=`find . -name "org.sakaiproject.nakamura.app*[^sources].jar"`
-# configure TrustedLoginTokenProxyPreProcessor via file install
-mkdir -p load
-echo 'sharedSecret=e2KS54H35j6vS5Z38nK40' > load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
-echo "port=$HTTPD_PORT" >> load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
-echo 'hostname=localhost' >> load/org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor.cfg
-# configure ServerProtectionServiceImpl via file install
-echo "trusted.secret=shhhhh" > load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
-echo "trusted.hosts=http://sakai3-nightly.uits.indiana.edu:$HTTPD_PORT" >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
-echo "trusted.referer=http://sakai3-nightly.uits.indiana.edu:$HTTPD_PORT" >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
-echo "untrusted.contenturl=http://sakai3-nightly.uits.indiana.edu:8082" >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
+# configure TrustedLoginTokenProxyPreProcessor
+mkdir -p sling/config/org/sakaiproject/nakamura/proxy
+echo 'service.pid="org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor"' > sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
+echo 'hostname="localhost"' >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
+echo "port=I\"$HTTPD_PORT\"" >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
+echo 'sharedSecret="e2KS54H35j6vS5Z38nK40"' >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
+# configure ServerProtectionServiceImpl
+mkdir -p sling/config/org/sakaiproject/nakamura/http/usercontent
+echo 'service.pid="org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl"' > sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.paths=["/dev","/devwidgets","/system"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.postwhitelist=["/system/console"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.exact.paths=["/","/index.html"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.anonpostwhitelist=["/system/userManager/user.create","/system/batch"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'disable.protection.for.dev.mode=B"false"' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.secret="shhhhh"' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'untrusted.contenturl="http://sakai3-nightly.uits.indiana.edu:8082"' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo "trusted.hosts=[\"http://sakai3-nightly.uits.indiana.edu:$HTTPD_PORT\"]" >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo "trusted.referer=[\"/\",\"http://sakai3-nightly.uits.indiana.edu:$HTTPD_PORT\"]" >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+#configure JDBC connector
+mkdir -p sling/config/org/sakaiproject/nakamura/lite/storage/jdbc
+echo 'service.pid="org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClientPool"' > sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
+echo 'jdbc-driver="com.mysql.jdbc.Driver"' >> sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
+echo 'jdbc-url="jdbc:mysql://localhost/nakamura?autoReconnectForPools=true"' >> sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
+echo 'username="sakaiuser"' >> sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
+echo 'password="ironchef"' >> sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config
 java $K2_OPTS -jar $K2_ARTIFACT -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # build sakai 2
