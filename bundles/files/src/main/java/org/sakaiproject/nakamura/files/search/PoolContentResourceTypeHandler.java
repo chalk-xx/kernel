@@ -93,12 +93,14 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     builder.put(FilesConstants.SAKAI_TAG_NAME, "tagname");
     builder.put(FilesConstants.SAKAI_TAG_UUIDS, "taguuid");
     builder.put(FilesConstants.SAKAI_TAGS, "tag");
+    builder.put(FilesConstants.SAKAI_PAGE_COUNT, "pagecount");
     builder.put(FilesConstants.LAST_MODIFIED, FilesConstants.LAST_MODIFIED);
     builder.put(FilesConstants.LAST_MODIFIED_BY, FilesConstants.LAST_MODIFIED_BY);
     builder.put(FilesConstants.CREATED, FilesConstants.CREATED);
     builder.put(FilesConstants.CREATED_BY, FilesConstants.CREATED_BY);
     builder.put(FilesConstants.LINK_PATHS, FilesConstants.LINK_PATHS);
     builder.put(FilesConstants.SAKAI_DESCRIPTION, "description");
+    builder.put(FilesConstants.ACCESS_SCHEME_PROPERTY, "access");
     return builder.build();
   }
 

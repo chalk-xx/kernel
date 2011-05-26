@@ -63,21 +63,18 @@ class TC_Kern1896Test < Test::Unit::TestCase
     sleep(2)
     res = @s.execute_get("#{url}/id4361077/discussion.tidy.-1.json")
     assert_equal("200", res.code)
-	@log.error("Got #{res.body}")
+	@log.info("Got #{res.body}")
     
     json = JSON.parse(res.body)
     checkPath("#{id}/id4361077/discussion", json)
 
-    wait_for_indexer()
-
-    res = @s.execute_get("#{url}/id4361077/discussion.tidy.-1.json")
 
     res = @s.execute_get(@s.url_for("/var/search/discussions/threaded.json?path=/p/#{id}/id4361077/discussion/message&marker=id4361077&_charset_=utf-8&_=1306183258586"))
 	assert_equal("200", res.code)
-	@log.error("Got #{res.body}")
+	@log.info("Got #{res.body}")
     json = JSON.parse(res.body)
 	assert_equal(1, json["total"])
-	assert_equal("Comment on /p/#{id}",json["results"][0]["post"]["sakai:subject"])
+	assert_equal("Topic #{id}",json["results"][0]["post"]["sakai:subject"])
 
   end
 

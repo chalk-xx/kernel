@@ -215,7 +215,13 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     // add groups to the user doc so we can find the user as a group member
     if (!authorizable.isGroup()) {
       for (String principal : authorizable.getPrincipals()) {
-        doc.addField("group", StringUtils.removeEnd(principal, "-managers"));
+        String groupName = principal;
+        if (groupName.endsWith("-managers")) {
+          groupName = StringUtils.removeEnd(groupName, "-managers");
+        } else if (groupName.endsWith("-member")) {
+          groupName = StringUtils.removeEnd(groupName, "-member");
+        }
+        doc.addField("group", groupName);
       }
     }
 

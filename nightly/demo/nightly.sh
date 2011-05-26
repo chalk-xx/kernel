@@ -70,12 +70,18 @@ mvn -B -e clean install
 echo "Starting sakai3 instance..."
 cd app/target/
 K2_ARTIFACT=`find . -name "org.sakaiproject.nakamura.app*[^sources].jar"`
-# configure ServerProtectionServiceImpl via file install
-mkdir -p load
-echo 'trusted.secret=shhhhh' > load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
-echo 'trusted.hosts=http://sakai3-demo.uits.indiana.edu:8080' >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
-echo 'trusted.referer=http://sakai3-demo.uits.indiana.edu:8080' >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
-echo 'untrusted.contenturl=http://sakai3-demo.uits.indiana.edu:8082' >> load/org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl.cfg
+# configure ServerProtectionServiceImpl
+mkdir -p sling/config/org/sakaiproject/nakamura/http/usercontent
+echo 'service.pid="org.sakaiproject.nakamura.http.usercontent.ServerProtectionServiceImpl"' > sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.paths=["/dev","/devwidgets","/system"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.postwhitelist=["/system/console"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.exact.paths=["/","/index.html"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.anonpostwhitelist=["/system/userManager/user.create","/system/batch"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'disable.protection.for.dev.mode=B"false"' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.secret="shhhhh"' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'untrusted.contenturl="http://sakai3-demo.uits.indiana.edu:8082"' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.hosts=["http://sakai3-demo.uits.indiana.edu:8080"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
+echo 'trusted.referer=["/","http://sakai3-demo.uits.indiana.edu:8080"]' >> sling/config/org/sakaiproject/nakamura/http/usercontent/ServerProtectionServiceImpl.config
 #configure JDBC connector
 mkdir -p sling/config/org/sakaiproject/nakamura/lite/storage/jdbc
 echo 'service.pid="org.sakaiproject.nakamura.lite.storage.jdbc.JDBCStorageClientPool"' > sling/config/org/sakaiproject/nakamura/lite/storage/jdbc/JDBCStorageClientPool.config

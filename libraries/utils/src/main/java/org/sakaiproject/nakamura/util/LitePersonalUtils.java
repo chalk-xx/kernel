@@ -141,13 +141,15 @@ public class LitePersonalUtils {
   private static Pattern homePathPattern = Pattern.compile("^(.*)(~([\\w-]*?))/");
 
   /**
-   * Expand home directory resource path into a content path.
-   * ~user => a:user
-   *
+   * Expand home directory resource path into a content path. ~user => a:user
+   * 
    * @param session
    * @param path
    * @return
+   * @deprecated This is depreciated in favor of {@link PathUtils#toUserContentPath} which
+   *             works with pooled content as well as home content.
    */
+  @Deprecated
   public static String expandHomeDirectory(String path) {
     Matcher homePathMatcher = homePathPattern.matcher(path);
     if (homePathMatcher.find()) {

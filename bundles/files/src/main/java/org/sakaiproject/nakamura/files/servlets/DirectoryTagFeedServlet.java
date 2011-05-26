@@ -220,9 +220,11 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
         }
       }
     }
+    final int random = (int) (Math.random() * 10000);
+    String sortRandom = "random_" + String.valueOf(random) + " asc";
     final String queryString = sb.toString();
     org.sakaiproject.nakamura.api.search.solr.Query solrQuery = new org.sakaiproject.nakamura.api.search.solr.Query(
-        queryString, ImmutableMap.of("sort", "score desc"));
+        queryString, ImmutableMap.of("sort", sortRandom));
     final SolrSearchBatchResultProcessor rp = new LiteFileSearchBatchResultProcessor(
         solrSearchServiceFactory, profileService);
     final SolrSearchResultSet srs = rp.getSearchResultSet(request, solrQuery);
@@ -239,8 +241,8 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
     Result bestResult = null;
     while(resultSetIterator.hasNext()) {
       Result result = resultSetIterator.next();
+      bestResult = result;
       if (isBest(result)) {
-        bestResult = result;
         break;
       }
     }
@@ -275,7 +277,7 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
   }
 
   private boolean isBest(Result result) {
-    return true;
+    return (result.getFirstValue("description") != null );
   }
 
 }

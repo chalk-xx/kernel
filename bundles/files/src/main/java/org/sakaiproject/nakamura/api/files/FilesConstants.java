@@ -64,6 +64,10 @@ public interface FilesConstants {
    */
   public static final String SAKAI_LINK = "sakai:link";
   /**
+   * sakai:pagecount
+   */
+  public static final String SAKAI_PAGE_COUNT = "sakai:pagecount";
+  /**
    * The mixin required on the node to do a tag.
    */
   public static final String REQUIRED_MIXIN = "sakai:propertiesmix";
