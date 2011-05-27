@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.basiclti;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.basiclti.LiteBasicLTIContextIdResolver;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -75,8 +76,6 @@ public class LiteDefaultContextIdResolver implements LiteBasicLTIContextIdResolv
   protected void activate(ComponentContext context) {
     @SuppressWarnings("rawtypes")
     final Dictionary props = context.getProperties();
-    if (props.get(LTI_CONTEXT_ID) != null) {
-      key = (String) props.get(LTI_CONTEXT_ID);
-    }
+    key = OsgiUtil.toString(props.get(LTI_CONTEXT_ID), "lti_context_id");
   }
 }

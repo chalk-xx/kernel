@@ -207,7 +207,7 @@ public class QoSFilter implements Filter {
 
     // path, max requests, priority, timeout
     qoSControMap.clear();
-    String[] qosLocations = (String[])properties.get(QOS_CATEGORIES_CONFIG);
+    String[] qosLocations = OsgiUtil.toStringArray(properties.get(QOS_CATEGORIES_CONFIG));
     if ( qosLocations != null ) {
       for ( String qosLocation : qosLocations ) {
         String[] settings = StringUtils.split(qosLocation,";");

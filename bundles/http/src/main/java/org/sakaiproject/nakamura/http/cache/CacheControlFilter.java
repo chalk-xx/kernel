@@ -233,7 +233,7 @@ public class CacheControlFilter implements Filter {
   protected void activate(ComponentContext componentContext) throws ServletException {
     @SuppressWarnings("unchecked")
     Dictionary<String, Object> properties = componentContext.getProperties();
-    String[] sakaiCachePaths = (String[]) properties.get(SAKAI_CACHE_PATHS);
+    String[] sakaiCachePaths = OsgiUtil.toStringArray(properties.get(SAKAI_CACHE_PATHS));
     subPaths = new HashMap<String, Map<String, String>>();
     if (sakaiCachePaths != null) {
       for (String sakaiCachePath : sakaiCachePaths) {
@@ -241,7 +241,7 @@ public class CacheControlFilter implements Filter {
         subPaths.put(cp[0], toMap(1, cp));
       }
     }
-    String[] sakaiCachePatternPaths = (String[]) properties.get(SAKAI_CACHE_PATTERNS);
+    String[] sakaiCachePatternPaths = OsgiUtil.toStringArray(properties.get(SAKAI_CACHE_PATTERNS));
     subPathPatterns = new HashMap<String, Map<Pattern, Map<String, String>>>();
     if (sakaiCachePatternPaths != null) {
       for (String sakaiCachePatternPath : sakaiCachePatternPaths) {

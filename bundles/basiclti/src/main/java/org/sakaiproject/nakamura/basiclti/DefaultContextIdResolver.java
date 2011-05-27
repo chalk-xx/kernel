@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.basiclti;
 
 import org.apache.felix.scr.annotations.Property;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.basiclti.BasicLTIContextIdResolver;
 import org.slf4j.Logger;
@@ -78,7 +79,7 @@ public class DefaultContextIdResolver implements BasicLTIContextIdResolver {
     @SuppressWarnings("rawtypes")
     final Dictionary props = context.getProperties();
     if (props.get(LTI_CONTEXT_ID) != null) {
-      key = (String) props.get(LTI_CONTEXT_ID);
+      key = OsgiUtil.toString(props.get(LTI_CONTEXT_ID), "lti_context_id");
     }
   }
 }

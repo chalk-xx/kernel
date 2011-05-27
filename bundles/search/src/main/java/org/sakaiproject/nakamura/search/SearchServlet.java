@@ -948,7 +948,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       delayedPropertyReferences.clear();
     }
 
-    maximumResults = (Long) componentContext.getProperties().get("maximumResults");
+    maximumResults = OsgiUtil.toLong(componentContext.getProperties().get("maximumResults"), 100);
   }
 
   /**

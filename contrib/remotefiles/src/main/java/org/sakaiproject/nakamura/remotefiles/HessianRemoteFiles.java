@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 
 import java.net.MalformedURLException;
@@ -88,7 +89,7 @@ public class HessianRemoteFiles implements RemoteFilesRepository {
     // Get the properties from the console.
     Dictionary<?, ?> props = context.getProperties();
     if (props.get("remotefiles.host") != null) {
-      remoteFilesHost = props.get("remotefiles.host").toString();
+      remoteFilesHost = OsgiUtil.toString(props.get("remotefiles.host"), "");
     }
 
     try {

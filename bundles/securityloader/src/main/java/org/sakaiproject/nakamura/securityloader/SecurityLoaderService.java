@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.util.Text;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.engine.SlingSettingsService;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
@@ -180,12 +181,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
     componentContext.getBundleContext().addBundleListener(this);
     Dictionary<?, ?> props = componentContext.getProperties();
 
-    Object propValue = props.get(PROP_PASSWORD_DIGEST_ALGORITHM);
-    if (propValue instanceof String) {
-      passwordDigestAlgoritm = (String)propValue;
-    } else {
-      passwordDigestAlgoritm = DEFAULT_PASSWORD_DIGEST_ALGORITHM;
-    }
+    passwordDigestAlgoritm = OsgiUtil.toString(props.get(PROP_PASSWORD_DIGEST_ALGORITHM), DEFAULT_PASSWORD_DIGEST_ALGORITHM);
 
     Session session = null;
     try {

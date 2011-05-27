@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.auth.trusted.RequestTrustValidator;
 import org.sakaiproject.nakamura.api.site.SiteService;
@@ -119,15 +120,10 @@ public class SiteJoinRequestTrustValidator implements RequestTrustValidator {
 
 	protected void activate(ComponentContext componentContext) {
 		Dictionary<?, ?> props = componentContext.getProperties();
-		Object propValue = props.get("site.join.secret");
-		if (propValue instanceof String) {
-			siteJoinSecret = (String) propValue;
-		} else {
-			siteJoinSecret = DEFAULT_SITE_JOIN_SECRET;
-		}
-		Object ttl = props.get("site.join.token.ttl.millis");
-		if (ttl != null) {
-			tokenTTL = Long.parseLong(ttl.toString());
+    OsgiUtil.toString(props.get("site.join.secret"), DEFAULT_SITE_JOIN_SECRET);
+		long ttl = OsgiUtil.toLong(props.get("site.join.token.ttl.millis"), -1);
+		if (ttl >= 0 ) {
+			tokenTTL = ttl;
 		}
 	}
 

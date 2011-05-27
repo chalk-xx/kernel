@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.proxy.ProxyPreProcessor;
 import org.sakaiproject.nakamura.util.Signature;
@@ -97,21 +98,11 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
   protected void activate(ComponentContext context) {
     // Get the properties from the console.
     Dictionary props = context.getProperties();
-    if (props.get("sharedSecret") != null) {
-      sharedSecret = props.get("sharedSecret").toString();
-    }
-    if (props.get("hostname") != null) {
-      hostname = props.get("hostname").toString();
-      LOGGER.info("Sakai 2 hostname: " + hostname);
-    }
-    if (props.get("port") != null) {
-      try {
-        port = Integer.parseInt(props.get("port").toString());
-        LOGGER.info("Sakai 2 port: " + port);
-      } catch (NumberFormatException e) {
-        LOGGER.warn("Failed to cast the sakai 2 port from the properties.", e);
-      }
-    }
+    sharedSecret = OsgiUtil.toString(props.get("sharedSecret"), "e2KS54H35j6vS5Z38nK40");
+    hostname = OsgiUtil.toString(props.get("hostname"), "localhost");
+    LOGGER.info("Sakai 2 hostname: " + hostname);
+    port = OsgiUtil.toInteger(props.get("port"), 80);
+    LOGGER.info("Sakai 2 port: " + port);
   }
 
 }

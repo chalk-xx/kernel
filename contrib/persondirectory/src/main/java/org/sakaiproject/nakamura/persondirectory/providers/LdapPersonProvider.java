@@ -83,7 +83,7 @@ public class LdapPersonProvider implements PersonProvider {
     baseDn = OsgiUtil.toString(props.get(BASE_DN), "");
     filterPattern = OsgiUtil.toString(props.get(PROP_FILTER_PATTERN), "");
 
-    String[] attributeMapping = (String[]) props.get(PROP_ATTRIBUTES_MAP);
+    String[] attributeMapping = OsgiUtil.toStringArray(props.get(PROP_ATTRIBUTES_MAP));
     if (attributeMapping != null
         && !(attributeMapping.length == 1 && "".equals(attributeMapping[0]))) {
       for (String mapping : attributeMapping) {
