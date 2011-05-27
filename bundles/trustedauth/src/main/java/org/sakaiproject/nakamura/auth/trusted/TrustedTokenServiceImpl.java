@@ -210,13 +210,13 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   @SuppressWarnings("rawtypes")
   protected void activate(ComponentContext context) {
     Dictionary props = context.getProperties();
-    usingSession = (Boolean) props.get(USE_SESSION);
-    secureCookie = (Boolean) props.get(SECURE_COOKIE);
-    ttl = (Long) props.get(TTL);
-    trustedAuthCookieName = (String) props.get(COOKIE_NAME);
-    sharedSecret = (String) props.get(SERVER_TOKEN_SHARED_SECRET);
-    trustedTokenEnabled = (Boolean) props.get(SERVER_TOKEN_ENABLED);
-    debugCookies = (Boolean) props.get(DEBUG_COOKIES);
+    usingSession = OsgiUtil.toBoolean(props.get(USE_SESSION), false);
+    secureCookie = OsgiUtil.toBoolean(props.get(SECURE_COOKIE), false);
+    ttl = OsgiUtil.toLong(props.get(TTL), 1200000);
+    trustedAuthCookieName = OsgiUtil.toString(props.get(COOKIE_NAME), "");
+    sharedSecret = OsgiUtil.toString(props.get(SERVER_TOKEN_SHARED_SECRET), "default-setting-change-before-use");
+    trustedTokenEnabled = OsgiUtil.toBoolean(props.get(SERVER_TOKEN_ENABLED), true);
+    debugCookies = OsgiUtil.toBoolean(props.get(DEBUG_COOKIES), false);
     tokenStore.setDebugCookies(debugCookies);
     String safeHostsAddr = OsgiUtil.toString(props.get(SERVER_TOKEN_SAFE_HOSTS_ADDR), "");
     safeHostAddrSet.clear();
@@ -232,13 +232,13 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
         trustedProxyServerAddrSet.add(address);
       }
     }
-    String wrappers = (String)props.get(SERVER_TOKEN_SAFE_WRAPPERS);
+    String wrappers = OsgiUtil.toString(props.get(SERVER_TOKEN_SAFE_WRAPPERS), "");
     if ( wrappers == null || wrappers.length() == 0 ) {
       wrappers = DEFAULT_WRAPPERS;
     }
     safeWrappers = StringUtils.split(wrappers, ";");
 
-    String tokenFile = (String) props.get(TOKEN_FILE_NAME);
+    String tokenFile = OsgiUtil.toString(props.get(TOKEN_FILE_NAME), "");
     String serverId = clusterTrackingService.getCurrentServerId();
     tokenStore.doInit(cacheManager, tokenFile, serverId, ttl);
 
