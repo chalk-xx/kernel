@@ -8,6 +8,7 @@ require '../kerns/ruby-lib-dir.rb'
 require 'sling/sling'
 require 'sling/users'
 require 'sling/file'
+require 'full_group_creator'
 include SlingInterface
 include SlingUsers
 include SlingFile
@@ -22,7 +23,7 @@ module NakamuraData
     FIRST_NAMES_FILE = '../../jmeter/firstnames.csv'
     LAST_NAMES_FILE = '../../jmeter/lastnames.csv'
 
-    @user_manager = nil
+    @full_group_creator = nil
     @sling = nil
     @file_manager = nil
 
@@ -46,14 +47,14 @@ module NakamuraData
       @sling = Sling.new(server_url, false)
       @sling.log.level = Logger::INFO
       @sling.do_login
-      @user_manager = UserManager.new(@sling)
-      @user_manager.log.level = Logger::INFO
+      @full_group_creator = SlingUsers::FullGroupCreator.new @sling
+      @full_group_creator.log.level = Logger::INFO
+      @full_group_creator.file_log.level = Logger::INFO
       @file_manager = FileManager.new(@sling)
       @log = Logger.new(STDOUT)
-      @log.level = Logger::DEBUG
+      @log.level = Logger::INFO
       @file_log = Logger.new('load.log', 'daily')
-      @file_log.level = Logger::DEBUG
-      @file_log.info "testing the file outputter"
+      @file_log.level = Logger::INFO
     end
     
     def load_users_data
@@ -79,7 +80,7 @@ module NakamuraData
 	  user_id = user_id.split(",")[0]
 	  first_name = @first_names[rand(@first_names.length)]
 	  last_name = @last_names[rand(@last_names.length)]
-	  target_user = @user_manager.create_user user_id.chomp, first_name.chomp, last_name.chomp
+	  target_user = @full_group_creator.create_user user_id.chomp, first_name.chomp, last_name.chomp
 	  if(target_user)
 	    @log.info("created user: #{target_user.inspect}")
 	    @file_log.info("created user: #{target_user.inspect}")
@@ -94,13 +95,29 @@ module NakamuraData
       end
     end
     
-    # create the requested groups and add one manager to each group      
+    #follow the UI's sequence of posts to create fully functional groups/worlds
+    # including the intial sakai docs for Library and Participants
+    def create_full_groups
+      count = 0
+      while count < @num_groups
+	group_name = "#{TEST_GROUP_PREFIX}-#{count.to_s}"
+	creator_id = @user_ids[rand(@user_ids.length)]
+	creator_id = creator_id.split(",")[0]
+	group = @full_group_creator.create_full_group creator_id, group_name, "#{group_name} Title", "#{group_name} Description"
+	count = count + 1
+	@groups << group
+      end
+    end
+    
+    # create the requested groups and add one manager to each group
+    # this now deprecated in favor of create_full_groups although
+    # it could still be used with a command line switch
     def create_groups
       count = 0
       while count < @num_groups
 	group_name = "#{TEST_GROUP_PREFIX}-#{count.to_s}"
 	#def create_group_complete(groupname, manager, title = nil)
-	group = @user_manager.create_group group_name, "Test Group #{count.to_s}"
+	group = @full_group_creator.create_group group_name, "Test Group #{count.to_s}"
 	if(group)
 	  @log.info "created group: #{group.name}"
 	  @file_log.info "created group: #{group.name}"	  
@@ -359,12 +376,12 @@ if ($PROGRAM_NAME.include? 'sling_data_loader.rb')
   sdl.load_users_data
   if (sdl.task == 'all')
     sdl.create_users
-    sdl.create_groups
+    sdl.create_full_groups
     sdl.join_groups
     sdl.load_content
   elsif (sdl.task == 'usersandgroups')
     sdl.create_users
-    sdl.create_groups
+    sdl.create_full_groups
     sdl.join_groups
   elsif (sdl.task == 'content')
     sdl.load_content    
