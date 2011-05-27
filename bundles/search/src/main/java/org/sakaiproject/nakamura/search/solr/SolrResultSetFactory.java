@@ -203,10 +203,15 @@ public class SolrResultSetFactory implements ResultSetFactory {
     // for (final String criterion : criteria) {
     // final String[] sort = StringUtils.split(criterion);
     final String[] sort = StringUtils.split(val);
+
+    // use the *_sort fields to have predictable sorting.
+    // many of the fields in the index have a lot of processing which
+    // causes sorting to yield unpredictable results.
+    String sortOn = ("score".equals(sort[0])) ? sort[0] : sort[0] + "_sort";
     switch (sort.length) {
     case 1:
       // solrQuery.addSortField(sort[0], ORDER.asc);
-      solrQuery.setSortField(sort[0], ORDER.asc);
+      solrQuery.setSortField(sortOn, ORDER.asc);
       break;
     case 2:
       String sortOrder = sort[1].toLowerCase();
@@ -221,7 +226,7 @@ public class SolrResultSetFactory implements ResultSetFactory {
         }
       }
       // solrQuery.addSortField(sort[0], o);
-      solrQuery.setSortField(sort[0], o);
+      solrQuery.setSortField(sortOn, o);
       break;
     default:
       LOGGER.warn("Expected the sort option to be 1 or 2 terms. Found: {}", val);
