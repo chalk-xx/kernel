@@ -20,7 +20,6 @@ package org.sakaiproject.nakamura.util;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 
 import java.io.Writer;
@@ -407,7 +406,12 @@ public class ExtendedJSONWriter extends JSONWriter {
     if (maxDepth == -1 || currentLevel < maxDepth) {
       // Write all the child nodes.
       for (Content child : content.listChildren()) {
-        write.key(child.getPath());
+        // Write only the end of the path (KERN-1883)
+        if (child.getPath().contains("/")) {
+          write.key(child.getPath().substring(child.getPath().lastIndexOf("/") + 1));
+        } else {
+          write.key(child.getPath());
+        }
         writeNodeTreeToWriter(write, child, false, maxDepth, currentLevel + 1);
       }
     }
