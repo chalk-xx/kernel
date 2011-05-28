@@ -9,8 +9,6 @@
   "_categoryAnd": "",
   "sakai:resultprocessor": "GeneralFeed",
   "sakai:propertyprovider" : ["CategoryPropertyProvider","TagMatch"],
-  "sakai:aggregate-search-results": [ "sakai:tags" ],
-  "sakai:aggregate-search-results-children": "false",
   "sakai:title": "General - All",
   "sakai:shortDescription": "Get profile nodes out of the repository.",
   "sakai:parameters" : [
