@@ -28,7 +28,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.proxy.ProxyPostProcessor;
 import org.sakaiproject.nakamura.api.proxy.ProxyResponse;
@@ -91,9 +91,9 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
 
   @Activate
   protected void activate(Map<?, ?> props) {
-    eventsThreshold = OsgiUtil.toInteger(props.get(EVENTS_THRESHOLD),
+    eventsThreshold = PropertiesUtil.toInteger(props.get(EVENTS_THRESHOLD),
         DEFAULT_EVENTS_THRESHOLD);
-    maxLength = OsgiUtil.toInteger(props.get(MAX_LENGTH), DEFAULT_MAX_LENGTH);
+    maxLength = PropertiesUtil.toInteger(props.get(MAX_LENGTH), DEFAULT_MAX_LENGTH);
 
     xmlInputFactory = new WstxInputFactory();
     xmlInputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);

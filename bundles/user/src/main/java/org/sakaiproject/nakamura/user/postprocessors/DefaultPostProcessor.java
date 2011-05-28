@@ -19,7 +19,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -242,7 +242,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   @Modified
   protected void modified(Map<?, ?> props) throws Exception {
 
-    visibilityPreference = OsgiUtil.toString(props.get(VISIBILITY_PREFERENCE),
+    visibilityPreference = PropertiesUtil.toString(props.get(VISIBILITY_PREFERENCE),
         VISIBILITY_PREFERENCE_DEFAULT);
 
     defaultProfileTemplate = PROFILE_IMPORT_TEMPLATE_DEFAULT;
@@ -259,9 +259,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       startPos = endPos;
     }
 
-    defaultUserPagesTemplate = OsgiUtil.toString(props.get(DEFAULT_USER_PAGES_TEMPLATE),
+    defaultUserPagesTemplate = PropertiesUtil.toString(props.get(DEFAULT_USER_PAGES_TEMPLATE),
         "");
-    defaultGroupPagesTemplate = OsgiUtil.toString(
+    defaultGroupPagesTemplate = PropertiesUtil.toString(
         props.get(DEFAULT_GROUP_PAGES_TEMPLATE), "");
 
     createDefaultUsers();
@@ -898,22 +898,27 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       }
     }
     if (viewerSettings.size() > 0) {
-      // ensure its private
+      // ensure it's private
       aclModifications.add(new AclModification(AclModification.grantKey(User.ANON_USER),
           Permissions.ALL.getPermission(), Operation.OP_DEL));
-      if (!viewerSettings.contains(Group.EVERYONE)) {
-        // only deny everyone if not in the list of viewers
+
+      if (viewerSettings.contains(Group.EVERYONE)) {
+        // Make sure "everyone" has read access.
+        aclModifications.add(new AclModification(AclModification.denyKey(Group.EVERYONE),
+                                                 Permissions.ALL.getPermission(), Operation.OP_DEL));
+        aclModifications.add(new AclModification(AclModification.grantKey(Group.EVERYONE),
+                                                 Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE));
+      } else {
+        // Deny "everyone" access to everything
         aclModifications.add(new AclModification(
-            AclModification.grantKey(Group.EVERYONE), Permissions.ALL.getPermission(),
-            Operation.OP_DEL));
-      }
-      aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),
-          Permissions.ALL.getPermission(), Operation.OP_REPLACE));
-      if (!viewerSettings.contains(Group.EVERYONE)) {
-        // only deny everyone if not in the list of viewers
+                                                 AclModification.grantKey(Group.EVERYONE), Permissions.ALL.getPermission(),
+                                                 Operation.OP_DEL));
         aclModifications.add(new AclModification(AclModification.denyKey(Group.EVERYONE),
             Permissions.ALL.getPermission(), Operation.OP_REPLACE));
       }
+
+      aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),
+          Permissions.ALL.getPermission(), Operation.OP_REPLACE));
     } else {
       // anon and everyone can read
       aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),

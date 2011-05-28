@@ -28,7 +28,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -106,11 +106,11 @@ public class WidgetServiceImpl implements WidgetService {
 
   @SuppressWarnings("rawtypes")
   private void init(Map props) {
-    String[] names = OsgiUtil
+    String[] names = PropertiesUtil
         .toStringArray(props.get(WIDGET_IGNORE_NAMES), new String[0]);
-    String[] types = OsgiUtil.toStringArray(props.get(WIDGET_VALID_MIMETYPES),
+    String[] types = PropertiesUtil.toStringArray(props.get(WIDGET_VALID_MIMETYPES),
         new String[0]);
-    String[] folders = OsgiUtil.toStringArray(props.get(WIDGET_FOLDERS), new String[0]);
+    String[] folders = PropertiesUtil.toStringArray(props.get(WIDGET_FOLDERS), new String[0]);
 
     skipDirectories = Arrays.asList(names);
     validMimetypes = Arrays.asList(types);

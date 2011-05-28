@@ -29,7 +29,7 @@ import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.servlets.post.NodeNameGenerator;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.apache.sling.servlets.post.VersioningConfiguration;
@@ -350,13 +350,13 @@ public class SparsePostServlet extends SlingAllMethodsServlet {
     }
     Dictionary<?, ?> props = context.getProperties();
 
-    String[] nameHints = OsgiUtil
+    String[] nameHints = PropertiesUtil
         .toStringArray(props.get(PROP_NODE_NAME_HINT_PROPERTIES));
-    int nameMax = (int) OsgiUtil.toLong(props.get(PROP_NODE_NAME_MAX_LENGTH), -1);
+    int nameMax = (int) PropertiesUtil.toLong(props.get(PROP_NODE_NAME_MAX_LENGTH), -1);
     defaultNodeNameGenerator = new DefaultNodeNameGenerator(nameHints, nameMax);
 
     dateParser = new DateParser();
-    String[] dateFormats = OsgiUtil.toStringArray(props.get(PROP_DATE_FORMAT));
+    String[] dateFormats = PropertiesUtil.toStringArray(props.get(PROP_DATE_FORMAT));
     for (String dateFormat : dateFormats) {
       try {
         dateParser.register(dateFormat);
@@ -430,10 +430,10 @@ public class SparsePostServlet extends SlingAllMethodsServlet {
   }
 
   protected void registerPostProcessor(ServiceReference ref) {
-    final int ranking = OsgiUtil.toInteger(ref.getProperty(Constants.SERVICE_RANKING), 0);
+    final int ranking = PropertiesUtil.toInteger(ref.getProperty(Constants.SERVICE_RANKING), 0);
     int index = 0;
     while (index < this.postProcessors.size()
-        && ranking < OsgiUtil.toInteger(
+        && ranking < PropertiesUtil.toInteger(
             this.postProcessors.get(index).getProperty(Constants.SERVICE_RANKING), 0)) {
       index++;
     }
@@ -479,10 +479,10 @@ public class SparsePostServlet extends SlingAllMethodsServlet {
   }
 
   protected void registerNodeNameGenerator(ServiceReference ref) {
-    final int ranking = OsgiUtil.toInteger(ref.getProperty(Constants.SERVICE_RANKING), 0);
+    final int ranking = PropertiesUtil.toInteger(ref.getProperty(Constants.SERVICE_RANKING), 0);
     int index = 0;
     while (index < this.nodeNameGenerators.size()
-        && ranking < OsgiUtil.toInteger(
+        && ranking < PropertiesUtil.toInteger(
             this.nodeNameGenerators.get(index).getProperty(Constants.SERVICE_RANKING), 0)) {
       index++;
     }
@@ -518,11 +518,11 @@ public class SparsePostServlet extends SlingAllMethodsServlet {
 
   private VersioningConfiguration createBaseVersioningConfiguration(Dictionary<?, ?> props) {
     VersioningConfiguration cfg = new VersioningConfiguration();
-    cfg.setCheckinOnNewVersionableNode(OsgiUtil.toBoolean(
+    cfg.setCheckinOnNewVersionableNode(PropertiesUtil.toBoolean(
         props.get(PROP_CHECKIN_ON_CREATE), DEFAULT_CHECKIN_ON_CREATE));
-    cfg.setAutoCheckout(OsgiUtil.toBoolean(props.get(PROP_AUTO_CHECKOUT),
+    cfg.setAutoCheckout(PropertiesUtil.toBoolean(props.get(PROP_AUTO_CHECKOUT),
         DEFAULT_AUTO_CHECKOUT));
-    cfg.setAutoCheckin(OsgiUtil.toBoolean(props.get(PROP_AUTO_CHECKIN),
+    cfg.setAutoCheckin(PropertiesUtil.toBoolean(props.get(PROP_AUTO_CHECKIN),
         DEFAULT_AUTO_CHECKIN));
     return cfg;
   }

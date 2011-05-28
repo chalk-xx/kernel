@@ -78,6 +78,9 @@ public class TagMatchSearchPropertyProvider implements SolrSearchPropertyProvide
         if (q.endsWith("*")) {
           q = q.substring(0, q.length()-1);
         }
+
+        tagClause.append(" OR tag:(").append(q).append(")");
+
         String statement = "//element(*)MetaData[@sling:resourceType='sakai/tag' and jcr:like(@sakai:tag-name,'%" + ISO9075.encode(q) + "%')]";
         QueryResult result = JcrResourceUtil.query(session, statement, "xpath");
         RowIterator rows = result.getRows();

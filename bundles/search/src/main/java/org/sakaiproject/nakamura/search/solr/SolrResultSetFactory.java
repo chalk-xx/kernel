@@ -26,7 +26,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServer;
@@ -87,10 +87,10 @@ public class SolrResultSetFactory implements ResultSetFactory {
 
   @Activate
   protected void activate(Map<?, ?> props) {
-    defaultMaxResults = OsgiUtil.toInteger(props.get(DEFAULT_MAX_RESULTS),
+    defaultMaxResults = PropertiesUtil.toInteger(props.get(DEFAULT_MAX_RESULTS),
         defaultMaxResults);
-    slowQueryThreshold = OsgiUtil.toLong(props.get(SLOW_QUERY_TIME), 10L);
-    verySlowQueryThreshold = OsgiUtil.toLong(props.get(VERY_SLOW_QUERY_TIME), 100L);
+    slowQueryThreshold = PropertiesUtil.toLong(props.get(SLOW_QUERY_TIME), 10L);
+    verySlowQueryThreshold = PropertiesUtil.toLong(props.get(VERY_SLOW_QUERY_TIME), 100L);
   }
 
   /**
@@ -203,10 +203,15 @@ public class SolrResultSetFactory implements ResultSetFactory {
     // for (final String criterion : criteria) {
     // final String[] sort = StringUtils.split(criterion);
     final String[] sort = StringUtils.split(val);
+
+    // use the *_sort fields to have predictable sorting.
+    // many of the fields in the index have a lot of processing which
+    // causes sorting to yield unpredictable results.
+    String sortOn = ("score".equals(sort[0])) ? sort[0] : sort[0] + "_sort";
     switch (sort.length) {
     case 1:
       // solrQuery.addSortField(sort[0], ORDER.asc);
-      solrQuery.setSortField(sort[0], ORDER.asc);
+      solrQuery.setSortField(sortOn, ORDER.asc);
       break;
     case 2:
       String sortOrder = sort[1].toLowerCase();
@@ -221,7 +226,7 @@ public class SolrResultSetFactory implements ResultSetFactory {
         }
       }
       // solrQuery.addSortField(sort[0], o);
-      solrQuery.setSortField(sort[0], o);
+      solrQuery.setSortField(sortOn, o);
       break;
     default:
       LOGGER.warn("Expected the sort option to be 1 or 2 terms. Found: {}", val);
