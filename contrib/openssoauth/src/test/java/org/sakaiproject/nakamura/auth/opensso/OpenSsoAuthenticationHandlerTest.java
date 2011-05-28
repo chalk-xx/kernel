@@ -172,6 +172,7 @@ public class OpenSsoAuthenticationHandlerTest {
 
   // AuthenticationFeedbackHandler tests.
 
+  @SuppressWarnings("unchecked")
   @Test
   public void unknownUserNoCreation() throws Exception {
     setAutocreateUser(false);
@@ -184,6 +185,7 @@ public class OpenSsoAuthenticationHandlerTest {
     verify(authMgr, never()).createUser(anyString(), anyString(), anyString(), any(Map.class));
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void findUnknownUserWithFailedCreation() throws Exception {
     setAutocreateUser(true);
@@ -197,6 +199,7 @@ public class OpenSsoAuthenticationHandlerTest {
     verify(authMgr).createUser(eq("someUserId"), anyString(), anyString(), any(Map.class));
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void findKnownUserWithCreation() throws Exception {
     setAutocreateUser(true);
@@ -212,6 +215,7 @@ public class OpenSsoAuthenticationHandlerTest {
     verify(authMgr, never()).createUser(eq("someUserId"), anyString(), anyString(), any(Map.class));
   }
 
+  @SuppressWarnings("unchecked")
   private User setUpPseudoCreateUserService() throws Exception {
     User liteUser = mock(User.class);
     when(liteUser.getId()).thenReturn("someUserId");
@@ -221,6 +225,7 @@ public class OpenSsoAuthenticationHandlerTest {
     return liteUser;
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void findUnknownUserWithCreation() throws Exception {
     setAutocreateUser(true);
