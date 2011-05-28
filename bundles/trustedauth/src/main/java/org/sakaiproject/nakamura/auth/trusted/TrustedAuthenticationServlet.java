@@ -21,7 +21,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
@@ -99,8 +99,8 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
   @Activate
   protected void activate(ComponentContext context) {
     Dictionary props = context.getProperties();
-    registrationPath = OsgiUtil.toString(props.get(REGISTRATION_PATH), "/system/trustedauth");
-    defaultDestination = OsgiUtil.toString(props.get(DEFAULT_DESTINATION), "/dev");
+    registrationPath = PropertiesUtil.toString(props.get(REGISTRATION_PATH), "/system/trustedauth");
+    defaultDestination = PropertiesUtil.toString(props.get(DEFAULT_DESTINATION), "/dev");
     try {
       httpService.registerServlet(registrationPath, this, null, null);
       LOGGER.info("Registerd {} at {} ",this,registrationPath);

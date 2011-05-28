@@ -40,7 +40,7 @@ import org.apache.sling.auth.core.spi.AuthenticationFeedbackHandler;
 import org.apache.sling.auth.core.spi.AuthenticationHandler;
 import org.apache.sling.auth.core.spi.AuthenticationInfo;
 import org.apache.sling.auth.core.spi.DefaultAuthenticationFeedbackHandler;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.ModificationType;
@@ -163,14 +163,14 @@ public class OpenSsoAuthenticationHandler implements AuthenticationHandler,
 
   @Modified
   protected void modified(Map<?, ?> props) {
-    loginUrl = OsgiUtil.toString(props.get(LOGIN_URL), DEFAULT_LOGIN_URL);
-    logoutUrl = OsgiUtil.toString(props.get(LOGOUT_URL), DEFAULT_LOGOUT_URL);
-    serverUrl = OsgiUtil.toString(props.get(SERVER_URL), DEFAULT_SERVER_URL);
-    missingLocalUserUrl = OsgiUtil.toString(props.get(MISSING_LOCAL_USER_URL),
+    loginUrl = PropertiesUtil.toString(props.get(LOGIN_URL), DEFAULT_LOGIN_URL);
+    logoutUrl = PropertiesUtil.toString(props.get(LOGOUT_URL), DEFAULT_LOGOUT_URL);
+    serverUrl = PropertiesUtil.toString(props.get(SERVER_URL), DEFAULT_SERVER_URL);
+    missingLocalUserUrl = PropertiesUtil.toString(props.get(MISSING_LOCAL_USER_URL),
         DEFAULT_MISSING_LOCAL_USER_URL);
 
-    attributeName = OsgiUtil.toString(props.get(ATTRIBUTES_NAMES), DEFAULT_ATTRIBUTE_NAME);
-    autoCreateUser = OsgiUtil.toBoolean(props.get(SSO_AUTOCREATE_USER), false);
+    attributeName = PropertiesUtil.toString(props.get(ATTRIBUTES_NAMES), DEFAULT_ATTRIBUTE_NAME);
+    autoCreateUser = PropertiesUtil.toBoolean(props.get(SSO_AUTOCREATE_USER), false);
   }
 
   //----------- AuthenticationHandler interface ----------------------------

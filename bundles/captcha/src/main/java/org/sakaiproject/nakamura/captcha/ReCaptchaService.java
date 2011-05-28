@@ -29,7 +29,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.sakaiproject.nakamura.api.captcha.CaptchaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,9 +71,9 @@ public class ReCaptchaService implements CaptchaService {
   @Activate
   protected void activate(Map<?, ?> properties) {
     // Get the properties.
-    keyPrivate = OsgiUtil.toString(properties.get(KEY_PRIVATE), "");
-    keyPublic = OsgiUtil.toString(properties.get(KEY_PUBLIC), "");
-    endpoint = OsgiUtil.toString(properties.get(RECAPTCHA_ENDPOINT), "");
+    keyPrivate = PropertiesUtil.toString(properties.get(KEY_PRIVATE), "");
+    keyPublic = PropertiesUtil.toString(properties.get(KEY_PUBLIC), "");
+    endpoint = PropertiesUtil.toString(properties.get(RECAPTCHA_ENDPOINT), "");
 
     // Initialize the client on start up.
     client = new HttpClient();

@@ -28,7 +28,7 @@ import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.commons.scheduler.Job;
 import org.apache.sling.commons.scheduler.JobContext;
 import org.apache.sling.commons.scheduler.Scheduler;
@@ -457,7 +457,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
     @SuppressWarnings("rawtypes")
     Dictionary props = ctx.getProperties();
 
-    Integer _maxRetries = OsgiUtil.toInteger(props.get(MAX_RETRIES), -1);
+    Integer _maxRetries = PropertiesUtil.toInteger(props.get(MAX_RETRIES), -1);
     if (_maxRetries > -1 ) {
       if (diff(maxRetries, _maxRetries)) {
         maxRetries = _maxRetries;
@@ -466,7 +466,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
       LOGGER.error("Maximum times to retry messages not set.");
     }
 
-    Integer _retryInterval = OsgiUtil.toInteger(props.get(RETRY_INTERVAL), -1);
+    Integer _retryInterval = PropertiesUtil.toInteger(props.get(RETRY_INTERVAL), -1);
     if (_retryInterval > -1 ) {
       if (diff(_retryInterval, retryInterval)) {
         retryInterval = _retryInterval;
@@ -479,7 +479,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
       LOGGER.warn("SMTP retry window is very short.");
     }
 
-    Integer _smtpPort = OsgiUtil.toInteger(props.get(SMTP_PORT), -1 );
+    Integer _smtpPort = PropertiesUtil.toInteger(props.get(SMTP_PORT), -1 );
     boolean validPort = _smtpPort != null && _smtpPort >= 0 && _smtpPort <= 65535;
     if (validPort) {
       if (diff(smtpPort, _smtpPort)) {
@@ -489,7 +489,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
       LOGGER.error("Invalid port set for SMTP");
     }
 
-    String _smtpServer = OsgiUtil.toString(props.get(SMTP_SERVER), "");
+    String _smtpServer = PropertiesUtil.toString(props.get(SMTP_SERVER), "");
     boolean smtpServerEmpty = _smtpServer == null || _smtpServer.trim().length() == 0;
     if (!smtpServerEmpty) {
       if (diff(smtpServer, _smtpServer)) {

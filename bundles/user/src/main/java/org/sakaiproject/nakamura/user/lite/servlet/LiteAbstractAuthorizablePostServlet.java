@@ -26,7 +26,7 @@ import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.component.ComponentContext;
@@ -89,7 +89,7 @@ public abstract class LiteAbstractAuthorizablePostServlet extends
         Dictionary<?, ?> props = context.getProperties();
 
         dateParser = new DateParser();
-        String[] dateFormats = OsgiUtil.toStringArray(props.get(PROP_DATE_FORMAT));
+        String[] dateFormats = PropertiesUtil.toStringArray(props.get(PROP_DATE_FORMAT));
         for (String dateFormat : dateFormats) {
             dateParser.register(dateFormat);
         }

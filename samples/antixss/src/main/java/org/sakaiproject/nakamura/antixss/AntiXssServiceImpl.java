@@ -20,7 +20,7 @@ package org.sakaiproject.nakamura.antixss;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.service.component.ComponentContext;
 import org.owasp.validator.html.AntiSamy;
 import org.owasp.validator.html.CleanResults;
@@ -50,7 +50,7 @@ public class AntiXssServiceImpl implements AntiXssService {
   @SuppressWarnings("unchecked")
   protected void activate(ComponentContext componentContext) throws IOException, PolicyException {
     Dictionary<String, Object> config = componentContext.getProperties();
-    String policyUrl = OsgiUtil.toString(config.get(POLICY_FILE_LOCATION), "");
+    String policyUrl = PropertiesUtil.toString(config.get(POLICY_FILE_LOCATION), "");
     InputStream in = ResourceLoader.openResource(policyUrl, this.getClass().getClassLoader());
     policy = Policy.getInstance(in);
     in.close();

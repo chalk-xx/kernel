@@ -23,7 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,7 +145,7 @@ public class CacheControlFilter implements Filter {
   }
 
   private void initCacheMatchPatterns() {
-    String[] cacheDefs = OsgiUtil.toStringArray(contextProperties.get("sakai.cache.patterns"));
+    String[] cacheDefs = PropertiesUtil.toStringArray(contextProperties.get("sakai.cache.patterns"));
     if (cacheDefs != null) {
       for(String cacheDef : cacheDefs) {
         String[] cacheDefParts = cacheDef.split(":");

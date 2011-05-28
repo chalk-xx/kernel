@@ -23,7 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.commons.scheduler.Scheduler;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
@@ -140,7 +140,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
   protected void activate(ComponentContext ctx) throws Exception {
 
     Dictionary<String, Object> properties = ctx.getProperties();
-    thisSecureUrl = OsgiUtil.toString(properties.get(PROP_SECURE_HOST_URL), "");
+    thisSecureUrl = PropertiesUtil.toString(properties.get(PROP_SECURE_HOST_URL), "");
 
     componentStartTime = String.valueOf(System.currentTimeMillis());
     MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();

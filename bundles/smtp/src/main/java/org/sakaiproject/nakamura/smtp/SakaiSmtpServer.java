@@ -5,7 +5,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
@@ -68,12 +68,12 @@ public class SakaiSmtpServer implements SimpleMessageListener {
   private Set<String> domains = new HashSet<String>();
 
   public void activate(ComponentContext context) throws Exception {
-    Integer port = OsgiUtil.toInteger(context.getProperties().get(SMTP_SERVER_PORT), 8025);
+    Integer port = PropertiesUtil.toInteger(context.getProperties().get(SMTP_SERVER_PORT), 8025);
     LOGGER.info("Starting SMTP server on port {}", port);
     server = new SMTPServer(new SimpleMessageListenerAdapter(this));
     server.setPort(port);
     server.start();
-    String localDomains = OsgiUtil.toString(context.getProperties().get(LOCAL_DOMAINS), "localhost");
+    String localDomains = PropertiesUtil.toString(context.getProperties().get(LOCAL_DOMAINS), "localhost");
     domains.clear();
     for (String domain : StringUtils.split(localDomains, ';')) {
       domains.add(domain);

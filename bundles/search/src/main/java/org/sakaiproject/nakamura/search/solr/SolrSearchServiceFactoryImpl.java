@@ -9,7 +9,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.ResultSetFactory;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -31,7 +31,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
   private ConcurrentMap<String, ResultSetFactory> resultSetFactories = Maps.newConcurrentHashMap();
 
   protected void bindResultSetFactories(ResultSetFactory factory, Map<?, ?> props) {
-    String type = OsgiUtil.toString(props.get("type"), null);
+    String type = PropertiesUtil.toString(props.get("type"), null);
     if (!StringUtils.isBlank(type)) {
       resultSetFactories.put(type, factory);
     } else {
@@ -40,7 +40,7 @@ public class SolrSearchServiceFactoryImpl implements SolrSearchServiceFactory {
   }
 
   protected void unbindResultSetFactories(ResultSetFactory factory, Map<?, ?> props) {
-    String type = OsgiUtil.toString(props.get("type"), null);
+    String type = PropertiesUtil.toString(props.get("type"), null);
     if (!StringUtils.isBlank(type)) {
       resultSetFactories.remove(type);
     }

@@ -26,7 +26,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -226,7 +226,7 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
   protected void activate(ComponentContext componentContext) {
     super.activate(componentContext);
     Dictionary<?, ?> props = componentContext.getProperties();
-    selfRegistrationEnabled = OsgiUtil.toBoolean(props.get(PROP_SELF_REGISTRATION_ENABLED), DEFAULT_SELF_REGISTRATION_ENABLED);
+    selfRegistrationEnabled = PropertiesUtil.toBoolean(props.get(PROP_SELF_REGISTRATION_ENABLED), DEFAULT_SELF_REGISTRATION_ENABLED);
   }
 
   /*
