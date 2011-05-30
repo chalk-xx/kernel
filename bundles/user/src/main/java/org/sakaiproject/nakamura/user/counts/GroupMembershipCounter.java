@@ -30,14 +30,17 @@ public class GroupMembershipCounter {
   public int count(Authorizable au, AuthorizableManager authorizableManager) throws AccessDeniedException, StorageClientException {
     
     int count = 0;
-    if ( au == null || !CountProvider.IGNORE_AUTHIDS.contains(au.getId())) {
+    if ( au != null && !CountProvider.IGNORE_AUTHIDS.contains(au.getId())) {
       // code borrowed from LiteMeServlet to include indirect memberships
       // KERN-1831 changed from getPrincipals to memberOf to drill down list
       for (Iterator<Group> memberOf = au.memberOf(authorizableManager); memberOf.hasNext();) {
         Authorizable group = memberOf.next();
         if (group == null || !(group instanceof Group)
-            || CountProvider.IGNORE_AUTHIDS.contains(group.getId())) {
-          // we don't want to count the everyone groups
+            // we don't want to count the everyone groups
+            || CountProvider.IGNORE_AUTHIDS.contains(group.getId())
+            // don't count if the group is to be excluded
+            || Boolean.parseBoolean(String.valueOf(group.getProperty("sakai:excludeSearch")))
+            || group.getId().startsWith("g-contacts-")) {
           continue;
         }
         if (group.hasProperty("sakai:managed-group")) {
