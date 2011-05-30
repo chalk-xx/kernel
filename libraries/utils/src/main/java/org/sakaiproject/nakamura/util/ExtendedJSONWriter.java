@@ -20,7 +20,6 @@ package org.sakaiproject.nakamura.util;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 
 import java.io.Writer;
@@ -171,21 +170,13 @@ public class ExtendedJSONWriter extends JSONWriter {
       if (propValue instanceof Object[]) {
         write.array();
         for (Object value : (Object[]) propValue) {
-          if (isUserPath(propName, value)) {
-            write.value(PathUtils.translateAuthorizablePath(value));
-          } else {
-            write.value(value);
-          }
+          write.value(PathUtils.translateAuthorizablePath(value));
         }
         write.endArray();
       } else if (propValue instanceof java.util.Calendar){
-          write.value(DateUtils.iso8601((java.util.Calendar)propValue));
+        write.value(DateUtils.iso8601((java.util.Calendar)propValue));
       } else {
-        if (isUserPath(propName, propValue)) {
-          write.value(PathUtils.translateAuthorizablePath(propValue));
-        } else {
-          write.value(propValue);
-        }
+        write.value(PathUtils.translateAuthorizablePath(propValue));
       }
     }
   }
