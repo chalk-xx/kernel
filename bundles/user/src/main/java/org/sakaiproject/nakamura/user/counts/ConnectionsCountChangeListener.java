@@ -6,10 +6,13 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StoreListener;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
@@ -30,7 +33,10 @@ public class ConnectionsCountChangeListener extends AbstractCountHandler impleme
   private ConnectionsCounter connectionsCounter = new ConnectionsCounter();
 
   public void handleEvent(Event event) {
+    Session adminSession = null;
     try {
+      adminSession = repository.loginAdministrative();
+      AuthorizableManager authorizableManager = adminSession.getAuthorizableManager();
       if (LOG.isDebugEnabled()) LOG.debug("handleEvent() " + dumpEvent(event));
       String path = (String) event.getProperty(StoreListener.PATH_PROPERTY);
       if ( path.startsWith("g-contacts-")) {
@@ -53,6 +59,14 @@ public class ConnectionsCountChangeListener extends AbstractCountHandler impleme
       LOG.debug("Failed to update count ", e);
     } catch (AccessDeniedException e) {
       LOG.debug("Failed to update count ", e);
+    } finally {
+      if ( adminSession != null ) {
+        try {
+          adminSession.logout();
+        } catch (ClientPoolException e) {
+          LOG.warn(e.getMessage(),e);
+        }
+      }
     }
   }
   

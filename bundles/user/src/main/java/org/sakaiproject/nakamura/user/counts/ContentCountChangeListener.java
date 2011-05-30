@@ -9,11 +9,13 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
+import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.StoreListener;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +38,11 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
   private static final Logger LOG = LoggerFactory.getLogger(ContentCountChangeListener.class);
 
   public void handleEvent(Event event) {
+    Session adminSession = null;
     try {
-      if (LOG.isDebugEnabled()) LOG.debug("handleEvent() " + dumpEvent(event));
+      adminSession = repository.loginAdministrative();
+      ContentManager contentManager = adminSession.getContentManager();
+      LOG.debug("handleEvent() " + dumpEvent(event));
       // The members of a group are defined in the membership, so simply use that value, no need to increment or decrement.
       String path = (String) event.getProperty(StoreListener.PATH_PROPERTY);
       Content content = contentManager.get(path);        
