@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-@Component(immediate = true, metatype = true)
-@Service(value = CountProvider.class)
+@Component(metatype = true)
+@Service
 public class CountProviderImpl implements CountProvider {
 
   /**
