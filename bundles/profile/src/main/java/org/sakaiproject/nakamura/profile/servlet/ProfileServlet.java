@@ -31,7 +31,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
@@ -51,7 +50,7 @@ import javax.servlet.http.HttpServletResponse;
  * Creates a REST endpoint for the profile serivce.
  */
 @ServiceDocumentation(bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = {
-    ProfileConstants.GROUP_PROFILE_RT, ProfileConstants.USER_PROFILE_RT }, extensions = { @ServiceExtension(name = "json", description = "json format") }, selectors = { @ServiceSelector(name = "profile", description = "Binds to the selector profile") }) }, methods = { @ServiceMethod(name = "GET", description = "Responds to simple GET method requests", response = {
+    ProfileConstants.GROUP_PROFILE_RT, ProfileConstants.USER_PROFILE_RT }, extensions = { @ServiceExtension(name = "json", description = "json format") }) }, methods = { @ServiceMethod(name = "GET", description = "Responds to simple GET method requests", response = {
     @ServiceResponse(code = 200, description = "Responds with a 200 if the request was sucessfull, the output is a json "
         + "tree of the profile with external references expanded."),
     @ServiceResponse(code = 404, description = "Responds with a 404 is the profile node cant be found, body contains no output"),
