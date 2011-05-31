@@ -29,7 +29,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
@@ -89,7 +89,7 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
   protected void activate(ComponentContext context) {
     @SuppressWarnings("rawtypes")
     Dictionary properties = context.getProperties();
-    createJCRNodes = PropertiesUtil.toBoolean(properties.get("createJCRNodes"), false);
+    createJCRNodes = OsgiUtil.toBoolean(properties.get("createJCRNodes"), false);
   }
 
   /**

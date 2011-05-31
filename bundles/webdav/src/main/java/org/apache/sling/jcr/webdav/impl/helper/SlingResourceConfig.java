@@ -37,7 +37,7 @@ import org.apache.jackrabbit.webdav.simple.ItemFilter;
 import org.apache.jackrabbit.webdav.simple.ResourceConfig;
 import org.apache.jackrabbit.webdav.simple.SimpleWebdavServlet;
 import org.apache.sling.commons.mime.MimeTypeService;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.webdav.impl.servlets.SlingWebDavServlet;
 
 public class SlingResourceConfig extends ResourceConfig {
@@ -57,17 +57,17 @@ public class SlingResourceConfig extends ResourceConfig {
     public SlingResourceConfig(MimeTypeService mimeTypeService,
             Dictionary<?, ?> config, ItemFilter customItemFilter ) {
         super(new SlingTikaDetector(mimeTypeService));
-        collectionTypes = PropertiesUtil.toStringArray(
+        collectionTypes = OsgiUtil.toStringArray(
             config.get(SlingWebDavServlet.COLLECTION_TYPES),
             SlingWebDavServlet.COLLECTION_TYPES_DEFAULT);
 
-        String[] filterPrefixes = PropertiesUtil.toStringArray(
+        String[] filterPrefixes = OsgiUtil.toStringArray(
             config.get(SlingWebDavServlet.FILTER_PREFIXES),
             SlingWebDavServlet.FILTER_PREFIXES_DEFAULT);
-        String[] filterNodeTypes = PropertiesUtil.toStringArray(
+        String[] filterNodeTypes = OsgiUtil.toStringArray(
             config.get(SlingWebDavServlet.FILTER_TYPES),
             SlingWebDavServlet.EMPTY_DEFAULT);
-        String[] filterURIs = PropertiesUtil.toStringArray(
+        String[] filterURIs = OsgiUtil.toStringArray(
             config.get(SlingWebDavServlet.FILTER_URIS),
             SlingWebDavServlet.EMPTY_DEFAULT);
 
@@ -80,13 +80,13 @@ public class SlingResourceConfig extends ResourceConfig {
         itemFilter.setFilteredURIs(filterURIs);
         itemFilter.setFilteredNodetypes(filterNodeTypes);
 
-        String collectionType = PropertiesUtil.toString(
+        String collectionType = OsgiUtil.toString(
             config.get(SlingWebDavServlet.TYPE_COLLECTIONS),
             SlingWebDavServlet.TYPE_COLLECTIONS_DEFAULT);
-        String nonCollectionType = PropertiesUtil.toString(
+        String nonCollectionType = OsgiUtil.toString(
             config.get(SlingWebDavServlet.TYPE_NONCOLLECTIONS),
             SlingWebDavServlet.TYPE_NONCOLLECTIONS_DEFAULT);
-        String contentType = PropertiesUtil.toString(
+        String contentType = OsgiUtil.toString(
             config.get(SlingWebDavServlet.TYPE_CONTENT),
             SlingWebDavServlet.TYPE_CONTENT_DEFAULT);
 
@@ -103,7 +103,7 @@ public class SlingResourceConfig extends ResourceConfig {
         propertyManager.addPropertyHandler(dirHandler);
         propertyManager.addPropertyHandler(defaultHandler);
 
-        servletContextPath = PropertiesUtil.toString(
+        servletContextPath = OsgiUtil.toString(
             config.get(SlingWebDavServlet.PROP_CONTEXT),
             SlingWebDavServlet.DEFAULT_CONTEXT);
 
@@ -111,7 +111,7 @@ public class SlingResourceConfig extends ResourceConfig {
         servletInitParams.put(
             SimpleWebdavServlet.INIT_PARAM_RESOURCE_PATH_PREFIX,
             servletContextPath);
-        String value = PropertiesUtil.toString(
+        String value = OsgiUtil.toString(
             config.get(SlingWebDavServlet.PROP_REALM),
             SlingWebDavServlet.DEFAULT_REALM);
         servletInitParams.put(

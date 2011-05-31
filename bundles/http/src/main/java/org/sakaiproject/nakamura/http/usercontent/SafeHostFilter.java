@@ -7,7 +7,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.http.usercontent.ServerProtectionService;
 import org.slf4j.Logger;
@@ -79,7 +79,7 @@ public class SafeHostFilter implements Filter {
   @Activate
   protected void activate(ComponentContext componentContext) throws ServletException {
     Dictionary<String, Object> properties = componentContext.getProperties();
-    int filterPriority = PropertiesUtil.toInteger(properties.get(FILTER_PRIORITY_CONF),10);
+    int filterPriority = OsgiUtil.toInteger(properties.get(FILTER_PRIORITY_CONF),10);
     extHttpService.registerFilter(this, ".*", null, filterPriority, null);
   }
 

@@ -8,7 +8,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.mortbay.util.ajax.Continuation;
 import org.mortbay.util.ajax.ContinuationSupport;
 import org.osgi.service.component.ComponentContext;
@@ -198,8 +198,8 @@ public class QoSFilter implements Filter {
 
     Dictionary<String, Object> properties = componentContext.getProperties();
 
-    long defaultTimeout = PropertiesUtil.toInteger(properties.get(QOS_TIMEOUT_CONFIG),-1);
-    int maxPriorityNumber = PropertiesUtil.toInteger(properties.get(QOS_MAX_PRIORITY_CONF),2);
+    long defaultTimeout = OsgiUtil.toInteger(properties.get(QOS_TIMEOUT_CONFIG),-1);
+    int maxPriorityNumber = OsgiUtil.toInteger(properties.get(QOS_MAX_PRIORITY_CONF),2);
     priorityQueue = new Queue[maxPriorityNumber+1];
     for ( int i = 0; i < priorityQueue.length; i++ ) {
       priorityQueue[i] = new ConcurrentLinkedQueue<Continuation>();
@@ -207,7 +207,7 @@ public class QoSFilter implements Filter {
 
     // path, max requests, priority, timeout
     qoSControMap.clear();
-    String[] qosLocations = PropertiesUtil.toStringArray(properties.get(QOS_CATEGORIES_CONFIG));
+    String[] qosLocations = OsgiUtil.toStringArray(properties.get(QOS_CATEGORIES_CONFIG));
     if ( qosLocations != null ) {
       for ( String qosLocation : qosLocations ) {
         String[] settings = StringUtils.split(qosLocation,";");
@@ -224,14 +224,14 @@ public class QoSFilter implements Filter {
     }
 
     // defaults
-    int qosDefaultPriority = PropertiesUtil.toInteger(properties.get(QOS_DEFAULT_PRIORITY_CONF),0);
-    int qosDefaultLimit = PropertiesUtil.toInteger(properties.get(QOS_DEFAULT_LIMIT_CONF),10);
-    long qosDefaultTimeout = PropertiesUtil.toLong(properties.get(QOS_DEFAULT_REQUEST_TIMEOUT_CONF),defaultTimeout);
-    waitMs = PropertiesUtil.toLong(properties.get(QOS_SEMAPHOREWAIT_CONF),50);
+    int qosDefaultPriority = OsgiUtil.toInteger(properties.get(QOS_DEFAULT_PRIORITY_CONF),0);
+    int qosDefaultLimit = OsgiUtil.toInteger(properties.get(QOS_DEFAULT_LIMIT_CONF),10);
+    long qosDefaultTimeout = OsgiUtil.toLong(properties.get(QOS_DEFAULT_REQUEST_TIMEOUT_CONF),defaultTimeout);
+    waitMs = OsgiUtil.toLong(properties.get(QOS_SEMAPHOREWAIT_CONF),50);
 
     defaultQoSControl = new QoSControl(priorityQueue, qosDefaultLimit, qosDefaultPriority, qosDefaultTimeout);
 
-    int filterPriority = PropertiesUtil.toInteger(properties.get(FILTER_PRIORITY_CONF),10);
+    int filterPriority = OsgiUtil.toInteger(properties.get(FILTER_PRIORITY_CONF),10);
 
     extHttpService.registerFilter(this, ".*", null, filterPriority, null);
 

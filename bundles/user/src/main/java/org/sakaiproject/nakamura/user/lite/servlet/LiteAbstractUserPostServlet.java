@@ -23,7 +23,7 @@ import java.util.Dictionary;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.jackrabbit.util.Text;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 
 /**
@@ -53,7 +53,7 @@ public abstract class LiteAbstractUserPostServlet extends
 
         Dictionary<?, ?> props = context.getProperties();
 
-        passwordDigestAlgoritm = PropertiesUtil.toString(props.get(PROP_PASSWORD_DIGEST_ALGORITHM), DEFAULT_PASSWORD_DIGEST_ALGORITHM);
+        passwordDigestAlgoritm = OsgiUtil.toString(props.get(PROP_PASSWORD_DIGEST_ALGORITHM), DEFAULT_PASSWORD_DIGEST_ALGORITHM);
     }
 
     protected void deactivate(ComponentContext context) {

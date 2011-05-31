@@ -35,7 +35,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
@@ -120,12 +120,12 @@ public class OsgiJmsBridge implements EventHandler {
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
 
-    transacted = PropertiesUtil.toBoolean(props.get(SESSION_TRANSACTED), false);
-    acknowledgeMode = PropertiesUtil.toInteger(props.get(ACKNOWLEDGE_MODE), 0);
-    connectionClientId = PropertiesUtil.toString(props.get(CONNECTION_CLIENT_ID), "sakai.event.bridge");
+    transacted = OsgiUtil.toBoolean(props.get(SESSION_TRANSACTED), false);
+    acknowledgeMode = OsgiUtil.toInteger(props.get(ACKNOWLEDGE_MODE), 0);
+    connectionClientId = OsgiUtil.toString(props.get(CONNECTION_CLIENT_ID), "sakai.event.bridge");
     serverId = clusterTrackingService.getCurrentServerId();
 
-    String[] ignoreEventTopicsValues = PropertiesUtil.toStringArray(props.get(IGNORE_EVENT_TOPICS));
+    String[] ignoreEventTopicsValues = OsgiUtil.toStringArray(props.get(IGNORE_EVENT_TOPICS));
     ignoreEventTopics.clear();
 
     if ( ignoreEventTopicsValues != null ) {

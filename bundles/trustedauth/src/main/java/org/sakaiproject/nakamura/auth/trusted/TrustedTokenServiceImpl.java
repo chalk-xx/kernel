@@ -23,7 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
@@ -210,40 +210,40 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   @SuppressWarnings("rawtypes")
   protected void activate(ComponentContext context) {
     Dictionary props = context.getProperties();
-    usingSession = PropertiesUtil.toBoolean(props.get(USE_SESSION), false);
-    secureCookie = PropertiesUtil.toBoolean(props.get(SECURE_COOKIE), false);
-    ttl = PropertiesUtil.toLong(props.get(TTL), 1200000);
-    trustedAuthCookieName = PropertiesUtil.toString(props.get(COOKIE_NAME), "");
-    sharedSecret = PropertiesUtil.toString(props.get(SERVER_TOKEN_SHARED_SECRET), "default-setting-change-before-use");
-    trustedTokenEnabled = PropertiesUtil.toBoolean(props.get(SERVER_TOKEN_ENABLED), true);
-    debugCookies = PropertiesUtil.toBoolean(props.get(DEBUG_COOKIES), false);
+    usingSession = OsgiUtil.toBoolean(props.get(USE_SESSION), false);
+    secureCookie = OsgiUtil.toBoolean(props.get(SECURE_COOKIE), false);
+    ttl = OsgiUtil.toLong(props.get(TTL), 1200000);
+    trustedAuthCookieName = OsgiUtil.toString(props.get(COOKIE_NAME), "");
+    sharedSecret = OsgiUtil.toString(props.get(SERVER_TOKEN_SHARED_SECRET), "default-setting-change-before-use");
+    trustedTokenEnabled = OsgiUtil.toBoolean(props.get(SERVER_TOKEN_ENABLED), true);
+    debugCookies = OsgiUtil.toBoolean(props.get(DEBUG_COOKIES), false);
     tokenStore.setDebugCookies(debugCookies);
-    String safeHostsAddr = PropertiesUtil.toString(props.get(SERVER_TOKEN_SAFE_HOSTS_ADDR), "");
+    String safeHostsAddr = OsgiUtil.toString(props.get(SERVER_TOKEN_SAFE_HOSTS_ADDR), "");
     safeHostAddrSet.clear();
     if ( safeHostsAddr != null) {
       for ( String address : StringUtils.split(safeHostsAddr,';')) {
         safeHostAddrSet.add(address);
       }
     }
-    String trustedProxyServerAddr = PropertiesUtil.toString(props.get(TRUSTED_PROXY_SERVER_ADDR), "");
+    String trustedProxyServerAddr = OsgiUtil.toString(props.get(TRUSTED_PROXY_SERVER_ADDR), "");
     trustedProxyServerAddrSet.clear();
     if ( trustedProxyServerAddr != null) {
       for ( String address : StringUtils.split(trustedProxyServerAddr,';')) {
         trustedProxyServerAddrSet.add(address);
       }
     }
-    String wrappers = PropertiesUtil.toString(props.get(SERVER_TOKEN_SAFE_WRAPPERS), "");
+    String wrappers = OsgiUtil.toString(props.get(SERVER_TOKEN_SAFE_WRAPPERS), "");
     if ( wrappers == null || wrappers.length() == 0 ) {
       wrappers = DEFAULT_WRAPPERS;
     }
     safeWrappers = StringUtils.split(wrappers, ";");
 
-    String tokenFile = PropertiesUtil.toString(props.get(TOKEN_FILE_NAME), "");
+    String tokenFile = OsgiUtil.toString(props.get(TOKEN_FILE_NAME), "");
     String serverId = clusterTrackingService.getCurrentServerId();
     tokenStore.doInit(cacheManager, tokenFile, serverId, ttl);
 
-    trustedHeaderName = PropertiesUtil.toString(props.get(TRUSTED_HEADER_NAME), "");
-    trustedParameterName = PropertiesUtil.toString(props.get(TRUSTED_PARAMETER_NAME), "");
+    trustedHeaderName = OsgiUtil.toString(props.get(TRUSTED_HEADER_NAME), "");
+    trustedParameterName = OsgiUtil.toString(props.get(TRUSTED_PARAMETER_NAME), "");
   }
 
   public void activateForTesting() {

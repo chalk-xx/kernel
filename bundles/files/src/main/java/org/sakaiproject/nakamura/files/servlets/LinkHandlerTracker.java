@@ -20,7 +20,7 @@ package org.sakaiproject.nakamura.files.servlets;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.LINK_HANDLER;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.REG_PROCESSOR_NAMES;
 
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.files.LinkHandler;
@@ -62,7 +62,7 @@ public class LinkHandlerTracker {
    * @param serviceReference
    */
   private void removeProcessor(ServiceReference serviceReference) {
-    String[] processorNames = PropertiesUtil.toStringArray(serviceReference
+    String[] processorNames = OsgiUtil.toStringArray(serviceReference
         .getProperty(REG_PROCESSOR_NAMES));
 
     for (String processorName : processorNames) {
@@ -76,7 +76,7 @@ public class LinkHandlerTracker {
   private void addProcessor(ServiceReference serviceReference) {
     LinkHandler processor = (LinkHandler) osgiComponentContext.locateService(
         LINK_HANDLER, serviceReference);
-    String[] processorNames = PropertiesUtil.toStringArray(serviceReference
+    String[] processorNames = OsgiUtil.toStringArray(serviceReference
         .getProperty(REG_PROCESSOR_NAMES));
 
     for (String processorName : processorNames) {

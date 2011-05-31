@@ -31,7 +31,7 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -363,7 +363,7 @@ public class LiteCreateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServl
   @Override
   protected void activate(ComponentContext componentContext) {
     super.activate(componentContext);
-    String groupList = PropertiesUtil.toString(componentContext.getProperties().get(
+    String groupList = OsgiUtil.toString(componentContext.getProperties().get(
         GROUP_AUTHORISED_TOCREATE), null);
     if (groupList != null) {
       authorizedGroups = ImmutableSet.of(StringUtils.split(groupList, ','));

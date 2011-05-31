@@ -13,7 +13,7 @@ import org.apache.felix.scr.annotations.ConfigurationPolicy;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -80,10 +80,10 @@ public class LdapPersonProvider implements PersonProvider {
 
   @Activate
   protected void activate(Map<?, ?> props) {
-    baseDn = PropertiesUtil.toString(props.get(BASE_DN), "");
-    filterPattern = PropertiesUtil.toString(props.get(PROP_FILTER_PATTERN), "");
+    baseDn = OsgiUtil.toString(props.get(BASE_DN), "");
+    filterPattern = OsgiUtil.toString(props.get(PROP_FILTER_PATTERN), "");
 
-    String[] attributeMapping = PropertiesUtil.toStringArray(props.get(PROP_ATTRIBUTES_MAP));
+    String[] attributeMapping = OsgiUtil.toStringArray(props.get(PROP_ATTRIBUTES_MAP));
     if (attributeMapping != null
         && !(attributeMapping.length == 1 && "".equals(attributeMapping[0]))) {
       for (String mapping : attributeMapping) {

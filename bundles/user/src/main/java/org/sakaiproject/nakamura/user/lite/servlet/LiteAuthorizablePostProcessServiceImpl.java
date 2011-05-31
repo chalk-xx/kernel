@@ -23,8 +23,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestParameterMap;
-import org.apache.sling.commons.osgi.PropertiesUtil;
-import org.apache.sling.commons.osgi.ServiceUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -131,7 +130,7 @@ public class LiteAuthorizablePostProcessServiceImpl extends AbstractOrderedServi
         Map<String, Object> props1 = propertiesMap.get(o1);
         Map<String, Object> props2 = propertiesMap.get(o2);
 
-        return ServiceUtil.getComparableForServiceRanking(props1).compareTo(props2);
+        return OsgiUtil.getComparableForServiceRanking(props1).compareTo(props2);
       }
     };
   }

@@ -25,7 +25,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
@@ -233,7 +233,7 @@ public class CacheControlFilter implements Filter {
   protected void activate(ComponentContext componentContext) throws ServletException {
     @SuppressWarnings("unchecked")
     Dictionary<String, Object> properties = componentContext.getProperties();
-    String[] sakaiCachePaths = PropertiesUtil.toStringArray(properties.get(SAKAI_CACHE_PATHS));
+    String[] sakaiCachePaths = OsgiUtil.toStringArray(properties.get(SAKAI_CACHE_PATHS));
     subPaths = new HashMap<String, Map<String, String>>();
     if (sakaiCachePaths != null) {
       for (String sakaiCachePath : sakaiCachePaths) {
@@ -241,7 +241,7 @@ public class CacheControlFilter implements Filter {
         subPaths.put(cp[0], toMap(1, cp));
       }
     }
-    String[] sakaiCachePatternPaths = PropertiesUtil.toStringArray(properties.get(SAKAI_CACHE_PATTERNS));
+    String[] sakaiCachePatternPaths = OsgiUtil.toStringArray(properties.get(SAKAI_CACHE_PATTERNS));
     subPathPatterns = new HashMap<String, Map<Pattern, Map<String, String>>>();
     if (sakaiCachePatternPaths != null) {
       for (String sakaiCachePatternPath : sakaiCachePatternPaths) {
@@ -260,7 +260,7 @@ public class CacheControlFilter implements Filter {
       rootPathPatterns = new HashMap<Pattern, Map<String, String>>();
     }
 
-    int filterPriority = PropertiesUtil.toInteger(properties.get(FILTER_PRIORITY_CONF),0);
+    int filterPriority = OsgiUtil.toInteger(properties.get(FILTER_PRIORITY_CONF),0);
 
     extHttpService.registerFilter(this, ".*", null, filterPriority, null);
 

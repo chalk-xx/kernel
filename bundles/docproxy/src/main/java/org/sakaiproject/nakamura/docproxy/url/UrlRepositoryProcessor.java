@@ -45,7 +45,7 @@ import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
@@ -117,15 +117,15 @@ public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
     // process properties into http methods
     Dictionary<?, ?> props = context.getProperties();
 
-    hmacHeader = PropertiesUtil.toString(props.get(HMAC_HEADER), DEFAULT_HMAC_HEADER);
-    searchUrl = PropertiesUtil.toString(props.get(SEARCH_URL), DEFAULT_SEARCH_URL);
-    documentUrl = PropertiesUtil.toString(props.get(DOCUMENT_URL), DEFAULT_DOCUMENT_URL);
-    updateUrl = PropertiesUtil.toString(props.get(UPDATE_URL), DEFAULT_UPDATE_URL);
-    metadataUrl = PropertiesUtil.toString(props.get(METADATA_URL), DEFAULT_METADATA_URL);
-    removeUrl = PropertiesUtil.toString(props.get(REMOVE_URL), DEFAULT_REMOVE_URL);
+    hmacHeader = OsgiUtil.toString(props.get(HMAC_HEADER), DEFAULT_HMAC_HEADER);
+    searchUrl = OsgiUtil.toString(props.get(SEARCH_URL), DEFAULT_SEARCH_URL);
+    documentUrl = OsgiUtil.toString(props.get(DOCUMENT_URL), DEFAULT_DOCUMENT_URL);
+    updateUrl = OsgiUtil.toString(props.get(UPDATE_URL), DEFAULT_UPDATE_URL);
+    metadataUrl = OsgiUtil.toString(props.get(METADATA_URL), DEFAULT_METADATA_URL);
+    removeUrl = OsgiUtil.toString(props.get(REMOVE_URL), DEFAULT_REMOVE_URL);
 
-    hmacHeader = PropertiesUtil.toString(props.get(HMAC_HEADER), DEFAULT_HMAC_HEADER);
-    sharedKey = PropertiesUtil.toString(props.get(SHARED_KEY), null);
+    hmacHeader = OsgiUtil.toString(props.get(HMAC_HEADER), DEFAULT_HMAC_HEADER);
+    sharedKey = OsgiUtil.toString(props.get(SHARED_KEY), null);
   }
 
   /*

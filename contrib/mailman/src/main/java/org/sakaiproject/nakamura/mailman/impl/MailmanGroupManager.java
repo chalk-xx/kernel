@@ -21,7 +21,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.event.Event;
@@ -81,7 +81,7 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
     @Activate
     public void activate(Map<?, ?> props) throws ClientPoolException, StorageClientException, AccessDeniedException {
         LOGGER.info("Got component initialization");
-        listManagementPassword = PropertiesUtil.toString(props.get(LIST_MANAGEMENT_PASSWORD), "");
+        listManagementPassword = OsgiUtil.toString(props.get(LIST_MANAGEMENT_PASSWORD), "");
 
         session = this.repository.loginAdministrative();
         authorizableManager = session.getAuthorizableManager();

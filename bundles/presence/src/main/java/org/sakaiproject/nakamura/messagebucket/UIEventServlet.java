@@ -5,7 +5,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.mortbay.util.ajax.Continuation;
 import org.mortbay.util.ajax.ContinuationSupport;
 import org.osgi.service.http.HttpService;
@@ -46,7 +46,7 @@ public class UIEventServlet extends HttpServlet {
 
   @Activate
   public void activate(Map<String, Object> properties) throws ServletException, NamespaceException {
-    timeout = PropertiesUtil.toLong(properties.get(TIMEOUT_CONFIG), 120000L);
+    timeout = OsgiUtil.toLong(properties.get(TIMEOUT_CONFIG), 120000L);
      httpService.registerServlet("/system/uievent/default", this, null, null);
   }
   

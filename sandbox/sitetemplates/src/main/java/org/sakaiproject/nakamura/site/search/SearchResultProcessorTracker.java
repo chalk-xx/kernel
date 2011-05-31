@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.nakamura.site.search;
 
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
@@ -51,7 +51,7 @@ public class SearchResultProcessorTracker extends ServiceTracker {
       SearchResultProcessor processor = (SearchResultProcessor) context
           .getService(reference);
 
-      String[] processorNames = PropertiesUtil.toStringArray(reference
+      String[] processorNames = OsgiUtil.toStringArray(reference
           .getProperty(SAKAI_SEACH_RESOURCETYPE));
 
       putProcessor(processor, processorNames);
@@ -86,7 +86,7 @@ public class SearchResultProcessorTracker extends ServiceTracker {
   @Override
   public void removedService(ServiceReference reference, Object service) {
     if (service instanceof SearchResultProcessor) {
-      String[] processorNames = PropertiesUtil.toStringArray(reference
+      String[] processorNames = OsgiUtil.toStringArray(reference
           .getProperty(SAKAI_SEACH_RESOURCETYPE));
 
       removeProcessor(processorNames);

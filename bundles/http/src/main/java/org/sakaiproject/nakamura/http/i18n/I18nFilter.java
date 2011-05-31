@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,13 +84,13 @@ public class I18nFilter implements Filter {
 
   @Activate @Modified
   public void modified(Map<?, ?> props) {
-    bundlesPath = PropertiesUtil.toString(props.get(BUNDLES_PATH), DEFAULT_BUNDLES_PATH);
+    bundlesPath = OsgiUtil.toString(props.get(BUNDLES_PATH), DEFAULT_BUNDLES_PATH);
 
-    keyPattern = PropertiesUtil.toString(props.get(MESSAGE_KEY_PATTERN),
+    keyPattern = OsgiUtil.toString(props.get(MESSAGE_KEY_PATTERN),
         DEFAULT_MESSAGE_KEY_PATTERN);
     messageKeyPattern = Pattern.compile(keyPattern);
 
-    showMissingKeys = PropertiesUtil.toBoolean(props.get(SHOW_MISSING_KEYS),
+    showMissingKeys = OsgiUtil.toBoolean(props.get(SHOW_MISSING_KEYS),
         DEFAULT_SHOW_MISSING_KEYS);
   }
 

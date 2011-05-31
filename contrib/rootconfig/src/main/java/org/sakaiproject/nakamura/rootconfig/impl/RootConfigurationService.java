@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +69,7 @@ public class RootConfigurationService {
   //----------- Internal ----------------------------
 
   private void init(Map<?, ?> properties) {
-    rootPath = PropertiesUtil.toString(properties.get(ROOT_PATH), "");
+    rootPath = OsgiUtil.toString(properties.get(ROOT_PATH), "");
     if (rootPath.length() > 0) {
       setRootPath(rootPath);
     }

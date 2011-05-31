@@ -19,7 +19,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -242,7 +242,7 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
   @Modified
   protected void modified(Map<?, ?> props) throws Exception {
 
-    visibilityPreference = PropertiesUtil.toString(props.get(VISIBILITY_PREFERENCE),
+    visibilityPreference = OsgiUtil.toString(props.get(VISIBILITY_PREFERENCE),
         VISIBILITY_PREFERENCE_DEFAULT);
 
     defaultProfileTemplate = PROFILE_IMPORT_TEMPLATE_DEFAULT;
@@ -259,9 +259,9 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       startPos = endPos;
     }
 
-    defaultUserPagesTemplate = PropertiesUtil.toString(props.get(DEFAULT_USER_PAGES_TEMPLATE),
+    defaultUserPagesTemplate = OsgiUtil.toString(props.get(DEFAULT_USER_PAGES_TEMPLATE),
         "");
-    defaultGroupPagesTemplate = PropertiesUtil.toString(
+    defaultGroupPagesTemplate = OsgiUtil.toString(
         props.get(DEFAULT_GROUP_PAGES_TEMPLATE), "");
 
     createDefaultUsers();

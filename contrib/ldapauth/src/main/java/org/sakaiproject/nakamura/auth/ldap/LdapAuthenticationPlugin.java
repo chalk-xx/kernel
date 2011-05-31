@@ -36,7 +36,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
@@ -124,10 +124,10 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   }
 
   private void init(Map<?, ?> props) {
-    baseDn = PropertiesUtil.toString(props.get(LDAP_BASE_DN), "");
-    userFilter = PropertiesUtil.toString(props.get(USER_FILTER), "");
-    authzFilter = PropertiesUtil.toString(props.get(AUTHZ_FILTER), "");
-    createAccount = PropertiesUtil.toBoolean(props.get(CREATE_ACCOUNT), CREATE_ACCOUNT_DEFAULT);
+    baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), "");
+    userFilter = OsgiUtil.toString(props.get(USER_FILTER), "");
+    authzFilter = OsgiUtil.toString(props.get(AUTHZ_FILTER), "");
+    createAccount = OsgiUtil.toBoolean(props.get(CREATE_ACCOUNT), CREATE_ACCOUNT_DEFAULT);
 
     parseUserProps(props);
   }
@@ -178,8 +178,8 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
       attrsProps = new HashMap<String, String>();
 
       for (Entry<?, ?> entry : props.entrySet()) {
-        String key = PropertiesUtil.toString(entry.getKey(), "");
-        String value = PropertiesUtil.toString(entry.getValue(), "");
+        String key = OsgiUtil.toString(entry.getKey(), "");
+        String value = OsgiUtil.toString(entry.getValue(), "");
         if (key.length() > 0 && value.length() > 0 && key.startsWith(USER_PROPS)) {
           String ldapAttrName = key.substring(USER_PROPS.length());
           attrsProps.put(ldapAttrName, value);

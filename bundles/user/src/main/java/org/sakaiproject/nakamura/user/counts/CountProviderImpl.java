@@ -6,7 +6,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
@@ -157,7 +157,7 @@ public class CountProviderImpl implements CountProvider {
   @Modified
   public void modify(Map<String, Object> properties) throws StorageClientException,
       AccessDeniedException {
-    updateInterval = PropertiesUtil.toLong(properties.get(UPDATE_INTERVAL), 30) * 60 * 1000;
+    updateInterval = OsgiUtil.toLong(properties.get(UPDATE_INTERVAL), 30) * 60 * 1000;
   }
 
 

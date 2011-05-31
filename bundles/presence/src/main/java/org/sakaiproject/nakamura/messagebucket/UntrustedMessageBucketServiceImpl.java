@@ -6,7 +6,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.cluster.ClusterUser;
 import org.sakaiproject.nakamura.api.messagebucket.MessageBucket;
@@ -42,7 +42,7 @@ public class UntrustedMessageBucketServiceImpl implements MessageBucketService {
   @Activate
   public void activate(Map<String, Object> properties) {
     sharedSecret = String.valueOf(System.currentTimeMillis()); // not that secure !
-    urlPattern = PropertiesUtil.toString(properties.get(BUCKETURLPATTERN_CONFIG), DEFAULT_URL_PATTERN);
+    urlPattern = OsgiUtil.toString(properties.get(BUCKETURLPATTERN_CONFIG), DEFAULT_URL_PATTERN);
   }
 
   public MessageBucket getBucket(String token) throws MessageBucketException {

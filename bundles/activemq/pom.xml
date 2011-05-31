@@ -78,7 +78,7 @@ org.apache.geronimo.transaction.manager*;resolution:=optional,
     <dependency>
         <groupId>org.apache.sling</groupId>
         <artifactId>org.apache.sling.commons.osgi</artifactId>
-        <version>2.0.7-20110526.130635-499</version>
+        <version>2.0.6</version>
     </dependency>
 
 <!-- activemq -->

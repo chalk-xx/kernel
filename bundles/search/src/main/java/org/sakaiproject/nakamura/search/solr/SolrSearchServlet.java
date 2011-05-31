@@ -55,7 +55,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -781,7 +781,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
       delayedPropertyReferences.clear();
     }
 
-    maximumResults = PropertiesUtil.toLong(componentContext.getProperties().get("maximumResults"), 100);
+    maximumResults = OsgiUtil.toLong(componentContext.getProperties().get("maximumResults"), 100);
   }
 
   /**

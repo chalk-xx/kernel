@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.sling.commons.osgi.PropertiesUtil;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -55,10 +55,10 @@ public class ActiveMQBrokerComponent {
   protected void activate(ComponentContext componentContext) throws Exception {
     try {
       Dictionary<?, ?> properties = componentContext.getProperties();
-      if (PropertiesUtil.toBoolean(properties.get(ACTIVEMQ_BROKER_ENABLED), true)) {
+      if (OsgiUtil.toBoolean(properties.get(ACTIVEMQ_BROKER_ENABLED), true)) {
         LOG.info("Starting Activation of AMQ Broker ");
         BundleContext bundleContext = componentContext.getBundleContext();
-        String brokerUrl = PropertiesUtil.toString(properties.get(ACTIVEMQ_BROKER_URL), "tcp://localhost:61616");
+        String brokerUrl = OsgiUtil.toString(properties.get(ACTIVEMQ_BROKER_URL), "tcp://localhost:61616");
 
         broker = new BrokerService();
 
@@ -68,7 +68,7 @@ public class ActiveMQBrokerComponent {
         LOG.info("Setting Data Path to  [{}] [{}] ", new Object[] { slingHome, dataPath });
         broker.setDataDirectory(dataPath);
 
-        String federatedBrokerUrl = PropertiesUtil.toString(properties
+        String federatedBrokerUrl = OsgiUtil.toString(properties
             .get(ACTIVEMQ_FEDERATED_BROKER_URL), "");
 
         if (federatedBrokerUrl != null && federatedBrokerUrl.length() > 0) {
