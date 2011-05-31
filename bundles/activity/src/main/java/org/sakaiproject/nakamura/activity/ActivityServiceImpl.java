@@ -74,7 +74,7 @@ public class ActivityServiceImpl implements ActivityService {
     if (!contentManager.exists(activtyPath)) {
       contentManager.update(new Content(activtyPath, ImmutableMap.of(
           JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-          (Object) ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE)));
+          (Object) ActivityConstants.ACTIVITY_SOURCE_ITEM_RESOURCE_TYPE)));
     }
 
     
@@ -84,13 +84,14 @@ public class ActivityServiceImpl implements ActivityService {
 
     activtyNode = contentManager.get(activtyPath);
     activtyNode.setProperty(PARAM_ACTOR_ID, userId);
+    activtyNode.setProperty(ActivityConstants.PARAM_SOURCE, targetLocation.getPath());
     contentManager.update(activtyNode);
     // post the asynchronous OSGi event
     final Dictionary<String, String> properties = new Hashtable<String, String>();
     properties.put(UserConstants.EVENT_PROP_USERID, userId);
     properties.put(ActivityConstants.EVENT_PROP_PATH, activtyPath);
     properties.put("path", activtyPath);
-    properties.put("resourceType", ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE);
+    properties.put("resourceType", ActivityConstants.ACTIVITY_SOURCE_ITEM_RESOURCE_TYPE);
     EventUtils.sendOsgiEvent(properties, LITE_EVENT_TOPIC, eventAdmin);
   }
 

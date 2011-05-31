@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -74,14 +75,27 @@ public class LiteAllActivitiesResultProcessor implements SolrSearchResultProcess
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       String path = result.getPath();
       Content activityNode = contentManager.get(path);
-      Content contentNode = contentManager.get(StorageClientUtils
-          .getParentObjectPath(StorageClientUtils.getParentObjectPath(path)));
-      write.object();
-      if (activityNode != null && contentNode != null) {
-        Map<String, Object> contentProperties = contentNode.getProperties();
-        ExtendedJSONWriter.writeValueMapInternals(write, contentProperties);
-        ExtendedJSONWriter.writeValueMapInternals(write, StorageClientUtils.getFilterMap(
-            activityNode.getProperties(), null, null, contentNode.getProperties().keySet(), true));
+      if (activityNode != null ) {
+        String sourcePath = (String) activityNode.getProperty(ActivityConstants.PARAM_SOURCE);
+        LOGGER.info("Processing {} {} Source = {} ",new Object[]{path, activityNode.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY), sourcePath });
+        Content contentNode = null;
+        try {
+          contentNode = contentManager.get(sourcePath);
+        } catch ( AccessDeniedException e ) {
+          LOGGER.debug(e.getMessage(),e);
+        }
+        write.object();
+        Map<String, Object> contentProperties = null;
+        if ( contentNode != null ) {
+          contentProperties = contentNode.getProperties();
+          ExtendedJSONWriter.writeValueMapInternals(write, contentProperties);
+          ExtendedJSONWriter.writeValueMapInternals(write, StorageClientUtils.getFilterMap(
+              activityNode.getProperties(), null, null, contentNode.getProperties().keySet(), true));
+        } else {
+          write.key("_sourceMissing");
+          write.value(true);
+          ExtendedJSONWriter.writeValueMapInternals(write, activityNode.getProperties());
+        }
         write.key("who");
         write.object();
         try {
@@ -94,43 +108,45 @@ public class LiteAllActivitiesResultProcessor implements SolrSearchResultProcess
           LOGGER.warn(e.getMessage(), e);
         }
         write.endObject();
-        // KERN-1867 Activity feed should return more data about a group
-        if ("sakai/group-home".equals(contentNode.getProperty("sling:resourceType"))) {
-          final Authorizable group = authorizableManager.findAuthorizable(PathUtils
-              .getAuthorizableId(contentNode.getPath()));
-          final Map<String, Object> basicUserInfo = basicUserInfoService
-              .getProperties(group);
-          if (basicUserInfo != null) {
-            write.key("profile");
-            ExtendedJSONWriter.writeValueMap(write, basicUserInfo);
+        if ( contentNode != null ) {
+          // KERN-1867 Activity feed should return more data about a group
+          if ("sakai/group-home".equals(contentNode.getProperty("sling:resourceType"))) {
+            final Authorizable group = authorizableManager.findAuthorizable(PathUtils
+                .getAuthorizableId(contentNode.getPath()));
+            final Map<String, Object> basicUserInfo = basicUserInfoService
+                .getProperties(group);
+            if (basicUserInfo != null) {
+              write.key("profile");
+              ExtendedJSONWriter.writeValueMap(write, basicUserInfo);
+            }
           }
-        }
-        // KERN-1864 Return comment in activity feed
-        if ("sakai/pooled-content".equals(contentNode.getProperty("sling:resourceType"))) {
-          if ("CONTENT_ADDED_COMMENT".equals(activityNode.getProperty("sakai:activityMessage"))) {
-            // expecting param ActivityConstants.PARAM_SOURCE to contain the path
-            // from the content node to the comment node for this activity.
-            if (activityNode.hasProperty(ActivityConstants.PARAM_SOURCE)) {
-              String sakaiActivitySource = (String) activityNode.getProperty(ActivityConstants.PARAM_SOURCE);
-              if (sakaiActivitySource != null ) {
-                // confirm comment path is related to the current content node.
-                if (sakaiActivitySource.startsWith(contentNode.getPath())) {
-                  Content commentNode = contentManager.get(sakaiActivitySource);
-                  if (commentNode != null) {
-                    write.key("sakai:comment-body");
-                    write.value(commentNode.getProperty("comment"));
+          // KERN-1864 Return comment in activity feed
+          if ("sakai/pooled-content".equals(contentNode.getProperty("sling:resourceType"))) {
+            if ("CONTENT_ADDED_COMMENT".equals(activityNode.getProperty("sakai:activityMessage"))) {
+              // expecting param ActivityConstants.PARAM_SOURCE to contain the path
+              // from the content node to the comment node for this activity.
+              if (activityNode.hasProperty(ActivityConstants.PARAM_SOURCE)) {
+                String sakaiActivitySource = (String) activityNode.getProperty(ActivityConstants.PARAM_SOURCE);
+                if (sakaiActivitySource != null ) {
+                  // confirm comment path is related to the current content node.
+                  if (sakaiActivitySource.startsWith(contentNode.getPath())) {
+                    Content commentNode = contentManager.get(sakaiActivitySource);
+                    if (commentNode != null) {
+                      write.key("sakai:comment-body");
+                      write.value(commentNode.getProperty("comment"));
+                    }
                   }
                 }
               }
             }
           }
         }
+        write.endObject();
       } else {
-        ExtendedJSONWriter.writeValueMapInternals(write, result.getProperties());
+        ExtendedJSONWriter.writeValueMap(write, result.getProperties());
       }
-      write.endObject();
     } catch (AccessDeniedException e) {
-      LOGGER.warn(e.getMessage(), e);
+      LOGGER.debug(e.getMessage(), e);
     } catch (StorageClientException e) {
       LOGGER.warn(e.getMessage(), e);
     }

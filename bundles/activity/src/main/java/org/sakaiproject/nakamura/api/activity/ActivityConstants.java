@@ -77,6 +77,10 @@ public interface ActivityConstants {
    */
   public static final String ACTIVITY_ITEM_RESOURCE_TYPE = "sakai/activity";
 
+  /**
+   * The sling:resourceType the resource type of the original activity that is posted. Needs to be different from the item that is delivered.
+   */
+  public static final String ACTIVITY_SOURCE_ITEM_RESOURCE_TYPE = "sakai/activity-post";
   /** resource type for resources that are updated */
   String RESOURCE_UPDATE = "sakai/resource-update";
 
