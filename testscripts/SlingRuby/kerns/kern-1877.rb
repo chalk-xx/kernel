@@ -5,8 +5,10 @@ require 'ruby-lib-dir.rb'
 
 require 'sling/test'
 require 'sling/file'
+require 'sling/authz'
 include SlingUsers
 include SlingFile
+include SlingAuthz
 
 class TC_Kern1877Test < Test::Unit::TestCase
   include SlingTest
@@ -32,6 +34,7 @@ class TC_Kern1877Test < Test::Unit::TestCase
 
   def test_get_pooled_content_activities
     @fm = FileManager.new(@s)
+    @authz = SlingAuthz::Authz.new(@s)
     m = Time.now.to_f.to_s.gsub('.', '')
     manager = create_user("user-manager-#{m}")
     @s.switch_user(manager)
@@ -42,14 +45,17 @@ class TC_Kern1877Test < Test::Unit::TestCase
 	assert_not_nil(contentid, "Should have uploaded ID")
 	contentpath = @s.url_for("/p/#{contentid}")
 
+	@authz.grant("/p/#{contentid}","everyone","jcr:read" => "granted")
+	@authz.grant("/p/#{contentid}","anonymous","jcr:read" => "granted")
+
 	# Add three activity notes.
     res = @s.execute_post("#{contentpath}.html", { "testing" => "testvalue" })
     assert_equal("200", res.code, " #{manager.name} should have been granted write to #{contentpath} ")
     @log.info(" #{manager.name} can write to the resource ")
     res = @s.execute_get("#{contentpath}.json")
     assert_equal("200", res.code, "Unable to get the metadata for the resource ")
-    m = JSON.parse(res.body)
-    assert_equal(m["testing"], "testvalue", "Looks like the property was not written Got #{res.body}")
+    json = JSON.parse(res.body)
+    assert_equal(json["testing"], "testvalue", "Looks like the property was not written Got #{res.body}")
     
 	add_activity(contentpath, "status", "default", "First activity #{m}", false)
 	add_activity(contentpath, "status", "default", "Second activity #{m}", true)
@@ -58,19 +64,22 @@ class TC_Kern1877Test < Test::Unit::TestCase
     wait_for_indexer()
 	
 	
-    res = @s.execute_get(@s.url_for("/var/search/activity/all.json"))
+    res = @s.execute_get(@s.url_for("/var/search/activity/all.tidy.json"))
     assert_equal("200", res.code, "Should have found activity feed")
-    @log.info("Activity feed is #{res.body}")
+    @log.info("Private Activity feed  is #{res.body}")
     activityfeed = JSON.parse(res.body)
 	firstActivity = false
 	secondActivity = false
 	thirdActivity = false
 	activityfeed["results"].each do |result|
 	     if ( result["sakai:activityMessage"] == "First activity #{m}" )
+			assert_equal("random-#{m}.txt",result["sakai:pooled-content-file-name"])
 			firstActivity = true
 	     elsif ( result["sakai:activityMessage"] == "Second activity #{m}" )
+			assert_equal("random-#{m}.txt",result["sakai:pooled-content-file-name"])
 			secondActivity = true
 	     elsif ( result["sakai:activityMessage"] == "Third activity #{m}" )
+			assert_equal("random-#{m}.txt",result["sakai:pooled-content-file-name"])
 			thirdActivity = true
 		 end
     end
@@ -82,19 +91,22 @@ class TC_Kern1877Test < Test::Unit::TestCase
 	
 	@s.switch_user(User.anonymous)
 	
-    res = @s.execute_get(@s.url_for("/var/search/activity/all.json"))
+    res = @s.execute_get(@s.url_for("/var/search/activity/all.tidy.json"))
     assert_equal("200", res.code, "Should have found activity feed")
-    @log.info("Activity feed is #{res.body}")
+    @log.info("Public Activity feed is #{res.body}")
     activityfeed = JSON.parse(res.body)
 	firstActivity = false
 	secondActivity = false
 	thirdActivity = false
 	activityfeed["results"].each do |result|
 	     if ( result["sakai:activityMessage"] == "First activity #{m}" )
+			assert_equal("random-#{m}.txt",result["sakai:pooled-content-file-name"])
 			firstActivity = true
 	     elsif ( result["sakai:activityMessage"] == "Second activity #{m}" )
+			assert_equal("random-#{m}.txt",result["sakai:pooled-content-file-name"])
 			secondActivity = true
 	     elsif ( result["sakai:activityMessage"] == "Third activity #{m}" )
+			assert_equal("random-#{m}.txt",result["sakai:pooled-content-file-name"])
 			thirdActivity = true
 		 end
     end

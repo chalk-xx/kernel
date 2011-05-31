@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.activity;
 
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_FEED_RESOURCE_TYPE;
+import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_SOURCE_ITEM_RESOURCE_TYPE;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_STORE_RESOURCE_TYPE;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_APPLICATION_ID;
@@ -127,7 +128,8 @@ public class LiteActivityCreateServlet extends SlingAllMethodsServlet {
     // Do not allow for reserved activity resource types
     if (ACTIVITY_STORE_RESOURCE_TYPE.equals(resourceType)
         || ACTIVITY_FEED_RESOURCE_TYPE.equals(resourceType)
-        || ACTIVITY_ITEM_RESOURCE_TYPE.equals(resourceType)) {
+        || ACTIVITY_ITEM_RESOURCE_TYPE.equals(resourceType)
+        || ACTIVITY_SOURCE_ITEM_RESOURCE_TYPE.equals(resourceType)) {
       LOG.info(
           "Denied attempt to record an activity against a reserved resourceType: {}",
           resourceType);
