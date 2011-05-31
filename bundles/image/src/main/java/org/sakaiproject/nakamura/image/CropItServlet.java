@@ -130,18 +130,18 @@ public class CropItServlet extends SlingAllMethodsServlet {
         int diWidth = Integer.parseInt(size[0]);
         int diHeight = Integer.parseInt(size[1]);
 
-        diWidth = checkIntBiggerThanZero(diWidth, 0);
-        diHeight = checkIntBiggerThanZero(diHeight, 0);
+        diWidth = Math.max(diWidth, 0);
+        diHeight = Math.max(diHeight, 0);
 
         d.setSize(diWidth, diHeight);
         dimensions.add(d);
       }
 
 
-      x = checkIntBiggerThanZero(x, 0);
-      y = checkIntBiggerThanZero(y, 0);
-      width = checkIntBiggerThanZero(width, 0);
-      height = checkIntBiggerThanZero(height, 0);
+      x = Math.max(x, 0);
+      y = Math.max(y, 0);
+      width = Math.max(width, 0);
+      height = Math.max(height, 0);
 
       // Make sure the save path is correct.
 //      save = PathUtils.normalizePath(save) + "/";
@@ -213,13 +213,5 @@ public class CropItServlet extends SlingAllMethodsServlet {
       }
     }
     return path;
-  }
-  
-
-  protected int checkIntBiggerThanZero(int val, int defaultVal) {
-    if (val < 0) {
-      return defaultVal;
-    }
-    return val;
   }
 }

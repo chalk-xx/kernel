@@ -180,17 +180,4 @@ public class CropItServletTest extends AbstractEasyMockTest {
     assertEquals(500, e.getCode());
 
   }
-
-  @Test
-  public void testCheck() {
-    int val = servlet.checkIntBiggerThanZero(5, 1);
-    assertEquals(5, val);
-
-    val = servlet.checkIntBiggerThanZero(0, 1);
-    assertEquals(0, val);
-
-    val = servlet.checkIntBiggerThanZero(-5, 1);
-    assertEquals(1, val);
-  }
-
 }
