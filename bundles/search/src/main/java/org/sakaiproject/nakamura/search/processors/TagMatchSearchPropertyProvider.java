@@ -79,9 +79,14 @@ public class TagMatchSearchPropertyProvider implements SolrSearchPropertyProvide
           q = q.substring(0, q.length()-1);
         }
 
-        tagClause.append(" OR tag:(").append(ClientUtils.escapeQueryChars(q)).append(")");
+        String statement = "//element(*)MetaData[@sling:resourceType='sakai/tag'";
+        // KERN-1917, KERN-1918
+        if (!StringUtils.isBlank(q)) {
+          tagClause.append(" OR tag:(").append(ClientUtils.escapeQueryChars(q)).append(")");
+          statement += " and jcr:like(@sakai:tag-name,'%" + ISO9075.encode(q) + "%')";
+        }
+        statement += "]";
 
-        String statement = "//element(*)MetaData[@sling:resourceType='sakai/tag' and jcr:like(@sakai:tag-name,'%" + ISO9075.encode(q) + "%')]";
         QueryResult result = JcrResourceUtil.query(session, statement, "xpath");
         RowIterator rows = result.getRows();
   
