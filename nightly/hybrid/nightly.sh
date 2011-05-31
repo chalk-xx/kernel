@@ -4,7 +4,7 @@
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
 
 export K2_TAG="HEAD"
-export S2_TAG="branches/sakai-2.8.x"
+export S2_TAG="tags/sakai-2.8.0"
 export UX_SRC="git://github.com/sakaiproject/3akai-ux.git"
 export UX_TAG="HEAD"
 export HYBRID_TAG="branches/hybrid-1.1.x"
