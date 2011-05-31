@@ -64,6 +64,18 @@ public class TikaService {
   }
 
   // ---------- Tika methods ----------
+  public String detect(byte[] prefix) {
+    return tika.detect(prefix);
+  }
+
+  public String detect(byte[] prefix, String name) {
+    return tika.detect(prefix, name);
+  }
+
+  public String detect(InputStream stream, String name) throws IOException {
+    return tika.detect(stream, name);
+  }
+
   public String detect(InputStream stream, Metadata metadata) throws IOException {
     return tika.detect(stream, metadata);
   }

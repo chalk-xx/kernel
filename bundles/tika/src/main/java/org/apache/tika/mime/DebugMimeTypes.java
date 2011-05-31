@@ -17,6 +17,10 @@
 package org.apache.tika.mime;
 
 // JDK imports
+import org.apache.tika.detect.Detector;
+import org.apache.tika.detect.XmlRootExtractor;
+import org.apache.tika.metadata.Metadata;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -31,10 +35,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.xml.namespace.QName;
-
-import org.apache.tika.detect.Detector;
-import org.apache.tika.detect.XmlRootExtractor;
-import org.apache.tika.metadata.Metadata;
 
 /**
  * This class is a MimeType repository. It gathers a set of MimeTypes and
@@ -121,11 +121,16 @@ public final class DebugMimeTypes implements Detector {
      */
     private final MimeType xmlMimeType;
     
+    /**
+     * Registered media types and their aliases.
+     */
+    private final MediaTypeRegistry registry = new MediaTypeRegistry();
+    
     /** All the registered MimeTypes indexed on their name */
-    private final Map<String, MimeType> types = new HashMap<String, MimeType>();
+    private final Map<MediaType, MimeType> types = new HashMap<MediaType, MimeType>();
 
     /** The patterns matcher */
-    private Patterns patterns = new Patterns();
+    private Patterns patterns = new Patterns(registry);
 
     /** List of all registered magics */
     private SortedSet<Magic> magics = new TreeSet<Magic>();
@@ -133,30 +138,14 @@ public final class DebugMimeTypes implements Detector {
     /** List of all registered rootXML */
     private SortedSet<MimeType> xmls = new TreeSet<MimeType>();
 
-    private final XmlRootExtractor xmlRootExtractor;
-
     public DebugMimeTypes() {
         rootMimeType = null; // remove when renaming DebygMimeTypes new MimeType(this, OCTET_STREAM);
         textMimeType = null; // remove when renaming DebygMimeTypes new MimeType(this, PLAIN_TEXT);
         xmlMimeType = null; // remove when renaming DebygMimeTypes new MimeType(this, XML);
         
-        try {
-            textMimeType.setSuperType(rootMimeType);
-            xmlMimeType.setSuperType(rootMimeType);
-        } catch (MimeTypeException e) {
-            throw new IllegalStateException("Error in MimeType logic", e);
-        }
-
-        types.put(rootMimeType.getName(), rootMimeType);
-        types.put(textMimeType.getName(), textMimeType);
-        types.put(xmlMimeType.getName(), xmlMimeType);
-
-        try {
-            xmlRootExtractor = new XmlRootExtractor();
-        } catch (Exception e) {
-            throw new IllegalStateException(
-                    "Unable to create a XmlRootExtractor", e);
-        }
+        add(rootMimeType);
+        add(textMimeType);
+        add(xmlMimeType);
     }
 
     /**
@@ -232,7 +221,9 @@ public final class DebugMimeTypes implements Detector {
             // extract the root element and match it against known types
             if ("application/xml".equals(result.getName())
                     || "text/html".equals(result.getName())) {
-                QName rootElement = xmlRootExtractor.extractRootElement(data);
+                XmlRootExtractor extractor = new XmlRootExtractor();
+
+                QName rootElement = extractor.extractRootElement(data);
                 if (rootElement != null) {
                     for (MimeType type : xmls) {
                         if (type.matchesXML(
@@ -408,21 +399,15 @@ public final class DebugMimeTypes implements Detector {
      */
     public synchronized MimeType forName(String name)
             throws MimeTypeException {
-        if (MimeType.isValid(name)) {
-            name = name.toLowerCase();
-            MimeType type = types.get(name);
-            if (type == null) {
-                type = null; // remove when renaming DebygMimeTypes  new MimeType(this, name);
-                if (name.startsWith("text/")) {
-                    type.setSuperType(textMimeType);
-                } else if (name.endsWith("+xml")) {
-                	type.setSuperType(xmlMimeType);
-                } else {
-                    type.setSuperType(rootMimeType);
-                }
-                types.put(name, type);
+        MediaType type = MediaType.parse(name);
+        if (type != null) {
+            MimeType mime = types.get(registry.normalize(type));
+            if (mime == null) {
+                mime = new MimeType(type);
+                add(mime);
+                types.put(type, mime);
             }
-            return type;
+            return mime;
         } else {
             throw new MimeTypeException("Invalid media type name: " + name);
         }
@@ -436,7 +421,7 @@ public final class DebugMimeTypes implements Detector {
      * @param alias media type alias (normalized to lower case)
      * @throws MimeTypeException if the alias already exists
      */
-    synchronized void addAlias(MimeType type, String alias)
+    synchronized void addAlias(MimeType type, MediaType alias)
             throws MimeTypeException {
         if (!types.containsKey(alias)) {
             types.put(alias, type);
@@ -506,6 +491,9 @@ public final class DebugMimeTypes implements Detector {
      *            is the mime-type to add.
      */
     void add(MimeType type) {
+        registry.addType(type.getType());
+        types.put(type.getType(), type);
+
         // Update the magics index...
         if (type.hasMagic()) {
             magics.addAll(Arrays.asList(type.getMagics()));
@@ -532,14 +520,14 @@ public final class DebugMimeTypes implements Detector {
      */
     public MediaType detect(InputStream input, Metadata metadata)
             throws IOException {
-        MimeType type = rootMimeType;
+        MediaType type = MediaType.OCTET_STREAM;
 
         // Get type based on magic prefix
         if (input != null) {
             input.mark(getMinLength());
             try {
                 byte[] prefix = readMagicHeader(input);
-                type = getMimeType(prefix);
+                type = getMimeType(prefix).getType();
             } finally {
                 input.reset();
             }
@@ -565,8 +553,8 @@ public final class DebugMimeTypes implements Detector {
             }
 
             if (name != null) {
-                MimeType hint = getMimeType(name);
-                if (hint.isDescendantOf(type)) {
+                MediaType hint = getMimeType(name).getType();
+                if (registry.isSpecializationOf(hint, type)) {
                     type = hint;
                 }
             }
@@ -576,8 +564,8 @@ public final class DebugMimeTypes implements Detector {
         String typeName = metadata.get(Metadata.CONTENT_TYPE);
         if (typeName != null) {
             try {
-                MimeType hint = forName(typeName);
-                if (hint.isDescendantOf(type)) {
+                MediaType hint = forName(typeName).getType();
+                if (registry.isSpecializationOf(hint, type)) {
                     type = hint;
                 }
             } catch (MimeTypeException e) {
@@ -585,7 +573,7 @@ public final class DebugMimeTypes implements Detector {
             }
         }
 
-        return MediaType.parse(type.getName());
+        return type;
     }
 
 }
