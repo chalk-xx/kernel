@@ -100,7 +100,7 @@ else
     git checkout -b "build-$UX_TAG" $UX_TAG
     # enable My Sakai 2 Sites widget
     # "personalportal":false --> "personalportal":true
-    perl -pwi -e 's/"enabled"\s*\:\s*true,/"enabled"\:true,\n\t"personalportal"\:true,/gi' devwidgets/sakai2favourites/config.json
+    perl -pwi -e 's/"personalportal"\s*\:\s*false/"personalportal"\:true/gi' devwidgets/mysakai2/config.json
     # "showSakai2" : false --> "showSakai2" : true
     perl -pwi -e 's/showSakai2\s*\:\s*false/showSakai2 \: true/gi' dev/configuration/config.js
     # "useLiveSakai2Feeds" : false --> "useLiveSakai2Feeds" : true
