@@ -22,17 +22,20 @@ module NakamuraData
     TEST_GROUP_PREFIX = 'group'
     FIRST_NAMES_FILE = '../../jmeter/firstnames.csv'
     LAST_NAMES_FILE = '../../jmeter/lastnames.csv'
+    CATEGORIES_FILE = "categories.txt"
+    TAGS_FILE = "tags.txt"
 
     @full_group_creator = nil
     @sling = nil
     @file_manager = nil
 
-    attr_reader :log, :task
+    attr_reader :log, :file_log, :task, :category_index, :tag_index
     
     def initialize(options)
       @upload_success_count = 0
       @upload_failure_count = 0
-      
+      @category_index = 0
+      @tag_index = 0
       @user_ids_file = options[:usersfile]
       @num_groups = options[:numgroups].to_i
       @groups_per_user = options[:groupsperuser].to_i
@@ -47,14 +50,13 @@ module NakamuraData
       @sling = Sling.new(server_url, false)
       @sling.log.level = Logger::INFO
       @sling.do_login
-      @full_group_creator = SlingUsers::FullGroupCreator.new @sling
-      @full_group_creator.log.level = Logger::INFO
-      @full_group_creator.file_log.level = Logger::INFO
-      @file_manager = FileManager.new(@sling)
       @log = Logger.new(STDOUT)
       @log.level = Logger::INFO
       @file_log = Logger.new('load.log', 'daily')
       @file_log.level = Logger::INFO
+      @full_group_creator = SlingUsers::FullGroupCreator.new @sling, @file_log
+      @full_group_creator.log.level = Logger::INFO
+      @file_manager = FileManager.new(@sling)
     end
     
     def load_users_data
@@ -69,6 +71,34 @@ module NakamuraData
       last_names_file = File.open(LAST_NAMES_FILE, "r")
       @last_names = last_names_file.readlines
       last_names_file.close
+    end
+    
+    def load_categories
+      categories_file = File.open(CATEGORIES_FILE, "r")
+      @categories = categories_file.readlines('\n').join.split(',')
+      @categories.each do |category|
+	category.chomp!
+	category.lstrip!
+      end
+      if ("".eql? @categories[@categories.length - 1])
+	@categories.delete_at(@categories.length - 1) 
+      end
+      @log.info "categories are #{@categories.inspect}"
+      @file_log.info "categories are #{@categories.inspect}"
+    end
+    
+    def load_tags
+      tags_file = File.open(TAGS_FILE, "r")
+      @tags = tags_file.readlines('\n').join.split(',')
+      @tags.each do |tag|
+	tag.chomp!
+	tag.lstrip!
+      end
+      if ("".eql? @tags[@tags.length - 1])
+	@tags.delete_at(@tags.length - 1) 
+      end
+      @log.info "tags are #{@tags.inspect}"
+      @file_log.info "tags are #{@tags.inspect}"      
     end
     
     # create users from the generated user_ids file
@@ -148,7 +178,6 @@ module NakamuraData
       uri = $USERMANAGER_URI + "group/#{group_name}-managers.update.json"
       result = @sling.execute_post(@sling.url_for(uri), { ":member" => principal })
     end
-     #{"url":"/system/userManager/group/my-test-group-managers.update.json","method":"POST","parameters":{":member":"ch1946"}}]
     
     # put each user into however many groups are specified on command line    
     def join_groups
@@ -172,7 +201,9 @@ module NakamuraData
     
     # load some Lorem Ipsum generated text files and, if specified, load the NYU Content
     def load_content
-      load_simple_content
+      load_categories
+      load_tags
+      #load_simple_content -- per Alan no need for lorem ipsum content
       if(@load_content_files == 1)
 	load_files_from_filesystem @content_root
       end
@@ -210,6 +241,8 @@ module NakamuraData
 	  contentid = json[file_name]['poolId']
 	  # in addition to the upload, the following properties need to be set for fully functional, viewable content
 	  finish_content contentid, file_name, file_extension
+	  categorize_content contentid
+	  tag_content contentid	  
 	rescue Exception => ex
 	  @log.warn "failed loading simple content file: #{file_name}"
 	end
@@ -271,7 +304,9 @@ module NakamuraData
 	  @log.info("uploaded file: #{file_name} with content_id: #{contentid} 1" )
 	  @file_log.info("uploaded file: #{file_name} with content_id: #{contentid} 1" )
 	  @upload_success_count = @upload_success_count + 1
-	  finish_content contentid, file_name, file_extension	  
+	  finish_content contentid, file_name, file_extension
+	  categorize_content contentid
+	  tag_content contentid
 	else
 	  @log.info("failed to upload file: #{file_name} 0" )
 	  @file_log.info("failed to upload file: #{file_name} 0" )
@@ -319,10 +354,86 @@ module NakamuraData
 	"privilege@jcr:read" => "granted"
       })
     end
-            
-  end
-end
 
+    def categorize_content(contentid)
+      category = get_category
+      @log.info("creating category tag for category #{category}")
+      @file_log.info("creating category tag for category #{category}")    
+      batch_post = []
+      batch_post[0] = {"url" => "/tags/directory/#{category}", "method" => "POST", "parameters" => {"sakai:tag-name" => "directory/#{category}", "sling:resourceType" => "sakai/tag", "_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+      batch_post_json = JSON.generate batch_post
+      parameters = {"requests" => batch_post_json}
+      @log.debug("creating category tag batch post is: #{batch_post_json}")
+      @file_log.debug("creating category tag batch post is: #{batch_post_json}")   
+      response = @sling.execute_post(@sling.url_for("#{$BATCH_URI}"), parameters)
+      @log.info("creating category response code is: #{response.code}")
+      @file_log.info("creating category response code is: #{response.code}")
+      
+      @log.info("applying category tag #{category} to content item #{contentid}")
+      @file_log.info("applying category tag #{category} to content item #{contentid}")   
+      batch_post = []
+      batch_post[0] = {"url" => "/p/#{contentid}", "method" => "POST", "parameters" => {"key" => "/tags/directory/#{category}", ":operation" => "tag","_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+      batch_post_json = JSON.generate batch_post
+      @log.debug("applying category tag batch post is: #{batch_post_json}")
+      @file_log.debug("applying category tag batch post is: #{batch_post_json}")  
+      parameters = {"requests" => batch_post_json}
+      response = @sling.execute_post(@sling.url_for("#{$BATCH_URI}"), parameters)
+      @log.info("creating category response code is: #{response.code}")
+      @file_log.info("creating category response code is: #{response.code}")
+    end
+    
+#    	[{"url":"/tags/tag1","method":"POST","parameters":{"sakai:tag-name":"tag1","sling:resourceType":"sakai/tag","_charset_":"utf-8"},"_charset_":"utf-8"},\
+#	{"url":"/tags/tag2","method":"POST","parameters":{"sakai:tag-name":"tag2","sling:resourceType":"sakai/tag","_charset_":"utf-8"},"_charset_":"utf-8"}]
+
+#	[{"url":"/p/h5Voiiymib","method":"POST","parameters":{"key":"/tags/tag1",":operation":"tag","_charset_":"utf-8"},"_charset_":"utf-8"},\
+#	{"url":"/p/h5Voiiymib","method":"POST","parameters":{"key":"/tags/tag2",":operation":"tag","_charset_":"utf-8"},"_charset_":"utf-8"}]
+    def tag_content contentid
+      tag_name1 = get_tag
+      tag_name2 = get_tag
+      @log.info("creating tags #{tag_name1} and #{tag_name2}")
+      @file_log.info("creating tags #{tag_name1} and #{tag_name2}")
+      
+      batch_post = []
+      batch_post[0] = {"url" => "/tags/#{tag_name1}", "method" => "POST", "parameters" => {"sakai:tag-name" => "#{tag_name1}", "sling:resourceType" => "sakai/tag", "_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+      batch_post[1] = {"url" => "/tags/#{tag_name2}", "method" => "POST", "parameters" => {"sakai:tag-name" => "#{tag_name2}", "sling:resourceType" => "sakai/tag", "_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+      batch_post_json = JSON.generate batch_post
+      @log.debug("creating tags batch post is: #{batch_post_json}")
+      @file_log.debug("applying tags batch post is: #{batch_post_json}")      
+      parameters = {"requests" => batch_post_json}
+      response = @sling.execute_post(@sling.url_for("#{$BATCH_URI}"), parameters)
+      @log.info("creating tags response code is: #{response.code}")
+      @file_log.info("creating tags response code is: #{response.code}")
+      
+      @log.info("applying tags #{tag_name1} and #{tag_name2} to content item #{contentid}")
+      @file_log.info("applying tags #{tag_name1} and #{tag_name2} to content item #{contentid}")
+      batch_post = []
+      batch_post[0] = {"url" => "/p/#{contentid}", "method" => "POST", "parameters" => {"key" => "/tags/#{tag_name1}", ":operation" => "tag","_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+      batch_post[1] = {"url" => "/p/#{contentid}", "method" => "POST", "parameters" => {"key" => "/tags/#{tag_name2}", ":operation" => "tag","_charset_" => "utf-8"}, "_charset_" => "utf-8"}
+      batch_post_json = JSON.generate batch_post
+      @log.debug("applying category tag batch post is: #{batch_post_json}")
+      @file_log.debug("applying category tag batch post is: #{batch_post_json}")  
+      parameters = {"requests" => batch_post_json}
+      response = @sling.execute_post(@sling.url_for("#{$BATCH_URI}"), parameters)
+      @log.info("applying tags response code is: #{response.code}")
+      @file_log.info("applying tags response code is: #{response.code}")
+    end
+    
+    
+     
+    def get_category
+      @category_index = 0 if (@category_index == @categories.length)
+      category = @categories[@category_index]
+      @category_index = @category_index + 1
+      return category
+    end
+    
+    def get_tag
+      @tag_index = 0 if (@tag_index == @tags.length)
+      tag = @tags[@tag_index]
+      @tag_index = @tag_index + 1
+      return tag      
+    end
+  end
 if ($PROGRAM_NAME.include? 'sling_data_loader.rb')
   options = {}
   optparser = OptionParser.new do |opts|
@@ -369,7 +480,7 @@ if ($PROGRAM_NAME.include? 'sling_data_loader.rb')
       options[:task] = tk
     end    
   end
-  
+end 
   optparser.parse ARGV
   
   sdl = NakamuraData::SlingDataLoader.new options
@@ -388,4 +499,5 @@ if ($PROGRAM_NAME.include? 'sling_data_loader.rb')
   else
     sdl.log.warn("-t --task parameter incorrect, @task is #{sdl.task}")
   end
+
 end

@@ -21,15 +21,14 @@ module SlingUsers
   class FullGroupCreator < UserManager
     attr_reader :log, :file_log
     
-    def initialize(sling)
+    def initialize(sling, file_log)
       @sling = sling
       @sling.log.level = Logger::INFO
       #@sling.do_login
       #@user_manager = UserManager.new(@sling)
       super sling
       @log.level = Logger::INFO
-      @file_log = Logger.new('load.log', 'daily')
-      @file_log.level = Logger::INFO
+      @file_log = file_log
     end
     
     # this method follows the series of POSTs that the UI makes to create a group with a 
@@ -38,10 +37,10 @@ module SlingUsers
       creator = User.new(creator_id, "testuser")
       @sling.switch_user(creator)
       #POST 1 - creating the manager sub-group
-      create_sub_group(groupname + "-manager", groupname + " Manager", description)
+      create_pseudo_group(groupname + "-manager", groupname + " Manager", description)
       
       #POST 2 - creating the member sub-group
-      create_sub_group(groupname + "-member", groupname + " Member", description)
+      create_pseudo_group(groupname + "-member", groupname + " Member", description)
       
       #POST 3 creating the main group
       group = create_target_group(groupname, title, description)  #POST 3
@@ -238,20 +237,20 @@ module SlingUsers
     end
     
     # create the manager and member pseudo subgroups
-    def create_sub_group(groupname, title, description)
+    def create_pseudo_group(groupname, title, description)
       params = { ":name" => groupname }
       params["sakai:excludeSearch"] = true
       params["sakai:group-description"] = description || ""
       params["sakai:group-id"] = groupname
       params["sakai:group-title"] = title
       response = @sling.execute_post(@sling.url_for($GROUP_URI), params)
-      @log.info("create_sub_group() for #{groupname} POST response code: #{response.code}")
-      @log.debug("create_sub_group() for #{groupname} POST response body: #{response.body}")
-      @file_log.info("create_sub_group() for #{groupname} POST response code: #{response.code}")
-      @file_log.debug("create_sub_group() for #{groupname} POST response body: #{response.body}")
+      @log.info("create_pseudo_group() for #{groupname} POST response code: #{response.code}")
+      @log.debug("create_pseudo_group() for #{groupname} POST response body: #{response.body}")
+      @file_log.info("create_pseudo_group() for #{groupname} POST response code: #{response.code}")
+      @file_log.debug("create_pseudo_group() for #{groupname} POST response body: #{response.body}")
       if (response.code.to_i > 299)
-        @log.warn("create_sub_group() returned #{response.code} group may already exist?")
-        @file_log.warn("create_sub_group() returned #{response.code} group may already exist?")
+        @log.warn("create_pseudo_group() returned #{response.code} group may already exist?")
+        @file_log.warn("create_pseudo_group() returned #{response.code} group may already exist?")
       end
     end
     
