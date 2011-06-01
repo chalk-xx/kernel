@@ -59,6 +59,7 @@ import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -490,7 +491,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
     // back.
     write.value("~" + user.getId() + "/");
     write.key("userProfilePath");
-    write.value(LitePersonalUtils.getProfilePath(user.getId()));
+    write.value(PathUtils.translateAuthorizablePath(LitePersonalUtils.getProfilePath(user.getId())));
     write.key("superUser");
     write.value(subjects.contains("administrators"));
     write.key("properties");
