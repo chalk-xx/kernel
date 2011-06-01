@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.search.processors;
 
+import static org.sakaiproject.nakamura.api.search.solr.Query.SOLR;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -30,6 +32,7 @@ import org.apache.sling.jcr.resource.JcrResourceUtil;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchPropertyProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +85,7 @@ public class TagMatchSearchPropertyProvider implements SolrSearchPropertyProvide
         String statement = "//element(*)MetaData[@sling:resourceType='sakai/tag'";
         // KERN-1917, KERN-1918
         if (!StringUtils.isBlank(q)) {
-          tagClause.append(" OR tag:(").append(ClientUtils.escapeQueryChars(q)).append(")");
+          tagClause.append(" OR tag:(").append(SearchUtil.escapeString(q, SOLR)).append(")");
           statement += " and jcr:like(@sakai:tag-name,'%" + ISO9075.encode(q) + "%')";
         }
         statement += "]";
