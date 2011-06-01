@@ -98,7 +98,9 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
 
   // list of authorizables to not index
   private static final Set<String> BLACKLISTED_AUTHZ = ImmutableSet.of("admin",
-      "g-contacts-admin", "anonymous", "owner");
+    "g-contacts-admin", "anonymous", "owner");
+
+  private static final String SAKAI_PSEUDOGROUPPARENT_PROP = "sakai:pseudogroupparent";
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -214,16 +216,16 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       }
     }
 
+
     // add groups to the user doc so we can find the user as a group member
     if (!authorizable.isGroup()) {
       for (String principal : authorizable.getPrincipals()) {
-        String groupName = principal;
-        if (groupName.endsWith("-managers")) {
-          groupName = StringUtils.removeEnd(groupName, "-managers");
-        } else if (groupName.endsWith("-member")) {
-          groupName = StringUtils.removeEnd(groupName, "-member");
+        Group group = (Group) getAuthorizable(principal, repositorySession);
+        if (group != null && group.hasProperty(SAKAI_PSEUDOGROUPPARENT_PROP)) {
+          doc.addField("group", group.getProperty(SAKAI_PSEUDOGROUPPARENT_PROP));
+        } else {
+          doc.addField("group", principal);
         }
-        doc.addField("group", groupName);
       }
     }
 
@@ -289,7 +291,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
    * Get an authorizable. Convenience method to handle exceptions and processing.
    *
    * @param authName ID of the authorizable to get.
-   * @param repositorySession
+   * @param repositorySession a solr RepositorySession
    * @return Authorizable found or null if none found.
    */
   protected Authorizable getAuthorizable(String authName, RepositorySession repositorySession) {
