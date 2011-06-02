@@ -360,7 +360,11 @@ public class ConnectionManagerImpl implements ConnectionManager {
       if (content != null) {
         for ( Content connection : content.listChildren() ) {
           String resourceType = (String) connection.getProperty("sling:resourceType");
-          ConnectionState connectionState = ConnectionState.valueOf((String) connection.getProperty(ConnectionConstants.SAKAI_CONNECTION_STATE));
+          String connectionStateValue = (String) connection.getProperty(ConnectionConstants.SAKAI_CONNECTION_STATE);
+          ConnectionState connectionState = ConnectionState.NONE;
+          if (connectionStateValue != null ) {
+            connectionState = ConnectionState.valueOf(connectionStateValue);
+          }
           if ( ConnectionConstants.SAKAI_CONTACT_RT.equals(resourceType) && state.equals(connectionState)) {
             connections.add(StorageClientUtils.getObjectName(connection.getPath()));
           }
