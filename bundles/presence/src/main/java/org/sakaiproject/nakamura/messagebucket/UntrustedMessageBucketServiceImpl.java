@@ -94,16 +94,18 @@ public class UntrustedMessageBucketServiceImpl implements MessageBucketService {
     if ( trackingCookies != null ) {
       for(String trackingCookie : trackingCookies) {
         ClusterUser clusterUser = clusterService.getUser(trackingCookie);
-        String token = getToken(clusterUser.getUser(), context);
-        return MessageFormat.format(urlPattern, 
-            request.getScheme(),
-            request.getLocalName(),
-            String.valueOf(request.getLocalPort()),
-            token, 
-            token.substring(0,1), 
-            token.substring(0,2), 
-            clusterUser.getServerId(),
-            request.getRemoteUser());
+        if (clusterUser != null) {
+          String token = getToken(clusterUser.getUser(), context);
+          return MessageFormat.format(urlPattern,
+              request.getScheme(),
+              request.getLocalName(),
+              String.valueOf(request.getLocalPort()),
+              token,
+              token.substring(0,1),
+              token.substring(0,2),
+              clusterUser.getServerId(),
+              request.getRemoteUser());
+        }
       }
     }
     throw new MessageBucketException("No Cluster tracking is available");
