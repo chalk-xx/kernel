@@ -292,7 +292,15 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
     Set<String> propertyValueSet = new HashSet<String>();
 
     if (group.hasProperty(propertyName)) {
-      String[] existingProperties = (String[]) group.getProperty(propertyName);
+      Object o = group.getProperty(propertyName);
+
+      String[] existingProperties;
+      if (o instanceof String) {
+        existingProperties = new String[] { (String) o };
+      } else {
+        existingProperties = (String[]) o;
+      }
+
       for (String property : existingProperties) {
         propertyValueSet.add(property);
       }
