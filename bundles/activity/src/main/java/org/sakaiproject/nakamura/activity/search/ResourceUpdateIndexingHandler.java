@@ -94,8 +94,12 @@ public class ResourceUpdateIndexingHandler implements IndexingHandler {
           SolrInputDocument doc = new SolrInputDocument();
           for (String prop : WHITELISTED_PROPS) {
             if ("timestamp".equals(prop)) {
-              final Calendar cal = (Calendar) content.getProperty(prop);
-              doc.addField(prop, cal.getTimeInMillis());
+              Calendar cal = (Calendar) content.getProperty(prop);
+              if ( cal != null ) {
+                doc.addField(prop, cal.getTimeInMillis());
+              } else {
+                doc.addField(prop, System.currentTimeMillis());        
+              }
             } else {
               doc.addField(prop, content.getProperty(prop));
             }
