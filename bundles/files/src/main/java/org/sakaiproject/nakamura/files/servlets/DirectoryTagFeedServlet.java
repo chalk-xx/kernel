@@ -197,29 +197,10 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
     sb.append("taguuid:(");
     String sep = "";
     for (String tagUuid : tagUuids) {
-      sb.append(sep + ClientUtils.escapeQueryChars(tagUuid));
+      sb.append(sep).append(ClientUtils.escapeQueryChars(tagUuid));
       sep = " ";
     }
-    sb.append(")");
-    final RequestParameter typeP = request.getRequestParameter("type");
-    if (typeP != null) {
-      final String type = typeP.getString();
-      sb.append(" AND ");
-      if ("user".equals(type)) {
-        sb.append("type:u");
-      } else if ("group".equals(type)) {
-        sb.append("type:g");
-      } else {
-        if ("content".equals(type)) {
-          sb.append("resourceType:");
-          sb.append(ClientUtils.escapeQueryChars(FilesConstants.POOLED_CONTENT_RT));
-        } else {
-          LOG.info("Unknown type parameter specified: type={}", type);
-          write.endArray();
-          return;
-        }
-      }
-    }
+    sb.append(") AND resourceType:").append(ClientUtils.escapeQueryChars(FilesConstants.POOLED_CONTENT_RT));
     final int random = (int) (Math.random() * 10000);
     String sortRandom = "random_" + String.valueOf(random) + " asc";
     final String queryString = sb.toString();

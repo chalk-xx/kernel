@@ -234,7 +234,6 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor, 
 
   public void decorateSearchResponse(SlingHttpServletRequest request, JSONWriter writer)
     throws JSONException {
-    LOGGER.info("Look, I'm a whale!");
     writer.key("unread");
 
     long count = 0;
@@ -256,11 +255,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor, 
       Query query = new Query(queryString);
       SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
           request, query, false);
-      Iterator<Result> resultIterator = resultSet.getResultSetIterator();
-      while (resultIterator.hasNext()) {
-        count++;
-        resultIterator.next();
-      }
+      count = resultSet.getSize();
     } catch (SolrSearchException e) {
       LOGGER.error(e.getMessage());
     } finally {
