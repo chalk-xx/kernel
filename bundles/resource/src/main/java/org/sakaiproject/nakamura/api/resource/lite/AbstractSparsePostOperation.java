@@ -25,6 +25,7 @@ import org.apache.sling.api.wrappers.SlingRequestPaths;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.apache.sling.servlets.post.VersioningConfiguration;
+import org.sakaiproject.nakamura.api.lite.DataFormatException;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
@@ -145,8 +146,12 @@ public abstract class AbstractSparsePostOperation implements SparsePostOperation
             response.setError(e);
         } catch (Exception e) {
 
-            log.error("Exception during response processing.", e);
-            response.setError(e);
+            if(e.getCause() instanceof DataFormatException) {
+              response.setStatus(HttpServletResponse.SC_BAD_REQUEST, e.getLocalizedMessage());
+            } else {
+              log.error("Exception during response processing.", e);
+            }
+          response.setError(e);
         }
 
     }
