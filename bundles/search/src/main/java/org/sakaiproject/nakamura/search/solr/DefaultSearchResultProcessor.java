@@ -37,6 +37,9 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Formats user profile node search results
  *
@@ -48,6 +51,10 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
     @Property(name = SolrSearchResultProcessor.DEFAULT_PROCESSOR_PROP, boolValue = true) })
 @Service
 public class DefaultSearchResultProcessor implements SolrSearchResultProcessor {
+
+  private static final Logger LOGGER = LoggerFactory
+    .getLogger(DefaultSearchResultProcessor.class);
+
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
@@ -77,6 +84,8 @@ public class DefaultSearchResultProcessor implements SolrSearchResultProcessor {
       Content contentResult = session.getContentManager().get(contentPath);
       if (contentResult != null) {
         ExtendedJSONWriter.writeContentTreeToWriter(write, contentResult, -1);
+      } else {
+        LOGGER.warn("Failed to write result to JSON output: {}", contentPath);
       }
     } catch (Exception e) {
       throw new JSONException(e);
