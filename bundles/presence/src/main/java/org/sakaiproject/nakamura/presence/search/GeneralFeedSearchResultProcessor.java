@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.presence.search;
 
-import java.util.logging.Level;
-import javax.jcr.RepositoryException;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -49,6 +47,8 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.jcr.RepositoryException;
 
 /**
  *
@@ -100,10 +100,10 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
 
             AuthorizableManager authManager;
             authManager = session.getAuthorizableManager();
-            String authorizableId = (String) result.getFirstValue("path");
+            String path = (String) result.getFirstValue("path");
 
             if ("authorizable".equals(result.getFirstValue("resourceType"))) {
-                Authorizable auth = authManager.findAuthorizable(authorizableId);
+                Authorizable auth = authManager.findAuthorizable(path);
                 if (auth != null) {
                     write.object();
                     ValueMap map = profileService.getProfileMap(auth, jcrSession);
@@ -111,23 +111,27 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
 
                     // If this is a User Profile, then include Presence data.
                     if (!auth.isGroup()) {
-                        PresenceUtils.makePresenceJSON(write, authorizableId, presenceService, true);
+                        PresenceUtils.makePresenceJSON(write, path, presenceService, true);
                     }
                     write.endObject();
                 }
             } else {
                 // process this as file
                 // no need to wrap this with write.object(); and write.endObject(); writeFileNode will do this automatically.
-                Content content = session.getContentManager().get(authorizableId);
-                FileUtils.writeFileNode(content, session, write);
+                Content content = session.getContentManager().get(path);
+                if (content == null) {
+                  LOGGER.warn("Can't output null content [path={}]", path);
+                } else {
+                  FileUtils.writeFileNode(content, session, write);
+                }
             }
 
         } catch (RepositoryException ex) {
-            java.util.logging.Logger.getLogger(GeneralFeedSearchResultProcessor.class.getName()).log(Level.SEVERE, null, ex);
+          LOGGER.error(ex.getMessage(), ex);
         } catch (AccessDeniedException ex) {
-            java.util.logging.Logger.getLogger(GeneralFeedSearchResultProcessor.class.getName()).log(Level.SEVERE, null, ex);
+          LOGGER.error(ex.getMessage(), ex);
         } catch (StorageClientException ex) {
-            java.util.logging.Logger.getLogger(GeneralFeedSearchResultProcessor.class.getName()).log(Level.SEVERE, null, ex);
+          LOGGER.error(ex.getMessage(), ex);
         }
     }
 }

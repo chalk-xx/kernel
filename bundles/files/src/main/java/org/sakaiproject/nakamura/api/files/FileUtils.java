@@ -232,6 +232,11 @@ public class FileUtils {
   public static void writeFileNode(Content content,
       org.sakaiproject.nakamura.api.lite.Session session, JSONWriter write, int maxDepth)
       throws JSONException, StorageClientException {
+    if (content == null) {
+      log.warn("Can't output null content.");
+      return;
+    }
+
     write.object();
 
     // dump all the properties.
@@ -335,6 +340,11 @@ public class FileUtils {
   private static void writePermissions(Content content,
       org.sakaiproject.nakamura.api.lite.Session session, JSONWriter writer)
       throws StorageClientException, JSONException {
+    if (content == null) {
+      log.warn("Can't output permissions of null content.");
+      return;
+    }
+
     AccessControlManager acm = session.getAccessControlManager();
     String path = content.getPath();
 
