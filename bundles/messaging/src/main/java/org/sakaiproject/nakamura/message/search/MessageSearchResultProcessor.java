@@ -28,10 +28,12 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -41,15 +43,20 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.search.SearchResponseDecorator;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -65,7 +72,9 @@ import javax.jcr.RepositoryException;
     @Property(name = "service.description", value = "Processor for message search results."),
     @Property(name = "sakai.search.processor", value = "Message"),
     @Property(name = "sakai.seach.resourcetype", value = "sakai/message") })
-public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
+public class MessageSearchResultProcessor implements SolrSearchResultProcessor, SearchResponseDecorator {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MessageSearchResultProcessor.class);
 
   @Reference
   LiteMessagingService messagingService;
@@ -88,7 +97,7 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
    * Parses the message to a usable JSON format for the UI.
    *
    * @param write
-   * @param resultNode
+   * @param result
    * @throws JSONException
    * @throws RepositoryException
    */
@@ -180,11 +189,9 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
    * Parse a message we have replied on.
    *
    * @param request
-   * @param node
    * @param write
-   * @param excerpt
+   * @param content
    * @throws JSONException
-   * @throws RepositoryException
    */
   private void parsePreviousMessages(SlingHttpServletRequest request, JSONWriter write,
       Content content) throws JSONException {
@@ -225,4 +232,39 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor {
     return searchServiceFactory.getSearchResultSet(request, query);
   }
 
+  public void decorateSearchResponse(SlingHttpServletRequest request, JSONWriter writer)
+    throws JSONException {
+    LOGGER.info("Look, I'm a whale!");
+    writer.key("unread");
+
+    long count = 0;
+    // We don't do queries for anonymous users. (Possible ddos hole).
+    String userID = request.getRemoteUser();
+    if (UserConstants.ANON_USERID.equals(userID)) {
+      writer.value(count);
+      return;
+    }
+
+    try {
+      final Session session = StorageClientUtils.adaptToSession(request
+          .getResourceResolver().adaptTo(javax.jcr.Session.class));
+      String store = messagingService.getFullPathToStore(userID, session);
+      store = ISO9075.encodePath(store);
+      store = store.substring(0, store.length() - 1);
+      String queryString = "path:" + ClientUtils.escapeQueryChars(store) +
+        " AND resourceType:sakai/message AND type:internal AND messagebox:inbox AND read:false";
+      Query query = new Query(queryString);
+      SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
+          request, query, false);
+      Iterator<Result> resultIterator = resultSet.getResultSetIterator();
+      while (resultIterator.hasNext()) {
+        count++;
+        resultIterator.next();
+      }
+    } catch (SolrSearchException e) {
+      LOGGER.error(e.getMessage());
+    } finally {
+      writer.value(count);
+    }
+  }
 }

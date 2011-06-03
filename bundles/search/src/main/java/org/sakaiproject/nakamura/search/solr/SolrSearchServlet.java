@@ -60,6 +60,7 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.search.SearchResponseDecorator;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.api.search.solr.MissingParameterException;
@@ -271,7 +272,8 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
           }
         }
         write.endArray();
-        
+
+
         if (page > 0 || rs.getSize() == nitems) {
           // the result set may have been truncated by paging, so lets get a fuller count
           query.getOptions().put(PARAMS_ITEMS_PER_PAGE, Long.toString(maximumResults));
@@ -292,6 +294,13 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         // a chance to walk the results then report how many there were.
         write.key(TOTAL);
         write.value(rs.getSize());
+
+        // additional search feed output can be applied here
+        if (useBatch && searchBatchProcessor instanceof SearchResponseDecorator) {
+          ((SearchResponseDecorator)searchBatchProcessor).decorateSearchResponse(request, write);
+        } else if (searchProcessor instanceof SearchResponseDecorator) {
+          ((SearchResponseDecorator)searchProcessor).decorateSearchResponse(request, write);
+        }
 
         write.endObject();
       }
