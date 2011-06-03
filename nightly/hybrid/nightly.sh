@@ -105,6 +105,8 @@ else
     perl -pwi -e 's/showSakai2\s*\:\s*false/showSakai2 \: true/gi' dev/configuration/config.js
     # "useLiveSakai2Feeds" : false --> "useLiveSakai2Feeds" : true
     perl -pwi -e 's/useLiveSakai2Feeds\s*\:\s*false/useLiveSakai2Feeds \: true/gi' dev/configuration/config.js
+    # "sakaidocs": false --> "sakaidocs": true
+    perl -pwi -e 's/"sakaidocs"\s*\:\s*false/"sakaidocs"\:true/gi' devwidgets/basiclti/config.json
     mvn -B -e clean install
     date > ../.lastbuild
 fi
