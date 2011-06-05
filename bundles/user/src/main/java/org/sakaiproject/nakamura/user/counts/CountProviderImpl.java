@@ -81,7 +81,7 @@ public class CountProviderImpl implements CountProvider {
                 new Object[] { requestAu.getId(), UserConstants.CONTENT_ITEMS_PROP, contentCount,
                 UserConstants.CONTACTS_PROP, contactsCount, UserConstants.GROUP_MEMBERSHIPS_PROP, groupsContact });
         } else if (au instanceof Group) {
-          int membersCount = getMembersCount((Group) au);
+          int membersCount = getMembersCount((Group) au, authorizableManager);
           au.setProperty(UserConstants.GROUP_MEMBERS_PROP, membersCount);
           requestAu.setProperty(UserConstants.GROUP_MEMBERS_PROP, membersCount);
           if (LOG.isDebugEnabled())
@@ -127,9 +127,9 @@ public class CountProviderImpl implements CountProvider {
     return false;
   }
 
-  private int getMembersCount(Group group) throws AccessDeniedException,
+  private int getMembersCount(Group group, AuthorizableManager authorizableManager) throws AccessDeniedException,
       StorageClientException {
-    return groupMembersCounter.count(group);
+    return groupMembersCounter.count(group, authorizableManager);
   }
 
   private int getGroupsCount(Authorizable au, AuthorizableManager authorizableManager)
