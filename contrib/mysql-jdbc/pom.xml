@@ -23,7 +23,7 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.12</version>
+			<version>5.1.16</version>
 		</dependency>
 	  <dependency>
 		  <groupId>c3p0</groupId>
@@ -43,11 +43,11 @@
 						<Bundle-SymbolicName>
 							mysqljdbc
             </Bundle-SymbolicName>
-						<Include-Resource>@mysql-connector-java-5.1.12.jar!/**,@c3p0-0.9.1.2.jar!/**</Include-Resource>
+						<Include-Resource>@mysql-connector-java-5.1.16.jar!/**,@c3p0-0.9.1.2.jar!/**</Include-Resource>
 						<Export-Package>
-						    com.mysql.jdbc;version=5.1.12,
-						    com.mysql.jdbc.exceptions;version=5.1.12,
-						    com.mysql.jdbc.log;version=5.1.12,
+						    com.mysql.jdbc;version=5.1.16,
+						    com.mysql.jdbc.exceptions;version=5.1.16,
+						    com.mysql.jdbc.log;version=5.1.16,
 						</Export-Package>
             <Import-Package>
               javax.management;resolution:=optional,
