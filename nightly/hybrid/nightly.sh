@@ -111,6 +111,36 @@ else
     date > ../.lastbuild
 fi
 
+# build sparsemapcontent
+cd $BUILD_DIR
+mkdir -p sparsemapcontent
+cd sparsemapcontent
+if [ -f .lastbuild ]
+then
+    echo "Skipping build sparsemapcontent@HEAD..."
+else
+    echo "Building sparsemapcontent@HEAD..."
+    git clone -q git://github.com/ieb/sparsemapcontent.git
+    cd sparsemapcontent
+    git checkout -b "build-HEAD" HEAD
+    mvn -B -e clean install
+fi
+
+# build solr
+cd $BUILD_DIR
+mkdir -p solr
+cd solr
+if [ -f .lastbuild ]
+then
+    echo "Skipping build solr@HEAD..."
+else
+    echo "Building solr@HEAD..."
+    git clone -q git://github.com/ieb/solr.git
+    cd solr
+    git checkout -b "build-HEAD" HEAD
+    mvn -B -e clean install
+fi
+
 # build sakai 3
 cd $BUILD_DIR
 mkdir -p sakai3
