@@ -161,8 +161,10 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
       if (resource != null) {
         if (FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceType())
             || FilesConstants.POOLED_CONTENT_RT.equals(resource.getResourceSuperType())) {
-          LOGGER.debug("Will Veto this request");
-          return true;
+          if ( accepts(srequest) ) {
+            LOGGER.debug("Will Veto this request");
+            return true;
+          }
         } else {
           LOGGER.debug("No Veto, No the right resource type {}", resource.getResourceType());
         }

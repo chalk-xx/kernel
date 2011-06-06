@@ -107,8 +107,40 @@ else
     perl -pwi -e 's/useLiveSakai2Feeds\s*\:\s*false/useLiveSakai2Feeds \: true/gi' dev/configuration/config.js
     # "sakaidocs": false --> "sakaidocs": true
     perl -pwi -e 's/"sakaidocs"\s*\:\s*false/"sakaidocs"\:true/gi' devwidgets/basiclti/config.json
+    # "sakaidocs": false --> "sakaidocs": true
+    perl -pwi -e 's/"sakaidocs"\s*\:\s*false/"sakaidocs"\:true/gi' devwidgets/sakai2tools/config.json
     mvn -B -e clean install
     date > ../.lastbuild
+fi
+
+# build sparsemapcontent
+cd $BUILD_DIR
+mkdir -p sparsemapcontent
+cd sparsemapcontent
+if [ -f .lastbuild ]
+then
+    echo "Skipping build sparsemapcontent@HEAD..."
+else
+    echo "Building sparsemapcontent@HEAD..."
+    git clone -q git://github.com/ieb/sparsemapcontent.git
+    cd sparsemapcontent
+    git checkout -b "build-HEAD" HEAD
+    mvn -B -e clean install
+fi
+
+# build solr
+cd $BUILD_DIR
+mkdir -p solr
+cd solr
+if [ -f .lastbuild ]
+then
+    echo "Skipping build solr@HEAD..."
+else
+    echo "Building solr@HEAD..."
+    git clone -q git://github.com/ieb/solr.git
+    cd solr
+    git checkout -b "build-HEAD" HEAD
+    mvn -B -e clean install
 fi
 
 # build sakai 3

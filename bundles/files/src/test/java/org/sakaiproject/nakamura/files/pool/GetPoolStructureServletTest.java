@@ -79,7 +79,7 @@ public class GetPoolStructureServletTest {
     Mockito.when(request.getResource()).thenReturn(resource);
     Assert.assertFalse(getPoolStructureServlet.willVeto(request));
     Mockito.when(resource.getResourceType()).thenReturn(FilesConstants.POOLED_CONTENT_RT);
-    Assert.assertTrue(getPoolStructureServlet.willVeto(request));
+    Assert.assertFalse(getPoolStructureServlet.willVeto(request));
     
   }
   
