@@ -223,9 +223,8 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
         Group group = (Group) getAuthorizable(principal, repositorySession);
         if (group != null && group.hasProperty(SAKAI_PSEUDOGROUPPARENT_PROP)) {
           doc.addField("group", group.getProperty(SAKAI_PSEUDOGROUPPARENT_PROP));
-        } else {
-          doc.addField("group", principal);
         }
+        doc.addField("group", principal);
       }
     }
 
