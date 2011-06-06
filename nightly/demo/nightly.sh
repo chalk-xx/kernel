@@ -41,7 +41,7 @@ rm -rf ~/.m2/repository/org/sakaiproject
 # clean mysql database
 echo "Cleaning MySQL..."
 mysql -u sakaiuser << EOSQL
-drop database nakamura;
+drop database if exists nakamura;
 create database nakamura default character set 'utf8';
 exit
 EOSQL
@@ -65,6 +65,13 @@ git clone -q git://github.com/sakaiproject/nakamura.git
 cd nakamura
 git checkout -b "build-$K2_TAG" $K2_TAG
 mvn -B -e clean install
+#install optional mysql driver
+cd contrib/mysql-jdbc
+mvn -B -e clean install
+cd ../../app/
+perl -pwi -e 's/<startLevel level="1">/<startLevel level="1"><bundle><groupId>org\.sakaiproject\.nakamura<\/groupId><artifactId>org\.sakaiproject\.nakamura\.mysqljdbc<\/artifactId><version>0.11-SNAPSHOT<\/version><\/bundle>/gi' src/main/bundles/list.xml
+mvn -B -e clean install
+cd ..
 
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
