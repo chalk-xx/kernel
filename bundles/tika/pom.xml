@@ -24,7 +24,7 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.tika</artifactId>
   <packaging>bundle</packaging>
-  <version>0.7-0.11-SNAPSHOT</version>
+  <version>0.9-0.11-SNAPSHOT</version>
   <name>Sakai Nakamura :: Tika Bundle</name>
   <description>Wraps the Tika functionality but uses a slightly different tika-mimetypes.xml for extracting HTML.</description>
   <build>
