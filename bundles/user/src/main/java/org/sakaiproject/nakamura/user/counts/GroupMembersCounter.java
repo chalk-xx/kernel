@@ -9,22 +9,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GroupMembersCounter {
+  static final String PSEUDOGROUP = "sakai:pseudoGroup";
+
   private static final Logger LOGGER = LoggerFactory
       .getLogger(GroupMembersCountChangeListener.class);
-
-  private static final String PSEUDOGROUP = "sakai:pseudoGroup";
 
   /**
    * @param group
    * @return the number of members in this group.
    */
   public int count(Group group, AuthorizableManager authMgr) {
-    if ( group == null || !CountProvider.IGNORE_AUTHIDS.contains(group.getId())) {
-      if (!"true".equals(group.getProperty(PSEUDOGROUP))) {
-        return 1;
-      } else {
-        return countMembers(group.getMembers(), authMgr);
-      }
+    if ( group != null && !CountProvider.IGNORE_AUTHIDS.contains(group.getId())) {
+      return countMembers(group.getMembers(), authMgr);
     }
     return 0;
   }

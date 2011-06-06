@@ -30,7 +30,9 @@ import org.slf4j.LoggerFactory;
         
 public class GroupMembersCountChangeListener extends AbstractCountHandler implements EventHandler {
   
-  private static final Logger LOG = LoggerFactory.getLogger(GroupMembersCountChangeListener.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GroupMembersCountChangeListener.class);
+  static final String PSEUDOGROUP_PARENT = "sakai:pseudogroupparent";
+
   private GroupMembersCounter groupMembersCounter = new GroupMembersCounter();
 
   public void handleEvent(Event event) {
@@ -38,12 +40,16 @@ public class GroupMembersCountChangeListener extends AbstractCountHandler implem
     try {
       adminSession = repository.loginAdministrative();
       AuthorizableManager authorizableManager = adminSession.getAuthorizableManager();
-      LOG.debug("handleEvent() " + dumpEvent(event));
+      LOGGER.debug("handleEvent() " + dumpEvent(event));
       // The members of a group are defined in the membership, so simply use that value, no need to increment or decrement.
       String groupId = (String) event.getProperty(StoreListener.PATH_PROPERTY);
       if ( !CountProvider.IGNORE_AUTHIDS.contains(groupId) ) {
         Authorizable au = authorizableManager.findAuthorizable(groupId);
         if ( au instanceof Group ) {
+          String parent = String.valueOf(au.getProperty(PSEUDOGROUP_PARENT));
+          if (parent != null) {
+            au = authorizableManager.findAuthorizable(parent);
+          }
           int n = groupMembersCounter.count((Group) au, authorizableManager);
           Integer v = (Integer) au.getProperty(UserConstants.GROUP_MEMBERS_PROP);
           if ( v == null || n != v.intValue()) {
@@ -53,19 +59,19 @@ public class GroupMembersCountChangeListener extends AbstractCountHandler implem
         }
         else if (au instanceof User) {
           String userId = (String) event.getProperty(StoreListener.PATH_PROPERTY);
-          if (LOG.isDebugEnabled()) LOG.debug("got User event for " + userId);
+          if (LOGGER.isDebugEnabled()) LOGGER.debug("got User event for " + userId);
         }
       }
     } catch (StorageClientException e) {
-      LOG.debug("Failed to update count ", e);
+      LOGGER.debug("Failed to update count ", e);
     } catch (AccessDeniedException e) {
-      LOG.debug("Failed to update count ", e);
+      LOGGER.debug("Failed to update count ", e);
     } finally {
       if ( adminSession != null ) {
         try {
           adminSession.logout();
         } catch (ClientPoolException e) {
-          LOG.warn(e.getMessage(),e);
+          LOGGER.warn(e.getMessage(),e);
         }
       }
     }
