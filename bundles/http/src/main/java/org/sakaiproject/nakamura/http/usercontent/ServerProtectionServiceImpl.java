@@ -44,6 +44,7 @@ import java.util.Set;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.jcr.Node;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -294,18 +295,18 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
           if (!safeToStream) {
             Resource resource = srequest.getResource();
             if ( resource != null ) {
+              Node node = resource.adaptTo(Node.class);
+              if ( node != null ) {
+                // JCR content is trusted, as users dont have write to the JCR, lets hope thats true!
+                // KERN-1930 and list discussion.
+                return true;
+              }
               String resourcePath = resource.getPath();
               LOGGER.debug("Checking Resource Path [{}]",resourcePath);
-              safeToStream = safeToStreamExactPaths.contains(resourcePath);
-              for (String safePath : safeToStreamPaths) {
-                if (resourcePath.startsWith(safePath)) {
-                  safeToStream = true;
-                  break;
-                }
-              }
               if (!safeToStream) {
                 for (ServerProtectionValidator serverProtectionValidator : serverProtectionValidators) {
                   if ( serverProtectionValidator.safeToStream(srequest, resource)) {
+                    LOGGER.debug(" {} said this {} is safe to stream ",serverProtectionValidator,resourcePath);
                     safeToStream = true;
                     break;
                   }
@@ -323,6 +324,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
         LOGGER.debug("Checking for Veto on {} ",serverProtectionVeto);
         if ( serverProtectionVeto.willVeto(srequest)) {
           safeToStream = serverProtectionVeto.safeToStream(srequest);
+          LOGGER.debug("{} vetoed {}  ", serverProtectionVeto, safeToStream);
           break;
         }
       }
@@ -330,6 +332,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
         redirectToContent(srequest, sresponse);
         return false;
       }
+      LOGGER.debug("Request will be sent from this host, no redirect {}", srequest.getRequestURL().toString());
     }
     return true;
   }
@@ -429,7 +432,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
         }
       }
     } else {
-      LOGGER.debug("A safe host, wont look for Transfer {} ",request.getRequestURL().toString());
+      LOGGER.debug("Request is to a safe host, wont look for a transfer of trust to this host. {} ",request.getRequestURL().toString());
     }
     return null;
   }
