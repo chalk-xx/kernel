@@ -56,6 +56,26 @@ cd 3akai-ux
 git checkout -b "build-$UX_TAG" $UX_TAG
 mvn -B -e clean install
 
+# build sparsemapcontent
+echo "Building sparsemapcontent@HEAD..."
+cd $BUILD_DIR
+mkdir sparsemapcontent
+cd sparsemapcontent
+git clone -q git://github.com/ieb/sparsemapcontent.git
+cd sparsemapcontent
+git checkout -b "build-HEAD" HEAD
+mvn -B -e clean install
+
+# build solr
+echo "Building solr@HEAD..."
+cd $BUILD_DIR
+mkdir solr
+cd solr
+git clone -q git://github.com/ieb/solr.git
+cd solr
+git checkout -b "build-HEAD" HEAD
+mvn -B -e clean install
+
 # build sakai 3
 echo "Building nakamura@$K2_TAG..."
 cd $BUILD_DIR
