@@ -115,7 +115,7 @@ def main
   # Create a temporary file in the DOCS_DIR for all the pending files and outputs all the filenames in the terminal.
   Dir.chdir DOCS_DIR
   queued_files = process_results.collect do |result|
-    FileUtils.touch result['jcr:name']
+    FileUtils.touch result['_path']
   end
 
   log " "
