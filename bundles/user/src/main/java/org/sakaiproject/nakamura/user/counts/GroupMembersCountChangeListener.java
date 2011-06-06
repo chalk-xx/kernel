@@ -46,8 +46,8 @@ public class GroupMembersCountChangeListener extends AbstractCountHandler implem
       if ( !CountProvider.IGNORE_AUTHIDS.contains(groupId) ) {
         Authorizable au = authorizableManager.findAuthorizable(groupId);
         if ( au instanceof Group ) {
-          String parent = String.valueOf(au.getProperty(PSEUDOGROUP_PARENT));
-          if (parent != null) {
+          if (au.hasProperty(PSEUDOGROUP_PARENT)) {
+            String parent = String.valueOf(au.getProperty(PSEUDOGROUP_PARENT));
             au = authorizableManager.findAuthorizable(parent);
           }
           int n = groupMembersCounter.count((Group) au, authorizableManager);
