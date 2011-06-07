@@ -20,7 +20,9 @@ package org.sakaiproject.nakamura.api.tika;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.exception.TikaException;
@@ -32,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
+import java.util.Map;
 
 /**
  * OSGi service to wrap {@link Tika} and load a config file found local this bundle. This
@@ -50,12 +53,20 @@ import java.net.URL;
 public class TikaService {
   private Tika tika;
 
+  // set the default to 100k (default in Tika is 100k)
+  static final int DEFAULT_MAX_STRING_LENGTH = 100 * 1000;
+  @Property(intValue = TikaService.DEFAULT_MAX_STRING_LENGTH)
+  private static final String MAX_STRING_LENGTH = "sakai.tika.max_string_length";
+  private int maxStringLength;
+
   // ---------- SCR integration ----------
   @Activate
-  protected void activate(BundleContext bundleContext) throws Exception {
+  protected void activate(BundleContext bundleContext, Map<?, ?> props) throws Exception {
     URL configUrl = bundleContext.getBundle().getResource(
         "/org/apache/tika/tika-config.xml");
+    maxStringLength = OsgiUtil.toInteger(props.get(MAX_STRING_LENGTH), DEFAULT_MAX_STRING_LENGTH);
     tika = new Tika(new TikaConfig(configUrl));
+    tika.setMaxStringLength(maxStringLength);
   }
 
   @Deactivate
