@@ -121,6 +121,10 @@ public interface FilesConstants {
    * The name of the property that holds the custom mimetype.
    */
   public static final String POOLED_CONTENT_CUSTOM_MIMETYPE = "sakai:custom-mimetype";
+  /**
+   * The name of the property that holds the comment.
+   */
+  public static final String POOLED_CONTENT_COMMENT = "comment";
 
   /**
    * Property on the file node indicating who the content was created for.
