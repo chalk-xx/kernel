@@ -35,6 +35,8 @@ set -o errexit
 # clean previous builds
 cd $BUILD_DIR
 rm -rf 3akai-ux
+rm -rf sparsemapcontent
+rm -rf solr
 rm -rf sakai3
 rm -rf ~/.m2/repository/org/sakaiproject
 
