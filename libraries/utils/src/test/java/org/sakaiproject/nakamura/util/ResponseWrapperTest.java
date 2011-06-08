@@ -57,7 +57,11 @@ public class ResponseWrapperTest {
     assertEquals("text/plain", headers.get("Content-Type"));
     assertEquals("42", headers.get("life"));
     assertEquals("Lorum lipsum.", wrapper.getDataAsString());
-
+    
+    // test UTF-8
+    wrapper = new ResponseWrapper(response);
+    wrapper.getWriter().write("事业单位改革工作座谈会在京召开");
+    assertEquals("事业单位改革工作座谈会在京召开", wrapper.getDataAsString());
     // Test status codes
     wrapper.sendError(404);
     assertEquals(404, wrapper.getResponseStatus());
