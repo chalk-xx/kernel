@@ -95,9 +95,12 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
           String contentPathInfo = getContentPathInfo(request, content);
           LOGGER.debug("Content Path Info is {} ", contentPathInfo);
           if ( contentPathInfo != null && contentPathInfo.length() > 0 ) {
-            String structureId = FilesConstants.STRUCTURE_FIELD_STEM + StringUtils.split(contentPathInfo, "/", 2)[0];
-            if (content.hasProperty(structureId)) {
+            String[] contentPathInfoSplit = StringUtils.split(contentPathInfo, "/", 2);
+            if (contentPathInfoSplit.length > 0) {
+              String structureId = FilesConstants.STRUCTURE_FIELD_STEM + contentPathInfoSplit[0];
+              if (content.hasProperty(structureId)) {
                 return content.getProperty(structureId) != null;
+              }
             }
           }
         }
