@@ -37,7 +37,7 @@
     </SecurityManager>
 
       <AccessManager
-      class="org.apache.jackrabbit.core.security.DefaultAccessManager">
+      class="org.sakaiproject.nakamura.lite.jackrabbit.SparseAccessManager">
     <!-- 
     <AccessManager
       class="org.apache.sling.jcr.jackrabbit.server.impl.security.PluggableDefaultAccessManager">

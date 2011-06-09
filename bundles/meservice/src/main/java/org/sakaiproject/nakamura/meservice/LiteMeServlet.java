@@ -363,11 +363,7 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
       LOG.debug("Submitting Query {} ", query);
       SolrSearchResultSet resultSet = searchServiceFactory.getSearchResultSet(
           request, query, false);
-      Iterator<Result> resultIterator = resultSet.getResultSetIterator();
-      while (resultIterator.hasNext()) {
-        count++;
-        resultIterator.next();
-      }
+      count = resultSet.getSize();
     } finally {
       writer.value(count);
     }
