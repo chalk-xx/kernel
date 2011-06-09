@@ -1,13 +1,13 @@
 #!/usr/bin/env ruby
 
 # Add all files in testscripts\SlingRuby\lib directory to ruby "require" search path
-require 'ruby-lib-dir.rb'
+require './ruby-lib-dir.rb'
 
 require 'sling/sling'
 require 'sling/test'
 require 'sling/authz'
 require 'test/unit.rb'
-require 'authz-base.rb'
+require './authz-base.rb'
 include SlingInterface
 include SlingUsers
 include SlingAuthz
