@@ -407,11 +407,7 @@ public class ExtendedJSONWriter extends JSONWriter {
       // Write all the child nodes.
       for (Content child : content.listChildren()) {
         // Write only the end of the path (KERN-1883)
-        if (child.getPath().contains("/")) {
-          write.key(PathUtils.lastElement(child.getPath()));
-        } else {
-          write.key(child.getPath());
-        }
+        write.key(PathUtils.lastElement(child.getPath()));
         writeNodeTreeToWriter(write, child, false, maxDepth, currentLevel + 1);
       }
     }
