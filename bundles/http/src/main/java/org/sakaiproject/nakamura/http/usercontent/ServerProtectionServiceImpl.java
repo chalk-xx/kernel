@@ -84,7 +84,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String[] DEFAULT_TRUSTED_HOSTS = { "http://localhost:8080" };
   private static final String[] DEFAULT_TRUSTED_REFERERS = { "/",
       "http://localhost:8080" };
-  private static final String[] DEFAULT_TRUSTED_PATHS = { "/dev", "/devwidgets", "/system" };
+  private static final String[] DEFAULT_TRUSTED_PATHS = { "/dev", "/devwidgets", "/system", "/logout" };
   private static final String[] DEFAULT_TRUSTED_EXACT_PATHS = { "/", "/index.html" };
   private static final String DEFAULT_UNTRUSTED_CONTENT_URL = "http://localhost:8082";
   private static final String DEFAULT_TRUSTED_SECRET_VALUE = "This Must Be set in production";
