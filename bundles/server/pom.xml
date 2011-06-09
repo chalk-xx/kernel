@@ -59,7 +59,7 @@
               <excludeTransitive>false</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
               <excludes>
-                 META-INF/MANIFEST.MF
+                 META-INF/MANIFEST.MF,org/apache/jackrabbit/core/security/authorization/AccessControlProviderFactoryImpl.class
               </excludes>
             </configuration>
           </execution>
