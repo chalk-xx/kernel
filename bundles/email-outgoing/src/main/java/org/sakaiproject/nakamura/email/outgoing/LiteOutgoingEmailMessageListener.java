@@ -41,7 +41,7 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.templates.TemplateService;
-import org.sakaiproject.nakamura.util.LitePersonalUtils;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -386,10 +386,8 @@ public class LiteOutgoingEmailMessageListener implements MessageListener {
 
       Authorizable user = session.getAuthorizableManager().findAuthorizable(address);
       if (user != null) {
-        Content profile = session.getContentManager().get(
-            LitePersonalUtils.getProfilePath(user.getId()));
-        if (profile != null) {
-          emailAddress = LitePersonalUtils.getProfilePath(user.getId());
+        if ( user.hasProperty(UserConstants.USER_EMAIL_PROPERTY)) {
+          emailAddress = (String) user.getProperty(UserConstants.USER_EMAIL_PROPERTY);
         }
       }
       if (emailAddress != null && emailAddress.trim().length() > 0) {
