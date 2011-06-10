@@ -42,7 +42,7 @@ public class CategoryPropertyProvider implements SolrSearchPropertyProvider {
       Map<String, String> propertiesMap) {
     String cat = request.getParameter("category");
 
-    if (!StringUtils.isBlank(cat)) {
+    if (!StringUtils.isBlank(cat) && !"*".equalsIgnoreCase(cat)) {
       propertiesMap.put("_category", " category:" + cat);
       propertiesMap.put("_categoryAnd", " AND category:" + cat);
       propertiesMap.put("_categoryOr", " OR category:" + cat);
