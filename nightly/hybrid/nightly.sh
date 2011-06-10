@@ -5,8 +5,8 @@
 
 export K2_TAG="HEAD"
 export S2_TAG="tags/sakai-2.8.0"
-export UX_SRC="git://github.com/sakaiproject/3akai-ux.git"
-export UX_TAG="HEAD"
+export UX_SRC="git://github.com/sgithens/3akai-ux.git"
+export UX_TAG="origin/june1hybrid"
 export HYBRID_TAG="branches/hybrid-1.1.x"
 export K2_HTTP_PORT="8080"
 export S2_HTTP_PORT="8880"
@@ -157,6 +157,8 @@ else
     git clone -q git://github.com/sakaiproject/nakamura.git
     cd nakamura
     git checkout -b "build-$K2_TAG" $K2_TAG
+    perl -pwi -e 's/http:\/\/sakaiproject\.org/http:\/\/sakai3-nightly\.uits\.indiana\.edu/gi' bundles/basiclti/src/main/resources/SLING-INF/content/var/basiclti/globalSettings.json
+    perl -pwi -e 's/http:\/\/localhost/http:\/\/sakai3-nightly\.uits\.indiana\.edu:8088/gi' bundles/basiclti/src/main/resources/SLING-INF/content/var/basiclti/sakai*.json
     mvn -B -e clean install
     #install optional mysql driver
     cd contrib/mysql-jdbc
