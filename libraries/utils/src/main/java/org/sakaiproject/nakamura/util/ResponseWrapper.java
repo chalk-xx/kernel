@@ -23,6 +23,7 @@ import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Dictionary;
@@ -31,7 +32,6 @@ import java.util.Hashtable;
 import javax.servlet.ServletOutputStream;
 
 public class ResponseWrapper extends SlingHttpServletResponseWrapper {
-
   ByteArrayOutputStream boas = new ByteArrayOutputStream();
   ServletOutputStream servletOutputStream = new ServletOutputStream() {
     @Override
@@ -39,16 +39,26 @@ public class ResponseWrapper extends SlingHttpServletResponseWrapper {
       boas.write(b);
     }
   };
-  PrintWriter pw = new PrintWriter(servletOutputStream);
+  
+  PrintWriter pw;
+  private OutputStreamWriter osw;
   private String type;
   private String charset;
   private int status = 200; // Default is 200, this is also the statuscode if none get's
   // set on the response.
   private Dictionary<String, String> headers;
-
   public ResponseWrapper(SlingHttpServletResponse wrappedResponse) {
     super(wrappedResponse);
     headers = new Hashtable<String, String>();
+    // see KERN-1913 - adding OutputStreamWriter to mediate between PrintWriter and ByteArrayOutputStream
+    // fixes encoding problem that results in ?????? instead of chinese
+    try {
+      osw = new OutputStreamWriter(boas, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    pw = new PrintWriter(osw);
   }
 
   @Override
