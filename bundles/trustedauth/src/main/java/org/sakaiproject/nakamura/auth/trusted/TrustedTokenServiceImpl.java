@@ -526,7 +526,11 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       } catch (UnsupportedEncodingException e) {
         LOG.error(e.getMessage(), e);
       } catch (SecureCookieException e) {
-        LOG.error(e.getMessage(), e);
+        if ( e.isError() ) {
+          LOG.error(e.getMessage(), e);
+        } else {
+          LOG.info(e.getMessage(), e);
+        }
       }
       return null;
     }
@@ -549,7 +553,11 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
         SecureCookie secureCookie = tokenStore.getSecureCookie();
         return secureCookie.decode(value);
       } catch (SecureCookieException e) {
-        LOG.error(e.getMessage());
+        if ( e.isError() ) {
+          LOG.error(e.getMessage());
+        } else {
+          LOG.info(e.getMessage());
+        }
       }
     }
     return null;
