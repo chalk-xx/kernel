@@ -58,12 +58,17 @@ public class TokenStore {
      *
      */
     private static final long serialVersionUID = -1291914895288707428L;
+    private boolean error;
 
     /**
      * @param string
      */
-    public SecureCookieException(String string) {
+    public SecureCookieException(String string, boolean error) {
       super(string);
+      this.error = error;
+    }
+    public boolean isError() {
+      return error;
     }
 
   }
@@ -122,7 +127,7 @@ public class TokenStore {
       ExpiringSecretKey expiringSecretKey = TokenStore.this.getSecretKey(serverId,
           secretKeyId);
       if (expiringSecretKey == null) {
-        throw new SecureCookieException("Key serverId=["+serverId+"]: KeyId=["+secretKeyId+"] not found ");
+        throw new SecureCookieException("Key serverId=["+serverId+"]: KeyId=["+secretKeyId+"] not found ", false);
       }
       m.init(TokenStore.this.getSecretKey(serverId, secretKeyId).getSecretKey());
       m.update(cookiePayload.getBytes(UTF_8));
@@ -149,7 +154,7 @@ public class TokenStore {
             if (expiringSecretKey == null) {
               LOG.warn("No Secure Key found ",getCacheKey(serverId, secretKeyId));
               throw new SecureCookieException("No Secure Key found "
-                  + getCacheKey(serverId, secretKeyId));
+                  + getCacheKey(serverId, secretKeyId), false);
             }
             SecretKey secretKey = expiringSecretKey.getSecretKey();
             String userId = decodeField(parts[2]);
@@ -171,13 +176,13 @@ public class TokenStore {
           } catch (NoSuchAlgorithmException e) {
             LOG.error(e.getMessage(), e);
           }
-          throw new SecureCookieException("AuthNCookie is invalid " + value);
+          throw new SecureCookieException("AuthNCookie is invalid " + value, false);
         } else {
           throw new SecureCookieException("AuthNCookie has expired " + value + " "
-              + (System.currentTimeMillis() - cookieTime) + " ms ago");
+              + (System.currentTimeMillis() - cookieTime) + " ms ago", false);
         }
       } else {
-        throw new SecureCookieException("AuthNCookie is invalid format " + value);
+        throw new SecureCookieException("AuthNCookie is invalid format " + value, false);
       }
     }
 
