@@ -7,7 +7,7 @@
   "sling:resourceType": "sakai/sparse-search",
   "sakai:propertyprovider" : "MessageSparse",
   "sakai:resultprocessor": "Message",
-  "sakai:title": "Messaging - User - Box and category.",
+  "sakai:title": "Messaging - User - Box and category - All",
   "sakai:shortDescription": "Get all the messages for a specified box and category.",
   "sakai:parameters" : [
                         "{\"name\" : \"box\", \"description\" : \"The messagebox you want the messages for.\"}",

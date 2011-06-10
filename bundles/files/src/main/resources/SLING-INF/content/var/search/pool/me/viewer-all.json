@@ -8,7 +8,7 @@
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "PooledContent",
-  "sakai:title": "Pooled Content - Me - Viewer",
+  "sakai:title": "Pooled Content - Me - Viewer - All",
   "sakai:shortDescription": "Searches trough all the files of the current user that I manage.",
   "sakai:parameters" : [
       "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. Default is jcr:score.\"}",

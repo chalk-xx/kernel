@@ -8,13 +8,13 @@
   "sling:resourceType": "sakai/solr-search",
   "sakai:resultprocessor": "Calendar",
   "sakai:propertyprovider" : "Calendar",
-  "sakai:title": "Calendar - Day feed",
-  "sakai:shortDescription": "Find all calendar items for a certain day.",
+  "sakai:title": "Calendar - Day feed - Participants",
+  "sakai:shortDescription": "Find all participants for a particular event.",
   "sakai:parameters" : [
       "{\"name\" : \"event-path\", \"description\" : \"A path that points to the location of a sakai/calendar-event.\"}",
       "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. Default is sakai:vcal-DTSTART\"}",
       "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'asc' or 'desc'.\"}"
       ],
-  "sakai:description": "This will look for all the calendar items for a certain day.",
+  "sakai:description": "This will look for all participants for a specified event.",
   "sakai:response": ""
 }

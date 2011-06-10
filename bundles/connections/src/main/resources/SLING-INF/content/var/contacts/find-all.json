@@ -8,7 +8,7 @@
   "sling:resourceType": "sakai/solr-search",
   "sakai:propertyprovider" : "Connection",
   "sakai:resultprocessor": "ConnectionFinder",
-  "sakai:title": "Contacts - Search.",
+  "sakai:title": "Contacts - Search - All",
   "sakai:shortDescription": "Search trough contacts based on firstName, lastName or email.  You can also specify contact state: ie ACCEPTED, BLOCKED, IGNORED, INVITED, PENDING, REJECTED, ect.  The default search value is ACCEPTED.  To search all contacts do: q=*&state=*",
   "sakai:parameters" : [
                         "{\"name\" : \"q\", \"description\" : \"Filter for the firstName, lastName or email.\"}",
