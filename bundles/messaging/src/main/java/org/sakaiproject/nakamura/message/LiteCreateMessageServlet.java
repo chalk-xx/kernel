@@ -245,7 +245,7 @@ public class LiteCreateMessageServlet extends SlingAllMethodsServlet {
        */
       @Override
       public String getResourceType() {
-        return "sparse/Content";
+        return "sparse/wrappedResource"; // the super type will handle routing this cant be a sparse/Content resource as it will create a cyclic resource type.
       }
 
       /**
