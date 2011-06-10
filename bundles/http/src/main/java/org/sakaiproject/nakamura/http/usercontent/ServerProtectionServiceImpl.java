@@ -7,6 +7,8 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -84,7 +86,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String[] DEFAULT_TRUSTED_HOSTS = { "http://localhost:8080" };
   private static final String[] DEFAULT_TRUSTED_REFERERS = { "/",
       "http://localhost:8080" };
-  private static final String[] DEFAULT_TRUSTED_PATHS = { "/dev", "/devwidgets", "/system" };
+  private static final String[] DEFAULT_TRUSTED_PATHS = { "/dev", "/devwidgets", "/system", "/logout" };
   private static final String[] DEFAULT_TRUSTED_EXACT_PATHS = { "/", "/index.html" };
   private static final String DEFAULT_UNTRUSTED_CONTENT_URL = "http://localhost:8082";
   private static final String DEFAULT_TRUSTED_SECRET_VALUE = "This Must Be set in production";
@@ -158,8 +160,8 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private BundleContext bundleContext;
   private boolean disalbleProcetionForDevMove;
 
-  @Activate
-  public void activate(ComponentContext componentContext)
+  @Modified
+  public void modified(ComponentContext componentContext)
       throws NoSuchAlgorithmException, UnsupportedEncodingException,
       InvalidSyntaxException {
     @SuppressWarnings("unchecked")
@@ -230,7 +232,12 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       }
     }
   }
+  @Activate
+  public void activate(ComponentContext componentContext) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidSyntaxException {
+    modified(componentContext);
+  }
 
+  @Deactivate
   public void destroy(ComponentContext c) {
     if ( disalbleProcetionForDevMove ) {
       LOGGER.warn("XSS Protection is disabled");

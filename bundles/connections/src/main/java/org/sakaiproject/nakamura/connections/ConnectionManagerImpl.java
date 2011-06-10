@@ -76,6 +76,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.jcr.RepositoryException;
+
 
 
 /**
@@ -383,10 +385,23 @@ public class ConnectionManagerImpl implements ConnectionManager {
     String nodePath = ConnectionUtils.getConnectionPath(fromUser, toUser);
     ContentManager contentManager = session.getContentManager();
     if (!contentManager.exists(nodePath)) {
+      // Add auth name for sorting (KERN-1924)
+      String firstName = "";
+      String lastName = "";
+      if (toUser.getProperty("firstName") != null) {
+        firstName = (String) toUser.getProperty("firstName");
+      }
+      if (toUser.getProperty("lastName") != null) {
+        lastName = (String) toUser.getProperty("lastName");
+      }
+
       contentManager.update(new Content(nodePath, ImmutableMap.of("sling:resourceType",
           (Object)ConnectionConstants.SAKAI_CONTACT_RT,
             "reference", LitePersonalUtils.getProfilePath(toUser.getId()),
-            "sakai:contactstorepath", ConnectionUtils.getConnectionPathBase(fromUser))));
+ "sakai:contactstorepath",
+          ConnectionUtils.getConnectionPathBase(fromUser), "firstName",
+ firstName,
+          "lastName", lastName)));
     }
     return contentManager.get(nodePath);
   }
