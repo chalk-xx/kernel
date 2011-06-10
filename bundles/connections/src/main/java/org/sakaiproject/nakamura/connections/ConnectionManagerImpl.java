@@ -76,7 +76,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.jcr.RepositoryException;
 
 
 
@@ -179,7 +178,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *          the node to check (should be a user contact node)
    * @return the connection state (may be NONE)
    * @throws ConnectionException
-   * @throws RepositoryException
    */
   protected ConnectionState getConnectionState(Content userContactNode)
       throws ConnectionException {
@@ -308,7 +306,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *          A session that can be used to modify a group.
    * @throws StorageClientException 
    * @throws AccessDeniedException 
-   * @throws RepositoryException
    */
   protected void removeUserFromGroup(Authorizable thisAu, Authorizable otherAu,
       Session session) throws StorageClientException, AccessDeniedException {
@@ -331,7 +328,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *          The session that can be used to locate and manipulate the group
    * @throws StorageClientException 
    * @throws AccessDeniedException 
-   * @throws RepositoryException
    */
   protected void addUserToGroup(Authorizable thisAu, Authorizable otherAu, Session session) throws StorageClientException, AccessDeniedException {
     AuthorizableManager authorizableManager = session.getAuthorizableManager();
