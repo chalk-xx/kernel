@@ -27,6 +27,7 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.search.solr.Query;
@@ -36,6 +37,8 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +54,7 @@ import java.util.Collection;
     @Property(name = "sakai.search.processor", value = "AllFiles") })
 @Service
 public class AllFilesSearchResultProcessor implements SolrSearchResultProcessor {
+  private static final Logger LOGGER = LoggerFactory.getLogger(AllFilesSearchResultProcessor.class);
 
   @Reference
   private SolrSearchServiceFactory searchServiceFactory;
@@ -95,6 +99,12 @@ public class AllFilesSearchResultProcessor implements SolrSearchResultProcessor 
         ExtendedJSONWriter.writeContentTreeToWriter(write, contentResult, true, -1);
         write.endObject();
       }
+    } catch (AccessDeniedException ade) {
+      // if access is denied we simply won't
+      // write anything for this result
+      // this implies content was private
+      LOGGER.info("Denied {} access to {}", request.getRemoteUser(), contentPath);
+      return;
     } catch (Exception e) {
       throw new JSONException(e);
     }
