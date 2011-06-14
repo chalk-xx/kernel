@@ -10,7 +10,7 @@
   "sling:resourceType": "sakai/solr-search",
   "sakai:batchresultprocessor": "Files",
   "sakai:propertyprovider": "Files",
-  "sakai:title": "Files - My files.",
+  "sakai:title": "Files - My files - All",
   "sakai:shortDescription": "Get the files which the current logged in user has uploaded.",
   "sakai:parameters" : [
       "{\"name\" : \"sakai:tags\", \"description\" : \"A comma seperated list of tags that the file(s) should match\"}",

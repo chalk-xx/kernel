@@ -1,11 +1,16 @@
 {
   "sakai:query-template": "path:${path} ${_typesWhere}${_tags}${_ids}",
   "sakai:query-template-options": {
-      "sort": "${sortOn} ${sortOrder}"
+    "sort": "${sortOn} ${sortOrder}"
   },
   "sortOn": "score",
   "sortOrder": "desc",
   "sling:resourceType": "sakai/solr-search",
   "sakai:batchresultprocessor": "Files",
   "sakai:propertyprovider": "Files",
+  "sakai:title": "Files",
+  "sakai:shortDescription": "Find files on a path.",
+  "sakai:description": [
+    "Find files that exist on or below a path by search tags and other identifying information."
+  ]
 }

@@ -9,7 +9,7 @@
   "sakai:resultprocessor": "FullResource",
   "sakai:propertyprovider" : "Calendar",
   "sakai:title": "Calendar - Day feed",
-  "sakai:shortDescription": "Find all calendar items for a certain day.",
+  "sakai:shortDescription": "Find all calendar items for date range.",
   "sakai:parameters" : [
       "{\"name\" : \"start\", \"description\" : \"The day to start retrieving the items for. This has to be in the following format: <i>yyyy-mm-dd</i>. This has to be used in combination with the start paramers.\"}",
       "{\"name\" : \"end\", \"description\" : \"The day that marks the last day. (Note, the results for this day will not be included.) This has to be in the following format: <i>yyyy-mm-dd</i>. This has to be used in combination with the start paramers.\"}",
