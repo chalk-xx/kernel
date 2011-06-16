@@ -231,6 +231,12 @@ public class ConnectionManagerImpl implements ConnectionManager {
       // get the contact userstore nodes
       Content thisNode = getOrCreateConnectionNode(adminSession, thisAu, otherAu);
       Content otherNode = getOrCreateConnectionNode(adminSession, otherAu, thisAu);
+      if ( thisNode == null ) {
+        throw new ConnectionException(400,"Failed to connect users, no connection for "+thisUserId );
+      }
+      if ( otherNode == null ) {
+        throw new ConnectionException(400,"Failed to connect users, no connection for "+otherUserId );
+      }
 
       // check the current states
       ConnectionState thisState = getConnectionState(thisNode);
@@ -445,7 +451,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
    */
   protected void addArbitraryProperties(Content node, Map<String, Object> properties) {
     for (Entry<String, Object> param : properties.entrySet()) {
-        node.setProperty(param.getKey(), param.getValue());
+        if ( param != null && param.getKey() != null && param.getValue() != null ) {
+          node.setProperty(param.getKey(), param.getValue());
+        }
     }
   }
 
