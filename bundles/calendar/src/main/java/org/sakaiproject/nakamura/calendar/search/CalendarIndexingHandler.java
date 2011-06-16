@@ -45,6 +45,7 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
+import org.sakaiproject.nakamura.util.ISO8601Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,10 +108,20 @@ public class CalendarIndexingHandler implements IndexingHandler {
             // SAKAI_EVENT_SIGNUP_PARTICIPANT_RT needs to flatten out the data to search
             // on the profile of the user that signed up.
             Object value = content.getProperty(SAKAI_CALENDAR_PROFILE_LINK);
-            doc.addField(Authorizable.NAME_FIELD, value);
-          } else {
+            if ( value != null ) {
+              doc.addField(Authorizable.NAME_FIELD, value);
+            }
+          } else if ( content.hasProperty(SAKAI_CALENDAR_PROPERTY_PREFIX + "DTSTART")){
             Object value = content.getProperty(SAKAI_CALENDAR_PROPERTY_PREFIX + "DTSTART");
-            doc.addField("vcal-DTSTART", value);
+            if ( value != null ) {
+              try {
+                ISO8601Date d = new ISO8601Date(String.valueOf(value));
+                String dateString = d.toString();
+                doc.addField("vcal-DTSTART", dateString);
+              } catch ( IllegalArgumentException e ) {
+                LoggerFactory.getLogger(this.getClass()).warn("Invalid Date object: {}",e.getMessage(),e);
+              }
+            }
           }
           doc.addField(_DOC_SOURCE_OBJECT, content);
           documents.add(doc);
