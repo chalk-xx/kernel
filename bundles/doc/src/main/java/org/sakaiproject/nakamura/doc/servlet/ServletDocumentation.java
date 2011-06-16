@@ -135,8 +135,22 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
     } else {
       writer.append("<h3>Description</h3><p>");
       sendDoc(writer, serviceDocumetation.description());
-
-      writer.append("</p><h3>Bindings</h3><ul>");
+      writer.append("</p><h3>Versions</h3><ul>");
+      if ( serviceDocumetation.okForVersion() == null || serviceDocumetation.okForVersion().length == 0 ) {
+        writer.append("<li>Caution: This Documentation has not been reviewed for this release</li>");
+      } else {
+        boolean versionOk = false;
+        for ( String v : serviceDocumetation.okForVersion()) {
+          writer.append("<li>").append(v).append("</li>");
+          if ( ServiceDocumentation.VERSION.equals(v)) {
+            versionOk = true;
+          }
+        }
+        if ( ! versionOk ) {
+          writer.append("<li>Caution: This Documentation has not been reviewed for this release</li>");
+        }
+      }
+      writer.append("</ul><h3>Bindings</h3><ul>");
 
       for (ServiceBinding sb : serviceDocumetation.bindings()) {
         writer.append("<li><p>Type:");
@@ -314,6 +328,14 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
     }
     return false;
   }
+  public String[] getVersions() {
+    if (serviceDocumetation == null) {
+      return new String[]{};
+    } else {
+      return serviceDocumetation.okForVersion();
+    }
+  }
+
 
   /**
    * {@inheritDoc}
@@ -357,5 +379,15 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
     }
     return String.valueOf(service.getClass().getName());
   }
+
+  public boolean isVersionOk() {
+    for ( String version : getVersions()) {
+      if ( ServiceDocumentation.VERSION.equals(version)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 
 }

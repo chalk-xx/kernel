@@ -21,5 +21,7 @@ public interface DocumentationConstants {
   public static final CharSequence CSS_CLASS_PARAMETER_DESCRIPTION = "parameter-description";
   public static final CharSequence CSS_CLASS_PATH = "path";
   public static final CharSequence CSS_CLASS_SHORT_DESCRIPTION = "short-description";
+  public static final CharSequence CSS_CLASS_VERSIONS = "versions";
+  public static final CharSequence CSS_CLASS_VERSION_WARNING = "version-warning";
 
 }

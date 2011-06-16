@@ -21,6 +21,7 @@ import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.doc.DocumentationConstants;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.util.JcrUtils;
 
 import java.io.PrintWriter;
@@ -36,6 +37,7 @@ public class NodeDocumentation {
   public static final String PARAMETERS = "sakai:parameters";
   public static final String RESPONSE = "sakai:response";
   public static final String SHORT_DESCRIPTION = "sakai:shortDescription";
+  public static final String VERSIONS = "sakai:versions";
   private boolean documentationNode;
   private String title;
   private String[] description;
@@ -44,6 +46,8 @@ public class NodeDocumentation {
   private String path;
   private String shortDescription;
   private Node node;
+  private String[] versions;
+  private boolean versionOk;
 
   /**
    * Create a SearchDocumentation object from a search node.
@@ -63,6 +67,14 @@ public class NodeDocumentation {
       }
     }
     setPath(node.getPath());
+    if (node.hasProperty(VERSIONS)) {
+      Value[] vals = JcrUtils.getValues(node, VERSIONS);
+      String[] versions = new String[vals.length];
+      for (int i = 0; i < vals.length; i++) {
+        versions[i] = vals[i].getString();
+      }
+      setVersions(versions);
+    }
     if (node.hasProperty(TITLE)) {
       setTitle(node.getProperty(TITLE).getString());
     }
@@ -94,6 +106,7 @@ public class NodeDocumentation {
       setShortDescription(node.getProperty(SHORT_DESCRIPTION).getString());
     }
   }
+
 
   /**
    * @return the title
@@ -129,6 +142,31 @@ public class NodeDocumentation {
   @SuppressWarnings(justification = "Annotations fields are immutable", value = { "EI_EXPOSE_REP2" })
   public void setDescription(String[] description) {
     this.description = description;
+  }
+
+  /**
+   * @return the list of versions
+   */
+  public String[] getVersions() {
+    String[] r = null;
+    if (versions != null) {
+      r = new String[versions.length];
+      System.arraycopy(versions, 0, r, 0, versions.length);
+    }
+    return r;
+  }
+  public boolean isVersionOk() {
+    return versionOk;
+  }
+  private void setVersions(String[] versions) {
+    this.versions = versions;
+    versionOk = false;
+    for ( String version : versions) {
+      if ( ServiceDocumentation.VERSION.equals(version)) {
+        versionOk = true;
+        break;
+      }
+    }
   }
 
   /**

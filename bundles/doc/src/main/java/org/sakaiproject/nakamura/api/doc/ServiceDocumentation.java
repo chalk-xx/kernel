@@ -28,10 +28,19 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ServiceDocumentation {
+  String VERSION = "0.11"; // Please update this when the version changes.
+
   /**
    * @return the name of the service being documented.
    */
   String name() default "no name supplied";
+
+  /**
+   * @return a list of versions that the documentation has been checked for. A release of
+   *         a version should not be made if the documentation has not be checked for that
+   *         version. This annotation is checked and displayed in the documentation servlets.
+   */
+  String[] okForVersion() default "";
 
   /**
    * @return an array of documentation paragraphs. Each element in the array is placed in

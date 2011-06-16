@@ -2,10 +2,13 @@ package org.sakaiproject.nakamura.doc;
 
 import static org.sakaiproject.nakamura.api.doc.DocumentationConstants.CSS_CLASS_PATH;
 import static org.sakaiproject.nakamura.api.doc.DocumentationConstants.CSS_CLASS_SHORT_DESCRIPTION;
+import static org.sakaiproject.nakamura.api.doc.DocumentationConstants.CSS_CLASS_VERSIONS;
+import static org.sakaiproject.nakamura.api.doc.DocumentationConstants.CSS_CLASS_VERSION_WARNING;
 
 import org.sakaiproject.nakamura.api.doc.DocumentationConstants;
 
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -78,6 +81,13 @@ public class DocumentationWriter {
       writer.append("</span><p class=\"").append(CSS_CLASS_SHORT_DESCRIPTION).append(
           "\">");
       writer.append(doc.getShortDescription());
+      writer.append("</p><p class=\"").append(CSS_CLASS_VERSIONS).append(
+      "\">");
+      writer.append(Arrays.toString(doc.getVersions()));
+      if ( !doc.isVersionOk() ) {
+        writer.append("</p><p class=\"").append(CSS_CLASS_VERSION_WARNING).append(
+        "Caution: Documentation Has not been reviewed for this release\">");
+        }
       writer.append("</p></li>");
 
     }
