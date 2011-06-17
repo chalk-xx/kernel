@@ -609,7 +609,7 @@ KERN-1187
     <bundle>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.fileinstall</artifactId>
-      <version>1.2.0</version>
+      <version>3.1.10</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
