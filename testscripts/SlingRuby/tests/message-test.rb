@@ -29,7 +29,7 @@ class TC_MyMessageTest < Test::Unit::TestCase
     i = create_user("ian"+m)
     @s.switch_user(a)
     @log.info("Sending a message to Nico")
-    res = @mm.create("nico"+m, "internal")
+    res = @mm.create("nico"+m, "internal", "outbox")
     assert_equal("200", res.code, "Expected to create a message ")
 	message = JSON.parse(res.body)
 	@log.debug(message)
@@ -44,8 +44,8 @@ class TC_MyMessageTest < Test::Unit::TestCase
 	
 	
 	assert_not_nil(message,"No Response to a get on the message")
-	assert_equal("drafts",message['sakai:messagebox'],"Message Box Incorrect")
-	assert_equal("pending",message['sakai:sendstate'],"Message State Incorrect")
+	assert_equal("outbox",message['sakai:messagebox'],"Message Box Incorrect")
+	assert_equal("notified",message['sakai:sendstate'],"Message State Incorrect")
 	assert_equal("aaron"+m,message['sakai:from'],"Message From Incorrect")
 	assert_equal("nico"+m,message['sakai:to'],"Message To Incorrect")
 	assert_equal("true",message['sakai:read'],"Message Sould be marked read")
@@ -85,7 +85,7 @@ class TC_MyMessageTest < Test::Unit::TestCase
 	@log.info("Message from Nicos inbox after sending ")
 	@log.debug(res.body)
 	message = JSON.parse(res.body)
-	
+
 	assert_not_nil(message,"No Response to a get on the message");
 	assert_equal("inbox",message['sakai:messagebox'],"Message Box Incorrect")
 	assert_equal("notified",message['sakai:sendstate'],"Message State Incorrect")

@@ -19,14 +19,23 @@ package org.sakaiproject.nakamura.message;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_SENDSTATE;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.SAKAI_MESSAGE_RT;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NOTIFIED;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_PENDING;
 
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -102,11 +111,16 @@ public class LiteMessagingServiceImplTest {
     Map<String, Object> mapProperties = new HashMap<String, Object>();
     mapProperties.put("num", 10L);
     mapProperties.put("s", "foobar");
+    mapProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, SAKAI_MESSAGE_RT);
+    mapProperties.put(MessageConstants.PROP_SAKAI_SENDSTATE, MessageConstants.STATE_PENDING);
+    mapProperties.put(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_OUTBOX);
     String messageId = "foo";
     Content result = messagingServiceImpl.create(session, mapProperties, messageId);
     assertEquals("foo", result.getProperty(MessageConstants.PROP_SAKAI_ID));
     assertEquals(10L, StorageClientUtils.toLong(result.getProperty("num")));
     assertEquals("foobar", result.getProperty("s"));
+    assertEquals(STATE_NOTIFIED, result.getProperty(PROP_SAKAI_SENDSTATE));
+    verify(eventAdmin, times(2)).postEvent(Matchers.<Event>any());
   }
 
   @Test
@@ -121,5 +135,6 @@ public class LiteMessagingServiceImplTest {
     } catch (MessagingException e) {
       assertEquals("Unable to save message.", e.getMessage());
     }
+    verify(eventAdmin, times(0)).postEvent(Matchers.<Event>any());
   }
 }

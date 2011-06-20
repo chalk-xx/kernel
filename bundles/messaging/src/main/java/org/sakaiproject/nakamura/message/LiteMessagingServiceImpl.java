@@ -17,11 +17,24 @@
  */
 package org.sakaiproject.nakamura.message;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.BOX_OUTBOX;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.BOX_PENDING;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.EVENT_LOCATION;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PENDINGMESSAGE_EVENT;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_MESSAGEBOX;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_SENDSTATE;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.SAKAI_MESSAGE_RT;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NONE;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NOTIFIED;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_PENDING;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -38,6 +51,7 @@ import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.LiteMessagingService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ActivityUtils;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -47,6 +61,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -139,6 +155,7 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
         ContentManager contentManager = session.getContentManager();
         contentManager.update(msg);
         ActivityUtils.postActivity(eventAdmin, session.getUserId(), msg.getPath(), "content", "default", "message", "SENT_MESSAGE", null);
+        raisePendingMessageEvent(session, msg);
       } catch (StorageClientException e) {
         LOGGER.warn("StorageClientException on trying to save message."
             + e.getMessage());
@@ -169,6 +186,8 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
     String targetNodePath = PathUtils.toSimpleShardPath(targetStore, messageId, "");
     ContentManager contentManager = session.getContentManager();
     contentManager.copy(sourcePath, targetNodePath, true);
+    Content msg = contentManager.get(targetNodePath);
+    raisePendingMessageEvent(session, msg);
   }
 
   /**
@@ -244,6 +263,43 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
       LOGGER.error(e.getMessage(), e);
     }
     return false;
+  }
+
+  private void raisePendingMessageEvent(Session session, Content msg) throws StorageClientException, AccessDeniedException {
+    if (SAKAI_MESSAGE_RT.equals(msg.getProperty(SLING_RESOURCE_TYPE_PROPERTY)) &&
+            (!msg.hasProperty(PROP_SAKAI_MESSAGEBOX) ||
+                    (BOX_OUTBOX.equals(msg.getProperty(PROP_SAKAI_MESSAGEBOX))
+                            || BOX_PENDING.equals(msg.getProperty(PROP_SAKAI_MESSAGEBOX))))) {
+      String sendstate;
+      if (msg.hasProperty(PROP_SAKAI_SENDSTATE)) {
+        sendstate = (String) msg.getProperty(PROP_SAKAI_SENDSTATE);
+      } else {
+        sendstate = STATE_NONE;
+      }
+
+      if (STATE_NONE.equals(sendstate) || STATE_PENDING.equals(sendstate)) {
+
+        msg.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
+        session.getContentManager().update(msg);
+
+        Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
+        // WARNING
+        // We can't pass in the node, because the session might expire before the event gets handled
+        // This does mean that the listener will have to get the node each time, and probably create a new session for each message
+        // This might be heavy on performance.
+        messageDict.put(EVENT_LOCATION, msg.getPath());
+        messageDict.put(UserConstants.EVENT_PROP_USERID, session.getUserId());
+        LOGGER.debug("Launched event for message: {} ", msg.getPath());
+        Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT, messageDict);
+        // KERN-790: Initiate a synchronous event.
+        try {
+          eventAdmin.postEvent(pendingMessageEvent);
+        } catch (Exception e) {
+          LOGGER.warn("Failed to post message dispatch event, cause {} ", e.getMessage(), e);
+        }
+      }
+
+    }
   }
 
 }
