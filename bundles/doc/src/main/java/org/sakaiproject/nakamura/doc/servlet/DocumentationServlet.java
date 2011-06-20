@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -123,6 +124,11 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
         writer.append(k.getName());
         writer.append("</a><p>");
         writer.append(k.getShortDescription());
+        writer.append("</p><p>");
+        writer.append(Arrays.toString(k.getVersions()));
+        if ( !k.isVersionOk() ) {
+          writer.append("Caution: Documentation has not be reviewed for this release");
+        }
         writer.append("</p></li>");
       }
     }
