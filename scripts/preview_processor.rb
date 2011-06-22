@@ -70,7 +70,7 @@ end
 # 1 based index! (necessity for the docpreviewer 3akai-ux widget), e.g: id.pagex-large.jpg
 def post_file_to_server id, content, size, page_count
   @s.execute_file_post @s.url_for("system/pool/createfile.#{id}.page#{page_count}-#{size}"), "thumbnail", "thumbnail", content, "image/jpeg"
-  log "Uploaded image to curl #{@s.url_for("p/#{id}.page#{page_count}-#{size}.jpg")}"
+  log "Uploaded image to curl #{@s.url_for("p/#{id}/page#{page_count}.#{size}.jpg")}"
 end
 
 @loggers = []
