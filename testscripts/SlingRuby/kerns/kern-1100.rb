@@ -26,7 +26,8 @@ class TC_Kern1100Test < Test::Unit::TestCase
     res = @s.execute_file_post(@s.url_for("/system/pool/createfile"), "Test #{m}", "Test #{m}", "This is some random content: #{m}.", "text/plain")
     assert_equal("201", res.code, "Expected to be able to create pooled content")
 	uploadresult = JSON.parse(res.body)
-	contentid = uploadresult["Test #{m}"]
+	contentresult = uploadresult["Test #{m}"]
+	contentid = contentresult["poolId"]
 	assert_not_nil(contentid, "Should have uploaded ID")
 	contentpath = @s.url_for("/p/#{contentid}")
 
@@ -59,7 +60,8 @@ class TC_Kern1100Test < Test::Unit::TestCase
     res = @s.execute_file_post(@s.url_for("/system/pool/createfile"), "Test #{m}", "Test #{m}", "This is some random content: #{m}.", "text/plain")
     assert_equal("201", res.code, "Expected to be able to create pooled content")
 	uploadresult = JSON.parse(res.body)
-	contentid = uploadresult["Test #{m}"]
+	contentresult = uploadresult["Test #{m}"]
+	contentid = contentresult["poolId"]
 	assert_not_nil(contentid, "Should have uploaded ID")
 	contentpath = @s.url_for("/p/#{contentid}")
 
@@ -83,11 +85,13 @@ class TC_Kern1100Test < Test::Unit::TestCase
     res = @s.execute_post(@s.url_for("/p/#{contentid}.members.html"), {
       ":viewer" => nonmember.name
     })
-    assert_not_equal("200", res.code, "Non-viewer non-manager should not be able to add pooled content viewer")
+    # the semantics of this assertion flipped 180 degrees as of KERN-1754
+    assert_equal("200", res.code, "Non-viewer non-manager should now be able to add pooled content viewer")
     @s.switch_user(User.admin_user())
     res = @s.execute_get("#{contentpath}.members.json")
     members = JSON.parse(res.body)
-    assert_nil(members["viewers"].find{|e| e["userid"] == nonmember.name}, "Non-viewer non-manager should not have added self")
+    # again, this behavior changed as of KERN-1754
+    assert_not_nil(members["viewers"].find{|e| e["userid"] == nonmember.name}, "Non-viewer non-manager should have added self")
   end
 
   def test_do_not_accidently_remove_manager_read_access
@@ -98,7 +102,8 @@ class TC_Kern1100Test < Test::Unit::TestCase
     res = @s.execute_file_post(@s.url_for("/system/pool/createfile"), "Test #{m}", "Test #{m}", "This is some random content: #{m}.", "text/plain")
     assert_equal("201", res.code, "Expected to be able to create pooled content")
 	uploadresult = JSON.parse(res.body)
-	contentid = uploadresult["Test #{m}"]
+	contentresult = uploadresult["Test #{m}"]
+	contentid = contentresult["poolId"]
 	assert_not_nil(contentid, "Should have uploaded ID")
 	contentpath = @s.url_for("/p/#{contentid}")
 
