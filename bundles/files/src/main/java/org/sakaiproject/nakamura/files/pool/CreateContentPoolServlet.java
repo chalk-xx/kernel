@@ -113,6 +113,7 @@ import javax.servlet.http.HttpServletResponse;
         ))
 public class CreateContentPoolServlet extends SlingAllMethodsServlet {
 
+  private static final String ALTERNATIVE_STREAM_SELECTOR_SEPARATOR = "-";
   @Reference
   protected ClusterTrackingService clusterTrackingService;
   
@@ -325,14 +326,20 @@ public class CreateContentPoolServlet extends SlingAllMethodsServlet {
       accessControlManager.setAcl(Security.ZONE_CONTENT, poolId, modifications.toArray(new AclModification[modifications.size()]));
 
       ActivityUtils.postActivity(eventAdmin, au.getId(), poolId, "Content", "default", "pooled content", "CREATED_FILE", null);
-    } else {
-      String[] alternativeStreamParts = alternativeStream.split("-");
+    } else if (alternativeStream != null && alternativeStream.split(ALTERNATIVE_STREAM_SELECTOR_SEPARATOR).length > 1) {
+      String[] alternativeStreamParts = alternativeStream.split(ALTERNATIVE_STREAM_SELECTOR_SEPARATOR);
       String pageId = alternativeStreamParts[0];
       String previewSize = alternativeStreamParts[1];
       Content alternativeContent = new Content(poolId+"/"+pageId,
         ImmutableMap.of(Content.MIMETYPE_FIELD, (Object)contentType, SLING_RESOURCE_TYPE_PROPERTY, POOLED_CONTENT_RT));
       contentManager.update(alternativeContent);
       contentManager.writeBody(alternativeContent.getPath(), value.getInputStream(), previewSize);
+      ActivityUtils.postActivity(eventAdmin, au.getId(), poolId, "Content", "default", "pooled content", "UPDATED_FILE", null);
+    } else {
+      Content content = contentManager.get(poolId);
+      content.setProperty(StorageClientUtils.getAltField(Content.MIMETYPE_FIELD, alternativeStream), contentType);
+      contentManager.update(content);
+      contentManager.writeBody(poolId, value.getInputStream(),alternativeStream);
       ActivityUtils.postActivity(eventAdmin, au.getId(), poolId, "Content", "default", "pooled content", "UPDATED_FILE", null);
     }
     return contentManager.get(poolId);
