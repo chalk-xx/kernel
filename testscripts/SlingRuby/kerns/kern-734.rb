@@ -70,7 +70,7 @@ class TC_Kern734Test < Test::Unit::TestCase
 	@log.debug(res.body)
         
 	# check the node really was last modified by the correct user.
-	assert_equal(testUser.name, props["lastModifiedBy"])
+	assert_equal(testUser.name, props["_lastModifiedBy"])
 	
   end
 
