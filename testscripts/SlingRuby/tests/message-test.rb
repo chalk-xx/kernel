@@ -45,10 +45,10 @@ class TC_MyMessageTest < Test::Unit::TestCase
 	
 	assert_not_nil(message,"No Response to a get on the message")
 	assert_equal("outbox",message['sakai:messagebox'],"Message Box Incorrect")
-	assert_equal("notified",message['sakai:sendstate'],"Message State Incorrect")
+	assert_equal("pending",message['sakai:sendstate'],"Message State Incorrect")
 	assert_equal("aaron"+m,message['sakai:from'],"Message From Incorrect")
 	assert_equal("nico"+m,message['sakai:to'],"Message To Incorrect")
-	assert_equal("true",message['sakai:read'],"Message Sould be marked read")
+	assert_equal(true,message['sakai:read'],"Message Sould be marked read")
 	assert_equal("sakai/message",message['sling:resourceType'],"Resource Type not correct")
 
 
@@ -66,10 +66,10 @@ class TC_MyMessageTest < Test::Unit::TestCase
 	
 	assert_not_nil(message,"No Response to a get on the message");
 	assert_equal("outbox",message['sakai:messagebox'],"Message Box Incorrect")
-	assert_equal("notified",message['sakai:sendstate'],"Message State Incorrect")
+	assert_equal("pending",message['sakai:sendstate'],"Message State Incorrect")
 	assert_equal("aaron"+m,message['sakai:from'],"Message From Incorrect")
 	assert_equal("nico"+m,message['sakai:to'],"Message To Incorrect")
-	assert_equal("true",message['sakai:read'],"Message Sould be marked read")
+	assert_equal(true,message['sakai:read'],"Message Sould be marked read")
 	assert_equal("sakai/message",message['sling:resourceType'],"Resource Type not correct");
 	res = @mm.list_outbox()
 	sleep(2)

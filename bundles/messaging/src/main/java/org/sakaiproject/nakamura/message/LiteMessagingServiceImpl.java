@@ -128,14 +128,8 @@ public class LiteMessagingServiceImpl implements LiteMessagingService {
     }
     String messagePath = messagePathBase + box + "/" + messageId;
     Content msg = new Content(messagePath, null);
-    for (Entry<String, Object> e : mapProperties.entrySet()) {
-      String val = e.getValue().toString();
-      try {
-        Long l = Long.valueOf(val);
-        msg.setProperty(e.getKey(), l);
-      } catch (NumberFormatException ex) {
-        msg.setProperty(e.getKey(), val);
-      }
+    for (Entry<String, Object> entry : mapProperties.entrySet()) {
+      msg.setProperty(entry.getKey(), entry.getValue());
     }
     // Add the id for this message.
     msg.setProperty(MessageConstants.PROP_SAKAI_ID, messageId);
