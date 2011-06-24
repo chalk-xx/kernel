@@ -91,6 +91,8 @@ public class DocProxyUtils {
     write.value(meta.getContentLength());
     write.key("uri");
     write.value(meta.getUri());
+    write.key("repository-type");
+    write.value(meta.getType());
     write.key("properties");
     ValueMap map = new ValueMapDecorator(meta.getProperties());
     write.valueMap(map);

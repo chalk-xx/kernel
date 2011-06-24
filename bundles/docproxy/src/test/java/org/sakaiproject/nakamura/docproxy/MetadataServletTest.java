@@ -76,13 +76,16 @@ public class MetadataServletTest extends AbstractDocProxyServlet {
     PrintWriter printWriter = new PrintWriter(baos);
 
     // Session
-    expect(session.getItem("/docproxy/disk/README"))
-        .andThrow(new PathNotFoundException());
-    expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
+    // changes reflect change in servlet
+    // READMEproxy is the proxy node for README
+    expect(session.getItem("/docproxy/disk/READMEproxy"))
+	//      .andThrow(new PathNotFoundException());
+	.andReturn(documentNode);
+   expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
 
     // Request
-    expect(request.getRequestURI()).andReturn("/docproxy/disk/README.metadata.json");
+    expect(request.getRequestURI()).andReturn("/docproxy/disk/READMEproxy.metadata.json");
     expect(request.getResourceResolver()).andReturn(resolver);
     response.setContentType("application/json");
     EasyMock.expectLastCall();
@@ -116,11 +119,13 @@ public class MetadataServletTest extends AbstractDocProxyServlet {
     properties.put("alfa", new String[] { "beta" });
 
     // Session
-    expect(session.getItem("/docproxy/disk/README"))
-        .andThrow(new PathNotFoundException());
-    expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
+    // changes reflect change in servlet
+    //    expect(session.getItem("/docproxy/disk/README"))
+    //   .andThrow(new PathNotFoundException());
+    expect(session.getItem("/docproxy/disk/READMEproxy")).andReturn(documentNode);
+    //    expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
-    expect(request.getRequestURI()).andReturn("/docproxy/disk/README.metadata.json");
+    expect(request.getRequestURI()).andReturn("/docproxy/disk/READMEproxy.metadata.json");
     expect(request.getResourceResolver()).andReturn(resolver);
     expect(request.getParameterMap()).andReturn(properties);
     expect(request.getRemoteUser()).andReturn("admin");
@@ -128,6 +133,7 @@ public class MetadataServletTest extends AbstractDocProxyServlet {
     replay();
     servlet.doPost(request, response);
 
+    // we have already resolved README as the EXTERNAL_ID of the READMEproxy node
     ExternalDocumentResultMetadata meta = diskProcessor.getDocumentMetadata(proxyNode,
         "README");
     JSONArray arr = (JSONArray) meta.getProperties().get("postTest");
@@ -146,11 +152,12 @@ public class MetadataServletTest extends AbstractDocProxyServlet {
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
 
     // Session
-    expect(session.getItem("/docproxy/disk/README"))
-        .andThrow(new PathNotFoundException());
+    expect(session.getItem("/docproxy/disk/READMEproxy"))
+	//        .andThrow(new PathNotFoundException());
+	.andReturn(documentNode);
     expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
-    expect(request.getRequestURI()).andReturn("/docproxy/disk/README.metadata.json");
+    expect(request.getRequestURI()).andReturn("/docproxy/disk/READMEproxy.metadata.json");
     expect(request.getResourceResolver()).andReturn(resolver);
 
     expect(request.getRemoteUser()).andReturn("anonymous");

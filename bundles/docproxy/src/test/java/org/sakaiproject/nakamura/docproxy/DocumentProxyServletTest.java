@@ -23,6 +23,8 @@ import static org.junit.Assert.assertEquals;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_LOCATION;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_PROCESSOR;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.EXTERNAL_ID;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -77,14 +79,15 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
 
     // Session
-    expect(session.getItem("/docproxy/disk/README"))
-        .andThrow(new PathNotFoundException());
-    expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
+    //    expect(session.getItem("/docproxy/disk/README"))
+    //        .andThrow(new PathNotFoundException());
+    expect(session.getItem("/docproxy/disk/READMEproxy")).andReturn(documentNode);
+    //    expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(session.getUserID()).andReturn("zach");
 
     // Request
-    expect(request.getRequestURI()).andReturn("/docproxy/disk/README");
+    expect(request.getRequestURI()).andReturn("/docproxy/disk/READMEproxy");
     expect(request.getResourceResolver()).andReturn(resolver);
 
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -113,16 +116,13 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
 
-    Node documentNode = new MockNode("/docproxy/disk");
-    documentNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY,
-        RT_EXTERNAL_REPOSITORY);
-    documentNode.setProperty(REPOSITORY_PROCESSOR, "disk");
+
     String readmePath = getClass().getClassLoader().getResource("README").getPath();
     currPath = readmePath.substring(0, readmePath.lastIndexOf("/"));
-    documentNode.setProperty(REPOSITORY_LOCATION, currPath);
 
     // Session
-    expect(session.getItem("/docproxy/disk/README")).andReturn(documentNode);
+    // change reflects change in servlet. READMEproxy proxies README
+    expect(session.getItem("/docproxy/disk/READMEproxy")).andReturn(documentNode);
     expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
 /*
     --- removed to match changed servlet
@@ -133,7 +133,8 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     expect(session.getUserID()).andReturn("zach");
 
     // Request
-    expect(request.getRequestURI()).andReturn("/docproxy/disk/README");
+    // change reflects change in servlet
+    expect(request.getRequestURI()).andReturn("/docproxy/disk/READMEproxy");
     expect(request.getResourceResolver()).andReturn(resolver);
 
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -161,17 +162,21 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
 
-    Node node = new MockNode("/docproxy/disk");
-    node.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY);
+    // test changes reflect servlet changes
+    // make a new test document proxy node
+    Node  node = new MockNode("/docproxy/disk/TESTproxy");
+    node.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY_DOCUMENT);
+    // set a bad repository type
     node.setProperty(REPOSITORY_PROCESSOR, "foo");
     // Session
-    expect(session.getItem("/docproxy/disk/README"))
-        .andThrow(new PathNotFoundException());
-    expect(session.getItem("/docproxy/disk")).andReturn(node);
+    //    expect(session.getItem("/docproxy/disk/README"))
+    //  .andThrow(new PathNotFoundException());
+    expect(session.getItem("/docproxy/disk/TESTproxy")).andReturn(node);
+    // expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
 
     // Request
-    expect(request.getRequestURI()).andReturn("/docproxy/disk/README");
+    expect(request.getRequestURI()).andReturn("/docproxy/disk/TESTproxy");
     expect(request.getResourceResolver()).andReturn(resolver);
 
     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown repository.");
