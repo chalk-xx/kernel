@@ -26,7 +26,7 @@ class TC_Kern926Test < Test::Unit::TestCase
   end
 
   def test_manager_users
-    m = Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '')
 
     # Create some users
     creator = create_user("creator-#{m}")
@@ -91,7 +91,7 @@ class TC_Kern926Test < Test::Unit::TestCase
 
 
   def test_search_me
-    m = Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '')
 
     # Create some users
     owner = create_user("creator2-#{m}")
@@ -107,7 +107,8 @@ class TC_Kern926Test < Test::Unit::TestCase
     url = @fm.url_for_pooled_file(id)
 
     # Search the files that I manage .. should be 1
-    wait_for_indexer()
+    # wait_for_indexer()
+    sleep(5)
     res = @fm.search_my_managed("*")
     files = JSON.parse(res.body)
     assert_equal(1, files["total"], "Expected 1 file.")
@@ -119,7 +120,8 @@ class TC_Kern926Test < Test::Unit::TestCase
 
     @s.switch_user(viewer)
     # Search the files that I can view .. should be 1
-    wait_for_indexer()
+    # wait_for_indexer()
+    sleep(5)
     res = @fm.search_my_viewed("*")
     files = JSON.parse(res.body)
     assert_equal(1, files["total"], "Expected 1 file.")
@@ -161,7 +163,8 @@ class TC_Kern926Test < Test::Unit::TestCase
     assert_equal(principals.include?(group.name),true)
     @log.info("Got User principals for #{groupuser.name} as #{principals} which contains #{group.name}")
 
-    wait_for_indexer()
+    # wait_for_indexer()
+    sleep(5)
     res = @fm.search_my_viewed("*")
     files = JSON.parse(res.body)
     assert_equal(1, files["total"], "Expected 1 file. #{res.body}")

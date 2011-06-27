@@ -13,14 +13,14 @@ class TC_UserManagerTest < Test::Unit::TestCase
   include SlingTest
 
   def test_create_user
-    m = Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '')
     u = create_user("testuser"+m)
     details = @um.get_user_props(u.name)
     assert_equal("testuser"+m, details["name"], "Expected username to match")
   end
  
   def test_create_group
-    m = Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '')
     g = create_group("g-testgroup"+m)
     assert_not_nil(g,"Failed to create a group")
     assert_not_nil(g.name,"Failed to create a group, no name")
@@ -29,7 +29,7 @@ class TC_UserManagerTest < Test::Unit::TestCase
   end
  
   def test_create_group_non_admin_user
-    m = Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '')
     u = create_user("testuser"+m)
     assert_not_nil(u,"Failed to create a user")
     @s.switch_user(u)
@@ -41,7 +41,7 @@ class TC_UserManagerTest < Test::Unit::TestCase
   end
 
   def test_update_group
-    m = Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '')
     g = create_group("g-testgroup"+m)
     member = create_user("memberofgroup"+m)
     assert_not_nil(g,"Failed to create a group")
@@ -68,7 +68,7 @@ class TC_UserManagerTest < Test::Unit::TestCase
  end
  
   def test_group_deletion
-    m = Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '')
     g = @um.create_group("g-testgroup"+m)
     assert_not_nil(g,"Failed to create a group")
     assert_not_nil(g.name,"Failed to create a group, no name")
@@ -80,7 +80,7 @@ class TC_UserManagerTest < Test::Unit::TestCase
   end
   
   def test_create_email_username
-    m = Time.now.to_i.to_s
+    m = Time.now.to_f.to_s.gsub('.', '')
     u = create_user("testuser@gmail.com"+m)
   details = @um.get_user_props(u.name)
     assert_equal("testuser@gmail.com"+m, details["name"], "Expected username to match")

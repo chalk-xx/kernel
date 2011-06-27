@@ -24,15 +24,16 @@ class TC_MyFileTest_797 < Test::Unit::TestCase
   def test_canModify
     m = Time.now.to_f.to_s.gsub('.', '')
     @siteid = "creator#{m}";
-    creator = create_user("@siteid")
+    creator = create_user("#{@siteid}")
 
     # Upload a file to the user's public space.
     @s.switch_user(creator)
     resp = @s.execute_file_post(@s.url_for("/system/pool/createfile"), "alfa", "alfa", "This is some random content: alfaalfa.", "text/plain")
     assert_equal(201, resp.code.to_i(), "Expected to be able to upload a file.")
     uploadresult = JSON.parse(resp.body)
-    poolId = uploadresult['alfa']
-    assert_not_nil(poolId)    
+    alfa = uploadresult['alfa']
+    assert_not_nil(alfa) 
+    poolId = alfa['poolId']   
     
     # Check canModify on uploaded file
 
@@ -81,12 +82,15 @@ class TC_MyFileTest_797 < Test::Unit::TestCase
 
     # verbose output
     @s.switch_user(SlingUsers::User.admin_user())
-    url = "/.canModify.json?verbose=true";
+    # this used to use / (the root node) as the path to check
+    # but now that we use sparsemapcontent, / resolves to sparse content
+    url = "/tags.canModify.json?verbose=true";
     resp = @s.execute_get(@s.url_for(url));
     assert_equal(200, resp.code.to_i, "Should be OK");
     json = JSON.parse(resp.body)
     # admin can modify /
-    assert_equal(true, json["/"])
+    @log.info(json)
+    assert_equal(true, json["/tags"])
     assert_not_nil(json["privileges"])
     assert_equal(true, json["privileges"]["jcr:all"])
     

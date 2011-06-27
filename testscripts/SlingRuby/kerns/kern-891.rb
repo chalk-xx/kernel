@@ -33,15 +33,17 @@ class TC_MyFileTest_891 < Test::Unit::TestCase
     res = @s.execute_file_post(@s.url_for("/system/pool/createfile"), "alfa", "alfa", "This is some random content: alfaalfa.", "text/plain")
     assert_equal(201, res.code.to_i(), "Expected to be able to upload a file.")
 	uploadresult = JSON.parse(res.body)
-	alphaID = uploadresult['alfa']
-	assert_not_nil(alphaID)
+	alfa = uploadresult['alfa']
+	assert_not_nil(alfa)
+	alphaID = alfa['poolId']
 
     res = @s.execute_file_post(@s.url_for("/system/pool/createfile"), "beta", "beta", "This is some random content: betabeta.", "text/plain")
     # This will return modified..
     assert_equal(201, res.code.to_i(), "Expected to be able to upload a file.")
 	uploadresult = JSON.parse(res.body)
-	betaID = uploadresult['beta']
-    assert_not_nil(alphaID)
+	beta = uploadresult['beta']
+    assert_not_nil(beta)
+    betaID = beta['poolId']
 
     # Create a tag.
     res = @ff.createTag("foobar", "#{publicSimon}/tags/footag")
