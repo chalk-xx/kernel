@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.message.search;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
@@ -82,7 +83,8 @@ public class MessageSearchResultProcessorTest {
     when(userManager.getSession()).thenReturn(session);
     when(resolver.adaptTo(javax.jcr.Session.class)).thenReturn(jcrSession);
 
-    LiteInternalMessageHandler handler = new LiteInternalMessageHandler();
+    LiteInternalMessageHandler handler = mock(LiteInternalMessageHandler.class);
+    when(handler.getType()).thenReturn("internal");
     proc.bindWriters(handler);
   }
 
@@ -92,7 +94,7 @@ public class MessageSearchResultProcessorTest {
   }
 
   @Test
-  public void testProc() throws Exception {
+  public void testProcessing() throws Exception {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Writer w = new PrintWriter(baos);
     ExtendedJSONWriter write = new ExtendedJSONWriter(w);
@@ -112,6 +114,48 @@ public class MessageSearchResultProcessorTest {
         pathToStore);
 
     Content resultNode = createDummyMessage("msgid");
+    resultNode.setProperty(MessageConstants.PROP_SAKAI_FROM, "sender");
+    resultNode.setProperty(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE, previousId);
+    proc.writeContent(request, write, resultNode);
+    w.flush();
+
+    String s = baos.toString("UTF-8");
+    JSONObject o = new JSONObject(s);
+
+    assertEquals(o.getString("id"), "msgid");
+    assertEquals(o.getString(MessageConstants.PROP_SAKAI_MESSAGEBOX),
+        MessageConstants.BOX_INBOX);
+    assertEquals(2, o.getJSONArray("foo").length());
+
+    assertEquals(previousId, o.getString(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE));
+
+    JSONObject prev = o.getJSONObject("previousMessage");
+    assertEquals(prev.getString("id"), previousId);
+  }
+
+
+  @Test
+  public void testProcessingNumericUsernames() throws Exception {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Writer w = new PrintWriter(baos);
+    ExtendedJSONWriter write = new ExtendedJSONWriter(w);
+
+    // We handle a previous msg.
+    String previousId = "prevId";
+    Long userID = 12345L;
+    String pathToStore = "/path/to/store/";
+    String pathToPrevMsg = "/path/to/store/outbox/" + previousId;
+    Content previousMsg = createDummyMessage(previousId);
+    when(request.getRemoteUser()).thenReturn(userID.toString());
+    when(session.getUserId()).thenReturn(userID.toString());
+    when(session.getContentManager()).thenReturn(contentManager);
+    when(contentManager.exists(pathToPrevMsg)).thenReturn(Boolean.TRUE);
+    when(contentManager.get(pathToPrevMsg)).thenReturn(previousMsg);
+    when(messagingService.getFullPathToStore(userID.toString(), session)).thenReturn(
+        pathToStore);
+
+    Content resultNode = createDummyMessage("msgid");
+    resultNode.setProperty(MessageConstants.PROP_SAKAI_FROM, 5678L);
     resultNode.setProperty(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE, previousId);
     proc.writeContent(request, write, resultNode);
     w.flush();

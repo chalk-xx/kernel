@@ -100,7 +100,11 @@ public class ModifyOperation extends AbstractSparseCreateOperation {
         if (from.equals(contentPath)) {
           contentPathHandled = true;
         }
-        contentManager.delete(from);
+        Content content = contentManager.get(from);
+        if (content != null) {
+          content.removeProperty(property.getName());
+          contentManager.update(content);
+        }
         changes.add(Modification.onDeleted(property.getPath()));
       }
     }

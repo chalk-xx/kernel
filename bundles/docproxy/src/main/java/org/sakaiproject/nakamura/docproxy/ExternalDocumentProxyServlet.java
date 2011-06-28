@@ -93,28 +93,19 @@ public class ExternalDocumentProxyServlet extends SlingSafeMethodsServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+
     try {
       String url = request.getRequestURI();
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node node = JcrUtils.getFirstExistingNode(session, url);
 
-/*
-      --- this block removed because it yields an unusable path - zathomas
-
-      if (DocProxyUtils.isExternalRepositoryDocument(node)) {
-        // This document should reference the config node.
-        String uuid = node.getProperty(REPOSITORY_REF).getString();
-        node = session.getNodeByIdentifier(uuid);
-      }
-
-*/
-      if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
+      if (!DocProxyUtils.isExternalRepositoryDocument(node)) {
         // This must be something else, ignore it..
         response.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested resource does not exist here: " + url);
         return;
       }
 
-      // This is a repository node.
+      // This is a repository document node.
       // Get the processor and output meta data.
       String processorType = node.getProperty(DocProxyConstants.REPOSITORY_PROCESSOR)
           .getString();
@@ -124,7 +115,7 @@ public class ExternalDocumentProxyServlet extends SlingSafeMethodsServlet {
         return;
       }
 
-      String path = url.substring(node.getPath().length());
+      String path = node.getProperty(DocProxyConstants.EXTERNAL_ID).getValue().getString();
       try {
         // Get actual content.
         ExternalDocumentResult result = processor.getDocument(node, path);
@@ -146,7 +137,6 @@ public class ExternalDocumentProxyServlet extends SlingSafeMethodsServlet {
           "Failed to retrieve document's content");
       return;
     }
-
   }
 
   protected void activate(ComponentContext context) {

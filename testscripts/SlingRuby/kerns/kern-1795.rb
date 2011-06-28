@@ -78,7 +78,10 @@ class TC_Kern1795Test < Test::Unit::TestCase
     
     # test uploading a file
     res = @fm.upload_pooled_file('random.txt', 'This is some random content that should be stored in the pooled content area.', 'text/plain')
-    wait_for_indexer
+    # since wait_for_indexer creates pool content to use as a monitor
+    # it creates side effects that cause this test to fail
+    # wait_for_indexer
+    sleep(5)
     assert_equal("201", res.code, "should be able to upload content")
     file = JSON.parse(res.body)
     id = file['random.txt']['poolId']
@@ -93,7 +96,8 @@ class TC_Kern1795Test < Test::Unit::TestCase
     # test deleting the file    
     res = @s.execute_post(url, {":operation" => "delete"})
     assert_equal(200, res.code.to_i, "Expected to be able to delete the file.")
-    wait_for_indexer #this was a solr delete
+    #wait_for_indexer #this was a solr delete
+    sleep(5)
     res = @s.execute_get(@s.url_for("/system/me.json"))
     @log.info("/system/me response #{res.inspect}")
     assert_equal("200", res.code, "Me servlet should return successfully")

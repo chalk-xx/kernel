@@ -105,7 +105,7 @@ class TC_Kern1372Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
     assert_equal(1, relateds.size)
-    assert_equal(otherfileids[0], relateds[0]["jcr:name"])
+    assert_equal(otherfileids[0], relateds[0]["_path"])
     res = @s.execute_get("#{fileurl}.relatedpublic.json")
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
@@ -134,13 +134,13 @@ class TC_Kern1372Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
     assert_equal(2, relateds.size)
-    assert_equal(otherfileids[1], relateds[0]["jcr:name"])
-    assert_equal(otherfileids[0], relateds[1]["jcr:name"])
+    assert_equal(otherfileids[1], relateds[0]["_path"])
+    assert_equal(otherfileids[0], relateds[1]["_path"])
     res = @s.execute_get("#{fileurl}.relatedpublic.json")
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
     assert_equal(1, relateds.size)
-    assert_equal(otherfileids[1], relateds[0]["jcr:name"])
+    assert_equal(otherfileids[1], relateds[0]["_path"])
   end
 
   def test_related_by_directory
@@ -183,8 +183,8 @@ class TC_Kern1372Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Related feed not working")
     relateds = JSON.parse(res.body)
     assert_equal(2, relateds.size)
-    assert_equal(otherfileids[1], relateds[0]["jcr:name"])
-    assert_equal(otherfileids[0], relateds[1]["jcr:name"])
+    assert_equal(otherfileids[1], relateds[0]["_path"])
+    assert_equal(otherfileids[0], relateds[1]["_path"])
   end
 
 

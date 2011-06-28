@@ -104,9 +104,9 @@ class TC_Kern538Test < Test::Unit::TestCase
     assert_not_nil(jsonRes["foo"]["bar1"], "Expected to find the Bar1 Element" )
     assert_not_nil(jsonRes["foo"]["bar2"], "Expected to find the Bar2 Element" )
     assert_equal(jsonRes["foo"]["title"], "Foo", "Expected to get 'Foo' as title.")
-    assert_equal(jsonRes["foo"]["bar1"]["unit"], "1", "Expexted to get a childnode 'bar1' with property unit of '1'.")
-    assert_equal(jsonRes["foo"]["bar1"]["title"], "First bar", "Expexted to get a childnode 'bar1' with property title of 'First bar'.")
-    assert_equal(jsonRes["foo"]["bar2"]["unit"], "2.5", "Expexted to get a childnode 'bar2' with property unit of '2.5'.")
+    assert_equal(jsonRes["foo"]["bar1"]["unit"], 1, "Expected to get a childnode 'bar1' with property unit of '1'.")
+    assert_equal(jsonRes["foo"]["bar1"]["title"], "First bar", "Expected to get a childnode 'bar1' with property title of 'First bar'.")
+    assert_equal(jsonRes["foo"]["bar2"]["unit"], 2.5, "Expected to get a childnode 'bar2' with property unit of '2.5'.")
     assert_equal(jsonRes["foo"]["bar2"]["title"], "Second bar", "Expexted to get a childnode 'bar2' with property title of 'Second bar'.")
   end
 

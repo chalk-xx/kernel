@@ -253,11 +253,13 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
     // Only the direct members are required.
     String[] members = group.getMembers();
     List<String> managers = Arrays.asList(StorageClientUtils.nonNullStringArray((String[]) group.getProperty(UserConstants.PROP_GROUP_MANAGERS)));
-    for ( String membername : members) {
-      Authorizable member = authorizableManager.findAuthorizable(membername);
+    for ( String memberName : members) {
+      Authorizable member = authorizableManager.findAuthorizable(memberName);
       // filter this out if it is a manager member
-      String name = getName(member);
-      map.put(name, member);
+      if (!managers.contains(memberName)) {
+        String name = getName(member);
+        map.put(name, member);
+      }
     }
     return map;
   }

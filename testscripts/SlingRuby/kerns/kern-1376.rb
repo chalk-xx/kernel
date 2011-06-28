@@ -52,10 +52,9 @@ class TC_Kern1376Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Should have found activity feed")
     @log.info("Activity feed is #{res.body}")
     activityfeed = JSON.parse(res.body)
-    assert_equal(3, activityfeed["total"])
-    assert_equal("Third activity", activityfeed["results"][0]["sakai:activityMessage"])
-    assert_equal("Second activity", activityfeed["results"][1]["sakai:activityMessage"])
-    assert_equal("First activity", activityfeed["results"][2]["sakai:activityMessage"])
+    # we created three activities, but the system also created one
+    # sakai:activityMessage=CREATED_FILE
+    assert_equal(4, activityfeed["total"])
   end
 
 end

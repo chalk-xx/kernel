@@ -56,7 +56,7 @@ import javax.servlet.http.HttpServletResponse;
   bindings = {
     @ServiceBinding(
       type = BindingType.TYPE,
-      bindings = { "sakai/external-repository" },
+      bindings = { "sakai/external-repository-document" },
       selectors = {
         @ServiceSelector(name = "metadata", description = "Binds to the metadata selector.")
       }
@@ -86,7 +86,7 @@ import javax.servlet.http.HttpServletResponse;
   }
 )
 @SlingServlet(selectors = "metadata", extensions = "json", resourceTypes = {
-    "sling/nonexisting","sakai/external-repository" }, generateComponent = true, generateService = true, methods = {
+    "sling/nonexisting","sakai/external-repository-document" }, generateComponent = true, generateService = true, methods = {
     "GET", "POST" })
 public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
 
@@ -114,22 +114,13 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node node = JcrUtils.getFirstExistingNode(session, url);
 
-/*
-      --- this block removed because it yields an unusable path - zathomas
-
-      if (DocProxyUtils.isExternalRepositoryDocument(node)) {
-        // This document should reference the config node.
-        String uuid = node.getProperty(REPOSITORY_REF).getString();
-        node = session.getNodeByIdentifier(uuid);
-      }
-*/
-      if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
+      if (!DocProxyUtils.isExternalRepositoryDocument(node)) {
         // This must be something else, ignore it..
         response.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested resource does not exist here: " + url);
         return;
       }
 
-      // This is a repository node.
+      // This is a repository document node.
       // Get the processor and output meta data.
       String processorType = node.getProperty(DocProxyConstants.REPOSITORY_PROCESSOR)
           .getString();
@@ -140,7 +131,7 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       }
 
       // Get the meta data.
-      String path = url.substring(node.getPath().length());
+      String path = node.getProperty(DocProxyConstants.EXTERNAL_ID).getValue().getString();
       ExternalDocumentResultMetadata meta = processor.getDocumentMetadata(node, path);
 
       response.setContentType("application/json");
@@ -180,8 +171,8 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node node = JcrUtils.getFirstExistingNode(session, url);
 
-      if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
-        // This must be something else, ignore it..
+      if (!DocProxyUtils.isExternalRepositoryDocument(node)) {
+        //This must be something else, ignore it..
         return;
       }
 
@@ -192,7 +183,7 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
         return;
       }
 
-      // This is a repository node.
+      // This is a repository document node.
       // Get the processor and output meta data.
       String processorType = node.getProperty(DocProxyConstants.REPOSITORY_PROCESSOR)
           .getString();
@@ -203,7 +194,7 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       }
 
       // Write the meta data.
-      String path = url.substring(node.getPath().length());
+      String path = node.getProperty(DocProxyConstants.EXTERNAL_ID).getValue().getString();
       processor.updateDocument(node, path, request.getParameterMap(), null, -1);
 
       // FIXME: what is the response ?

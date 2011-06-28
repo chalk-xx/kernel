@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "path:${_pNodePath}/activity AND resourceType:sakai/activity",
+  "sakai:query-template": "path:${_pNodePath}/activity AND resourceType:sakai/activity-post",
   "sakai:query-template-options": {
       "sort": "${sortOn} ${sortOrder}"
   },

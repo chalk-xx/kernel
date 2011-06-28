@@ -39,6 +39,8 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 import org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager;
 
+import java.io.IOException;
+
 import javax.jcr.AccessDeniedException;
 import javax.jcr.RepositoryException;
 import javax.jcr.UnsupportedRepositoryOperationException;
@@ -58,7 +60,7 @@ public class ContentPoolProviderTest {
   
   private ContentPoolProvider cp;
 
-  public ContentPoolProviderTest() throws ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException {
+  public ContentPoolProviderTest() throws ClientPoolException, StorageClientException, org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException, ClassNotFoundException, IOException {
     MockitoAnnotations.initMocks(this);
     cp = new ContentPoolProvider();
     BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();

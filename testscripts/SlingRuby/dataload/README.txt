@@ -52,6 +52,11 @@ Command notes:
 6) added new -r", "--content-root" param that allows specification of content root, defaults to './TestContent'
 7) added new "-t", "--task" param that allows choice of what gets loaded.  defaults to 'all' but you can specify '-t content' to only load content
    or '-t usersandgroups' to only load users and groups
+8) added new "-c", "--contacts" param that causes the creation of connections among users. The default number is 5.  This means the first set of
+   5 users will invite the second set of 5 users to be contacts and the second set will accept the invitations.  This would lead to 25 (5 * 5) total connections.
+   In order for the creation of contacts to succeed, in the default case, there would need to be a minimum of 10 users already created
+   you can specify "-t contacts" to only create contacts
+   if -t is "all" or "usersandgroups" the contacts will be created
 
 Timing Notes: Using my MacbookPro as both localhost server and ruby client,
 I was able to load 500 users in 3 minutes.  That means 10,000 users would

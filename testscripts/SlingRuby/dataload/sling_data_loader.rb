@@ -8,10 +8,12 @@ require '../kerns/ruby-lib-dir.rb'
 require 'sling/sling'
 require 'sling/users'
 require 'sling/file'
+require 'sling/contacts'
 require 'full_group_creator'
 include SlingInterface
 include SlingUsers
 include SlingFile
+include SlingContacts
 
 module NakamuraData
   
@@ -39,6 +41,7 @@ module NakamuraData
       @user_ids_file = options[:usersfile]
       @num_groups = options[:numgroups].to_i
       @groups_per_user = options[:groupsperuser].to_i
+      @contacts = options[:contacts].to_i
       @load_content_files = options[:loadfiles].to_i
       @content_root = options[:contentroot]
       @task = options[:task]
@@ -57,6 +60,7 @@ module NakamuraData
       @full_group_creator = SlingUsers::FullGroupCreator.new @sling, @file_log
       @full_group_creator.log.level = Logger::INFO
       @file_manager = FileManager.new(@sling)
+      @contact_manager = ContactManager.new(@sling)
     end
     
     def load_users_data
@@ -417,9 +421,7 @@ module NakamuraData
       @log.info("applying tags response code is: #{response.code}")
       @file_log.info("applying tags response code is: #{response.code}")
     end
-    
-    
-     
+
     def get_category
       @category_index = 0 if (@category_index == @categories.length)
       category = @categories[@category_index]
@@ -433,7 +435,55 @@ module NakamuraData
       @tag_index = @tag_index + 1
       return tag      
     end
+    
+    # makes and accepts contacts among users
+    # if the default, 5, is used, the first set 5 users will invite
+    # the second set of 5 users who will in turn accept the invitation
+    # thus making 5 * 5 = 25 connections
+    # Note you must have 2 * @contacts number of users - 10 minimum
+    def make_contacts
+      if (@user_ids.length < 2 * @contacts)
+        @log.error("not enough users, #{@user_ids.length} to make #{@contacts.length} contacts")
+        return
+      else
+        @log.info "about to make #{@contacts} for first set of #{@contacts} users with second set of #{@conctacts} users" 
+        @file_log.info "about to make #{@contacts} contacts for first set of #{@contacts} users with second set of #{@contacts} users" 
+        source_user_ids = @user_ids[0, @contacts]
+        target_user_ids = @user_ids[@contacts, @contacts]
+        source_user_ids.each do |source_id|
+        source_id = source_id.split(",")[0]
+        source_user = User.new source_id
+        @sling.switch_user source_user
+        @sling.do_login
+        target_user_ids.each do |target_id|
+          target_id = target_id.split(",")[0]
+          target_user = User.new target_id
+          response = @contact_manager.invite_contact target_id, "colleague"
+          if ("200".eql? response.code)
+            @log.info "user #{source_id} invited user #{target_id} to be a contact"
+            @file_log.info "user #{source_id} invited user #{target_id} to be a contact"	      
+          else
+            @log.info "user #{source_id} failed to invite user #{target_id} to be a contact, invitation may already exist?"
+            @file_log.info "user #{source_id} failed invite to user #{target_id} to be a contact, invitation may already exist?"	      
+          end
+          @sling.switch_user target_user
+          @sling.do_login
+          response = @contact_manager.accept_contact source_id
+          if ("200".eql? response.code)
+            @log.info "user #{target_id} accepted invitation from user #{source_id}"
+            @file_log.info "user #{target_id} accepted invitation from user #{source_id}"
+          else
+            @log.info "user #{target_id} failed to accept invitation from user #{source_id}, may have already accepted invitation?"
+            @file_log.info "user #{target_id} failed to accept invitation from user #{source_id}, may have already accepted invitation?"	      
+          end
+          @sling.switch_user source_user
+          @sling.do_login
+        end
+      end
+    end
   end
+end
+  
 if ($PROGRAM_NAME.include? 'sling_data_loader.rb')
   options = {}
   optparser = OptionParser.new do |opts|
@@ -464,6 +514,11 @@ if ($PROGRAM_NAME.include? 'sling_data_loader.rb')
       options[:groupsperuser] = oi
     end
     
+    options[:contacts] = 5
+    opts.on("-c", "--contacts [CONTACTS]", "Number of contacts created and accepted among users, default is 5") do |oi|
+      options[:contacts] = oi
+    end    
+    
     options[:loadfiles] = 1
     opts.on("-f", "--load-content-files [CONTENTFILES]", "Load static content files, default is 1") do |lf|
       options[:loadfiles] = lf
@@ -489,13 +544,16 @@ end
     sdl.create_users
     sdl.create_full_groups
     sdl.join_groups
+    sdl.make_contacts
     sdl.load_content
   elsif (sdl.task == 'usersandgroups')
     sdl.create_users
     sdl.create_full_groups
     sdl.join_groups
   elsif (sdl.task == 'content')
-    sdl.load_content    
+    sdl.load_content
+  elsif (sdl.task == 'contacts')
+    sdl.make_contacts       
   else
     sdl.log.warn("-t --task parameter incorrect, @task is #{sdl.task}")
   end

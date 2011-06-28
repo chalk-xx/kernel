@@ -38,7 +38,7 @@ public class LiteJsonImporterTest {
   private RepositoryImpl repository;
 
   public LiteJsonImporterTest() throws AccessDeniedException, StorageClientException,
-      ClassNotFoundException {
+      ClassNotFoundException, IOException {
     BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
     repository = baseMemoryRepository.getRepository();
     Session session = repository.loginAdministrative();

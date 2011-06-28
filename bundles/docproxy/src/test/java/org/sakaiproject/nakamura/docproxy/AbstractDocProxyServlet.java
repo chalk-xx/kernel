@@ -22,6 +22,8 @@ import static org.easymock.EasyMock.expect;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_LOCATION;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_PROCESSOR;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.EXTERNAL_ID;
 
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.easymock.EasyMock;
@@ -46,6 +48,7 @@ import javax.jcr.Session;
  */
 public class AbstractDocProxyServlet extends AbstractEasyMockTest {
   protected MockNode proxyNode;
+  protected MockNode documentNode;
   protected String currPath;
   protected ExternalRepositoryProcessorTracker tracker;
   protected BundleContext bundleContext;
@@ -70,6 +73,14 @@ public class AbstractDocProxyServlet extends AbstractEasyMockTest {
     proxyNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY);
     proxyNode.setProperty(REPOSITORY_PROCESSOR, "disk");
     proxyNode.setProperty(REPOSITORY_LOCATION, currPath);
+
+    // added proxy node for actual content - points to README
+    documentNode = new MockNode("/docproxy/disk/READMEproxy");
+    documentNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY_DOCUMENT);
+    documentNode.setProperty(REPOSITORY_PROCESSOR,"disk");
+    // disk processor requires REPOSITORY_LOCATION
+    documentNode.setProperty(REPOSITORY_LOCATION,currPath);
+    documentNode.setProperty(EXTERNAL_ID,"README");
 
     session = createProxySession();
     proxyNode.setSession(session);
