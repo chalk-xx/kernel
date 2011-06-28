@@ -28,6 +28,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
 import org.sakaiproject.nakamura.user.postprocessors.DefaultPostProcessor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -54,7 +55,7 @@ public class LiteCreateSakaiGroupServletTest  {
 
 
 
-  public LiteCreateSakaiGroupServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public LiteCreateSakaiGroupServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
     repository = RepositoryHelper.getRepository(new String[]{ "ieb","jeff","joe"}, new String[]{"g-course101", } );
     MockitoAnnotations.initMocks(this);
   }

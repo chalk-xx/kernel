@@ -42,6 +42,7 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 import org.sakaiproject.nakamura.lite.RepositoryImpl;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ public class ConnectionManagerImplTest {
   private RepositoryImpl repository;
 
   @Before
-  public void setUp() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public void setUp() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
     BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
     repository = baseMemoryRepository.getRepository();
     connectionManager = new ConnectionManagerImpl();

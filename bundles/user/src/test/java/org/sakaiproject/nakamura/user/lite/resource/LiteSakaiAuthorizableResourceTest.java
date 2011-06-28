@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 
+import java.io.IOException;
 import java.util.Map.Entry;
 
 
@@ -49,7 +50,7 @@ public class LiteSakaiAuthorizableResourceTest {
   private Session session;
 
 
-  public LiteSakaiAuthorizableResourceTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public LiteSakaiAuthorizableResourceTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
     repository = RepositoryHelper.getRepository(new String[]{ "ieb"}, new String[]{"g-course101"} );
     MockitoAnnotations.initMocks(this);
   }

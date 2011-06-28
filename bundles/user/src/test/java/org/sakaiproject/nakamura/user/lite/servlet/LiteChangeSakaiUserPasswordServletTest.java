@@ -68,7 +68,7 @@ public class LiteChangeSakaiUserPasswordServletTest {
 
 
 
-  public LiteChangeSakaiUserPasswordServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public LiteChangeSakaiUserPasswordServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
     repository = RepositoryHelper.getRepository(new String[]{ "ieb","jeff","joe"}, new String[]{"g-course101"} );
     MockitoAnnotations.initMocks(this);
   }

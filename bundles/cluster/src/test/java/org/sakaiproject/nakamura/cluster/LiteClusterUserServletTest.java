@@ -54,6 +54,7 @@ import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
@@ -96,7 +97,7 @@ public class LiteClusterUserServletTest {
 
   @Before
   public void before() throws StorageClientException, AccessDeniedException,
-      ClassNotFoundException {
+      ClassNotFoundException, IOException {
     when(serverTrackingCache.list()).thenReturn(new ArrayList<Object>());
     when(serverTrackingCache.put(anyString(), any())).thenReturn(new Object());
     when(cacheManagerService.getCache("user-tracking-cache", CacheScope.INSTANCE))

@@ -55,6 +55,7 @@ import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 import org.sakaiproject.nakamura.lite.RepositoryImpl;
 import org.sakaiproject.nakamura.lite.jackrabbit.SparseMapUserManager;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -128,7 +129,7 @@ public class CreateContentPoolServletTest {
   private EventAdmin eventAdmin;
   private RepositoryImpl repository;
 
-  public CreateContentPoolServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public CreateContentPoolServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
     MockitoAnnotations.initMocks(this);
     BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
     repository = baseMemoryRepository.getRepository();
