@@ -32,6 +32,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 
 import java.util.TreeMap;
 
@@ -132,9 +133,9 @@ public class LiteMyGroupsServlet extends LiteAbstractMyGroupsServlet {
         // we don't want the "everyone" group in this feed
         continue;
       }
-      if (group.getProperty("sakai:managed-group") != null) {
+      if (group.getProperty(UserConstants.PROP_MANAGED_GROUP) != null) {
         // fetch the group that the manager group manages
-        group = userManager.findAuthorizable((String) group.getProperty("sakai:managed-group"));
+        group = userManager.findAuthorizable((String) group.getProperty(UserConstants.PROP_MANAGED_GROUP));
         if (group == null || !(group instanceof Group) || group.getProperty("sakai:group-title") == null) {
           continue;
         }
