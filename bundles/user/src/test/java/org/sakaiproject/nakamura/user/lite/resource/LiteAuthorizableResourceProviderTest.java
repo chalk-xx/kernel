@@ -32,6 +32,7 @@ import org.sakaiproject.nakamura.api.lite.SessionAdaptable;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 
@@ -44,7 +45,7 @@ public class LiteAuthorizableResourceProviderTest {
   private ResourceResolver resourceResolver;
 
 
-  public LiteAuthorizableResourceProviderTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public LiteAuthorizableResourceProviderTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
     repository = RepositoryHelper.getRepository(new String[]{ "ieb"}, new String[]{"g-course101"} );
     MockitoAnnotations.initMocks(this);
   }

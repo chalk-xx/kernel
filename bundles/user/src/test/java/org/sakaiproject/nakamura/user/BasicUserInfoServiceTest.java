@@ -28,6 +28,7 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.lite.BaseMemoryRepository;
 import org.sakaiproject.nakamura.user.counts.CountProviderImpl;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -40,7 +41,7 @@ public class BasicUserInfoServiceTest {
   private Session session;
   
   @Before
-  public void before() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, SolrServerException {
+  public void before() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, SolrServerException, IOException {
     System.out.println(System.getProperty("java.version"));
     repository = (Repository) new BaseMemoryRepository().getRepository();
     final Session adminSession = repository.loginAdministrative();

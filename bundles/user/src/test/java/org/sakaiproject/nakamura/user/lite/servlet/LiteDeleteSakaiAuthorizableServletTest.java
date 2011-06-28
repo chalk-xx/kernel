@@ -21,6 +21,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
 import org.sakaiproject.nakamura.user.postprocessors.DefaultPostProcessor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -39,7 +40,7 @@ public class LiteDeleteSakaiAuthorizableServletTest  {
 
 
 
-  public LiteDeleteSakaiAuthorizableServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public LiteDeleteSakaiAuthorizableServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
     repository = RepositoryHelper.getRepository(new String[]{ "ieb","jeff","joe"}, new String[]{"g-course101", } );
     MockitoAnnotations.initMocks(this);
   }

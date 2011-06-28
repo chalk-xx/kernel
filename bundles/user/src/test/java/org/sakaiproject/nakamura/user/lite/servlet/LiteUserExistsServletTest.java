@@ -38,6 +38,8 @@ import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.user.lite.resource.RepositoryHelper;
 
+import java.io.IOException;
+
 
 /**
  *
@@ -62,7 +64,7 @@ public class LiteUserExistsServletTest {
 
 
 
-  public LiteUserExistsServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException {
+  public LiteUserExistsServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
     repository = RepositoryHelper.getRepository(new String[]{ "ieb","jeff","joe"}, new String[]{"g-course101", } );
     MockitoAnnotations.initMocks(this);
   }
