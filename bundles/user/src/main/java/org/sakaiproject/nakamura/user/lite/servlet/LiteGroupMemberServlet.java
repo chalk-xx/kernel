@@ -77,6 +77,7 @@ import javax.servlet.http.HttpServletResponse;
       selectors = {
         @ServiceSelector(name = "members", description = "Binds to the members selector."),
         @ServiceSelector(name = "managers", description = "Binds to the managers selector."),
+    @ServiceSelector(name = "everyone", description = "Binds to the everyone selector (members + managers)."),
         @ServiceSelector(name = "detailed", description = "Binds to the details selector.")
       },
       extensions = @ServiceExtension(name = "json", description = "javascript object notation")
@@ -95,7 +96,7 @@ import javax.servlet.http.HttpServletResponse;
   }
 )
 @SlingServlet(resourceTypes = { "sparse/group" }, methods = { "GET" }, selectors = {
-    "members", "managers" }, extensions = { "json" })
+    "members", "managers", "everyone" }, extensions = { "json" })
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Renders the members or managers for a group") })
@@ -152,7 +153,10 @@ public class LiteGroupMemberServlet extends SlingSafeMethodsServlet {
     try {
       response.setContentType("application/json");
       TreeMap<String, Authorizable> map = null;
-      if (selectors.contains("managers")) {
+      if (selectors.contains("everyone")) {
+        map = getMembers(request, group, comparator);
+        map.putAll(getManagers(request, group, comparator));
+      } else if (selectors.contains("managers")) {
         map = getManagers(request, group, comparator);
       } else {
         // Members is the default.
