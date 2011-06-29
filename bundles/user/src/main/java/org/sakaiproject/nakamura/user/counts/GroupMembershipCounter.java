@@ -5,6 +5,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,10 +44,10 @@ public class GroupMembershipCounter {
             || group.getId().startsWith("g-contacts-")) {
           continue;
         }
-        if (group.hasProperty("sakai:managed-group")) {
+        if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
           // fetch the group that the manager group manages
           Authorizable managedGroup = authorizableManager.findAuthorizable((String) group
-              .getProperty("sakai:managed-group"));
+              .getProperty(UserConstants.PROP_MANAGED_GROUP));
           if (managedGroup == null || !(managedGroup instanceof Group)) {
             // dont count this group if the managed group doesnt exist. (ieb why ?, the users is still a member of this group even if the managed group doesnt exist)
             continue;

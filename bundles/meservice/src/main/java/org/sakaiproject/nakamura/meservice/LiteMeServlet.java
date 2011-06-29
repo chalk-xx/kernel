@@ -250,9 +250,9 @@ public class LiteMeServlet extends SlingSafeMethodsServlet {
           // we don't want the "everyone" group in this feed
           continue;
         }
-        if (group.hasProperty("sakai:managed-group")) {
+        if (group.hasProperty(UserConstants.PROP_MANAGED_GROUP)) {
           // fetch the group that the manager group manages
-          group = authorizableManager.findAuthorizable((String) group.getProperty("sakai:managed-group"));
+          group = authorizableManager.findAuthorizable((String) group.getProperty(UserConstants.PROP_MANAGED_GROUP));
           if (group == null || !(group instanceof Group)) {
             continue;
           }
