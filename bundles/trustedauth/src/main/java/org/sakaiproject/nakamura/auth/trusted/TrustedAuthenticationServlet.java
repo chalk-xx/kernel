@@ -27,6 +27,7 @@ import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,7 +129,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
       throws ServletException, IOException {
     
     if (trustedTokenService instanceof TrustedTokenServiceImpl) {
-      ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req, resp);
+      ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req, resp, TrustedTokenTypes.AUTHENTICATED_TRUST);
       LOGGER.debug(" Might have Injected token ");
       String destination = req.getParameter(PARAM_DESTINATION);
 

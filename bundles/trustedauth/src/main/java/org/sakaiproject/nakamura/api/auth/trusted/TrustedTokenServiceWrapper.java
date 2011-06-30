@@ -52,7 +52,15 @@ public abstract class TrustedTokenServiceWrapper {
    */
   protected void injectToken(HttpServletRequest request,
       HttpServletResponse response) {
-    delagate.injectToken(request, response);
+    delagate.injectToken(request, response, this.getType());
+  }
+
+  /**
+   * By default tokens are trusted for any operation.
+   * @return
+   */
+  public String getType() {
+    return TrustedTokenTypes.AUTHENTICATED_TRUST;
   }
 
   

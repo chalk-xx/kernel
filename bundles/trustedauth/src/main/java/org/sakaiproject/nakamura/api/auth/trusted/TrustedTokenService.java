@@ -38,6 +38,8 @@ public interface TrustedTokenService {
    */
   static final String CA_AUTHENTICATION_USER = "sakai-trusted-authentication-user";
 
+  static final String CA_AUTHENTICATION_ATTRIBUTES = "sakai-trusted-authentication-attributes";
+
   static final String EVENT_USER_ID = "user";
 
   static final String TRUST_USER_TOPIC = TrustedTokenService.class.getName().replace('.', '/')+"/trustuser";
@@ -48,6 +50,20 @@ public interface TrustedTokenService {
    * @param response
    */
   void dropCredentials(HttpServletRequest request, HttpServletResponse response);
+
+  /**
+   * @param type
+   * @param userContentAuthenticationHandler
+   */
+  void registerType(String type,
+      TokenTrustValidator userContentAuthenticationHandler);
+
+  /**
+   * @param type
+   * @param userContentAuthenticationHandler
+   */
+  void deregisterType(String type,
+      TokenTrustValidator userContentAuthenticationHandler);
 
 
 }

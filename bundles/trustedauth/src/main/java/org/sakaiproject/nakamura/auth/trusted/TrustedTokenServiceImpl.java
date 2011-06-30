@@ -27,7 +27,9 @@ import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.auth.trusted.TokenTrustValidator;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenTypes;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.servlet.HttpOnlyCookie;
@@ -46,7 +48,9 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
@@ -193,6 +197,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   private boolean debugCookies;
 
+  private Map<String, TokenTrustValidator> registeredTypes = new ConcurrentHashMap<String, TokenTrustValidator>();
+
   /**
    * @throws NoSuchAlgorithmException
    * @throws InvalidKeyException
@@ -293,7 +299,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
             if (hmac.equals(hash)) {
               // the user is Ok, we will trust it.
               userId = user;
-              cred = createCredentials(userId);
+              cred = createCredentials(userId, TrustedTokenTypes.TRUSTED_TOKEN);
             } else {
               LOG.debug("HMAC Match Failed {} != {} ", hmac, hash );
             }
@@ -336,12 +342,19 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
                 continue;
               }
               String cookieValue = c.getValue();
-              userId = decodeCookie(c.getValue());
-              if (userId != null) {
-                LOG.debug("Token is valid and decoded to {} ",userId);
-                cred = createCredentials(userId);
-                refreshToken(response, c.getValue(), userId);
-                break;
+              String[] decodedToken = decodeCookie(c.getValue());
+              if (decodedToken != null) {
+                userId = decodedToken[0];
+                String tokenType = decodedToken[1];
+                TokenTrustValidator ttv = registeredTypes.get(tokenType);
+                if ( ttv == null || ttv.isTrusted(req) ) {
+                  LOG.debug("Token is valid and decoded to {} ",userId);
+                  cred = createCredentials(userId, tokenType);
+                  refreshToken(response, c.getValue(), userId, tokenType);
+                  break;
+                } else {
+                  LOG.debug("Cookie cant be trusted for this request {} ", cookieValue);
+                }
               } else {
                 LOG.debug("Invalid Cookie {} ", cookieValue);
                 clearCookie(response);
@@ -386,8 +399,9 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    *
    * @param req
    * @param resp
+   * @param readOnlyToken if true, the session or cookie will only allow read only operations in the server.
    */
-  public void injectToken(HttpServletRequest request, HttpServletResponse response) {
+  public void injectToken(HttpServletRequest request, HttpServletResponse response, String tokenType) {
     if ( testing ) {
       calls.add(new Object[]{"injectToken",request,response});
       return;
@@ -436,10 +450,10 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
         HttpSession session = request.getSession(true);
         if (session != null) {
           LOG.debug("Injecting Credentials into Session for " + userId);
-          session.setAttribute(SA_AUTHENTICATION_CREDENTIALS, createCredentials(userId));
+          session.setAttribute(SA_AUTHENTICATION_CREDENTIALS, createCredentials(userId, tokenType));
         }
       } else {
-        addCookie(response, userId);
+        addCookie(response, userId, tokenType);
       }
       Dictionary<String, Object> eventDictionary = new Hashtable<String, Object>();
       eventDictionary.put(TrustedTokenService.EVENT_USER_ID, userId);
@@ -455,8 +469,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * @param userId
    * @param response
    */
-  void addCookie(HttpServletResponse response, String userId) {
-    Cookie c = new HttpOnlyCookie(trustedAuthCookieName, encodeCookie(userId));
+  void addCookie(HttpServletResponse response, String userId, String tokenType) {
+    Cookie c = new HttpOnlyCookie(trustedAuthCookieName, encodeCookie(userId, tokenType));
     c.setMaxAge(-1);
     c.setPath("/");
     c.setSecure(secureCookie);
@@ -484,16 +498,17 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * @param req
    * @param value
    * @param userId
+   * @param tokenType 
    */
-  void refreshToken(HttpServletResponse response, String value, String userId) {
+  void refreshToken(HttpServletResponse response, String value, String userId, String tokenType) {
     String[] parts = StringUtils.split(value, "@");
-    if (parts != null && parts.length == 4) {
+    if (parts != null && parts.length == 5) {
       long cookieTime = Long.parseLong(parts[1].substring(1));
       if (System.currentTimeMillis() + (ttl / 2) > cookieTime) {
         if ( debugCookies) {
           LOG.info("Refreshing Token for {} cookieTime {} ttl {} CurrentTime {} ",new Object[]{userId, cookieTime, ttl, System.currentTimeMillis()});
         }
-        addCookie(response, userId);
+        addCookie(response, userId, tokenType);
       }
     }
 
@@ -505,7 +520,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * @param userId
    * @return
    */
-  String encodeCookie(String userId) {
+  String encodeCookie(String userId, String tokenType) {
     if (userId == null) {
       return null;
     }
@@ -516,7 +531,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       SecureCookie secretKeyHolder = tokenStore.getActiveToken();
 
       try {
-        return secretKeyHolder.encode(expires, userId);
+        return secretKeyHolder.encode(expires, userId, tokenType);
       } catch (NoSuchAlgorithmException e) {
         LOG.error(e.getMessage(), e);
       } catch (InvalidKeyException e) {
@@ -542,7 +557,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * @param value
    * @return
    */
-  String decodeCookie(String value) {
+  String[] decodeCookie(String value) {
     if (value == null) {
       return null;
     }
@@ -572,10 +587,11 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    *          The request to sniff for a user.
    * @return
    */
-  private Credentials createCredentials(String userId) {
+  private Credentials createCredentials(String userId, String tokenType) {
     SimpleCredentials sc = new SimpleCredentials(userId, new char[0]);
     TrustedUser user = new TrustedUser(userId);
     sc.setAttribute(CA_AUTHENTICATION_USER, user);
+    sc.setAttribute(CA_AUTHENTICATION_ATTRIBUTES, tokenType);
     return sc;
   }
 
@@ -613,6 +629,21 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    */
   public String[] getAuthorizedWrappers() {
     return safeWrappers;
+  }
+
+
+  public void registerType(String type,
+      TokenTrustValidator tokenTrustValidator) {
+    registeredTypes.put(type, tokenTrustValidator);
+  }
+
+
+  public void deregisterType(String type,
+      TokenTrustValidator tokenTrustValidator) {
+    TokenTrustValidator ttv = registeredTypes.get(type);
+    if ( tokenTrustValidator.equals(ttv) ) {
+      registeredTypes.remove(type);
+    }
   }
 
 }

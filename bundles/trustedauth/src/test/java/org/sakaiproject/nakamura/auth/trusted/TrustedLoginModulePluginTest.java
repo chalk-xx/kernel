@@ -29,6 +29,7 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenTypes;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
@@ -123,7 +124,7 @@ public class TrustedLoginModulePluginTest {
     
     replay();
     trustedTokenService.activate(context); 
-    trustedTokenService.injectToken(request, response);
+    trustedTokenService.injectToken(request, response, TrustedTokenTypes.AUTHENTICATED_TRUST);
     Assert.assertTrue(attributeName.hasCaptured());
     Assert.assertTrue(attributeValue.hasCaptured());
     Credentials credentials = attributeValue.getValue();

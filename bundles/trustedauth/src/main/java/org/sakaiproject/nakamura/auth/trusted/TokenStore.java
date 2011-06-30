@@ -83,6 +83,7 @@ public class TokenStore {
      */
     private int secretKeyId;
     private String serverId;
+    private String tokenType;
 
     /**
      * Create the token, using the secure key number specified.
@@ -118,11 +119,11 @@ public class TokenStore {
      * @throws InvalidKeyException
      * @throws SecureCookieException
      */
-    public String encode(long expires, String userId) throws IllegalStateException,
+    public String encode(long expires, String userId, String tokenType) throws IllegalStateException,
         UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException,
         SecureCookieException {
       String cookiePayload = String.valueOf(secretKeyId) + String.valueOf(expires) + "@"
-          + encodeField(userId) + "@" + serverId;
+          + encodeField(userId) + "@" + tokenType+ "@" + serverId;
       Mac m = Mac.getInstance(HMAC_SHA1);
       ExpiringSecretKey expiringSecretKey = TokenStore.this.getSecretKey(serverId,
           secretKeyId);
@@ -137,14 +138,15 @@ public class TokenStore {
 
 
     /**
-     * @return
+     * @return a string[] containing the userid and token attributes.
      * @throws SecureCookieException
      */
-    public String decode(String value) throws SecureCookieException {
+    public String[] decode(String value) throws SecureCookieException {
       String[] parts = StringUtils.split(value, "@");
-      if (parts != null && parts.length == 4) {        
+      if (parts != null && parts.length == 5) {
         this.secretKeyId = Integer.parseInt(parts[1].substring(0, 1));
-        this.serverId = parts[3];
+        this.tokenType = parts[3];
+        this.serverId = parts[4];
         long cookieTime = Long.parseLong(parts[1].substring(1));
         if (System.currentTimeMillis() < cookieTime) {
           try {
@@ -161,9 +163,9 @@ public class TokenStore {
             if ( debugCookies ) {
               LOG.info("Decoding with server:{} keyno:{} secret:{} user:{} cookeiTime:{} cookie:{}",new Object[]{serverId, secretKeyId, encodeField(secretKey.getEncoded()), userId, cookieTime, value} );
             }
-            String hmac = encode(cookieTime, userId);
+            String hmac = encode(cookieTime, userId, this.tokenType);
             if (value.equals(hmac)) {
-              return userId;
+              return new String[]{userId, tokenType};
             }
           } catch (ArrayIndexOutOfBoundsException e) {
             LOG.error(e.getMessage(), e);

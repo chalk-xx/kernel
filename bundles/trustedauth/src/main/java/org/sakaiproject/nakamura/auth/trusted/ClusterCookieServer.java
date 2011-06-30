@@ -37,8 +37,8 @@ public interface ClusterCookieServer {
    * Decodes a userId from a cookie.
    * 
    * @param value
-   * @return
+   * @return a 2 element array [0] is the userId and [1] is the type.
    */
-  String decodeCookie(String value);
+  String[] decodeCookie(String value);
 
 }

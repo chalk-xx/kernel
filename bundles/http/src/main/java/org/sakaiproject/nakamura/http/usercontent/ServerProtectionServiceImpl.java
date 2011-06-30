@@ -404,7 +404,9 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       LOGGER.warn("XSS Protection is disabled");
       return null;
     }
-    if (!isSafeHost(request)) {
+    // the host must not be safe to decode the user transfer UserID, and the method must be a GET or HEAD
+    String method = request.getMethod();
+    if (!isSafeHost(request) && ("GET".equals(method) || "HEAD".equals(method))) {
       String hmac = request.getParameter(HMAC_PARAM);
       if (hmac != null) {
         try {

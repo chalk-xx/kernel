@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletResponse;
 
 final class UserContentAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrapper {
 
+  public static final String TYPE = "U";
+
   UserContentAuthenticationTokenServiceWrapper(
       UserContentAuthenticationHandler userContentAuthenticationHandler,
       TrustedTokenService delegate) {
@@ -20,10 +22,16 @@ final class UserContentAuthenticationTokenServiceWrapper extends TrustedTokenSer
     if ( !UserContentAuthenticationHandler.class.equals(userContentAuthenticationHandler.getClass()) ) {
       throw new IllegalArgumentException("Invalid use of UserContentAuthenticationTokenServiceWrapper");
     }
-    return delegate;  }
+    return delegate;
+  }
 
   public void addToken(HttpServletRequest request, HttpServletResponse response) {
     injectToken(request, response);
+  }
+
+  @Override
+  public String getType() {
+    return TYPE;
   }
 
 }
