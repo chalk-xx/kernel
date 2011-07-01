@@ -22,7 +22,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Services;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -64,10 +63,7 @@ import javax.servlet.http.HttpServletResponse;
     })
 )
 @Component(immediate = true)
-@Services({
-  @Service(Servlet.class),
-  @Service(ServerProtectionValidator.class)
-})
+@Service({ Servlet.class, ServerProtectionValidator.class })
 @SlingServlet(resourceTypes = { "sakai/user-home", "sakai/group-home" }, methods = { "GET" }, generateComponent = false, generateService = false)
 public class ShowHomeServlet extends SlingSafeMethodsServlet implements OptingServlet, ServerProtectionValidator {
 
@@ -79,20 +75,20 @@ public class ShowHomeServlet extends SlingSafeMethodsServlet implements OptingSe
   @Property(value = "Renders user and groups", propertyPrivate = true)
   static final String SERVICE_DESCRIPTION = "service.description";
 
-  public static final String DEFAULT_GROUP_HOME_RES = "/dev/group.html";
-  @Property(value = DEFAULT_GROUP_HOME_RES)
+  public static final String DEFAULT_GROUP_HOME = "/dev/group.html";
+  @Property(value = DEFAULT_GROUP_HOME)
   static final String GROUP_HOME_RES = "sakai.group.home";
   private String groupHome;
 
-  public static final String DEFAULT_USER_HOME_RES = "/dev/user.html";
-  @Property(value = DEFAULT_USER_HOME_RES)
+  public static final String DEFAULT_USER_HOME = "/dev/user.html";
+  @Property(value = DEFAULT_USER_HOME)
   static final String USER_HOME_RES = "sakai.user.home";
   private String userHome;
 
   @Activate @Modified
   protected void activate(Map<?, ?> props) {
-    groupHome = OsgiUtil.toString(props.get(GROUP_HOME_RES), DEFAULT_GROUP_HOME_RES);
-    userHome = OsgiUtil.toString(props.get(USER_HOME_RES), DEFAULT_USER_HOME_RES);
+    groupHome = OsgiUtil.toString(props.get(GROUP_HOME_RES), DEFAULT_GROUP_HOME);
+    userHome = OsgiUtil.toString(props.get(USER_HOME_RES), DEFAULT_USER_HOME);
   }
 
   @Override
