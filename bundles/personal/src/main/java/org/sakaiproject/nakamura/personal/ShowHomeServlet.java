@@ -51,18 +51,19 @@ import javax.servlet.http.HttpServletResponse;
  * The <code>ShowHomeServlet</code>
  */
 @ServiceDocumentation(name = "Show Home",
-  description = " Shows the content of /dev/show.html when requested ",
-  shortDescription = "Shows html page for users",
+  description = " Shows the content of the configured homepage per authorizable type (user, group)",
+  shortDescription = "Shows homepage for authorizables",
   bindings = @ServiceBinding(type = BindingType.TYPE,
     bindings = { "sakai/user-home", "sakai/group-home" }
   ),
   methods = @ServiceMethod(name = "GET",
-    description = { "Shows  a HTML page when the user or groups home is accessed" },
+    description = { "Shows an HTML page when a user or group's home is accessed" },
     response = {
-      @ServiceResponse(code = 200, description = "A HTML view of the User or Group entity's home space.")
+      @ServiceResponse(code = 200, description = "An HTML view of the User or Group entity's home space."),
+      @ServiceResponse(code = 404, description = "Unable to find the configured home resource item to use.")
     })
 )
-@Component(immediate = true, label = "%home.showServlet.label", description = "%home.showServlet.desc")
+@Component(immediate = true)
 @Services({
   @Service(Servlet.class),
   @Service(ServerProtectionValidator.class)
@@ -72,10 +73,10 @@ public class ShowHomeServlet extends SlingSafeMethodsServlet implements OptingSe
 
   private static final long serialVersionUID = 613629169503411716L;
 
-  @Property(value = "The Sakai Foundation")
+  @Property(value = "The Sakai Foundation", propertyPrivate = true)
   static final String SERVICE_VENDOR = "service.vendor";
 
-  @Property(value = "Renders user and groups")
+  @Property(value = "Renders user and groups", propertyPrivate = true)
   static final String SERVICE_DESCRIPTION = "service.description";
 
   public static final String DEFAULT_GROUP_HOME_RES = "/dev/group.html";
