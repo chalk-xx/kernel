@@ -69,14 +69,24 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = "Records the activity related to a particular content"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-@ServiceDocumentation(name = "ActivityCreateServlet", shortDescription = "Record activity related to a specific node.", description = "Record activity related to a specific node.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "*", selectors = @ServiceSelector(name = "activity")), methods = { @ServiceMethod(name = "POST", description = "Perform a post to a particular resource to record activity related to it.", parameters = {
-    @ServiceParameter(name = "sakai:activity-appid", description = "i.e. used to locate the bundles"),
-    @ServiceParameter(name = "sakai:activity-templateid", description = "The id of the template that will be used for text and macro expansion."
-        + "Locale will be appended to the templateId for resolution"),
-    @ServiceParameter(name = "*", description = "You should also include any parameters necessary to fill the template specified in sakai:activity-templateid.") }, response = {
-    @ServiceResponse(code = 400, description = "if(applicationId == null || templateId == null || request.getRemoteUser() == null)"),
-    @ServiceResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED, description = "Cannot record activities on activity content!"),
-    @ServiceResponse(code = 404, description = "The node was not found.") }) })
+@ServiceDocumentation(name = "ActivityCreateServlet", okForVersion = "0.11",
+    shortDescription = "Record activity related to a specific node.",
+    description = "Record activity related to a specific node.",
+    bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sparse/Content", selectors = @ServiceSelector(name = "activity")),
+    methods = {
+      @ServiceMethod(name = "POST", description = "Perform a post to a particular resource to record activity related to it.",
+        parameters = {
+          @ServiceParameter(name = "sakai:activity-appid", description = "i.e. used to locate the bundles"),
+          @ServiceParameter(name = "sakai:activity-templateid", description = "The id of the template that will be used for text and macro expansion."
+            + "Locale will be appended to the templateId for resolution"),
+          @ServiceParameter(name = "*", description = "You should also include any parameters necessary to fill the template specified in sakai:activity-templateid.")
+        },
+        response = {
+          @ServiceResponse(code = 400, description = "if(applicationId == null || templateId == null || request.getRemoteUser() == null)"),
+          @ServiceResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED, description = "Cannot record activities on activity content!"),
+          @ServiceResponse(code = 404, description = "The node was not found.")
+        })
+    })
 public class LiteActivityCreateServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = -5367330873214708635L;

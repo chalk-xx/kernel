@@ -15,6 +15,14 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -39,6 +47,28 @@ import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+@ServiceDocumentation(name = "CreateWorldServlet documentation", okForVersion = "0.11",
+  shortDescription = "Creates a new world.",
+  description = "Creates a new world.",
+  bindings = {
+    @ServiceBinding(type = BindingType.PATH, bindings = "/system/world/create",
+    selectors = @ServiceSelector(name = "", description = "Creates a new world."))
+  },
+  methods = {
+    @ServiceMethod(name = "POST", description = "",
+      parameters = {
+        @ServiceParameter(name = "template", description = "The path to the world template resource to use for creating this world, relative to /var/world/templates"),
+        @ServiceParameter(name = "at", description = "The path where the new world is to be created."),
+        @ServiceParameter(name = "*", description = "The request must contain all the parameters necessary to fulfill the world template.")
+      },
+      response = {
+        @ServiceResponse(code = HttpServletResponse.SC_CREATED, description = "World was created successfully."),
+        @ServiceResponse(code = HttpServletResponse.SC_FORBIDDEN, description = "User does not have permission to write at the specified path."),
+        @ServiceResponse(code = HttpServletResponse.SC_BAD_REQUEST, description = "The template parameter is missing or doesn't point to a valid template resource."),
+        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error."),
+        @ServiceResponse(code = HttpServletResponse.SC_CONFLICT, description = "A world already exists at the location specified in the 'at' parameter.")
+      })
+})
 @Component(immediate = true, metatype = true, enabled = true)
 @SlingServlet(paths = { "/system/world/create" }, methods = { "POST" }, generateComponent = false)
 public class CreateWorldServlet extends SlingAllMethodsServlet {

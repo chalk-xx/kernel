@@ -27,6 +27,7 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
@@ -52,20 +53,22 @@ import javax.servlet.http.HttpServletResponse;
  */
 @ServiceDocumentation(
   name = "External Document Metadata Servlet",
+  okForVersion = "0.11",
   description = "Provides access to the node metadata of an existing node.",
+  shortDescription = "Provides access to the node metadata of an existing node.",
   bindings = {
     @ServiceBinding(
       type = BindingType.TYPE,
-      bindings = { "sakai/external-repository-document" },
+      bindings = { "sakai/external-repository-document", "sling/nonexisting" },
       selectors = {
         @ServiceSelector(name = "metadata", description = "Binds to the metadata selector.")
-      }
-    )
+      },
+      extensions = @ServiceExtension(name = "json", description = "The response will be a JSON document."))
   },
   methods = {
     @ServiceMethod(
       name = "POST",
-      description = "Gets the metadata for an external repository document.",
+      description = "Writes the metadata for an external repository document.",
       response = {
         @ServiceResponse(code = 200, description = "All processing finished successfully."),
         @ServiceResponse(code = 400, description = "Syntactically incorrect request or unknown repository."),

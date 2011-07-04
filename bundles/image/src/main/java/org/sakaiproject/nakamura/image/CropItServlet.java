@@ -57,7 +57,7 @@ import javax.servlet.http.HttpServletResponse;
 @SlingServlet(paths = "/var/image/cropit", methods = { "POST" })
 @Properties(value = { @Property(name = "service.description", value = "Crops an image."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-@ServiceDocumentation(name = "CropItServlet", shortDescription = "Crop an image.", description = "Use this servlet to cut out a part of an image and resize it to different sizes.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/var/image/cropit"), methods = @ServiceMethod(name = "POST", description = "Cut out part of an image and save it in different sizes. <br />"
+@ServiceDocumentation(name = "CropItServlet", okForVersion = "0.11", shortDescription = "Crop an image.", description = "Use this servlet to cut out a part of an image and resize it to different sizes.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/var/image/cropit"), methods = @ServiceMethod(name = "POST", description = "Cut out part of an image and save it in different sizes. <br />"
     + "Example: curl -d\"img=/dev/_images/gateway.png\" -d\"save=/test\" -d\"x=0\" -d\"y=0\" -d\"width=100\" -d\"height=100\" -d\"dimensions=16x16;32x32\" http://admin:admin@localhost:8080/var/image/cropit", parameters = {
     @ServiceParameter(name = "img", description = "The location where the image that needs cropping is saved."),
     @ServiceParameter(name = "save", description = "The location where you want to save the resized/cropped images."),
@@ -65,7 +65,8 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceParameter(name = "y", description = "Start cropping from this point on the y-axis. Must be an integer-value."),
     @ServiceParameter(name = "width", description = "How many pixels to crop out starting from the x point. Must be an integer-value."),
     @ServiceParameter(name = "height", description = "How many pixels to crop out starting from the y point. Must be an integer-value."),
-    @ServiceParameter(name = "dimensions", description = "A list of dimensions you want the cropped out image to be resized in. Example: 32x32;256x256;128x128.") }, response = {
+    @ServiceParameter(name = "dimensions", description = "A list of dimensions you want the cropped out image to be resized in. Example: 32x32;256x256;128x128."),
+    @ServiceParameter(name = "_charset_", description = "Must be utf-8")}, response = {
     @ServiceResponse(code = 200, description = "Everything is OK, a JSON response is also provided with an array of all the created url's.<br />"
         + "Example: {\"files\":[\"/test/16x16_gateway.png\",\"/test/32x32_gateway.png\"]}"),
     @ServiceResponse(code = 400, description = "There is a missing (or invalid) parameter."),

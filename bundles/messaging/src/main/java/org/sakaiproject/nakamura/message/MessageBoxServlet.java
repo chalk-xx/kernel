@@ -28,6 +28,7 @@ import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -50,10 +51,19 @@ import java.util.Iterator;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "MessageBoxServlet", shortDescription = "Lists the messages of the current users mailboxes.", description = "Presents mailbox messages of current user in JSON format.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/messages"), methods = @ServiceMethod(name = "GET", description = "List current user's mailbox messages.", response = {
-    @ServiceResponse(code = 200, description = "Request for information was successful. <br />"),
-    @ServiceResponse(code = 401, description = "Unauthorized: credentials provided were not acceptable to return information for."),
-    @ServiceResponse(code = 500, description = "Unable to return information about current user.") }))
+@ServiceDocumentation(name = "MessageBoxServlet", okForVersion = "0.11",
+    shortDescription = "Lists the messages of the current user's mailboxes.",
+    description = "Presents mailbox messages of current user in JSON format.",
+    bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/messages"),
+    methods = @ServiceMethod(name = "GET", description = "List current user's mailbox messages.",
+      parameters = {
+        @ServiceParameter(name = "box", description = "Required. Which mailbox to return. One of 'inbox', 'outbox', or 'all'")
+      },
+      response = {
+        @ServiceResponse(code = 200, description = "Request for information was successful. <br />"),
+        @ServiceResponse(code = 400, description = "Bad request: the required 'box' parameter was missing or invalid."),
+        @ServiceResponse(code = 500, description = "Unable to return information about current user.")
+      }))
 @SlingServlet(paths = { "/system/messages" }, generateComponent = true, generateService = true, methods = { "GET" })
 public class MessageBoxServlet extends SlingSafeMethodsServlet {
 

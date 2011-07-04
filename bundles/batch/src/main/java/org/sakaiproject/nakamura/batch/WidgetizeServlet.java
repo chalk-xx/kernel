@@ -45,17 +45,34 @@ import java.util.Locale;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "WidgetizeServlet", shortDescription = "Fetch all the resources for a widget.", description = { "Fetch all the resources of a widget in one request." }, bindings = { @ServiceBinding(type = BindingType.TYPE, selectors = { @ServiceSelector(name = "widgetize") }, extensions = { @ServiceExtension(name = "json") }) }, methods = { @ServiceMethod(name = "GET", description = { "Fetches all the resources and specified language bundles for a widget in one request." }, parameters = { @ServiceParameter(name = "locale", description = "What locale should be used for the language bundle. This should be in the ISO3 format. ie: en_US or zh_CN.") }, response = {
-    @ServiceResponse(code = 200, description = {
-        "A JSON response will be streamed back. This exists out of 2 parts",
-        "<ul><li>Language bundles</li><li>Widget files</li></ul>",
-        "Language bundles",
-        "There will be a key in the json object called 'bundles'. This key will contain an object that will contain 2 child-objects.<br />The first one will always be 'default' which is the output for the default language bundle of a widget.<br />The other one will be the one specified in the request parameter (or the server default if none has been specified.)<br /> If the language bundle could not be found an empty object will be returned.",
-        "Widget files",
-        "The servlet will walk down the tree and try to get the content of each resource. It will then try to get the mimetype of this file. If the mimetype is in the list of allowed mimetypes it will be outputted. This list can be modified in the felix admin console." }),
-    @ServiceResponse(code = 403, description = { "The resource where this action is performed on is not a valid widget." }) }
-
-) })
+@ServiceDocumentation(name = "WidgetizeServlet", okForVersion = "0.11",
+    shortDescription = "Fetch all the resources for a widget.",
+    description = { "Fetch all the resources of a widget in one request." },
+    bindings = {
+      @ServiceBinding(type = BindingType.TYPE,
+        selectors = { @ServiceSelector(name = "widgetize") },
+        extensions = { @ServiceExtension(name = "json") })
+      },
+    methods = {
+      @ServiceMethod(name = "GET",
+        description = "Fetches all the resources and specified language bundles for a widget in one request.",
+        parameters = {
+          @ServiceParameter(name = "locale",
+            description = "What locale should be used for the language bundle. This should be in the ISO3 format. ie: en_US or zh_CN.")
+        },
+        response = {
+          @ServiceResponse(code = 200,
+            description = {
+              "A JSON response will be streamed back. This exists out of 2 parts",
+              "<ul><li>Language bundles</li><li>Widget files</li></ul>",
+              "Language bundles",
+              "There will be a key in the json object called 'bundles'. This key will contain an object that will contain 2 child-objects.<br />The first one will always be 'default' which is the output for the default language bundle of a widget.<br />The other one will be the one specified in the request parameter (or the server default if none has been specified.)<br /> If the language bundle could not be found an empty object will be returned.",
+              "Widget files",
+              "The servlet will walk down the tree and try to get the content of each resource. It will then try to get the mime type of this file. If the mime type is in the list of allowed mime types it will be outputted. This list can be modified in the Felix admin console."
+            }),
+          @ServiceResponse(code = 403, description = "The resource where this action is performed on is not a valid widget.")
+        })
+    })
 @SlingServlet(resourceTypes = { "sling/servlet/default" }, methods = { "GET" }, selectors = { "widgetize" }, extensions = { "json" }, generateService = true, generateComponent = false)
 @Component(metatype = true, immediate = true)
 public class WidgetizeServlet extends SlingSafeMethodsServlet {

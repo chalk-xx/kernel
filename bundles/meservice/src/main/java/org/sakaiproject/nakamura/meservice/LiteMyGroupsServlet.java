@@ -37,7 +37,8 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import java.util.TreeMap;
 
 @ServiceDocumentation(
-  name = "My Groups Servlet",
+  name = "My Groups Servlet", okForVersion = "0.11",
+  shortDescription = "Gets the groups where the current user is a member",
   description = "Gets the groups where the current user is a member",
   bindings = {
     @ServiceBinding(type = BindingType.TYPE, bindings = { "system/me/groups" })
@@ -45,60 +46,83 @@ import java.util.TreeMap;
   methods = {
     @ServiceMethod(
       name = "GET",
-      description = {"Get the groups for this user with paging",
-          "curl \"http://ian:ianboston@localhost:8080/system/me/managedgroups.tidy.json?page=0&items=10&q=*&facet=manage\"" +
-          "<pre>" +
-          "{" +
-          "  \"items\": 10," +
-          "  \"results\": [{" +
-          "      \"jcr:path\": \"/~test/public/authprofile\"," +
-          "      \"sakai:group-title\": \"test\"," +
-          "      \"sakai:group-joinable\": \"no\"," +
-          "      \"sakai:pages-visible\": \"public\"," +
-          "      \"jcr:uuid\": \"7f448088-db33-40de-a7f3-b4979d3575b1\"," +
-          "      \"jcr:mixinTypes\": [" +
-          "        \"mix:referenceable\"" +
-          "      ]," +
-          "      \"sling:resourceType\": \"sakai/group-profile\"," +
-          "      \"sakai:group-id\": \"test\"," +
-          "      \"basic\": {" +
-          "        \"jcr:path\": \"/~test/public/authprofile/basic\"," +
-          "        \"jcr:name\": \"basic\"," +
-          "        \"access\": \"everybody\"," +
-          "        \"elements\": {" +
-          "          \"jcr:path\": \"/~test/public/authprofile/basic/elements\"," +
-          "          \"lastName\": {" +
-          "            \"jcr:path\": \"/~test/public/authprofile/basic/elements/lastName\"," +
-          "            \"jcr:name\": \"lastName\"," +
-          "            \"value\": \"unknown\"," +
-          "            \"jcr:primaryType\": \"nt:unstructured\"" +
-          "          }," +
-          "          \"email\": {" +
-          "            \"jcr:path\": \"/~test/public/authprofile/basic/elements/email\"," +
-          "            \"jcr:name\": \"email\"," +
-          "            \"value\": \"unknown\"," +
-          "            \"jcr:primaryType\": \"nt:unstructured\"" +
-          "          }," +
-          "          \"jcr:name\": \"elements\"," +
-          "          \"firstName\": {" +
-          "            \"jcr:path\": \"/~test/public/authprofile/basic/elements/firstName\"," +
-          "            \"jcr:name\": \"firstName\"," +
-          "            \"value\": \"unknown\"," +
-          "            \"jcr:primaryType\": \"nt:unstructured\"" +
-          "          }," +
-          "          \"jcr:primaryType\": \"nt:unstructured\"" +
-          "        }," +
-          "        \"jcr:primaryType\": \"nt:unstructured\"" +
-          "      }," +
-          "      \"path\": \"/t/te/test\"," +
-          "      \"jcr:name\": \"authprofile\"," +
-          "      \"sakai:group-visible\": \"public\"," +
-          "      \"jcr:primaryType\": \"nt:unstructured\"" +
-          "    }" +
-          "  ]," +
-          "  \"total\": 2" +
-          "}" +
-          "</pre>"},
+      description = {"Get the groups this user is a member of",
+          "curl -u suzy:suzy http://localhost:8080/system/me/groups.tidy.json" +
+          "<pre>{\n" +
+            "    \"items\": 25,\n" +
+            "    \"results\": [{\n" +
+            "        \"sakai:category\": null,\n" +
+            "        \"sakai:group-description\": null,\n" +
+            "        \"sakai:group-title\": \"math101 (Students)\",\n" +
+            "        \"lastModified\": 1309561938702,\n" +
+            "        \"homePath\": \"/~math101-student\",\n" +
+            "        \"_path\": \"/~math101-student/public/authprofile\",\n" +
+            "        \"sling:resourceType\": \"sakai/group-profile\",\n" +
+            "        \"sakai:group-id\": \"math101-student\",\n" +
+            "        \"createdBy\": \"admin\",\n" +
+            "        \"basic\": {\n" +
+            "            \"access\": \"everybody\",\n" +
+            "            \"elements\": {\n" +
+            "                \"lastName\": {\n" +
+            "                    \"value\": \"unknown\"\n" +
+            "                },\n" +
+            "                \"email\": {\n" +
+            "                    \"value\": \"unknown\"\n" +
+            "                },\n" +
+            "                \"firstName\": {\n" +
+            "                    \"value\": \"unknown\"\n" +
+            "                }\n" +
+            "            }\n" +
+            "        },\n" +
+            "        \"created\": 1309556504969,\n" +
+            "        \"lastModifiedBy\": \"admin\",\n" +
+            "        \"counts\": {\n" +
+            "            \"membershipsCount\": 1,\n" +
+            "            \"contentCount\": 3,\n" +
+            "            \"membersCount\": 1,\n" +
+            "            \"countLastUpdate\": 1309750677273\n" +
+            "        },\n" +
+            "        \"groupid\": \"math101-student\",\n" +
+            "        \"sakai:excludeSearch\": \"true\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "        \"sakai:category\": null,\n" +
+            "        \"sakai:group-description\": null,\n" +
+            "        \"sakai:group-title\": \"math301 (Students)\",\n" +
+            "        \"lastModified\": 1309560858677,\n" +
+            "        \"homePath\": \"/~math301-student\",\n" +
+            "        \"_path\": \"/~math301-student/public/authprofile\",\n" +
+            "        \"sling:resourceType\": \"sakai/group-profile\",\n" +
+            "        \"sakai:group-id\": \"math301-student\",\n" +
+            "        \"createdBy\": \"admin\",\n" +
+            "        \"basic\": {\n" +
+            "            \"access\": \"everybody\",\n" +
+            "            \"elements\": {\n" +
+            "                \"lastName\": {\n" +
+            "                    \"value\": \"unknown\"\n" +
+            "                },\n" +
+            "                \"email\": {\n" +
+            "                    \"value\": \"unknown\"\n" +
+            "                },\n" +
+            "                \"firstName\": {\n" +
+            "                    \"value\": \"unknown\"\n" +
+            "                }\n" +
+            "            }\n" +
+            "        },\n" +
+            "        \"created\": 1309559023157,\n" +
+            "        \"lastModifiedBy\": \"admin\",\n" +
+            "        \"counts\": {\n" +
+            "            \"membershipsCount\": 1,\n" +
+            "            \"contentCount\": 3,\n" +
+            "            \"membersCount\": 1,\n" +
+            "            \"countLastUpdate\": 1309750677330\n" +
+            "        },\n" +
+            "        \"groupid\": \"math301-student\",\n" +
+            "        \"sakai:excludeSearch\": \"true\"\n" +
+            "    }\n" +
+            "    ],\n" +
+            "    \"total\": 2\n" +
+            "}</pre>"},
       response = {
         @ServiceResponse(code = 200, description = "All processing finished successfully."),
         @ServiceResponse(code = 500, description = "Exception occurred during processing.")

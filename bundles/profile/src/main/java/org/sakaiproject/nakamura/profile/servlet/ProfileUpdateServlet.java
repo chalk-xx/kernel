@@ -19,6 +19,13 @@ import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
@@ -45,6 +52,36 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+@ServiceDocumentation(bindings = {
+  @ServiceBinding(type = BindingType.TYPE,
+    bindings = {
+    ProfileConstants.GROUP_PROFILE_RT, ProfileConstants.USER_PROFILE_RT },
+    extensions = { @ServiceExtension(name = "json", description = "json format")
+    })
+  },
+  methods = {
+    @ServiceMethod(name = "POST", description = "Responds to POST method requests",
+      parameters = {
+        @ServiceParameter(name = ":operation", description = "This is usually 'import'"),
+        @ServiceParameter(name = ":content",
+          description = "The JSON representation of the profile to be written onto the target user or group profile. "
+          + "If :operation=import then this parameter must be present.")
+      },
+      response = {
+        @ServiceResponse(code = 200, description = "Responds with a 200 if the request was successful, the output is a json "
+          + "tree of the profile with external references expanded."),
+        @ServiceResponse(code = 404, description = "Responds with a 404 is the profile node cant be found, body contains no output"),
+        @ServiceResponse(code = 400, description = "Bad request. If the :operation parameter is 'import' then the :content parameter must be present."),
+        @ServiceResponse(code = 403, description = "Responds with a 403 if the user does not have permission to access the profile or part of it"),
+        @ServiceResponse(code = 500, description = "Responds with a 500 on any other error")
+      })
+  },
+  name = "Profile Update Servlet", okForVersion = "0.11",
+  shortDescription = "Endpoint for POSTing changes to a user or group profile.",
+  description = {
+    "Servlet for writing changes to a user or group profile, via JSON content which is passed as a parameter."
+    + "The actual update is delegated to the ProfileService."
+  })
 @SlingServlet(methods = { "POST" }, resourceTypes = { ProfileConstants.GROUP_PROFILE_RT,
     ProfileConstants.USER_PROFILE_RT })
 public class ProfileUpdateServlet extends SlingAllMethodsServlet {

@@ -28,6 +28,7 @@ import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
@@ -51,7 +52,9 @@ import javax.servlet.http.HttpServletResponse;
  */
 @ServiceDocumentation(
   name = "Create External Document Proxy Servlet",
+  okForVersion = "0.11",
   description = "Creates a external document resource where there was none",
+  shortDescription = "Creates a external document resource where there was none",
   bindings = {
     @ServiceBinding(
       type = BindingType.TYPE,
@@ -63,6 +66,10 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceMethod(
       name = "POST",
       description = "Create an external repository document.",
+      parameters = {
+        @ServiceParameter(name = "Filename", description = "The name of the file being created externally. If missing, we try to get the filename from the file data."),
+        @ServiceParameter(name = "Filedata", description = "Required. The multipart/form-data file body parameter (the binary contents of the file).")
+      },
       response = {
         @ServiceResponse(code = 200, description = "All processing finished successfully."),
         @ServiceResponse(code = 400, description = "Syntactically incorrect request or unknown repository."),

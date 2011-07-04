@@ -13,6 +13,14 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -36,6 +44,32 @@ import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+@ServiceDocumentation(name = "WorldAssociateServlet documentation", okForVersion = "0.11",
+  shortDescription = "Assigns or removes a role for an authorizable in a world",
+  description = "Assigns or removes a role to an authorizable in a world. " +
+    "There is assumed to be a an associate template and a disassociate template in the world for each role. " +
+    "The template is fulfilled with the parameters on the request and then written to the world.",
+  bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/world",
+    selectors = {
+      @ServiceSelector(name = "associate", description = "Assigns a role to an authorizable in a world"),
+      @ServiceSelector(name = "disassociate", description = "Removes a role from an authorizable in a world")
+    },
+    extensions = { @ServiceExtension(name = "json")
+  }),
+  methods = {
+    @ServiceMethod(name = "POST", description = "Performs the associate or disassociate operation.",
+      parameters = {
+        @ServiceParameter(name = "authorizable", description = "Required. The id of the authorizable to associate to this world"),
+        @ServiceParameter(name = "role", description = "Required. The name of the role for the specified authorizable."),
+        @ServiceParameter(name = "*", description = "Required. All the parameters needed to fulfill the associate or disassociate template for this role in this world.")
+      },
+      response = {
+        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+        @ServiceResponse(code = HttpServletResponse.SC_BAD_REQUEST, description = "'authorizable' or 'role' parameters were missing or not valid, or the worlds associate/disassociate template is invalid."),
+        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.")
+      })
+})
 @Component(immediate = false, metatype = true, enabled = true)
 @SlingServlet(resourceTypes = { "sakai/world" }, selectors = { "associate",
     "disassociate" }, methods = { "POST" }, generateComponent = false)

@@ -112,28 +112,42 @@ import javax.servlet.http.HttpServletResponse;
                     "dd.MM.yyyy HH:mm:ss",
                    "dd.MM.yyyy"}
  )})
-@ServiceDocumentation(name = "Update Group Servlet", description = "Updates a group's properties. Maps on to nodes of resourceType sling/group "
-    + "like /rep:system/rep:userManager/rep:groups/ae/3f/ed/groupname mapped to a resource "
-    + "url /system/userManager/group/g-groupname. This servlet responds at "
-    + "/system/userManager/group/groupname.update.html", shortDescription = "Update a group properties", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = { "sling/group" }, selectors = @ServiceSelector(name = "update", description = "Updates the properties of a group"), extensions = @ServiceExtension(name = "html", description = "Posts produce html containing the update status")), methods = @ServiceMethod(name = "POST", description = {
-    "Updates a group setting or deleting properties, "
-        + "storing additional parameters as properties of the group.",
-    "Example<br>"
-        + "<pre>curl -Fproperty1@Delete -Fproperty2=value2 http://localhost:8080/system/userManager/group/g-groupname.update.html</pre>" }, parameters = {
-    @ServiceParameter(name = "propertyName@Delete", description = "Delete property, eg property1@Delete means delete property1 (optional)"),
-    @ServiceParameter(name = ":member", description = "Add a member to this group (optional)"),
-    @ServiceParameter(name = ":member@Delete", description = "Remove a member from this group (optional)"),
-    @ServiceParameter(name = ":manager", description = "Add a manager to this group, note: this does not add the manager as a member! (optional)"),
-    @ServiceParameter(name = ":manager@Delete", description = "Remove a manager from this group, note: this does not remove the manager as a member! (optional)"),
-    @ServiceParameter(name = ":viewer", description = "Add a viewer to this group, note: this does not add the viewer as a member! (optional)"),
-    @ServiceParameter(name = ":viewer@Delete", description = "Remove a viewer from this group, note: this does not remove the viewer as a member! (optional)"),
-    @ServiceParameter(name = "propertyName@Delete", description = "Delete property, eg property1@Delete means delete property1 (optional)"),
-    @ServiceParameter(name="",description="Additional parameters become group node properties, " +
-        "except for parameters starting with ':', which are only forwarded to post-processors (optional)")
-    }, response={
-    @ServiceResponse(code = 200, description = "Success, a redirect is sent to the group's resource locator with HTML describing status."),
-    @ServiceResponse(code = 404, description = "Group was not found."),
-    @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }))
+@ServiceDocumentation(name = "Update Group Servlet", okForVersion = "0.11",
+    description = "Updates a group's properties. Maps on to nodes of resourceType sparse/group "
+      + "like a:math101 mapped to a resource "
+      + "url /system/userManager/group/math101. This servlet responds at "
+      + "/system/userManager/group/math101.update.html",
+    shortDescription = "Update a group properties",
+    bindings = {
+      @ServiceBinding(type = BindingType.TYPE,
+        bindings = { "sparse/group" },
+        selectors = @ServiceSelector(name = "update", description = "Updates the properties of a group"),
+        extensions = @ServiceExtension(name = "html", description = "Posts produce html containing the update status"))
+    },
+    methods = {
+      @ServiceMethod(name = "POST",
+        description = {
+          "Updates a group setting or deleting properties, "
+            + "storing additional parameters as properties of the group.",
+          "Example<br>"
+            + "<pre>curl -Fproperty1@Delete -Fproperty2=value2 http://localhost:8080/system/userManager/group/math101.update.html</pre>"
+        },
+        parameters = {
+        @ServiceParameter(name = "propertyName@Delete", description = "Delete property, eg property1@Delete means delete property1 (optional)"),
+        @ServiceParameter(name = ":member", description = "Add a member to this group (optional)"),
+        @ServiceParameter(name = ":member@Delete", description = "Remove a member from this group (optional)"),
+        @ServiceParameter(name = ":manager", description = "Add a manager to this group, note: this does not add the manager as a member! (optional)"),
+        @ServiceParameter(name = ":manager@Delete", description = "Remove a manager from this group, note: this does not remove the manager as a member! (optional)"),
+        @ServiceParameter(name = ":viewer", description = "Add a viewer to this group, note: this does not add the viewer as a member! (optional)"),
+        @ServiceParameter(name = ":viewer@Delete", description = "Remove a viewer from this group, note: this does not remove the viewer as a member! (optional)"),
+        @ServiceParameter(name = "propertyName@Delete", description = "Delete property, eg property1@Delete means delete property1 (optional)"),
+        @ServiceParameter(name="",description="Additional parameters become group node properties, " +
+          "except for parameters starting with ':', which are only forwarded to post-processors (optional)")
+      }, response={
+        @ServiceResponse(code = 200, description = "Success, a redirect is sent to the group's resource locator with HTML describing status."),
+        @ServiceResponse(code = 404, description = "Group was not found."),
+        @ServiceResponse(code = 500, description = "Failure with HTML explanation.") })
+    })
 public class LiteUpdateSakaiGroupServlet extends LiteAbstractSakaiGroupPostServlet {
 
   /**

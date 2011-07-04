@@ -219,7 +219,23 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
       writer.append("<li>");
       writer.append(k);
       writer.append(": ");
-      writer.append(String.valueOf(reference.getProperty(k)));
+      Object propertyValue = reference.getProperty(k);
+      if (propertyValue instanceof String[]) {
+        if (((String[]) propertyValue).length == 1) {
+          writer.append(((String[])propertyValue)[0]);
+        } else {
+          String sep = "";
+          writer.append("[");
+          for (String propertyElement : (String[])propertyValue) {
+            writer.append(sep);
+            writer.append(propertyElement);
+            sep = ",";
+          }
+          writer.append("]");
+        }
+      } else {
+        writer.append(String.valueOf(propertyValue));
+      }
       writer.append("</li>");
 
     }

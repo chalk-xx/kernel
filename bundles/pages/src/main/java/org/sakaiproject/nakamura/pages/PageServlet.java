@@ -29,6 +29,7 @@ import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -44,10 +45,19 @@ import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "PageServlet", shortDescription = "Lists the messages of the current users mailboxes.", description = "Presents mailbox messages of current user in JSON format.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/messages"), methods = @ServiceMethod(name = "GET", description = "List current user's mailbox messages.", response = {
-    @ServiceResponse(code = 200, description = "Request for information was successful. <br />"),
-    @ServiceResponse(code = 401, description = "Unauthorized: credentials provided were not acceptable to return information for."),
-    @ServiceResponse(code = 500, description = "Unable to return information about current user.") }))
+@ServiceDocumentation(name = "PageServlet", okForVersion = "0.11",
+    shortDescription = "Returns a list of pages below the specified content path",
+    description = "Returns a list of pages below the content specified in the 'path' parameter.",
+    bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/var/search/page"),
+    methods = @ServiceMethod(name = "GET", description = "Get a list of pages below the specified path.",
+      parameters = {
+        @ServiceParameter(name = "path", description = "The path of the pages to retrieve, e.g. /~welcome-group/pages")
+      },
+      response = {
+        @ServiceResponse(code = 200, description = "Request for information was successful. <br />"),
+        @ServiceResponse(code = 401, description = "Unauthorized: credentials provided were not acceptable to return information for."),
+        @ServiceResponse(code = 500, description = "Unable to return information about current user.")
+      }))
 @SlingServlet(paths = { "/var/search/page" }, generateComponent = true, generateService = true, methods = { "GET" })
 public class PageServlet extends SlingSafeMethodsServlet {
 
@@ -79,7 +89,6 @@ public class PageServlet extends SlingSafeMethodsServlet {
         Resource pagesResource = resourceResolver.getResource(contentPath);
         if (pagesResource != null) {
           contentList = getPageTree(pagesResource.adaptTo(Content.class));
-          ;
         }
 
       }

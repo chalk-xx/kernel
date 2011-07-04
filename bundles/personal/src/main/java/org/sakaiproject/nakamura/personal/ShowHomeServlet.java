@@ -49,9 +49,9 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * The <code>ShowHomeServlet</code>
  */
-@ServiceDocumentation(name = "Show Home",
+@ServiceDocumentation(name = "Show Home", okForVersion = "0.11",
   description = " Shows the content of the configured homepage per authorizable type (user, group)",
-  shortDescription = "Shows homepage for authorizables",
+  shortDescription = "Shows homepage for users and groups",
   bindings = @ServiceBinding(type = BindingType.TYPE,
     bindings = { "sakai/user-home", "sakai/group-home" }
   ),

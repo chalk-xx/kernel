@@ -26,6 +26,14 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -77,6 +85,30 @@ import java.util.Map;
  * 
  *
  */
+@ServiceDocumentation(name="Update User Servlet", okForVersion = "0.11",
+    description="Updates a user's properties. Maps on to nodes of resourceType sparse/user " +
+    		"like /~suzy " +
+    		"/system/userManager/user/suzy . This servlet responds at " +
+    		"/system/userManager/user/suzy.update.html",
+    shortDescription="Update a user properties",
+    bindings=@ServiceBinding(type= BindingType.TYPE,bindings={"sparse/user"},
+        selectors=@ServiceSelector(name="update", description="Updates the properties of a user"),
+        extensions=@ServiceExtension(name="html", description="Posts produce html containing the update status")),
+    methods=@ServiceMethod(name="POST",
+        description={"Updates a user setting or deleting properties, " +
+            "storing additional parameters as properties of the new user.",
+            "Example<br>" +
+            "<pre>curl -Fproperty1@Delete -Fproperty2=value2 http://localhost:8080/system/userManager/user/suzy.update.html</pre>"},
+        parameters={
+        @ServiceParameter(name="propertyName@Delete", description="Delete property, eg property1@Delete means delete property1 (optional)"),
+        @ServiceParameter(name="",description="Additional parameters become user node properties, " +
+            "except for parameters starting with ':', which are only forwarded to post-processors (optional)")
+        },
+        response={
+          @ServiceResponse(code=200,description="Success, a redirect is sent to the user's resource locator with HTML describing status."),
+          @ServiceResponse(code=404,description="User was not found."),
+          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+        ))
 @SlingServlet(resourceTypes={"sparse/user"}, methods={"POST"}, selectors={"update"})
 @Properties(value = {
     @Property(name = "password.digest.algorithm", value = "sha1"),

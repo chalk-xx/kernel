@@ -74,22 +74,20 @@ import javax.jcr.security.AccessControlManager;
 import javax.jcr.security.Privilege;
 import javax.jcr.version.VersionException;
 
-@ServiceDocumentation(
-  name = "Basic LTI Post Operation",
-  description = "Sets up a node to be used as configuration for interation with Basic LTI",
+@ServiceDocumentation(name = "Basic LTI Post Operation", okForVersion = "0.11",
+  shortDescription = "Adds properties to a node for use with Basic LTI.",
+  description = "Sets up a node to be used as configuration for integration with Basic LTI",
   methods = {
     @ServiceMethod(name = "POST",
       parameters = {
-        @ServiceParameter(name = ":opertion=basiclti", description = "The operation to specify when posting to trigger this operation.")
+        @ServiceParameter(name = ":operation=basiclti", description = "The operation to specify when posting to trigger this operation.")
       },
       description = {
-        "Adds any provided properties to the noded being posted to for use in BasicLTI integration. Properties ending with @Delete are removed."
+        "Adds any provided properties to the node being posted to for use in BasicLTI integration. Properties ending with @Delete are removed."
       }
     )
-  }
-)
+  })
 @Component(immediate = true)
-// @Service(value = SlingPostOperation.class)
 @Properties(value = {
     @Property(name = "sling.post.operation", value = "basiclti"),
     @Property(name = "service.description", value = "Creates a sakai/basiclti settings node."),
@@ -97,7 +95,7 @@ import javax.jcr.version.VersionException;
 public class BasicLTIPostOperation extends AbstractSlingPostOperation {
   private static final Logger LOG = LoggerFactory.getLogger(BasicLTIPostOperation.class);
   /**
-   * Dependency injected from OSGI container.
+   * Dependency injected from OSGi container.
    */
   @Reference
   private transient SlingRepository slingRepository;

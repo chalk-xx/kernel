@@ -90,13 +90,13 @@ import java.util.List;
         "EEE MMM dd yyyy HH:mm:ss 'GMT'Z", "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
         "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy" })})
 
-@ServiceDocumentation(name="Change Password Servlet",
-    description="Changes user password. Maps on to nodes of resourceType sling/user " +
-        "like /rep:system/rep:userManager/rep:users/ae/fd/3e/username mapped to a resource " +
+@ServiceDocumentation(name="Change Password Servlet", okForVersion = "0.11",
+    description="Changes user password. Maps on to nodes of resourceType sparse/user " +
+        "like /~username mapped to a resource " +
         "url /system/userManager/user/username . This servlet responds at " +
         "/system/userManager/user/username.changePassword.html",
     shortDescription="Change a user password",
-    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/user"},
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sparse/user"},
         selectors={@ServiceSelector(name="changePassword",description="selects this servlet to change the users password")
         }),
     methods=@ServiceMethod(name="POST",
@@ -110,7 +110,7 @@ import java.util.List;
         @ServiceParameter(name="newPwdConfirm", description="confirm new password for user (required)")
         },
         response={
-        @ServiceResponse(code=200,description="Sucess sent with no body."),
+        @ServiceResponse(code=200,description="Success sent with no body."),
         @ServiceResponse(code=404,description="User was not found."),
         @ServiceResponse(code=500,description="Failure with HTML explanation.")
     }))

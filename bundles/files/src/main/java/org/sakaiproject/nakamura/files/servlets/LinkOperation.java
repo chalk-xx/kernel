@@ -58,7 +58,7 @@ import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Create an interal jcr link to a file.
+ * Create an internal jcr link to a file.
  */
 @Component(immediate = true)
 @Service(value = SlingPostOperation.class)
@@ -76,6 +76,7 @@ import javax.servlet.http.HttpServletResponse;
         "The body will also contain a JSON response that lists all the links and if they were sucesfully created or not." }),
     @ServiceResponse(code = 400, description = "Filedata parameter was not provided."),
     @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }) }, bindings = { @ServiceBinding(type = BindingType.OPERATION, bindings = { "link" }) })
+@Deprecated
 public class LinkOperation extends AbstractSlingPostOperation {
 
   public static final Logger log = LoggerFactory.getLogger(LinkOperation.class);

@@ -40,13 +40,14 @@ import java.util.Map.Entry;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(
-  name = "ReCaptcha Servlet",
+@ServiceDocumentation(name = "ReCaptcha Servlet",
+  okForVersion = "0.11",
+  shortDescription = "All the necessary properties the UI needs to communicate with the reCAPTCHA.net service.",
   description = "All the necessary properties the UI needs to communicate with the reCAPTCHA.net service.",
   bindings = {
     @ServiceBinding(
-      type = BindingType.TYPE,
-      bindings = { "system/captcha" }
+      type = BindingType.PATH,
+      bindings = { "/system/captcha" }
     )
   },
   methods = {

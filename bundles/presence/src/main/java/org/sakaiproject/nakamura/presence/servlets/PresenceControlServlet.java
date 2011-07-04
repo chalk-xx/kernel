@@ -49,7 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = { "Controls the presence for the current user." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
-@ServiceDocumentation(name = "Presence Control Servlet",
+@ServiceDocumentation(name = "Presence Control Servlet", okForVersion = "0.11",
     description = "Controls the presence, and location for the current user using standard HTTP verbs to perform the control",
     shortDescription="Controls the presence for the current user",
     bindings = @ServiceBinding(type = BindingType.TYPE,
@@ -63,7 +63,7 @@ import javax.servlet.http.HttpServletResponse;
              description = {
                  "Pings the user and sets the location and status if specified.",
                  "<pre>" +
-                 "curl -Fsakai:location=\"At Home\" -Fsakai:status=\"Online\" http://ieb:password@localhost:8080/var/presence.json\n" +
+                 "curl --referer http://localhost:8080 -u zach:password -Fsakai:location=\"At Home\" -Fsakai:status=\"Online\" http://localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"At Home\",\n" +
                  "   \"status\" :\"Online\",\n" +
@@ -71,7 +71,7 @@ import javax.servlet.http.HttpServletResponse;
                  "</pre>",
                  "Clear the status, set the location.",
                  "<pre>" +
-                 "curl -Fsakai:location=\"At Home\" -Fdelete=1 http://ieb:password@localhost:8080/var/presence.json\n" +
+                 "curl --referer http://localhost:8080 -u zach:password -Fsakai:location=\"At Home\" -Fdelete=1 http://localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"At Home\",\n" +
                  "   \"delete\" :\"1\",\n" +
@@ -79,21 +79,21 @@ import javax.servlet.http.HttpServletResponse;
                  "</pre>",
                  "Set Only the location "+
                  "<pre>"+
-                 "curl -Fsakai:location=\"At Work\"  http://ieb:password@localhost:8080/var/presence.json\n" +
+                 "curl --referer http://localhost:8080 -u zach:password  -Fsakai:location=\"At Work\"  http://localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"At Home\",\n" +
                  "}\n" +
                  "</pre>",
                  "Clear the location "+
                  "<pre>"+
-                 "curl -XPOST  http://ieb:password@localhost:8080/var/presence.json\n" +
+                 "curl --referer http://localhost:8080 -u zach:password -XPOST  http://localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"null\",\n" +
                  "}\n" +
                  "</pre>",
                  "Clear the presence "+
                  "<pre>"+
-                 "curl -Fdelete=1  http://ieb:password@localhost:8080/var/presence.json\n" +
+                 "curl --referer http://localhost:8080 -u zach:password -Fdelete=1  http://localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"deleted\" :\"1\",\n" +
                  "}\n" +
@@ -112,11 +112,11 @@ import javax.servlet.http.HttpServletResponse;
 
          },
         response = {
-             @ServiceResponse(code=200,description="On sucess no content response is sent."),
-             @ServiceResponse(code=401,description="The user is not logged in and the resource is protected"),
-             @ServiceResponse(code=403,description="The user does not have permission to access the resource"),
+           @ServiceResponse(code=200,description="On success no content response is sent."),
+           @ServiceResponse(code=401,description="The user is not logged in and the resource is protected"),
+           @ServiceResponse(code=403,description="The user does not have permission to access the resource"),
            @ServiceResponse(code=404,description="The resource does not exist, or the target is not found"),
-           @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
+           @ServiceResponse(code=0,description="Any other status codes emitted have the meaning prescribed in the RFC")
          })
 })
 public class PresenceControlServlet extends SlingAllMethodsServlet {

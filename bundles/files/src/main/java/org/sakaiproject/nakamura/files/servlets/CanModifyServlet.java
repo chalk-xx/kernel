@@ -47,12 +47,19 @@ import javax.jcr.security.Privilege;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "CanModifyServlet", shortDescription = "Check to see if user has privileges to modify a resource.", description = "Check to see if user has privileges to modify a resource.", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sling/servlet/default", selectors = @ServiceSelector(name = "canModify", description = "Check to see if user has privileges to modify a resource."), extensions = { @ServiceExtension(name = "json") }), methods = {
-    @ServiceMethod(name = "GET", description = "Check to see if user has privileges to modify a resource.", parameters = { @ServiceParameter(name = "verbose", description = "Optional: set to true if you want verbose output") }, response = {
-        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
-        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
-        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.") })})
-@SlingServlet(methods = { "GET", "POST" }, selectors = { "canModify" }, extensions = { "json" }, resourceTypes = { "sling/servlet/default" })
+@SlingServlet(methods = { "GET" }, selectors = { "canModify" }, extensions = { "json" }, resourceTypes = { "sling/servlet/default" })
+@ServiceDocumentation(name = "CanModifyServlet", okForVersion = "0.11",
+  shortDescription = "Check to see if user has privileges to modify a resource.",
+  description = "Check to see if user has privileges to modify a resource.",
+  bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sling/servlet/default",
+    selectors = @ServiceSelector(name = "canModify", description = "Check to see if user has privileges to modify a resource."),
+    extensions = { @ServiceExtension(name = "json") }),
+  methods = {
+  @ServiceMethod(name = "GET", description = "Check to see if user has privileges to modify a resource.", parameters = { @ServiceParameter(name = "verbose", description = "Optional: set to true if you want verbose output") }, response = {
+      @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
+      @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+      @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.") })
+  })
 public class CanModifyServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = 9008556018380828590L;
   private static final Logger LOG = LoggerFactory.getLogger(CanModifyServlet.class);

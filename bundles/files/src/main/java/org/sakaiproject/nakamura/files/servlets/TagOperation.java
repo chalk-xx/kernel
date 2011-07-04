@@ -77,6 +77,7 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "sling.post.operation", value = "tag"),
     @Property(name = "service.description", value = "Creates an internal link to a file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@Deprecated
 public class TagOperation extends AbstractSlingPostOperation {
 
   @Reference

@@ -75,7 +75,19 @@ import java.util.Set;
 
 import javax.servlet.ServletException;
 
-@ServiceDocumentation(name = "Basic LTI Post Operation", description = "Sets up a node to be used as configuration for interation with Basic LTI", methods = { @ServiceMethod(name = "POST", parameters = { @ServiceParameter(name = ":opertion=basiclti", description = "The operation to specify when posting to trigger this operation.") }, description = { "Adds any provided properties to the noded being posted to for use in BasicLTI integration. Properties ending with @Delete are removed." }) })
+@ServiceDocumentation(name = "Basic LTI Post Operation", okForVersion = "0.11",
+  shortDescription = "Adds properties to a node for use with Basic LTI.",
+  description = "Sets up a node to be used as configuration for integration with Basic LTI",
+  methods = {
+    @ServiceMethod(name = "POST",
+      parameters = {
+        @ServiceParameter(name = ":operation=basiclti", description = "The operation to specify when posting to trigger this operation.")
+      },
+      description = {
+        "Adds any provided properties to the node being posted to for use in BasicLTI integration. Properties ending with @Delete are removed."
+      }
+    )
+  })
 @Component(immediate = true)
 @Service(value = SparsePostOperation.class)
 @Properties(value = {
@@ -86,7 +98,7 @@ public class LiteBasicLTIPostOperation extends AbstractSparsePostOperation {
   private static final Logger LOG = LoggerFactory
       .getLogger(LiteBasicLTIPostOperation.class);
   /**
-   * Dependency injected from OSGI container.
+   * Dependency injected from OSGi container.
    */
   @Reference
   private transient Repository repository;

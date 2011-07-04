@@ -67,7 +67,11 @@ import javax.servlet.http.HttpServletResponse;
 @Service(value = Servlet.class)
 @SlingServlet(resourceTypes = { "sakai/proxy" }, methods = { "GET", "POST", "PUT",
     "HEAD", "OPTIONS" },generateComponent=true, generateService=true)
-@ServiceDocumentation(name = "ResourceProxyServlet", shortDescription = "This servlet binds to a resource that defines an end point.", description = "This servlet binds to a resource that defines an end point.", bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/proxy") }, methods = {
+@ServiceDocumentation(name = "ResourceProxyServlet", okForVersion = "0.11",
+  shortDescription = "This servlet binds to a resource that defines an end point.",
+  description = "This servlet binds to a resource that defines an end point.",
+  bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/proxy") },
+  methods = {
 		@ServiceMethod(name = "GET", description = "Proxied GET request", response = {
 				@ServiceResponse(code = 403, description = "Proxying templates may only be stored in /var/proxy"),
 				@ServiceResponse(code = 500, description = "ProxyClientException or RepositoryException") }),
@@ -82,7 +86,8 @@ import javax.servlet.http.HttpServletResponse;
 				@ServiceResponse(code = 500, description = "ProxyClientException or RepositoryException") }),
 		@ServiceMethod(name = "OPTIONS", description = "Proxied OPTIONS request", response = {
 				@ServiceResponse(code = 403, description = "Proxying templates may only be stored in /var/proxy"),
-				@ServiceResponse(code = 500, description = "ProxyClientException or RepositoryException") }) })
+				@ServiceResponse(code = 500, description = "ProxyClientException or RepositoryException") })
+  })
 public class ResourceProxyServlet extends SlingAllMethodsServlet implements OptingServlet {
 
   public static final String PROXY_PATH_PREFIX = "/var/proxy/";

@@ -57,6 +57,7 @@ import javax.servlet.ServletException;
     @ServiceResponse(code = 200, description = "Returns a JSON response which holds all the properties for this link node. "
         + "But it also returns the information of the file it links to."),
     @ServiceResponse(code = 500, description = "Failure, explanation in HTML code.") }))
+@Deprecated
 public class LinkInfoServlet extends SlingSafeMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LinkInfoServlet.class);

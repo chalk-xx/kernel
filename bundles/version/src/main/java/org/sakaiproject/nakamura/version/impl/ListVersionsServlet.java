@@ -38,16 +38,31 @@ import org.sakaiproject.nakamura.api.resource.SafeServletResourceHandler;
  * Gets a version
  */
 
-@ServiceDocumentation(name = "List Versions Servlet", description = "Lists versions of a resource in json format", shortDescription = "List versions of a resource", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = { "sling/servlet/default" }, selectors = @ServiceSelector(name = "versions", description = "Retrieves a paged list of versions for the resource"), extensions = @ServiceExtension(name = "json", description = "A list over versions in json format")), methods = @ServiceMethod(name = "GET", description = {
-    "Lists previous versions of a resource. The url is of the form "
-        + "http://host/resource.versions.json ",
-    "Example<br>"
-        + "<pre>curl http://localhost:8080/sresource/resource.versions.json</pre>" }, parameters = {
-    @ServiceParameter(name = "items", description = "The number of items per page"),
-    @ServiceParameter(name = "page", description = "The page to of items to return") }, response = {
-    @ServiceResponse(code = 200, description = "Success a body is returned containing a json tree"),
-    @ServiceResponse(code = 404, description = "Resource was not found."),
-    @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }))
+@ServiceDocumentation(name = "List Versions Servlet", okForVersion = "0.11",
+  description = "Lists versions of a resource in json format",
+  shortDescription = "List versions of a resource",
+  bindings = {
+    @ServiceBinding(type = BindingType.TYPE,
+      bindings = { "sling/servlet/default" },
+      selectors = @ServiceSelector(name = "versions", description = "Retrieves a paged list of versions for the resource"),
+      extensions = @ServiceExtension(name = "json", description = "A list over versions in json format"))
+  },
+  methods = @ServiceMethod(name = "GET",
+    description = {
+      "Lists previous versions of a resource. The url is of the form "
+          + "http://host/resource.versions.json ",
+      "Example<br>"
+          + "<pre>curl http://localhost:8080/p/hziUdUqgaa.versions.json</pre>"
+    },
+    parameters = {
+      @ServiceParameter(name = "items", description = "The number of items per page"),
+      @ServiceParameter(name = "page", description = "The page to of items to return")
+    },
+    response = {
+      @ServiceResponse(code = 200, description = "Success a body is returned containing a json tree"),
+      @ServiceResponse(code = 404, description = "Resource was not found."),
+      @ServiceResponse(code = 500, description = "Failure with HTML explanation.")
+    }))
 @SlingServlet(resourceTypes = "sling/servlet/default", methods = "GET", selectors = "versions", extensions = "json")
 @References(value = { @Reference(referenceInterface = SafeServletResourceHandler.class, name = "resourceHandlers", cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, strategy = ReferenceStrategy.EVENT, target = "(handling.servlet=ListVersionsServlet)", bind = "bindServletResourceHandler", unbind = "unbindServletResourceHandler") })
 public class ListVersionsServlet extends SafeMethodsHandlingServlet {

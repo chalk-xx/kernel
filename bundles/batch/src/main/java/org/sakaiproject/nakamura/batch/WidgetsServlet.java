@@ -46,12 +46,25 @@ import java.util.Map.Entry;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "WidgetsServlet", description = "Gives a list of all the known widgets in the system.", shortDescription = "List all the widgets", methods = { @ServiceMethod(parameters = { @ServiceParameter(name = "callback", description = { "Optional parameter that determines the name of the callback function for the json-p output. If this parameter is not found, than normal json will be outputted." }) }, response = {
-    @ServiceResponse(code = 200, description = {
-        "Will output a JSON object with all the widgets in the system.",
-        "This servlet will only check the preconfigured locations. These can be modified in the felix admin console panel. The folder should be the toplevel folder that contains the widgets. Each subfolder should represent a widget and should contain a 'config.json' file.",
-        "In the JSON response, each key represents a widgetname and will have the content of the 'config.json' file outputted in it." }),
-    @ServiceResponse(code = 500, description = { "The servlet is unable to produce a proper JSON output." }) }) }, bindings = { @ServiceBinding(type = BindingType.PATH, bindings = { "/var/widgets" }) })
+@ServiceDocumentation(name = "WidgetsServlet", okForVersion = "0.11",
+    shortDescription = "List all the widgets",
+    description = "Gives a list of all the known widgets in the system.",
+    bindings = { @ServiceBinding(type = BindingType.PATH, bindings = "/var/widgets") },
+    methods = {
+    @ServiceMethod(parameters = {
+          @ServiceParameter(name = "callback",
+              description = "Optional parameter that determines the name of the callback function for the json-p output. If this parameter is not found, than normal json will be outputted.")
+          },
+          response = {
+          @ServiceResponse(code = 200,
+              description = {
+              "Will output a JSON object with all the widgets in the system.",
+              "This servlet will only check the pre-configured locations. These can be modified in the felix admin console panel. The folder should be the top level folder that contains the widgets. Each sub-folder should represent a widget and should contain a 'config.json' file.",
+              "In the JSON response, each key represents a widget name and will have the content of the 'config.json' file outputted in it."
+              }),
+          @ServiceResponse(code = 500, description = "The servlet is unable to produce a proper JSON output.")
+          })
+    })
 @SlingServlet(methods = { "GET" }, paths = { "/var/widgets" }, generateComponent = false, generateService = true)
 @Component(metatype = true, immediate = true)
 public class WidgetsServlet extends SlingSafeMethodsServlet {
