@@ -303,9 +303,11 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
             Resource resource = srequest.getResource();
             if ( resource != null ) {
               Node node = resource.adaptTo(Node.class);
-              if ( node != null ) {
+              if (node != null || "sling:nonexisting".equals(resource.getResourceType())) {
                 // JCR content is trusted, as users dont have write to the JCR, lets hope thats true!
                 // KERN-1930 and list discussion.
+                // Also trust a "GET" of non-existing content so that the 404 comes from
+                // the right port (KERN-2001)
                 return true;
               }
               String resourcePath = resource.getPath();
