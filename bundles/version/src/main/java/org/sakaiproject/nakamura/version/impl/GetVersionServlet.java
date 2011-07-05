@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.version.impl;
 
-import com.sun.tools.javac.resources.version;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
