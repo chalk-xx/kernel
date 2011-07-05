@@ -82,9 +82,9 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "service.description", value = "Endpoint to create a message") })
 @Reference(name = "createMessagePreProcessor", referenceInterface = CreateMessagePreProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 @ServiceDocumentation(
-    name = "CreateMessageServlet",
+    name = "CreateMessageServlet", okForVersion = "0.11",
     shortDescription = "Create a message.",
-    description = "Create a message by doing a POST to messagestore.create.html . By default there are stores at /_user/u/us/user/message and /_group/g/gr/group/message",
+    description = "Create a message by doing a POST to messagestore.create.html . By default there are stores at /~user/message and /~group/message",
     bindings = @ServiceBinding(type = BindingType.TYPE,
         bindings = "sakai/messagestore",
         selectors = @ServiceSelector(name = "create")),

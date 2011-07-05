@@ -61,7 +61,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = { "Gets the presence for the current user and named user" }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
-@ServiceDocumentation(name = "Presence User Servlet",
+@ServiceDocumentation(name = "Presence User Servlet", okForVersion = "0.11",
     description = "Gets presence for the current user and a named user including the public profile for the named contact.",
     shortDescription="Gets the presence for the current user and named user",
     bindings = @ServiceBinding(type = BindingType.TYPE,
@@ -104,12 +104,12 @@ import javax.servlet.http.HttpServletResponse;
              })
          },
         response = {
-             @ServiceResponse(code=200,description="On sucess a a json tree of the presence for contacts."),
-             @ServiceResponse(code=400,description="If the userid is not specified."),
-             @ServiceResponse(code=401,description="The user is not logged in and the resource is protected"),
-             @ServiceResponse(code=403,description="The user does not have permission to access the resource"),
+           @ServiceResponse(code=200,description="On success a a json tree of the presence for contacts."),
+           @ServiceResponse(code=400,description="If the userid is not specified."),
+           @ServiceResponse(code=401,description="The user is not logged in and the resource is protected"),
+           @ServiceResponse(code=403,description="The user does not have permission to access the resource"),
            @ServiceResponse(code=404,description="The resource does not exist, or the target is not found"),
-           @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
+           @ServiceResponse(code=0,description="Any other status codes emitted with have the meaning prescribed in the RFC")
          })
         })
 public class PresenceUserServlet extends SlingSafeMethodsServlet {

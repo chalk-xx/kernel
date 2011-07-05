@@ -23,15 +23,25 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(paths = { "/system/doc/proxy" }, methods = { "GET" })
-@ServiceDocumentation(name = "Proxy documentation", description = "Provides auto documentation of proxy nodes currently in the repository. Documentation will use the "
+@ServiceDocumentation(name = "Proxy documentation", okForVersion = "0.11",
+  description = "Provides auto documentation of proxy nodes currently in the repository. Documentation will use the "
     + "node properties."
     + " Requests to this servlet take the form /system/doc/proxy?p=&lt;proxynodepath&gt where <em>proxynodepath</em>"
-    + " is the absolute path of the proxynode deployed into the JCR repository. If the node is "
-    + "not present a 404 will be retruned, if the node is present, it will be interogated to extract "
+    + " is the absolute path of the proxy node deployed into the JCR repository. If the node is "
+    + "not present a 404 will be returned, if the node is present, it will be interrogated to extract "
     + "documentation from the node. All documentation is assumed to be HTML encoded. If the browser is "
-    + "directed to <a href=\"/system/doc/proxy\" >/system/doc/proxy</a> a list of all the proxy nodes in the system will be displayed ", shortDescription = "Documentation for all the proxynodes in the repository. ", url = "/system/doc/proxy", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/doc/proxy"), methods = { @ServiceMethod(name = "GET", description = "GETs to this servlet will produce documentation for the proxynode, or an index of all searchnodes.", parameters = @ServiceParameter(name = "p", description = "The absolute path to a searchnode to display the documentation for"), response = {
-    @ServiceResponse(code = 200, description = "html page for the requested resource"),
-    @ServiceResponse(code = 404, description = "Search node not found") }) })
+    + "directed to <a href=\"/system/doc/proxy\" >/system/doc/proxy</a> a list of all the proxy nodes in the system will be displayed ",
+  shortDescription = "Documentation for all the proxy nodes in the repository. ",
+  url = "/system/doc/proxy",
+  bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/doc/proxy"),
+  methods = {
+    @ServiceMethod(name = "GET", description = "GETs to this servlet will produce documentation for the proxy node, or an index of all proxy nodes.",
+      parameters = @ServiceParameter(name = "p", description = "Optional. The absolute path to a proxy node to display the documentation for"),
+      response = {
+        @ServiceResponse(code = 200, description = "html page for the requested resource"),
+        @ServiceResponse(code = 404, description = "Search node not found")
+      })
+  })
 public class ProxyDocumentationServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = -5820041368602931242L;

@@ -8,6 +8,14 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -28,7 +36,28 @@ import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
-
+@ServiceDocumentation(name = "MapContentPoolItemServlet documentation", okForVersion = "0.11",
+  shortDescription = "Create a token on the requested piece of content, and update permissions on a specified target piece of content.",
+  description = "Create a token on the requested piece of content, and update permissions on a specified target piece of content.",
+  bindings = {
+    @ServiceBinding(type = BindingType.TYPE,
+      bindings = "sparse/Content",
+      selectors = @ServiceSelector(name = "map-pool", description = "Binds to the map-pool selector."))
+    },
+  methods = {
+    @ServiceMethod(name = "POST", description = "Creates a token on the requested content. Returns JSON with the newly created tokenPrincipalId.",
+      parameters = {
+        @ServiceParameter(name = "src", description = "The path to the target content whose permission will be updated"),
+        @ServiceParameter(name = "grant", description = "Multi-valued. The permissions to grant."),
+        @ServiceParameter(name = "deny", description = "Multi-valued. The permissions to deny.")
+      },
+      response = {
+        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+        @ServiceResponse(code = HttpServletResponse.SC_FORBIDDEN, description = "Insufficient permission to create the token and update permissions on the target."),
+        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.")
+      })
+})
 @SlingServlet(resourceTypes = { "sparse/Content" }, selectors = { "map-pool" }, methods = { "POST" })
 public class MapContentPoolItemServlet extends SlingAllMethodsServlet {
 

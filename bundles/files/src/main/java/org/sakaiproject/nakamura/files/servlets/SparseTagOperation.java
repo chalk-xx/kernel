@@ -68,20 +68,34 @@ import javax.jcr.NodeIterator;import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "TagOperation", shortDescription = "Tag a node", description = { "Add a tag to a node." }, methods = { @ServiceMethod(name = "POST", description = { "This operation should be performed on the node you wish to tag. Tagging on any item will be performed by adding a weak reference to the content item. Put simply a sakai:tag-uuid property with the UUID of the tag node. We use the UUID to uniquely identify the tag in question, a string of the tag name is not sufficient. This allows the tag to be renamed and moved without breaking the relationship. Additionally for convenience purposes we may put the name of the tag at the time of tagging in sakai:tag although this will not be actively maintained. " }, parameters = {
-    @ServiceParameter(name = ":operation", description = "The value HAS TO BE <i>tag</i>."),
-    @ServiceParameter(name = "key", description = "Can be either 1) A fully qualified path, 2) UUID, or 3) a content poolId.") }, response = {
-    @ServiceResponse(code = 201, description = "The tag was added to the node."),
-    @ServiceResponse(code = 400, description = "The request did not have sufficient information to perform the tagging, probably a missing parameter or the uuid does not point to an existing tag."),
-    @ServiceResponse(code = 403, description = "Anonymous users can't tag anything, other people can tag <i>every</i> node in the repository where they have READ on."),
-    @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Requested Node  for given key could not be found."),
-    @ServiceResponse(code = 500, description = "Something went wrong, the error is in the HTML.") }) }, bindings = { @ServiceBinding(type = BindingType.OPERATION, bindings = { "tag" }) })
 @Component(immediate = true)
 @Service(value = SparsePostOperation.class)
 @Properties(value = {
-    @Property(name = "sling.post.operation", value = "tag"),
-    @Property(name = "service.description", value = "Creates an internal link to a file."),
-    @Property(name = "service.vendor", value = "The Sakai Foundation") })
+  @Property(name = "sling.post.operation", value = "tag"),
+  @Property(name = "service.description", value = "Associates one or more tags with a piece of content."),
+  @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@ServiceDocumentation(name = "SparseTagOperation", okForVersion = "0.11",
+  shortDescription = "Tag a node",
+  description = "Add a tag to a node.",
+  bindings = {
+    @ServiceBinding(type = BindingType.OPERATION, bindings = { "tag" })
+  },
+  methods = {
+    @ServiceMethod(name = "POST",
+      description = { "This operation should be performed on the node you wish to tag. Tagging on any item will be performed by adding a weak reference to the content item. Put simply a sakai:tag-uuid property with the UUID of the tag node. We use the UUID to uniquely identify the tag in question, a string of the tag name is not sufficient. This allows the tag to be renamed and moved without breaking the relationship. Additionally for convenience purposes we may put the name of the tag at the time of tagging in sakai:tag although this will not be actively maintained. "
+      },
+      parameters = {
+        @ServiceParameter(name = ":operation", description = "(required) The value HAS TO BE <i>tag</i>."),
+        @ServiceParameter(name = "key", description = "(required) Can be either 1) A fully qualified path, 2) UUID, or 3) a content poolId.")
+      },
+      response = {
+        @ServiceResponse(code = 201, description = "The tag was added to the content node."),
+        @ServiceResponse(code = 400, description = "Bad request: either the 'key' parameter was missing, or the resource to be tagged could not be found."),
+        @ServiceResponse(code = 403, description = "Anonymous users can't tag anything, other people can tag <i>every</i> node in the repository where they have READ on."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Requested Node  for given key could not be found."),
+        @ServiceResponse(code = 500, description = "Something went wrong, the error is in the HTML.")
+      })
+  })
 public class SparseTagOperation extends AbstractSparsePostOperation {
 
 

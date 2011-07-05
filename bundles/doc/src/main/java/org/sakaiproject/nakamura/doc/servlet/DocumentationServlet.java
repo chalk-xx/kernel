@@ -46,16 +46,17 @@ import javax.servlet.http.HttpServletResponse;
  * Creates documentation by tracking servlets and inspecting some annotations.
  */
 @SlingServlet(methods = "GET", paths = "/system/doc/servlet")
-@ServiceDocumentation(name = "Servlet documentation", 
+@ServiceDocumentation(name = "Servlet documentation",
+    okForVersion = "0.11",
     description = "Provides auto documentation of servlets registered with OSGi. Documentation will use the "
-    + "service registration properties, or annotations if present."
+    + "service registration properties, or annotations if present. Filters out non-Sakai classes and classes marked Deprecated."
     + " Requests to this servlet take the form /system/doc?p=&lt;classname&gt where <em>classname</em>"
     + " is the fully qualified name of the class deployed into the OSGi container. If the class is "
-    + "not present a 404 will be retruned, if the class is present, it will be interogated to extract "
-    + "documentation from the class. In addition to extracting annotation based documention the servlet will "
+    + "not present a 404 will be returned, if the class is present, it will be interrogated to extract "
+    + "documentation from the class. In addition to extracting annotation based documentation the servlet will "
     + "display the OSGi service properties. All documentation is assumed to be HTML encoded. If the browser is "
     + "directed to <a href=\"/system/doc/servlet\" >/system/doc/servlet</a> a list of all servlets in the system will be displayed ",
-    shortDescription="Documentation for all the servlets in the system.",
+    shortDescription="Documentation for all the Sakai servlets in the system.",
     bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/doc/servlet"), 
     url = "/system/doc/servlet",
     methods = { 
@@ -63,9 +64,12 @@ import javax.servlet.http.HttpServletResponse;
              description = "GETs to this servlet will produce documentation for the class, " +
              		"or an index of all servlets.", 
              parameters = @ServiceParameter(name = "p", 
-                 description = "The name of the class to display the documentation for"),
-              response= {@ServiceResponse(code=200,description="html page for the requested resource"),
-           @ServiceResponse(code=404,description="Servlet class not found")}) })
+                 description = "Optional. The name of the class to display the documentation for"),
+             response= {
+               @ServiceResponse(code=200,description="html page for the requested resource"),
+               @ServiceResponse(code=404,description="Servlet class not found")
+             })
+    })
 public class DocumentationServlet extends SlingSafeMethodsServlet {
 
   /**
@@ -89,8 +93,8 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
       sendIndex(response);
     } else {
 
-      ServletDocumentation doc = servletDocumentationRegistry.getServletDocumentation().get(
-          p.getString());
+      ServletDocumentation doc =
+        servletDocumentationRegistry.getServletDocumentation().get(p.getString());
       if (doc == null) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
         return;

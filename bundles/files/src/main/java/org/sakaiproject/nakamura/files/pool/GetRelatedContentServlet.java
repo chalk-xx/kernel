@@ -68,13 +68,25 @@ import javax.servlet.http.HttpServletResponse;
  * "sakai:permissions" property of "everyone"), and one which contains only publicly
  * accessible items (with a "sakai:permissions" property of "public").
  */
-@ServiceDocumentation(name = "GetRelatedContentServlet", shortDescription = "Get up to ten related nodes", description = {
+@ServiceDocumentation(name = "GetRelatedContentServlet", okForVersion = "0.11",
+  shortDescription = "Get up to ten related nodes",
+  description = {
     "This servlet returns an array of content related to the targeted node.",
-    "Currently, relatedness is determined by the number of shared tags." }, bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = { POOLED_CONTENT_RT }, extensions = @ServiceExtension(name = "json", description = "This servlet outputs JSON data."), selectors = {
-    @ServiceSelector(name = POOLED_CONTENT_RELATED_SELECTOR, description = "Will retrieve related content with an access scheme of 'everyone'."),
-    @ServiceSelector(name = POOLED_CONTENT_PUBLIC_RELATED_SELECTOR, description = "Will retrieve related content with an access scheme of 'public'."),
-    @ServiceSelector(name = "tidy", description = "Optional sub-selector. Will send back 'tidy' output.") }) }, methods = { @ServiceMethod(name = "GET", parameters = {}, description = { "This servlet only responds to GET requests." }, response = {
-    @ServiceResponse(code = 200, description = "Succesful request, json can be found in the body"),
+    "Currently, relatedness is determined by the number of shared tags.",
+    "<pre>curl http://localhost:8080/p/hHnm6yipCo.related.tidy.json</pre>",
+    "<pre>[{\n    \"_lastModifiedBy\": \"suzy\",\n    \"_previousBlockId\": \"UbGXYKGfEeCAXdkUrBABAw+\",\n    \"_previousVersion\": \"UbCF8KGfEeCAXdkUrBABAw+\",\n    \"sakai:fileextension\": \".png\",\n    \"_path\": \"hESoXumAT\",\n    \"_blockId\": \"UbGXYKGfEeCAXdkUrBABAw+\",\n    \"sakai:allowcomments\": \"true\",\n    \"sakai:pooled-content-viewer\": [\"anonymous\", \"everyone\"],\n    \"sakai:pool-content-created-for\": \"suzy\",\n    \"_bodyCreatedBy\": \"admin\",\n    \"_id\": \"UchTsaGfEeCAXdkUrBABAw+\",\n    \"sakai:pooled-content-file-name\": \"hero-zach-unmasked.png\",\n    \"_bodyCreated\": 1309276646363,\n    \"sakai:copyright\": \"creativecommons\",\n    \"_length\": 25606,\n    \"sakai:needsprocessing\": \"true\",\n    \"sakai:permissions\": \"public\",\n    \"_mimeType\": \"image/png\",\n    \"_bodyLastModifiedBy\": \"admin\",\n    \"_createdBy\": \"admin\",\n    \"sakai:tag-uuid\": [\"d1cdceb4-f3c2-4fda-9744-69097bb573bd\"],\n    \"_versionHistoryId\": \"UchTsKGfEeCAXdkUrBABAw+\",\n    \"sakai:tags\": [\"great\"],\n    \"sakai:showcomments\": \"true\",\n    \"sling:resourceType\": \"sakai/pooled-content\",\n    \"sakai:pooled-content-manager\": [\"suzy\"],\n    \"_created\": 1309276646351,\n    \"_bodyLastModified\": 1309276646363,\n    \"_lastModified\": 1309286723834,\n    \"_bodyLocation\": \"2011/5/-V/7P/mM/-V7PmMdM-QDHyHslMftAMF21H4s\"\n}]</pre>"
+  },
+  bindings = { @ServiceBinding(type = BindingType.TYPE,
+    bindings = { POOLED_CONTENT_RT },
+    extensions = @ServiceExtension(name = "json", description = "This servlet outputs JSON data."),
+    selectors = {
+      @ServiceSelector(name = POOLED_CONTENT_RELATED_SELECTOR, description = "Will retrieve related content with an access scheme of 'everyone'."),
+      @ServiceSelector(name = POOLED_CONTENT_PUBLIC_RELATED_SELECTOR, description = "Will retrieve related content with an access scheme of 'public'."),
+      @ServiceSelector(name = "tidy", description = "Optional sub-selector. Will send back 'tidy' output.")
+    })
+  },
+  methods = { @ServiceMethod(name = "GET", parameters = {}, description = { "This servlet only responds to GET requests." }, response = {
+    @ServiceResponse(code = 200, description = "Successful request, json can be found in the body"),
     @ServiceResponse(code = 500, description = "Failure to retrieve tags or files, an explanation can be found in the HTMl.") }) })
 @SlingServlet(methods = { "GET" }, extensions = { "json" }, resourceTypes = { POOLED_CONTENT_RT }, selectors = {
     POOLED_CONTENT_RELATED_SELECTOR, POOLED_CONTENT_PUBLIC_RELATED_SELECTOR })

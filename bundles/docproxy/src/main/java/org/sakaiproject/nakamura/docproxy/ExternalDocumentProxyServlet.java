@@ -56,11 +56,13 @@ import javax.servlet.http.HttpServletResponse;
  */
 @ServiceDocumentation(
   name = "External Document Proxy Servlet",
+  okForVersion = "0.11",
   description = "Generic access to external document resources",
+  shortDescription = "Generic access to external document resources",
   bindings = {
     @ServiceBinding(
       type = BindingType.TYPE,
-      bindings = { "sakai/external-repository-document" }
+      bindings = { "sakai/external-repository-document", "sling/nonexisting" }
     )
   },
   methods = {

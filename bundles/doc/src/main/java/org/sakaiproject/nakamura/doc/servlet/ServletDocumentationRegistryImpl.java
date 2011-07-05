@@ -27,6 +27,8 @@ import org.apache.sling.servlets.post.SlingPostOperation;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 
+import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,60 +44,59 @@ import javax.servlet.Servlet;
 @References(
     value = { 
         @Reference(name = "servlet", referenceInterface=Servlet.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
-        @Reference(name = "operation", referenceInterface=SlingPostOperation.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+        @Reference(name = "operation", referenceInterface=SlingPostOperation.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC),
+        @Reference(name = "sparseoperation", referenceInterface=SparsePostOperation.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
     }
   )
 public class ServletDocumentationRegistryImpl implements ServletDocumentationRegistry {
 
   private ComponentContext context;
-  private List<ServiceReference> pendingServlets = new ArrayList<ServiceReference>();
-  private List<ServiceReference> pendingOperations = new ArrayList<ServiceReference>();
+  private List<ServiceReference> pendingReferences = new ArrayList<ServiceReference>();
   /**
-   * A map of servlet Documetnation objects.
+   * A map of servlet Documentation objects.
    */
   private Map<String, ServletDocumentation> servletDocumentation = new ConcurrentHashMap<String, ServletDocumentation>();
 
   protected void activate(ComponentContext context) { 
-    synchronized (pendingServlets) {
+    synchronized (pendingReferences) {
       this.context = context;
-      for (ServiceReference ref : pendingServlets) {
-        addServlet(ref);
+      for (ServiceReference ref : pendingReferences) {
+        addDocumentation(ref);
       }
     }
   }
 
   protected void deactivate(ComponentContext context) {
-    synchronized (pendingServlets) {
-      pendingServlets.clear();
+    synchronized (pendingReferences) {
+      pendingReferences.clear();
       servletDocumentation.clear();
       this.context = null;
     }
   }
 
   protected void bindServlet(ServiceReference reference) {
-    synchronized (pendingServlets) {
+    synchronized (pendingReferences) {
       if (context == null) {
-        pendingServlets.add(reference);
+        pendingReferences.add(reference);
       } else {
-        addServlet(reference);
+        addDocumentation(reference);
       }
     }
   }
 
   protected void unbindServlet(ServiceReference reference) {
-    synchronized (pendingServlets) {
-      pendingServlets.remove(reference);
+    synchronized (pendingReferences) {
+      pendingReferences.remove(reference);
       if (context != null) {
-        removeServlet(reference);
+        removeDocumentation(reference);
       }
     }
   }
 
   /**
-   * @param reference
-   * @param service
+   * @param reference the ServiceReference whose documentation will be removed
    */
-  public void removeServlet(ServiceReference reference) {
+  public void removeDocumentation(ServiceReference reference) {
     Servlet servlet = (Servlet) context.getBundleContext().getService(reference);
     ServletDocumentation doc = new ServletDocumentation(reference, servlet);
     String key = doc.getKey();
@@ -105,68 +106,69 @@ public class ServletDocumentationRegistryImpl implements ServletDocumentationReg
   }
 
   /**
-   * @param reference
-   * @param service
+   * @param reference the service reference representing the service object to add to the documentation
    */
-  public void addServlet(ServiceReference reference) {
-    Servlet servlet = (Servlet) context.getBundleContext().getService(reference);
-    ServletDocumentation doc = new ServletDocumentation(reference, servlet);
-    String key = doc.getKey();
-    if (key != null) {
-      servletDocumentation.put(key, doc);
+  public void addDocumentation(ServiceReference reference) {
+    Object service = context.getBundleContext().getService(reference);
+    if (notDeprecated(service) && service.getClass().getCanonicalName().startsWith("org.sakaiproject")) {
+      ServletDocumentation doc = new ServletDocumentation(reference, service);
+      String key = doc.getKey();
+      if (key != null) {
+        servletDocumentation.put(key, doc);
+      }
     }
   }
-  
+
+  private boolean notDeprecated(Object service) {
+    return !service.getClass().isAnnotationPresent(Deprecated.class);
+  }
+
   /*
-   * Operations
-   */
+  * Operations
+  */
   
   protected void bindOperation(ServiceReference reference) {
-    synchronized (pendingOperations) {
+    synchronized (pendingReferences) {
       if (context == null) {
-        pendingOperations.add(reference);
+        pendingReferences.add(reference);
       } else {
-        addOperation(reference);
+        addDocumentation(reference);
       }
     }
   }
 
   protected void unbindOperation(ServiceReference reference) {
-    synchronized (pendingOperations) {
-      pendingOperations.remove(reference);
+    synchronized (pendingReferences) {
+      pendingReferences.remove(reference);
       if (context != null) {
-        removeOperation(reference);
+        removeDocumentation(reference);
       }
     }
   }
 
-  
-  
-  /**
-   * @param reference
+
+    /*
+   *  Sparse Operations
    */
-  protected void addOperation(ServiceReference reference) {
-    SlingPostOperation operation = (SlingPostOperation) context.getBundleContext().getService(reference);
-    ServletDocumentation doc = new ServletDocumentation(reference, operation);
-    String key = doc.getKey();
-    if (key != null) {
-      servletDocumentation.put(key, doc);
+
+  protected void bindSparseoperation(ServiceReference reference) {
+    synchronized (pendingReferences) {
+      if (context == null) {
+        pendingReferences.add(reference);
+      } else {
+        addDocumentation(reference);
+      }
     }
   }
-  
-  /**
-   * @param reference
-   */
-  protected void removeOperation(ServiceReference reference) {
-    SlingPostOperation operation = (SlingPostOperation) context.getBundleContext().getService(reference);
-    ServletDocumentation doc = new ServletDocumentation(reference, operation);
-    String key = doc.getKey();
-    if (key != null) {
-      servletDocumentation.remove(key);
+
+  protected void unbindSparseoperation(ServiceReference reference) {
+    synchronized (pendingReferences) {
+      pendingReferences.remove(reference);
+      if (context != null) {
+        removeDocumentation(reference);
+      }
     }
   }
-  
-  
   
   /**
    * @return the map of servlet documents, this map is the internal map and should not be

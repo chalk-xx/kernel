@@ -47,10 +47,22 @@ import javax.servlet.ServletException;
  */
 @SlingServlet(selectors = { "chatupdate" }, resourceTypes = { "sakai/messagestore" }, generateComponent = true, methods = { "GET" })
 @Reference(referenceInterface = ChatManagerService.class, name = "ChatManagerService")
-@ServiceDocumentation(name = "ChatServlet", shortDescription = "Check for new chat messages.", description = "Provides a mechanism to check if the currently logged in user has new chat messages awaiting.", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/messagestore", selectors = @ServiceSelector(name = "chatupdate")), methods = { @ServiceMethod(name = "GET", response = {
-    @ServiceResponse(code = 200, description = "Normal retrieval."),
-    @ServiceResponse(code = 500, description = "Something went wrong trying to look for an update.") }, description = "GETs to this servlet will produce a JSON object with 3 keys. \n"
-    + "<ul><li>update: A boolean that states if there is a new chat message.</li><li>time: The current server time in millisecnds.</li><li>pulltime: The current time in a JCR formatted date.<li></ul>", parameters = @ServiceParameter(name = "t", description = "This variable should hold the last time value retrieved from this servet. If this variable is ommitted it uses the current time.")) })
+@ServiceDocumentation(name = "ChatServlet", okForVersion = "0.11",
+    shortDescription = "Check for new chat messages.",
+    description = "Provides a mechanism to check if the currently logged in user has new chat messages awaiting.",
+    bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/messagestore", selectors = @ServiceSelector(name = "chatupdate")),
+    methods = {
+      @ServiceMethod(name = "GET",
+        description = {
+          "GETs to this servlet will produce a JSON object with 3 keys.",
+          "<ul><li>update: A boolean that states if there is a new chat message.</li><li>time: The current server time in milliseconds.</li><li>pulltime: The current time in a JCR formatted date.<li></ul>"
+        },
+        parameters = @ServiceParameter(name = "t", description = "This variable should hold the last time value retrieved from this servlet. If this variable is omitted it uses the current time."),
+        response = {
+          @ServiceResponse(code = 200, description = "Normal retrieval."),
+          @ServiceResponse(code = 500, description = "Something went wrong trying to look for an update.")
+        })
+    })
 public class ChatServlet extends SlingSafeMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChatServlet.class);
   private static final long serialVersionUID = -4011626674940239621L;

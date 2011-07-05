@@ -28,6 +28,14 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenTypes;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +63,25 @@ import javax.servlet.http.HttpServletResponse;
  * simply store the trusted user in a a trusted token in the form of a cookie.
  * </p>
  */
+@ServiceDocumentation(name = "Trusted Authentication Servlet documentation", okForVersion = "0.11",
+  shortDescription = "Allows authentication by a trusted external source.",
+  description = "Allows authentication by a trusted external source. This servlet does not perform the authentication itself but looks for information in\n" +
+    " the request from the authentication authority. This information is then stored in the\n" +
+    " session for use by the authentication handler on subsequent calls." +
+    " This servlet is mounted outside sling. In essence we Trust the external authentication and \n" +
+    " simply store the trusted user in a trusted token in the form of a cookie.",
+  bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/trustedauth"),
+  methods = {
+    @ServiceMethod(name = "GET", description = "",
+      parameters = {
+        @ServiceParameter(name = "d", description = "The destination path to be redirected to after saving the authentication token.")
+      },
+      response = {
+        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.")
+      })
+})
 @Component(immediate = true, metatype = true)
 @Service
 public final class TrustedAuthenticationServlet extends HttpServlet implements HttpContext {
@@ -104,7 +131,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
     defaultDestination = OsgiUtil.toString(props.get(DEFAULT_DESTINATION), "/dev");
     try {
       httpService.registerServlet(registrationPath, this, null, null);
-      LOGGER.info("Registerd {} at {} ",this,registrationPath);
+      LOGGER.info("Registered {} at {} ",this,registrationPath);
     } catch (ServletException e) {
       LOGGER.error(e.getMessage(),e);
     } catch (NamespaceException e) {
@@ -114,7 +141,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
 
   protected void deactivate(ComponentContext context) {
     httpService.unregister(registrationPath);
-    LOGGER.info("UnRegisterd {} from {} ",this,registrationPath);
+    LOGGER.info("Unregistered {} from {} ",this,registrationPath);
   }
 
   /**
@@ -153,7 +180,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
 
   /**
    * (non-Javadoc) This servlet handles its own security since it is going to trust the
-   * external remote user. If we dont do this the SLing handleSecurity takes over and causes problems.
+   * external remote user. If we don't do this the Sling handleSecurity takes over and causes problems.
    * 
    * @see org.osgi.service.http.HttpContext#handleSecurity(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)

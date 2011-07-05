@@ -65,37 +65,39 @@ import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "DirectoryTagFeedServlet", shortDescription = "Get sample content items for all directory tags.",
-    description = {
-      "This servlet is able to give all the necessary information about tags.",
-      "It's able to give json feeds for the childtags, parent tags or give a dump of the files who are tagged with this tag.",
-      "Must specify a selector of children, parents, tagged. tidy, {number} are optional and ineffective by themselves."
-    },
-    bindings = {
-      @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/directory" },
-          extensions = @ServiceExtension(name = "json", description = "This servlet outputs JSON data."),
-          selectors = {
-            @ServiceSelector(name = "tagged", description = "Will dump all the children of this tag.")
-          }
-      )
-    },
-    methods = {
-      @ServiceMethod(name = "GET", description = { "This servlet only responds to GET requests." },
-          response = {
-            @ServiceResponse(code = 200, description = "Succesful request, json can be found in the body"),
-            @ServiceResponse(code = 500, description = "Failure to retrieve tags or files, an explanation can be found in the HTMl.")
-          }
-      )
-    }
-)
 @SlingServlet(extensions = { "json" }, generateComponent = true, generateService = true,
-    methods = { "GET" }, resourceTypes = { "sakai/directory" },
-    selectors = {"children", "parents", "tagged"}
+  methods = { "GET" }, resourceTypes = { "sakai/directory" },
+  selectors = {"tagged"}
 )
 @Properties(value = {
-    @Property(name = "service.description", value = "Provides support for file tagging."),
-    @Property(name = "service.vendor", value = "The Sakai Foundation")
+  @Property(name = "service.description", value = "Provides support for file tagging."),
+  @Property(name = "service.vendor", value = "The Sakai Foundation")
 })
+@ServiceDocumentation(name = "DirectoryTagFeedServlet", okForVersion = "0.11",
+  shortDescription = "Get sample content items for all directory tags.",
+  description = {
+  "This servlet responds to requests on content of type 'sakai/directory', using the 'tagged' selector.",
+  "For example: <pre>/tags/directory.tagged.json</pre>",
+  "The result is a feed of sample content items, one item per category in the given directory.",
+  "This can be used as a preview of the different types and categories of content in the system."
+},
+  bindings = {
+@ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/directory" },
+extensions = @ServiceExtension(name = "json", description = "This servlet outputs JSON data."),
+selectors = {
+@ServiceSelector(name = "tagged", description = "Will dump all the children of this tag.")
+  }
+  )
+},
+  methods = {
+@ServiceMethod(name = "GET", description = { "This servlet only responds to GET requests." },
+response = {
+@ServiceResponse(code = 200, description = "Successful request, json can be found in the body"),
+@ServiceResponse(code = 500, description = "Failure to retrieve tags or files, an explanation can be found in the HTMl.")
+  }
+  )
+}
+)
 public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
   private static final Logger LOG = LoggerFactory.getLogger(DirectoryTagFeedServlet.class);
   private static final long serialVersionUID = -8815248520601921760L;

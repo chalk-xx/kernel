@@ -38,20 +38,20 @@ import javax.servlet.http.HttpServletResponse;
  *
  */
 @SlingServlet(resourceTypes={"sparse/group"},methods={"GET"},extensions={"json"})
-@ServiceDocumentation(name="Get Group Servlet",
+@ServiceDocumentation(name="Get Group Servlet", okForVersion = "0.11",
     description="Returns a group in json format, using all the standard Sling semantics, but includes group profile." +
-    		" Binds to any resource of type sling/group although these are" +
-    		"store under /rep:system/rep:userManager/rep:groups in the repo eg " +
-    		"/rep:system/rep:userManager/rep:groups/ae/3f/ed/g-groupname. The URL is exposed as  " +
-        "url /system/userManager/group/g-groupname. This servlet responds at " +
-        "/system/userManager/group/g-groupname.json",
+    		" Binds to any resource of type sparse/group although these are" +
+    		"store under a: in the repo eg " +
+    		"a:math101. The URL is exposed as  " +
+        "url /system/userManager/group/math101. This servlet responds at " +
+        "/system/userManager/group/math101.json",
     shortDescription="Get a group as json",
-    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/group"},
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sparse/group"},
         extensions=@ServiceExtension(name="*", description="All the standard Sling serializations are possible, json, xml, html")),
     methods=@ServiceMethod(name="GET",
         description={"Get the group json.",
             "Example<br>" +
-            "<pre>curl http://localhost:8080/system/userManager/group/g-groupname.json</pre>"},
+            "<pre>curl http://localhost:8080/system/userManager/group/math101.json</pre>"},
         response={
           @ServiceResponse(code=200,description="Success, the body contains the Group json with profile."),
           @ServiceResponse(code=404,description="Group was not found."),

@@ -27,6 +27,7 @@ import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
@@ -48,7 +49,9 @@ import javax.servlet.http.HttpServletResponse;
 
 @ServiceDocumentation(
   name = "Delete External Document Proxy Servlet",
+  okForVersion = "0.11",
   description = "The servlet for requesting to delete an external repository document",
+  shortDescription = "The servlet for requesting to delete an external repository document",
   bindings = {
     @ServiceBinding(
       type = BindingType.TYPE,
@@ -60,6 +63,9 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceMethod(
       name = "POST",
       description = "Delete an external repository document.",
+      parameters = {
+        @ServiceParameter(name = "resources", description = "The full Sakai path or paths to the external documents to delete.")
+      },
       response = {
         @ServiceResponse(code = 200, description = "All processing finished successfully."),
         @ServiceResponse(code = 400, description = "Unknown external repository requested."),

@@ -108,20 +108,20 @@ import javax.servlet.http.HttpServletResponse;
         "EEE MMM dd yyyy HH:mm:ss 'GMT'Z", "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
         "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy" })})
 
-@ServiceDocumentation(name="Delete Authorizable (Group and User) Servlet",
-    description="Deletes a group. Maps on to nodes of resourceType sling/groups like " +
-    		"/rep:system/rep:userManager/rep:groups mapped to a resource url " +
-    		"/system/userManager/group. This servlet responds at " +
-    		"/system/userManager/group.delete.html. The servlet also responds to single delete " +
-    		"requests eg /system/userManager/group/g-groupname.delete.html",
+@ServiceDocumentation(name="Delete Authorizable (Group and User) Servlet", okForVersion = "0.11",
+    description="Deletes a user or group. Maps on to nodes of resourceType sparse/userManager like " +
+    		"/system/userManager. This servlet responds at " +
+    		"/system/userManager.delete.html. The servlet also responds to single delete " +
+    		"requests at nodes of type sparse/user and sparse/group eg /system/userManager/group/math101.delete.html" +
+        "For deleting a list of users or groups, use the :applyTo parameter with a list of authorizable ids.",
     shortDescription="Delete a group or user",
-    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/group", "sling/user"},
+    bindings=@ServiceBinding(type=BindingType.TYPE, bindings={"sparse/group", "sparse/user"},
         selectors=@ServiceSelector(name="delete", description="Deletes one or more authorizables (groups or users)"),
         extensions=@ServiceExtension(name="html", description="Posts produce html containing the update status")),
     methods=@ServiceMethod(name="POST",
         description={"Delete a group or user, or set of groups.",
             "Example<br>" +
-            "<pre>curl -Fgo=1 http://localhost:8080/system/userManager/group/g-groupname.delete.html</pre>"},
+            "<pre>curl -Fgo=1 http://localhost:8080/system/userManager/group/math101.delete.html</pre>"},
         parameters={
         @ServiceParameter(name=":applyTo", description="An array of relative resource references to groups to be deleted, if this parameter is present, the url is ignored and all listed groups are removed.")
     },

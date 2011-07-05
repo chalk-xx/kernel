@@ -17,13 +17,38 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 
 import java.io.IOException;
 import java.util.Map;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(methods = { "GET" }, extensions = { "*" }, resourceTypes = { "sakai/pooled-content" })
+@ServiceDocumentation(name = "CanModifyContentPoolServlet documentation", okForVersion = "0.11",
+  shortDescription = "Delegates to another servlet",
+  description = "Delegates to another servlet",
+  bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/pooled-content",
+    extensions = { @ServiceExtension(name = "*") }),
+  methods = {
+    @ServiceMethod(name = "GET", description = "",
+      parameters = {
+        @ServiceParameter(name = "none", description = "")
+      },
+      response = {
+        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.")
+      })
+})
 public class DefaultServletSwitch extends SlingSafeMethodsServlet implements
     OptingServlet {
 

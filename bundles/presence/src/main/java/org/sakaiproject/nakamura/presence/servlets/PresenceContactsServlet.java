@@ -60,7 +60,7 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = { "Outputs the accepted contacts listing presence related to the current user." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
-@ServiceDocumentation(name = "Presence Contacts Servlet",
+@ServiceDocumentation(name = "Presence Contacts Servlet", okForVersion = "0.11",
     description = "Gets presence for the current users contact including the public profile of each accepted contact.",
     shortDescription="Gets the presence for the current user.",
     bindings = @ServiceBinding(type = BindingType.TYPE,
@@ -76,41 +76,49 @@ import javax.servlet.http.HttpServletResponse;
                  "Gets the presence for the current user, a list of contacts, their presence and their profile. The servlet is bound " +
                  "to a node of type sakai/presence although at the moment, there does not appear to be any information used from that " +
                  "path.",
-                 "<pre>" +
-                 "curl http://ieb:password@localhost:8080/var/presence.contacts.json\n" +
-                 "{\n" +
-                 "  \"user\": \"ieb\"  \n" +
-                 "  \"sakai:status\": \"online\",\n" +
-                 "  \"sakai:location\": \"At Home\",\n" +
-                 "  \"contacts\": [\n" +
-                 "     {\n" +
-                 "       \"user\": \"mark\"  \n" +
-                 "       \"sakai:status\": \"online\",\n" +
-                 "       \"sakai:location\": \"At Work\",\n" +
-                 "       \"profile\": {\n" +
-                 "         ... \n" +
-                 "         <em>profile json tree</em>\n" +
-                 "         ... \n" +
-                 "       },\n" +
-                 "       \"user\": \"luke\"  \n" +
-                 "       \"sakai:status\": \"offline\",\n" +
-                 "       \"sakai:location\": \"away\",\n" +
-                 "       \"profile\": {\n" +
-                 "         ... \n" +
-                 "         <em>profile json tree</em>\n" +
-                 "         ... \n" +
-                 "       }\n" +
-                 "     }\n" +
-                 "  ]\n" +
-                 "}\n" +
-                 "</pre>"
+                 "<pre>{\n" +
+                   "    \"user\": \"zach\",\n" +
+                   "    \"sakai:status\": \"offline\",\n" +
+                   "    \"sakai:location\": \"none\",\n" +
+                   "    \"contacts\": [{\n" +
+                   "        \"user\": \"suzy\",\n" +
+                   "        \"sakai:status\": \"offline\",\n" +
+                   "        \"sakai:location\": \"none\",\n" +
+                   "        \"profile\": {\n" +
+                   "            \"basic\": {\n" +
+                   "                \"access\": \"everybody\",\n" +
+                   "                \"elements\": {\n" +
+                   "                    \"lastName\": {\n" +
+                   "                        \"value\": \"Queue\"\n" +
+                   "                    },\n" +
+                   "                    \"email\": {\n" +
+                   "                        \"value\": \"suzy@aeroplanesoftware.com\"\n" +
+                   "                    },\n" +
+                   "                    \"firstName\": {\n" +
+                   "                        \"value\": \"Suzy\"\n" +
+                   "                    }\n" +
+                   "                }\n" +
+                   "            },\n" +
+                   "            \"hash\": \"suzy\",\n" +
+                   "            \"rep:userId\": \"suzy\",\n" +
+                   "            \"userid\": \"suzy\",\n" +
+                   "            \"counts\": {\n" +
+                   "                \"contactsCount\": 1,\n" +
+                   "                \"membershipsCount\": 2,\n" +
+                   "                \"contentCount\": 6,\n" +
+                   "                \"countLastUpdate\": 1309756181755\n" +
+                   "            },\n" +
+                   "            \"sakai:excludeSearch\": false\n" +
+                   "        }\n" +
+                   "    }]\n" +
+                   "}</pre>"
          },
         response = {
-             @ServiceResponse(code=200,description="On sucess a a json tree of the presence for contacts."),
-             @ServiceResponse(code=401,description="The user is not logged in and the resource is protected"),
-             @ServiceResponse(code=403,description="The user does not have permission to access the resource"),
+           @ServiceResponse(code=200,description="On success a a json tree of the presence for contacts."),
+           @ServiceResponse(code=401,description="The user is not logged in and the resource is protected"),
+           @ServiceResponse(code=403,description="The user does not have permission to access the resource"),
            @ServiceResponse(code=404,description="The resource does not exist, or the target is not found"),
-           @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
+           @ServiceResponse(code=0,description="Any other status codes emitted with have the meaning prescribed in the RFC")
          })
         })
 public class PresenceContactsServlet extends SlingSafeMethodsServlet {

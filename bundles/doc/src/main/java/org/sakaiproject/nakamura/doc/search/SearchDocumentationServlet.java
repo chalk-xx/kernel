@@ -40,16 +40,28 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(paths = { "/system/doc/search" }, methods = { "GET" })
-@ServiceDocumentation(name = "Search documentation", description = "Provides auto documentation of search nodes currently in the repository. Documentation will use the "
-    + "node properties."
-    + " Requests to this servlet take the form /system/doc/search?p=&lt;searchnodepath&gt where <em>searchnodepath</em>"
-    + " is the absolute path of the searchnode deployed into the JCR repository. If the node is "
-    + "not present a 404 will be retruned, if the node is present, it will be interogated to extract "
-    + "documentation from the node. All documentation is assumed to be HTML encoded. If the browser is "
-    + "directed to <a href=\"/system/doc/search\" >/system/doc/search</a> a list of all the search nodes in the system will be displayed ", shortDescription = "Documentation for all the searchnodes in the repository. ", url = "/system/doc/search", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/doc/search"), methods = { @ServiceMethod(name = "GET", description = "GETs to this servlet will produce documentation for the searchnode, "
-    + "or an index of all searchnodes.", parameters = @ServiceParameter(name = "p", description = "The absolute path to a searchnode to display the documentation for"), response = {
-    @ServiceResponse(code = 200, description = "html page for the requested resource"),
-    @ServiceResponse(code = 404, description = "Search node not found") }) })
+@ServiceDocumentation(name = "Search documentation", okForVersion = "0.11",
+  description = {
+    "Provides auto documentation of search nodes currently in the repository. Documentation will use the ",
+    "node properties.",
+    " Requests to this servlet take the form /system/doc/search?p=&lt;searchnodepath&gt where <em>searchnodepath</em>",
+    " is the absolute path of the search node deployed into the JCR repository. If the node is ",
+    "not present a 404 will be returned, if the node is present, it will be interrogated to extract ",
+    "documentation from the node. All documentation is assumed to be HTML encoded. If the browser is ",
+    "directed to <a href=\"/system/doc/search\" >/system/doc/search</a> a list of all the search nodes in the system will be displayed "
+  },
+  shortDescription = "Documentation for all the search nodes in the repository. ",
+  url = "/system/doc/search",
+  bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/doc/search"),
+  methods = {
+    @ServiceMethod(name = "GET",
+      description = "GETs to this servlet will produce documentation for the search node, or an index of all search nodes.",
+      parameters = @ServiceParameter(name = "p", description = "The absolute path to a search node to display the documentation for"),
+      response = {
+        @ServiceResponse(code = 200, description = "html page for the requested resource"),
+        @ServiceResponse(code = 404, description = "Search node not found")
+      })
+  })
 public class SearchDocumentationServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = -5820041368602931242L;

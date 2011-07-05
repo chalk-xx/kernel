@@ -114,7 +114,9 @@ import javax.servlet.http.HttpServletResponse;
  * The <code>SearchServlet</code> uses nodes from the
  *
  */
-@ServiceDocumentation(name = "Search Servlet", shortDescription = "The Search servlet provides search results.", description = {
+@ServiceDocumentation(name = "Search Servlet", okForVersion = "0.11",
+  shortDescription = "The Search servlet provides search results.",
+  description = {
     "The Search Servlet responds with search results in json form in response to GETs on search urls. Those URLs are resolved "
         + "as resources of type sakai/search. The node at the resource containing properties that represent a search template that is "
         + "used to perform the search operation. This allows the UI developer to create nodes in the JCR and configure those nodes to "
@@ -135,7 +137,11 @@ import javax.servlet.http.HttpServletResponse;
         + "   \"sakai:query-language\": \"xpath\", \n"
         + "   \"sakai:query-template\": \"//*[jcr:contains(.,\\\"{q}\\\")]\", \n"
         + "   \"sling:resourceType\": \"sakai/search\", \n"
-        + "   \"sakai:resultprocessor\": \"Node\" \n" + "} \n" + "</pre>" }, methods = { @ServiceMethod(name = "GET", description = {
+        + "   \"sakai:resultprocessor\": \"Node\" \n" + "} \n" + "</pre>"
+  },
+  methods = {
+    @ServiceMethod(name = "GET",
+      description = {
     "Processes the query request against the selected resource, using the properties on the resource as a "
         + "template for processing the request and a specification for the pre and post processing steps on the search."
         + " results.",
@@ -166,20 +172,22 @@ import javax.servlet.http.HttpServletResponse;
         + "          \"jcr:mimeType\": \"text/html\",\n"
         + "          \"jcr:uuid\": \"a9b46582-b30c-4489-b9e3-8fdc20cb5429\",\n"
         + "          \"jcr:lastModified\": \"2009-11-24T11:55:51\"\n" + "      }\n"
-        + "  ]\n" + "}\n" + "</pre>" }, parameters = {
-    @ServiceParameter(name = "items", description = { "The number of items per page in the result set." }),
-    @ServiceParameter(name = "page", description = { "The page number to start listing the results on." }),
-    @ServiceParameter(name = "*", description = { "Any other parameters may be used by the template." }) }, response = {
-    @ServiceResponse(code = 200, description = "A search response simular to the above will be emitted "),
-    @ServiceResponse(code = 403, description = "The search template is not located under /var "),
-    @ServiceResponse(code = 400, description = "There are too many results that need to be paged. "),
-    @ServiceResponse(code = 500, description = "Any error with the html containing the error")
-
-}) })
-
+        + "  ]\n" + "}\n" + "</pre>"},
+      parameters = {
+        @ServiceParameter(name = "items", description = { "The number of items per page in the result set." }),
+        @ServiceParameter(name = "page", description = { "The page number to start listing the results on." }),
+        @ServiceParameter(name = "*", description = { "Any other parameters may be used by the template." })
+      },
+      response = {
+        @ServiceResponse(code = 200, description = "A search response similar to the above will be emitted "),
+        @ServiceResponse(code = 403, description = "The search template is not located under /var "),
+        @ServiceResponse(code = 400, description = "There are too many results that need to be paged. "),
+        @ServiceResponse(code = 500, description = "Any error with the html containing the error")
+      })
+  })
 @SlingServlet(extensions={"json"}, methods={"GET"}, resourceTypes={"sakai/search"} )
 @Properties(value = {
-    @Property(name = "service.description", value = { "Perfoms searchs based on the associated node." }),
+    @Property(name = "service.description", value = { "Performs searches based on the associated node." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }),
     @Property(name = "maximumResults", longValue = 2500L)
 })

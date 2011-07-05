@@ -68,16 +68,17 @@ import javax.servlet.http.HttpServletResponse;
  * Provides a listing for the members and managers of this group.
  */
 @ServiceDocumentation(
-  name = "Group Member Servlet",
+  name = "Group Member Servlet", okForVersion = "0.11",
+  shortDescription = "Provides a listing for the members and managers of this group.",
   description = "Provides a listing for the members and managers of this group.",
   bindings = {
     @ServiceBinding(
       type = BindingType.TYPE,
-      bindings = { "sling/group" },
+      bindings = { "sparse/group" },
       selectors = {
         @ServiceSelector(name = "members", description = "Binds to the members selector."),
         @ServiceSelector(name = "managers", description = "Binds to the managers selector."),
-    @ServiceSelector(name = "everyone", description = "Binds to the everyone selector (members + managers)."),
+        @ServiceSelector(name = "everyone", description = "Binds to the everyone selector (members + managers)."),
         @ServiceSelector(name = "detailed", description = "Binds to the details selector.")
       },
       extensions = @ServiceExtension(name = "json", description = "javascript object notation")

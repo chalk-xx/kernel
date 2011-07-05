@@ -76,10 +76,11 @@ import javax.jcr.query.QueryManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "TagServlet", shortDescription = "Get information about a tag.",
+@ServiceDocumentation(name = "TagServlet", okForVersion = "0.11",
+    shortDescription = "Get information about a tag.",
     description = {
       "This servlet is able to give all the necessary information about tags.",
-      "It's able to give json feeds for the childtags, parent tags or give a dump of the files who are tagged with this tag.",
+      "It's able to give json feeds for the child tags, parent tags or give a dump of the files who are tagged with this tag.",
       "Must specify a selector of children, parents, tagged. tidy, {number} are optional and ineffective by themselves."
     },
     bindings = {

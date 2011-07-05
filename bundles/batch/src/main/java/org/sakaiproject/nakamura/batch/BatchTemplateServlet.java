@@ -39,8 +39,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(methods = { "GET" }, resourceTypes={"sakai/batch-template"},  selectors={"batch"}, extensions={"json"})
-@ServiceDocumentation(
-    name = "BatchTemplateServlet",
+@ServiceDocumentation(name = "BatchTemplateServlet", okForVersion = "0.11",
     shortDescription = "Bundles multiple requests into a single response, using a template",
     description = "Allows multiple requests to be executed in a single request.",
     bindings = @ServiceBinding(
@@ -52,24 +51,18 @@ import javax.servlet.http.HttpServletResponse;
     methods = @ServiceMethod(
         name = "GET",
         description = "Get multiple request responses into a single response, only GET operations.",
-        response = {@ServiceResponse(
-            code = 200,
-            description = "All requests are successful. <br />" +
-                "A JSON array is returned containing an object for each resource. Example:" +
-                "<pre>[\n" +
-                "{\"url\": \"/_user/a/ad/admin/public/authprofile.json\",\n \"body\": \"{\"user\"...\",\n \"success\":true, \"status\": 200,\n \"headers\":{\"Content-Type\":\"application/json\"}\n} \n]</pre>"
+        response = {
+          @ServiceResponse(code = 200,
+            description = {
+              "All requests are successful. <br />",
+               "A JSON array is returned containing an object for each resource. Example:",
+               "<pre>[\n",
+               "{\"url\": \"/~admin/public/authprofile.json\",\n \"body\": \"{\"user\"...\",\n \"success\":true, \"status\": 200,\n \"headers\":{\"Content-Type\":\"application/json\"}\n} \n]</pre>"
+            }
           ),
-          @ServiceResponse(
-            code = 400,
-            description = "The JSON object for the 'requests' parameter was malformed."
-          ),
-          @ServiceResponse(
-            code = 500,
-            description = "Unable to get and parse all requests."
-          )
-        }
-    )
-)
+          @ServiceResponse(code = 400, description = "The JSON object for the 'requests' parameter was malformed."),
+          @ServiceResponse(code = 500,description = "Unable to get and parse all requests.")
+        }))
 public class BatchTemplateServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = 419598445499567027L;

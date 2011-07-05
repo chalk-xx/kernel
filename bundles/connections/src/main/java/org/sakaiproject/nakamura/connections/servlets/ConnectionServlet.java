@@ -53,7 +53,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Servlet interface to the personal connections/contacts service.
  */
-@ServiceDocumentation(name="Personal Connection Servlet",
+@ServiceDocumentation(name="Personal Connection Servlet", okForVersion = "0.11",
   description="Manage personal connections and contacts. " +
     "Maps to node of resourceType sakai/contactstore at the URL /~ieb/contacts. " +
     "Each new contact results in two new nodes of resourceType sakai/contact, one for the inviting user and one for the invited user. "+

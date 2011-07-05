@@ -78,7 +78,7 @@ import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "MeServlet",
+@ServiceDocumentation(name = "MeServlet", okForVersion = "0.11",
     shortDescription = "Returns information about the current active user.",
     description = "Presents information about current user in JSON format.",
     bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/me"),
@@ -87,17 +87,36 @@ import javax.servlet.http.HttpServletResponse;
         response = {
     @ServiceResponse(code = 200, description = "Request for information was successful. <br />"
         + "A JSON representation of the current user is returned. E.g. for an anonymous user:"
-        + "<pre>{\"user\":\n"
-        + "{\"anon\":true,\"subjects\":[],\"superUser\":false},\n"
-        + "\"profile\":{\n"
-        + "\"jcr:path\":\"/_user/a/an/anonymous/public/authprofile\",\n"
-        + "\"jcr:name\":\"authprofile\",\n"
-        + "\"rep:userId\":\"anonymous\",\n"
-        + "\"sling:resourceType\":\"sakai/user-profile\",\n"
-        + "\"jcr:uuid\":\"4af50bac-dca3-4517-81e0-1b83208f3f1d\",\n"
-        + "\"jcr:mixinTypes\":[\"mix:referenceable\"],\n"
-        + "\"path\":\"/a/an/anonymous\",\n"
-        + "\"jcr:primaryType\":\"nt:unstructured\"}\n" + "}<pre>"),
+        + "<pre>{\n" +
+      "    \"user\": {\n" +
+      "        \"anon\": true,\n" +
+      "        \"subjects\": [],\n" +
+      "        \"superUser\": false\n" +
+      "    },\n" +
+      "    \"eventbus\": \"http://localhost:8080/system/uievent/default?token=YW5vbnltb3VzOzEzMGYzMmU3NDM3O2RlZmF1bHQ7ZXdLeUlvQ3phUnNXRlBXMHFyVFlsKzFQVkMwPQ&server=2324-Zachs-Mac.local&user=anonymous\",\n" +
+      "    \"profile\": {\n" +
+      "        \"basic\": {\n" +
+      "            \"access\": \"everybody\",\n" +
+      "            \"elements\": {\n" +
+      "                \"lastName\": {\n" +
+      "                    \"value\": \"User\"\n" +
+      "                },\n" +
+      "                \"email\": {\n" +
+      "                    \"value\": \"anon@sakai.invalid\"\n" +
+      "                },\n" +
+      "                \"firstName\": {\n" +
+      "                    \"value\": \"Anonymous\"\n" +
+      "                }\n" +
+      "            }\n" +
+      "        },\n" +
+      "        \"rep:userId\": \"anonymous\"\n" +
+      "    },\n" +
+      "    \"messages\": {\n" +
+      "        \"unread\": 0\n" +
+      "    },\n" +
+      "    \"contacts\": {},\n" +
+      "    \"groups\": []\n" +
+      "}<pre>"),
     @ServiceResponse(code = 401, description = "Unauthorized: credentials provided were not acceptable to return information for."),
     @ServiceResponse(code = 500, description = "Unable to return information about current user.") }))
 @SlingServlet(paths = { "/system/me" }, generateComponent = true, generateService = true, methods = { "GET" })

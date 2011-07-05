@@ -24,11 +24,24 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 
 import java.util.List;
 
 import javax.jcr.RepositoryException;
 
+@ServiceDocumentation(name = "RemovePropertyOperation documentation", okForVersion = "0.11",
+  shortDescription = "Allows removing a property or properties from one or more resources.",
+  description = "Allows removing a property or properties from one or more resources.",
+  methods = {
+    @ServiceMethod(name = "POST", description = "The Remove Property operation is only invoked with a POST.",
+      parameters = {
+        @ServiceParameter(name = ":operation", description = "This must be 'removeProperty' for this operation to be invoked."),
+        @ServiceParameter(name = ":applyTo", description = "Stores the path or paths of resources to add properties to. If this is left out, then the request path is used.")
+      })
+})
 @Component(immediate = true)
 @Service
 public class RemovePropertyOperation extends AbstractPropertyOperationModifier {

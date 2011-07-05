@@ -60,9 +60,9 @@ import javax.servlet.ServletException;
         @ServiceMethod(
             name = "GET",
             description = {
-                "This servlet will generate the underlying JCR node structure into a valid ical format.",
+                "This servlet will generate the underlying JCR node structure into a valid iCal format.",
                 "If no selector is specified it will output components of type VEvent.",
-                "More components can be looked for by adding in the type as a selecter.",
+                "More components can be looked for by adding in the type as a selector.",
                 "eg: http://localhost:8080/path/to/calendar.vevent.vtodo.vjournal.ics"
             },
             response = {
@@ -72,13 +72,14 @@ import javax.servlet.ServletException;
         ) 
     },
     name = "CalendarServlet",
-    description = "Serializes an underlying JCR structure into valid icalendar data",
-    shortDescription = "Serializes an underlying JCR structure into valid icalendar data"
+    description = "Serializes an underlying JCR structure into valid iCalendar data",
+    shortDescription = "Serializes an underlying JCR structure into valid iCalendar data",
+    okForVersion = "0.11"
 )
 @SlingServlet(methods = { "GET" }, resourceTypes = { "sakai/calendar" }, extensions = { "ics" }, selectors = {}, generateComponent = true, generateService = true)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = "service.description", value = "Serializes a JCR node structure into ical.") })
+    @Property(name = "service.description", value = "Serializes a JCR node structure into iCal.") })
 public class CalendarIcsServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = -3279889579407055346L;

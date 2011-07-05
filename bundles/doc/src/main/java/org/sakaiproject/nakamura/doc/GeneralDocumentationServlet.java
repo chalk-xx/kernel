@@ -28,7 +28,9 @@ import javax.servlet.ServletException;
 
 @ServiceDocumentation(
   name = "General Documentation Servlet",
+  okForVersion = "0.11",
   description = "Gets the documentation for servlets, proxies and search templates.",
+  shortDescription = "Gets the documentation for servlets, proxies and search templates.",
   bindings = {
     @ServiceBinding(type = BindingType.PATH, bindings = { "system/doc" })
   },

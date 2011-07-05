@@ -34,18 +34,32 @@ import org.sakaiproject.nakamura.api.resource.AllMethodsHandlingServlet;
 import org.sakaiproject.nakamura.api.resource.ServletResourceHandler;
 
 /**
- * Saves the current version of the JCR node identified by the Resource and checks out a
- * new writeable version.
+ * Saves the current version of the content node identified by the Resource and checks out a
+ * new writable version.
  */
 
-@ServiceDocumentation(name = "Save a version Servlet", description = "Saves a new version of a resource", shortDescription = "List versions of a resource", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = {
-    "sling/servlet/default", "selector save" }, selectors = @ServiceSelector(name = "save", description = "Saves  the current version of a resource creating a new version."), extensions = @ServiceExtension(name = "json", description = "A json tree containing the name of the saved version.")), methods = @ServiceMethod(name = "POST", description = {
-    "Lists previous versions of a resource. The url is of the form "
-        + "http://host/resource.save.json ",
-    "Example<br>" + "<pre>curl http://localhost:8080/sresource/resource.save.json</pre>" }, response = {
-    @ServiceResponse(code = 200, description = "Success a body is returned containing a json ove the name of the version saved"),
-    @ServiceResponse(code = 404, description = "Resource was not found."),
-    @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }))
+@ServiceDocumentation(name = "Save a version Servlet", okForVersion = "0.11",
+  description = "Saves a new version of a resource",
+  shortDescription = "Saves a new version of a resource",
+  bindings = {
+    @ServiceBinding(type = BindingType.TYPE,
+      bindings = "sling/servlet/default",
+      selectors = @ServiceSelector(name = "save", description = "Saves  the current version of a resource creating a new version."),
+      extensions = @ServiceExtension(name = "json", description = "A json tree containing the name of the saved version."))
+  },
+  methods = {
+    @ServiceMethod(name = "POST",
+      description = {
+        "Save a new version of a resource. The url is of the form "
+          + "http://host/resource.save.json ",
+        "Example<br>" + "<pre>curl http://localhost:8080/sresource/resource.save.json</pre>"
+      },
+      response = {
+        @ServiceResponse(code = 200, description = "Success a body is returned containing JSON of the content of the version saved"),
+        @ServiceResponse(code = 404, description = "Resource was not found."),
+        @ServiceResponse(code = 500, description = "Failure with HTML explanation.")
+      })
+  })
 @SlingServlet(resourceTypes = "sling/servlet/default", methods = "POST", selectors = "save", extensions = "json")
 @References(value = { @Reference(referenceInterface = ServletResourceHandler.class, name = "resourceHandlers", cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, strategy = ReferenceStrategy.EVENT, target = "(handling.servlet=SaveVersionServlet)", bind = "bindServletResourceHandler", unbind = "unbindServletResourceHandler") })
 public class SaveVersionServlet extends AllMethodsHandlingServlet {

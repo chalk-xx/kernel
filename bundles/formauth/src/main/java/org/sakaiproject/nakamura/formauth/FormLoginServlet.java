@@ -46,30 +46,38 @@ import javax.servlet.ServletException;
 /**
  * The <code>FormLoginServlet</code> provides an end point to login against. On GET it
  * will response with the remote username of the logged in user or "anonymous" if there is
- * no logged in user. On POST, the FormAutenticationHandler will be invoked. see
+ * no logged in user. On POST, the FormAuthenticationHandler will be invoked. see
  * {@link FormAuthenticationHandler} to see the parameters.
  *
  */
 
-@ServiceDocumentation(name = "Form Login Servlet", shortDescription = "", description = {
-    " In combination with the FormAuthenticationHandler that is bound to the Sling/OSGi handleSecurity Mechanism a POST to "
-        + "this servlet results in the FormAuthentciation object that will have been placed in the request as an attribute, being added to the HTTPSession"
-        + "for later use. So that the FormAuthenticationHandler can use the FormAuthentication object bound into the session on subsiquent requests, "
-        + "to authenticate the request",
-    "Security in the OSGi Http service is achieved through a method in that service handleSecurity that all requests pass through. Classes that are "
-        + "bound into that method see all requests and can perform modifications to the request based on the details of the request and any state that they "
-        + "can access at that time. Since we only want to modify session state when a user explicitly askes to login using a form, we dont store anything in  "
-        + "outside the request scope until the user POSTs to this servlet. For anyone reading this documentation in the code, they should look at FormAuthenticatonHandler "
-        + "for more informtion on the protocol, but for those reading this documentation online that information is reproduced here." }, bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/sling/formlogin"), methods = {
+@ServiceDocumentation(name = "Form Login Servlet", okForVersion = "0.11",
+    shortDescription = "Provides an endpoint to login against.",
+    description = {
+      " In combination with the FormAuthenticationHandler that is bound to the Sling/OSGi handleSecurity Mechanism a POST to "
+          + "this servlet results in the FormAuthentication object that will have been placed in the request as an attribute, being added to the HTTPSession"
+          + "for later use. So that the FormAuthenticationHandler can use the FormAuthentication object bound into the session on subsequent requests, "
+          + "to authenticate the request",
+      "Security in the OSGi Http service is achieved through a method in that service handleSecurity that all requests pass through. Classes that are "
+          + "bound into that method see all requests and can perform modifications to the request based on the details of the request and any state that they "
+          + "can access at that time. Since we only want to modify session state when a user explicitly asks to login using a form, we don't store anything in  "
+          + "outside the request scope until the user POSTs to this servlet. For anyone reading this documentation in the code, they should look at FormAuthenticationHandler "
+          + "for more information on the protocol, but for those reading this documentation online that information is reproduced here."
+    },
+    bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/sling/formlogin"), methods = {
     @ServiceMethod(name = "GET", description = "Simply respond with the ID of the current user."),
-    @ServiceMethod(name = "POST", description = "Performs the login operation using form data If sakai:login is set a username and password are required, which, "
-        + "for a sucessfull login must be valid JCR session credentials", parameters = {
-        @ServiceParameter(name = "sakaiauth:login", description = "Perform a login operartion based on the username and password supplied."),
+    @ServiceMethod(name = "POST",
+      description = "Performs the login operation using form data If sakai:login is set a username and password are required, which, "
+        + "for a successful login must be valid sparsemapcontent session credentials",
+      parameters = {
+        @ServiceParameter(name = "sakaiauth:login", description = "Use a value of 1. Indicates the intention to perform login."),
         @ServiceParameter(name = "sakaiauth:un", description = "The Username for the login attempt"),
-        @ServiceParameter(name = "sakaiauth:pw", description = "The Password for the login attempt") }, response = {
-        @ServiceResponse(code = 403, description = "If the login is not sucessful a 403 will be returned at the point at which the credentials supplied are "
+        @ServiceParameter(name = "sakaiauth:pw", description = "The Password for the login attempt")
+      },
+      response = {
+        @ServiceResponse(code = 403, description = "If the login is not successful a 403 will be returned at the point at which the credentials supplied are "
             + "used to establish a session in the JCR."),
-        @ServiceResponse(code = 200, description = "On a sucessfull login the userid will be returned.") }) })
+        @ServiceResponse(code = 200, description = "On a successful login the userid will be returned.") }) })
 @SlingServlet(paths = { "/system/sling/formlogin" }, methods = { "GET", "POST" })
 @Properties(value = {
     @Property(name = "service.description", value = "The Sakai Foundation"),
@@ -119,22 +127,22 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
     try {
       // was the request just authenticated ?
-      // If the Formauthentication object got to this point, a session was created and
+      // If the FormAuthentication object got to this point, a session was created and
       // logged in, therefore the
       // username and password have been checked by logging into the JCR. We can safely
       // capture the FormAuthentication
       // object in session. (or we could use the secure token at this point to avoid
       // session usage.)
-      FormAuthentication authenticaton = (FormAuthentication) request
+      FormAuthentication authentication = (FormAuthentication) request
       .getAttribute(FormAuthenticationHandler.FORM_AUTHENTICATION);
-      if (authenticaton != null) {
-        if (authenticaton.isValid()) {
+      if (authentication != null) {
+        if (authentication.isValid()) {
 
           // the request has now been authenticated, hence its valid.
           // just check that session userID is the same as the login user ID.
           Session session = request.getResourceResolver().adaptTo(Session.class);
           String userId = session.getUserID();
-          String authUser = authenticaton.getUserId();
+          String authUser = authentication.getUserId();
           if (userId.equals(authUser)) {
             FormAuthenticationTokenServiceWrapper formAuthenticationTokenService = new FormAuthenticationTokenServiceWrapper(
                 this, trustedTokenService);

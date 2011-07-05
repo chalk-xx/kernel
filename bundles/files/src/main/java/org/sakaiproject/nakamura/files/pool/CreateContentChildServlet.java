@@ -55,30 +55,30 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Allows for uploading resource files into a pool content item.") })
-@ServiceDocumentation(name="Create Content Pool Resource Child Servlet",
-    description="Creates and Updates resource children attached to an existing Content Pool Item",
-    shortDescription="Creates and Updates resource children in the pool",
-    bindings=@ServiceBinding(type=BindingType.TYPE, bindings={"sakai/pooled-content"}, selectors={@ServiceSelector(name="resoure"), @ServiceSelector(name="optional resource ID for updating")},
-    extensions=@ServiceExtension(name="*", description="If an extension is provided it is assumed to be the  resourceID which is to be updated.")),
-    methods=@ServiceMethod(name="POST",
-        description={"A normal file post. If this is to create files, each file in the multipart file will create a new child resource associated with the Pool Content Item. If a resource ID is supplied only the first file in the upload is used to overwrite the file."
-            ,
-            "Example<br>" +
-            "<pre>A Multipart file upload to http://localhost:8080/p/23d8Jaw.resource will create one Resource file per file in the upload</pre>",
-            "Example<br>" +
-            "<pre>A Multipart file upload to http://localhost:8080/system/pool/23d8Jaw.resource.3sd23a4QW4WD will update the resource identified by 3sd23a4QW4WD in the Pool Content Item 23d8Jaw  </pre>",
-            "Response is of the form " +
-            "<pre>" +
-            "   { \"file1\" : \"3sd23a4QW4WD\", \"file2\" : \"3sd23a4QW4ZS\" } " +
-            "</pre>"
-          },
-          response={
-          @ServiceResponse(code=201,description="Where files are created"),
-          @ServiceResponse(code=400,description="Where the request is invalid"),
-          @ServiceResponse(code=200,description="Where the file is updated"),
-          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+@ServiceDocumentation(name = "Create Content Pool Resource Child Servlet", okForVersion = "0.11",
+    description = "Creates and Updates resource children (e.g. metadata, supporting files, or alternate versions) attached to an existing Content Pool Item",
+    shortDescription = "Creates and Updates resource children in the pool",
+    bindings = @ServiceBinding(type=BindingType.TYPE, bindings={"sakai/pooled-content"},
+      selectors={@ServiceSelector(name="resoure"), @ServiceSelector(name="optional resource ID for updating")},
+      extensions=@ServiceExtension(name="*", description="If an extension is provided it is assumed to be the  resourceID which is to be updated.")),
+    methods = @ServiceMethod(name="POST",
+      description={ "A normal file post. If this is to create files, each file in the multipart file will create a new child resource associated with the Pool Content Item. If a resource ID is supplied only the first file in the upload is used to overwrite the file.",
+        "Example<br>" +
+        "<pre>A Multipart file upload to http://localhost:8080/p/23d8Jaw.resource will create one Resource file per file in the upload</pre>",
+        "Example<br>" +
+        "<pre>A Multipart file upload to http://localhost:8080/system/pool/23d8Jaw.resource.3sd23a4QW4WD will update the resource identified by 3sd23a4QW4WD in the Pool Content Item 23d8Jaw  </pre>",
+        "Response is of the form " +
+        "<pre>" +
+        "   { \"file1\" : \"3sd23a4QW4WD\", \"file2\" : \"3sd23a4QW4ZS\" } " +
+        "</pre>"
+        },
+      response={
+        @ServiceResponse(code=201,description="Where files are created"),
+        @ServiceResponse(code=400,description="Where the request is invalid"),
+        @ServiceResponse(code=200,description="Where the file is updated"),
+        @ServiceResponse(code=500,description="Failure with HTML explanation.")}
 
-        ))
+      ))
 
 public class CreateContentChildServlet extends SlingAllMethodsServlet {
 

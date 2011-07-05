@@ -85,19 +85,20 @@ import javax.servlet.http.HttpServletResponse;
  *
  * <h4>Notes</h4>
  */
-@ServiceDocumentation(name="User Exists Servlet",
+@ServiceDocumentation(name="User Exists Servlet", okForVersion = "0.11",
     description="Tests for existence of user. This servlet responds at /system/userManager/user.exists.html",
     shortDescription="Tests for existence of user",
-    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/userManager/user.exists.html",
+    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/userManager/user",
         selectors=@ServiceSelector(name="exists", description="Tests for existence of user."),
         extensions=@ServiceExtension(name="html", description="GETs produce HTML with request status.")),
     methods=@ServiceMethod(name="GET",
         description={"Checks for existence of user with id supplied in the userid parameter."},
         parameters={
-        @ServiceParameter(name="userid", description="The id of the user to check for (required)")},
+          @ServiceParameter(name="userid", description="The id of the user to check for (required)")},
         response={
-        @ServiceResponse(code=204,description="Success, user exists."),
-        @ServiceResponse(code=404,description="Bad request: the required userid parameter was missing.")
+          @ServiceResponse(code=204,description="Success, user exists. No content returned."),
+          @ServiceResponse(code=400,description="Bad request: the required userid parameter was missing."),
+          @ServiceResponse(code=404,description="The specified user does not exist in the system.")
         }))
 @Component(immediate=true, metatype=true)
 @SlingServlet(methods={"GET"}, selectors={"exists"}, resourceTypes={"sparse/users"}, generateComponent=false)

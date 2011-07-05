@@ -74,6 +74,8 @@ import javax.servlet.http.HttpServletResponse;
 
 @ServiceDocumentation(
   name = "Calendar Signup Servlet",
+  okForVersion = "0.11",
+  shortDescription = "Signs up the current user to an event and copies that event to the user's calendar",
   description = "This servlet handles signing up the current user to an event then copying that event to the user's calendar.",
   bindings = {
     @ServiceBinding(type = BindingType.TYPE,

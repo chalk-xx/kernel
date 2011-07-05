@@ -60,6 +60,10 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.search.SearchResponseDecorator;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
@@ -101,9 +105,52 @@ import javax.servlet.http.HttpServletResponse;
  * The <code>SearchServlet</code> uses nodes from the
  *
  */
+@ServiceDocumentation(name = "Solr Search Servlet", okForVersion = "0.11",
+  shortDescription = "The Search servlet provides search results from a search template.",
+  description = {
+    "The Solr Search Servlet responds with search results in json form in response to GETs on search urls. Those URLs are resolved "
+        + "as resources of type sakai/solr-search and sakai/sparse-search. The node at the resource containing properties that represent a search template that is "
+        + "used to perform the search operation. This allows the UI developer to create nodes in the JCR and configure those nodes to "
+        + "act as an end point for a search based view into the content store. If the propertyprovider or the batchresultprocessor are not specified, "
+        + "default implementations will be used.",
+    "The format of the template is ",
+    "<pre>"
+        + " nt:unstructured \n"
+        + "        -sakai:query-template - a message query template for the query, with placeholders \n"
+        + "                                for parameters of the form {request-parameter-name}\n"
+        + "        -sakai:propertyprovider - the name of a Property Provider used to populate the properties \n"
+        + "                                  to be used in the query \n"
+        + "        -sakai:batchresultprocessor - the name of a SearchResultProcessor to be used processing \n"
+        + "                                      the result set.\n" + "</pre>",
+    "For example:",
+    "<pre>" + "/var/search/pool/files\n" + "{  \n"
+        + "   \"sakai:query-template\": \"resourceType:sakai/pooled-content AND (manager:${group} OR viewer:${group})\", \n"
+        + "   \"sling:resourceType\": \"sakai/solr-search\", \n"
+        + "   \"sakai:propertyprovider\": \"PooledContent\",\n"
+        + "   \"sakai:batchresultprocessor\": \"LiteFiles\" \n" + "} \n" + "</pre>"
+  },
+  methods = {
+    @ServiceMethod(name = "GET",
+      description = {
+        "Processes the query request against the selected resource, using the properties on the resource as a ",
+        "template for processing the request and a specification for the pre and post processing steps on the search."
+      },
+      parameters = {
+        @ServiceParameter(name = "items", description = { "The number of items per page in the result set." }),
+        @ServiceParameter(name = "page", description = { "The page number to start listing the results on." }),
+        @ServiceParameter(name = "*", description = { "Any other parameters may be used by the template." })
+      },
+      response = {
+        @ServiceResponse(code = 200, description = "A search response similar to the above will be emitted "),
+        @ServiceResponse(code = 403, description = "The search template is not located under /var "),
+        @ServiceResponse(code = 400, description = "There are too many results that need to be paged. "),
+        @ServiceResponse(code = 500, description = "Any error with the html containing the error")
+      })
+  })
+
 @SlingServlet(extensions = { "json" }, methods = { "GET" }, resourceTypes = { "sakai/solr-search", "sakai/sparse-search" })
 @Properties(value = {
-    @Property(name = "service.description", value = { "Perfoms searchs based on the associated node." }),
+    @Property(name = "service.description", value = { "Performs searches based on the associated node." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }),
     @Property(name = "maximumResults", longValue = 2500L) })
 @References(value = {

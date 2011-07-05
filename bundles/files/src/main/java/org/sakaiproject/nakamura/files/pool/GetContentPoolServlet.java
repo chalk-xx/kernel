@@ -24,6 +24,14 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.OptingServlet;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -46,6 +54,22 @@ import javax.servlet.http.HttpServletResponse;
  * The above statement is no longer true. Slings JsonResourceWriter has been patched.
  */
 @SlingServlet(methods = { "GET" }, extensions = { "json" }, resourceTypes = { "sakai/pooled-content" })
+@ServiceDocumentation(name = "GetContentPoolServlet documentation", okForVersion = "0.11",
+  shortDescription = "Gets a JSON representation of a content pool item.",
+  description = { "Gets a JSON representation of a content pool item.",
+    "<pre>curl http://localhost:8080/p/hESoXumAT.json</pre>",
+    "<pre>{\n    \"_previousBlockId\": \"UbGXYKGfEeCAXdkUrBABAw+\",\n    \"_lastModifiedBy\": \"admin\",\n    \"_previousVersion\": \"UbCF8KGfEeCAXdkUrBABAw+\",\n    \"_path\": \"hESoXumAT\",\n    \"sakai:fileextension\": \".png\",\n    \"_blockId\": \"UbGXYKGfEeCAXdkUrBABAw+\",\n    \"sakai:allowcomments\": \"true\",\n    \"sakai:pooled-content-viewer\": [\"anonymous\", \"everyone\"],\n    \"_id\": \"UchTsaGfEeCAXdkUrBABAw+\",\n    \"_bodyCreatedBy\": \"admin\",\n    \"sakai:pool-content-created-for\": \"suzy\",\n    \"sakai:pooled-content-file-name\": \"hero-zach-unmasked.png\",\n    \"_bodyCreated\": 1309276646363,\n    \"sakai:copyright\": \"creativecommons\",\n    \"_length\": 25606,\n    \"sakai:needsprocessing\": \"true\",\n    \"sakai:permissions\": \"public\",\n    \"_mimeType\": \"image/png\",\n    \"_bodyLastModifiedBy\": \"admin\",\n    \"_createdBy\": \"admin\",\n    \"_versionHistoryId\": \"UchTsKGfEeCAXdkUrBABAw+\",\n    \"sakai:showcomments\": \"true\",\n    \"sling:resourceType\": \"sakai/pooled-content\",\n    \"_created\": 1309276646351,\n    \"sakai:pooled-content-manager\": [\"suzy\"],\n    \"_bodyLastModified\": 1309276646363,\n    \"_lastModified\": 1309276646472,\n    \"_bodyLocation\": \"2011/5/-V/7P/mM/-V7PmMdM-QDHyHslMftAMF21H4s\"\n}</pre>"
+  },
+  bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/pooled-content",
+    extensions = { @ServiceExtension(name = "json") }),
+  methods = {
+    @ServiceMethod(name = "GET", description = "",
+      response = {
+        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.")
+      })
+})
 public class GetContentPoolServlet extends SlingSafeMethodsServlet implements OptingServlet {
   private static final long serialVersionUID = -382733858518678148L;
   private static final Logger LOGGER = LoggerFactory.getLogger(GetContentPoolServlet.class);

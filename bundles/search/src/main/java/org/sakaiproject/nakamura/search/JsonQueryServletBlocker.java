@@ -40,7 +40,8 @@ import javax.servlet.http.HttpServletResponse;
  * The <code>JsonQueryServletBlocker</code> blocks the default sling JsonQueryServlet
  */
 @ServiceDocumentation(
-  name = "Json Query Servlet Blocker",
+  name = "Json Query Servlet Blocker", okForVersion = "0.11",
+  shortDescription = "Blocks the default sling JsonQueryServlet",
   description = "Blocks the default sling JsonQueryServlet",
   bindings = {
     @ServiceBinding(
