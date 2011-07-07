@@ -475,11 +475,11 @@ KERN-1187
             <artifactId>org.sakaiproject.nakamura.core</artifactId>
             <version>1.0-SNAPSHOT</version>
         </bundle>
-        <bundle>
-            <groupId>org.sakaiproject.nakamura</groupId>
-            <artifactId>org.sakaiproject.nakamura.solr</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.solr</artifactId>
+      <version>0.11-SNAPSHOT</version>
+    </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
