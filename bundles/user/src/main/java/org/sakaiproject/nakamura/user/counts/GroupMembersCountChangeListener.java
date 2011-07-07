@@ -50,11 +50,13 @@ public class GroupMembersCountChangeListener extends AbstractCountHandler implem
             String parent = String.valueOf(au.getProperty(PSEUDOGROUP_PARENT));
             au = authorizableManager.findAuthorizable(parent);
           }
-          int n = groupMembersCounter.count((Group) au, authorizableManager);
-          Integer v = (Integer) au.getProperty(UserConstants.GROUP_MEMBERS_PROP);
-          if ( v == null || n != v.intValue()) {
-            au.setProperty(UserConstants.GROUP_MEMBERS_PROP, n);
-            authorizableManager.updateAuthorizable(au);
+          if (au != null) {
+            int n = groupMembersCounter.count((Group) au, authorizableManager);
+            Integer v = (Integer) au.getProperty(UserConstants.GROUP_MEMBERS_PROP);
+            if ( v == null || n != v.intValue()) {
+              au.setProperty(UserConstants.GROUP_MEMBERS_PROP, n);
+              authorizableManager.updateAuthorizable(au);
+            }
           }
         }
         else if (au instanceof User) {
