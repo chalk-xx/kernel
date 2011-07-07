@@ -83,7 +83,7 @@ public class StreamHelper {
     }
 
     String contentType = (String) properties.get(StorageClientUtils.getAltField(Content.MIMETYPE_FIELD, alternativeStream));
-    if (contentType == null) {
+    if (contentType == null && servletContext != null) {
       final String ct = servletContext.getMimeType(resource.getPath());
       if (ct != null) {
         contentType = ct;

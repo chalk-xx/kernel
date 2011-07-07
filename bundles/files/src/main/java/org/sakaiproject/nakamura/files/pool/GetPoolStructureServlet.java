@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -63,7 +64,13 @@ public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
           if (contentManager.hasBody(resourcePath, null)) {
             LOGGER.debug("Getting Resource Path {} Has Body", resourcePath);
              StreamHelper streamHelper = new StreamHelper();
-             streamHelper.stream(request, contentManager, resourceContent, null, response, resource, getServletContext());
+             ServletContext sc = null;
+             try {
+               sc = getServletContext();
+             } catch ( IllegalStateException e ) {
+               LOGGER.debug(e.getMessage(), e);
+             }
+             streamHelper.stream(request, contentManager, resourceContent, null, response, resource, sc);
           } else {
             LOGGER.debug("Getting Resource Path {} No Body", resourcePath);
             response.setContentType("application/json");

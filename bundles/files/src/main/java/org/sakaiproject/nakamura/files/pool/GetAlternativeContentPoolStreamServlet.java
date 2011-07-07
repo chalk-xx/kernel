@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
 /**
@@ -70,7 +71,15 @@ public class GetAlternativeContentPoolStreamServlet extends SlingSafeMethodsServ
       String alternativeStream = getAlternativeStream(request);
       
       StreamHelper streamHelper = new StreamHelper();
-      streamHelper.stream(request, contentManager, node, alternativeStream, response, resource, getServletContext());
+      
+      ServletContext sc = null;
+      try {
+        sc = getServletContext();
+      } catch ( IllegalStateException e ) {
+        LOGGER.debug(e.getMessage(), e);
+      }
+      
+      streamHelper.stream(request, contentManager, node, alternativeStream, response, resource, sc);
     } catch (ClientPoolException e) {
       LOGGER.warn(e.getMessage(),e);
       throw new ServletException(e.getMessage(), e);
