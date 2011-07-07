@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'net/http'
+require 'net/https'
 require 'cgi'
 require 'rubygems'
 require 'json'
@@ -139,19 +140,29 @@ module SlingInterface
             do_login()
         end
 	set_cookies(req)
-        res = Net::HTTP.new(uri.host, uri.port).start {|http| http.request_post(path,query,"Content-type" => "multipart/form-data; boundary=" + boundary, "Cookie" => @trustedcookie) }
+        res = createHttp(uri).start {|http| http.request_post(path,query,"Content-type" => "multipart/form-data; boundary=" + boundary, "Cookie" => @trustedcookie) }
         save_cookies(res)
       else 
         @user.do_request_auth(req)
         pwd = "#{@user.name}:#{@user.password}"
         pwd = pwd.base64_encode()
 	set_cookies(req)
-        res = Net::HTTP.new(uri.host, uri.port).start {|http| http.request_post(path,query,"Content-type" => "multipart/form-data; boundary=" + boundary, "Authorization" => "Basic #{pwd}") }
+        res = createHttp(uri).start {|http| http.request_post(path,query,"Content-type" => "multipart/form-data; boundary=" + boundary, "Authorization" => "Basic #{pwd}") }
         save_cookies(res)
       end
       dump_response(res)
       return res
     end
+
+    def createHttp(uri)
+      http = Net::HTTP.new(uri.host, uri.port)
+      if (url.scheme == 'https')
+         http.use_ssl = true
+         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
+      return http
+    end
+      
     
     def delete_file(path) 
       uri = URI.parse(path)
@@ -161,12 +172,12 @@ module SlingInterface
             do_login()
         end
 	set_cookies(req)
-        res = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req ) }
+        res = createHttp(uri).start { |http| http.request(req ) }
         save_cookies(res)
       else
         @user.do_request_auth(req)
 	set_cookies(req)
-        res = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req) }
+        res = createHttp(uri).start { |http| http.request(req) }
         save_cookies(res)
       end
       dump_response(res)
@@ -183,12 +194,12 @@ module SlingInterface
             do_login()
         end
 	set_cookies(req)
-        res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req, data) }
+        res = createHttp(uri).start{ |http| http.request(req, data) }
         save_cookies(res)
       else
         @user.do_request_auth(req)
 	set_cookies(req)
-        res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req, data) }
+        res = createHttp(uri).start{ |http| http.request(req, data) }
         save_cookies(res)
       end
       dump_response(res)
@@ -209,13 +220,13 @@ module SlingInterface
         end
         req.set_form_data(post_params)
         set_cookies(req)
-        res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req) }
+        res = createHttp(uri).start{ |http| http.request(req) }
         save_cookies(res)
       else
         @user.do_request_auth(req)
         req.set_form_data(post_params)
         set_cookies(req)
-        res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req) }
+        res = createHttp(uri).start{ |http| http.request(req) }
         save_cookies(res)
       end
       dump_response(res)
@@ -248,12 +259,12 @@ module SlingInterface
             do_login()
         end
         set_cookies(req)
-        res = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req) }
+        res = createHttp(uri).start { |http| http.request(req) }
         save_cookies(res)
       else
         @user.do_request_auth(req)
         set_cookies(req)
-        res = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req) }
+        res = createHttp(uri).start { |http| http.request(req) }
         save_cookies(res)
       end
       res = followRedirects(res)
@@ -266,10 +277,9 @@ module SlingInterface
         while (res.header['location'] && res.header['location'] != lastlocation)
             lastlocation = res.header['location']
             url = URI.parse(res.header['location'])
-            host, port = url.host, url.port if url.host && url.port
-			@log.info("Redirecting to #{url}")
+            @log.info("Redirecting to #{url}")
             req = Net::HTTP::Get.new(url.request_uri())
-            res = Net::HTTP.new(host, port).start {|http|  http.request(req) } 
+            res = createHttp(url).start {|http|  http.request(req) } 
         end
         return res
     end
@@ -303,7 +313,7 @@ module SlingInterface
       req = Net::HTTP::Post.new(path)
       uri = URI.parse(path)
       req.set_form_data({ "sakaiauth:un" => @user.name, "sakaiauth:pw" => @user.password, "sakaiauth:login" => 1 })
-      res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req) }
+      res = createHttp(uri).start{ |http| http.request(req) }
       if ( res.code == "200" ) 
         save_cookies(res)
 	@log.info("Login Ok, cookie was  {#@cookies}")
@@ -324,12 +334,12 @@ module SlingInterface
             do_login()
           end
           set_cookies(req)
-          res = Net::HTTP.start(host, port) {|http|  http.request(req) }
+          res = createHttp(uri) {|http|  http.request(req) }
           save_cookies(res)
         else 
           @user.do_request_auth(req)
           set_cookies(req)
-          res = Net::HTTP.start(host, port) {|http|  http.request(req) }
+          res = createHttp(uri) {|http|  http.request(req) }
           save_cookies(res)
         end
         if res.header['location']
