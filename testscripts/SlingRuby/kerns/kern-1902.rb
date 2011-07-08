@@ -29,7 +29,7 @@ class TC_Kern1902Test < Test::Unit::TestCase
     res = @s.execute_get("#{contentpath}.json")
     assert_equal("200", res.code, "Unable to get the metadata for the resource ")
     json = JSON.parse(res.body)
-	contentItemId = json['_id']
+	contentItemId = json['_sparseId']
 	beforeMetaData = res.body
 
 
@@ -43,7 +43,7 @@ class TC_Kern1902Test < Test::Unit::TestCase
     json = JSON.parse(res.body)
 	afterMetaData = res.body
     assert_equal(json["testing"], "testvalue", "Looks like the property was not written Got #{res.body}")
-	assert_equal(json["_id"],contentItemId,"Content ID changed on update. \nBefore #{beforeMetaData} \nAfter #{afterMetaData} ")
+	assert_equal(json["_sparseId"],contentItemId,"Content ID changed on update. \nBefore #{beforeMetaData} \nAfter #{afterMetaData} ")
 	
 	 wait_for_indexer()
 	
@@ -54,7 +54,7 @@ class TC_Kern1902Test < Test::Unit::TestCase
     json = JSON.parse(res.body)
 	afterMetaData = res.body
     assert_equal(json["testing"], "testvalue", "Looks like the property was not written Got #{res.body}")
-	assert_equal(json["_id"],contentItemId,"Content ID changed on update. \nBefore #{beforeMetaData} \nAfter #{afterMetaData} ")
+	assert_equal(json["_sparseId"],contentItemId,"Content ID changed on update. \nBefore #{beforeMetaData} \nAfter #{afterMetaData} ")
 
     
   end
