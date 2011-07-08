@@ -48,6 +48,9 @@ public class UserContentFilter implements Filter {
     SlingHttpServletRequest srequest = (SlingHttpServletRequest) request;
     SlingHttpServletResponse sresponse = (SlingHttpServletResponse) response;
     if ( serverProtectionService.isRequestSafe(srequest, sresponse) ) {
+        if ( serverProtectionService.isSafeHost(srequest)) {
+          sresponse.setHeader("X-Frame-Option", "DENY"); // deny iframe embedding of OAE pages to prevent clickjacking on the safe host, we might want to make this SAMEORIGIN
+        }
         chain.doFilter(request, response);
     } else {
       LOGGER.debug("Method {} is not safe on {} {}?{}",new Object[]{srequest.getMethod(),srequest.getRequestURL(),srequest.getQueryString()});

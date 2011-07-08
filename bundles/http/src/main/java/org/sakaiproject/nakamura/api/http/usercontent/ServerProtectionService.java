@@ -52,4 +52,10 @@ public interface ServerProtectionService {
    */
   String getTransferUserId(HttpServletRequest request);
 
+  /**
+   * @param hrequest
+   * @return true if the host is trusted.
+   */
+  boolean isSafeHost(HttpServletRequest hrequest);
+
 }

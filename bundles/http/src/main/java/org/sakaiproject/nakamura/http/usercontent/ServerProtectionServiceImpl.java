@@ -510,7 +510,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     return true;
   }
 
-  private boolean isSafeHost(HttpServletRequest hrequest) {
+  public boolean isSafeHost(HttpServletRequest hrequest) {
     // special case for ssl referers, which come in with no port, usually
     if ( "https".equals(hrequest.getScheme()) ) {
       String portlessHost = "https://" + hrequest.getServerName();
