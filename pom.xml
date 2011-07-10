@@ -30,7 +30,6 @@
       <modules>
         <module>libraries/testutils</module>
         <module>libraries/utils</module>
-        <module>bundles/solr</module>
         <module>bundles/formauth</module>
         <module>bundles/trustedauth</module>
         <module>bundles/securityloader</module>
