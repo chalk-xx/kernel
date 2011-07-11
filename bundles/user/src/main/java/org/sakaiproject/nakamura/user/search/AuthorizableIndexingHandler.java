@@ -140,22 +140,24 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
      */
     logger.debug("GetDocuments for {} ", event);
     List<SolrInputDocument> documents = Lists.newArrayList();
+    String topic = PathUtils.lastElement(event.getTopic());
 
-    // get the name of the authorizable (user,group)
-    String authName = String.valueOf(event.getProperty(FIELD_PATH));
-    Authorizable authorizable = getAuthorizable(authName, repositorySession);
-    if (authorizable != null) {
-      // KERN-1822 check if the authorizable is marked to be excluded from searches
-      if (Boolean.parseBoolean(String.valueOf(authorizable.getProperty(UserConstants.SAKAI_EXCLUDE)))) {
-        return documents;
-      }
+    if (StoreListener.UPDATED_TOPIC.equals(topic) || StoreListener.ADDED_TOPIC.equals(topic)) {
+      // get the name of the authorizable (user,group)
+      String authName = String.valueOf(event.getProperty(FIELD_PATH));
+      Authorizable authorizable = getAuthorizable(authName, repositorySession);
+      if (authorizable != null) {
+        // KERN-1822 check if the authorizable is marked to be excluded from searches
+        if (Boolean.parseBoolean(String.valueOf(authorizable.getProperty(UserConstants.SAKAI_EXCLUDE)))) {
+          return documents;
+        }
 
-      SolrInputDocument doc = createAuthDoc(authorizable, repositorySession);
-      if (doc != null) {
-        documents.add(doc);
+        SolrInputDocument doc = createAuthDoc(authorizable, repositorySession);
+        if (doc != null) {
+          documents.add(doc);
 
-        String topic = PathUtils.lastElement(event.getTopic());
-        logger.info("{} authorizable for searching: {}", topic, authName);
+          logger.info("{} authorizable for searching: {}", topic, authName);
+        }
       }
     }
     logger.debug("Got documents {} ", documents);
@@ -274,7 +276,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
    *         managing group and has a non-blank title)). false otherwise.
    */
   protected boolean isUserFacing(Authorizable auth) {
-    if (auth == null) {
+    if (auth == null || auth.getId() == null) {
       return false;
     }
 

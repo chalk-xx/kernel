@@ -279,7 +279,7 @@ module SlingUsers
       end
       params['sakai:group-description'] = ''
       params['sakai:group-id'] = groupname
-      params[':sakai:pages-template'] = '/var/templates/site/defaultgroup'
+#      params[':sakai:pages-template'] = '/var/templates/site/defaultgroup'
       params['sakai:pages-visible'] = 'public'
       params['sakai:group-joinable'] = 'yes'
       result = @sling.execute_post(@sling.url_for($GROUP_URI), params)
