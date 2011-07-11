@@ -158,7 +158,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
       .newConcurrentHashMap();
 
   private BundleContext bundleContext;
-  private boolean disalbleProcetionForDevMove;
+  private boolean disableProtectionForDevMode;
 
   @Modified
   public void modified(ComponentContext componentContext)
@@ -167,8 +167,8 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     @SuppressWarnings("unchecked")
 
     Dictionary<String, Object> properties = componentContext.getProperties();
-    disalbleProcetionForDevMove = OsgiUtil.toBoolean(properties.get(DISABLE_XSS_PROTECTION_FOR_UI_DEV), false);
-    if ( disalbleProcetionForDevMove ) {
+    disableProtectionForDevMode = OsgiUtil.toBoolean(properties.get(DISABLE_XSS_PROTECTION_FOR_UI_DEV), false);
+    if ( disableProtectionForDevMode ) {
       LOGGER.warn("XSS Protection is disabled");
       return;
     }
@@ -239,7 +239,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
 
   @Deactivate
   public void destroy(ComponentContext c) {
-    if ( disalbleProcetionForDevMove ) {
+    if ( disableProtectionForDevMode ) {
       LOGGER.warn("XSS Protection is disabled");
       return;
     }
@@ -255,7 +255,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   public boolean isRequestSafe(SlingHttpServletRequest srequest,
       SlingHttpServletResponse sresponse) throws UnsupportedEncodingException,
       IOException {
-    if ( disalbleProcetionForDevMove ) {
+    if ( disableProtectionForDevMode ) {
       LOGGER.warn("XSS Protection is disabled");
       return true;
     }
@@ -402,7 +402,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
 
   public String getTransferUserId(HttpServletRequest request) {
     // only ever get a user ID in this way on a non trusted safe host.
-    if ( disalbleProcetionForDevMove ) {
+    if ( disableProtectionForDevMode ) {
       LOGGER.warn("XSS Protection is disabled");
       return null;
     }
@@ -450,7 +450,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
 
   public boolean isMethodSafe(HttpServletRequest hrequest, HttpServletResponse hresponse)
       throws IOException {
-    if ( disalbleProcetionForDevMove ) {
+    if ( disableProtectionForDevMode ) {
       LOGGER.warn("XSS Protection is disabled");
       return true;
     }
@@ -511,6 +511,10 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   }
 
   public boolean isSafeHost(HttpServletRequest hrequest) {
+    if ( disableProtectionForDevMode ) {
+      LOGGER.warn("XSS Protection is disabled");
+      return true;
+    }
     // special case for ssl referers, which come in with no port, usually
     if ( "https".equals(hrequest.getScheme()) ) {
       String portlessHost = "https://" + hrequest.getServerName();
