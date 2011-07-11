@@ -274,7 +274,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
    *         managing group and has a non-blank title)). false otherwise.
    */
   protected boolean isUserFacing(Authorizable auth) {
-    if (auth == null) {
+    if (auth == null || auth.getId() == null) {
       return false;
     }
 
