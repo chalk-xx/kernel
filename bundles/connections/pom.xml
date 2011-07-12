@@ -185,7 +185,6 @@
     	<groupId>org.sakaiproject.nakamura</groupId>
     	<artifactId>org.sakaiproject.nakamura.profile</artifactId>
     	<version>0.11-SNAPSHOT</version>
-    	<type>bundle</type>
     	<scope>provided</scope>
     </dependency>
   </dependencies>
