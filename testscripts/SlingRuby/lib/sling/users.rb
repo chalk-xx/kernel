@@ -260,7 +260,7 @@ module SlingUsers
       }
       if (!firstname.nil? and !lastname.nil?)
         data[":sakai:profile-import"] = "{'basic': {'access': 'everybody', 'elements': {'email': {'value': '#{username}@sakai.invalid'}, 'firstName': {'value': '#{firstname}'}, 'lastName': {'value': '#{lastname}'}}}}"
-        data[":sakai:pages-template"] = "/var/templates/site/defaultuser"
+        # data[":sakai:pages-template"] = "/var/templates/site/defaultuser"
       end
       result = @sling.execute_post(@sling.url_for("#{$USER_URI}"), data)
       if (result.code.to_i > 299)
