@@ -190,7 +190,7 @@ def main
       end
 
       # Pass on the page_count
-      @s.execute_post @s.url_for("p/#{id}"), {"sakai:pagecount" => page_count}
+      @s.execute_post @s.url_for("p/#{id}"), {"sakai:pagecount" => page_count, "sakai:hasPreview" => "true"}
 
       # Change to the documents directory otherwise we won't find the next file.
       Dir.chdir DOCS_DIR
