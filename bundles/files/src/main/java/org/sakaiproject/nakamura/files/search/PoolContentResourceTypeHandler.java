@@ -146,27 +146,37 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
 
           Map<String, Object> properties = content.getProperties();
 
-          for (Entry<String, Object> p : properties.entrySet()) {
-            String indexName = index(p);
-            if (indexName != null) {
-              for (Object o : convertToIndex(p)) {
-                doc.addField(indexName, o);
+          if ("sakai/pooled-content".equals(properties.get("sling:resourceType"))
+              && (properties.get("sakai:pooled-content-file-name") == null)) {
+            // KERN-2004: Don't return documents unless upload has completed and file name
+            // has been set
+            LOGGER
+                .debug(
+                    "Skipping document return for pooled content {} at event {}; file upload is incomplete",
+                    path, event);
+          } else {
+            for (Entry<String, Object> p : properties.entrySet()) {
+              String indexName = index(p);
+              if (indexName != null) {
+                for (Object o : convertToIndex(p)) {
+                  doc.addField(indexName, o);
+                }
               }
             }
-          }
 
-          InputStream contentStream = contentManager.getInputStream(path);
-          if (contentStream != null) {
-            try {
-              String extracted = tika.parseToString(contentStream);
-              doc.addField("content", extracted);
-            } catch (TikaException e) {
-              LOGGER.warn(e.getMessage(), e);
+            InputStream contentStream = contentManager.getInputStream(path);
+            if (contentStream != null) {
+              try {
+                String extracted = tika.parseToString(contentStream);
+                doc.addField("content", extracted);
+              } catch (TikaException e) {
+                LOGGER.warn(e.getMessage(), e);
+              }
             }
-          }
 
-          doc.addField(_DOC_SOURCE_OBJECT, content);
-          documents.add(doc);
+            doc.addField(_DOC_SOURCE_OBJECT, content);
+            documents.add(doc);
+          }
         }
       } catch (ClientPoolException e) {
         LOGGER.warn(e.getMessage(), e);
