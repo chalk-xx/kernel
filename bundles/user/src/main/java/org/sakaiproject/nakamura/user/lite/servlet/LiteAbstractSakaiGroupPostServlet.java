@@ -17,6 +17,7 @@
 package org.sakaiproject.nakamura.user.lite.servlet;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -284,53 +285,77 @@ public abstract class LiteAbstractSakaiGroupPostServlet extends
    * @param extraPropertyValues
    *          An array of authorizable IDs that should be added as well.
    * @param toSave
-   * @throws RepositoryException
    */
   protected void handleAuthorizablesOnProperty(SlingHttpServletRequest request,
       Group group, String propertyName, String paramName,
       String[] extraPropertyValues, Map<String, Object> toSave)  {
+    String[] delVals = request.getParameterValues(paramName
+        + SlingPostConstants.SUFFIX_DELETE);
+    String[] addVals = request.getParameterValues(paramName);
+    List<String> valsToAdd = Lists.newArrayList();
+
+    if (addVals != null) {
+      for (String valueToAdd : addVals) {
+        valsToAdd.add(valueToAdd);
+      }
+    }
+
+    if (extraPropertyValues != null) {
+      for (String valueToAdd : extraPropertyValues) {
+        valsToAdd.add(valueToAdd);
+      }
+    }
+
+    handleAuthorizablesOnProperty(group, propertyName, delVals,
+        valsToAdd.toArray(new String[valsToAdd.size()]), toSave);
+  }
+
+  /**
+   * @param group
+   *          The group that should be modified.
+   * @param propertyName
+   *          The name of the property on the group where the authorizable IDs should be
+   *          added/deleted.
+   * @param valuesToDelete
+   *          An array of authorizable IDs that should be deleted.
+   * @param valuesToAdd
+   *          An array of authorizable IDs that should be added.
+   * @param toSave
+   *          The groups to save after the work is done.
+   */
+  protected void handleAuthorizablesOnProperty(Group group, String propertyName,
+      String[] valuesToDelete, String[] valuesToAdd, Map<String, Object> toSave) {
     Set<String> propertyValueSet = new HashSet<String>();
 
     if (group.hasProperty(propertyName)) {
       Object o = group.getProperty(propertyName);
 
-      String[] existingProperties;
+      String[] existingValues;
       if (o instanceof String) {
-        existingProperties = new String[] { (String) o };
+        existingValues = new String[] { (String) o };
       } else {
-        existingProperties = (String[]) o;
+        existingValues = (String[]) o;
       }
 
-      for (String property : existingProperties) {
-        propertyValueSet.add(property);
+      for (String existingValue : existingValues) {
+        propertyValueSet.add(existingValue);
       }
     }
 
     boolean changed = false;
 
     // Remove all the managers that are in the :manager@Delete request parameter.
-    String[] propertiesToDelete = request.getParameterValues(paramName
-        + SlingPostConstants.SUFFIX_DELETE);
-    if (propertiesToDelete != null) {
-      for (String propertyToDelete : propertiesToDelete) {
-        propertyValueSet.remove(propertyToDelete);
+    if (valuesToDelete != null) {
+      for (String valueToDelete : valuesToDelete) {
+        propertyValueSet.remove(valueToDelete);
         changed = true;
       }
     }
 
     // Add the new ones (if any)
-    String[] proeprtiesToAdd = request.getParameterValues(paramName);
-    if (proeprtiesToAdd != null) {
-      for (String propertyToAdd : proeprtiesToAdd) {
-        propertyValueSet.add(propertyToAdd);
-        changed = true;
-      }
-    }
-
-    // Add the extra ones (if any.)
-    if (extraPropertyValues != null) {
-      for (String propertyValue : extraPropertyValues) {
-        propertyValueSet.add(propertyValue);
+    if (valuesToAdd != null) {
+      for (String valueToAdd : valuesToAdd) {
+        propertyValueSet.add(valueToAdd);
         changed = true;
       }
     }
