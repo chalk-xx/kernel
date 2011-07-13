@@ -132,6 +132,12 @@ public interface FilesConstants {
   public static final String POOLED_CONTENT_CREATED_FOR = "sakai:pool-content-created-for";
 
   /**
+   * Property showing that a content item has a preview generated and stored.
+   * Expected to be populated by the preview processor script.
+   */
+  public static final String POOLED_CONTENT_HAS_PREVIEW = "sakai:hasPreview";
+
+  /**
    * Selector for feed of related content which is accessible by any logged-in user.
    */
   public static final String POOLED_CONTENT_RELATED_SELECTOR = "related";
