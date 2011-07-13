@@ -898,10 +898,21 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
       }
     }
     if (viewerSettings.size() > 0) {
-      // ensure it's private
-      aclModifications.add(new AclModification(AclModification.grantKey(User.ANON_USER),
-          Permissions.ALL.getPermission(), Operation.OP_DEL));
-
+      // ensure it's private unless specifically stated otherwise
+      if (viewerSettings.contains(User.ANON_USER)) {
+        // Make sure "anonymous" has read access.
+        aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),
+                                                 Permissions.ALL.getPermission(), Operation.OP_DEL));
+        aclModifications.add(new AclModification(AclModification.grantKey(User.ANON_USER),
+                                                 Permissions.CAN_READ.getPermission(), Operation.OP_REPLACE));
+      } else {
+        // Deny "anonymous" access to everything
+        aclModifications.add(new AclModification(
+                                                 AclModification.grantKey(User.ANON_USER), Permissions.ALL.getPermission(),
+                                                 Operation.OP_DEL));
+        aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),
+            Permissions.ALL.getPermission(), Operation.OP_REPLACE));
+      }
       if (viewerSettings.contains(Group.EVERYONE)) {
         // Make sure "everyone" has read access.
         aclModifications.add(new AclModification(AclModification.denyKey(Group.EVERYONE),
@@ -916,9 +927,6 @@ public class DefaultPostProcessor implements LiteAuthorizablePostProcessor {
         aclModifications.add(new AclModification(AclModification.denyKey(Group.EVERYONE),
             Permissions.ALL.getPermission(), Operation.OP_REPLACE));
       }
-
-      aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),
-          Permissions.ALL.getPermission(), Operation.OP_REPLACE));
     } else {
       // anon and everyone can read
       aclModifications.add(new AclModification(AclModification.denyKey(User.ANON_USER),
