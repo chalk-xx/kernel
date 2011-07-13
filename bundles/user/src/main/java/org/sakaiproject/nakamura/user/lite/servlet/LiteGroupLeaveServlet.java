@@ -37,12 +37,10 @@ import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
-import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
-import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.Security;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
@@ -56,31 +54,27 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Servlet that handles users leaving groups. This was created because a non-manager user
  * can not edit the group and therefore can't remove themself. This servlet acts on behalf
- * of the user if the user is requesting self-removal from a group. If the user is
- * requesting to remove another user, normal ACL semantics are used by invoking the
- * Authorizable Manager to do the work with the regular user session.
+ * of the user to leave a group and does not allow removal of any other user.
  */
 @ServiceDocumentation(name = "LiteGroupLeaveServlet documentation", okForVersion = "0.11",
   shortDescription = "Servlet to allow a user to leave a group",
-  description = "Servlet to make a request to join a group, responding to nodes of type sparse/joinrequests",
+  description = "Servlet to allow a user to leave a group, responding to groups using the 'leave' selector. Only works for removing the logged in user.",
   bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sparse/joinrequests",
     selectors = @ServiceSelector(name = "leave", description = ""),
     extensions = { @ServiceExtension(name = "json") }),
   methods = {
     @ServiceMethod(name = "POST", description = {
-      "Create a new join request.",
-      "curl --referer http://localhost:8080 -u user:pass -Fprop1=val2 -Fprop2=val2 http://localhost:8080/system/userManager/group/testGroup.leave.html"
-    },
-      parameters = {
-        @ServiceParameter(name = "userid", description = "The user(s) to leave the group if not the current user (optional; multiple).")
+        "Create a new join request.",
+        "curl --referer http://localhost:8080 -u user:pass -F go=1 http://localhost:8080/system/userManager/group/testGroup.leave.html"
       },
       response = {
         @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
-        @ServiceResponse(code = HttpServletResponse.SC_FORBIDDEN, description = "Unable to remove user from group because requested user is not current user or the requestor does not have permission to remove others."),
         @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
         @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.")
-      })
-})
+      }
+    )
+  }
+)
 @Component(immediate = true)
 @SlingServlet(resourceTypes = "sparse/group", methods = "POST", selectors = "leave", generateComponent = false)
 public class LiteGroupLeaveServlet extends LiteAbstractSakaiGroupPostServlet {
@@ -89,8 +83,6 @@ public class LiteGroupLeaveServlet extends LiteAbstractSakaiGroupPostServlet {
    *
    */
   private static final long serialVersionUID = -6508149691456203381L;
-
-  private static final String PARAM_USERID = "userid";
 
   /**
    * The OSGi Event Admin Service.
@@ -120,44 +112,23 @@ public class LiteGroupLeaveServlet extends LiteAbstractSakaiGroupPostServlet {
       throw new AccessDeniedException(Security.ZONE_AUTHORIZABLES, groupToLeave.getId(), "", requestedBy);
     }
 
-    // look for users to remove as a parameter
-    String[] toLeave = request.getParameterValues(PARAM_USERID);
-
     // if no userids submitted, try to remove current user
-    if (toLeave == null || toLeave.length == 0 || requestedBy.equals(toLeave[0])) {
-      Map<String, Object> toSave = Maps.newHashMap();
-      removeAuth(groupToLeave, requestedBy, toSave);
+    Map<String, Object> toSave = Maps.newHashMap();
+    removeAuth(groupToLeave, requestedBy, toSave);
 
-      if (groupToLeave.isModified()) {
-        // remove current user using an admin session since non-managers can't edit the group
-        Session adminSession = null;
-        try {
-          adminSession = repository.loginAdministrative();
+    if (groupToLeave.isModified()) {
+      // remove current user using an admin session since non-managers can't edit the group
+      Session adminSession = null;
+      try {
+        adminSession = repository.loginAdministrative();
 
-          adminSession.getAuthorizableManager().updateAuthorizable(groupToLeave);
-          changes.add(Modification.onDeleted(requestedBy));
-        } finally {
-          if (adminSession != null) {
-            adminSession.logout();
-          }
+        adminSession.getAuthorizableManager().updateAuthorizable(groupToLeave);
+        changes.add(Modification.onDeleted(requestedBy));
+      } finally {
+        if (adminSession != null) {
+          adminSession.logout();
         }
       }
-    } else {
-      // treat the operation as a group membership update and let the AuthorizableManager
-      // handle the permission checks.
-      Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
-      if (session == null) {
-        throw new StorageClientException("Sparse Session not found");
-      }
-
-      Map<String, Object> toSave = Maps.newHashMap();
-      for (String authId : toLeave) {
-        removeAuth(groupToLeave, requestedBy, toSave);
-        if (toSave.containsKey(authId)) {
-          changes.add(Modification.onDeleted(authId));
-        }
-      }
-      session.getAuthorizableManager().updateAuthorizable(groupToLeave);
     }
   }
 
