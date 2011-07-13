@@ -163,6 +163,7 @@ public class LiteGroupJoinRequestServlet extends SlingAllMethodsServlet {
       case yes:
         // membership is automatically granted
         targetGroup.addMember(userId);
+        authorizableManager.updateAuthorizable(targetGroup);
         Dictionary<String, Object> eventProps = new Hashtable<String, Object>();
         eventAdmin.postEvent(new Event(GroupEvent.joinedSite.getTopic(), eventProps));
         ActivityUtils.postActivity(eventAdmin, userId, group.getPath(), "Content", "default", "pooled content", "JOINED_GROUP", null);
