@@ -29,9 +29,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
-import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -44,15 +42,6 @@ import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- *
- * Work around performance issue with Sling's DefaultGetServlet. The JsonResourceWriter
- * ends up unnecessarily reading the complete stream for a binary property's value
- * just to report its length. Nakamura's ExtendedJSONWriter instead fetches the
- * property length directly, a much more efficient operation.
- *
- * The above statement is no longer true. Slings JsonResourceWriter has been patched.
- */
 @SlingServlet(methods = { "GET" }, extensions = { "json" }, resourceTypes = { "sakai/pooled-content" })
 @ServiceDocumentation(name = "GetContentPoolServlet documentation", okForVersion = "0.11",
   shortDescription = "Gets a JSON representation of a content pool item.",
