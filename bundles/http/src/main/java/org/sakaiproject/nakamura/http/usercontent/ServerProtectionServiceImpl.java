@@ -111,9 +111,23 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String DISABLE_XSS_PROTECTION_FOR_UI_DEV = "disable.protection.for.dev.mode";
   @Property(value = { DEFAULT_UNTRUSTED_CONTENT_URL })
   private static final String UNTRUSTED_CONTENTURL_CONF = "untrusted.contenturl";
-  @Property(value = { "/dev", "/devwidgets", "/system" })
+  @Property(value = { "/dev", "/devwidgets", "/system", "/logout" })
   private static final String TRUSTED_PATHS_CONF = "trusted.paths";
-  @Property(value = { "/", "/index.html" })
+  @Property(value = { "/", 
+      "/index.html", 
+      "/403", 
+      "/404", 
+      "/500", 
+      "/acknowledgements", 
+      "/categories", 
+      "/category", 
+      "/content",
+      "/favicon.ico",
+      "/logout",
+      "/me",
+      "/register",
+      "/search/sakai2",
+      "/search"  })
   private static final String TRUSTED_EXACT_PATHS_CONF = "trusted.exact.paths";
   @Property(value = { "/", "http://localhost:8080" })
   static final String TRUSTED_REFERER_CONF = "trusted.referer";
