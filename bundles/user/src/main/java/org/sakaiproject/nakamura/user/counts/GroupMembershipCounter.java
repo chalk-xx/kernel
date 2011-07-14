@@ -6,6 +6,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
 import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +42,10 @@ public class GroupMembershipCounter {
             || CountProvider.IGNORE_AUTHIDS.contains(group.getId())
             // don't count if the group is to be excluded
             || Boolean.parseBoolean(String.valueOf(group.getProperty("sakai:excludeSearch")))
+            // don't count if the group lacks a title
+            || group.getProperty("sakai:group-title") == null
+            || StringUtils.isEmpty(String.valueOf(group.getProperty("sakai:group-title")))
+            // don't count the special "contacts" group
             || group.getId().startsWith("g-contacts-")) {
           continue;
         }
