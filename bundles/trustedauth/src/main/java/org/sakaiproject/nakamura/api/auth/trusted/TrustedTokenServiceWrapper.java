@@ -52,7 +52,7 @@ public abstract class TrustedTokenServiceWrapper {
    */
   protected void injectToken(HttpServletRequest request,
       HttpServletResponse response) {
-    delagate.injectToken(request, response, this.getType());
+    delagate.injectToken(request, response, this.getType(), null);
   }
 
   /**

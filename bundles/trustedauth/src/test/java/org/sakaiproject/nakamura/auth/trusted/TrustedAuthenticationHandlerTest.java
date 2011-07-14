@@ -126,7 +126,7 @@ public class TrustedAuthenticationHandlerTest {
 
     replay();
     trustedTokenService.activate(context);
-    trustedTokenService.injectToken(request, response, TrustedTokenTypes.AUTHENTICATED_TRUST);
+    trustedTokenService.injectToken(request, response, TrustedTokenTypes.AUTHENTICATED_TRUST, null);
     Assert.assertTrue(attributeName.hasCaptured());
     Assert.assertTrue(attributeValue.hasCaptured());
     Credentials credentials = attributeValue.getValue();
