@@ -91,6 +91,7 @@ public class MyRelatedGroupsPropertyProvider implements SolrSearchPropertyProvid
                                          "mlt", "true",
                                          "mlt.fl", "type,readers,title,name,taguuid",
                                          "mlt.count", "10",
+                                         "mlt.maxntp", "0",
                                          "mlt.mintf", "1",
                                          "mlt.mindf", "1",
                                          "mlt.boost", "true",
