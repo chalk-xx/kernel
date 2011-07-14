@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.profile.servlet;
 
+
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -81,6 +82,8 @@ import javax.servlet.http.HttpServletResponse;
     ProfileConstants.GROUP_PROFILE_RT, ProfileConstants.USER_PROFILE_RT })
 public class ProfileServlet extends SlingSafeMethodsServlet {
 
+  private static final String TIDY = "tidy";
+
   /**
    *
    */
@@ -107,6 +110,7 @@ public class ProfileServlet extends SlingSafeMethodsServlet {
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
       ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
+      writer.setTidy(isTidy(request));
       writer.valueMap(map);
     } catch (AccessDeniedException e) {
       LOGGER.warn("Failed to access profile at {}: {}", new Object[] {
@@ -121,4 +125,12 @@ public class ProfileServlet extends SlingSafeMethodsServlet {
     }
   }
 
+  private boolean isTidy(SlingHttpServletRequest req) {
+    for (String selector : req.getRequestPathInfo().getSelectors()) {
+      if (TIDY.equals(selector)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
