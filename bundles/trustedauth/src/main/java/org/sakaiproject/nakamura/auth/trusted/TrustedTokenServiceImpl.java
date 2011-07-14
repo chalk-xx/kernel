@@ -401,7 +401,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * @param resp
    * @param readOnlyToken if true, the session or cookie will only allow read only operations in the server.
    */
-  public String injectToken(HttpServletRequest request, HttpServletResponse response, String tokenType) {
+  public String injectToken(HttpServletRequest request, HttpServletResponse response, String tokenType, UserValidator userValidator) {
     if ( testing ) {
       calls.add(new Object[]{"injectToken",request,response});
       return "testing";
@@ -444,7 +444,9 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       }
     }
 
-
+    if ( userValidator != null) {
+      userId = userValidator.validate(userId);
+    }
     if (userId != null) {
       if (usingSession) {
         HttpSession session = request.getSession(true);

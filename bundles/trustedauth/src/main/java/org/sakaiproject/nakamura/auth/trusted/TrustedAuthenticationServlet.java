@@ -177,43 +177,51 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
       throws ServletException, IOException {
     
     if (trustedTokenService instanceof TrustedTokenServiceImpl) {
-      String userId = ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req, resp, TrustedTokenTypes.AUTHENTICATED_TRUST);
-      if ( userId != null ) {        
-        // we found a user, check if it really exists.
-        Session session = null;
-        try {
-          session = repository.loginAdministrative();
-          AuthorizableManager am = session.getAuthorizableManager();
-          Authorizable a = am.findAuthorizable(userId);
-          if ( a == null ) {
-            String destination = req.getParameter(PARAM_DESTINATION);
-            if (destination == null) {
-              destination = defaultDestination;
-            }
-            String redirectLocation = MessageFormat.format(noUserRedirectLocationFormat, URLEncoder.encode(destination, "UTF-8"));
-            resp.sendRedirect(redirectLocation);
-            return;
-          }
-        } catch (Exception e) {
-          LOGGER.warn("Failed to check user ",e);
-        } finally {
-          if ( session != null ) {
-            try {
-              session.logout();
-            } catch (ClientPoolException e) {
-              LOGGER.warn("Failed to close admin session ",e);
-            }
-          }
-        }
-      }
-      LOGGER.debug(" Might have Injected token ");
-      String destination = req.getParameter(PARAM_DESTINATION);
+      final AuthenticatedAction authAction = new AuthenticatedAction();
+      ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req, resp, TrustedTokenTypes.AUTHENTICATED_TRUST, new UserValidator(){
 
+        public String validate(String userId) {
+          if ( userId != null ) {        
+            // we found a user, check if it really exists.
+            Session session = null;
+            try {
+              session = repository.loginAdministrative();
+              AuthorizableManager am = session.getAuthorizableManager();
+              Authorizable a = am.findAuthorizable(userId);
+              if ( a == null ) {
+                LOGGER.info("Authenticated User {} does not exist");
+                authAction.setAction(AuthenticatedAction.REDIRECT);
+                return null;
+              }
+            } catch (Exception e) {
+              LOGGER.warn("Failed to check user ",e);
+            } finally {
+              if ( session != null ) {
+                try {
+                  session.logout();
+                } catch (ClientPoolException e) {
+                  LOGGER.warn("Failed to close admin session ",e);
+                }
+              }
+            }
+          }
+          return userId;
+        }
+      });
+      String destination = req.getParameter(PARAM_DESTINATION);
       if (destination == null) {
         destination = defaultDestination;
       }
-      // ensure that the redirect is safe and not susceptible to
-      resp.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
+      if ( authAction.isRedirect() ) {
+        String redirectLocation = MessageFormat.format(noUserRedirectLocationFormat, URLEncoder.encode(destination, "UTF-8"));
+        resp.sendRedirect(redirectLocation);
+      } else {
+        if (destination == null) {
+          destination = defaultDestination;
+        }
+        // ensure that the redirect is safe and not susceptible to
+        resp.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
+      }
     } else {
       LOGGER.debug("Trusted Token Service is not the correct implementation and so cant inject tokens. ");
     }
