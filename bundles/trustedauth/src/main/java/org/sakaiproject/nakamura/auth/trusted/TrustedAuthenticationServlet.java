@@ -31,16 +31,21 @@ import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenTypes;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
-import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
+import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
+import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.text.MessageFormat;
 import java.util.Dictionary;
 
 import javax.servlet.ServletException;
@@ -109,13 +114,25 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
   @Property(value = "/dev")
   static final String DEFAULT_DESTINATION = "sakai.auth.trusted.destination.default";
 
+  private static final String DEFAULT_NO_USER_REDIRECT_FORMAT = "/system/trustedauth-nouser?u={0}";
+
+  @Property(value = DEFAULT_NO_USER_REDIRECT_FORMAT)
+  private static final String NO_USER_REDIRECT_LOCATION_FORMAT = "sakai.auth.trusted.nouserlocationformat";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(TrustedAuthenticationServlet.class);
+
+
+
+
 
   @Reference
   protected transient HttpService httpService;
 
   @Reference
   protected transient TrustedTokenService trustedTokenService;
+  
+  @Reference
+  protected transient Repository repository;
 
   /** The registration path for this servlet. */
   private String registrationPath;
@@ -123,10 +140,14 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
   /** The default destination to go to if none is specified. */
   private String defaultDestination;
 
+
+  private String noUserRedirectLocationFormat;
+
   @SuppressWarnings("rawtypes")
   @Activate
   protected void activate(ComponentContext context) {
     Dictionary props = context.getProperties();
+    noUserRedirectLocationFormat = OsgiUtil.toString(props.get(NO_USER_REDIRECT_LOCATION_FORMAT), DEFAULT_NO_USER_REDIRECT_FORMAT);
     registrationPath = OsgiUtil.toString(props.get(REGISTRATION_PATH), "/system/trustedauth");
     defaultDestination = OsgiUtil.toString(props.get(DEFAULT_DESTINATION), "/dev");
     try {
@@ -156,7 +177,35 @@ public final class TrustedAuthenticationServlet extends HttpServlet implements H
       throws ServletException, IOException {
     
     if (trustedTokenService instanceof TrustedTokenServiceImpl) {
-      ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req, resp, TrustedTokenTypes.AUTHENTICATED_TRUST);
+      String userId = ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req, resp, TrustedTokenTypes.AUTHENTICATED_TRUST);
+      if ( userId != null ) {        
+        // we found a user, check if it really exists.
+        Session session = null;
+        try {
+          session = repository.loginAdministrative();
+          AuthorizableManager am = session.getAuthorizableManager();
+          Authorizable a = am.findAuthorizable(userId);
+          if ( a == null ) {
+            String destination = req.getParameter(PARAM_DESTINATION);
+            if (destination == null) {
+              destination = defaultDestination;
+            }
+            String redirectLocation = MessageFormat.format(noUserRedirectLocationFormat, URLEncoder.encode(destination, "UTF-8"));
+            resp.sendRedirect(redirectLocation);
+            return;
+          }
+        } catch (Exception e) {
+          LOGGER.warn("Failed to check user ",e);
+        } finally {
+          if ( session != null ) {
+            try {
+              session.logout();
+            } catch (ClientPoolException e) {
+              LOGGER.warn("Failed to close admin session ",e);
+            }
+          }
+        }
+      }
       LOGGER.debug(" Might have Injected token ");
       String destination = req.getParameter(PARAM_DESTINATION);
 

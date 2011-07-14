@@ -401,10 +401,10 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * @param resp
    * @param readOnlyToken if true, the session or cookie will only allow read only operations in the server.
    */
-  public void injectToken(HttpServletRequest request, HttpServletResponse response, String tokenType) {
+  public String injectToken(HttpServletRequest request, HttpServletResponse response, String tokenType) {
     if ( testing ) {
       calls.add(new Object[]{"injectToken",request,response});
-      return;
+      return "testing";
     }
     String userId = null;
     String remoteAddress = request.getRemoteAddr();
@@ -414,7 +414,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
         if (userId != null) {
           LOG.debug(
               "Injecting Trusted Token from request: Header [{}] indicated user was [{}] ",
-              trustedHeaderName, userId);
+              0, userId);
         }
       }
       if (userId == null && trustedParameterName.length() > 0) {
@@ -460,9 +460,11 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
       // send an async event to indicate that the user has been trusted, things that want to create users can hook into this.
       eventAdmin.sendEvent(new Event(TrustedTokenService.TRUST_USER_TOPIC,eventDictionary));
+      return userId;
     } else {
       LOG.warn("Unable to inject token; unable to determine user from request.");
     }
+    return null;
   }
 
   /**
