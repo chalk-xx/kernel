@@ -203,7 +203,11 @@ public class MessageSearchResultProcessor implements SolrSearchResultProcessor, 
         .getProperty(PROP_SAKAI_PREVIOUS_MESSAGE);
     try {
       Content previousMessage = searchMailboxes(userId, session, id);
-      writeContent(request, write, previousMessage);
+      if ( previousMessage != null ) {
+        writeContent(request, write, previousMessage);
+      } else {
+        write.value(false);
+      }
     } catch (StorageClientException e) {
       throw new JSONException("Couldn't write search results because couldn't get message with id " + id);
     } catch (AccessDeniedException e) {
