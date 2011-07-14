@@ -1,5 +1,6 @@
 package org.sakaiproject.nakamura.user.counts;
 
+import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.authorizable.Authorizable;
@@ -41,6 +42,10 @@ public class GroupMembershipCounter {
             || CountProvider.IGNORE_AUTHIDS.contains(group.getId())
             // don't count if the group is to be excluded
             || Boolean.parseBoolean(String.valueOf(group.getProperty("sakai:excludeSearch")))
+            // don't count if the group lacks a title
+            || group.getProperty("sakai:group-title") == null
+            || StringUtils.isEmpty(String.valueOf(group.getProperty("sakai:group-title")))
+            // don't count the special "contacts" group
             || group.getId().startsWith("g-contacts-")) {
           continue;
         }
