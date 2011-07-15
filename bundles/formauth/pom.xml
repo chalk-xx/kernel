@@ -37,7 +37,6 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <Export-Package> org.sakaiproject.nakamura.api.formauth </Export-Package>
             <Private-Package> org.sakaiproject.nakamura.formauth </Private-Package>
           </instructions>
         </configuration>
