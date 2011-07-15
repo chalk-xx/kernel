@@ -60,10 +60,8 @@ public class LitePersonalTrackingStore implements PersonalTrackingStore {
       session = repository.loginAdministrative();
       final ContentManager cm = session.getContentManager();
       final String trackingNodePath = "/activity/" + resourceType + "/" + resourceId;
-      Content trackingNode = null;
-      if (cm.exists(trackingNodePath)) {
-        trackingNode = cm.get(trackingNodePath);
-      } else {
+      Content trackingNode = cm.get(trackingNodePath);
+      if (trackingNode == null) {
         trackingNode = new Content(trackingNodePath, new HashMap<String, Object>());
       }
       if (!trackingNode.hasProperty("count")) {
