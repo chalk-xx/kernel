@@ -8,7 +8,7 @@ import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.ActionRecord;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.resource.lite.AbstractSparsePostOperation;
-import org.sakaiproject.nakamura.util.LitePersonalUtils;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,7 @@ public class MoveOperation extends AbstractSparsePostOperation {
       throws StorageClientException, AccessDeniedException {
 
     String from = contentPath;
-    String to = LitePersonalUtils.expandHomeDirectory(request.getParameter(DEST));
+    String to = PathUtils.toUserContentPath(request.getParameter(DEST));
     List<ActionRecord> moves = (ArrayList<ActionRecord>) contentManager.moveWithChildren(
         from, to);
     for (int i = 0; i < moves.size(); i++) {
