@@ -69,9 +69,12 @@ public class ContentCountChangeListener extends AbstractCountHandler implements 
           Set<String> removed = Sets.difference(before,after);
           Set<String> added = Sets.difference(after, before);
           LOG.info("Path:{} Before:{} After:{} Added:{} Removed:{} ",new Object[]{path, before, after, added, removed});
-          for ( String userId : added ) {
-            if ( !CountProvider.IGNORE_AUTHIDS.contains(userId) ) {
-              inc(userId, UserConstants.CONTENT_ITEMS_PROP);
+          // Only increase count if content upload has completed (KERN-2041)
+          if (content.getProperty("sakai:pooled-content-file-name") != null) {
+            for (String userId : added) {
+              if (!CountProvider.IGNORE_AUTHIDS.contains(userId)) {
+                inc(userId, UserConstants.CONTENT_ITEMS_PROP);
+              }
             }
           }
           for ( String userId : removed ) {
