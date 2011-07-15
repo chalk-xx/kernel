@@ -7,7 +7,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.sakaiproject.nakamura.api.lite.ClientPoolException;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -43,9 +42,9 @@ public class CountProviderImpl implements CountProvider {
   protected Repository repository;
 
   @Property(intValue = 30)
-  private static final String UPDATE_INTERVAL = "sakai.countProvider.updateIntervalMinutes";
+  public static final String UPDATE_INTERVAL_MINUTES = "sakai.countProvider.updateIntervalMinutes";
 
-  private long updateInterval;
+  private long updateIntervalMinutes;
 
   private GroupMembershipCounter groupMembershipCounter = new GroupMembershipCounter();
 
@@ -55,76 +54,47 @@ public class CountProviderImpl implements CountProvider {
 
   private GroupMembersCounter groupMembersCounter = new GroupMembersCounter();
 
-  public void update(Authorizable requestAu) throws AccessDeniedException,
-      StorageClientException {
-    if ( requestAu == null || IGNORE_AUTHIDS.contains(requestAu.getId())) {
+  public void update(Authorizable authorizable, Session session)
+      throws AccessDeniedException, StorageClientException {
+    if (authorizable == null || IGNORE_AUTHIDS.contains(authorizable.getId())) {
       return;
     }
-    Session adminSession = null;
-    try {
-      adminSession = repository.loginAdministrative();
-      AuthorizableManager authorizableManager = adminSession.getAuthorizableManager();
-      Authorizable au = authorizableManager.findAuthorizable(requestAu.getId());
-      if (au != null) {
-        int contentCount = getContentCount(au);
-        requestAu.setProperty(UserConstants.CONTENT_ITEMS_PROP, contentCount);
-        au.setProperty(UserConstants.CONTENT_ITEMS_PROP, contentCount);
-        if (au instanceof User) {
-          int contactsCount = getContactsCount(au, authorizableManager);
-          int groupsContact = getGroupsCount(au, authorizableManager);
-          au.setProperty(UserConstants.CONTACTS_PROP, contactsCount);
-          au.setProperty(UserConstants.GROUP_MEMBERSHIPS_PROP, groupsContact);
-          requestAu.setProperty(UserConstants.CONTACTS_PROP, contactsCount);
-          requestAu.setProperty(UserConstants.GROUP_MEMBERSHIPS_PROP, groupsContact);
-          if (LOG.isDebugEnabled())
-            LOG.debug("update User authorizable: {} with {}={}, {}={}, {}={}",
-                new Object[] { requestAu.getId(), UserConstants.CONTENT_ITEMS_PROP, contentCount,
-                UserConstants.CONTACTS_PROP, contactsCount, UserConstants.GROUP_MEMBERSHIPS_PROP, groupsContact });
-        } else if (au instanceof Group) {
-          int membersCount = getMembersCount((Group) au, authorizableManager);
-          au.setProperty(UserConstants.GROUP_MEMBERS_PROP, membersCount);
-          requestAu.setProperty(UserConstants.GROUP_MEMBERS_PROP, membersCount);
-          if (LOG.isDebugEnabled())
-            LOG.debug("update Group authorizable: {} with {}={}, {}={}", new Object[] {
-                requestAu.getId(), UserConstants.CONTENT_ITEMS_PROP, contentCount, UserConstants.GROUP_MEMBERS_PROP,
-                membersCount });
-        }
-        long lastUpdate = System.currentTimeMillis();
-        au.setProperty(UserConstants.COUNTS_LAST_UPDATE_PROP, lastUpdate);
-        requestAu.setProperty(UserConstants.COUNTS_LAST_UPDATE_PROP, lastUpdate);
-        // only update the Authorizable associated with the admin session.
-        // NB we have updated the requestAuthorizable
-        authorizableManager.updateAuthorizable(au);
-      } else {
-        LOG.warn("update could not get authorizable: {} from adminSession",
-            new Object[] { requestAu.getId() });
+    AuthorizableManager authorizableManager = session.getAuthorizableManager();
+    if (authorizable != null) {
+      int contentCount = getContentCount(authorizable);
+      authorizable.setProperty(UserConstants.CONTENT_ITEMS_PROP, contentCount);
+      if (authorizable instanceof User) {
+        int contactsCount = getContactsCount(authorizable, authorizableManager);
+        int groupsContact = getGroupsCount(authorizable, authorizableManager);
+        authorizable.setProperty(UserConstants.CONTACTS_PROP, contactsCount);
+        authorizable.setProperty(UserConstants.GROUP_MEMBERSHIPS_PROP, groupsContact);
+        if (LOG.isDebugEnabled())
+          LOG.debug("update User authorizable: {} with {}={}, {}={}, {}={}",
+              new Object[] { authorizable.getId(), UserConstants.CONTENT_ITEMS_PROP,
+                  contentCount, UserConstants.CONTACTS_PROP, contactsCount,
+                  UserConstants.GROUP_MEMBERSHIPS_PROP, groupsContact });
+      } else if (authorizable instanceof Group) {
+        int membersCount = getMembersCount((Group) authorizable, authorizableManager);
+        authorizable.setProperty(UserConstants.GROUP_MEMBERS_PROP, membersCount);
+        if (LOG.isDebugEnabled())
+          LOG.debug("update Group authorizable: {} with {}={}, {}={}", new Object[] {
+              authorizable.getId(), UserConstants.CONTENT_ITEMS_PROP, contentCount,
+              UserConstants.GROUP_MEMBERS_PROP, membersCount });
       }
-    } finally {
-      if ( adminSession != null ) {
-        try {
-          adminSession.logout();
-        } catch (ClientPoolException e) {
-          LOG.warn(e.getMessage(),e);
-        }
-      }
+      long lastUpdate = System.currentTimeMillis();
+      authorizable.setProperty(UserConstants.COUNTS_LAST_UPDATE_PROP, lastUpdate);
+      if (LOG.isDebugEnabled())
+        LOG.debug("update authorizable: {} with {}={}", new Object[] {
+            authorizable.getId(), UserConstants.COUNTS_LAST_UPDATE_PROP, lastUpdate});      
+      authorizableManager.updateAuthorizable(authorizable);
+    } else {
+      LOG.warn("update could not get authorizable: {} from session",
+          new Object[] { authorizable.getId() });
     }
   }
-
-  public boolean needsRefresh(Authorizable authorizable) throws AccessDeniedException,
-      StorageClientException {
-    if (authorizable != null && !IGNORE_AUTHIDS.contains(authorizable.getId())) {
-      Long lastMillis = (Long) authorizable.getProperty(UserConstants.COUNTS_LAST_UPDATE_PROP);
-      if (lastMillis != null) {
-        long updateMillis = lastMillis + updateInterval;
-        long nowMillis = System.currentTimeMillis();
-        LOG.debug("Last Udpate last:{} interval:{} updateafter:{} needsupdate:{}  {} ",
-            new Object[] { lastMillis, updateInterval, updateMillis,
-                (updateMillis - nowMillis), (nowMillis > updateMillis) });
-        return nowMillis > updateMillis;
-      }
-      return true;
-    }
-    return false;
+  
+  public long getUpdateIntervalMinutes() {
+    return this.updateIntervalMinutes;
   }
 
   private int getMembersCount(Group group, AuthorizableManager authorizableManager) throws AccessDeniedException,
@@ -157,7 +127,7 @@ public class CountProviderImpl implements CountProvider {
   @Modified
   public void modify(Map<String, Object> properties) throws StorageClientException,
       AccessDeniedException {
-    updateInterval = OsgiUtil.toLong(properties.get(UPDATE_INTERVAL), 30) * 60 * 1000;
+    updateIntervalMinutes = OsgiUtil.toLong(properties.get(UPDATE_INTERVAL_MINUTES), 30) * 60 * 1000;
   }
 
 

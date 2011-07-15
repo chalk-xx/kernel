@@ -107,19 +107,6 @@ public class BasicUserInfoServiceImpl implements BasicUserInfoService {
   
 
   private Map<String, Object> countsMapforAuthorizable(Authorizable authorizable) {
-    if (countProvider != null) {
-      try {
-      if (countProvider.needsRefresh(authorizable)) {
-        countProvider.update(authorizable);
-      }
-      } catch ( StorageClientException e) {
-        LOGGER.error(e.getMessage(),e);
-      } catch (AccessDeniedException e) {
-        LOGGER.info("Failed to update the count on authorizable {} {} ", authorizable, e.getMessage());
-      }
-    } else {
-      throw new IllegalStateException("@Reference CountProvider is null!");
-    }
     Builder<String, Object> propertyBuilder = ImmutableMap.builder();
     for (String countPropName : USER_COUNTS_PROPS) {     
       if (authorizable.hasProperty(countPropName)) {
