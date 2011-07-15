@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.user.search;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
@@ -37,12 +38,15 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
+import org.sakaiproject.nakamura.api.solr.SparseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -56,14 +60,20 @@ public class JoinRequestIndexingHandler implements IndexingHandler {
   @Reference(target = "(type=sparse)")
   private ResourceIndexingService resourceIndexingService;
 
+  private static final Set<String> CONTENT_TYPES = Sets.newHashSet("sakai/joinrequest");
+
   @Activate
-  protected void activate(Map<?, ?> props) {
-    resourceIndexingService.addHandler("sakai/joinrequest", this);
+  public void activate(Map<String, Object> properties) throws Exception {
+    for (String type : CONTENT_TYPES) {
+      resourceIndexingService.addHandler(type, this);
+    }
   }
 
   @Deactivate
-  protected void deactivate(Map<?, ?> props) {
-    resourceIndexingService.removeHandler("sakai/joinrequest", this);
+  public void deactivate(Map<String, Object> properties) {
+    for (String type : CONTENT_TYPES) {
+      resourceIndexingService.removeHandler(type, this);
+    }
   }
 
   /**
@@ -84,6 +94,9 @@ public class JoinRequestIndexingHandler implements IndexingHandler {
         Content content = cm.get(path);
 
         if (content != null) {
+          if (!CONTENT_TYPES.contains(content.getProperty("sling:resourceType"))) {
+            return documents;
+          }
           SolrInputDocument doc = new SolrInputDocument();
           doc.addField(User.NAME_FIELD, content.getProperty(User.NAME_FIELD));
           doc.addField(Content.CREATED_FIELD, content.getProperty(Content.CREATED_FIELD));
@@ -106,11 +119,16 @@ public class JoinRequestIndexingHandler implements IndexingHandler {
    * @see org.sakaiproject.nakamura.api.solr.IndexingHandler#getDeleteQueries(org.sakaiproject.nakamura.api.solr.RepositorySession,
    *      org.osgi.service.event.Event)
    */
-  public Collection<String> getDeleteQueries(RepositorySession respositorySession,
+  public Collection<String> getDeleteQueries(RepositorySession repositorySession,
       Event event) {
+    List<String> retval = Collections.emptyList();
     logger.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty(FIELD_PATH);
-    return ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
+    String resourceType = SparseUtils.getResourceType(repositorySession, path);
+    if (CONTENT_TYPES.contains(resourceType)) {
+      retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
+    }
+    return retval;
   }
 
 }
