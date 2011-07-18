@@ -79,6 +79,7 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     builder.put("sakai:tag-uuid", "taguuid");
     builder.put("sakai:tags", "tag");
     builder.put(Authorizable.LASTMODIFIED_FIELD, Content.LASTMODIFIED_FIELD);
+    builder.put(UserConstants.COUNTS_LAST_UPDATE_PROP, "countLastUpdate");
     USER_WHITELISTED_PROPS = builder.build();
   }
 
@@ -92,7 +93,8 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
     builder.put("sakai:tag-uuid", "taguuid");
     builder.put("sakai:tags", "tag");
     builder.put("sakai:category", "category");
-    builder.put(Authorizable.LASTMODIFIED_FIELD, Content.LASTMODIFIED_FIELD);
+    builder.put(Authorizable.LASTMODIFIED_FIELD, Content.LASTMODIFIED_FIELD);    
+    builder.put(UserConstants.COUNTS_LAST_UPDATE_PROP, "countLastUpdate");
     GROUP_WHITELISTED_PROPS = builder.build();
   }
 
