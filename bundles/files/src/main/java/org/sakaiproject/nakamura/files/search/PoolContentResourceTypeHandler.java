@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
@@ -31,7 +32,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.tika.exception.TikaException;
-import org.osgi.framework.BundleContext;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.ClientPoolException;
@@ -47,6 +47,7 @@ import org.sakaiproject.nakamura.api.lite.util.Iterables;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
+import org.sakaiproject.nakamura.api.solr.SparseUtils;
 import org.sakaiproject.nakamura.api.tika.TikaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,9 +73,8 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PoolContentResourceTypeHandler.class);
-  private static final String[] CONTENT_TYPES = new String[] {
-    "sakai/pooled-content"
-  };
+  private static final Set<String> CONTENT_TYPES = Sets
+      .newHashSet("sakai/pooled-content");
 
   @Reference(target="(type=sparse)")
   protected ResourceIndexingService resourceIndexingService;
@@ -108,7 +108,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
   // ---------- SCR integration-------------------------------------------------
 
   @Activate
-  public void activate(BundleContext bundleContext, Map<String, Object> properties) throws Exception {
+  public void activate(Map<String, Object> properties) throws Exception {
     for (String type : CONTENT_TYPES) {
       resourceIndexingService.addHandler(type, this);
     }
@@ -142,12 +142,15 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
         ContentManager contentManager = session.getContentManager();
         Content content = contentManager.get(path);
         if (content != null) {
+          if (!CONTENT_TYPES.contains(content.getProperty("sling:resourceType"))) {
+            return documents;
+          }
+
           SolrInputDocument doc = new SolrInputDocument();
 
           Map<String, Object> properties = content.getProperties();
 
-          if ("sakai/pooled-content".equals(properties.get("sling:resourceType"))
-              && (properties.get("sakai:pooled-content-file-name") == null)) {
+          if (properties.get("sakai:pooled-content-file-name") == null) {
             // KERN-2004: Don't return documents unless upload has completed and file name
             // has been set
             LOGGER
@@ -215,14 +218,17 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
    *      org.osgi.service.event.Event)
    */
   public Collection<String> getDeleteQueries(RepositorySession repositorySession, Event event) {
+    List<String> retval = Collections.emptyList();
     LOGGER.debug("GetDelete for {} ", event);
-    String path = (String) event.getProperty("path");
+    String path = (String) event.getProperty(FIELD_PATH);
     boolean ignore = ignorePath(path);
-    if ( ignore ) {
-      return Collections.emptyList();
-    } else {
-      return ImmutableList.of(FIELD_ID + ":" + ClientUtils.escapeQueryChars(path));
+    if ( !ignore ) {
+      String resourceType = SparseUtils.getResourceType(repositorySession, path);
+      if (CONTENT_TYPES.contains(resourceType)) {
+        retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
+      }
     }
+    return retval;
   }
 
   public void setResourceIndexingService(ResourceIndexingService resourceIndexingService) {

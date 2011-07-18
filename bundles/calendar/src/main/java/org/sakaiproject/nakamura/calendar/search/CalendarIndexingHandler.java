@@ -26,6 +26,7 @@ import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SIGNUP_NO
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
@@ -45,13 +46,16 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
+import org.sakaiproject.nakamura.api.solr.SparseUtils;
 import org.sakaiproject.nakamura.util.ISO8601Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -65,20 +69,21 @@ public class CalendarIndexingHandler implements IndexingHandler {
   @Reference(target = "(type=sparse)")
   private ResourceIndexingService resourceIndexingService;
 
+  private static final Set<String> RESOURCE_TYPES = Sets.newHashSet(SAKAI_CALENDAR_RT,
+      SAKAI_CALENDAR_EVENT_RT, SIGNUP_NODE_RT, SAKAI_EVENT_SIGNUP_PARTICIPANT_RT);
+
   @Activate
   protected void activate(Map<?, ?> props) {
-    resourceIndexingService.addHandler(SAKAI_CALENDAR_RT, this);
-    resourceIndexingService.addHandler(SAKAI_CALENDAR_EVENT_RT, this);
-    resourceIndexingService.addHandler(SIGNUP_NODE_RT, this);
-    resourceIndexingService.addHandler(SAKAI_EVENT_SIGNUP_PARTICIPANT_RT, this);
+    for (String type : RESOURCE_TYPES) {
+      resourceIndexingService.addHandler(type, this);
+    }
   }
 
   @Deactivate
   protected void deactivate(Map<?, ?> props) {
-    resourceIndexingService.removeHandler(SAKAI_CALENDAR_RT, this);
-    resourceIndexingService.removeHandler(SAKAI_CALENDAR_EVENT_RT, this);
-    resourceIndexingService.removeHandler(SIGNUP_NODE_RT, this);
-    resourceIndexingService.removeHandler(SAKAI_EVENT_SIGNUP_PARTICIPANT_RT, this);
+    for (String type : RESOURCE_TYPES) {
+      resourceIndexingService.removeHandler(type, this);
+    }
   }
 
   /**
@@ -99,11 +104,12 @@ public class CalendarIndexingHandler implements IndexingHandler {
         Content content = cm.get(path);
 
         if (content != null) {
-          SolrInputDocument doc = new SolrInputDocument();
+          SolrInputDocument doc = null;
 
           String resourceType = (String) content
               .getProperty(SlingConstants.PROPERTY_RESOURCE_TYPE);
           if (SAKAI_EVENT_SIGNUP_PARTICIPANT_RT.equals(resourceType)) {
+            doc = new SolrInputDocument();
             // the default fields are good for the other resource types.
             // SAKAI_EVENT_SIGNUP_PARTICIPANT_RT needs to flatten out the data to search
             // on the profile of the user that signed up.
@@ -111,7 +117,9 @@ public class CalendarIndexingHandler implements IndexingHandler {
             if ( value != null ) {
               doc.addField(Authorizable.NAME_FIELD, value);
             }
+            doc.addField(_DOC_SOURCE_OBJECT, content);
           } else if ( content.hasProperty(SAKAI_CALENDAR_PROPERTY_PREFIX + "DTSTART")){
+            doc = new SolrInputDocument();
             Object value = content.getProperty(SAKAI_CALENDAR_PROPERTY_PREFIX + "DTSTART");
             if ( value != null ) {
               try {
@@ -122,9 +130,11 @@ public class CalendarIndexingHandler implements IndexingHandler {
                 LoggerFactory.getLogger(this.getClass()).warn("Invalid Date object: {}",e.getMessage(),e);
               }
             }
+            doc.addField(_DOC_SOURCE_OBJECT, content);
           }
-          doc.addField(_DOC_SOURCE_OBJECT, content);
-          documents.add(doc);
+          if (doc != null) {
+            documents.add(doc);
+          }
         }
       } catch (StorageClientException e) {
         logger.warn(e.getMessage(), e);
@@ -142,11 +152,16 @@ public class CalendarIndexingHandler implements IndexingHandler {
    * @see org.sakaiproject.nakamura.api.solr.IndexingHandler#getDeleteQueries(org.sakaiproject.nakamura.api.solr.RepositorySession,
    *      org.osgi.service.event.Event)
    */
-  public Collection<String> getDeleteQueries(RepositorySession respositorySession,
+  public Collection<String> getDeleteQueries(RepositorySession repositorySession,
       Event event) {
+    List<String> retval = Collections.emptyList();
     logger.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty(FIELD_PATH);
-    return ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
+    String resourceType = SparseUtils.getResourceType(repositorySession, path);
+    if (RESOURCE_TYPES.contains(resourceType)) {
+      retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
+    }
+    return retval;
   }
 
 }
