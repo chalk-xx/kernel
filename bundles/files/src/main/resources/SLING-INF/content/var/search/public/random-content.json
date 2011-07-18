@@ -1,5 +1,5 @@
 {
-  "sakai:query-template": "description:[* TO *]^4 OR (taguuid:[* TO *] OR tag:[* TO *])^4 OR hasPreview:true^4 or filename:[* TO *]",
+  "sakai:query-template": "description:[* TO *]^4 OR (taguuid:[* TO *] OR tag:[* TO *])^4 OR hasPreview:true^4 OR filename:[* TO *]",
   "sakai:query-template-options": {
     "fq": "resourceType:sakai/pooled-content",
     "items": 4
