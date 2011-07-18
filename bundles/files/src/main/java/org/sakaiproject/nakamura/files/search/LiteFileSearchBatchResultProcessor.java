@@ -68,7 +68,7 @@ public class LiteFileSearchBatchResultProcessor implements SolrSearchBatchResult
       .getLogger(LiteFileSearchBatchResultProcessor.class);
 
   @Reference
-  private SolrSearchServiceFactory searchServiceFactory;
+  protected SolrSearchServiceFactory searchServiceFactory;
 
   @Reference
   private ProfileService profileService;
