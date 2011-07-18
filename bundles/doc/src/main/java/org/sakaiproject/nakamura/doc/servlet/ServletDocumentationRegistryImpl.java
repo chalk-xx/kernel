@@ -97,8 +97,8 @@ public class ServletDocumentationRegistryImpl implements ServletDocumentationReg
    * @param reference the ServiceReference whose documentation will be removed
    */
   public void removeDocumentation(ServiceReference reference) {
-    Servlet servlet = (Servlet) context.getBundleContext().getService(reference);
-    ServletDocumentation doc = new ServletDocumentation(reference, servlet);
+    Object service = context.getBundleContext().getService(reference);
+    ServletDocumentation doc = new ServletDocumentation(reference, service);
     String key = doc.getKey();
     if (key != null) {
       servletDocumentation.remove(key);
