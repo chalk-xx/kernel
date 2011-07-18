@@ -24,32 +24,31 @@ import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
-import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
-import org.sakaiproject.nakamura.api.search.solr.SolrSearchUtil;
-import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
+/**
+ * Batch result processor for a random selection of content. It is expected that this
+ * processor will never have to deal with more than just a few entries. As of the time of
+ * writing, the defaults are to return 4 entries but search for 4x the number of items to
+ * return (16 total) for a better selection of random content. These settings were
+ * specified by the UI team as what is needed for the random content carousel.
+ */
 @Component(inherit = true, metatype=true)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
@@ -86,20 +85,36 @@ public class RandomContentSearchBatchResultProcessor extends LiteFileSearchBatch
     // do the query
     SolrSearchResultSet rs = searchServiceFactory.getSearchResultSet(request, query);
 
-    // get all the results back from solr, and stuff into a List.
-    List<Result> solrResults = Lists.newArrayList(rs.getResultSetIterator());
+    // set query option back to original value
+    query.getOptions().put(PARAMS_ITEMS_PER_PAGE, originalItems);
 
-    // randomise the results, by shuffling the List
-    Collections.shuffle(solrResults);
+    // split up the results into prioritized (has description, tag or preview)
+    // and standard results so we can return a randomized list with as many
+    // prioritized results as possible.
+    List<Result> priorityResults = Lists.newArrayList();
+    List<Result> standardResults = Lists.newArrayList();
 
-    // reduce solr returned list size, to the originally asked for size.  
-    if(solrResults.size() > originalItemsInt) {
-      solrResults = solrResults.subList(0,originalItemsInt);
+    Iterator<Result> results = rs.getResultSetIterator();
+    while (results.hasNext()) {
+      Result result = results.next();
+      if (result.getFirstValue("description") != null
+          || result.getFirstValue("tag") != null
+          || result.getFirstValue("taguuid") != null
+          || result.getFirstValue("hasPreview") != null) {
+        priorityResults.add(result);
+      } else {
+        standardResults.add(result);
+      }
     }
 
-    // create new SolrSearchResultSet object, to be returned by this method.
-    SolrSearchResultSet randomSolrResultSet = new RandomContentSolrSearchResultSetImpl(solrResults);
+    // choose random entries to return
+    List<Result> retval = chooseRandomResults(priorityResults, originalItemsInt);
 
+    // fill up the pick list with extras if we don't have enough priority results.
+    retval.addAll(chooseRandomResults(standardResults, originalItemsInt - retval.size()));
+
+    // create new SolrSearchResultSet object, to be returned by this method.
+    SolrSearchResultSet randomSolrResultSet = new RandomContentSolrSearchResultSetImpl(retval);
     return randomSolrResultSet;
   }
 
@@ -130,4 +145,29 @@ public class RandomContentSearchBatchResultProcessor extends LiteFileSearchBatch
     }
   }
 
+  /**
+   * Randomly choose a set of entries.
+   *
+   * @param results
+   *          The list to pick from. This list is not modified.
+   * @param numToChoose
+   *          The number of entries to pick. The limit is set to Math.min(results.size(),
+   *          numToChoose) to not go out of bounds.
+   * @return
+   */
+  private List<Result> chooseRandomResults(List<Result> results, int numToChoose) {
+    List<Result> picks = Lists.newArrayList();
+    if (numToChoose > 0) {
+      ArrayList<Result> pickList = Lists.newArrayList(results);
+      Random rand = new Random();
+      int limit = Math.min(pickList.size(), numToChoose);
+      for (int i = 0; i < limit; i++) {
+        // Pick the next integer limited to the original limit minus the number
+        // removed from the list. This keeps the picks from going out of bounds.
+        int choose = rand.nextInt(limit - i);
+        picks.add(pickList.remove(choose));
+      }
+    }
+    return picks;
+  }
 }
