@@ -332,6 +332,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     /**
      * @see JackrabbitSecurityManager#getUserID(javax.security.auth.Subject, String)
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public String getUserID(Subject subject, String workspaceName) throws RepositoryException {
         checkInitialized();
 

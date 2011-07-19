@@ -25,7 +25,6 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
@@ -68,8 +67,7 @@ import java.util.List;
  * started immediately to make sure it registers with JCR as soon as possible.
  */
 @Component(immediate = true, label = "LiteInternalMessageHandler", description = "Handler for internally delivered messages.")
-@Services(value = { @Service(value = LiteMessageTransport.class),
-    @Service(value = LiteMessageProfileWriter.class) })
+@Service({ LiteMessageTransport.class, LiteMessageProfileWriter.class })
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Handler for internally delivered messages.") })

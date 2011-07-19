@@ -22,7 +22,6 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.commons.scheduler.Scheduler;
 import org.osgi.service.component.ComponentContext;
@@ -57,8 +56,7 @@ import javax.servlet.http.HttpServletResponse;
  * users with a cluster replicated shared cache.
  */
 @Component(description = "Cluster tracking, tracks app servers and users within the cluster", label = "Cluster Tracking", immediate = true)
-@Services(value = { @Service(value = ClusterTrackingService.class),
-    @Service(value = Runnable.class) })
+@Service({ ClusterTrackingService.class, Runnable.class })
 @Properties(value = {
     @Property(name = Scheduler.PROPERTY_SCHEDULER_CONCURRENT, boolValue = false),
     @Property(name = Scheduler.PROPERTY_SCHEDULER_PERIOD, longValue = 300L) })

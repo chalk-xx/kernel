@@ -43,7 +43,6 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <Export-Package>org.sakaiproject.nakamura.api.world.*</Export-Package>
             <Private-Package>org.sakaiproject.nakamura.world.*</Private-Package>
             <Sling-Initial-Content>
                 SLING-INF/content/var/world;path:=/var/world;ignoreImportProviders:="json";uninstall:=false;overwrite:=true

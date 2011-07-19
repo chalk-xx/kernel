@@ -43,7 +43,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakaiux </Bundle-Category>
-            <Export-Package> org.sakaiproject.nakamura.util.*,org.sakaiproject.nakamura.simple</Export-Package>
+            <Export-Package> org.sakaiproject.nakamura.util.*</Export-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency>
             </Embed-Dependency>

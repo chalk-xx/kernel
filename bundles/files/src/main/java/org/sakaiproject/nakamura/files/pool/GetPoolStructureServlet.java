@@ -3,7 +3,6 @@ package org.sakaiproject.nakamura.files.pool;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
@@ -28,10 +27,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@Services(value={
-    @Service(value=ServerProtectionVeto.class),
-    @Service(value=DefaultServletDelegate.class)
-})
+@Service({ ServerProtectionVeto.class, DefaultServletDelegate.class })
 @Component(immediate=true, enabled=true, metatype=true)
 public class GetPoolStructureServlet extends SlingSafeMethodsServlet implements
     DefaultServletDelegate, ServerProtectionVeto {

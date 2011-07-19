@@ -52,7 +52,6 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <Export-Package> org.sakaiproject.nakamura.api.authz </Export-Package>
             <Private-Package> org.sakaiproject.nakamura.authz.*</Private-Package>
           </instructions>
         </configuration>
