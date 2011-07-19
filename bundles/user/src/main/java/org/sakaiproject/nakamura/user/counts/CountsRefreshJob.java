@@ -74,10 +74,18 @@ public class CountsRefreshJob implements Job {
             String authorizableId = (String) solrDocument.getFieldValue("id");
             Authorizable authorizable = authManager.findAuthorizable(authorizableId);
             if (authorizable != null) {
-              this.countProvider.update(authorizable, adminSession);
-              count++;
+              if (authorizable.getId() != null) {
+                this.countProvider.update(authorizable, adminSession);
+                count++;              
+              } else {
+                LOGGER.debug(
+                    "found authorizable with id {} in Solr index but with NULL id in Sparse, not updating", 
+                    new Object[]{ authorizableId });
+              }
             } else {
-              LOGGER.warn("couldn't find authorizable: " + authorizableId);
+              LOGGER.debug(
+                      "found authorizable with id {} in Solr index but couldn't find authorizable in Sparse, not updating",
+                      new Object[] { authorizableId });
             }
           }
           long endTicks = System.currentTimeMillis();
