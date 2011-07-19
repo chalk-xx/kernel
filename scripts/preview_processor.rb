@@ -78,7 +78,7 @@ end
 @loggers = []
 
 def log msg, level = :info
-  @loggers.each { |logger| logger.send(level) }
+  @loggers.each { |logger| logger.send(level, msg) }
 end
 
 # This is the main method we call at the end of the script.
@@ -96,6 +96,7 @@ def main
   end
 
   process_results = JSON.parse(res.body)['results']
+  log "processing #{process_results.size} entries"
   unless process_results.size > 0
     return
   end
