@@ -323,7 +323,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
 
         if (page > 0 || rs.getSize() == nitems) {
           // the result set may have been truncated by paging, so lets get a fuller count
-          query.getOptions().put(PARAMS_ITEMS_PER_PAGE, Long.toString(maximumResults));
+          query.getOptions().put(PARAMS_ITEMS_PER_PAGE, Long.toString(0));
           query.getOptions().put(PARAMS_PAGE, Long.toString(0));
           try {
             if (useBatch) {
