@@ -30,7 +30,9 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.framework.Constants;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
+import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
@@ -77,6 +79,8 @@ public class ProfileContactsSearchResultProcessor extends ProfileNodeSearchResul
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> results) throws JSONException {
     ExtendedJSONWriter exWriter = (ExtendedJSONWriter) write;
+    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
+        .adaptTo(javax.jcr.Session.class));
 
     String currUser = request.getRemoteUser();
     try {
@@ -89,7 +93,7 @@ public class ProfileContactsSearchResultProcessor extends ProfileNodeSearchResul
 
         // add contact information if appropriate
         String otherUser = String.valueOf(result.getFirstValue("path"));
-        Content connection = connMgr.getConnectionDetails(request, currUser, otherUser);
+        Content connection = connMgr.getConnectionDetails(session, currUser, otherUser);
 
         if (connection != null) {
           // add sakai:state and sakai:types

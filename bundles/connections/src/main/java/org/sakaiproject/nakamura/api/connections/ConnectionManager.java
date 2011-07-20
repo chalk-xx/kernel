@@ -78,6 +78,6 @@ public interface ConnectionManager {
    * @throws StorageClientException
    * @throws AccessDeniedException
    */
-  Content getConnectionDetails(SlingHttpServletRequest request, String thisUser,
-      String otherUser) throws StorageClientException, AccessDeniedException;
+  Content getConnectionDetails(Session session, String thisUser, String otherUser)
+      throws StorageClientException, AccessDeniedException;
 }

@@ -127,7 +127,7 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchBatchResultPr
                 PresenceUtils.makePresenceJSON(write, path, presenceService, true);
 
                 // add contact information if appropriate
-                Content connection = connMgr.getConnectionDetails(request, currUser, path);
+                Content connection = connMgr.getConnectionDetails(session, currUser, path);
                 if (connection != null) {
                   // add sakai:state and sakai:types
                   exWriter.key(SAKAI_CONNECTION_STATE);

@@ -306,11 +306,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
    * @see org.sakaiproject.nakamura.api.connections.ConnectionManager#getConnectionDetails(org.apache.sling.api.SlingHttpServletRequest,
    *      java.lang.String, java.lang.String)
    */
-  public Content getConnectionDetails(SlingHttpServletRequest request, String thisUser,
-      String otherUser) throws StorageClientException, AccessDeniedException {
+  public Content getConnectionDetails(Session session, String thisUser, String otherUser)
+      throws StorageClientException, AccessDeniedException {
     String connPath = ConnectionUtils.getConnectionPath(thisUser, otherUser);
-    Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()
-        .adaptTo(javax.jcr.Session.class));
     ContentManager cm = session.getContentManager();
 
     Content connection = cm.get(connPath);
