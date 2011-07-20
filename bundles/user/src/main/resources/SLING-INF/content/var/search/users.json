@@ -10,7 +10,7 @@
   "sortOn": "score",
   "sortOrder": "desc",
   "sakai:propertyprovider" : "TagMatch",
-  "sakai:resultprocessor": "Profile",
+  "sakai:batchresultprocessor": "ProfileContacts",
   "sakai:title": "Users",
   "sakai:shortDescription": "Get the profiles of select users.",
   "sakai:parameters" : [

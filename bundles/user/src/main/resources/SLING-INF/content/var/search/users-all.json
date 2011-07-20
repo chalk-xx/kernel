@@ -7,7 +7,7 @@
   },
   "sortOn": "score",
   "sortOrder": "desc",
-  "sakai:resultprocessor": "Profile",
+  "sakai:batchresultprocessor": "ProfileContacts",
   "sakai:title": "Users - All",
   "sakai:shortDescription": "Get the profile of each user.",
   "sakai:parameters" : [

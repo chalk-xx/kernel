@@ -67,13 +67,13 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
   private static final Logger LOGGER = LoggerFactory.getLogger(ProfileNodeSearchResultProcessor.class);
 
   @Reference
-  private SolrSearchServiceFactory searchServiceFactory;
+  protected SolrSearchServiceFactory searchServiceFactory;
 
   @Reference
-  private ProfileService profileService;
+  protected ProfileService profileService;
 
   @Reference
-  private PresenceService presenceService;
+  protected PresenceService presenceService;
 
   public ProfileNodeSearchResultProcessor() {
   }
@@ -109,6 +109,11 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
    *      org.sakaiproject.nakamura.api.search.Aggregator, javax.jcr.query.Row)
    */
   public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result) throws JSONException {
+    writeResult(request, write, result, false);
+  }
+
+  public void writeResult(SlingHttpServletRequest request, JSONWriter write,
+      Result result, boolean objectInProgress) throws JSONException {
     javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
     Session session = StorageClientUtils.adaptToSession(jcrSession);
 
@@ -118,7 +123,9 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
       String authorizableId = (String) result.getFirstValue("path");
       Authorizable auth = authMgr.findAuthorizable(authorizableId);
 
-      write.object();
+      if (!objectInProgress) {
+        write.object();
+      }
       if (auth != null) {
         ValueMap map = profileService.getProfileMap(auth, jcrSession);
         ExtendedJSONWriter.writeValueMapInternals(write, map);
@@ -128,7 +135,9 @@ public class ProfileNodeSearchResultProcessor implements SolrSearchResultProcess
           PresenceUtils.makePresenceJSON(write, authorizableId, presenceService, true);
         }
       }
-      write.endObject();
+      if (!objectInProgress) {
+        write.endObject();
+      }
     } catch (StorageClientException e) {
       LOGGER.error(e.getMessage(), e);
     } catch (AccessDeniedException e) {
