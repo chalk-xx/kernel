@@ -83,6 +83,12 @@ end
 
 # This is the main method we call at the end of the script.
 def main
+  # Setup loggers.
+  Dir.mkdir LOGS_DIR unless File.directory? LOGS_DIR
+  @loggers << Logger.new(STDOUT)
+  @loggers << Logger.new("#{LOGS_DIR}/#{Date.today}.log", 'daily')
+  @loggers.each { |logger| logger.level = Logger::INFO }
+
   server=ARGV[0]
   admin_password = ARGV[1] || "admin"
   @s = Sling.new(server)
@@ -104,12 +110,6 @@ def main
   # Create some temporary directories.
   Dir.mkdir DOCS_DIR unless File.directory? DOCS_DIR
   Dir.mkdir PREV_DIR unless File.directory? PREV_DIR
-  Dir.mkdir LOGS_DIR unless File.directory? LOGS_DIR
-
-  # Setup loggers.
-  @loggers << Logger.new(STDOUT)
-  @loggers << Logger.new("#{LOGS_DIR}/#{Date.today}.log", 'daily')
-  @loggers.each { |logger| logger.level = Logger::INFO }
 
   # Create a temporary file in the DOCS_DIR for all the pending files and outputs all the filenames in the terminal.
   Dir.chdir DOCS_DIR
@@ -138,6 +138,9 @@ def main
 
       # Making a local copy of the file.
       content_file = @s.execute_get @s.url_for("p/#{id}")
+      unless content_file.code == '200'
+        raise "Failed to process file: #{id}, status: #{content_file.code}"
+      end
       File.open(filename, 'wb') { |f| f.write content_file.body }
 
       if process_as_image? extension
@@ -201,7 +204,7 @@ def main
     ensure
       # No matter what we  flag the file as processed and delete the temp copied file.
       @s.execute_post @s.url_for("p/#{id}"), {"sakai:needsprocessing" => "false"}
-      FileUtils.rm DOCS_DIR + "/#{filename}"
+      FileUtils.rm_f DOCS_DIR + "/#{filename}"
     end
   end
 
