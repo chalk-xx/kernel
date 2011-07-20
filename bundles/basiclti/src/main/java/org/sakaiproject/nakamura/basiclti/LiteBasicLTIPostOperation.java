@@ -222,9 +222,9 @@ public class LiteBasicLTIPostOperation extends AbstractSparsePostOperation {
         adminNode.setProperty(entry.getKey(),
             entry.getValue());
       }
+      adminSession.getContentManager().update(adminNode);
       // ensure only admins can read the node
       accessControlSensitiveNode(adminNodePath, adminSession, userSession.getUserId());
-      adminSession.getContentManager().update(adminNode);
       // if (adminSession.hasPendingChanges()) {
       // adminSession.save();
       // }
