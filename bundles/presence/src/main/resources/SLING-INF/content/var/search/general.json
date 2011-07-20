@@ -10,7 +10,7 @@
   "sortOrder": "desc",
   "_categoryAnd": "",
   "sakai:propertyprovider" : ["TagMatch","CategoryPropertyProvider"],
-  "sakai:resultprocessor": "GeneralFeed",
+  "sakai:batchresultprocessor": "GeneralFeed",
   "sakai:title": "General",
   "sakai:shortDescription": "Get profile nodes out of the repository.",
   "sakai:parameters" : [
