@@ -91,7 +91,7 @@ public class LiteJsonImporter {
             Operation op = getOperation(acl.getString("operation"));
             modifications.add(new AclModification(AclModification.denyKey(pathKey), bitmap, op));
           } else if ( key.endsWith("@Delete") ) {
-            StorageClientUtils.deleteTree(contentManager, path);
+            StorageClientUtils.deleteTree(contentManager, path + "/" + pathKey);
           } else {
             // need to do somethingwith delete here
             internalImportContent(contentManager, (JSONObject) obj, path + "/" + pathKey, replaceProperties, accessControlManager);
