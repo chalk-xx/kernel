@@ -3,6 +3,7 @@ package org.sakaiproject.nakamura.profile.servlet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -16,6 +17,7 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -36,6 +38,7 @@ import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.resource.JSONResponse;
 import org.sakaiproject.nakamura.api.resource.lite.ResourceModifyOperation;
+import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePostOperation;
 import org.sakaiproject.nakamura.api.resource.lite.SparsePostProcessor;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -82,8 +85,7 @@ import javax.servlet.http.HttpServletResponse;
     "Servlet for writing changes to a user or group profile, via JSON content which is passed as a parameter."
     + "The actual update is delegated to the ProfileService."
   })
-@SlingServlet(methods = { "POST" }, resourceTypes = { ProfileConstants.GROUP_PROFILE_RT,
-    ProfileConstants.USER_PROFILE_RT })
+@SlingServlet(methods = { "POST" }, selectors = "profile", resourceTypes = { SparseContentResource.SPARSE_CONTENT_RT })
 public class ProfileUpdateServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = -600556329959608324L;
@@ -116,7 +118,7 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
       }
       if ( "import".equals(operation)) {
       String content = request.getParameter(":content");
-      if (content == null || content.length() == 0) {
+      if (StringUtils.isBlank(content)) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST,
             ":content parameter is missing");
         return;
@@ -124,12 +126,22 @@ public class ProfileUpdateServlet extends SlingAllMethodsServlet {
       JSONObject json = new JSONObject(content);
       
       Resource resource = request.getResource();
-      Content targetContent = resource.adaptTo(Content.class);
       Session session = resource.adaptTo(Session.class);
       
+      // defaults were chosen based on the original values used before getting
+      // these from the request
+      boolean replace = OsgiUtil.toBoolean(request.getParameter(":replace"), true);
+      boolean replaceProperties = OsgiUtil.toBoolean(
+          request.getParameter(":replaceProperties"), true);
+      boolean removeTree = OsgiUtil.toBoolean(request.getParameter(":removeTree"),
+          false);
+
       LOGGER.info("Got profile update {} ", json);
-      profileService.update(session, targetContent.getPath(), json);
-      
+      String profilePath = PathUtils.toUserContentPath(resource.getPath());
+      profilePath = PathUtils.getParentReference(profilePath) + "/"
+          + PathUtils.lastElement(profilePath);
+      profileService.update(session, profilePath, json, replace, replaceProperties,
+          removeTree);
 
       response.setStatus(200);
       response.getWriter().write("Ok");
