@@ -301,6 +301,21 @@ public class ConnectionManagerImpl implements ConnectionManager {
   }
 
   /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.connections.ConnectionManager#getConnectionDetails(org.apache.sling.api.SlingHttpServletRequest,
+   *      java.lang.String, java.lang.String)
+   */
+  public Content getConnectionDetails(Session session, String thisUser, String otherUser)
+      throws StorageClientException, AccessDeniedException {
+    String connPath = ConnectionUtils.getConnectionPath(thisUser, otherUser);
+    ContentManager cm = session.getContentManager();
+
+    Content connection = cm.get(connPath);
+    return connection;
+  }
+
+  /**
    * Removes a member from a group
    *
    * @param thisAu

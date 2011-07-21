@@ -7,7 +7,7 @@
   "sortOn": "score",
   "sortOrder": "desc",
   "_categoryAnd": "",
-  "sakai:resultprocessor": "GeneralFeed",
+  "sakai:batchresultprocessor": "GeneralFeed",
   "sakai:propertyprovider" : ["CategoryPropertyProvider","TagMatch"],
   "sakai:title": "General - All",
   "sakai:shortDescription": "Get profile nodes out of the repository.",

@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.nakamura.presence.search;
 
+import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_TYPES;
+
+import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_STATE;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -26,6 +30,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
@@ -39,14 +44,16 @@ import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
+import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
-import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
 
 import javax.jcr.RepositoryException;
 
@@ -58,9 +65,9 @@ import javax.jcr.RepositoryException;
 @Service
 @Properties({
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
-    @Property(name = SolrSearchConstants.REG_PROCESSOR_NAMES, value = "GeneralFeed")
+    @Property(name = SolrSearchConstants.REG_BATCH_PROCESSOR_NAMES, value = "GeneralFeed")
 })
-public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcessor {
+public class GeneralFeedSearchResultProcessor implements SolrSearchBatchResultProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GeneralFeedSearchResultProcessor.class);
     @Reference
@@ -69,6 +76,8 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
     private ProfileService profileService;
     @Reference
     private PresenceService presenceService;
+    @Reference
+    private ConnectionManager connMgr;
 
     public GeneralFeedSearchResultProcessor() {
     }
@@ -93,45 +102,59 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchResultProcess
         return searchServiceFactory.getSearchResultSet(request, query);
     }
 
-    public void writeResult(SlingHttpServletRequest request, JSONWriter write, Result result) throws JSONException {
-        javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
-        Session session = StorageClientUtils.adaptToSession(jcrSession);
-        try {
+    public void writeResults(SlingHttpServletRequest request, JSONWriter write,
+        Iterator<Result> results) throws JSONException {
+      javax.jcr.Session jcrSession = request.getResourceResolver().adaptTo(javax.jcr.Session.class);
+      Session session = StorageClientUtils.adaptToSession(jcrSession);
+      String currUser = request.getRemoteUser();
+      ExtendedJSONWriter exWriter = (ExtendedJSONWriter) write;
 
-            AuthorizableManager authManager;
-            authManager = session.getAuthorizableManager();
-            String path = (String) result.getFirstValue("path");
+      try {
+        AuthorizableManager authManager = session.getAuthorizableManager();
+        while(results.hasNext()) {
+        Result result = results.next();
+          String path = (String) result.getFirstValue("path");
 
-            if ("authorizable".equals(result.getFirstValue("resourceType"))) {
-                Authorizable auth = authManager.findAuthorizable(path);
-                if (auth != null) {
-                    write.object();
-                    ValueMap map = profileService.getProfileMap(auth, jcrSession);
-                    ExtendedJSONWriter.writeValueMapInternals(write, map);
+          if ("authorizable".equals(result.getFirstValue("resourceType"))) {
+            Authorizable auth = authManager.findAuthorizable(path);
+            if (auth != null) {
+              write.object();
+              ValueMap map = profileService.getProfileMap(auth, jcrSession);
+              ExtendedJSONWriter.writeValueMapInternals(write, map);
 
-                    // If this is a User Profile, then include Presence data.
-                    if (!auth.isGroup()) {
-                        PresenceUtils.makePresenceJSON(write, path, presenceService, true);
-                    }
-                    write.endObject();
+              // If this is a User Profile, then include Presence data.
+              if (!auth.isGroup()) {
+                PresenceUtils.makePresenceJSON(write, path, presenceService, true);
+
+                // add contact information if appropriate
+                Content connection = connMgr.getConnectionDetails(session, currUser, path);
+                if (connection != null) {
+                  // add sakai:state and sakai:types
+                  exWriter.key(SAKAI_CONNECTION_STATE);
+                  exWriter.value(connection.getProperty(SAKAI_CONNECTION_STATE), false);
+                  exWriter.key(SAKAI_CONNECTION_TYPES);
+                  exWriter.value(connection.getProperty(SAKAI_CONNECTION_TYPES), false);
                 }
-            } else {
-                // process this as file
-                // no need to wrap this with write.object(); and write.endObject(); writeFileNode will do this automatically.
-                Content content = session.getContentManager().get(path);
-                if (content == null) {
-                  LOGGER.warn("Can't output null content [path={}]", path);
-                } else {
-                  FileUtils.writeFileNode(content, session, write);
-                }
+              }
+              write.endObject();
             }
-
-        } catch (RepositoryException ex) {
-          LOGGER.error(ex.getMessage(), ex);
-        } catch (AccessDeniedException ex) {
-          LOGGER.error(ex.getMessage(), ex);
-        } catch (StorageClientException ex) {
-          LOGGER.error(ex.getMessage(), ex);
+          } else {
+            // process this as file
+            // no need to wrap this with write.object(); and write.endObject(); writeFileNode will do this automatically.
+            Content content = session.getContentManager().get(path);
+            if (content == null) {
+              LOGGER.warn("Can't output null content [path={}]", path);
+            } else {
+              FileUtils.writeFileNode(content, session, write);
+            }
+          }
         }
+      } catch (RepositoryException ex) {
+        LOGGER.error(ex.getMessage(), ex);
+      } catch (AccessDeniedException ex) {
+        LOGGER.error(ex.getMessage(), ex);
+      } catch (StorageClientException ex) {
+        LOGGER.error(ex.getMessage(), ex);
+      }
     }
 }

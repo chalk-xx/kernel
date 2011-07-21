@@ -186,10 +186,23 @@ public class ExtendedJSONWriter extends JSONWriter {
 
   @Override
   public JSONWriter value(Object object) throws JSONException {
+    return value(object, true);
+  }
+
+  /**
+   * @param object
+   *          The object to write out.
+   * @param collapseArray
+   *          Whether the output should be collapsed to a single value if (object instance
+   *          Object[] && object.length == 1)
+   * @return <code>this</code> for continued writing
+   * @throws JSONException
+   */
+  public JSONWriter value(Object object, boolean collapseArray) throws JSONException {
     if ( object instanceof Object[]) {
       Object[] oarray = (Object[]) object;
       if (  oarray.length > 0 ) {
-        if ( oarray.length == 1) {
+        if (collapseArray && oarray.length == 1) {
           value(oarray[0]);
         } else {
           array();

@@ -20,6 +20,9 @@ package org.sakaiproject.nakamura.api.connections;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.nakamura.api.lite.Session;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+import org.sakaiproject.nakamura.api.lite.content.Content;
 
 import java.util.List;
 import java.util.Map;
@@ -65,4 +68,16 @@ public interface ConnectionManager {
       Session session, String actor,
       ConnectionState accepted);
 
+  /**
+   * Get connection details to <code>otherUser</code> from <code>thisUser</code>
+   *
+   * @param request
+   * @param thisUser
+   * @param otherUser
+   * @return
+   * @throws StorageClientException
+   * @throws AccessDeniedException
+   */
+  Content getConnectionDetails(Session session, String thisUser, String otherUser)
+      throws StorageClientException, AccessDeniedException;
 }
