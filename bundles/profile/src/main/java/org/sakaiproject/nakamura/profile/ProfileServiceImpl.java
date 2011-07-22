@@ -67,7 +67,7 @@ import javax.jcr.Session;
 /**
  *
  */
-@Component(metatype = true, specVersion="1.1")
+@Component(immediate = true, metatype = true, specVersion="1.1")
 @Service
 @Reference(name = "ProfileProviders", referenceInterface = ProfileProvider.class, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, strategy = ReferenceStrategy.EVENT, bind = "bindProfileProvider", unbind = "unbindProfileProvider")
 public class ProfileServiceImpl implements ProfileService {
