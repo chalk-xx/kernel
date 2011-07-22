@@ -462,8 +462,13 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
             m.update(message.getBytes("UTF-8"));
             String testHmac = Base64.encodeBase64URLSafeString(m.doFinal());
             if (testHmac.equals(requestHmac)) {
+              LOGGER.debug("Successfully extracted requestUserId {} from HMAC", requestUserId);
               return requestUserId;
+            } else {
+              LOGGER.info("Mismatched HMAC. Request HMAC was '{}'", hmac);
             }
+          } else {
+            LOGGER.info("Out of date HMAC. Request TsL = {}, current time = {}", requestTs, String.valueOf(System.currentTimeMillis()));
           }
         } catch (Exception e) {
           LOGGER.warn(e.getMessage());
