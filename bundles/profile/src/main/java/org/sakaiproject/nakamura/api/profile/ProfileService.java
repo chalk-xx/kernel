@@ -96,11 +96,14 @@ public interface ProfileService {
    * @param session the current session
    * @param profilePath the path to the profile
    * @param json the json representing the new profile
+   * @param replace
+   * @param replaceProperties
+   * @param removeTree
    * @throws StorageClientException
    * @throws AccessDeniedException
    * @throws JSONException
    */
-  void update(org.sakaiproject.nakamura.api.lite.Session session, String profilePath, JSONObject json) throws StorageClientException, AccessDeniedException, JSONException;
-
-
+  void update(org.sakaiproject.nakamura.api.lite.Session session, String profilePath,
+      JSONObject json, boolean replace, boolean replaceProperties, boolean removeTree)
+      throws StorageClientException, AccessDeniedException, JSONException;
 }

@@ -78,7 +78,7 @@ import javax.servlet.http.HttpServletResponse;
         + " provider. All of that information is used by the ProfileProvider implementation to convert and node in the profile subtree, marked as external "
         + "into a map of maps, the structure and layout of that map being determined by the implementation of the ProfileProvider. "
   })
-@SlingServlet(extensions = { "json" }, methods = { "GET" }, resourceTypes = {
+@SlingServlet(extensions = { "json" }, methods = { "GET" }, selectors = "profile", resourceTypes = {
     ProfileConstants.GROUP_PROFILE_RT, ProfileConstants.USER_PROFILE_RT })
 public class ProfileServlet extends SlingSafeMethodsServlet {
 

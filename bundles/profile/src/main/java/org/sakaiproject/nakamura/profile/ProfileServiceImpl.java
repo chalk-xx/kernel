@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.profile;
 
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.USER_PROFILE_RT;
+import static org.sakaiproject.nakamura.api.profile.ProfileConstants.GROUP_PROFILE_RT;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_DESCRIPTION_PROPERTY;
 import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_TITLE_PROPERTY;
 
@@ -25,7 +27,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.ReferenceStrategy;
-import org.apache.felix.scr.annotations.References;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
@@ -66,9 +67,9 @@ import javax.jcr.Session;
 /**
  *
  */
-@Component(immediate = true, metatype=true, specVersion="1.1")
-@Service(value = ProfileService.class)
-@References(value = { @Reference(name = "ProfileProviders", referenceInterface = ProfileProvider.class, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, strategy = ReferenceStrategy.EVENT, bind = "bindProfileProvider", unbind = "unbindProfileProvider") })
+@Component(immediate = true, metatype = true, specVersion="1.1")
+@Service
+@Reference(name = "ProfileProviders", referenceInterface = ProfileProvider.class, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, strategy = ReferenceStrategy.EVENT, bind = "bindProfileProvider", unbind = "unbindProfileProvider")
 public class ProfileServiceImpl implements ProfileService {
 
   private Map<String, ProfileProvider> providers = new ConcurrentHashMap<String, ProfileProvider>();
@@ -313,57 +314,81 @@ public class ProfileServiceImpl implements ProfileService {
     }
   }
 
-
-  
-  
-  
-
-  public void update(org.sakaiproject.nakamura.api.lite.Session session,
-      String profilePath, JSONObject json) throws StorageClientException,
-      AccessDeniedException, JSONException {
+  public void update(org.sakaiproject.nakamura.api.lite.Session session, String profilePath,
+      JSONObject json, boolean replace, boolean replaceProperties, boolean removeTree)
+      throws StorageClientException, AccessDeniedException, JSONException {
+    String objectName = PathUtils.lastElement(profilePath);
+    ContentManager contentManager = session.getContentManager();
     String authorizableId = PathUtils.getAuthorizableId(profilePath);
     // update the authorizable
     if (authorizableId != null) {
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       Authorizable a = authorizableManager.findAuthorizable(authorizableId);
       if (a != null) {
-        if (json.has("basic")) {
-          JSONObject basic = json.getJSONObject("basic");
-          if (basic.has("elements")) {
-            JSONObject elements = basic.getJSONObject("elements");
-            for (String element : basicUserInfoService.getBasicProfileElements()) {
-              if (elements.has(element)) {
-                JSONObject elementObject = elements.getJSONObject(element);
-                if (elementObject.has("value")) {
-                  a.setProperty(element, elementObject.get("value"));
-                }
-              }
-            }
-            if ( basic.has("access")) {
-              a.setProperty("access", basic.get("access"));
-            }
+        // only treat "basic" special if it has the root profile node as its parent
+        // this allows for a "basic" section to exist anywhere in the tree but only
+        // have special meaning at the root
+
+        if ("basic".equals(objectName) && isProfile(PathUtils.removeLastElement(profilePath), contentManager)) {
+          processBasic(json, a);
+          json = null;
+        } else {
+          if (json.has("basic") && isProfile(profilePath, contentManager)) {
+            JSONObject basic = json.getJSONObject("basic");
+            processBasic(basic, a);
+
+            // KERN-1835, "basic" subtree data is stored in Authorizable object above,
+            // therefore removing "basic" subtree data, before updating the content tree.
+            // Content tree update strategy is "Partial update (with @Delete instructions where needed)"
+            json.remove("basic");
           }
-        }
-        if (json.has(GROUP_TITLE_PROPERTY)) {
-          a.setProperty(GROUP_TITLE_PROPERTY, json.get(GROUP_TITLE_PROPERTY));
-        }
-        if (json.has(GROUP_DESCRIPTION_PROPERTY)) {
-          a.setProperty(GROUP_DESCRIPTION_PROPERTY, json.get(GROUP_DESCRIPTION_PROPERTY));
+          if (json.has(GROUP_TITLE_PROPERTY)) {
+            a.setProperty(GROUP_TITLE_PROPERTY, json.get(GROUP_TITLE_PROPERTY));
+          }
+          if (json.has(GROUP_DESCRIPTION_PROPERTY)) {
+            a.setProperty(GROUP_DESCRIPTION_PROPERTY, json.get(GROUP_DESCRIPTION_PROPERTY));
+          }
         }
         authorizableManager.updateAuthorizable(a);
       }
     }
     // update the profile content
-    ContentManager contentManager = session.getContentManager();
-    AccessControlManager accessControlManger = session.getAccessControlManager();
-    LiteJsonImporter importer = new LiteJsonImporter();
-    // KERN-1835, "basic" subtree data is stored in Authorizable object above,
-    // therefore removing "basic" subtree data, before updating the content tree.
-    // Content tree update strategy is "Partial update (with @Delete instructions where needed)"
-    if (json.has("basic")) {
-      json.remove("basic");
+    if (json != null && json.length() > 0) {
+      AccessControlManager accessControlManger = session.getAccessControlManager();
+      LiteJsonImporter importer = new LiteJsonImporter();
+      importer.importContent(contentManager, json, profilePath, replace, replaceProperties,
+          removeTree, accessControlManger);
     }
-    importer.importContent(contentManager, json, profilePath, true, true, false, accessControlManger);
+  }
 
+  private void processBasic(JSONObject basic, Authorizable a)
+      throws StorageClientException, AccessDeniedException, JSONException {
+    if (basic.has("elements")) {
+      JSONObject elements = basic.getJSONObject("elements");
+      for (String element : basicUserInfoService.getBasicProfileElements()) {
+        if (elements.has(element)) {
+          JSONObject elementObject = elements.getJSONObject(element);
+          if (elementObject.has("value")) {
+            a.setProperty(element, elementObject.get("value"));
+          }
+        }
+      }
+      if ( basic.has("access")) {
+        a.setProperty("access", basic.get("access"));
+      }
+    }
+  }
+
+  private boolean isProfile(String path, ContentManager contentManager)
+      throws StorageClientException, AccessDeniedException {
+    boolean retval = false;
+    Content profile = contentManager.get(path);
+    if (profile != null) {
+      String resourceType = String.valueOf(profile.getProperty("sling:resourceType"));
+      if (GROUP_PROFILE_RT.equals(resourceType) || USER_PROFILE_RT.equals(resourceType)) {
+        return true;
+      }
+    }
+    return retval;
   }
 }
