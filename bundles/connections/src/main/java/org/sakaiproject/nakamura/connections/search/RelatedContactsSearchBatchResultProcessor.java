@@ -313,7 +313,7 @@ public class RelatedContactsSearchBatchResultProcessor implements
       final AuthorizableManager authMgr = session.getAuthorizableManager();
       final Authorizable auth = authMgr.findAuthorizable(user);
 
-      if (auth != null) {
+      if (auth != null && !auth.isGroup()) {
         writer.object();
         writer.key("target");
         writer.value(user);
