@@ -218,7 +218,7 @@ module SlingUsers
 
     def initialize(sling)
       @sling = sling
-      @date = Time.now().strftime("%Y%m%d%H%M%S")
+      @date = Time.now().strftime("%Y%m%d%H%M%S%3N")
       @log = Logger.new(STDOUT)
       @log.level = Logger::WARN
     end

@@ -55,7 +55,14 @@ module SlingTest
     @created_users << u
     return u
   end
- 
+
+  def create_test_user(i)
+    u = @um.create_test_user(i)
+    assert_not_nil(u, "Expected user to be created: #{i}")
+    @created_users << u
+    return u
+  end
+
   def create_group(groupname, title = nil)
     g = @um.create_group(groupname, title)
     assert_not_nil(g, "Expected group to be created: #{groupname}")
