@@ -6,8 +6,6 @@ require './ruby-lib-dir.rb'
 require 'sling/test'
 require 'sling/file'
 require 'sling/users'
-require 'test/unit.rb'
-require 'sling/file'
 include SlingUsers
 include SlingFile
 
@@ -18,7 +16,7 @@ class TC_Kern1998Test < Test::Unit::TestCase
     @fm = FileManager.new(@s)
 
     # create test users
-    u1 = @um.create_test_user(1)
+    u1 = create_test_user(1998)
     @s.switch_user(u1)
 
     # create a new tag to work with
@@ -73,7 +71,7 @@ class TC_Kern1998Test < Test::Unit::TestCase
     @fm = FileManager.new(@s)
 
     # create test users
-    u1 = @um.create_test_user(1)
+    u1 = create_test_user(1998)
     @s.switch_user(u1)
 
     # create a new tag to work with
@@ -128,7 +126,7 @@ class TC_Kern1998Test < Test::Unit::TestCase
     @fm = FileManager.new(@s)
 
     # create test users
-    u1 = @um.create_test_user(1)
+    u1 = create_test_user(1998)
     @s.switch_user(u1)
 
     # create a new tag to work with

@@ -6,7 +6,6 @@ require './ruby-lib-dir.rb'
 require 'sling/test'
 require 'sling/file'
 require 'sling/users'
-require 'test/unit.rb'
 include SlingUsers
 
 class TC_Kern2027Test < Test::Unit::TestCase
@@ -14,8 +13,8 @@ class TC_Kern2027Test < Test::Unit::TestCase
 
   def test_user_remove_self_from_group
     # create test users
-    u1 = @um.create_test_user(1)
-    u2 = @um.create_test_user(2)
+    u1 = create_test_user('2027-1')
+    u2 = create_test_user('2027-2')
     @s.switch_user(u1)
 
     # have user1 create a group

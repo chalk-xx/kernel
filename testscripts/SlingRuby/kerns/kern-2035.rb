@@ -5,7 +5,6 @@ require './ruby-lib-dir.rb'
 require 'sling/test'
 require 'sling/file'
 require 'sling/users'
-require 'test/unit.rb'
 include SlingUsers
 
 class TC_Kern2035Test < Test::Unit::TestCase
@@ -16,7 +15,7 @@ class TC_Kern2035Test < Test::Unit::TestCase
   # the information that was posted
   def test_post_basic_to_authprofile
     # create test users
-    u = @um.create_test_user(1)
+    u = create_test_user(2035)
     @s.switch_user(u)
     
     profile_root = "~#{u.name}/public/authprofile"
@@ -49,7 +48,7 @@ class TC_Kern2035Test < Test::Unit::TestCase
   # for the information that was posted.
   def test_post_basic_to_subnode
     # create test users
-    u = @um.create_test_user(2)
+    u = create_test_user(2035)
     @s.switch_user(u)
     
     profile_root = "~#{u.name}/public/authprofile"
@@ -81,7 +80,7 @@ class TC_Kern2035Test < Test::Unit::TestCase
   # since this "basic" section is not on the root, it should not be copied to the authorizable
   def test_add_basic_not_at_root
     # create test users
-    u = @um.create_test_user(6)
+    u = create_test_user(2035)
     @s.switch_user(u)
     
     profile_root = "~#{u.name}/public/authprofile"
@@ -121,7 +120,7 @@ class TC_Kern2035Test < Test::Unit::TestCase
   # for the information that was posted.
   def test_post_aboutme_to_authprofile
     # create test users
-    u = @um.create_test_user(3)
+    u = create_test_user(2035)
     @s.switch_user(u)
     
     profile_root = "~#{u.name}/public/authprofile"
@@ -160,7 +159,7 @@ class TC_Kern2035Test < Test::Unit::TestCase
   # for the information that was posted.
   def test_post_aboutme_to_subnode
     # create test users
-    u = @um.create_test_user(4)
+    u = create_test_user(2035)
     @s.switch_user(u)
     
     profile_root = "~#{u.name}/public/authprofile"
@@ -201,7 +200,7 @@ class TC_Kern2035Test < Test::Unit::TestCase
   # and replaces the entire list
   def test_update_publications
     # create test users
-    u = @um.create_test_user(5)
+    u = create_test_user(2035)
     @s.switch_user(u)
     
     profile_root = "~#{u.name}/public/authprofile"
