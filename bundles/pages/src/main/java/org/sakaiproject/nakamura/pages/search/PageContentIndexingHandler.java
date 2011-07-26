@@ -40,7 +40,6 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
-import org.sakaiproject.nakamura.api.solr.SparseUtils;
 import org.sakaiproject.nakamura.api.tika.TikaService;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -170,7 +169,7 @@ public class PageContentIndexingHandler implements IndexingHandler {
     List<String> retval = Collections.emptyList();
     LOGGER.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty(FIELD_PATH);
-    String resourceType = SparseUtils.getResourceType(repositorySession, path);
+    String resourceType = (String) event.getProperty("resourceType");
     if (CONTENT_TYPES.contains(resourceType)) {
       retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
     }

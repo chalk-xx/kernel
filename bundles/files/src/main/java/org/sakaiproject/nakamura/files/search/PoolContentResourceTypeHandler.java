@@ -47,7 +47,6 @@ import org.sakaiproject.nakamura.api.lite.util.Iterables;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
-import org.sakaiproject.nakamura.api.solr.SparseUtils;
 import org.sakaiproject.nakamura.api.tika.TikaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -223,7 +222,7 @@ public class PoolContentResourceTypeHandler implements IndexingHandler {
     String path = (String) event.getProperty(FIELD_PATH);
     boolean ignore = ignorePath(path);
     if ( !ignore ) {
-      String resourceType = SparseUtils.getResourceType(repositorySession, path);
+      String resourceType = (String) event.getProperty("resourceType");
       if (CONTENT_TYPES.contains(resourceType)) {
         retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
       }
