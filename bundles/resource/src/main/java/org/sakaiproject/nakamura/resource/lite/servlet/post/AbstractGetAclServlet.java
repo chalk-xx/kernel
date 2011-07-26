@@ -36,18 +36,18 @@ public abstract class AbstractGetAclServlet extends SlingAllMethodsServlet {
     for (Entry<String, Object> ace : acl.entrySet()) {
       String principalKey = ace.getKey();
       String principal = AclModification.getPrincipal(principalKey);
-      String type = AclModification.isGrant(principalKey) ? "granted" : "denied";
-      Set<String> s = createSet(createMap(aclMap, principal), type);
+      if ( principal != null ) {
+        String type = AclModification.isGrant(principalKey) ? "granted" : "denied";
+        Set<String> s = createSet(createMap(aclMap, principal), type);
 
-      try {
-        // Add permissions for all valid integer inputs. If string is invalid (not an
-        // integer or value is too large) then skip
-        for (Permission p : AclModification.listPermissions(StorageClientUtils.toInt(ace
-            .getValue()))) {
-          s.add(p.getName());
+        try {
+          // Add permissions for all valid integer inputs. If string is invalid (not an
+          // integer or value is too large) then skip
+          for (Permission p : AclModification.listPermissions(StorageClientUtils.toInt(ace.getValue()))) {
+            s.add(p.getName());
+          }
+        } catch (NumberFormatException e) {
         }
-      }
- catch (NumberFormatException e) {
       }
     }
 
