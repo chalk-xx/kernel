@@ -227,6 +227,55 @@ public class ServerProtectionServiceImplTest {
   }
 
   @Test
+  public void testContentRedirectDifferentFromContentHost()
+      throws UnsupportedEncodingException, IOException, NoSuchAlgorithmException, InvalidSyntaxException {
+    serverProtectionService = new ServerProtectionServiceImpl();
+    Dictionary<String, Object> properties = new Hashtable<String, Object>();
+    properties.put(ServerProtectionServiceImpl.UNTRUSTED_REDIRECT_HOST,
+    "https://localhost:9443");
+    Mockito.when(componentContext.getProperties()).thenReturn(properties);
+    Mockito.when(componentContext.getBundleContext()).thenReturn(bundleContext);
+    serverProtectionService.activate(componentContext);
+    SlingHttpServletRequest trequest = Mockito.mock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse tresponse = Mockito.mock(SlingHttpServletResponse.class);
+    Mockito.when(trequest.getMethod()).thenReturn("GET");
+    Mockito.when(trequest.getScheme()).thenReturn("http");
+    Mockito.when(trequest.getServerName()).thenReturn("localhost");
+    Mockito.when(trequest.getServerPort()).thenReturn(8080);
+    Mockito.when(trequest.getRequestURI()).thenReturn("/p/sdsdfsdfs");
+    Mockito.when(trequest.getRequestURL()).thenReturn(
+        new StringBuffer("http://localhost:8080/p/sdsdfsdfs"));
+    Mockito.when(trequest.getQueryString()).thenReturn("x=1&y=2");
+    Mockito.when(trequest.getRemoteUser()).thenReturn("ieb");
+    RequestPathInfo requestPathInfo = Mockito.mock(RequestPathInfo.class);
+    Mockito.when(trequest.getRequestPathInfo()).thenReturn(requestPathInfo);
+    Mockito.when(requestPathInfo.getExtension()).thenReturn(null);
+    Assert.assertFalse(serverProtectionService.isRequestSafe(trequest, tresponse));
+    Mockito.verify(tresponse, Mockito.times(0)).sendError(Mockito.eq(400),
+        Mockito.anyString());
+    ArgumentCaptor<String> urlCapture = ArgumentCaptor.forClass(String.class);
+    Mockito.verify(tresponse, Mockito.times(1)).sendRedirect(urlCapture.capture());
+    String url = urlCapture.getValue();
+    Assert.assertTrue(url.startsWith("https://localhost:9443/p/sdsdfsdfs?x=1&y=2&:hmac="));
+    String hmac = url.substring("https://localhost:9443/p/sdsdfsdfs?x=1&y=2&:hmac="
+        .length());
+    String queryString = url.substring("https://localhost:9443/p/sdsdfsdfs?".length());
+
+    Mockito.when(trequest.getMethod()).thenReturn("GET");
+    Mockito.when(trequest.getScheme()).thenReturn("http");
+    Mockito.when(trequest.getServerName()).thenReturn("localhost");
+    Mockito.when(trequest.getServerPort()).thenReturn(8082);
+    Mockito.when(trequest.getParameter(":hmac")).thenReturn(
+        URLDecoder.decode(hmac, "UTF-8"));
+    // Use a different protocol for the incoming URL.
+    Mockito.when(trequest.getRequestURL()).thenReturn(
+        new StringBuffer("http://localhost:8082/p/sdsdfsdfs"));
+    Mockito.when(trequest.getQueryString()).thenReturn(queryString);
+    String userId = serverProtectionService.getTransferUserId(trequest);
+    Assert.assertEquals("ieb", userId);
+  }
+
+  @Test
   public void testSSLTrustedHost() throws NoSuchAlgorithmException, InvalidSyntaxException, IOException {
     // test the special treatment of ssl referers
     serverProtectionService = new ServerProtectionServiceImpl();
