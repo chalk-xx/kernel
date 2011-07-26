@@ -221,20 +221,18 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
    * @see org.sakaiproject.nakamura.api.message.MessageProfileWriter#writeProfileInformation(javax.jcr.Session,
    *      java.lang.String, org.apache.sling.commons.json.io.JSONWriter)
    */
-  public void writeProfileInformation(Session session, String recipient, JSONWriter write, javax.jcr.Session jcrSession) {
+  public void writeProfileInformation(Session session, String recipient, JSONWriter write) {
     try {
       // Look up the recipient and check if it is an authorizable.
       AuthorizableManager authorizableManager = session.getAuthorizableManager();
       Authorizable au = authorizableManager.findAuthorizable(recipient);
       if (au != null) {
-        write.object();
         ValueMap map = new ValueMapDecorator(basicUserInfoService.getProperties(au));
         ExtendedJSONWriter.writeValueMapInternals(write, map);
         if (au instanceof User) {
           // Pass in the presence.
           PresenceUtils.makePresenceJSON(write, au.getId(), presenceService, true);
         }
-        write.endObject();
       } else {
         // No idea what this recipient is.
         // Just output it.

@@ -17,10 +17,6 @@
  */
 package org.sakaiproject.nakamura.presence.search;
 
-import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_TYPES;
-
-import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_STATE;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -127,14 +123,7 @@ public class GeneralFeedSearchResultProcessor implements SolrSearchBatchResultPr
                 PresenceUtils.makePresenceJSON(write, path, presenceService, true);
 
                 // add contact information if appropriate
-                Content connection = connMgr.getConnectionDetails(session, currUser, path);
-                if (connection != null) {
-                  // add sakai:state and sakai:types
-                  exWriter.key(SAKAI_CONNECTION_STATE);
-                  exWriter.value(connection.getProperty(SAKAI_CONNECTION_STATE), false);
-                  exWriter.key(SAKAI_CONNECTION_TYPES);
-                  exWriter.value(connection.getProperty(SAKAI_CONNECTION_TYPES), false);
-                }
+                connMgr.writeConnectionInfo(exWriter, session, currUser, path);
               }
               write.endObject();
             }

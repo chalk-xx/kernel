@@ -116,7 +116,9 @@ public class MessageSearchResultProcessorTest {
     Content resultNode = createDummyMessage("msgid");
     resultNode.setProperty(MessageConstants.PROP_SAKAI_FROM, "sender");
     resultNode.setProperty(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE, previousId);
+    write.object();
     proc.writeContent(request, write, resultNode);
+    write.endObject();
     w.flush();
 
     String s = baos.toString("UTF-8");
@@ -157,7 +159,9 @@ public class MessageSearchResultProcessorTest {
     Content resultNode = createDummyMessage("msgid");
     resultNode.setProperty(MessageConstants.PROP_SAKAI_FROM, 5678L);
     resultNode.setProperty(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE, previousId);
+    write.object();
     proc.writeContent(request, write, resultNode);
+    write.endObject();
     w.flush();
 
     String s = baos.toString("UTF-8");

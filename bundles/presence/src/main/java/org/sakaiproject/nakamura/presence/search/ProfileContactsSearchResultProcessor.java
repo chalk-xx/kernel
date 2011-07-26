@@ -17,9 +17,6 @@
  */
 package org.sakaiproject.nakamura.presence.search;
 
-import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_STATE;
-import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_TYPES;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -34,7 +31,6 @@ import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
-import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
@@ -93,15 +89,8 @@ public class ProfileContactsSearchResultProcessor extends ProfileNodeSearchResul
 
         // add contact information if appropriate
         String otherUser = String.valueOf(result.getFirstValue("path"));
-        Content connection = connMgr.getConnectionDetails(session, currUser, otherUser);
+        connMgr.writeConnectionInfo(exWriter, session, currUser, otherUser);
 
-        if (connection != null) {
-          // add sakai:state and sakai:types
-          exWriter.key(SAKAI_CONNECTION_STATE);
-          exWriter.value(connection.getProperty(SAKAI_CONNECTION_STATE), false);
-          exWriter.key(SAKAI_CONNECTION_TYPES);
-          exWriter.value(connection.getProperty(SAKAI_CONNECTION_TYPES), false);
-        }
         write.endObject();
       }
     } catch (StorageClientException e) {

@@ -6,7 +6,7 @@
   "sortOrder": "desc",
   "sling:resourceType": "sakai/sparse-search",
   "sakai:propertyprovider" : "MessageSparse",
-  "sakai:resultprocessor": "Message",
+  "sakai:batchresultprocessor": "MessageContacts",
   "sakai:title": "Messaging - User - Box and category - All",
   "sakai:shortDescription": "Get all the messages for a specified box and category.",
   "sakai:parameters" : [
