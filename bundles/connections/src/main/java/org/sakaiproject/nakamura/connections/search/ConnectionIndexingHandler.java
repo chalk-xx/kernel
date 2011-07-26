@@ -143,7 +143,7 @@ public class ConnectionIndexingHandler implements IndexingHandler {
           doc.addField(_DOC_SOURCE_OBJECT, content);
           documents.add(doc);
         } else {
-          logger.warn("Did not index {}: Content == {}; Contact Auth == {}",
+          logger.debug("Did not index {}: Content == {}; Contact Auth == {}",
               new Object[] { path, content, contactAuth });
         }
       } catch (StorageClientException e) {
