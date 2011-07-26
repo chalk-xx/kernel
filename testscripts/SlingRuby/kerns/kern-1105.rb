@@ -57,7 +57,7 @@ class TC_KERN1105_Test < Test::Unit::TestCase
   	while count < MAX_RUNS
   		Net::HTTP.start(SERVER, PORT) do |http|
   		  # Make a HTTP HEAD request with previous SAKAI-TRACKING cookie
-  			headers = {'Cookie' => cookie_header};
+        headers = {'Cookie' => "SAKAI-TRACKING=" + cookie_val};
   			req = Net::HTTP::Head.new(PATH, headers);
         req.basic_auth(USER, PASS);
   			res = http.request(req);
