@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.connections;
 
+import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_STATE;
+import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_TYPES;
+
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.accept;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.block;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.cancel;
@@ -42,6 +45,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionException;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
@@ -64,6 +68,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.lite.authorizable.User;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.LitePersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -313,6 +318,21 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
     Content connection = cm.get(connPath);
     return connection;
+  }
+
+  public boolean writeConnectionInfo(ExtendedJSONWriter exWriter, Session session,
+      String thisUser, String otherUser) throws AccessDeniedException,
+      StorageClientException, JSONException {
+    //add contact information if appropriate
+    Content connection = getConnectionDetails(session, thisUser, otherUser);
+    if (connection != null) {
+      // add sakai:state and sakai:types
+      exWriter.key(SAKAI_CONNECTION_STATE);
+      exWriter.value(connection.getProperty(SAKAI_CONNECTION_STATE), false);
+      exWriter.key(SAKAI_CONNECTION_TYPES);
+      exWriter.value(connection.getProperty(SAKAI_CONNECTION_TYPES), false);
+    }
+    return connection != null;
   }
 
   /**
