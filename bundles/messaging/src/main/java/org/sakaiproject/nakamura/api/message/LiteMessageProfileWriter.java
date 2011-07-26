@@ -26,7 +26,9 @@ import org.sakaiproject.nakamura.api.lite.Session;
 public interface LiteMessageProfileWriter {
 
   /**
-   * Pass in the profile information that should be displayed for this message.
+   * Pass in the profile information that should be displayed for this message. This
+   * method does not wrap with an object, so calling methods can extend the information
+   * before closing the object.
    *
    * @param session
    *          A {@link Session session} to access the content repository.
@@ -35,7 +37,7 @@ public interface LiteMessageProfileWriter {
    * @param write
    *          The {@link JSONWriter writer} to write to.
    */
-  void writeProfileInformation(Session session, String recipient, JSONWriter write, javax.jcr.Session jcrSession);
+  void writeProfileInformation(Session session, String recipient, JSONWriter write);
 
   /**
    * @return The type of recipients it handles.

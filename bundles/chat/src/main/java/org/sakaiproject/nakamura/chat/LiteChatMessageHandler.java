@@ -161,11 +161,11 @@ public class LiteChatMessageHandler implements LiteMessageTransport,
    * @see org.sakaiproject.nakamura.api.message.LiteMessageProfileWriter#writeProfileInformation(Session,
    *      String, org.apache.sling.commons.json.io.JSONWriter)
    */
-  public void writeProfileInformation(Session session, String recipient, JSONWriter write, javax.jcr.Session jcrSession) {
+  public void writeProfileInformation(Session session, String recipient, JSONWriter write) {
     try {
       Authorizable au = session.getAuthorizableManager().findAuthorizable(recipient);
       ValueMap map = new ValueMapDecorator(basicUserInfoService.getProperties(au));
-      ((ExtendedJSONWriter) write).valueMap(map);
+      ExtendedJSONWriter.writeValueMapInternals(write, map);
     } catch (Exception e) {
       LOG.error("Failed to write profile information for " + recipient, e);
     }
