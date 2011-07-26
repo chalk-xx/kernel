@@ -176,7 +176,9 @@ public class SparseTagOperation extends AbstractSparsePostOperation {
           adminSession = slingRepository.loginAdministrative(null);
           Node adminTagNode = adminSession.getNode(nodeTag.getPath());
           String[] tagNames = StorageClientUtils.nonNullStringArray((String[]) content.getProperty(SAKAI_TAGS));
-          incrementTagCounts(adminTagNode, tagNames, false);
+          if (!isProfile) {
+            incrementTagCounts(adminTagNode, tagNames, false);
+          }
           if (adminSession.hasPendingChanges()) {
             adminSession.save();
           }

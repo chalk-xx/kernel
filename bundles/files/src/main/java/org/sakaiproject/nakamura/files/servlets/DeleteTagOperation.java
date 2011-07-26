@@ -179,7 +179,11 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
           adminSession = slingRepository.loginAdministrative(null);
           Node adminTagNode = adminSession.getNode(tagNode.getPath());
           String[] tagNames = StorageClientUtils.nonNullStringArray((String[]) content.getProperty(FilesConstants.SAKAI_TAGS));
-          decrementTagCounts(adminTagNode, tagNames, false);
+          String resourceType = (String) content.getProperty("sling:resourceType");
+          boolean isProfile = "sakai/user-profile".equals(resourceType) || "sakai/group-profile".equals(resourceType);
+          if (!isProfile) {
+            decrementTagCounts(adminTagNode, tagNames, false);
+          }
           if (adminSession.hasPendingChanges()) {
             adminSession.save();
           }
