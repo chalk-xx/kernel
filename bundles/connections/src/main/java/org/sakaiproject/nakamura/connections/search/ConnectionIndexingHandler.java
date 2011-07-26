@@ -42,7 +42,6 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
-import org.sakaiproject.nakamura.api.solr.SparseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,7 +167,7 @@ public class ConnectionIndexingHandler implements IndexingHandler {
     List<String> retval = Collections.emptyList();
     logger.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty(FIELD_PATH);
-    String resourceType = SparseUtils.getResourceType(repositorySession, path);
+    String resourceType = (String) event.getProperty("resourceType");
     if (CONTENT_TYPES.contains(resourceType)) {
       retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
     }

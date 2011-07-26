@@ -46,7 +46,6 @@ import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.IndexingHandler;
 import org.sakaiproject.nakamura.api.solr.RepositorySession;
 import org.sakaiproject.nakamura.api.solr.ResourceIndexingService;
-import org.sakaiproject.nakamura.api.solr.SparseUtils;
 import org.sakaiproject.nakamura.util.ISO8601Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,7 +156,7 @@ public class CalendarIndexingHandler implements IndexingHandler {
     List<String> retval = Collections.emptyList();
     logger.debug("GetDelete for {} ", event);
     String path = (String) event.getProperty(FIELD_PATH);
-    String resourceType = SparseUtils.getResourceType(repositorySession, path);
+    String resourceType = (String) event.getProperty("resourceType");
     if (RESOURCE_TYPES.contains(resourceType)) {
       retval = ImmutableList.of("id:" + ClientUtils.escapeQueryChars(path));
     }
