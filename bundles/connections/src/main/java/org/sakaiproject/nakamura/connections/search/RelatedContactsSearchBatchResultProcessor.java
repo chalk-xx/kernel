@@ -63,6 +63,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -137,7 +138,7 @@ public class RelatedContactsSearchBatchResultProcessor implements
    */
   public void writeResults(final SlingHttpServletRequest request,
       final JSONWriter writer, final Iterator<Result> iterator) throws JSONException {
-
+    long startTicks = System.currentTimeMillis();
     final Session session = StorageClientUtils.adaptToSession(request
         .getResourceResolver().adaptTo(javax.jcr.Session.class));
     final String user = session.getUserId();
@@ -152,18 +153,27 @@ public class RelatedContactsSearchBatchResultProcessor implements
     try {
       final AuthorizableManager authMgr = session.getAuthorizableManager();
       final Authorizable auth = authMgr.findAuthorizable(user);
+      int counter = 0;
       while (iterator.hasNext() && processedUsers.size() < nitems) {
         final Result result = iterator.next();
         final String resourceType = (String) result.getFirstValue("resourceType");
         if (ConnectionConstants.SAKAI_CONTACT_RT.equals(resourceType)) {
-          renderConnection(request, writer, result, connectedUsers, processedUsers);
+          renderConnection(session, authMgr, writer, result, connectedUsers, processedUsers);
         } else if (AUTHORIZABLE_RT.equals(resourceType)) {
-          renderAuthorizable(request, writer, result, connectedUsers, processedUsers);
+          renderAuthorizable(session, authMgr, writer, result, connectedUsers, processedUsers);
         } else {
           LOG.warn("TODO: add missing handler for this resource type: {}: {}",
               result.getPath(), result.getProperties());
         }
+        counter++;
       }
+      if (LOG.isDebugEnabled())
+        LOG.debug("writeResults() primary search result count: " + counter);
+      long firstIterationTicks = System.currentTimeMillis();
+      long secondIterationTicks = 0L;
+      if (LOG.isDebugEnabled())
+        LOG.debug("writeResults() first iteration took {} seconds",
+            new Object[] { (float) (firstIterationTicks - startTicks) / 1000 });
       if (processedUsers.size() < nitems) {
         // TODO migrate to part of the primary solr query - this was a quick solution
         /* Add people that are a member of groups I'm a member of */
@@ -183,13 +193,17 @@ public class RelatedContactsSearchBatchResultProcessor implements
             }
           }
           // randomize the list because we want different people showing up each time
-          final List<String> relatedPeopleFromGroupMembers = new ArrayList<String>(
-              relatedUsers);
-          Collections.shuffle(relatedPeopleFromGroupMembers);
+          // but limit the size of the list to the number required by spec - significant optimization
+          final List<String> relatedPeopleFromGroupMembers = makeRandomList(relatedUsers, nitems);
           for (final String peep : relatedPeopleFromGroupMembers) {
-            renderContact(peep, request, writer, connectedUsers, processedUsers);
+            renderContact(peep, session, authMgr, writer, connectedUsers, processedUsers);
           }
         }
+        secondIterationTicks = System.currentTimeMillis();
+        if (LOG.isDebugEnabled())
+          LOG.debug(
+              "writeResults() second iteration took {} seconds",
+              new Object[] { (float) (secondIterationTicks - firstIterationTicks) / 1000 });
       }
       if (processedUsers.size() < nitems) {
         /* Add some random people to feed */
@@ -222,13 +236,18 @@ public class RelatedContactsSearchBatchResultProcessor implements
             }
             final User u = (User) authMgr.findAuthorizable(path);
             if (u != null) {
-              renderContact(u.getId(), request, writer, connectedUsers, processedUsers);
+              renderContact(u.getId(), session, authMgr, writer, connectedUsers, processedUsers);
             } else {
               // fail quietly in this edge case
               LOG.debug("Contact not found: {}", path);
             }
           }
         }
+        long thirdIterationTicks = System.currentTimeMillis();
+        if (LOG.isDebugEnabled())
+          LOG.debug(
+              "writeResults() third iteration took {} seconds",
+              new Object[] { (float) (thirdIterationTicks - secondIterationTicks) / 1000 });
       }
 
       if (processedUsers.size() < VOLUME) {
@@ -242,6 +261,27 @@ public class RelatedContactsSearchBatchResultProcessor implements
     } catch (StorageClientException e) {
       throw new IllegalStateException(e);
     }
+    long endTicks = System.currentTimeMillis();
+    if (LOG.isDebugEnabled())
+      LOG.debug("writeResults() took {} seconds",
+          new Object[] { (float) (endTicks - startTicks) / 1000 });
+  }
+
+  // make a random list for rendering that is no longer than the number requested
+  private List<String> makeRandomList(Set<String> relatedUsers, long nitems) {
+    if (LOG.isDebugEnabled())
+      LOG.debug("makeRandomList() relatedUsers source list length: "
+          + relatedUsers.size());
+    List<String> randomRelatedUsers = new ArrayList<String>();
+    Object[] relatedUsersArr = relatedUsers.toArray();
+    Random random = new Random();
+    int count = (int) (nitems < relatedUsersArr.length ? nitems : relatedUsersArr.length);                                                       
+    for (int i = 0; i < count; i++) {
+      randomRelatedUsers.add((String) relatedUsersArr[random.nextInt(count)]);
+    }
+    if (LOG.isDebugEnabled())
+      LOG.debug("makeRandomList() randomRelatedUsers target list length: " + randomRelatedUsers.size());
+    return randomRelatedUsers;
   }
 
   /**
@@ -254,7 +294,7 @@ public class RelatedContactsSearchBatchResultProcessor implements
    * @throws JSONException
    * @throws StorageClientException
    */
-  protected void renderConnection(SlingHttpServletRequest request, JSONWriter writer,
+  protected void renderConnection(Session session, AuthorizableManager authMgr, JSONWriter writer,
       Result result, final List<String> connectedUsers, final Set<String> processedUsers)
       throws AccessDeniedException, JSONException, StorageClientException {
 
@@ -263,7 +303,7 @@ public class RelatedContactsSearchBatchResultProcessor implements
     if (contactUser == null) {
       throw new IllegalArgumentException("Missing " + User.NAME_FIELD);
     }
-    renderContact(contactUser, request, writer, connectedUsers, processedUsers);
+    renderContact(contactUser, session, authMgr, writer, connectedUsers, processedUsers);
   }
 
   /**
@@ -276,12 +316,12 @@ public class RelatedContactsSearchBatchResultProcessor implements
    * @throws JSONException
    * @throws StorageClientException
    */
-  protected void renderAuthorizable(final SlingHttpServletRequest request,
+  protected void renderAuthorizable(Session session, AuthorizableManager authMgr,
       final JSONWriter writer, final Result result, final List<String> connectedUsers,
       final Set<String> processedUsers) throws AccessDeniedException, JSONException,
       StorageClientException {
 
-    renderContact(result.getPath(), request, writer, connectedUsers, processedUsers);
+    renderContact(result.getPath(), session, authMgr, writer, connectedUsers, processedUsers);
   }
 
   /**
@@ -297,20 +337,16 @@ public class RelatedContactsSearchBatchResultProcessor implements
    * @throws JSONException
    * @throws StorageClientException
    */
-  protected void renderContact(final String user, final SlingHttpServletRequest request,
-      final JSONWriter writer, final List<String> connectedUsers,
-      final Set<String> processedUsers) throws AccessDeniedException, JSONException,
-      StorageClientException {
+  private void renderContact(String user, Session session, AuthorizableManager authMgr,
+      JSONWriter writer, List<String> connectedUsers, Set<String> processedUsers)
+      throws AccessDeniedException, StorageClientException, JSONException {
 
     if (user == null) {
       throw new IllegalArgumentException("String user == null");
     }
 
-    final Session session = StorageClientUtils.adaptToSession(request
-        .getResourceResolver().adaptTo(javax.jcr.Session.class));
     if (!connectedUsers.contains(user) && !processedUsers.contains(user)
         && !session.getUserId().equals(user)) {
-      final AuthorizableManager authMgr = session.getAuthorizableManager();
       final Authorizable auth = authMgr.findAuthorizable(user);
 
       if (auth != null && !auth.isGroup()) {

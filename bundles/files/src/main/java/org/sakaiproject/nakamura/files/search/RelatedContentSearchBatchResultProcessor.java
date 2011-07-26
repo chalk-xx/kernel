@@ -91,7 +91,7 @@ public class RelatedContentSearchBatchResultProcessor extends
   @Override
   public void writeResults(SlingHttpServletRequest request, JSONWriter write,
       Iterator<Result> iterator) throws JSONException {
-
+    long startTicks = System.currentTimeMillis();
     final Set<String> uniquePathsProcessed = super.writeResultsInternal(request, write,
         iterator);
     final int resultsCount = uniquePathsProcessed.size();
@@ -115,15 +115,10 @@ public class RelatedContentSearchBatchResultProcessor extends
       // FYI: ^4 == 4 times boost; default boost value is one
       sourceQuery.append(")) AND (description:[* TO *] OR taguuid:[* TO *]))^4");
 
-
       try {
         final Iterator<Result> i = SolrSearchUtil.getRandomResults(request,
-                                                                   defaultSearchProcessor,
-                                                                   sourceQuery.toString(),
-                                                                   "items", String.valueOf(VOLUME),
-                                                                   "page", "0",
-                                                                   "sort", "score desc");
-
+            defaultSearchProcessor, sourceQuery.toString(), "items",
+            String.valueOf(VOLUME), "page", "0", "sort", "score desc");
 
         if (i != null) {
 
@@ -145,8 +140,9 @@ public class RelatedContentSearchBatchResultProcessor extends
             }
           }
           if (uniquePathsProcessed.size() < VOLUME) {
-            LOG.debug("Did not meet functional specification. There should be at least {} results; actual size was: {}",
-                      VOLUME, uniquePathsProcessed.size());
+            LOG.debug(
+                "Did not meet functional specification. There should be at least {} results; actual size was: {}",
+                VOLUME, uniquePathsProcessed.size());
           }
         }
 
@@ -163,5 +159,9 @@ public class RelatedContentSearchBatchResultProcessor extends
         throw new IllegalStateException(e);
       }
     }
+    long endTicks = System.currentTimeMillis();
+    if (LOG.isDebugEnabled())
+      LOG.debug("writeResults() took {} seconds",
+          new Object[] { (float) (endTicks - startTicks) / 1000 });
   }
 }

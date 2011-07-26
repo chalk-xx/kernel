@@ -113,7 +113,8 @@ public class MyRelatedGroupsSearchBatchResultProcessor implements
    */
   public void writeResults(final SlingHttpServletRequest request,
       final JSONWriter writer, final Iterator<Result> iterator) throws JSONException {
-
+    long startTicks = System.currentTimeMillis();
+    long firstQueryTicks = 0; long secondQueryTicks = 0;
     final Session session = StorageClientUtils.adaptToSession(request
         .getResourceResolver().adaptTo(javax.jcr.Session.class));
     final String user = session.getUserId();
@@ -132,6 +133,10 @@ public class MyRelatedGroupsSearchBatchResultProcessor implements
         final Group g = (Group) authMgr.findAuthorizable(path);
         renderAuthorizable(request, writer, g, processedGroups);
       }
+      firstQueryTicks = System.currentTimeMillis();
+      if (LOG.isDebugEnabled())
+        LOG.debug("writeResults() first query processing took {} seconds",
+            new Object[] { (float) (firstQueryTicks - startTicks) / 1000 });
       if (processedGroups.size() < nitems) {
         /* Not enough results, add some random groups per spec */
         final StringBuilder sourceQuery = new StringBuilder("resourceType:");
@@ -140,10 +145,8 @@ public class MyRelatedGroupsSearchBatchResultProcessor implements
         sourceQuery.append(ClientUtils.escapeQueryChars(user));
 
         final Iterator<Result> i = SolrSearchUtil.getRandomResults(request,
-                                                                   defaultSearchProcessor,
-                                                                   sourceQuery.toString(),
-                                                                   "items", String.valueOf(VOLUME),
-                                                                   "page", "0");
+            defaultSearchProcessor, sourceQuery.toString(), "items",
+            String.valueOf(VOLUME), "page", "0");
 
         if (i != null) {
           while (i.hasNext() && processedGroups.size() <= nitems) {
@@ -154,7 +157,10 @@ public class MyRelatedGroupsSearchBatchResultProcessor implements
           }
         }
       }
-
+      secondQueryTicks = System.currentTimeMillis();
+      if (LOG.isDebugEnabled())
+        LOG.debug("writeResults() second query processing took {} seconds",
+            new Object[] { (float) (secondQueryTicks - firstQueryTicks) / 1000 });
       if (processedGroups.size() < VOLUME) {
         LOG.info(
             "Did not meet functional specification. There should be at least {} results; actual size was: {}",
@@ -169,6 +175,10 @@ public class MyRelatedGroupsSearchBatchResultProcessor implements
     } catch (StorageClientException e) {
       throw new IllegalStateException(e);
     }
+    long endTicks = System.currentTimeMillis();
+    if (LOG.isDebugEnabled())
+      LOG.debug("writeResults() took {} seconds",
+          new Object[] { (float) (endTicks - startTicks) / 1000 });
   }
 
   /**
