@@ -23,6 +23,8 @@ import static org.apache.jackrabbit.JcrConstants.NT_RESOURCE;
 import static org.mockito.Mockito.when;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.POOLED_CONTENT_MEMBERS_NODE;
 
+import org.sakaiproject.nakamura.api.files.FileUploadHandler;
+
 import com.google.common.collect.ImmutableMap;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
@@ -38,6 +40,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -59,7 +62,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -129,23 +134,11 @@ public class CreateContentPoolServletTest {
   private EventAdmin eventAdmin;
   private RepositoryImpl repository;
 
-  public CreateContentPoolServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
-    MockitoAnnotations.initMocks(this);
-    BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
-    repository = baseMemoryRepository.getRepository();
-    Session session = repository.loginAdministrative();
-    AuthorizableManager authorizableManager = session.getAuthorizableManager();
-    authorizableManager.createUser("ieb", "Ian Boston", "test", ImmutableMap.of("x",(Object)"y"));
-    org.sakaiproject.nakamura.api.lite.authorizable.Authorizable authorizable = authorizableManager.findAuthorizable("ieb");
-    System.err.println("Got ieb as "+authorizable);
-    session.logout();
+  CreateContentPoolServlet cp;
 
-  }
 
-  @Test
-  public void testCreate() throws Exception {
-
-    // activate
+  @Before
+  public void setUp() throws Exception {
     when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
     
     when(request.getResourceResolver()).thenReturn(resourceResolver);
@@ -166,8 +159,9 @@ public class CreateContentPoolServletTest {
     when(request.getRequestParameterMap()).thenReturn(requestParameterMap);
     Map<String, RequestParameter[]> map = new HashMap<String, RequestParameter[]>();
 
-    RequestParameter[] requestParameters = new RequestParameter[] { requestParameter1,
-        requestParameterNot, requestParameter2, };
+    RequestParameter[] requestParameters = new RequestParameter[] {
+      requestParameter1, requestParameterNot, requestParameter2
+    };
     map.put("files", requestParameters);
 
     when(requestParameterMap.entrySet()).thenReturn(map.entrySet());
@@ -196,18 +190,18 @@ public class CreateContentPoolServletTest {
     // calls to deepGetOrCreateNode for each file: one for the pooled content
     // node, one for its members node, and one for the manager node.
     when(adminSession.getItem(Mockito.anyString())).thenAnswer(new Answer<Item>() {
-      public Item answer(InvocationOnMock invocation) throws Throwable {
-        Object[] args = invocation.getArguments();
-        String path = (String) args[0];
-        if (path.endsWith(POOLED_CONTENT_MEMBERS_NODE)) {
-          return membersNode;
-        } else if (path.endsWith("ieb")) {
-          return memberNode;
-        } else {
-          return parentNode;
+        public Item answer(InvocationOnMock invocation) throws Throwable {
+          Object[] args = invocation.getArguments();
+          String path = (String) args[0];
+          if (path.endsWith(POOLED_CONTENT_MEMBERS_NODE)) {
+            return membersNode;
+          } else if (path.endsWith("ieb")) {
+            return memberNode;
+          } else {
+            return parentNode;
+          }
         }
-      }
-    });
+      });
 
     when(parentNode.addNode(JCR_CONTENT, NT_RESOURCE)).thenReturn(resourceNode);
     when(adminSession.getValueFactory()).thenReturn(valueFactory);
@@ -216,49 +210,93 @@ public class CreateContentPoolServletTest {
     // access control utils
     accessControlList = new AccessControlList() {
 
-      // Add an "addEntry" method so AccessControlUtil can execute something.
-      // This method doesn't do anything useful.
-      @SuppressWarnings("unused")
-      public boolean addEntry(Principal principal, Privilege[] privileges, boolean isAllow)
+        // Add an "addEntry" method so AccessControlUtil can execute something.
+        // This method doesn't do anything useful.
+        @SuppressWarnings("unused")
+          public boolean addEntry(Principal principal, Privilege[] privileges, boolean isAllow)
           throws AccessControlException {
-        return true;
-      }
+          return true;
+        }
 
-      public void removeAccessControlEntry(AccessControlEntry ace)
+        public void removeAccessControlEntry(AccessControlEntry ace)
           throws AccessControlException, RepositoryException {
-      }
+        }
 
-      public AccessControlEntry[] getAccessControlEntries() throws RepositoryException {
-        return new AccessControlEntry[0];
-      }
+        public AccessControlEntry[] getAccessControlEntries() throws RepositoryException {
+          return new AccessControlEntry[0];
+        }
 
-      public boolean addAccessControlEntry(Principal principal, Privilege[] privileges)
+        public boolean addAccessControlEntry(Principal principal, Privilege[] privileges)
           throws AccessControlException, RepositoryException {
-        return false;
-      }
-    };
+          return false;
+        }
+      };
     when(accessControlManager.privilegeFromName(Mockito.anyString())).thenReturn(
-        allPrivilege);
+                                                                                 allPrivilege);
     AccessControlPolicy[] acp = new AccessControlPolicy[] { accessControlList };
     when(accessControlManager.getPolicies(Mockito.anyString())).thenReturn(acp);
 
+    cp = new CreateContentPoolServlet();
+    cp.eventAdmin = eventAdmin;
+    cp.clusterTrackingService = clusterTrackingService;
+    cp.sparseRepository = repository;
+  }
+
+
+  public CreateContentPoolServletTest() throws ClientPoolException, StorageClientException, AccessDeniedException, ClassNotFoundException, IOException {
+    MockitoAnnotations.initMocks(this);
+    BaseMemoryRepository baseMemoryRepository = new BaseMemoryRepository();
+    repository = baseMemoryRepository.getRepository();
+    Session session = repository.loginAdministrative();
+    AuthorizableManager authorizableManager = session.getAuthorizableManager();
+    authorizableManager.createUser("ieb", "Ian Boston", "test", ImmutableMap.of("x",(Object)"y"));
+    org.sakaiproject.nakamura.api.lite.authorizable.Authorizable authorizable = authorizableManager.findAuthorizable("ieb");
+    System.err.println("Got ieb as "+authorizable);
+    session.logout();
+
+  }
+
+  @Test
+  public void testCreate() throws Exception {
 
     StringWriter stringWriter = new StringWriter();
     when(response.getWriter()).thenReturn(new PrintWriter(stringWriter));
 
-    CreateContentPoolServlet cp = new CreateContentPoolServlet();
-    cp.eventAdmin = eventAdmin;
-    cp.clusterTrackingService = clusterTrackingService;
-    cp.sparseRepository = repository;
-
     cp.doPost(request, response);
 
     // Verify that we created all the nodes.
-
     JSONObject jsonObject = new JSONObject(stringWriter.toString());
     Assert.assertNotNull(jsonObject.getString("testfilename.pdf"));
     Assert.assertNotNull(jsonObject.getString("index.html"));
     Assert.assertEquals(2, jsonObject.length());
-
   }
+
+
+  @Test
+  public void testFileUploadHandler() throws Exception {
+
+    StringWriter stringWriter = new StringWriter();
+    when(response.getWriter()).thenReturn(new PrintWriter(stringWriter));
+
+    // Exceptions in a handler should be caught and logged, but shouldn't stop
+    // other handlers from running.
+    cp.bindFileUploadHandler(new FileUploadHandler() {
+        public void handleFile(String poolId, InputStream fileInputStream,
+                               String userId, boolean isNew) throws IOException {
+          throw new RuntimeException("Handler failed!");
+        }
+      });
+
+    final ArrayList notifiedFiles = new ArrayList();
+    cp.bindFileUploadHandler(new FileUploadHandler() {
+        public void handleFile(String poolId, InputStream fileInputStream,
+                               String userId, boolean isNew) throws IOException {
+          notifiedFiles.add(poolId);
+        }
+      });
+
+    cp.doPost(request, response);
+    Assert.assertTrue(notifiedFiles.size () == 2);
+  }
+
 }
