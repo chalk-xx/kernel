@@ -1,7 +1,7 @@
 {
-  "sakai:query-template": "group:(${group}) AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) ngram:(${q}) OR edgengram:(${q}))",
+  "sakai:query-template": "group:(${group}) AND (name:(${q}) OR firstName:(${q}) OR lastName:(${q}) OR email:(${q}) OR title:(${q}) OR description:(${q}) OR ngram:(${q}) OR edgengram:(${q}))",
   "sakai:query-template-options": {
-      "fq": "type:u",
+      "fq": "type:(u OR g)",
       "sort": "${sortOn} ${sortOrder}"
   },
   "sortOn": "score",

@@ -1,7 +1,7 @@
 {
   "sakai:query-template": "group:(${group})",
   "sakai:query-template-options": {
-      "fq": "type:u",
+      "fq": "type:(u OR g)",
       "sort": "${sortOn} ${sortOrder}"
   },
   "sortOn": "score",
