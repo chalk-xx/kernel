@@ -23,9 +23,7 @@ import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchResults;
 
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.sakaiproject.nakamura.api.configuration.ConfigurationService;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionLivenessValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,10 +112,6 @@ public class SearchExecutingLdapConnectionLivenessValidator implements
 
   private String hostName = DEFAULT_HOST_NAME;
 
-  @Reference
-  private ConfigurationService configService;
-
-
   public SearchExecutingLdapConnectionLivenessValidator() {
     // Math.random is seedded with thh System.currentTimeMillis so we have to use SecureRandom.
     SecureRandom secureRandom = new SecureRandom();
@@ -139,9 +133,6 @@ public class SearchExecutingLdapConnectionLivenessValidator implements
             log.debug("Unable to get local host name", e);
           }
         }
-      }
-      if (hostName == null && configService != null) {
-        hostName = configService.getProperty("server.name");
       }
       if (hostName == null) {
         hostName = DEFAULT_HOST_NAME;
@@ -309,14 +300,6 @@ public class SearchExecutingLdapConnectionLivenessValidator implements
 
   public void setSearchFilter(String searchFilter) {
     this.searchFilter = searchFilter;
-  }
-
-  public ConfigurationService getServerConfigService() {
-    return configService;
-  }
-
-  public void setConfigService(ConfigurationService serverConfigService) {
-    this.configService = serverConfigService;
   }
 
   public String getHostName() {

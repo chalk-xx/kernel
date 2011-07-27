@@ -17,15 +17,9 @@
 package org.sakaiproject.nakamura.ldap.liveness;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.classextension.EasyMock.createMock;
-import static org.easymock.classextension.EasyMock.replay;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.configuration.ConfigurationService;
 import org.sakaiproject.nakamura.ldap.liveness.SearchExecutingLdapConnectionLivenessValidator;
 
 import java.net.InetAddress;
@@ -45,7 +39,6 @@ public class SearchExecutingLdapConnectionLivenessValidatorInitializationTest {
 
 	private static final String UNIQUE_SEARCH_FILTER_TERM = "TESTING";
 	private SearchExecutingLdapConnectionLivenessValidator validator;
-  private ConfigurationService configService;
 
   @Before
   public void setUp() {
@@ -56,8 +49,6 @@ public class SearchExecutingLdapConnectionLivenessValidatorInitializationTest {
         return UNIQUE_SEARCH_FILTER_TERM;
       }
     };
-    configService = createMock(ConfigurationService.class);
-    validator.setConfigService(configService);
 	}
 
   @Test
@@ -72,29 +63,6 @@ public class SearchExecutingLdapConnectionLivenessValidatorInitializationTest {
   public void testInitDefaultsHostNameToInetAddressLocalhostIfNoHostNameExplicitlyInjected()
 	throws UnknownHostException {
 		final String EXPECTED_HOST_NAME = InetAddress.getLocalHost().toString();
-    validator.setConfigService(configService);
-		validator.init();
-		assertEquals(EXPECTED_HOST_NAME, validator.getHostName());
-	}
-
-  @Test
-  public void testInitDefaultsHostNameToSakaiServerNameIfNoHostNameExplicitlyInjectedAndLocalHostLookupFails() {
-		validator = new SearchExecutingLdapConnectionLivenessValidator() {
-			// we need this to be a predictable value
-			@Override
-      protected String generateUniqueToken() {
-				return UNIQUE_SEARCH_FILTER_TERM;
-			}
-
-			@Override
-      protected String getLocalhostName() throws UnknownHostException {
-				throw new UnknownHostException();
-			}
-		};
-		final String EXPECTED_HOST_NAME = "EXPECTED_HOST_NAME";
-    expect(configService.getProperty((String) anyObject())).andReturn(EXPECTED_HOST_NAME);
-    replay(configService);
-    validator.setConfigService(configService);
 		validator.init();
 		assertEquals(EXPECTED_HOST_NAME, validator.getHostName());
 	}
@@ -102,8 +70,6 @@ public class SearchExecutingLdapConnectionLivenessValidatorInitializationTest {
   @Test
   public void testInitDefaultsHostNameToInetAddressLocalhostIfNoHostNameExplicitlyInjectedAndNoSakaiServerNameInjected()
 	throws UnknownHostException {
-    validator.setConfigService(null);
-		assertNull(validator.getServerConfigService()); // sanity check
 		validator.init();
 		assertEquals(validator.getLocalhostName(),
 				validator.getHostName());

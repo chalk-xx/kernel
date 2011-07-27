@@ -53,13 +53,6 @@
     </plugins>
   </build>
   <dependencies>
-<!-- nakamura -->
-    <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
-      <version>0.11-SNAPSHOT</version>
-    </dependency>
-
 <!-- scr annotations -->
     <dependency>
       <groupId>org.apache.felix</groupId>
