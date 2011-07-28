@@ -100,7 +100,7 @@ public class WidgetDataIndexingHandler implements IndexingHandler {
         ContentManager cm = session.getContentManager();
         Content content = cm.get(path);
 
-        if (!CONTENT_TYPES.contains(content.getProperty("sling:resourceType"))) {
+        if (content == null || !CONTENT_TYPES.contains(content.getProperty("sling:resourceType"))) {
           return docs;
         }
 
