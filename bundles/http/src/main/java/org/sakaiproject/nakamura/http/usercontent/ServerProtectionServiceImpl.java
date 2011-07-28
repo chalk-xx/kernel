@@ -89,6 +89,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
   private static final String[] DEFAULT_TRUSTED_PATHS = { "/dev", "/devwidgets", "/system", "/logout" };
   private static final String[] DEFAULT_TRUSTED_EXACT_PATHS = { "/", 
     "/index.html", 
+    "/index",
     "/403", 
     "/404", 
     "/500", 
@@ -98,6 +99,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     "/content",
     "/favicon.ico",
     "/logout",
+    "/me.html",
     "/me",
     "/register",
     "/search/sakai2",
