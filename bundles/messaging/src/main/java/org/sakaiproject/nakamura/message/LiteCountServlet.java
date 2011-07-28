@@ -98,6 +98,8 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = -5714446506015596037L;
   private static final Logger LOGGER = LoggerFactory.getLogger(LiteCountServlet.class);
 
+  private static long MAX_RESULTS_COUNTED = 500;
+
   @Reference
   protected transient LiteMessagingService messagingService;
   
@@ -167,9 +169,16 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
         if (groupedby.startsWith("sakai:")) {
           groupedby = groupedby.substring(6);
         }
+
+        long count = 0;
         Map<String, Integer> mapCount = new HashMap<String, Integer>();
         while (resultIterator.hasNext()) {
           Result n = resultIterator.next();
+
+          if (count >= MAX_RESULTS_COUNTED) {
+            break;
+          }
+          count++;
 
           if (n.getProperties().containsKey(groupedby)) {
             String key = (String) n.getFirstValue(groupedby);
