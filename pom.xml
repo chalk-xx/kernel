@@ -348,8 +348,9 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>cobertura-maven-plugin</artifactId>
-        <version>2.2</version>
+        <version>2.5.1</version>
         <configuration>
+          <aggregate>true</aggregate>
           <check>
             <haltOnFailure>false</haltOnFailure>
             <regexes>
@@ -520,7 +521,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>cobertura-maven-plugin</artifactId>
-          <version>2.2</version>
+          <version>2.5.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.sling</groupId>
@@ -551,7 +552,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>cobertura-maven-plugin</artifactId>
-        <version>2.2</version>
+        <version>2.5.1</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
