@@ -81,6 +81,7 @@ module SlingInterface
     
     def initialize(server="http://localhost:8080/", trustedauth=false)
       @server = server
+      @serveruri = URI.parse(server)
       @user = SlingUsers::User.admin_user()
       @trustedauth = trustedauth
       @cookies = Hash.new()
@@ -96,6 +97,7 @@ module SlingInterface
     
     def switch_user(user)
       @log.info "Switched user to #{user}"
+      @cookies = Hash.new()
       @user = user
       if ( @trustedauth ) 
          @loggedin = false
@@ -133,23 +135,11 @@ module SlingInterface
 
       params = [fileTypeHint,file_to_multipart(fieldname, filename, content_type, data)]
       boundary = '349832898984244898448024464570528145'
-      query = params.collect {|p| '--' + boundary + "\r\n" + p}.join('') + "--" + boundary + "--\r\n"
+      post_body = params.collect {|p| '--' + boundary + "\r\n" + p}.join('') + "--" + boundary + "--\r\n"
       req = Net::HTTP::Post.new(uri.path)
-      if ( @trustedauth ) 
-        if ( ! @loggedin ) 
-            do_login()
-        end
-	set_cookies(req)
-        res = createHttp(uri).start {|http| http.request_post(path,query,"Content-type" => "multipart/form-data; boundary=" + boundary, "Cookie" => @trustedcookie) }
-        save_cookies(res)
-      else 
-        @user.do_request_auth(req)
-        pwd = "#{@user.name}:#{@user.password}"
-        pwd = pwd.base64_encode()
-	set_cookies(req)
-        res = createHttp(uri).start {|http| http.request_post(path,query,"Content-type" => "multipart/form-data; boundary=" + boundary, "Authorization" => "Basic #{pwd}") }
-        save_cookies(res)
-      end
+      req.set_content_type("multipart/form-data", {"boundary" => boundary})
+      req.body = post_body
+      res = sendRequest(uri, req)
       dump_response(res)
       return res
     end
@@ -162,24 +152,32 @@ module SlingInterface
       end
       return http
     end
-      
+
+    def sendRequest(uri, req)
+      @log.warn("uri = #{uri}")
+      # Not all browsers take port number into account when setting cookies.
+      isSlingReq = uri.host && (uri.host == @serveruri.host)
+      if (isSlingReq)
+        if ( @trustedauth )
+          if ( ! @loggedin )
+              do_login()
+          end
+        else
+          @user.do_request_auth(req)
+        end
+        set_cookies(req)
+      else
+        @log.warn("Path #{uri} is not a Sling URL, not sending state")
+      end
+      res = createHttp(uri).start { |http| http.request(req ) }
+      save_cookies(res) if (isSlingReq)
+      return res
+    end
     
     def delete_file(path) 
       uri = URI.parse(path)
       req = Net::HTTP::Delete.new(uri.path)
-      if ( @trustedauth ) 
-        if ( ! @loggedin ) 
-            do_login()
-        end
-	set_cookies(req)
-        res = createHttp(uri).start { |http| http.request(req ) }
-        save_cookies(res)
-      else
-        @user.do_request_auth(req)
-	set_cookies(req)
-        res = createHttp(uri).start { |http| http.request(req) }
-        save_cookies(res)
-      end
+      res = sendRequest(uri, req)
       dump_response(res)
       return res
     end
@@ -189,19 +187,8 @@ module SlingInterface
       @log.debug("PUTFILE: #{path} (as '#{@user.name}')")
       uri = URI.parse(path)
       req = Net::HTTP::Put.new(uri.path)
-      if ( @trustedauth ) 
-        if ( !@loggedin ) 
-            do_login()
-        end
-	set_cookies(req)
-        res = createHttp(uri).start{ |http| http.request(req, data) }
-        save_cookies(res)
-      else
-        @user.do_request_auth(req)
-	set_cookies(req)
-        res = createHttp(uri).start{ |http| http.request(req, data) }
-        save_cookies(res)
-      end
+      req.body = data
+      res = sendRequest(uri, req)
       dump_response(res)
       return res
     end
@@ -214,21 +201,8 @@ module SlingInterface
       @log.debug("POST: #{path} (as '#{@user.name}')\n\tparams: #{post_params.dump}")
       uri = URI.parse(path)
       req = Net::HTTP::Post.new(uri.path)
-      if ( @trustedauth ) 
-        if ( ! @loggedin  ) 
-            do_login()
-        end
-        req.set_form_data(post_params)
-        set_cookies(req)
-        res = createHttp(uri).start{ |http| http.request(req) }
-        save_cookies(res)
-      else
-        @user.do_request_auth(req)
-        req.set_form_data(post_params)
-        set_cookies(req)
-        res = createHttp(uri).start{ |http| http.request(req) }
-        save_cookies(res)
-      end
+      req.set_form_data(post_params)
+      res = sendRequest(uri, req)
       dump_response(res)
       return res
     end
@@ -254,19 +228,7 @@ module SlingInterface
       path = path + "?" + uri.query if uri.query
       @log.debug("GET: #{path} (as '#{@user.name}')")
       req = Net::HTTP::Get.new(path)
-      if ( @trustedauth ) 
-        if ( ! @loggedin ) 
-            do_login()
-        end
-        set_cookies(req)
-        res = createHttp(uri).start { |http| http.request(req) }
-        save_cookies(res)
-      else
-        @user.do_request_auth(req)
-        set_cookies(req)
-        res = createHttp(uri).start { |http| http.request(req) }
-        save_cookies(res)
-      end
+      res = sendRequest(uri, req)
       res = followRedirects(res)
       dump_response(res)
       return res
@@ -276,16 +238,10 @@ module SlingInterface
         lastlocation = ''
         while (res.header['location'] && res.header['location'] != lastlocation)
             lastlocation = res.header['location']
-            url = URI.parse(res.header['location'])
-            @log.info("Redirecting to #{url}")
-            req = Net::HTTP::Get.new(url.request_uri())
-            # Cookie-based authn should have happened before the redirect.
-            if (!@trustedauth )
-              @user.do_request_auth(req)
-            end
-            set_cookies(req)
-            res = createHttp(url).start { |http| http.request(req) }
-            save_cookies(res)
+            uri = URI.parse(res.header['location'])
+            @log.info("Redirecting to #{uri}")
+            req = Net::HTTP::Get.new(uri.request_uri())
+            res = sendRequest(uri, req)
         end
         return res
     end
@@ -327,36 +283,6 @@ module SlingInterface
       else
 	@log.info("Failed to perform login, got "+res.code+" response code")
       end
-    end
-    
-    def execute_get_with_follow(url)
-      found = false
-      uri = URI.parse(url)
-      until found
-        host, port = uri.host, uri.port if uri.host && uri.port
-        req = Net::HTTP::Get.new(uri.path)
-        if ( @trustedauth ) 
-          if ( ! @loggedin ) 
-            do_login()
-          end
-          set_cookies(req)
-          res = createHttp(uri) {|http|  http.request(req) }
-          save_cookies(res)
-        else 
-          @user.do_request_auth(req)
-          set_cookies(req)
-          res = createHttp(uri) {|http|  http.request(req) }
-          save_cookies(res)
-        end
-        if res.header['location']
-          @log.info "Got Redirect: #{res.header['location']}"
-          uri = URI.parse(res.header['location']) 
-        else
-          found = true
-        end
-      end 
-      dump_response(res)
-      return res
     end
     
     def url_for(path)
