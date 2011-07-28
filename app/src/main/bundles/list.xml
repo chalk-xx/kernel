@@ -405,17 +405,6 @@ KERN-1187
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
       <version>0.11-SNAPSHOT</version>
     </bundle>
-    <!-- RE: Carl Hall commit 795cc58 removed json-lib bundle
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.json-lib</artifactId>
-      <version>0.11-SNAPSHOT</version>
-    </bundle> -->
-   <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
-      <version>0.11-SNAPSHOT</version>
-    </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
