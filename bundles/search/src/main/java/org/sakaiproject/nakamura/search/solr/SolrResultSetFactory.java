@@ -22,11 +22,14 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.osgi.OsgiUtil;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventHandler;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServer;
@@ -51,26 +54,41 @@ import org.sakaiproject.nakamura.api.solr.SolrServerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.sakaiproject.nakamura.api.memory.CacheManagerService;
+import org.sakaiproject.nakamura.api.memory.CacheScope;
+import org.sakaiproject.nakamura.api.memory.Cache;
+import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
+import org.sakaiproject.nakamura.api.cluster.ClusterServer;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  *
  */
 @Component(metatype = true)
 @Service
-@Property(name = "type", value = Query.SOLR)
-public class SolrResultSetFactory implements ResultSetFactory {
+@Properties(value = {
+    @Property(name = "type", value = Query.SOLR),
+    @Property(name = "event.topics", value = {
+        "org/sakaiproject/nakamura/lite/content/DELETE",
+        "org/sakaiproject/nakamura/solr/COMMIT"})})
+
+  public class SolrResultSetFactory implements ResultSetFactory, EventHandler {
   @Property(longValue = 100L)
   private static final String VERY_SLOW_QUERY_TIME = "verySlowQueryTime";
   @Property(longValue = 10L)
   private static final String SLOW_QUERY_TIME = "slowQueryTime";
   @Property(intValue = 100)
   private static final String DEFAULT_MAX_RESULTS = "defaultMaxResults";
+
+  private static final String DELETED_PATH_CACHE = "deletedPathQueue";
 
   /** only used to mark the logger */
   private final class SlowQueryLogger { }
@@ -80,6 +98,12 @@ public class SolrResultSetFactory implements ResultSetFactory {
 
   @Reference
   private SolrServerService solrSearchService;
+
+  @Reference
+  CacheManagerService cacheManagerService;
+
+  @Reference
+  ClusterTrackingService clusterTrackingService;
 
   private int defaultMaxResults = 100; // set to 100 to allow testing
   private long slowQueryThreshold;
@@ -92,6 +116,93 @@ public class SolrResultSetFactory implements ResultSetFactory {
     slowQueryThreshold = OsgiUtil.toLong(props.get(SLOW_QUERY_TIME), 10L);
     verySlowQueryThreshold = OsgiUtil.toLong(props.get(VERY_SLOW_QUERY_TIME), 100L);
   }
+
+
+  /*
+   * Get an instance of the cache used to track paths that have been marked as
+   * deleted since the last Solr commit.  This cache is shared by all nodes in a
+   * cluster, acting as a sort of shared memory.
+   */
+  private Cache<Object> getDeletedPathCache() {
+    return cacheManagerService.getCache(DELETED_PATH_CACHE, CacheScope.CLUSTERREPLICATED);
+  }
+
+
+  /*
+   * Record a path as having been deleted, preventing it from appearing in search results.
+   *
+   * @param path the path that was deleted
+   */
+  private synchronized void storeDeletedPath(String path) {
+    Cache<Object> cache = getDeletedPathCache();
+    String myId = clusterTrackingService.getCurrentServerId();
+
+    Integer pathCount = (Integer)cache.get("pathCount@" + myId);
+    pathCount = (pathCount == null) ? 0 : pathCount;
+
+    cache.put("path[" + pathCount + "]@" + myId,
+              SearchUtil.escapeString(path, Query.SOLR));
+    cache.put("pathCount@" + myId, pathCount + 1);
+  }
+
+
+  /*
+   * Clear the list of deleted nodes for this node.
+   */
+  private synchronized void clearDeletedPaths() {
+    Cache<Object> cache = getDeletedPathCache();
+    String myId = clusterTrackingService.getCurrentServerId();
+
+    Integer pathCount = (Integer)cache.get("pathCount@" + myId);
+
+    for (int idx = 0; pathCount != null && idx < pathCount; idx++) {
+      cache.remove("path[" + idx + "]@" + myId);
+    }
+
+    cache.put("pathCount@" + myId, 0);
+  }
+
+
+  /*
+   * Get a list of the paths that were deleted since the last Solr commit across
+   * all nodes in the cluster.
+   */
+  private List<String> getDeletedPaths() {
+    List<String> deletedPaths = new ArrayList<String>();
+    Cache<Object> cache = getDeletedPathCache();
+
+    for (ClusterServer server : clusterTrackingService.getAllServers()) {
+      String serverId = server.getServerId();
+      Integer pathCount = (Integer)cache.get("pathCount@" + serverId);
+
+      for (int idx = 0; pathCount != null && idx < pathCount; idx++) {
+        String path = (String)cache.get("path[" + idx + "]@" + serverId);
+
+        if (path != null) {
+          deletedPaths.add(path);
+        }
+      }
+    }
+
+    return deletedPaths;
+  }
+
+
+  public void handleEvent(Event event) {
+    String topic = event.getTopic();
+
+    if (topic.equals("org/sakaiproject/nakamura/lite/content/DELETE")) {
+      String path = (String)event.getProperty("path");
+
+      if (path != null) {
+        storeDeletedPath(path);
+      }
+    } else if (topic.equals("org/sakaiproject/nakamura/solr/COMMIT")) {
+      clearDeletedPaths();
+    }
+  }
+      
+
 
   /**
    * Process a query string to search using Solr.
@@ -122,6 +233,11 @@ public class SolrResultSetFactory implements ResultSetFactory {
           readers.add(session.getUserId());
           queryString = "(" + queryString + ") AND readers:(" + StringUtils.join(readers," OR ") + ")";
         }
+      }
+
+      List<String> deletedPaths = getDeletedPaths();
+      if (!deletedPaths.isEmpty()) {
+        queryString = "(" + queryString + ") AND -path:(" + StringUtils.join(deletedPaths, " OR ") + ")";
       }
 
       SolrQuery solrQuery = buildQuery(request, queryString, query.getOptions());
