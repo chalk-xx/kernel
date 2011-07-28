@@ -22,12 +22,14 @@ import java.util.Map;
 /**
  * The configuration service gives access to a set of properties managed by OSGi.
  */
+@Deprecated
 public interface ConfigurationService {
 
   /**
    * @return get a set of properties for local use, this set is non modifiable, and will
    *         <b>not</b> be updated if the configuration changes.
    */
+  @Deprecated
   Map<String, String> getProperties();
 
   /**
@@ -39,16 +41,19 @@ public interface ConfigurationService {
    *         deliver properties directly from a map so there is no need for things that
    *         use this service to store these properties locally.
    */
+  @Deprecated
   String getProperty(String key);
   
   
   /**
    * @param listener the listener to add.
    */
+  @Deprecated
   void addListener(ConfigurationListener listener);
   
   /**
    * @param listener the listener to remove.
    */
+  @Deprecated
   void removeListener(ConfigurationListener listener);
 }

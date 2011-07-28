@@ -22,9 +22,11 @@ import java.util.Map;
 /**
  * Listens for configuration changes.
  */
+@Deprecated
 public interface ConfigurationListener {
   /**
    * @param config the new configuration
    */
+  @Deprecated
   void update(Map<String, String> config);
 }

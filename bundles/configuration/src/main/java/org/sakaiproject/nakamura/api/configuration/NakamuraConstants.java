@@ -61,8 +61,9 @@ import java.util.Properties;
  * Holds the configuration properties that are used in nakamura. This is an OSGi Managed
  * service that collects together all the configuration properties.
  */
-@Component(immediate = true, metatype = true, label = "Sakai Configuration Service", description = "Provides Configuration for nakamura components")
-@Service(value = ConfigurationService.class)
+//@Component(immediate = true, metatype = true, label = "Sakai Configuration Service", description = "Provides Configuration for nakamura components")
+//@Service(value = ConfigurationService.class)
+@Deprecated
 public class NakamuraConstants implements ConfigurationService, ManagedService {
 
   @Property(value = "The Sakai Foundation")
@@ -254,6 +255,7 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
     return null;
   }
 
+  @Deprecated
   public NakamuraConstants() throws IOException {
     Map<String, String> constants = new HashMap<String, String>();
     File cwd = new File(new File(".").getCanonicalPath()); // Need to use full path to cwd
@@ -276,6 +278,7 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
    * @see org.osgi.service.cm.ManagedService#updated(java.util.Dictionary)
    */
   @SuppressWarnings("rawtypes")
+  @Deprecated
   public void updated(Dictionary config) throws ConfigurationException {
     Builder<String, String> builder = ImmutableMap.builder();
     for (Enumeration<?> e = config.keys(); e.hasMoreElements();) {
@@ -296,6 +299,7 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
     }
   }
 
+  @Deprecated
   public Map<String, String> getProperties() {
     return configMap;
   }
@@ -305,6 +309,7 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
    *
    * @see org.sakaiproject.nakamura.api.configuration.ConfigurationService#getProperty()
    */
+  @Deprecated
   public String getProperty(String key) {
     return configMap.get(key);
   }
@@ -314,6 +319,7 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
    *
    * @see org.sakaiproject.nakamura.api.configuration.ConfigurationService#addListener(org.sakaiproject.nakamura.api.configuration.ConfigutationListener)
    */
+  @Deprecated
   public void addListener(ConfigurationListener listener) {
     listeners.put(String.valueOf(listener), listener);
   }
@@ -323,6 +329,7 @@ public class NakamuraConstants implements ConfigurationService, ManagedService {
    *
    * @see org.sakaiproject.nakamura.api.configuration.ConfigurationService#removeListener(org.sakaiproject.nakamura.api.configuration.ConfigutationListener)
    */
+  @Deprecated
   public void removeListener(ConfigurationListener listener) {
     listeners.remove(String.valueOf(listener));
   }
