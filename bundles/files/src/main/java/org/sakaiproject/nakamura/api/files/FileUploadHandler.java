@@ -24,15 +24,10 @@ import java.util.Map;
 public interface FileUploadHandler {
   /**
    * This method is called when a file is uploaded via the
-   * CreateContentPoolServlet.  It is called after the file has been added to
-   * the repository, but has the opportunity to add or replace properties by
-   * returning them as a Map.
+   * CreateContentPoolServlet--after the file has been added to the repository.
    *
    * @param poolId
-   *          The path of the content object for the file (a unique identifier).
-   *
-   * @param contentProperties
-   *          An immutable map of the content object's properties (see sparsemapcontent's org.sakaiproject.nakamura.lite.content.InternalContent for the names of common properties)
+   *          The path of the content object for the file.
    *
    * @param fileInputStream
    *          A FileInputStream on the uploaded content, set to position zero.
@@ -43,8 +38,6 @@ public interface FileUploadHandler {
    *
    * @param isNew
    *          True if the uploaded file is new content.  False if it replaces an existing node.
-   *
-   * @return A map of properties that will be added to the newly-created content object.
    *
    **/
   void handleFile(String poolId,
