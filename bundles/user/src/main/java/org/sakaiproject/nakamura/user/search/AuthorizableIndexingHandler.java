@@ -220,13 +220,12 @@ public class AuthorizableIndexingHandler implements IndexingHandler {
       }
     }
 
-
-    // add groups to the user doc so we can find the user as a group member
-    if (!authorizable.isGroup()) {
-      for (String principal : authorizable.getPrincipals()) {
-        Group group = (Group) getAuthorizable(principal, repositorySession);
-        if (group != null && group.hasProperty(SAKAI_PSEUDOGROUPPARENT_PROP)) {
-          doc.addField("group", group.getProperty(SAKAI_PSEUDOGROUPPARENT_PROP));
+    // add groups to the auth doc so we can find the auth as a group member
+    for (String principal : authorizable.getPrincipals()) {
+      Authorizable gauth = getAuthorizable(principal, repositorySession);
+      if (gauth != null) {
+        if (gauth.isGroup() && gauth.hasProperty(SAKAI_PSEUDOGROUPPARENT_PROP)) {
+          doc.addField("group", gauth.getProperty(SAKAI_PSEUDOGROUPPARENT_PROP));
         }
         doc.addField("group", principal);
       }
