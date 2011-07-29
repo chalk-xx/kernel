@@ -36,12 +36,22 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.profile.ProfileConstants;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.StorageClientException;
+import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
+
+
+import org.sakaiproject.nakamura.api.connections.ConnectionManager;
+import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_STATE;
+import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SAKAI_CONNECTION_TYPES;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import javax.jcr.AccessDeniedException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
@@ -94,6 +104,9 @@ public class ProfileServlet extends SlingSafeMethodsServlet {
   @Reference
   protected ProfileService profileService;
 
+  @Reference
+  protected ConnectionManager connectionManager;
+
   /**
    * {@inheritDoc}
    *
@@ -107,6 +120,7 @@ public class ProfileServlet extends SlingSafeMethodsServlet {
     Content profileContent = resource.adaptTo(Content.class);
     try {
       ValueMap map = profileService.getProfileMap(profileContent, resource.getResourceResolver().adaptTo(Session.class));
+      addConnectionInfo(map, request);
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
       ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
@@ -120,10 +134,41 @@ public class ProfileServlet extends SlingSafeMethodsServlet {
       return;
     } catch (JSONException e) {
       throw new ServletException(e.getMessage(), e);
+    } catch (StorageClientException e) {
+      throw new ServletException(e.getMessage(), e);
     } catch (RepositoryException e) {
       throw new ServletException(e.getMessage(), e);
     }
   }
+
+
+  private void addConnectionInfo(ValueMap map, SlingHttpServletRequest request)
+    throws StorageClientException, AccessDeniedException {
+    String thisUser = request.getRemoteUser();
+
+    if (UserConstants.ANON_USERID.equals(thisUser)) {
+      return;
+    }
+
+    Resource resource = request.getResource();
+    Session session = resource.getResourceResolver().adaptTo(Session.class);
+    Content profileContent = resource.adaptTo(Content.class);
+
+    String otherUser = PathUtils.getAuthorizableId(profileContent.getPath());
+
+    if (thisUser.equals(otherUser)) {
+      return;
+    }
+
+    Content connection = connectionManager.getConnectionDetails(StorageClientUtils.adaptToSession(session),
+                                                                thisUser, otherUser);
+
+    if (connection != null) {
+      map.put(SAKAI_CONNECTION_STATE, connection.getProperty(SAKAI_CONNECTION_STATE));
+      map.put(SAKAI_CONNECTION_TYPES, connection.getProperty(SAKAI_CONNECTION_TYPES));
+    }
+  }
+
 
   private boolean isTidy(SlingHttpServletRequest req) {
     for (String selector : req.getRequestPathInfo().getSelectors()) {
