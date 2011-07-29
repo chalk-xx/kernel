@@ -79,6 +79,8 @@ public interface UserConstants {
   public static final String PROP_MANAGERS_GROUP = "sakai:managers-group";
   public static final String PROP_MANAGED_GROUP = "sakai:managed-group";
   public static final String PROP_JOINABLE_GROUP = "sakai:group-joinable";
+  public static final String PROP_PSEUDO_GROUP = "sakai:pseudoGroup";
+  public static final String PROP_PSEUDO_GROUP_PARENT = "sakai:pseudogroupparent";
   
   /**
    * Bare Authorizables have no /~ content and don't do any post processing.

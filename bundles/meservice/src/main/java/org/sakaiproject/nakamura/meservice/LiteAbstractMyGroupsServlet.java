@@ -14,6 +14,7 @@ import org.sakaiproject.nakamura.api.lite.authorizable.AuthorizableManager;
 import org.sakaiproject.nakamura.api.lite.authorizable.Group;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,6 +199,37 @@ public abstract class LiteAbstractMyGroupsServlet extends SlingSafeMethodsServle
       LOGGER.debug(e.getLocalizedMessage(), e);
       return defaultValue;
     }
+  }
+
+  protected boolean isPseudoGroup(Group group) {
+    return ("true".equals(group.getProperty(UserConstants.PROP_PSEUDO_GROUP)) &&
+            group.getProperty(UserConstants.PROP_PSEUDO_GROUP_PARENT) != null);
+  }
+
+  protected boolean isManagerGroup(Group group, AuthorizableManager userManager)
+    throws AccessDeniedException, StorageClientException {
+    String groupId = group.getId();
+    String childGroupId = (String)group.getProperty(UserConstants.PROP_PSEUDO_GROUP_PARENT);    
+
+    Authorizable childGroup = (Authorizable)userManager.findAuthorizable(childGroupId);
+
+    if (childGroup == null) {
+      return false;
+    }
+
+    String[] managers = (String[])childGroup.getProperty(UserConstants.PROP_GROUP_MANAGERS);
+
+    if (managers == null) {
+      return false;
+    }
+
+    for (String manager : managers) {
+      if (groupId.equals(manager)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   protected abstract TreeMap<String, Group> getGroups(Authorizable member,

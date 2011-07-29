@@ -117,25 +117,39 @@ public class LiteMyManagedGroupsServlet extends LiteAbstractMyGroupsServlet {
       throws StorageClientException, AccessDeniedException {
     TreeMap<String, Group> managedGroups = new TreeMap<String, Group>();
     Iterator<Group> allGroupsIter = member.memberOf(userManager);
-    while (allGroupsIter.hasNext()) {
-      Group group = allGroupsIter.next();
-      if (!group.getId().equals(Group.EVERYONE)) {
-        for(String managerId : StorageClientUtils.nonNullStringArray(
+    for (String principal : member.getPrincipals()) {
+      Group group = (Group)userManager.findAuthorizable(principal);
+      if (group != null && !group.getId().equals(Group.EVERYONE)) {
+
+        boolean isManager = false;
+
+        if (isPseudoGroup(group) && isManagerGroup(group, userManager)) {
+          // The group we want is the child of the pseudo group
+          isManager = true;
+          group = (Group)userManager.findAuthorizable((String) group.getProperty(UserConstants.PROP_PSEUDO_GROUP_PARENT));
+        } else {
+          for(String managerId : StorageClientUtils.nonNullStringArray(
             (String[]) group.getProperty(UserConstants.PROP_GROUP_MANAGERS))) {
-          if (member.getId().equals(managerId)) {
-            final String category = stringRequestParameter(request, "category", null);
-            if (category == null) { // no filtering
-              managedGroups.put(group.getId(), group);
-            } else { // KERN-1865 category filter
-              if (category.equals(group.getProperty("sakai:category"))) {
-                managedGroups.put(group.getId(), group);
-              }
+            if (member.getId().equals(managerId)) {
+              isManager = true;
+              break;
             }
-            break;
+          }
+        }
+              
+        if (isManager) {
+          final String category = stringRequestParameter(request, "category", null);
+          if (category == null) { // no filtering
+            managedGroups.put(group.getId(), group);
+          } else { // KERN-1865 category filter
+            if (category.equals(group.getProperty("sakai:category"))) {
+              managedGroups.put(group.getId(), group);
+            }
           }
         }
       }
     }
+
     return managedGroups;
   }
 
