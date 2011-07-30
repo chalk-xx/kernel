@@ -154,7 +154,6 @@ module SlingInterface
     end
 
     def sendRequest(uri, req)
-      @log.warn("uri = #{uri}")
       # Not all browsers take port number into account when setting cookies.
       isSlingReq = uri.host && (uri.host == @serveruri.host)
       if (isSlingReq)
