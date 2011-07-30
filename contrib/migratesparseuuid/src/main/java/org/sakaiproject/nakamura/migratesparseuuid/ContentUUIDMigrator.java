@@ -20,7 +20,6 @@ import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.solr.SolrServerService;
 import org.sakaiproject.nakamura.lite.content.InternalContent;
-import org.sakaiproject.nakamura.lite.storage.StorageClientPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +37,6 @@ public class ContentUUIDMigrator {
 
 	@Reference
 	SolrServerService solrServerService;
-
-	@Reference
-	StorageClientPool storageClientPool;
 
 	@Activate
 	public void activate(Map<String,Object> props){
@@ -69,6 +65,7 @@ public class ContentUUIDMigrator {
 		try {
 			session = repository.loginAdministrative();
 			ContentManager cm = session.getContentManager();
+			cm.setMaintanenceMode(true);
 
 			int start = 0;
 
