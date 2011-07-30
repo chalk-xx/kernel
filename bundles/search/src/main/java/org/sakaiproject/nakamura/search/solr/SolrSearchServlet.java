@@ -320,23 +320,6 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
         }
         write.endArray();
 
-
-        if (page > 0 || rs.getSize() == nitems) {
-          // the result set may have been truncated by paging, so lets get a fuller count
-          query.getOptions().put(PARAMS_ITEMS_PER_PAGE, Long.toString(0));
-          query.getOptions().put(PARAMS_PAGE, Long.toString(0));
-          try {
-            if (useBatch) {
-              rs = searchBatchProcessor.getSearchResultSet(request, query);
-            } else {
-              rs = searchProcessor.getSearchResultSet(request, query);
-            }
-          } catch (SolrSearchException e) {
-            response.sendError(e.getCode(), e.getMessage());
-            return;
-          }
-        }
-
         // write the total out after processing the list to give the underlying iterator
         // a chance to walk the results then report how many there were.
         write.key(TOTAL);
