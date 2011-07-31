@@ -27,9 +27,9 @@ import org.slf4j.LoggerFactory;
 public class ContentUUIDMigrator {
 
 	private static final Logger log = LoggerFactory.getLogger(ContentUUIDMigrator.class);
-	
+
 	private static final String OLD_UUID_FIELD = "_id";
-	
+
 	private final int PAGE_SIZE = 25;
 
 	@Reference
@@ -44,27 +44,28 @@ public class ContentUUIDMigrator {
 	}
 
 	/**
-	 * 
+	 *
 	 * This method iterates over all of the sakai content items and renames the _id field
 	 * to _sparseId field by copying _id => _sparseId and deleting the _id field.
-	 * 
+	 *
 	 * {@link InternalContent} defines a constant for the content object's uuid field.
-	 * 
-	 * Originally that field was "_id". This clashed with MongoDB since every Mongo object has 
-	 * an _id field. Sparse tries to decouple the object id from the id that the underlying 
-	 * storage mechanism uses. 
-	 * 
+	 *
+	 * Originally that field was "_id". This clashed with MongoDB since every Mongo object has
+	 * an _id field. Sparse tries to decouple the object id from the id that the underlying
+	 * storage mechanism uses.
+	 *
 	 * See {@link http://www.mongodb.org/display/DOCS/Object+IDs}
-	 * 
+	 *
 	 * This is meant for systems running sparsemapcontent with a JDBC or Cassandra driver.
 	 * If you don't run this after upgrading sparsemapcontent you won't be able to see any
-	 * content in the system. 
+	 * content in the system.
 	 */
 	public void migrateUUIDs(){
 		Session session;
 		try {
 			session = repository.loginAdministrative();
 			ContentManager cm = session.getContentManager();
+			cm.setMaintanenceMode(true);
 
 			int start = 0;
 
@@ -78,7 +79,7 @@ public class ContentUUIDMigrator {
 			QueryResponse response = server.query(query);
 		    long totalResults = response.getResults().getNumFound();
 		    log.info("Attempting to migrate {} content items.", totalResults);
-		    
+
 		    while (start < totalResults){
 		        query.setStart(start);
 		        SolrDocumentList resultDocs = response.getResults();
@@ -88,15 +89,16 @@ public class ContentUUIDMigrator {
 		            	continue;
 		            }
 		            Content content = cm.get(id);
-		            String oldUUID = (String)content.getProperty(OLD_UUID_FIELD);
-		            if (oldUUID != null){
-		            	content.setProperty(InternalContent.UUID_FIELD, oldUUID);
-		            	content.removeProperty(OLD_UUID_FIELD);
-		            	cm.update(content);
+		            String contentUUID = (String)content.getProperty(OLD_UUID_FIELD);
+		            if (contentUUID != null){
+                        content.setProperty(InternalContent.UUID_FIELD, contentUUID);
+                        content.removeProperty(OLD_UUID_FIELD);
+                        storageClientPool.getClient().insert("n", "cn", contentUUID, content.getPropertiesForUpdate(), false);
+                        log.debug("Updated {} ", contentUUID);
 		            }
 		        }
 		        start += resultDocs.size();
-		        log.debug("Processed {} of {}.", resultDocs.size(), totalResults);
+                log.debug("Processed {} of {}.", resultDocs.size(), totalResults);
 		    }
 			session.logout();
 
