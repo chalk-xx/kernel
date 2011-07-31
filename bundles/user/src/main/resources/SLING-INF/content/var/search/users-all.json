@@ -2,7 +2,7 @@
   "sling:resourceType": "sakai/solr-search",
   "sakai:query-template": "resourceType:authorizable",
   "sakai:query-template-options": {
-	  "fq": "type:u",
+	  "fq": "type:u AND resourceType:authorizable",
       "sort": "${sortOn} ${sortOrder}"
   },
   "sortOn": "score",
