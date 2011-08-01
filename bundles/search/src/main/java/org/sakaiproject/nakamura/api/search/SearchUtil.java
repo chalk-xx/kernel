@@ -130,7 +130,10 @@ public class SearchUtil {
   }
 
   public static int getTraversalDepth(SlingHttpServletRequest req) {
-    int maxRecursionLevels = 0;
+    return SearchUtil.getTraversalDepth(req, 0);
+  }
+
+  public static int getTraversalDepth(SlingHttpServletRequest req, int maxRecursionLevels) {
     final String[] selectors = req.getRequestPathInfo().getSelectors();
     if (selectors != null && selectors.length > 0) {
       final String level = selectors[selectors.length - 1];
