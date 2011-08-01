@@ -155,7 +155,7 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
             // call back to itself: this allows for groups to be in groups and future
             // extensions
             sendHelper(recipients, memberName, originalMessage, session, messageId,
-            authManager);
+                authManager);
           }
         }
       } else {
