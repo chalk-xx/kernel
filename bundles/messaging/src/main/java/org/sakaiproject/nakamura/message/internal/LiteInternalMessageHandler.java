@@ -151,11 +151,11 @@ public class LiteInternalMessageHandler implements LiteMessageTransport,
         // user must be in the group directly to send a message:
         for (String memberName : group.getMembers()) {
           if (!recipients.contains(memberName)) {
+            recipients.add(memberName);
             // call back to itself: this allows for groups to be in groups and future
             // extensions
             sendHelper(recipients, memberName, originalMessage, session, messageId,
-                authManager);
-            recipients.add(memberName);
+            authManager);
           }
         }
       } else {
