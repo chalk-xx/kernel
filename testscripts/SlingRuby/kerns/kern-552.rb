@@ -18,11 +18,11 @@ class TC_KernMeTest < Test::Unit::TestCase
   
   def set_first_name(name, user)
     public = user.public_path_for(@s)
-    path = "#{public}/authprofile"
+    path = "#{public}/authprofile.profile.json"
     props = {"firstName" => name, "_charset_" => "UTF-8"}
     res = @s.execute_post(@s.url_for(path), props)
     @log.info(res.body)
-    res = @s.execute_get(@s.url_for("#{path}.5.tidy.json"))
+    res = @s.execute_get(@s.url_for("#{path}.profile.json"))
     @log.info(res.body)
   end
   

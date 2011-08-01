@@ -41,7 +41,7 @@ class TC_Kern929Test < Test::Unit::TestCase
     profilecontent = "{\"aboutme\": {\"elements\": { #{json_hobbies}, #{json_aboutme}, #{json_academicinterests}, #{json_personalinterests} }}}"
 
     # post aboutme json to authprofile
-    res = @s.execute_post(@s.url_for("#{public}/authprofile"), {
+    res = @s.execute_post(@s.url_for("#{public}/authprofile.profile.json"), {
           ":content" => profilecontent,
           ":contentType" => "json",
           ":operation" => "import",
@@ -53,7 +53,7 @@ class TC_Kern929Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Should have updated the user profile data")
 
     # get the user's authprofile
-    res = @s.execute_get(@s.url_for("#{public}/authprofile.json"))
+    res = @s.execute_get(@s.url_for("#{public}/authprofile.profile.json"))
     assert_equal("200", res.code, "Should have read the user profile data")
     json = JSON.parse(res.body)
 
