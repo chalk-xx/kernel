@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.search.solr;
 
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_PAGE;
+import static org.sakaiproject.nakamura.api.search.solr.SolrSearchConstants.PARAMS_ITEMS_PER_PAGE;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -49,6 +52,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -157,7 +161,7 @@ public class SparseResultSetFactory implements ResultSetFactory {
       LOGGER.debug(e.getLocalizedMessage(), e);
     }
     SolrSearchResultSet rs = new SparseSearchResultSet(items, defaultMaxResults);
-    return rs;
+    return getResultSetWithCount(rs, props, cm);
     } catch (AccessDeniedException e) {
       throw new SolrSearchException(500, e.getMessage());
     } catch (StorageClientException e) {
@@ -165,6 +169,105 @@ public class SparseResultSetFactory implements ResultSetFactory {
     } catch (ParseException e) {
       throw new SolrSearchException(500, e.getMessage());
     }
+  }
+
+  /**
+   * A standard paged OAE search returns a "total" value in the response. This may not
+   * be an exact count of all potential matches, but should be enough to let
+   * client-side code display a reasonable paging UX.  With a Solr search, "total" is
+   * derived from SolrDocumentList's getNumFound(). But a Sparse query
+   * result provides no equivalent functionality, and Sparse currently doesn't support
+   * SQL-style "count" queries. As a result, the only way to find out if there are
+   * more matches available is to do more searching and iterating.
+   *
+   * What's supplied here is a very rough negotiation between (A) leaving the client-side
+   * completely in the dark and (B) retrieving every single match in the DB on every
+   * single query.
+   * <ul>
+   * <li>If the current page's search returned more than zero results but fewer than the page size,
+   * then this is the last page available. Estimate "total" as the current page offset plus
+   * the current number of results.
+   * <li>If the current page's search returned zero results, then we assume that any earlier pages
+   * were full, and we estimate "total" as the current page offset. This may be wildly off, but it
+   * should help keep client-side paging from vanishing unexpectedly.
+   * <li>If the current page's search returned a full page of results, then a second query is needed
+   * to hint at the remaining count. We try to retrieve a maximum-page-size's worth of results
+   * as a compromise between speed and accuracy.
+   * </ul>
+   *
+   * @param queryResultSet
+   * @param props
+   * @param cm
+   * @return
+   * @throws StorageClientException
+   * @throws AccessDeniedException
+   */
+  private SolrSearchResultSet getResultSetWithCount(SolrSearchResultSet queryResultSet,
+      Map<String, Object> props, ContentManager cm) throws StorageClientException, AccessDeniedException {
+    final SolrSearchResultSet finalResultSet;
+    final long queryCount = queryResultSet.getSize();
+
+    if (queryCount < 0) {
+      // Negative sizes signal "more than can be counted," and require no further
+      // tinkering.
+      finalResultSet = queryResultSet;
+    } else {
+      // Solr search results include both the desired page of results and a fuller count
+      // of matches. Sparse queries only return the requested page of results, with no
+      // other information.
+      final long count;
+      long nitems = Long.valueOf(String.valueOf(props.get("_" + PARAMS_ITEMS_PER_PAGE)));
+      long page = Long.valueOf(String.valueOf(props.get("_" + PARAMS_PAGE)));
+      long offset = page * nitems;
+      if (queryCount == 0) {
+        if (page > 0) {
+          // If the current page results are empty, that says nothing about whether
+          // earlier pages would have been full. It's possible that there are no matches
+          // at all, in which case the reported count will be even more misleading than usual.
+          try {
+            LOGGER.info("Empty results from paged sparse query {}", URLDecoder.decode(props.toString(),"UTF-8"));
+          } catch (UnsupportedEncodingException e) {
+            LOGGER.debug(e.getLocalizedMessage(), e);
+          }
+        }
+        count = offset;
+      } else {
+        // Currently the only way to get a count of Sparse matches outside the specified
+        // page range is to perform a larger paged query. Sparse query restrictions
+        // mean that a very inaccurate count is still very likely (as compared to
+        // a "count()" query in SQL).
+        if (queryCount == nitems) {
+          long nextOffset = offset + nitems;
+          long countStartPage = nextOffset / defaultMaxResults;
+          long countOffset = countStartPage * defaultMaxResults;
+          props.put("_" + PARAMS_PAGE, Long.toString(countStartPage));
+          props.put("_" + PARAMS_ITEMS_PER_PAGE, Integer.toString(defaultMaxResults));
+          long tquery = System.currentTimeMillis();
+          Iterable<Content> countItems = cm.find(props);
+          tquery = System.currentTimeMillis() - tquery;
+          try {
+            if ( tquery > verySlowQueryThreshold ) {
+              SLOW_QUERY_LOGGER.error("Very slow count retrieval from sparse query {} ms {} ",tquery, URLDecoder.decode(props.toString(),"UTF-8"));
+            } else if ( tquery > slowQueryThreshold ) {
+              SLOW_QUERY_LOGGER.warn("Slow count retrieval from sparse query {} ms {} ",tquery, URLDecoder.decode(props.toString(),"UTF-8"));
+            }
+          } catch (UnsupportedEncodingException e) {
+            LOGGER.debug(e.getLocalizedMessage(), e);
+          }
+          long additionalCount = 0;
+          final Iterator<Content> countIterator = countItems.iterator();
+          while (countIterator.hasNext()) {
+            countIterator.next();
+            additionalCount++;
+          }
+          count = countOffset + additionalCount;
+        } else {
+          count = offset + queryCount;
+        }
+      }
+      finalResultSet = new SearchResultSetSizeWrapper(queryResultSet, count);
+    }
+    return finalResultSet;
   }
 
   /**
