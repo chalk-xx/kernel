@@ -164,15 +164,16 @@ def main
         Dir.mkdir PREV_DIR + "/#{id}" unless File.directory? PREV_DIR + "/#{id}"
 
         # Moving these previews to another directory: "PREVS_DIR/filename/index.jpg".
-        Dir[id + '_*'].sort.each_with_index do |preview, index|
-          FileUtils.mv "#{preview}", "#{PREV_DIR}/#{id}/#{index}.jpg"
+        Dir[id + '_*'].each_with_index do |preview, index|
+          FileUtils.mv "#{id}_#{index + 1}.jpg", "#{PREV_DIR}/#{id}/#{index}.jpg"
         end
 
         Dir.chdir PREV_DIR + "/#{id}"
         page_count = Dir["*"].size
 
         # Upload each preview and create+upload a thumbnail.
-        Dir["*"].sort.each_with_index do |filename_p, index|
+        for index in (0..page_count - 1)
+          filename_p = "#{index}.jpg"
           # Upload the generated preview of this page.
           nbytes, content = File.size(filename_p), nil
           File.open(filename_p, "rb") { |f| content = f.read nbytes }
