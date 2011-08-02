@@ -252,9 +252,11 @@ public class LiteCreateSakaiUserServlet extends LiteAbstractUserPostServlet {
     try {
       Session currentSession = StorageClientUtils.adaptToSession(request
           .getResourceResolver().adaptTo(javax.jcr.Session.class));
-      administrator = User.ADMIN_USER.equals(currentSession.getUserId());
+      AuthorizableManager authorizableManager = currentSession.getAuthorizableManager();
+      User currentUser = (User)authorizableManager.findAuthorizable(currentSession.getUserId());
+      administrator = currentUser.isAdmin();
     } catch (Exception ex) {
-      log.warn("Failed to determin if the user is an admin, assuming not. Cause: "
+      log.warn("Failed to determine if the user is an admin, assuming not. Cause: "
           + ex.getMessage());
       administrator = false;
     }
