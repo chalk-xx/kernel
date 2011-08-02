@@ -349,6 +349,7 @@ application/x-compress
 application/x-cpio		cpio
 application/x-csh		csh
 application/x-director		dcr dir dxr
+application/x-diskcopy		dmg
 application/x-download      pdf
 application/x-dvi		dvi
 application/x-futuresplash	spl
