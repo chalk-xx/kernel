@@ -35,6 +35,8 @@ public class Query {
 
   private Map<String, String> options;
 
+  private String name;
+
   public Query(String queryString) {
     if (StringUtils.isBlank(queryString)) {
       throw new IllegalArgumentException("'queryString' must be provided to query");
@@ -42,6 +44,7 @@ public class Query {
 
     this.type = Query.SOLR;
     this.queryString = queryString;
+    this.name = null;
   }
 
   /**
@@ -54,6 +57,7 @@ public class Query {
     this(queryString);
 
     this.options = options;
+    this.name = null;
   }
 
   /**
@@ -65,8 +69,14 @@ public class Query {
     this(queryString, options);
 
     this.type = type;
+    this.name = null;
   }
 
+
+  public Query(String name, String type, String queryString, Map<String, String> options) {
+    this(type, queryString, options);
+    this.name = name;
+  }
   /**
    * Get the type of query this is.
    *
@@ -102,5 +112,9 @@ public class Query {
       retval += "; options::" + options.toString();
     }
     return retval;
+  }
+
+  public String getName() {
+    return name;
   }
 }
