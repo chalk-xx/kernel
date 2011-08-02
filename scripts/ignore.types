@@ -1,0 +1,7 @@
+# A list of types to exclude from preview processing
+
+application/octet-stream
+application/x-diskcopy
+application/x-gzip
+application/x-tar
+application/zip
