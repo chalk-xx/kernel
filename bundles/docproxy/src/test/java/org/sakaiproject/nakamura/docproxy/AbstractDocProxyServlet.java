@@ -36,7 +36,9 @@ import org.sakaiproject.nakamura.docproxy.disk.DiskProcessorTest;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -66,8 +68,10 @@ public class AbstractDocProxyServlet extends AbstractEasyMockTest {
     super.setUp();
 
     // Setup a proxy node.
-    String readmePath = getClass().getClassLoader().getResource("README").getPath();
-    currPath = readmePath.substring(0, readmePath.lastIndexOf("/"));
+    URI readmeUri = getClass().getClassLoader().getResource("README").toURI();
+    File readmeFile = new File(readmeUri);
+    String readmePath = readmeFile.getPath();
+    currPath = readmePath.substring(0, readmePath.lastIndexOf(File.separator));
 
     proxyNode = new MockNode("/docproxy/disk");
     proxyNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY);

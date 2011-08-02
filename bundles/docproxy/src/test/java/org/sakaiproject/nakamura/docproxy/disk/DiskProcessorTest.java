@@ -43,9 +43,11 @@ import org.sakaiproject.nakamura.api.docproxy.ExternalSearchResultSet;
 import org.sakaiproject.nakamura.util.IOUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -73,8 +75,10 @@ public class DiskProcessorTest {
     // Start with a new processor.
     diskProcessor = new DiskProcessor();
 
-    String readmePath = getClass().getClassLoader().getResource("README").getPath();
-    currPath = readmePath.substring(0, readmePath.lastIndexOf("/"));
+    URI readmeUri = getClass().getClassLoader().getResource("README").toURI();
+    File readmeFile = new File(readmeUri);
+    String readmePath = readmeFile.getPath();
+    currPath = readmePath.substring(0, readmePath.lastIndexOf(File.separator));
 
     proxyNode = new MockNode("/docproxy/disk");
     proxyNode.setProperty(REPOSITORY_LOCATION, currPath);

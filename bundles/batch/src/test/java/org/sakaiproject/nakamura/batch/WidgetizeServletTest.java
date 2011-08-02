@@ -33,6 +33,7 @@ import org.sakaiproject.nakamura.api.memory.CacheScope;
 
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
+import java.net.URISyntaxException;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
@@ -45,7 +46,7 @@ public class WidgetizeServletTest extends AbstractWidgetServletTest {
   private WidgetizeServlet servlet;
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() throws IOException, URISyntaxException {
     super.setUp();
 
     servlet = new WidgetizeServlet();

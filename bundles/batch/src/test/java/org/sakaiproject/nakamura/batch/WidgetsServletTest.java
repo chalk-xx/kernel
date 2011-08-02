@@ -34,6 +34,7 @@ import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,7 +48,7 @@ public class WidgetsServletTest extends AbstractWidgetServletTest {
   private WidgetsServlet servlet;
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() throws IOException, URISyntaxException {
     super.setUp();
 
     servlet = new WidgetsServlet();
