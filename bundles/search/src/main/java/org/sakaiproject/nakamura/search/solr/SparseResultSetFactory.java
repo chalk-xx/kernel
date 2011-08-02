@@ -43,6 +43,7 @@ import org.apache.solr.schema.TextField;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
+import org.sakaiproject.nakamura.api.lite.StorageConstants;
 import org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException;
 import org.sakaiproject.nakamura.api.lite.content.Content;
 import org.sakaiproject.nakamura.api.lite.content.ContentManager;
@@ -142,6 +143,11 @@ public class SparseResultSetFactory implements ResultSetFactory {
     // add the options to the parameters but prepend _ to avoid collision
     for (Entry<String, String> option : query.getOptions().entrySet()) {
       props.put("_" + option.getKey(), option.getValue());
+    }
+    
+    String name = query.getName();
+    if ( name != null ) {
+       props.put(StorageConstants.CUSTOM_STATEMENT_SET, name);
     }
 
     Session session = StorageClientUtils.adaptToSession(request.getResourceResolver()

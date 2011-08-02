@@ -408,7 +408,7 @@ public class SolrSearchServlet extends SlingSafeMethodsServlet {
     // process the options as templates and check for missing params
     Map<String, String> options = processOptions(propertiesMap, queryOptions, queryType);
 
-    Query query = new Query(queryType, queryString, options);
+    Query query = new Query(queryNode.getPath(), queryType, queryString, options);
     return query;
   }
 
