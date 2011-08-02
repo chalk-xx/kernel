@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +60,7 @@ public abstract class AbstractWidgetServletTest {
   protected PrintWriter printWriter;
   protected WidgetServiceImpl widgetService;
 
-  public void setUp() throws IOException {
+  public void setUp() throws IOException, URISyntaxException {
     // Init mocks
     MockitoAnnotations.initMocks(this);
 
@@ -86,7 +87,7 @@ public abstract class AbstractWidgetServletTest {
     when(response.getWriter()).thenReturn(printWriter);
 
     // Mock all the test resources as "Sling Resources".
-    File file = new File(getClass().getResource("/widgets").getPath());
+    File file = new File(getClass().getResource("/widgets").toURI());
     mockResource("/widgets", file);
   }
 
