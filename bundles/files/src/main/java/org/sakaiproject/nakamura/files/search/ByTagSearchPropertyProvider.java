@@ -36,10 +36,17 @@ import java.util.Set;
  * that all known types will be returned.
  * <p>
  * Expected types are (any combination; comma separated):
- * <ul>
- * <li>user</li>
- * <li>group</li>
- * <li>content</li>
+ * <table>
+ * <tr>
+ * <th>
+ * <td>url param</td>
+ * <td>description</td>
+ * </th>
+ * </tr>
+ * <tr>
+ * <td>u</td><td>user</td>
+ * <td>g</td><td>group</td>
+ * </tr>c</td><td>content</td>
  * </ul>
  */
 @Component
