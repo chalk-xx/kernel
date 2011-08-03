@@ -68,19 +68,19 @@ public class ByTagSearchPropertyProvider implements SolrSearchPropertyProvider {
     if (rpType != null && !StringUtils.isBlank(rpType)) {
       // at least one type was specified. split on comma to check for multiples
       Set<String> types = Sets.newHashSet(StringUtils.split(rpType, ','));
-      if (types.contains("user") || types.contains("group")) {
-        if (!types.contains("content")) {
+      if (types.contains("u") || types.contains("g")) {
+        if (!types.contains("c")) {
           // found user or group but not content
           resourceType = "authorizable";
         }
         // filter futher if only one type of authorizable was requested. the default is
         // to not include a type filter which will return all authorizables
-        if (rpType.contains("user") && !rpType.contains("group")) {
+        if (rpType.contains("u") && !rpType.contains("g")) {
           type = " AND type:u";
-        } else if (!rpType.contains("user") && rpType.contains("group")) {
+        } else if (!rpType.contains("u") && rpType.contains("g")) {
           type = " AND type:g";
         }
-      } else if (types.contains("content")) {
+      } else if (types.contains("c")) {
         resourceType = "sakai/pooled-content";
       }
     }

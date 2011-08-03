@@ -65,8 +65,8 @@ public class ByTagSearchPropertyProviderTest {
 
   @Test
   public void testJustAuthorizables() {
-    when(request.getParameter("type")).thenReturn("user").thenReturn("group")
-        .thenReturn("user,group");
+    when(request.getParameter("type")).thenReturn("u").thenReturn("g")
+        .thenReturn("u,g");
 
     Map<String, String> props = Maps.newHashMap();
     propProvider.loadUserProperties(request, props);
@@ -89,8 +89,8 @@ public class ByTagSearchPropertyProviderTest {
 
   @Test
   public void testExpectedDefaultResponses() {
-    when(request.getParameter("type")).thenReturn("user,group,content")
-        .thenReturn("user,content").thenReturn("content,group");
+    when(request.getParameter("type")).thenReturn("u,g,c")
+        .thenReturn("u,c").thenReturn("c,g");
 
     Map<String, String> props = Maps.newHashMap();
     propProvider.loadUserProperties(request, props);
@@ -113,7 +113,7 @@ public class ByTagSearchPropertyProviderTest {
 
   @Test
   public void testContent() {
-    when(request.getParameter("type")).thenReturn("content");
+    when(request.getParameter("type")).thenReturn("c");
 
     Map<String, String> props = Maps.newHashMap();
     propProvider.loadUserProperties(request, props);
@@ -124,8 +124,8 @@ public class ByTagSearchPropertyProviderTest {
 
   @Test
   public void testCombinations() {
-    when(request.getParameter("type")).thenReturn("user,random,content")
-        .thenReturn("random,content").thenReturn("random,group");
+    when(request.getParameter("type")).thenReturn("u,random,c")
+        .thenReturn("random,c").thenReturn("random,g");
 
     Map<String, String> props = Maps.newHashMap();
     propProvider.loadUserProperties(request, props);
