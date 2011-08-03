@@ -31,6 +31,7 @@ import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.params.CommonParams;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -144,7 +145,7 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
         }
       }
 
-      queryString.append(")&start=0&sort=_created desc");
+      queryString.append(")");
 
       // The "groupedby" clause forces us to inspect every message. If not
       // specified, all we need is the count.
@@ -155,7 +156,9 @@ public class LiteCountServlet extends SlingSafeMethodsServlet {
         itemCount = MAX_RESULTS_COUNTED;
       }
       Map<String, String> queryOptions = ImmutableMap.of(
-          PARAMS_ITEMS_PER_PAGE, Long.toString(itemCount)
+          PARAMS_ITEMS_PER_PAGE, Long.toString(itemCount),
+          CommonParams.START, "0",
+          CommonParams.SORT, "_created desc"
       );
 
       Query query = new Query(queryString.toString(), queryOptions);
