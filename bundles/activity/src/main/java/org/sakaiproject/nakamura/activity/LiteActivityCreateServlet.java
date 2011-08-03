@@ -153,13 +153,13 @@ public class LiteActivityCreateServlet extends SlingAllMethodsServlet {
           javax.jcr.Session.class));
       activityService.createActivity(session, location, session.getUserId(), new ActivityServiceCallback() {
         
-        public void processRequest(Content activtyNode) throws StorageClientException, ServletException, IOException {
+        public void processRequest(Content activityNode) throws StorageClientException, ServletException, IOException {
           RequestPathInfo requestPathInfo = request.getRequestPathInfo();
           // Wrapper which needs to remove the .activity selector from RequestPathInfo to
           // avoid
           // an infinite loop.
           final RequestPathInfo wrappedPathInfo = createRequestPathInfo(requestPathInfo,
-              activtyNode.getPath());
+            activityNode.getPath());
 
           // Next insert the new RequestPathInfo into a wrapped Request
           SlingHttpServletRequest wrappedRequest = new SlingHttpServletRequestWrapper(request) {
@@ -169,7 +169,7 @@ public class LiteActivityCreateServlet extends SlingAllMethodsServlet {
             }
           };
           
-          SparseContentResource target = new SparseContentResource(activtyNode, session, request.getResourceResolver());
+          SparseContentResource target = new SparseContentResource(activityNode, session, request.getResourceResolver());
           request.getRequestDispatcher(target).forward(wrappedRequest, response);
         }
       });

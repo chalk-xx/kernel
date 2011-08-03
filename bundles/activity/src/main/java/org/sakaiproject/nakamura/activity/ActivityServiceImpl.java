@@ -46,7 +46,7 @@ public class ActivityServiceImpl implements ActivityService {
       userId = session.getUserId();
     }
     if ( !userId.equals(session.getUserId()) && !User.ADMIN_USER.equals(session.getUserId()) ) {
-      throw new IllegalStateException("Only Administrative sessions may act on behalf of annother user for activities");
+      throw new IllegalStateException("Only Administrative sessions may act on behalf of another user for activities");
     }
     ContentManager contentManager = session.getContentManager();
     // create activityStore if it does not exist
@@ -70,27 +70,32 @@ public class ActivityServiceImpl implements ActivityService {
                   Permissions.ALL.getPermission(), Operation.OP_REPLACE) });
     }
     // create activity within activityStore
-    String activtyPath = StorageClientUtils.newPath(path, ActivityUtils.createId());
-    if (!contentManager.exists(activtyPath)) {
-      contentManager.update(new Content(activtyPath, ImmutableMap.of(
+    String activityPath = StorageClientUtils.newPath(path, ActivityUtils.createId());
+    String activityFeedPath = StorageClientUtils.newPath(targetLocation.getPath(), "activityFeed");
+
+    if (!contentManager.exists(activityFeedPath)) {
+      contentManager.update(new Content(activityFeedPath, null));
+    }
+    if (!contentManager.exists(activityPath)) {
+      contentManager.update(new Content(activityPath, ImmutableMap.of(
           JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
           (Object) ActivityConstants.ACTIVITY_SOURCE_ITEM_RESOURCE_TYPE)));
     }
 
     
-    Content activtyNode = contentManager.get(activtyPath);
+    Content activtyNode = contentManager.get(activityPath);
     callback.processRequest(activtyNode);
 
 
-    activtyNode = contentManager.get(activtyPath);
+    activtyNode = contentManager.get(activityPath);
     activtyNode.setProperty(PARAM_ACTOR_ID, userId);
     activtyNode.setProperty(ActivityConstants.PARAM_SOURCE, targetLocation.getPath());
     contentManager.update(activtyNode);
     // post the asynchronous OSGi event
     final Dictionary<String, String> properties = new Hashtable<String, String>();
     properties.put(UserConstants.EVENT_PROP_USERID, userId);
-    properties.put(ActivityConstants.EVENT_PROP_PATH, activtyPath);
-    properties.put("path", activtyPath);
+    properties.put(ActivityConstants.EVENT_PROP_PATH, activityPath);
+    properties.put("path", activityPath);
     properties.put("resourceType", ActivityConstants.ACTIVITY_SOURCE_ITEM_RESOURCE_TYPE);
     EventUtils.sendOsgiEvent(properties, LITE_EVENT_TOPIC, eventAdmin);
   }
