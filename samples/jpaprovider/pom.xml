@@ -100,7 +100,7 @@ org.xml.sax.helpers,
     <dependency>
       <groupId>org.apache.derby</groupId>
       <artifactId>derby</artifactId>
-      <version>10.4.2.0</version>
+      <version>10.14.2.0</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
